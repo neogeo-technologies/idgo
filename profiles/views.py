@@ -16,8 +16,8 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 
-from ckan_module.views import ckan_add_user, ckan_del_user
-from ldap_module.views import ldap_add_user, ldap_del_user
+from .ckan_module import ckan_add_user, ckan_del_user
+from .ldap_module import ldap_add_user, ldap_del_user
 
 
 from .forms import UserForm, UserProfileForm, RegistrationForm, UserDeleteForm

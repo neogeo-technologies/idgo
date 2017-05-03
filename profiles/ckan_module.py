@@ -104,4 +104,3 @@ def ckan_del_group(grp):
     except ValidationError:
          return False
     return True
-
