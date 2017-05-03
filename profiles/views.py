@@ -15,7 +15,6 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import View
-from django.utils.decorators import method_decorator
 from django.views.generic.edit import FormView
 from django.views.generic.edit import CreateView
 
@@ -28,62 +27,6 @@ from profiles.models import Profile
 
 
 @csrf_exempt
-def old_add_user(request):
-    response = {}
-    required_elements = ['username', 'password', 'email',
-        'first_name', 'last_name', 'organisme',
-        'address', 'zipcode','city', 'country']
-    if any((x not in request.POST for x in required_elements)):
-        response['server_response'] = 'Error'
-        response['message'] = 'Uncomplete form'
-        return JsonResponse(response)
-    username = request.POST.get("username", "")
-    password = request.POST.get("password", "")
-    email = request.POST.get("email", "")
-    first_name = request.POST.get("first_name", "")
-    last_name = request.POST.get("last_name", "")
-    organisme = request.POST.get("organisme", "")
-    address = request.POST.get("address", "")
-    zipcode = request.POST.get("zipcode", "")
-    city = request.POST.get("city", "")
-    country = request.POST.get("country", "")
-
-    try:
-        user = User.objects.create_user(username, email, password)
-        user.first_name = first_name
-        user.last_name = last_name
-        user.is_active = True
-        user.save()
-
-    except IntegrityError as e:
-        response['server_response'] = 'Error'
-        response['message'] = 'Account already exists'
-        return JsonResponse(response)
-    except :
-        response['server_response'] = 'Error'
-        response['message'] = 'Error during account creation process'
-        return JsonResponse(response)
-
-    cpt = 0
-    if ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(password)):
-        cpt = +1
-    else:
-        print('LDAP Problem')
-
-    if ckan_add_user(user, password):
-        cpt += 1
-    else:
-        print('CKAN Problem')
-    if cpt == 2:
-        response['server_response'] = 'Success'
-        response['message'] = 'User created with id %s' % user.id
-    else:
-        user.delete()
-        response['server_response'] = 'Error'
-        response['message'] = 'Error during account creation'
-    return JsonResponse(response)
-
-
 def add_user(request):
 
     uform = UserForm(data=request.POST or None)
