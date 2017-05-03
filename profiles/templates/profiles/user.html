@@ -5,13 +5,19 @@
     <title>{{ context }}</title>
 </head>
 <body>
-<form action="" method="post">
+{% load bootstrap3 %}
+{# Display a form #}
+<form action="" method="post" class="form">
     {% csrf_token %}
-    <h2> {{ context }} </h2>
-    {{ uform.as_p }}
-    {{ pform.as_p }}
-    <input type="submit" value="Submit">
+    {% bootstrap_form uform %}
+    {% bootstrap_form pform %}
+    {% buttons %}
+        <button type="submit" class="btn btn-primary">
+            {% bootstrap_icon "star" %} Submit
+        </button>
+    {% endbuttons %}
 </form>
 
 </body>
 </html>
+

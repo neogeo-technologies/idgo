@@ -9,8 +9,8 @@ from django.dispatch import receiver
 from django.utils.text import slugify
 
 
-from ldap_module.views import ldap_sync_object, ldap_add_user, ldap_del_user, ldap_add_user_to_group, ldap_del_user_from_group
-from ckan_module.views import ckan_del_user, ckan_add_organisation, ckan_del_organisation, ckan_test_organisation, ckan_add_user_to_organisation, ckan_del_user_from_organisation, ckan_user_deactivate
+from .ldap_module import ldap_sync_object, ldap_add_user, ldap_del_user, ldap_add_user_to_group, ldap_del_user_from_group
+from .ckan_module import ckan_del_user, ckan_add_organisation, ckan_del_organisation, ckan_test_organisation, ckan_add_user_to_organisation, ckan_del_user_from_organisation, ckan_user_deactivate
 
 
 class OrganisationType(models.Model):
