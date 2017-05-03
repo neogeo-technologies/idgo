@@ -15,6 +15,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth import authenticate
 
 from .ckan_module import ckan_add_user, ckan_del_user
 from .ldap_module import ldap_add_user, ldap_del_user
@@ -22,6 +23,7 @@ from .ldap_module import ldap_add_user, ldap_del_user
 
 from .forms import UserForm, UserProfileForm, RegistrationForm, UserDeleteForm
 from .models import Profile
+
 
 
 @csrf_exempt
@@ -65,8 +67,8 @@ def add_user(request):
 @csrf_exempt
 def update_user(request, id):
 
-    user = User.objects.get(pk=id)
-    profile = Profile.objects.get(user=user)
+    user = get_object_or_404(User, pk=id)
+    profile = get_object_or_404(Profile, user=user)
 
     if request.method == "GET":
 
@@ -83,9 +85,10 @@ def update_user(request, id):
         if uform.is_valid() and pform.is_valid():
 
             password = uform.cleaned_data['password']
-            user = uform.save()
-            user.password = make_password(password)
 
+            user = uform.save()
+
+            user.password = make_password(password)
             errors = {}
             if ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(password)) is False:
                 errors["LDAP"] = "Error during LDAP account creation"
@@ -120,7 +123,7 @@ def delete_user(request, id):
 
     if request.method == "GET":
         return render(request, "profiles/user.html",
-                      {'context':"SUPPRESSION D'UN COMPTE UTILISATEUR",
+                      {'context': "SUPPRESSION D'UN COMPTE UTILISATEUR",
                        'uform': UserDeleteForm(instance=user, initial={'password': None}),
                        'pform': None})
 
@@ -128,9 +131,18 @@ def delete_user(request, id):
         uform = UserDeleteForm(data=request.POST, instance=user)
         if uform.is_valid():
             password = uform.cleaned_data['password']
+            errors = {}
+            try:
+                user = authenticate(user=user, password=password)
+            except:
+                errors["Autheticate"]="Check passsword"
 
             # ldap_del_user(uid)
             # ckan_del_user()
+
+            if errors:
+                return JsonResponse(data=errors,
+                                    status=404)
 
             profile.delete()
             user.delete()

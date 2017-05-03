@@ -3,7 +3,6 @@ from django.conf.urls import url
 from profiles.views import (add_user, update_user, delete_user,
                             register, activation, new_activation_link)
 
-
 urlpatterns = [
     url(r"^add_user/?$", add_user, name="add_user"),
     url(r"^update_user/([0-9]+)/?$", update_user, name="update_user"),

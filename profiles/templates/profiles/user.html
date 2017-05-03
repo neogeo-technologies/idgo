@@ -5,12 +5,26 @@
     <title>{{ context }}</title>
 </head>
 <body>
+
 {% load bootstrap3 %}
+{% bootstrap_label context %}
+
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+{# Display django.contrib.messages as Bootstrap alerts #}
+{% bootstrap_messages %}
+
 {# Display a form #}
 <form action="" method="post" class="form">
     {% csrf_token %}
-    {% bootstrap_form uform %}
-    {% bootstrap_form pform %}
+    {% bootstrap_form uform layout='horizontal' size='md' %}
+
+    {%if pform is not None %}
+    {% bootstrap_form pform size='md'%}
+    {% endif%}
+
     {% buttons %}
         <button type="submit" class="btn btn-primary">
             {% bootstrap_icon "star" %} Submit
