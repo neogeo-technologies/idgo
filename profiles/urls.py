@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
 from profiles.views import (add_user, update_user, register,
-                            activation, new_activation_link)
+                            activation, new_activation_link, UpdateUserData)
 
 
 urlpatterns = [
