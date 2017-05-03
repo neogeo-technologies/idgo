@@ -1,9 +1,13 @@
-<html>
-<head><title>MODIFICATION D'UN COMPTE UTILISATEUR</title></head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ context }}</title>
+</head>
 <body>
 <form action="" method="post">
     {% csrf_token %}
-    <h2> "MODIFICATION D'UN COMPTE UTILISATEUR" </h2>
+    <h2> {{ context }} </h2>
     {{ uform.as_p }}
     {{ pform.as_p }}
     <input type="submit" value="Submit">

@@ -20,6 +20,11 @@ class UserProfileForm(forms.ModelForm):
         model = Profile
         fields = ["orga", "address", "zipcode", "city", "country","key_expires"]
 
+class UserDeleteForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["username", "password", "email"]
+
 
 class RegistrationForm(forms.Form):
     username = forms.CharField(

@@ -76,3 +76,32 @@ def ckan_del_user_from_organisation(username, orgname):
     ckan = build_connector()
     ckan.action.member_delete(id=orgname, object=username, object_type='user')
     return True
+
+
+def ckan_add_group(grp):
+
+    ckan = build_connector()
+
+    try:
+        ckan.action.group_create(name=grp.ckan_slug, title=grp.name, description=grp.description)
+    except ValidationError:
+         return False
+    return True
+
+def ckan_sync_group(grp):
+
+    ckan = build_connector()
+    try:
+         ckan.action.group_update(id=grp.ckan_slug, title=grp.name, description=grp.description)
+    except ValidationError:
+         return False
+    return True
+
+def ckan_del_group(grp):
+    ckan = build_connector()
+    try:
+         ckan.action.group_purge(id=grp.ckan_slug)
+    except ValidationError:
+         return False
+    return True
+Add Comment Collapse

@@ -7,8 +7,6 @@ from datetime import datetime
 from django.shortcuts import render
 from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
@@ -17,14 +15,13 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
-from django.views.generic.edit import UpdateView
 
-from ckan_module.views import ckan_add_user
-from ldap_module.views import ldap_add_user
+from ckan_module.views import ckan_add_user, ckan_del_user
+from ldap_module.views import ldap_add_user, ldap_del_user
 
 
-from profiles.forms import UserForm, UserProfileForm, RegistrationForm
-from profiles.models import Profile
+from .forms import UserForm, UserProfileForm, RegistrationForm, UserDeleteForm
+from .models import Profile
 
 
 @csrf_exempt
@@ -59,68 +56,10 @@ def add_user(request):
         return JsonResponse(data={"Success": "All users created"},
                             status=200)
     else:
-        return render(request, 'profiles/add.html', {'uform': uform, 'pform': pform})
-
-
-@method_decorator(csrf_exempt, name="dispatch")
-class UpdateUserData(UpdateView):
-    model = User
-    form_class = UserForm
-    second_form_class = UserProfileForm
-    template_name = "profiles/update.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(UpdateUserData, self).get_context_data(**kwargs)
-        # context['active_client'] = True
-        context["username"] = self.object.username
-        print(context["username"])
-        if 'form' not in context:
-            context['form'] = self.form_class(self.request.GET, instance=self.object)
-        if 'form2' not in context:
-            context['form2'] = self.second_form_class(self.request.GET)
-        context['user'] = self.object
-        return context
-
-    def get(self, request, *args, **kwargs):
-
-        super(UpdateUserData, self).get(request, *args, **kwargs)
-        form = self.form_class
-        form2 = self.second_form_class
-        return self.render_to_response(self.get_context_data(
-            object=self.object, form=form, form2=form2))
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-
-        uform = self.form_class(request.POST)
-        pform = self.second_form_class(request.POST)
-
-        if uform.is_valid() and pform.is_valid():
-
-            password = uform.cleaned_data['password']
-            user = uform.save()
-            user.password = make_password(password)
-
-            errors = {}
-            if ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(password)) is False:
-                errors["LDAP"] = "Error during LDAP account creation"
-
-            if ckan_add_user(user, password) is False:
-                errors["CKAN"] = "Error during CKAN account creation"
-
-            if errors:
-                user.delete()
-                return JsonResponse(data=errors,
-                                    status=404)
-
-            else:
-                profile = pform.save(commit=False)
-                profile.user = user
-                profile.save()
-
-        else:
-            return self.render_to_response(
-              self.get_context_data(form=uform, form2=pform))
+        return render(request, 'profiles/user.html',
+                      {'context':"CREATION D'UN COMPTE UTILISATEUR",
+                       'uform': uform,
+                       'pform': pform})
 
 
 @csrf_exempt
@@ -131,8 +70,9 @@ def update_user(request, id):
 
     if request.method == "GET":
 
-        return render(request, "profiles/update.html",
-                      {'uform': UserForm(instance=user, initial={'password': None}),
+        return render(request, "profiles/user.html",
+                      {'context':"MODIFICATION D'UN COMPTE UTILISATEUR",
+                       'uform': UserForm(instance=user, initial={'password': None}),
                        'pform': UserProfileForm(instance=profile)})
 
     if request.method == "POST":
@@ -154,7 +94,7 @@ def update_user(request, id):
                 errors["CKAN"] = "Error during CKAN account creation"
 
             if errors:
-                user.delete()
+                # user.delete()
                 return JsonResponse(data=errors,
                                     status=404)
 
@@ -166,7 +106,38 @@ def update_user(request, id):
             return JsonResponse(data={"Success": "All users updated"},
                                 status=200)
     else:
-        return render(request, "profiles/update.html", {'uform': UserForm(), 'pform': UserProfileForm()})
+
+        return render(request, "profiles/user.html",
+               {'context': "MODIFICATION D'UN COMPTE UTILISATEUR",
+                'uform': UserForm(),
+                'pform': UserProfileForm()})
+
+@csrf_exempt
+def delete_user(request, id):
+
+    user = get_object_or_404(User, pk=id)
+    profile = Profile.objects.get(user=user)
+
+    if request.method == "GET":
+        return render(request, "profiles/user.html",
+                      {'context':"SUPPRESSION D'UN COMPTE UTILISATEUR",
+                       'uform': UserDeleteForm(instance=user, initial={'password': None}),
+                       'pform': None})
+
+    if request.method == "POST":
+        uform = UserDeleteForm(data=request.POST, instance=user)
+        if uform.is_valid():
+            password = uform.cleaned_data['password']
+
+            # ldap_del_user(uid)
+            # ckan_del_user()
+
+            profile.delete()
+            user.delete()
+            return JsonResponse(data={"Success": "All users deleted"},
+                                status=200)
+
+
 
 
 def register(request):
