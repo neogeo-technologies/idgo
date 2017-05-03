@@ -1,4 +1,8 @@
-from base64 import b64encode
+import os
+import passlib.hash
+import hashlib
+import random
+from datetime import datetime
 
 from django.shortcuts import render
 from django.db import IntegrityError
@@ -10,17 +14,17 @@ from django.utils import timezone
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
+from django.views.generic import View
+from django.utils.decorators import method_decorator
+from django.views.generic.edit import FormView
+from django.views.generic.edit import CreateView
 
 from ckan_module.views import ckan_add_user
 from ldap_module.views import ldap_add_user
+
+
 from profiles.forms import UserForm, UserProfileForm, RegistrationForm
 from profiles.models import Profile
-
-import passlib.hash
-import hashlib
-import random
-import os
-import json
 
 
 @csrf_exempt
@@ -81,33 +85,37 @@ def old_add_user(request):
 
 
 def add_user(request):
+
     uform = UserForm(data=request.POST or None)
     pform = UserProfileForm(data=request.POST or None)
+
     if uform.is_valid() and pform.is_valid():
         password = uform.cleaned_data['password']
 
         user = uform.save()
         user.password = make_password(password)
 
-        cpt = 0
-        if ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(password)):
-            cpt = +1
+        errors = {}
+        if ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(password)) is False:
+            errors["LDAP"] = "Error during LDAP account creation"
+
+        if ckan_add_user(user, password) is False:
+            errors["CKAN"] = "Error during CKAN account creation"
+
+        if errors:
+            user.delete()
+            return JsonResponse(data=errors,
+                                status=404)
         else:
-            print('LDAP Problem')
-        if ckan_add_user(user, password):
-            cpt += 1
-        else:
-            print('CKAN Problem')
-        if cpt == 2:
             user.save()
             profile = pform.save(commit=False)
             profile.user = user
             profile.save()
-        else:
-            user.delete()
-        return HttpResponseRedirect('/thanks/')
+
+        return JsonResponse(data={"Success": "All users created"},
+                            status=200)
     else:
-        return render(request, 'add.html', {'uform': uform, 'pform': pform})
+        return render(request, 'profiles/add.html', {'uform': uform, 'pform': pform})
 
 
 def update_user(request, id):

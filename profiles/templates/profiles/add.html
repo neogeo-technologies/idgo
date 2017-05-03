@@ -1,7 +1,7 @@
 <html>
 <head><title>CREATION D'UN COMPTE UTILISATEUR</title></head>
 <body>
-<form action="add_user" method="post">
+<form action="/profiles/add_user/" method="post">
     {% csrf_token %}
     {{ uform.as_p }}
     {{ pform.as_p }}

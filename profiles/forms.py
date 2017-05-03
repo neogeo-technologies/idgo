@@ -18,7 +18,7 @@ class UserForm(forms.ModelForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ["orga", "address", "zipcode", "city","country"]
+        fields = ["orga", "address", "zipcode", "city", "country","key_expires"]
 
 
 class RegistrationForm(forms.Form):
