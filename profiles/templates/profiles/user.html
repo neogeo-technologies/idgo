@@ -1,59 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ context }}</title>
-</head>
-<body>
+	<head>
+		<meta charset="UTF-8">
+		<title>{{ context }}</title>
 
-{% load bootstrap3 %}
+		{% load bootstrap3 %}
+		{% bootstrap_css %}
+		{% bootstrap_javascript %}
+		{% bootstrap_messages %}
+	</head>
+	<body>
+		<div class="page-header">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-offset-1 col-md-10">
+						<h2>{% bootstrap_label context %}</h2>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-offset-1 col-md-10">
+					<form action="" method="post" class="form">
 
+						{% csrf_token %}
 
-{# Load CSS and JavaScript #}
-{% bootstrap_css %}
-{% bootstrap_javascript %}
+						<div class="form-group" >
+							{% bootstrap_form uform %}
+						</div>
 
-{# Display django.contrib.messages as Bootstrap alerts #}
-{% bootstrap_messages %}
+						{%if pform is not None %}
+						<div class="form-group" >
+							{% bootstrap_form pform %}
+						</div>
+						{% endif%}
 
-
-<form action="" method="post" class="form">
-    {% csrf_token %}
-
-<div class="container-fluid">
-  <h1>{% bootstrap_label context %}</h1>
-
-  <div class="row">
-    <div class="col-sm-6">
-        {# Display a uform #}
-        <form action="" method="post" class="form-inline">
-        <div class="form-group" >
-            {% bootstrap_form uform %}
-        </div>
-        </form>
-    </div>
-
-    <div class="col-sm-6">
-        {%if pform is not None %}
-        <div class="form-group" >
-            {% bootstrap_form pform  %}
-        </div>
-        {% endif%}
-    </div>
-  </div>
-
-    <div class="row">
-      <div class="col-sm-2">
-          {% buttons %}
-            <button type="submit" class="btn btn-primary">
-                {% bootstrap_icon "star" %} Submit
-            </button>
-        {% endbuttons %}
-      </div>
-</div>
-</div>
-</form>
-
-</body>
+						{% buttons %}
+						<button type="submit" class="btn btn-primary pull-right">Envoyer {% bootstrap_icon "send" %}</button>
+						{% endbuttons %}
+					</form>
+				</div>
+			</div>
+		</div>
+	</body>
 </html>
-
