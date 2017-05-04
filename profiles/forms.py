@@ -11,21 +11,93 @@ from profiles.models import Profile, Organisation
 import datetime
 
 
+USERNAME = forms.CharField(
+    label="Nom d'utilisateur",
+    widget=forms.TextInput(
+        attrs={'placeholder': "Nom d'utilisateur", 'class': 'form-control'}),
+    max_length=30,
+    min_length=3,
+    validators=[validators.validate_slug])
+
+
+PASSWORD1 = forms.CharField(
+    label='Mot de passe',
+    max_length=50,
+    min_length=6,
+    widget=forms.PasswordInput(
+        attrs={'placeholder': 'Mot de passe', 'class': 'form-control'}))
+
+
+PASSWORD2 = forms.CharField(
+    label='Confirmer le mot de passe',
+    max_length=50,
+    min_length=6,
+    widget=forms.PasswordInput(
+        attrs={'placeholder': 'Confirmer le mot de passe',
+               'class': 'form-control'}))
+
+
+E_MAIL = forms.EmailField(
+    label='Adresse e-mail',
+    widget=forms.EmailInput(
+        attrs={'placeholder': 'Adresse e-mail', 'class': 'form-control'}),
+    max_length=100,
+    error_messages={'invalid': ("L'adresse e-mail est invalide.")},
+    validators=[validators.validate_email])
+
+
+FIRST_NAME = forms.CharField(
+    label='Prénom',
+    widget=forms.TextInput(
+        attrs={'placeholder': 'Prénom', 'class': 'form-control'}),
+    max_length=30,
+    min_length=3,
+    validators=[validators.validate_slug])
+
+
+LAST_NAME = forms.CharField(
+    label='Nom',
+    widget=forms.TextInput(
+        attrs={'placeholder': 'Nom', 'class': 'form-control'}),
+    max_length=30,
+    min_length=3,
+    validators=[validators.validate_slug])
+
+
+SITE = forms.IntegerField(
+    label='',
+    widget=forms.Select(
+        choices=Organisation.objects.all().values_list('id', 'name')))
+
+
 class UserForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
+
+    username = USERNAME
+    password1 = PASSWORD1
+    password2 = PASSWORD2
+    email = E_MAIL
+    first_name = FIRST_NAME
+    last_name = LAST_NAME
+
     class Meta:
         model = User
-        fields = ['username', 'password', 'email', 'first_name', 'last_name']
+        fields = ['username', 'password1', 'password2',
+                  'first_name', 'last_name', 'email']
 
 
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['orga', 'address', 'zipcode',
-                  'city', 'country', 'key_expires']
+        fields = ['orga', 'role', 'phone']
 
 
 class UserDeleteForm(forms.ModelForm):
+
+    username = USERNAME
+
+    first_name = FIRST_NAME
+    last_name = LAST_NAME
+
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email']
@@ -33,56 +105,19 @@ class UserDeleteForm(forms.ModelForm):
 
 class RegistrationForm(forms.Form):
 
-    username = forms.CharField(
-        label='',
-        widget=forms.TextInput(
-            attrs={'placeholder': "Nom d\'utilisateur",
-                   'class': 'form-control input-perso'}),
-        max_length=30,
-        min_length=3,
-        validators=[validators.validate_slug])
-
-    email = forms.EmailField(
-        label='',
-        widget=forms.EmailInput(
-            attrs={'placeholder': 'Email',
-                   'class': 'form-control input-perso'}),
-        max_length=100,
-        error_messages={'invalid': ('Email invalide.')},
-        validators=[validators.validate_email])
-
-    password1 = forms.CharField(
-        label='',
-        max_length=50,
-        min_length=6,
-        widget=forms.PasswordInput(
-            attrs={'placeholder': 'Mot de passe',
-                   'class': 'form-control input-perso'}))
-
-    password2 = forms.CharField(
-        label='',
-        max_length=50,
-        min_length=6,
-        widget=forms.PasswordInput(
-            attrs={'placeholder': 'Confirmer le mot de passe',
-                   'class': 'form-control input-perso'}))
-
-    site = forms.IntegerField(
-        widget=forms.Select(
-            choices=Organisation.objects.all().values_list('id', 'name')))
-
-    #recaptcha = ReCaptchaField()
+    username = USERNAME
+    password1 = PASSWORD1
+    password2 = PASSWORD2
+    email = E_MAIL
+    site = SITE
 
     def clean(self):
-
         # Override clean method to check password match
-
         password1 = self.cleaned_data.get('password1')
         password2 = self.cleaned_data.get('password2')
         if password1 and password1 != password2:
             self._errors['password2'] = ErrorList(['Le mot de passe '
                                                    'ne correspond pas.'])
-
         return self.cleaned_data
 
     def save(self, data):
@@ -102,7 +137,7 @@ class RegistrationForm(forms.Form):
 
         return u
 
-    def sendEmail(self, data):
+    def send_email(self, data):
 
         # Sending activation email
         # ------>>>!! Warning : Domain name is hardcoded below !!<<<------

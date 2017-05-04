@@ -67,7 +67,7 @@ def add_user(request):
                             status=200)
 
     else:
-        return render(request, 'profiles/user.html',
+        return render(request, 'profiles/add.html',
                       {'context':"CREATION D'UN COMPTE UTILISATEUR",
                        'uform': uform,
                        'pform': pform})
@@ -81,7 +81,7 @@ def update_user(request, id):
 
     if request.method == "GET":
 
-        return render(request, "profiles/user.html",
+        return render(request, "profiles/add.html",
                       {'context':"MODIFICATION D'UN COMPTE UTILISATEUR",
                        'uform': UserForm(instance=user, initial={'password': None}),
                        'pform': UserProfileForm(instance=profile)})
@@ -132,7 +132,7 @@ def delete_user_id(request, id):
     profile = get_object_or_404(Profile, user=user)
 
     if request.method == "GET":
-        return render(request, "profiles/user.html",
+        return render(request, "profiles/del.html",
                       {'context': "SUPPRESSION D'UN COMPTE UTILISATEUR",
                        'uform': UserDeleteForm(instance=user, initial={'password': None}),
                        'pform': None})
@@ -158,7 +158,7 @@ def delete_user_id(request, id):
 @csrf_exempt
 def delete_user(request):
     if request.method == "GET":
-        return render(request, "profiles/user.html",
+        return render(request, "profiles/del.html",
                       {'context': "SUPPRESSION D'UN COMPTE UTILISATEUR",
                        'uform': UserDeleteForm(),
                        'pform': None})
@@ -185,7 +185,7 @@ def delete_user(request):
                           {'context': "SUPPRESSION REUSSI"},
                           status=200)
         else:
-            return render(request, 'profiles/user.html',
+            return render(request, 'profiles/del.html',
                           {'context': "SUPRESSION D'UN COMPTE UTILISATEUR",
                            'uform': uform,
                            'pform': None})

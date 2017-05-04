@@ -21,7 +21,7 @@
 					<div class="panel panel-default">
 						<div class="panel-heading">{% bootstrap_label context %}</div>
 						<div class="panel-body">
-							<form method="post">
+							<form method="post" action="">
 								{% csrf_token %}
 								<div class="row">
 									<div class="col-xs-12 col-sm-6">
@@ -50,12 +50,10 @@
 										{% bootstrap_field pform.phone show_label=False %}
 									</div>
 								</div>
+								{% buttons %}
+								<button type="submit" class="btn btn-default pull-right">Valider</button>
+								{% endbuttons %}
 							</form>
-						</div>
-						<div class="panel-footer">
-							{% buttons %}
-							<button type="submit" class="btn btn-default">Valider</button>
-							{% endbuttons %}
 						</div>
 					</div>
 

@@ -67,12 +67,17 @@ class Organisation(models.Model):
 
 
 class Profile(models.Model):
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     orga = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance")
-    address = models.CharField("Adresse", max_length=150, blank=True)
-    city = models.CharField("Ville", max_length=150, blank=True)
-    zipcode = models.CharField("Code Postal", max_length=5, blank=True)
-    country = models.CharField("Pays", max_length=100, blank=True)
+    phone = models.CharField('Téléphone', max_length=10, blank=True)
+    role = models.CharField('Fonction', max_length=150, blank=True)
+
+    # address = models.CharField("Adresse", max_length=150, blank=True)
+    # city = models.CharField("Ville", max_length=150, blank=True)
+    # zipcode = models.CharField("Code Postal", max_length=5, blank=True)
+    # country = models.CharField("Pays", max_length=100, blank=True)
+
     activation_key = models.CharField(max_length=40, blank=True)
     key_expires = models.DateTimeField(blank=True)
 
@@ -95,6 +100,7 @@ class Profile(models.Model):
 
 
 class Application(models.Model):
+
     name = models.CharField("Nom", max_length=150, unique=True, db_index=True)
     short_name = models.CharField("Nom abrégé", max_length=20, unique=True, db_index=True)
     url = models.URLField("URL publique", blank=True)
