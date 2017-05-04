@@ -7,7 +7,7 @@
 <body>
 
 {% load bootstrap3 %}
-{% bootstrap_label context %}
+
 
 {# Load CSS and JavaScript #}
 {% bootstrap_css %}
@@ -16,20 +16,42 @@
 {# Display django.contrib.messages as Bootstrap alerts #}
 {% bootstrap_messages %}
 
-{# Display a form #}
+
 <form action="" method="post" class="form">
     {% csrf_token %}
-    {% bootstrap_form uform layout='horizontal' size='md' %}
 
-    {%if pform is not None %}
-    {% bootstrap_form pform size='md'%}
-    {% endif%}
+<div class="container-fluid">
+  <h1>{% bootstrap_label context %}</h1>
 
-    {% buttons %}
-        <button type="submit" class="btn btn-primary">
-            {% bootstrap_icon "star" %} Submit
-        </button>
-    {% endbuttons %}
+  <div class="row">
+    <div class="col-sm-6">
+        {# Display a uform #}
+        <form action="" method="post" class="form-inline">
+        <div class="form-group" >
+            {% bootstrap_form uform %}
+        </div>
+        </form>
+    </div>
+
+    <div class="col-sm-6">
+        {%if pform is not None %}
+        <div class="form-group" >
+            {% bootstrap_form pform  %}
+        </div>
+        {% endif%}
+    </div>
+  </div>
+
+    <div class="row">
+      <div class="col-sm-2">
+          {% buttons %}
+            <button type="submit" class="btn btn-primary">
+                {% bootstrap_icon "star" %} Submit
+            </button>
+        {% endbuttons %}
+      </div>
+</div>
+</div>
 </form>
 
 </body>

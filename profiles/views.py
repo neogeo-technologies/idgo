@@ -110,16 +110,17 @@ def update_user(request, id):
                                 status=200)
     else:
 
-        return render(request, "profiles/user.html",
-               {'context': "MODIFICATION D'UN COMPTE UTILISATEUR",
-                'uform': UserForm(),
-                'pform': UserProfileForm()})
+        return render(request,
+                      "profiles/user.html",
+                      {'context': "MODIFICATION D'UN COMPTE UTILISATEUR",
+                       'uform': UserForm(),
+                       'pform': UserProfileForm()})
 
 @csrf_exempt
-def delete_user(request, id):
+def delete_user_id(request, id):
 
     user = get_object_or_404(User, pk=id)
-    profile = Profile.objects.get(user=user)
+    profile = get_object_or_404(Profile, user=user)
 
     if request.method == "GET":
         return render(request, "profiles/user.html",
@@ -130,12 +131,37 @@ def delete_user(request, id):
     if request.method == "POST":
         uform = UserDeleteForm(data=request.POST, instance=user)
         if uform.is_valid():
-            password = uform.cleaned_data['password']
+
             errors = {}
-            try:
-                user = authenticate(user=user, password=password)
-            except:
-                errors["Autheticate"]="Check passsword"
+            # ldap_del_user(uid)
+            # ckan_del_user()
+
+            if errors:
+                return JsonResponse(data=errors,
+                                    status=404)
+
+            profile.delete()
+            user.delete()
+            return render(request, "profiles/success.html",
+                          {'context': "SUPPRESSION REUSSI"},
+                          status=200)
+
+@csrf_exempt
+def delete_user(request):
+    if request.method == "GET":
+        return render(request, "profiles/user.html",
+                      {'context': "SUPPRESSION D'UN COMPTE UTILISATEUR",
+                       'uform': UserDeleteForm(),
+                       'pform': None})
+
+    if request.method == "POST":
+        uform = UserDeleteForm(data=request.POST)
+        print(uform.errors.as_data())
+        if uform.is_valid():
+            username = uform.cleaned_data['username']
+            user = get_object_or_404(User, username=username)
+            profile = get_object_or_404(Profile, user=user)
+            errors = {}
 
             # ldap_del_user(uid)
             # ckan_del_user()
@@ -146,10 +172,14 @@ def delete_user(request, id):
 
             profile.delete()
             user.delete()
-            return JsonResponse(data={"Success": "All users deleted"},
-                                status=200)
-
-
+            return render(request, "profiles/success.html",
+                          {'context': "SUPPRESSION REUSSI"},
+                          status=200)
+        else:
+            return render(request, 'profiles/user.html',
+                          {'context': "SUPRESSION D'UN COMPTE UTILISATEUR",
+                           'uform': uform,
+                           'pform': None})
 
 
 def register(request):
