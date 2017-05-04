@@ -2,6 +2,7 @@ import os
 import passlib.hash
 import hashlib
 import random
+import smtplib
 from datetime import datetime
 
 from django.shortcuts import render
@@ -17,12 +18,14 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth import authenticate
 
+
 from .ckan_module import ckan_add_user, ckan_del_user
 from .ldap_module import ldap_add_user, ldap_del_user
 
 
 from .forms import UserForm, UserProfileForm, RegistrationForm, UserDeleteForm
 from .models import Profile
+from .utils import *
 
 
 
@@ -35,6 +38,8 @@ def add_user(request):
     if uform.is_valid() and pform.is_valid():
 
         password = uform.cleaned_data['password']
+        email_user = uform.cleaned_data['email']
+
         user = uform.save()
         user.password = make_password(password)
 
@@ -50,6 +55,9 @@ def add_user(request):
             return JsonResponse(data=errors,
                                 status=404)
         else:
+            if not sendmail(email_user):
+                return JsonResponse(data={"error": "Echec de l'envoi de l'email de validation"},
+                                    status=400)
             user.save()
             profile = pform.save(commit=False)
             profile.user = user
@@ -57,6 +65,7 @@ def add_user(request):
 
         return JsonResponse(data={"Success": "All users created"},
                             status=200)
+
     else:
         return render(request, 'profiles/user.html',
                       {'context':"CREATION D'UN COMPTE UTILISATEUR",

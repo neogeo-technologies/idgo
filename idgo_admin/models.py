@@ -78,7 +78,7 @@ class Resolution(models.Model):
 class Commune(models.Model):
     code = models.CharField('Code INSEE', max_length=5)
     name = models.CharField('Nom', max_length=100)
-    geom = models.MultiPolygonField('Geometrie', srid=4171, blank=True, null=True)
+    geom = models.MultiPolygonField('Geometrie', srid=2154, blank=True, null=True)
     objects = models.GeoManager()
 
     def __str__(self):
@@ -90,7 +90,7 @@ class Territory(models.Model):
     code = models.CharField('Code INSEE', max_length=5)
     name = models.CharField('Nom', max_length=100)
     commmunes = models.ManyToManyField(Commune)
-    geom = models.MultiPolygonField('Geometrie', srid=4171, blank=True, null=True)
+    geom = models.MultiPolygonField('Geometrie', srid=2154, blank=True, null=True)
     objects = models.GeoManager()
 
     def __str__(self):
