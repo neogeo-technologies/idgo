@@ -37,7 +37,7 @@ def add_user(request):
 
     if uform.is_valid() and pform.is_valid():
 
-        password = uform.cleaned_data['password']
+        password = uform.cleaned_data['password1']
         email_user = uform.cleaned_data['email']
 
         user = uform.save()
