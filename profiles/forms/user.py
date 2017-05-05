@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.models import User
-from profiles.models import Profile
+from django.shortcuts import redirect, get_object_or_404
+
+from profiles.models import Profile, Organisation
 
 from . import fields
 
@@ -31,6 +33,9 @@ class UserForm(forms.Form):
         profile = Profile()
         profile.user = u
         profile.activation_key = data['activation_key']
+        profile.role = data['role']
+        profile.phone = data['phone']
+        profile.orga = get_object_or_404(Organisation, pk=data['organisation'])
         profile.save()
 
 

@@ -46,7 +46,8 @@ def add_user(request):
             'email': email,
             'password': uform.cleaned_data['password1'],
             'first_name': uform.cleaned_data['first_name'],
-            'last_name': uform.cleaned_data['last_name']}
+            'last_name': uform.cleaned_data['last_name'],
+            'organisation': pform.cleaned_data['organisation']}
 
     error = []
     try:
