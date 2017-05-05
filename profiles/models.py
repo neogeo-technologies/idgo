@@ -128,15 +128,15 @@ class Application(models.Model):
             super(Application, self).delete()
 
 
-def delete_user_in_externals(sender, instance, **kwargs):
-    ckan.del_user(instance.username)
-    ldap_del_user(instance.username)
+def delete_user_in_externals(sender, user, **kwargs):
+    ckan.del_user(user)
+    ldap_del_user(user)
 
 
-def check_user_status(sender, instance, **kwargs):
+def check_user_status(sender, user, **kwargs):
     # vérification de l'état actif de l'utilisateur
-    if not instance.is_active:
-        ckan.deactivate_user(instance.username)
+    if not user.is_active:
+        ckan.deactivate_user(user)
 
 
 def update_externals(sender, instance, **kwargs):

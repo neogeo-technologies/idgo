@@ -69,7 +69,7 @@ def add_user(request):
         error.append(str(e))
 
     try:
-        ckan.add_user(user.username, data['password'])
+        ckan.add_user(user, data['password'])
     except Exception as e:
         user.delete()
         error.append(str(e))

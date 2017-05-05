@@ -90,3 +90,6 @@ class CkanHandler(metaclass=Singleton):
                   'description': group.description}
 
         self.remote.action.group_update(**params)
+
+
+CkanHandler = CkanHandler()
