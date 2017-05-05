@@ -5,18 +5,23 @@ from django.http import JsonResponse
 from django.core.mail import send_mail
 
 
-def sendmail(request, email_user):
-    error = None
-    # Creer mail de validation avec url + hash
+def create_activation_key(email_user):
     salt = hashlib.sha1(str(random.random()).encode('utf-8')).hexdigest()[:5].encode('utf-8')
-    key = hashlib.sha1(salt + email_user).hexdigest()
-    url = "{}{}".format(request.build_absolute_uri(), key)
+    return hashlib.sha1(salt + bytes(email_user, 'utf-8')).hexdigest()
+
+
+def sendmail(request, email_user, key):
+
+    url = "{0}{1}".format(request.build_absolute_uri(), key)
+
+    from_email = 'cbenhabib@neogeo.fr'
+    subject = 'Validation de votre inscription sur le site IDGO.'
+    message = 'Bonjour, \n\n' \
+              'Veuillez valider votre inscription en cliquant sur le lien ' \
+              'suivant : {0}'.format(url)
+
     try:
-        send_mail(subject="Validation",
-                  message="Validation inscription IDGO: {}".format(url),
-                  from_email="cbenhabib@neogeo.fr",
-                  recipient_list=[email_user])
+        send_mail(subject=subject, message=message,
+                  from_email=from_email, recipient_list=[email_user])
     except:
-        error = JsonResponse(data={"error": "Echec de l'envoi de l'email de validation"},
-                             status=400)
-    return key, error
+        raise

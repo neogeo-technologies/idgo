@@ -40,12 +40,10 @@ def ldap_add_user(user, password):
             ("userPassword", [password.encode()]),
             ("description", ["created by {0} at {1}".format("guillaume", datetime.datetime.now()).encode()])])
     except ldap.LDAPError as e:
-        print(e)
         l.unbind()
-        return False
+        raise e
 
     l.unbind_s()
-    return True
 
 
 def ldap_del_user(uid):

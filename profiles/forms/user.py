@@ -20,8 +20,7 @@ class UserForm(forms.Form):
     def save(self, data):
 
         # Override of save method for saving both User and Profile objects
-        u = User.objects.create_user(data['email'],
-                                     data['password1'])
+        u = User.objects.create_user(data['email'], data['password'])
         u.is_active = False
         u.save()
 

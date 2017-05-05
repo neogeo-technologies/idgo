@@ -14,11 +14,9 @@ def build_connector():
 def ckan_add_user(user, password):
     r = requests.post(settings.CKAN_URL + '/ldap_login_handler',
                       data = {'login':user.username, 'password':password})
-    if r.status_code == 200:
-        return True
-    else:
-        return False
-
+    if not r.status_code == 200:
+        # TODO: catch and return CKAN Exception
+        raise Exception(r)
 
 def ckan_del_user(username):
     ckan = build_connector()

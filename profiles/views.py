@@ -35,36 +35,48 @@ def add_user(request):
     uform = UserForm(data=request.POST or None)
     pform = UserProfileForm(data=request.POST or None)
 
-    if uform.is_valid() and pform.is_valid():
-
-        data = {}
-        data['email'] = uform.cleaned_data['email']
-        data['password'] = uform.cleaned_data['password1']
-        data['activation_key'], error = sendmail(request, data['email'])
-        if error:
-                return error
-        user = uform.save(data)
-
-        errors = {}
-        if ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(data['password'])) is False:
-            errors["LDAP"] = "Error during LDAP account creation"
-
-        if ckan_add_user(user, data['password']) is False:
-            errors["CKAN"] = "Error during CKAN account creation"
-
-        if errors:
-            user.delete()
-            return JsonResponse(data=errors,
-                                status=404)
-
-        return JsonResponse(data={"Success": "All users created"},
-                            status=200)
-
-    else:
+    if not uform.is_valid() and not pform.is_valid():
         return render(request, 'profiles/add.html',
-                      {'context':"CREATION D'UN COMPTE UTILISATEUR",
+                      {'context': "Création d'un compte utilisateur",
                        'uform': uform,
                        'pform': pform})
+
+    email = uform.cleaned_data['email']
+    data = {'activation_key': create_activation_key(email),
+            'email': email,
+            'password': uform.cleaned_data['password1']}
+
+    error = []
+    try:
+        user = uform.save(data)
+    except IntegrityError:
+        msg = 'Un compte existe déjà pour cette adresse e-mail.'
+        return JsonResponse(status=409, data={'erreur': msg})
+
+    try:
+        ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(data['password']))
+    except Exception as e:
+        error.append(str(e))
+        user.delete()
+
+    try:
+        ckan_add_user(user, data['password'])
+    except Exception as e:
+        user.delete()
+        # TODO: Supprimer user du LDAP
+        error.append(str(e))
+
+    try:
+        sendmail(request, data['email'], data['activation_key'])
+    except smtplib.SMTPException as e:
+        user.delete()
+        # TODO: Supprimer user du LDAP
+        # TODO: Supprimer user de CKAN
+        error.append(str(e))
+
+    if error:
+        return JsonResponse(status=400, data={'error': error})
+    return JsonResponse(data={"Success": "All users created"}, status=200)
 
 
 @csrf_exempt
