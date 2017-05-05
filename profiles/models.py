@@ -68,30 +68,31 @@ class Organisation(models.Model):
             super(Organisation, self).delete()
 
 
-def deltatime_1_year():
-    return timezone.now() + timezone.timedelta(days=365)
+def deltatime_2_days():
+    return timezone.now() + timezone.timedelta(days=2)
+
 
 class Profile(models.Model):
-
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    organisation = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance", blank=True, null=True)
+    organisation =  models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance", blank=True, null=True)
     phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
     role = models.CharField('Fonction', max_length=150, blank=True, null=True)
     activation_key = models.CharField(max_length=40, blank=True)
-    key_expires = models.DateTimeField(default=deltatime_1_year, blank=True, null=True)
+    key_expires = models.DateTimeField(default=deltatime_2_days, blank=True, null=True)
 
     # address = models.CharField("Adresse", max_length=150, blank=True)
     # city = models.CharField("Ville", max_length=150, blank=True)
     # zipcode = models.CharField("Code Postal", max_length=5, blank=True)
     # country = models.CharField("Pays", max_length=100, blank=True)
 
-
-
     def __str__(self):
         return self.user.username
 
+
+
     def save(self, *args, **kwargs):
         # first save which sets the id we need to generate a LDAP gidNumber
+
         super(Profile, self).save(*args, **kwargs)
         cn = self.user.username
         ckan_add_user_to_organisation(cn, self.organisation.ckan_slug)
@@ -145,7 +146,13 @@ def update_externals(sender, instance, **kwargs):
             ckan_del_user_from_organisation(instance.user.username, old_instance.organisation.ckan_slug)
             ldap_del_user_from_group(instance.user.username, "cn={},ou=organisations,dc=idgo,dc=local".format(old_instance.organisation.name))
 
+def delete_user_expire_date(sender, instance, **kwargs):
+    expired_profiles = Profile.objects.filter(key_expires__lte=timezone.now())
+    for p in expired_profiles:
+        u = p.user
+        u.delete()
 
 post_delete.connect(delete_user_in_externals, sender=User)
 post_save.connect(check_user_status, sender=User)
 pre_save.connect(update_externals, sender=Profile)
+pre_save.connect(delete_user_expire_date, sender=Profile)
