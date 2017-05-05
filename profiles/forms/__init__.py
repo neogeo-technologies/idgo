@@ -13,14 +13,14 @@ class CommonFields(metaclass=StaticClass):
     FIRST_NAME = forms.CharField(
         error_messages={'invalid': 'invalid'},
         label='Prénom',
-        max_length=150,
+        max_length=30,
         min_length=1,
         validators=[validators.validate_slug],
         widget=forms.TextInput(attrs={'placeholder': 'Prénom'}))
 
     LAST_NAME = forms.CharField(
         label='Nom',
-        max_length=150,
+        max_length=30,
         min_length=1,
         validators=[validators.validate_slug],
         widget=forms.TextInput(attrs={'placeholder': 'Nom'}))
@@ -28,7 +28,6 @@ class CommonFields(metaclass=StaticClass):
     E_MAIL = forms.EmailField(
         error_messages={'invalid': "L'adresse e-mail est invalide."},
         label='Adresse e-mail',
-        max_length=150,
         validators=[validators.validate_email],
         widget=forms.EmailInput(attrs={'placeholder': 'Adresse e-mail'}))
 

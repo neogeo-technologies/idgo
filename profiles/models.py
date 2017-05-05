@@ -74,7 +74,7 @@ def deltatime_2_days():
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    organisation =  models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance", blank=True, null=True)
+    organisation = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance", blank=True, null=True)
     phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
     role = models.CharField('Fonction', max_length=150, blank=True, null=True)
     activation_key = models.CharField(max_length=40, blank=True)
