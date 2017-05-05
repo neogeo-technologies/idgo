@@ -44,7 +44,9 @@ def add_user(request):
     email = uform.cleaned_data['email']
     data = {'activation_key': create_activation_key(email),
             'email': email,
-            'password': uform.cleaned_data['password1']}
+            'password': uform.cleaned_data['password1'],
+            'first_name': uform.cleaned_data['first_name'],
+            'last_name': uform.cleaned_data['last_name']}
 
     error = []
     try:
