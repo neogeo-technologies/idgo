@@ -56,12 +56,14 @@ def add_user(request):
             return JsonResponse(data=errors,
                                 status=404)
         else:
-            if not sendmail(email_user):
-                return JsonResponse(data={"error": "Echec de l'envoi de l'email de validation"},
-                                status=400)
+            activation_key, error = sendmail(email_user)
+            if error:
+                return error
+
             user.save()
             profile = pform.save(commit=False)
             profile.user = user
+            profile.activation_key = activation_key
             profile.save()
 
         return JsonResponse(data={"Success": "All users created"},
