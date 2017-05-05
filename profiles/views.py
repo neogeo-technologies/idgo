@@ -19,7 +19,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth import authenticate
 
 
-from .ckan_module import ckan_add_user, ckan_del_user
+from .ckan_module import CkanHandler as ckan
 from .ldap_module import ldap_add_user, ldap_del_user
 
 
@@ -69,7 +69,7 @@ def add_user(request):
         error.append(str(e))
 
     try:
-        ckan_add_user(user, data['password'])
+        ckan.add_user(user.username, data['password'])
     except Exception as e:
         user.delete()
         error.append(str(e))

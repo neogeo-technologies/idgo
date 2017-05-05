@@ -1,103 +1,93 @@
 from ckanapi import RemoteCKAN
-from ckanapi.errors import ValidationError, NotFound
+from ckanapi.errors import NotFound
 from django.conf import settings
+from .utils import Singleton
 
 import requests
 
 
-def build_connector():
-    return RemoteCKAN(settings.CKAN_URL, apikey=settings.CKAN_API_KEY)
+class CkanHandler(metaclass=Singleton):
 
+    API_KEY = settings.CKAN_API_KEY
+    URL = settings.CKAN_URL
 
-def ckan_add_user(user, password):
-    r = requests.post(settings.CKAN_URL + '/ldap_login_handler',
-                      data = {'login':user.username, 'password':password})
-    if not r.status_code == 200:
-        # TODO: catch and return CKAN Exception
-        raise Exception(r)
+    def __init__(self):
+        self.remote = RemoteCKAN(self.URL, apikey=self.API_KEY)
 
-def ckan_del_user(username):
-    ckan = build_connector()
-    try:
-        u = ckan.action.user_delete(id=username)
-    except:
-        pass
-    return True
+    def add_user(self, login, password):
+        r = requests.post('{0}/ldap_login_handler'.format(settings.CKAN_URL),
+                          data={'login': login, 'password': password})
 
+        if not r.status_code == 200:
+            raise Exception(r)  # TODO
 
-def ckan_add_organisation(org):
-    ckan = build_connector()
-    try:
-       ckan.action.organization_create(id=org.ckan_slug, name=org.ckan_slug)
-    except ValidationError:
-        return False
-    return True
+    def del_user(self, user_name):
+        self.remote.action.user_delete(id=user_name)
 
+    def deactivate_user(self, user_name):
+        try:
+            self.remote.action.user_update(id=user_name)
+        except NotFound:
+            pass
 
-def ckan_del_organisation(org):
-    ckan = build_connector()
-    try:
-        ckan.action.organization_purge(id=org.ckan_slug)
-    except NotFound:
-        pass
-    return True
+    def add_organization(self, organization):
 
+        params = {'id': organization.ckan_slug,
+                  'name': organization.name}
 
-def ckan_test_organisation(org):
-    ckan = build_connector()
-    try:
-         ckan.action.organization_show(id=org.ckan_slug)
-    except NotFound:
-        return False
-    return True
+        self.remote.action.organization_create(**params)
 
+    def del_organization(self, organization):
 
-def ckan_user_deactivate(username):
-    ckan = build_connector()
-    try:
-        pass
-         #ckan.action.user_update(id=username)
-    except NotFound:
-        return False
-    return True
+        params = {'id': organization.ckan_slug}
 
+        try:
+            self.remote.action.organization_purge(**params)
+        except NotFound as e:
+            pass
 
-def ckan_add_user_to_organisation(username, orgname):
-    ckan = build_connector()
-    ckan.action.member_create(id=orgname, object=username,
-                              object_type='user', capacity='member')
-    return True
+    def test_organization(self, organization):
 
+        params = {'id': organization.ckan_slug}
 
-def ckan_del_user_from_organisation(username, orgname):
-    ckan = build_connector()
-    ckan.action.member_delete(id=orgname, object=username, object_type='user')
-    return True
+        try:
+            self.remote.action.organization_show(**params)
+        except NotFound:
+            pass
 
+    def add_user_to_organization(self, user_name, organization):
 
-def ckan_add_group(grp):
+        params = {'id': organization.ckan_slug,
+                  'object_type': 'user',
+                  'object': user_name,
+                  'capacity': 'member'}
 
-    ckan = build_connector()
+        self.remote.action.member_create(**params)
 
-    try:
-        ckan.action.group_create(name=grp.ckan_slug, title=grp.name, description=grp.description)
-    except ValidationError:
-         return False
-    return True
+    def del_user_from_organization(self, user_name, organization):
 
-def ckan_sync_group(grp):
+        params = {'id': organization.ckan_slug,
+                  'object_type': 'user',
+                  'object': user_name}
 
-    ckan = build_connector()
-    try:
-         ckan.action.group_update(id=grp.ckan_slug, title=grp.name, description=grp.description)
-    except ValidationError:
-         return False
-    return True
+        self.remote.action.member_delete(**params)
 
-def ckan_del_group(grp):
-    ckan = build_connector()
-    try:
-         ckan.action.group_purge(id=grp.ckan_slug)
-    except ValidationError:
-         return False
-    return True
+    def add_group(self, group):
+
+        params = {'name': group.ckan_slug,
+                  'title': group.name,
+                  'description': group.description}
+
+        self.remote.action.group_create(**params)
+
+    def del_group(self, group):
+        self.remote.action.group_purge(id=group.ckan_slug)
+
+    def sync_group(self, group):
+
+        params = {'name': group.ckan_slug,
+                  'title': group.name,
+                  'description': group.description}
+
+        self.remote.action.group_update(**params)
+

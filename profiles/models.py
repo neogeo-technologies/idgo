@@ -12,7 +12,7 @@ from django.utils import timezone
 
 
 from .ldap_module import ldap_sync_object, ldap_add_user, ldap_del_user, ldap_add_user_to_group, ldap_del_user_from_group
-from .ckan_module import ckan_del_user, ckan_add_organisation, ckan_del_organisation, ckan_test_organisation, ckan_add_user_to_organisation, ckan_del_user_from_organisation, ckan_user_deactivate
+from .ckan_module import CkanHandler as ckan
 
 
 class OrganisationType(models.Model):
@@ -47,12 +47,12 @@ class Organisation(models.Model):
     def save(self, *args, **kwargs):
         if self.id:
             created = False
-            self.sync_in_ckan = ckan_test_organisation()
+            self.sync_in_ckan = ckan.test_organization(self)
         else:
             created = True
             self.ckan_slug = slugify(self.name)
             # now try to push this organization to CKAN ..
-            self.sync_in_ckan = ckan_add_organisation(self)
+            self.sync_in_ckan = ckan.add_organization(self)
 
 
         # first save which sets the id we need to generate a LDAP gidNumber
@@ -63,7 +63,7 @@ class Organisation(models.Model):
 
     def delete(self, *args, **kwargs):
         res = ldap_sync_object("organisations", self.name, self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, "delete")
-        res_ckan = ckan_del_organisation(self)
+        res_ckan = ckan.del_organization(self)
         if res and res_ckan:
             super(Organisation, self).delete()
 
@@ -95,7 +95,7 @@ class Profile(models.Model):
 
         super(Profile, self).save(*args, **kwargs)
         cn = self.user.username
-        ckan_add_user_to_organisation(cn, self.organisation.ckan_slug)
+        ckan.add_user_to_organization(cn, self.organisation)
         ldap_add_user_to_group(cn, "cn=%s,ou=organisations,dc=idgo,dc=local" % self.organisation.name)
         try:
             ldap_add_user_to_group(cn, "cn=active,ou=groups,dc=idgo,dc=local")
@@ -129,21 +129,21 @@ class Application(models.Model):
 
 
 def delete_user_in_externals(sender, instance, **kwargs):
-    ckan_del_user(instance.username)
+    ckan.del_user(instance.username)
     ldap_del_user(instance.username)
 
 
 def check_user_status(sender, instance, **kwargs):
     # vérification de l'état actif de l'utilisateur
     if not instance.is_active:
-        ckan_user_deactivate(instance.username)
+        ckan.deactivate_user(instance.username)
 
 
 def update_externals(sender, instance, **kwargs):
     if instance.id:
         old_instance = Profile.objects.get(pk=instance.id)
         if old_instance.organisation.name != instance.organisation.name:
-            ckan_del_user_from_organisation(instance.user.username, old_instance.organisation.ckan_slug)
+            ckan.del_user_from_organization(instance.user.username, old_instance.organisation)
             ldap_del_user_from_group(instance.user.username, "cn={},ou=organisations,dc=idgo,dc=local".format(old_instance.organisation.name))
 
 def delete_user_expire_date(sender, instance, **kwargs):
