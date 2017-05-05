@@ -65,34 +65,34 @@ ORGANISATION = forms.CharField(
     label='Organisme',
     max_length=150,
     min_length=3,
-    widget=forms.TextInput(
+    widget=forms.Select(
         attrs={'class': 'form-control',
-               'placeholder': 'Organisme'}))
+               'placeholder': 'Organisme'},
+        choices=Organisation.objects.all().values_list('id', 'name')))
 
 
 ROLE = forms.CharField(
-    label='Organisme',
+    label='Rôle',
     max_length=150,
     min_length=3,
     widget=forms.TextInput(
         attrs={'class': 'form-control',
-               'placeholder': 'Organisme'}))
+               'placeholder': 'Rôle'}))
 
 
 PHONE = forms.CharField(
-    label='Organisme',
+    label='Téléphone',
     max_length=150,
     min_length=3,
     widget=forms.TextInput(
         attrs={'class': 'form-control',
-               'placeholder': 'Organisme'}))
+               'placeholder': 'Téléphone'}))
 
 
 SITE = forms.IntegerField(
     label='',
     widget=forms.Select(
         choices=Organisation.objects.all().values_list('id', 'name')))
-
 
 # Forms:
 
@@ -112,13 +112,13 @@ class UserForm(forms.Form):
 
 class UserProfileForm(forms.ModelForm):
 
-    organisation = ORGANISATION
+    orga = ORGANISATION
     phone = PHONE
     role = ROLE
 
     class Meta:
         model = Profile
-        fields = ('organisation', 'role', 'phone')
+        fields = ('orga', 'role', 'phone')
 
 
 class UserDeleteForm(forms.ModelForm):
@@ -129,7 +129,7 @@ class UserDeleteForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email']
+        fields = ('first_name', 'last_name', 'email')
 
 
 class RegistrationForm(forms.Form):
