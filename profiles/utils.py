@@ -1,27 +1,43 @@
-import hashlib
-import random
-
-from django.http import JsonResponse
 from django.core.mail import send_mail
 
 
-def create_activation_key(email_user):
-    salt = hashlib.sha1(str(random.random()).encode('utf-8')).hexdigest()[:5].encode('utf-8')
-    return hashlib.sha1(salt + bytes(email_user, 'utf-8')).hexdigest()
+# Some metaclasses:
 
 
-def sendmail(request, email_user, key):
+class StaticClass(type):
+    def __call__(cls):
+        raise TypeError('\'{0}\' static class is not callable.'.format(
+                                                            cls.__qualname__))
+
+
+class Singleton(type):
+    __instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls.__instances:
+            cls.__instances[cls] = super().__call__(*args, **kwargs)
+        # else:
+        #     cls._instances[cls].__init__(*args, **kwargs)
+        return cls.__instances[cls]
+
+
+# Methods:
+
+
+def send_validation_mail(request, email_user, key):
 
     url = "{0}{1}".format(request.build_absolute_uri(), key)
 
     from_email = 'cbenhabib@neogeo.fr'
     subject = 'Validation de votre inscription sur le site IDGO.'
-    message = 'Bonjour, \n\n' \
-              'Veuillez valider votre inscription en cliquant sur le lien ' \
-              'suivant : {0}'.format(url)
+    message = '''
+Bonjour,
 
-    try:
-        send_mail(subject=subject, message=message,
-                  from_email=from_email, recipient_list=[email_user])
-    except:
-        raise
+Veuillez valider votre inscription en cliquant sur le lien suivant : {0}
+
+Ceci est un message automatique. Merci de ne pas y repondre.'''.format(url)
+
+    send_mail(subject=subject,
+              message=message,
+              from_email=from_email,
+              recipient_list=[email_user])

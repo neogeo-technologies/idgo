@@ -1,10 +1,8 @@
 from ckanapi import RemoteCKAN
 from ckanapi.errors import ValidationError, NotFound
-from django.shortcuts import render
 from django.conf import settings
 
 import requests
-import sys
 
 
 def build_connector():
@@ -57,7 +55,8 @@ def ckan_test_organisation(org):
 def ckan_user_deactivate(username):
     ckan = build_connector()
     try:
-         ckan.action.user_update(id=org.ckan_slug)
+        pass
+         #ckan.action.user_update(id=username)
     except NotFound:
         return False
     return True

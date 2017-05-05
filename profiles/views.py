@@ -28,20 +28,23 @@ from .models import Profile, Organisation
 from .utils import *
 
 
-
 @csrf_exempt
 def add_user(request):
+
+    def create_activation_key(email_user):
+        pwd = str(random.random()).encode('utf-8')
+        salt = hashlib.sha1(pwd).hexdigest()[:5].encode('utf-8')
+        return hashlib.sha1(salt + bytes(email_user, 'utf-8')).hexdigest()
 
     uform = UserForm(data=request.POST or None)
     pform = UserProfileForm(data=request.POST or None)
 
     if not uform.is_valid() or not pform.is_valid():
         return render(request, 'profiles/add.html',
-                      {'context': "Création d'un compte utilisateur",
-                       'uform': uform,
-                       'pform': pform})
+                      {'uform': uform, 'pform': pform})
 
     email = uform.cleaned_data['email']
+
     data = {'activation_key': create_activation_key(email),
             'email': email,
             'password': uform.cleaned_data['password1'],
@@ -55,28 +58,26 @@ def add_user(request):
     try:
         user = uform.save(data)
     except IntegrityError:
-        msg = 'Un compte existe déjà pour cette adresse e-mail.'
-        return JsonResponse(status=409, data={'erreur': msg})
+        uform.add_error('email', "l'e-mail existe déjà!")
+        return render(request, 'profiles/add.html',
+                      {'uform': uform, 'pform': pform})
 
     try:
         ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(data['password']))
     except Exception as e:
-        error.append(str(e))
         user.delete()
+        error.append(str(e))
 
     try:
         ckan_add_user(user, data['password'])
     except Exception as e:
         user.delete()
-        # TODO: Supprimer user du LDAP
         error.append(str(e))
 
     try:
-        sendmail(request, data['email'], data['activation_key'])
+        send_validation_mail(request, data['email'], data['activation_key'])
     except smtplib.SMTPException as e:
         user.delete()
-        # TODO: Supprimer user du LDAP
-        # TODO: Supprimer user de CKAN
         error.append(str(e))
 
     if error:

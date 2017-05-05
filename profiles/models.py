@@ -74,7 +74,7 @@ def deltatime_1_year():
 class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    orga = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance", blank=True, null=True)
+    organisation = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance", blank=True, null=True)
     phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
     role = models.CharField('Fonction', max_length=150, blank=True, null=True)
     activation_key = models.CharField(max_length=40, blank=True)
@@ -94,8 +94,8 @@ class Profile(models.Model):
         # first save which sets the id we need to generate a LDAP gidNumber
         super(Profile, self).save(*args, **kwargs)
         cn = self.user.username
-        ckan_add_user_to_organisation(cn, self.orga.ckan_slug)
-        ldap_add_user_to_group(cn, "cn=%s,ou=organisations,dc=idgo,dc=local" % self.orga.name)
+        ckan_add_user_to_organisation(cn, self.organisation.ckan_slug)
+        ldap_add_user_to_group(cn, "cn=%s,ou=organisations,dc=idgo,dc=local" % self.organisation.name)
         try:
             ldap_add_user_to_group(cn, "cn=active,ou=groups,dc=idgo,dc=local")
             ldap_add_user_to_group(cn, "cn=staff,ou=groups,dc=idgo,dc=local")
@@ -141,9 +141,9 @@ def check_user_status(sender, instance, **kwargs):
 def update_externals(sender, instance, **kwargs):
     if instance.id:
         old_instance = Profile.objects.get(pk=instance.id)
-        if old_instance.orga.name != instance.orga.name:
-            ckan_del_user_from_organisation(instance.user.username, old_instance.orga.ckan_slug)
-            ldap_del_user_from_group(instance.user.username, "cn={},ou=organisations,dc=idgo,dc=local".format(old_instance.orga.name))
+        if old_instance.organisation.name != instance.organisation.name:
+            ckan_del_user_from_organisation(instance.user.username, old_instance.organisation.ckan_slug)
+            ldap_del_user_from_group(instance.user.username, "cn={},ou=organisations,dc=idgo,dc=local".format(old_instance.organisation.name))
 
 
 post_delete.connect(delete_user_in_externals, sender=User)

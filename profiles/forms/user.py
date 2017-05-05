@@ -4,7 +4,7 @@ from django.shortcuts import redirect, get_object_or_404
 
 from profiles.models import Profile, Organisation
 
-from . import fields
+from . import common_fields as fields
 
 
 class UserForm(forms.Form):
@@ -17,7 +17,7 @@ class UserForm(forms.Form):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'password1', 'password2')
+        fields = ('first_name', 'last_name', 'email', 'password')
 
     def save(self, data):
 
@@ -35,7 +35,7 @@ class UserForm(forms.Form):
         profile.activation_key = data['activation_key']
         profile.role = data['role']
         profile.phone = data['phone']
-        profile.orga = get_object_or_404(Organisation, pk=data['organisation'])
+        profile.organisation = get_object_or_404(Organisation, pk=data['organisation'])
         profile.save()
 
 
