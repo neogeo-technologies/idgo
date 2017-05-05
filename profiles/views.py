@@ -68,6 +68,8 @@ def add_user(request):
         user.delete()
         error.append(str(e))
 
+    # TODO: Après validation de l'e-mail par l'utilisateur
+    # TODO: Sauvegarder le Profile
     # try:
     #     ckan.add_user(user, data['password'])
     # except Exception as e:

@@ -20,22 +20,23 @@ class UserForm(forms.Form):
         fields = ('first_name', 'last_name', 'email', 'password')
 
     def save(self, data):
-        user = User.objects.create_user(username=data['email'],
-                                        password=data['password'],
-                                        email=data['email'],
-                                        first_name=data['first_name'],
-                                        last_name=data['last_name'])
+        user = User.objects.create_user(
+                data['email'], password=data['password'], email=data['email'],
+                first_name=data['first_name'], last_name=data['last_name'])
+
         user.is_active = False
         user.save()
 
-        profile = Profile()
-        profile.user = user
-        profile.activation_key = data['activation_key']
-        profile.role = data['role']
-        profile.phone = data['phone']
-        profile.organisation = get_object_or_404(Organisation,
-                                                 pk=data['organisation'])
-        profile.save()
+        # profile = Profile()
+        # profile.user = user
+        # profile.activation_key = data['activation_key']
+        # profile.role = data['role']
+        # profile.phone = data['phone']
+        # profile.organisation = get_object_or_404(Organisation,
+        #                                          pk=data['organisation'])
+        # profile.save()
+
+        return user
 
 
 class UserProfileForm(forms.Form):

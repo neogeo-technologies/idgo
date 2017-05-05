@@ -57,20 +57,19 @@ class CkanHandler(metaclass=Singleton):
 
     def add_user_to_organization(self, user_name, organization):
 
-        params = {'id': organization.ckan_slug,
-                  'object_type': 'user',
-                  'object': user_name,
-                  'capacity': 'member'}
+        print(user_name)
 
-        self.remote.action.member_create(**params)
+        params = {'id': organization.ckan_slug,
+                  'username': user_name,
+                  'role': 'member'}
+
+        self.remote.action.organization_member_create(**params)
 
     def del_user_from_organization(self, user_name, organization):
 
-        params = {'id': organization.ckan_slug,
-                  'object_type': 'user',
-                  'object': user_name}
+        params = {'id': organization.ckan_slug, 'username': user_name}
 
-        self.remote.action.member_delete(**params)
+        self.remote.action.organization_member_delete(**params)
 
     def add_group(self, group):
 
