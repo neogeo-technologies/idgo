@@ -35,7 +35,7 @@ def add_user(request):
     uform = UserForm(data=request.POST or None)
     pform = UserProfileForm(data=request.POST or None)
 
-    if not uform.is_valid() and not pform.is_valid():
+    if not uform.is_valid() or not pform.is_valid():
         return render(request, 'profiles/add.html',
                       {'context': "Création d'un compte utilisateur",
                        'uform': uform,
@@ -47,7 +47,9 @@ def add_user(request):
             'password': uform.cleaned_data['password1'],
             'first_name': uform.cleaned_data['first_name'],
             'last_name': uform.cleaned_data['last_name'],
-            'organisation': pform.cleaned_data['organisation']}
+            'organisation': pform.cleaned_data['organisation'],
+            'role': pform.cleaned_data['role'],
+            'phone': pform.cleaned_data['phone']}
 
     error = []
     try:
