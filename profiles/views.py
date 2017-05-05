@@ -114,7 +114,9 @@ def update_user(request, id):
             if ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(password)) is False:
                 errors["LDAP"] = "Error during LDAP account creation"
 
-            if ckan_add_user(user, password) is False:
+            try:
+                ckan.add_user(user, password)
+            except:
                 errors["CKAN"] = "Error during CKAN account creation"
 
             if errors:
