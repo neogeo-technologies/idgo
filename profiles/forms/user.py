@@ -17,6 +17,19 @@ class UserForm(forms.Form):
         model = User
         fields = ('first_name', 'last_name', 'email', 'password1', 'password2')
 
+    def save(self, data):
+
+        # Override of save method for saving both User and Profile objects
+        u = User.objects.create_user(data['email'],
+                                     data['password1'])
+        u.is_active = False
+        u.save()
+
+        profile = Profile()
+        profile.user = u
+        profile.activation_key = data['activation_key']
+        profile.save()
+
 
 class UserProfileForm(forms.Form):
 

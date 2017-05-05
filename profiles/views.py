@@ -24,7 +24,7 @@ from .ldap_module import ldap_add_user, ldap_del_user
 
 
 from .forms.user import UserForm, UserProfileForm, UserDeleteForm
-from .models import Profile
+from .models import Profile, Organisation
 from .utils import *
 
 
@@ -37,36 +37,25 @@ def add_user(request):
 
     if uform.is_valid() and pform.is_valid():
 
-        password = uform.cleaned_data['password1']
-        email_user = uform.cleaned_data['email']
-        organisation = pform.cleaned_data['organisation']
-
-        user = uform.save()
-        user.password = make_password(password)
-        user.username = email_user
+        data = {}
+        data['email'] = uform.cleaned_data['email']
+        data['password'] = uform.cleaned_data['password1']
+        data['activation_key'], error = sendmail(request, data['email'])
+        if error:
+                return error
+        user = uform.save(data)
 
         errors = {}
-        if ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(password)) is False:
+        if ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(data['password'])) is False:
             errors["LDAP"] = "Error during LDAP account creation"
 
-        if ckan_add_user(user, password) is False:
+        if ckan_add_user(user, data['password']) is False:
             errors["CKAN"] = "Error during CKAN account creation"
 
         if errors:
             user.delete()
             return JsonResponse(data=errors,
                                 status=404)
-        else:
-            activation_key, error = sendmail(email_user)
-            if error:
-                return error
-
-            user.save()
-
-            profile = pform.save(commit=False)
-            profile.user = user
-            profile.activation_key = activation_key
-            profile.save()
 
         return JsonResponse(data={"Success": "All users created"},
                             status=200)

@@ -1,4 +1,3 @@
-import smtplib
 import hashlib
 import random
 
