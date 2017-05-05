@@ -23,7 +23,7 @@ from .ckan_module import ckan_add_user, ckan_del_user
 from .ldap_module import ldap_add_user, ldap_del_user
 
 
-from .forms import UserForm, UserProfileForm, RegistrationForm, UserDeleteForm
+from .forms.user import UserForm, UserProfileForm, UserDeleteForm
 from .models import Profile
 from .utils import *
 
@@ -39,6 +39,7 @@ def add_user(request):
 
         password = uform.cleaned_data['password1']
         email_user = uform.cleaned_data['email']
+        organisation = pform.cleaned_data['organisation']
 
         user = uform.save()
         user.password = make_password(password)
@@ -61,6 +62,7 @@ def add_user(request):
                 return error
 
             user.save()
+
             profile = pform.save(commit=False)
             profile.user = user
             profile.activation_key = activation_key
@@ -194,79 +196,79 @@ def delete_user(request):
                            'pform': None})
 
 
-def register(request):
-    if request.user.is_authenticated():
-        return redirect('/index')
-    registration_form = RegistrationForm()
-    if request.method == 'POST':
-        form = RegistrationForm(data=request.POST)
-        if form.is_valid():
-            data={}
-            data['username']=form.cleaned_data['username']
-            data['email']=form.cleaned_data['email']
-            data['password1']=form.cleaned_data['password1']
-
-            #We generate a random activation key
-            salt = hashlib.sha1(str(random.random()).encode('utf-8')).hexdigest()[:5].encode('utf-8')
-            usernamesalt = data['username'].encode('utf-8')
-
-            data['activation_key'] = hashlib.sha1(salt+usernamesalt).hexdigest()
-
-            data['email_path']="/ActivationEmail.txt"
-            data['email_subject']="Activation de votre compte yourdomain"
-
-            form.sendEmail(data)
-            form.save(data) #Save the user and his profile
-
-            request.session['registered']=True #For display purposes
-            return redirect('/index')
-        else:
-            registration_form = form #Display form with error messages (incorrect fields, etc)
-    return render(request, 'register.html', locals())
-
-
-#View called from activation email. Activate user if link didn't expire (48h default), or offer to
-#send a second link if the first expired.
-def activation(request, key):
-    activation_expired = False
-    already_active = False
-    profile = get_object_or_404(Profile, activation_key=key)
-    if not profile.user.is_active:
-        if timezone.now() > profile.key_expires:
-            activation_expired = True    #Display: offer the user to send a new activation link
-            id_user = profile.user.id
-        else:    #Activation successful
-            profile.user.is_active = True
-            profile.user.save()
-
-    #If user is already active, simply display error message
-    else:
-        already_active = True #Display : error message
-    return render(request, 'activation.html', locals())
-
-
-def new_activation_link(request, user_id):
-    form = RegistrationForm()
-    datas={}
-    user = User.objects.get(id=user_id)
-    if user is not None and not user.is_active:
-        datas['username']=user.username
-        datas['email']=user.email
-        datas['email_path']="/ResendEmail.txt"
-        datas['email_subject']="Nouveau lien d'activation yourdomain"
-
-        salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
-        usernamesalt = datas['username']
-        if isinstance(usernamesalt, unicode):
-            usernamesalt = usernamesalt.encode('utf8')
-        datas['activation_key']= hashlib.sha1(salt+usernamesalt).hexdigest()
-
-        profile = Profile.objects.get(user=user)
-        profile.activation_key = datas['activation_key']
-        profile.key_expires = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=2), "%Y-%m-%d %H:%M:%S")
-        profile.save()
-
-        form.sendEmail(datas)
-        request.session['new_link']=True #Display: new link sent
-
-    return redirect(home)
+# def register(request):
+#     if request.user.is_authenticated():
+#         return redirect('/index')
+#     registration_form = RegistrationForm()
+#     if request.method == 'POST':
+#         form = RegistrationForm(data=request.POST)
+#         if form.is_valid():
+#             data={}
+#             data['username']=form.cleaned_data['username']
+#             data['email']=form.cleaned_data['email']
+#             data['password1']=form.cleaned_data['password1']
+#
+#             #We generate a random activation key
+#             salt = hashlib.sha1(str(random.random()).encode('utf-8')).hexdigest()[:5].encode('utf-8')
+#             usernamesalt = data['username'].encode('utf-8')
+#
+#             data['activation_key'] = hashlib.sha1(salt+usernamesalt).hexdigest()
+#
+#             data['email_path']="/ActivationEmail.txt"
+#             data['email_subject']="Activation de votre compte yourdomain"
+#
+#             form.sendEmail(data)
+#             form.save(data) #Save the user and his profile
+#
+#             request.session['registered']=True #For display purposes
+#             return redirect('/index')
+#         else:
+#             registration_form = form #Display form with error messages (incorrect fields, etc)
+#     return render(request, 'register.html', locals())
+#
+#
+# #View called from activation email. Activate user if link didn't expire (48h default), or offer to
+# #send a second link if the first expired.
+# def activation(request, key):
+#     activation_expired = False
+#     already_active = False
+#     profile = get_object_or_404(Profile, activation_key=key)
+#     if not profile.user.is_active:
+#         if timezone.now() > profile.key_expires:
+#             activation_expired = True    #Display: offer the user to send a new activation link
+#             id_user = profile.user.id
+#         else:    #Activation successful
+#             profile.user.is_active = True
+#             profile.user.save()
+#
+#     #If user is already active, simply display error message
+#     else:
+#         already_active = True #Display : error message
+#     return render(request, 'activation.html', locals())
+#
+#
+# def new_activation_link(request, user_id):
+#     form = RegistrationForm()
+#     datas={}
+#     user = User.objects.get(id=user_id)
+#     if user is not None and not user.is_active:
+#         datas['username']=user.username
+#         datas['email']=user.email
+#         datas['email_path']="/ResendEmail.txt"
+#         datas['email_subject']="Nouveau lien d'activation yourdomain"
+#
+#         salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
+#         usernamesalt = datas['username']
+#         if isinstance(usernamesalt, unicode):
+#             usernamesalt = usernamesalt.encode('utf8')
+#         datas['activation_key']= hashlib.sha1(salt+usernamesalt).hexdigest()
+#
+#         profile = Profile.objects.get(user=user)
+#         profile.activation_key = datas['activation_key']
+#         profile.key_expires = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=2), "%Y-%m-%d %H:%M:%S")
+#         profile.save()
+#
+#         form.sendEmail(datas)
+#         request.session['new_link']=True #Display: new link sent
+#
+#     return redirect(home)
