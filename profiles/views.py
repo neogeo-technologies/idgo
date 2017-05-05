@@ -42,6 +42,7 @@ def add_user(request):
 
         user = uform.save()
         user.password = make_password(password)
+        user.username = email_user
 
         errors = {}
         if ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(password)) is False:
@@ -57,7 +58,7 @@ def add_user(request):
         else:
             if not sendmail(email_user):
                 return JsonResponse(data={"error": "Echec de l'envoi de l'email de validation"},
-                                    status=400)
+                                status=400)
             user.save()
             profile = pform.save(commit=False)
             profile.user = user

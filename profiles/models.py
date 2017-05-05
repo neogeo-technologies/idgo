@@ -1,4 +1,5 @@
 import requests
+from datetime import timedelta
 
 from django.db import models
 from django.contrib.gis.db import models
@@ -7,6 +8,7 @@ from django.conf import settings
 from django.db.models.signals import pre_save, post_save, post_delete, m2m_changed
 from django.dispatch import receiver
 from django.utils.text import slugify
+from django.utils import timezone
 
 
 from .ldap_module import ldap_sync_object, ldap_add_user, ldap_del_user, ldap_add_user_to_group, ldap_del_user_from_group
@@ -66,20 +68,24 @@ class Organisation(models.Model):
             super(Organisation, self).delete()
 
 
+def deltatime_1_year():
+    return timezone.now() + timezone.timedelta(days=365)
+
 class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     orga = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance")
-    phone = models.CharField('Téléphone', max_length=10, blank=True)
-    role = models.CharField('Fonction', max_length=150, blank=True)
+    phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
+    role = models.CharField('Fonction', max_length=150, blank=True, null=True)
+    activation_key = models.CharField(max_length=40, blank=True)
+    key_expires = models.DateTimeField(default=deltatime_1_year, blank=True, null=True)
 
     # address = models.CharField("Adresse", max_length=150, blank=True)
     # city = models.CharField("Ville", max_length=150, blank=True)
     # zipcode = models.CharField("Code Postal", max_length=5, blank=True)
     # country = models.CharField("Pays", max_length=100, blank=True)
 
-    activation_key = models.CharField(max_length=40, blank=True)
-    key_expires = models.DateTimeField(blank=True)
+
 
     def __str__(self):
         return self.user.username
