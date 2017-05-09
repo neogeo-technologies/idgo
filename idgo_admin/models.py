@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
-from ckan_module.views import ckan_add_group, ckan_sync_group, ckan_del_group
 from django.utils.text import slugify
+
+from profiles.ckan_module import CkanHandler as ckan
 from taggit.managers import TaggableManager
 
 class Category(models.Model):
@@ -20,16 +21,16 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         if self.id:
-            self.sync_in_ckan = ckan_sync_group(self)
+            self.sync_in_ckan = ckan.sync_group(self)
         else:
             self.ckan_slug = slugify(self.name)
-            self.sync_in_ckan = ckan_add_group(self)
+            self.sync_in_ckan = ckan.add_group(self)
 
         if self.sync_in_ckan:
             super(Category, self).save(*args, **kwargs)
 
     def delete(self):
-        if ckan_del_group(self):
+        if ckan.del_group(self):
             super(Category, self).delete()
 
 
