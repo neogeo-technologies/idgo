@@ -87,7 +87,7 @@ class Commune(models.Model):
 
 class Territory(models.Model):
 
-    code = models.CharField('Code INSEE', max_length=5)
+    code = models.CharField('Code INSEE', max_length=10)
     name = models.CharField('Nom', max_length=100)
     commmunes = models.ManyToManyField(Commune)
     geom = models.MultiPolygonField('Geometrie', srid=2154, blank=True, null=True)
