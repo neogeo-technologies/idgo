@@ -5,11 +5,12 @@ from django.db import models
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.db.models.signals import pre_save, post_save, post_delete, m2m_changed
+from django.db.models.signals import pre_save, post_save, pre_delete, post_delete, m2m_changed
 from django.dispatch import receiver
 from django.utils.text import slugify
 from django.utils import timezone
-
+from django.shortcuts import get_object_or_404
+from django.contrib.postgres.fields import JSONField
 
 from .ldap_module import ldap_sync_object, ldap_add_user, ldap_del_user, ldap_add_user_to_group, ldap_del_user_from_group
 from .ckan_module import CkanHandler as ckan
@@ -54,7 +55,6 @@ class Organisation(models.Model):
             # now try to push this organization to CKAN ..
             self.sync_in_ckan = ckan.add_organization(self)
 
-
         # first save which sets the id we need to generate a LDAP gidNumber
         super(Organisation, self).save(*args, **kwargs)
         self.sync_in_ldap = ldap_sync_object("organisations", self.name, self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, "add_or_update")
@@ -77,9 +77,9 @@ class Profile(models.Model):
     organisation = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance", blank=True, null=True)
     phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
     role = models.CharField('Fonction', max_length=150, blank=True, null=True)
-    activation_key = models.CharField(max_length=40, blank=True)
-    key_expires = models.DateTimeField(default=deltatime_2_days, blank=True, null=True)
 
+    # activation_key = models.CharField(max_length=40, blank=True)
+    # key_expires = models.DateTimeField(default=deltatime_2_days, blank=True, null=True)
     # address = models.CharField("Adresse", max_length=150, blank=True)
     # city = models.CharField("Ville", max_length=150, blank=True)
     # zipcode = models.CharField("Code Postal", max_length=5, blank=True)
@@ -89,13 +89,12 @@ class Profile(models.Model):
         return self.user.username
 
 
-
     def save(self, *args, **kwargs):
         # first save which sets the id we need to generate a LDAP gidNumber
 
         super(Profile, self).save(*args, **kwargs)
         cn = self.user.username
-        ckan.add_user_to_organization(cn, self.organisation)
+        # ckan.add_user_to_organization(cn, self.organisation)
         ldap_add_user_to_group(cn, "cn=%s,ou=organisations,dc=idgo,dc=local" % self.organisation.name)
         try:
             ldap_add_user_to_group(cn, "cn=active,ou=groups,dc=idgo,dc=local")
@@ -104,6 +103,13 @@ class Profile(models.Model):
             ldap_add_user_to_group(cn, "cn=enabled,ou=django,ou=groups,dc=idgo,dc=local")
         except:
             pass
+
+class Registration(models.Model):
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    activation_key = models.CharField(max_length=40, blank=True)
+    key_expires = models.DateTimeField(default=deltatime_2_days, blank=True, null=True)
+    profile_fields = JSONField("Champs profile", blank=True, null=True)
 
 
 class Application(models.Model):
@@ -128,17 +134,22 @@ class Application(models.Model):
             super(Application, self).delete()
 
 
-def delete_user_in_externals(sender, instance, **kwargs):
-    ckan.del_user(instance.username)
-    ldap_del_user(instance.username)
+# Signaux
+
+# @receiver(post_delete, sender=User)
+# def delete_user_in_externals(sender, instance, **kwargs):
+#     ckan.del_user(instance.username) # User inactif
+#     ldap_del_user(instance.username) # User
 
 
+@receiver(post_save, sender=User)
 def check_user_status(sender, instance, **kwargs):
     # vérification de l'état actif de l'utilisateur
     if not instance.is_active:
         ckan.deactivate_user(instance.username)
 
 
+@receiver(pre_save, sender=Profile)
 def update_externals(sender, instance, **kwargs):
     if instance.id:
         old_instance = Profile.objects.get(pk=instance.id)
@@ -146,13 +157,25 @@ def update_externals(sender, instance, **kwargs):
             ckan.del_user_from_organization(instance.user.username, old_instance.organisation)
             ldap_del_user_from_group(instance.user.username, "cn={},ou=organisations,dc=idgo,dc=local".format(old_instance.organisation.name))
 
+
+@receiver(pre_save, sender=Profile)
 def delete_user_expire_date(sender, instance, **kwargs):
-    expired_profiles = Profile.objects.filter(key_expires__lte=timezone.now())
-    for p in expired_profiles:
-        u = p.user
+    expired_key_reg = Registration.objects.filter(key_expires__lte=timezone.now())
+    for reg in expired_key_reg:
+        u = reg.user
         u.delete()
 
-post_delete.connect(delete_user_in_externals, sender=User)
-post_save.connect(check_user_status, sender=User)
-pre_save.connect(update_externals, sender=Profile)
-pre_save.connect(delete_user_expire_date, sender=Profile)
+
+@receiver(post_save, sender=User)
+def create_registration(sender, instance, **kwargs):
+    attrs_needed = ['_profile_fields', '_activation_key']
+    if all(hasattr(instance, attr) for attr in attrs_needed):
+        Registration.objects.create(
+            user=instance,
+            activation_key=instance._activation_key,
+            profile_fields=instance._profile_fields)
+
+
+# @receiver(pre_delete, sender=User)
+# def clean_registration(sender, instance, **kwargs):
+#     Registration.objects.filter(user=instance).delete()

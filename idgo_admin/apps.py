@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class IdgoadminConfig(AppConfig):
-    name = 'idgoadmin'
+    name = 'idgo_admin'
     verbose_name = 'Configurations'

@@ -25,16 +25,14 @@ class UserForm(forms.Form):
                 first_name=data['first_name'], last_name=data['last_name'])
 
         user.is_active = False
-        user.save()
 
-        # profile = Profile()
-        # profile.user = user
-        # profile.activation_key = data['activation_key']
-        # profile.role = data['role']
-        # profile.phone = data['phone']
-        # profile.organisation = get_object_or_404(Organisation,
-        #                                          pk=data['organisation'])
-        # profile.save()
+        # Params send for post_save signal on User instance: create_registration()
+        user._activation_key = data['activation_key']
+        user._profile_fields = {'role': data['role'],
+                                'phone': data['phone'],
+                                'organisation': data['organisation']}
+
+        user.save()
 
         return user
 
@@ -55,10 +53,11 @@ class UserDeleteForm(forms.Form):
     email = fields.E_MAIL
     first_name = fields.FIRST_NAME
     last_name = fields.LAST_NAME
+    password = fields.PASSWORD1
 
     class Meta:
         model = User
-        fields = ('first_name', 'email')
+        fields = ('first_name', 'last_name', 'email', 'password')
 
 
 # class RegistrationForm(forms.Form):

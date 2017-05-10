@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.gis import admin as geo_admin
 
-from .models import Organisation, Profile, OrganisationType, Application
+from .models import Organisation, Profile, OrganisationType, Application, Registration
 
 
 geo_admin.GeoModelAdmin.default_lon = 160595
@@ -13,17 +13,27 @@ geo_admin.GeoModelAdmin.default_zoom = 14
 
 admin.site.register(OrganisationType)
 admin.site.unregister(User)
+admin.site.register(Registration)
+admin.site.register(Profile)
+
+
+class UserRegistrationInline(admin.StackedInline):
+   model = Registration
+   max_num = 1
+   can_delete = False
+   readonly_fields = ('activation_key', 'key_expires')
+
 
 
 class UserProfileInline(admin.StackedInline):
    model = Profile
    max_num = 1
    can_delete = False
-   readonly_fields = ('activation_key', 'key_expires')
+   readonly_fields = ('role', 'phone', 'organisation')
 
 
 class UserAdmin(AuthUserAdmin):
-   inlines = [UserProfileInline]
+   inlines = [UserRegistrationInline, UserProfileInline]
 
 
 admin.site.register(User, UserAdmin)

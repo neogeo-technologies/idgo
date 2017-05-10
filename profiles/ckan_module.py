@@ -11,10 +11,12 @@ class CkanHandler(metaclass=Singleton):
     API_KEY = settings.CKAN_API_KEY
     URL = settings.CKAN_URL
 
+
     def __init__(self):
         self.remote = RemoteCKAN(self.URL, apikey=self.API_KEY)
 
     def add_user(self, login, password):
+
         r = requests.post('{0}/ldap_login_handler'.format(settings.CKAN_URL),
                           data={'login': login, 'password': password})
 

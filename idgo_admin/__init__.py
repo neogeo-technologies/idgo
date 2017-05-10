@@ -1,1 +1,1 @@
-default_app_config = 'idgoadmin.apps.IdgoadminConfig'
+default_app_config = 'idgo_admin.apps.IdgoadminConfig'

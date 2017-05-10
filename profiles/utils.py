@@ -1,5 +1,6 @@
 from django.core.mail import send_mail
-
+from django.conf import settings
+from django.urls import reverse
 
 # Some metaclasses:
 
@@ -26,9 +27,9 @@ class Singleton(type):
 
 def send_validation_mail(request, email_user, key):
 
-    url = "{0}{1}".format(request.build_absolute_uri(), key)
+    url = "{}".format(request.build_absolute_uri(reverse("activation", kwargs={"key":key})))
 
-    from_email = 'cbenhabib@neogeo.fr'
+    from_email = 'idgo@neogeo-technologies.fr'
     subject = 'Validation de votre inscription sur le site IDGO.'
     message = '''
 Bonjour,
@@ -36,6 +37,23 @@ Bonjour,
 Veuillez valider votre inscription en cliquant sur le lien suivant : {0}
 
 Ceci est un message automatique. Merci de ne pas y repondre.'''.format(url)
+
+    send_mail(subject=subject,
+              message=message,
+              from_email=from_email,
+              recipient_list=[email_user])
+
+
+def send_confirmation_mail(email_user):
+
+    from_email = settings.DEFAULT_FROM_EMAIL
+    subject = 'Confirmation de votre inscription sur le site IDGO.'
+    message = '''
+                Bonjour,
+                
+                Nous vous confirmons votre inscription sur le site IDGO
+                
+                Ceci est un message automatique. Merci de ne pas y repondre.'''
 
     send_mail(subject=subject,
               message=message,

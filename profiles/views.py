@@ -5,18 +5,20 @@ import random
 import smtplib
 from datetime import datetime
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
+from django.conf import settings
 from django.http import JsonResponse
 from django.utils import timezone
 from django.shortcuts import render
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
-from django.contrib.auth import authenticate
+
 
 
 from .ckan_module import CkanHandler as ckan
@@ -24,8 +26,22 @@ from .ldap_module import ldap_add_user, ldap_del_user
 
 
 from .forms.user import UserForm, UserProfileForm, UserDeleteForm
-from .models import Profile, Organisation
+from .models import Profile, Organisation, Registration
 from .utils import *
+
+
+@csrf_exempt
+def test_mail(request):
+    if request.method == "GET":
+        error=[]
+        try:
+            send_confirmation_mail("cbenhabib@neogeo.fr")
+        except smtplib.SMTPException as e:
+            error.append(str(e))
+
+        if error:
+            return JsonResponse(status=400, data={'error': error})
+        return JsonResponse(data={"Success": "mail sent"}, status=200)
 
 
 @csrf_exempt
@@ -44,6 +60,11 @@ def add_user(request):
                       {'uform': uform, 'pform': pform})
 
     email = uform.cleaned_data['email']
+
+    if uform.cleaned_data['password1'] != uform.cleaned_data['password2']:
+        uform.add_error('password1', "Verifiez les champs mot de passe")
+        return render(request, 'profiles/add.html',
+                      {'uform': uform, 'pform': pform})
 
     data = {'activation_key': create_activation_key(email),
             'email': email,
@@ -68,8 +89,6 @@ def add_user(request):
         user.delete()
         error.append(str(e))
 
-    # TODO: Après validation de l'e-mail par l'utilisateur
-    # TODO: Sauvegarder le Profile
     # try:
     #     ckan.add_user(user, data['password'])
     # except Exception as e:
@@ -85,6 +104,33 @@ def add_user(request):
     if error:
         return JsonResponse(status=400, data={'error': error})
     return JsonResponse(data={"Success": "All users created"}, status=200)
+
+
+@csrf_exempt
+def activation(request, key):
+
+    if request.method == "GET":
+        reg = get_object_or_404(Registration, activation_key=key)
+        if reg.key_expires >= timezone.now():
+            new_profile = Profile.objects.create(user=reg.user,
+                                                organisation = get_object_or_404(Organisation,
+                                                                                 pk=reg.profile_fields['organisation']),
+                                                phone=reg.profile_fields['phone'],
+                                                role = reg.profile_fields['role'])
+
+            # Vider la table Registration pour le meme user
+            email_user = reg.user.email
+            Registration.objects.filter(user=reg.user).delete()
+
+            # Envoyer mail de confirmation
+            send_confirmation_mail(email_user)
+            return JsonResponse(data={"Success": "Profile created"}, status=200)
+
+        else:
+            # Supprimer Registration car key_expire revolue
+            reg.delete()
+            return JsonResponse(data={'error': "Echec de l'activation du profile"},
+                                status=404)
 
 
 @csrf_exempt
@@ -142,69 +188,70 @@ def update_user(request, id):
                        'pform': UserProfileForm()})
 
 @csrf_exempt
-def delete_user_id(request, id):
-
-    user = get_object_or_404(User, pk=id)
-    profile = get_object_or_404(Profile, user=user)
-
-    if request.method == "GET":
-        return render(request, "profiles/del.html",
-                      {'context': "SUPPRESSION D'UN COMPTE UTILISATEUR",
-                       'uform': UserDeleteForm(instance=user, initial={'password': None}),
-                       'pform': None})
-
-    if request.method == "POST":
-        uform = UserDeleteForm(data=request.POST, instance=user)
-        if uform.is_valid():
-
-            errors = {}
-            # ldap_del_user(uid)
-            # ckan_del_user()
-
-            if errors:
-                return JsonResponse(data=errors,
-                                    status=404)
-
-            profile.delete()
-            user.delete()
-            return render(request, "profiles/success.html",
-                          {'context': "SUPPRESSION REUSSI"},
-                          status=200)
-
-@csrf_exempt
 def delete_user(request):
-    if request.method == "GET":
-        return render(request, "profiles/del.html",
-                      {'context': "SUPPRESSION D'UN COMPTE UTILISATEUR",
-                       'uform': UserDeleteForm(),
-                       'pform': None})
 
-    if request.method == "POST":
-        uform = UserDeleteForm(data=request.POST)
-        print(uform.errors.as_data())
-        if uform.is_valid():
-            username = uform.cleaned_data['username']
-            user = get_object_or_404(User, username=username)
-            profile = get_object_or_404(Profile, user=user)
-            errors = {}
+    uform = UserDeleteForm(data=request.POST or None)
+    print(request.POST)
+    if uform.is_valid() is False:
+        print(uform.errors)
+        return render(request, 'profiles/del.html',
+                      {'uform': uform})
 
-            # ldap_del_user(uid)
-            # ckan_del_user()
+    email = uform.cleaned_data['email']
+    try:
+        user = User.objects.get(username=email)
+    except ObjectDoesNotExist:
+        uform.add_error('email', "L'adresse mail est incorrect!")
+        return render(request, 'profiles/del.html',
+                      {'uform': uform})
+    try:
+        user.delete()
+    except Exception as err:
+        return JsonResponse(status=400, data={'error': str(err)})
 
-            if errors:
-                return JsonResponse(data=errors,
-                                    status=404)
+        # uform.add_error('email', "Echec de la suppression!")
+        # return render(request, 'profiles/del.html',
+        #               {'uform': uform})
 
-            profile.delete()
-            user.delete()
-            return render(request, "profiles/success.html",
-                          {'context': "SUPPRESSION REUSSI"},
-                          status=200)
-        else:
-            return render(request, 'profiles/del.html',
-                          {'context': "SUPRESSION D'UN COMPTE UTILISATEUR",
-                           'uform': uform,
-                           'pform': None})
+    return render(request, "profiles/success.html",
+                  {'context': "SUPPRESSION REUSSI"},
+                  status=200)
+
+
+# @csrf_exempt
+# def delete_user(request):
+#     if request.method == "GET":
+#         return render(request, "profiles/del.html",
+#                       {'context': "SUPPRESSION D'UN COMPTE UTILISATEUR",
+#                        'uform': UserDeleteForm(),
+#                        'pform': None})
+#
+#     if request.method == "POST":
+#         uform = UserDeleteForm(data=request.POST)
+#         print(uform.errors.as_data())
+#         if uform.is_valid():
+#             username = uform.cleaned_data['username']
+#             user = get_object_or_404(User, username=username)
+#             profile = get_object_or_404(Profile, user=user)
+#             errors = {}
+#
+#             # ldap_del_user(uid)
+#             # ckan_del_user()
+#
+#             if errors:
+#                 return JsonResponse(data=errors,
+#                                     status=404)
+#
+#             profile.delete()
+#             user.delete()
+#             return render(request, "profiles/success.html",
+#                           {'context': "SUPPRESSION REUSSI"},
+#                           status=200)
+#         else:
+#             return render(request, 'profiles/del.html',
+#                           {'context': "SUPRESSION D'UN COMPTE UTILISATEUR",
+#                            'uform': uform,
+#                            'pform': None})
 
 
 # def register(request):

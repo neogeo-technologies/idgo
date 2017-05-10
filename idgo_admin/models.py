@@ -17,6 +17,7 @@ class Category(models.Model):
         return self.name
 
     class Meta:
+        managed = False
         verbose_name = "Catégorie"
 
     def save(self, *args, **kwargs):
@@ -52,6 +53,7 @@ class License(models.Model):
         return self.title
 
     class Meta:
+        managed = False
         verbose_name = "Licence"
 
 
@@ -63,6 +65,7 @@ class Projection(models.Model):
         return self.name
 
     class Meta:
+        managed = False
         verbose_name = "Projection"
 
 
@@ -73,6 +76,7 @@ class Resolution(models.Model):
         return self.value
 
     class Meta:
+        managed = False
         verbose_name = "Resolution"
 
 
@@ -84,6 +88,9 @@ class Commune(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        managed = False
 
 
 class Territory(models.Model):
@@ -98,6 +105,7 @@ class Territory(models.Model):
         return self.name
 
     class Meta:
+        managed = False
         verbose_name = "Territoire"
 
 
@@ -109,6 +117,7 @@ class AccessLevel(models.Model):
         return self.name
 
     class Meta:
+        managed = False
         verbose_name = "Condition d'accès"
         verbose_name = "Conditions d'accès"
 
@@ -147,6 +156,7 @@ class Dataset(models.Model):
         return self.name
 
     class Meta:
+        managed = False
         verbose_name = "Jeu de données"
         verbose_name_plural = "Jeux de données"
 
@@ -181,4 +191,5 @@ class Resource(models.Model):
         return self.name
 
     class Meta:
+        managed = False
         verbose_name = "Ressource"

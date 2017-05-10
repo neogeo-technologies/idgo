@@ -23,6 +23,20 @@
 						<div class="panel-body">
 							<form method="post" action="">
 								{% csrf_token %}
+
+								<div class="row">
+									<div class="col-xs-12 col-sm-6">
+										{% bootstrap_field uform.first_name show_label=False %}
+									</div>
+									<div class="col-xs-12 col-sm-6">
+										{% bootstrap_field uform.last_name show_label=False %}
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-xs-12 col-sm-12">
+										{% bootstrap_field uform.password show_label=False %}
+									</div>
+								</div>
 								{% bootstrap_field uform.email show_label=False %}
 								{% buttons %}
 								<button type="submit" class="btn btn-default pull-right">Valider</button>
