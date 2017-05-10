@@ -10,6 +10,14 @@ __all__ = ['fields']
 
 class CommonFields(metaclass=StaticClass):
 
+    USER_NAME = forms.CharField(
+        error_messages={'invalid': 'invalid'},
+        label='Nom de connexion',
+        max_length=255,
+        min_length=3,
+        validators=[validators.validate_slug],
+        widget=forms.TextInput(attrs={'placeholder': 'Nom de connexion'}))
+
     FIRST_NAME = forms.CharField(
         error_messages={'invalid': 'invalid'},
         label='Prénom',
