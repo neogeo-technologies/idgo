@@ -30,13 +30,13 @@ def send_validation_mail(request, email_user, key):
     url = "{}".format(request.build_absolute_uri(reverse("activation", kwargs={"key":key})))
 
     from_email = 'idgo@neogeo-technologies.fr'
-    subject = 'Validation de votre inscription sur le site IDGO.'
+    subject = 'Validation de votre inscription sur le site IDGO'
     message = '''
 Bonjour,
 
 Veuillez valider votre inscription en cliquant sur le lien suivant : {0}
 
-Ceci est un message automatique. Merci de ne pas y repondre.'''.format(url)
+Ceci est un message automatique. Merci de ne pas y répondre.'''.format(url)
 
     send_mail(subject=subject,
               message=message,
@@ -47,13 +47,13 @@ Ceci est un message automatique. Merci de ne pas y repondre.'''.format(url)
 def send_confirmation_mail(email_user):
 
     from_email = settings.DEFAULT_FROM_EMAIL
-    subject = 'Confirmation de votre inscription sur le site IDGO.'
+    subject = 'Confirmation de votre inscription sur le site IDGO'
     message = '''
-                Bonjour,
-                
-                Nous vous confirmons votre inscription sur le site IDGO
-                
-                Ceci est un message automatique. Merci de ne pas y repondre.'''
+Bonjour,
+
+Nous vous confirmons votre inscription sur le site IDGO.
+
+Ceci est un message automatique. Merci de ne pas y répondre.'''
 
     send_mail(subject=subject,
               message=message,

@@ -1,4 +1,5 @@
 import ldap
+import passlib.hash
 from datetime import datetime
 from django.conf import settings
 from profiles.get_current_request import get_current_user
@@ -15,73 +16,56 @@ class LdapHandler(metaclass=Singleton):
         self.conn = ldap.initialize(self.LDAP_URL, bytes_mode=False)
         self.conn.simple_bind_s(self.LDAP_ACCOUNT, self.LDAP_PASSWORD)
 
-    def get_user(self, user_name):
-        base = 'cn={0},ou=people,dc=idgo,dc=local'.format(user_name)
+    def get_user(self, user):
+        base = 'cn={0},ou=people,dc=idgo,dc=local'.format(user.username)
         try:
             return self.conn.search_s(base, ldap.SCOPE_SUBTREE)
         except ldap.NO_SUCH_OBJECT:
             return None
 
-    def is_user_exists(self, user_name):
-        return self.get_user(user_name) and True or False
+    def is_user_exists(self, user):
+        return self.get_user(user) and True or False
 
     def add_user(self, user, password):
 
-        gid = settings.LDAP_PEOPLE_ID_INCREMENT + user.id
-
-        dn = "cn=%s,ou=people,dc=idgo,dc=local" % (user.username)
-        homedir = "/home/{0}".format(user.username)
-        try:
-            self.conn.add_s(dn,[
+        gid = '{0}{1}'.format(settings.LDAP_PEOPLE_ID_INCREMENT, user.id)
+        password = passlib.hash.ldap_sha1.encrypt(password)
+        self.conn.add_s(
+            'cn={0},ou=people,dc=idgo,dc=local'.format(user.username), [
                 ("objectclass", [b"inetOrgPerson", b"posixAccount"]),
                 ("uid", [user.username.encode()]),
-                ("gidNumber", ["{0}".format(gid).encode()]),
-                ("uidNumber", ["{0}".format(gid).encode()]),
+                ("gidNumber", [gid.encode()]),
+                ("uidNumber", [gid.encode()]),
                 ("sn", [user.last_name.encode()]),
                 ("givenName", [user.first_name.encode()]),
                 ("displayName", [user.first_name.encode()]),
                 ("mail", [user.email.encode()]),
-                ("homeDirectory", [homedir.encode()]),
+                ("homeDirectory", ["/home/{0}".format(user.username).encode()]),
                 ("userPassword", [password.encode()]),
                 ("description", ["created by {0} at {1}".format(
-                                    "guillaume", datetime.now()).encode()])])
+                                "guillaume", datetime.now()).encode()])])
 
-        except ldap.LDAPError as e:
-            # self.conn.unbind()
-            raise e
-
-        # self.conn.unbind_s()
-
-
-    def del_user(self, uid):
-        deleteDN = "cn=%s,ou=people,dc=idgo,dc=local" % uid
+    def del_user(self, user):
         # TODO : delete user from all the groups he belongs to.
         try:
-            self.conn.delete_s(deleteDN)
+            self.conn.delete_s(
+                    'cn={0},ou=people,dc=idgo,dc=local'.format(user.username))
         except:
             pass
 
-
-    def add_user_to_group(self, uid, group_dn):
-        # AJOUT AU GROUPE UTILISATEUR ADMIN
-        modlist = []
+    def add_user_to_group(self, user, group_dn):
         try:
-            modlist.append((ldap.MOD_ADD, "memberUid", uid.encode()))
-            self.conn.modify_s(group_dn, modlist)
+            self.conn.modify_s(group_dn, [(ldap.MOD_ADD, "memberUid", user.username.encode())])
         except ldap.LDAPError as e:
             return False
         return True
 
-
-    def del_user_from_group(self, uid, group_dn):
-        modlist = []
+    def del_user_from_group(self, user, group_dn):
         try:
-            modlist.append((ldap.MOD_DELETE, "memberUid", uid.encode()))
-            self.conn.modify_s(group_dn, modlist)
-        except ldap.LDAPError as e:
+            self.conn.modify_s(group_dn, [(ldap.MOD_DELETE, "memberUid", user.username.encode())])
+        except ldap.LDAPError:
             return False
         return True
-
 
     def create_object(self, object_type, object_name, gid, delete_first=False):
         u = get_current_user()
@@ -93,9 +77,8 @@ class LdapHandler(metaclass=Singleton):
                             u.username, datetime.now()).encode()])])
         return True
 
-
     def sync_object(self, object_type, object_name, gid, operation='add_or_update'):
-        res = False
+
         try:
             result = self.conn.search_s('ou=%s,dc=idgo,dc=local' % object_type,
                                      ldap.SCOPE_SUBTREE, "(gidNumber=%s)" % gid)

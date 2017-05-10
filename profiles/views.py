@@ -97,16 +97,16 @@ def add_user(request):
                       {'uform': uform, 'pform': pform})
 
     try:
-        ldap.add_user(user, passlib.hash.ldap_sha1.encrypt(data['password']))
+        ldap.add_user(user, data['password'])
     except Exception as e:
         user.delete()
         error.append(str(e))
 
-    # try:
-    #     ckan.add_user(user, data['password'])
-    # except Exception as e:
-    #     user.delete()
-    #     error.append(str(e))
+    try:
+        ckan.add_user(user, data['password'])
+    except Exception as e:
+        user.delete()
+        error.append(str(e))
 
     try:
         send_validation_mail(request, data['email'], data['activation_key'])
@@ -192,7 +192,7 @@ def update_user(request, id):
 
             user.password = make_password(password)
             errors = {}
-            if ldap.add_user(user, passlib.hash.ldap_sha1.encrypt(password)) is False:
+            if ldap.add_user(user, password) is False:
                 errors["LDAP"] = "Error during LDAP account creation"
 
             try:

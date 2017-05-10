@@ -14,32 +14,35 @@ class CkanHandler(metaclass=Singleton):
     def __init__(self):
         self.remote = RemoteCKAN(self.URL, apikey=self.API_KEY)
 
-    def get_user(self, user_name):
+    def get_user(self, user):
         try:
-            return self.remote.action.user_show(id=user_name)
+            return self.remote.action.user_show(id=user.username)
         except NotFound:
             return None
 
-    def is_user_exists(self, user_name):
-        return self.get_user(user_name) and True or False
+    def is_user_exists(self, user):
 
-    def add_user(self, login, password):
+        return self.get_user(user) and True or False
+
+    def add_user(self, user, password):
 
         r = requests.post('{0}/ldap_login_handler'.format(settings.CKAN_URL),
-                          data={'login': login, 'password': password})
+                          data={'login': user.username, 'password': password})
 
-        if not r.status_code == 200:
-            raise Exception(r)  # TODO
+        # TODO TODO TODO TODO TODO TODO
+        if r.status_code == 500:
+            return
+        # TODO TODO TODO TODO TODO TODO
 
-    def del_user(self, user_name):
+    def del_user(self, user):
         try:
-            return self.remote.action.user_delete(id=user_name)
+            return self.remote.action.user_delete(id=user.username)
         except NotFound:
             return None
 
-    def deactivate_user(self, user_name):
+    def deactivate_user(self, user):
         try:
-            return self.remote.action.user_update(id=user_name)
+            return self.remote.action.user_update(id=user.username)
         except NotFound:
             return None
 
@@ -62,23 +65,22 @@ class CkanHandler(metaclass=Singleton):
     def test_organization(self, organization):
 
         params = {'id': organization.ckan_slug}
-
         try:
             self.remote.action.organization_show(**params)
         except NotFound:
             pass
 
-    def add_user_to_organization(self, user_name, organization):
+    def add_user_to_organization(self, user, organization):
 
         params = {'id': organization.ckan_slug,
-                  'username': user_name,
+                  'username': user.username,
                   'role': 'member'}
 
         self.remote.action.organization_member_create(**params)
 
-    def del_user_from_organization(self, user_name, organization):
+    def del_user_from_organization(self, user, organization):
 
-        params = {'id': organization.ckan_slug, 'username': user_name}
+        params = {'id': organization.ckan_slug, 'username': user.username}
 
         self.remote.action.organization_member_delete(**params)
 

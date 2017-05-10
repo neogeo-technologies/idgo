@@ -94,14 +94,13 @@ class Profile(models.Model):
         # first save which sets the id we need to generate a LDAP gidNumber
 
         super(Profile, self).save(*args, **kwargs)
-        cn = self.user.username
         # ckan.add_user_to_organization(cn, self.organisation)
-        ldap.add_user_to_group(cn, "cn=%s,ou=organisations,dc=idgo,dc=local" % self.organisation.name)
+        ldap.add_user_to_group(self.user, "cn=%s,ou=organisations,dc=idgo,dc=local" % self.organisation.name)
         try:
-            ldap.add_user_to_group(cn, "cn=active,ou=groups,dc=idgo,dc=local")
-            ldap.add_user_to_group(cn, "cn=staff,ou=groups,dc=idgo,dc=local")
-            ldap.add_user_to_group(cn, "cn=superuser,ou=groups,dc=idgo,dc=local")
-            ldap.add_user_to_group(cn, "cn=enabled,ou=django,ou=groups,dc=idgo,dc=local")
+            ldap.add_user_to_group(self.user, "cn=active,ou=groups,dc=idgo,dc=local")
+            ldap.add_user_to_group(self.user, "cn=staff,ou=groups,dc=idgo,dc=local")
+            ldap.add_user_to_group(self.user, "cn=superuser,ou=groups,dc=idgo,dc=local")
+            ldap.add_user_to_group(self.user, "cn=enabled,ou=django,ou=groups,dc=idgo,dc=local")
         except:
             pass
 
@@ -140,23 +139,22 @@ class Application(models.Model):
 
 @receiver(pre_save, sender=User)
 def is_existing_user(sender, instance, **kwargs):
-    user_name = instance.username
-    if ckan.is_user_exists(user_name) \
-            or ldap.is_user_exists(user_name):
-        raise IntegrityError('User {0} already exists.'.format(user_name))
+    if ckan.is_user_exists(instance) \
+            or ldap.is_user_exists(instance):
+        raise IntegrityError('User {0} already exists.'.format(instance.username))
 
 
 # @receiver(post_delete, sender=User)
 # def delete_user_in_externals(sender, instance, **kwargs):
-#     ckan.del_user(instance.username) # User inactif
-#     ldap.del_user(instance.username) # User
+#     ckan.del_user(instance) # User inactif
+#     ldap.del_user(instance) # User
 
 
 @receiver(post_save, sender=User)
 def check_user_status(sender, instance, **kwargs):
     # vérification de l'état actif de l'utilisateur
     if not instance.is_active:
-        ckan.deactivate_user(instance.username)
+        ckan.deactivate_user(instance)
 
 
 @receiver(pre_save, sender=Profile)
@@ -164,8 +162,8 @@ def update_externals(sender, instance, **kwargs):
     if instance.id:
         old_instance = Profile.objects.get(pk=instance.id)
         if old_instance.organisation.name != instance.organisation.name:
-            ckan.del_user_from_organization(instance.user.username, old_instance.organisation)
-            ldap.del_user_from_group(instance.user.username, "cn={},ou=organisations,dc=idgo,dc=local".format(old_instance.organisation.name))
+            ckan.del_user_from_organization(instance.user, old_instance.organisation)
+            ldap.del_user_from_group(instance.user, "cn={},ou=organisations,dc=idgo,dc=local".format(old_instance.organisation.name))
 
 
 @receiver(pre_save, sender=Profile)
