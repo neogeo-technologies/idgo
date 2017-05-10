@@ -45,7 +45,7 @@ def add_user(request):
 
     def save_user(data):
         user = User.objects.create_user(
-                data['email'], password=data['password'], email=data['email'],
+                username=data['username'], password=data['password'], email=data['email'],
                 first_name=data['first_name'], last_name=data['last_name'])
 
         user.is_active = False
@@ -71,15 +71,15 @@ def add_user(request):
         return render(request, 'profiles/add.html',
                       {'uform': uform, 'pform': pform})
 
-    email = uform.cleaned_data['email']
 
     if uform.cleaned_data['password1'] != uform.cleaned_data['password2']:
         uform.add_error('password1', "Verifiez les champs mot de passe")
         return render(request, 'profiles/add.html',
                       {'uform': uform, 'pform': pform})
 
-    data = {'activation_key': create_activation_key(email),
-            'email': email,
+    data = {'activation_key': create_activation_key(pform.cleaned_data['username']),
+            'username': pform.cleaned_data['username'],
+            'email': uform.cleaned_data['email'],
             'password': uform.cleaned_data['password1'],
             'first_name': uform.cleaned_data['first_name'],
             'last_name': uform.cleaned_data['last_name'],
@@ -152,6 +152,26 @@ def update_user(request, id):
     user = get_object_or_404(User, pk=id)
     profile = get_object_or_404(Profile, user=user)
 
+    def update_user(data):
+        user = get_object_or_404(User,
+                username=data['username'])
+
+        # attrs_needed = ['password', 'email']
+        # if all(hasattr(instance, attr) for attr in attrs_needed):
+        # user.password = data['password'], email = data['email'],
+        # first_name = data['first_name'], last_name = data['last_name']
+        # user.is_active = False
+        #
+        # # Params send for post_save signal on User instance: create_registration()
+        # user._activation_key = data['activation_key']
+        # user._profile_fields = {'role': data['role'],
+        #                         'phone': data['phone'],
+        #                         'organisation': data['organisation']}
+        # user.save()
+        #
+        # return user
+
+
     if request.method == "GET":
 
         return render(request, "profiles/add.html",
@@ -168,7 +188,7 @@ def update_user(request, id):
 
             password = uform.cleaned_data['password']
 
-            user = uform.save()
+            update_user(uform.cleaned_data)
 
             user.password = make_password(password)
             errors = {}
@@ -210,11 +230,11 @@ def delete_user(request):
         return render(request, 'profiles/del.html',
                       {'uform': uform})
 
-    email = uform.cleaned_data['email']
+    username = uform.cleaned_data['username']
     try:
-        user = User.objects.get(username=email)
+        user = User.objects.get(username=username)
     except ObjectDoesNotExist:
-        uform.add_error('email', "L'adresse mail est incorrect!")
+        uform.add_error('username', "Verifiez le nom de connexion!")
         return render(request, 'profiles/del.html',
                       {'uform': uform})
     try:
@@ -229,43 +249,6 @@ def delete_user(request):
     return render(request, "profiles/success.html",
                   {'context': "SUPPRESSION REUSSI"},
                   status=200)
-
-
-# @csrf_exempt
-# def delete_user(request):
-#     if request.method == "GET":
-#         return render(request, "profiles/del.html",
-#                       {'context': "SUPPRESSION D'UN COMPTE UTILISATEUR",
-#                        'uform': UserDeleteForm(),
-#                        'pform': None})
-#
-#     if request.method == "POST":
-#         uform = UserDeleteForm(data=request.POST)
-#         print(uform.errors.as_data())
-#         if uform.is_valid():
-#             username = uform.cleaned_data['username']
-#             user = get_object_or_404(User, username=username)
-#             profile = get_object_or_404(Profile, user=user)
-#             errors = {}
-#
-#             # ldap_del_user(uid)
-#             # ckan_del_user()
-#
-#             if errors:
-#                 return JsonResponse(data=errors,
-#                                     status=404)
-#
-#             profile.delete()
-#             user.delete()
-#             return render(request, "profiles/success.html",
-#                           {'context': "SUPPRESSION REUSSI"},
-#                           status=200)
-#         else:
-#             return render(request, 'profiles/del.html',
-#                           {'context': "SUPRESSION D'UN COMPTE UTILISATEUR",
-#                            'uform': uform,
-#                            'pform': None})
-
 
 # def register(request):
 #     if request.user.is_authenticated():
