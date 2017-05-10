@@ -77,8 +77,8 @@ def add_user(request):
         return render(request, 'profiles/add.html',
                       {'uform': uform, 'pform': pform})
 
-    data = {'activation_key': create_activation_key(pform.cleaned_data['username']),
-            'username': pform.cleaned_data['username'],
+    data = {'activation_key': create_activation_key(uform.cleaned_data['email']),
+            'username': uform.cleaned_data['username'],
             'email': uform.cleaned_data['email'],
             'password': uform.cleaned_data['password1'],
             'first_name': uform.cleaned_data['first_name'],
@@ -186,7 +186,7 @@ def update_user(request, id):
 
         if uform.is_valid() and pform.is_valid():
 
-            password = uform.cleaned_data['password']
+            password = uform.cleaned_data['password1']
 
             update_user(uform.cleaned_data)
 

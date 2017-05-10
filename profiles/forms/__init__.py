@@ -10,7 +10,7 @@ __all__ = ['fields']
 
 class CommonFields(metaclass=StaticClass):
 
-    USER_NAME = forms.CharField(
+    USERNAME = forms.CharField(
         error_messages={'invalid': 'invalid'},
         label='Nom de connexion',
         max_length=255,

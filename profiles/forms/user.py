@@ -9,7 +9,7 @@ from . import common_fields as fields
 
 class UserForm(forms.Form):
 
-    user_name = fields.USER_NAME
+    username = fields.USERNAME
     email = fields.E_MAIL
     first_name = fields.FIRST_NAME
     last_name = fields.LAST_NAME
@@ -18,7 +18,7 @@ class UserForm(forms.Form):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'user_name', 'password')
+        fields = ('first_name', 'last_name', 'email', 'username', 'password')
 
 
 class UserProfileForm(forms.Form):
