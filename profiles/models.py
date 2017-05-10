@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.db import IntegrityError
 from django.db.models.signals import pre_save, post_save, pre_delete, post_delete, m2m_changed
 from django.dispatch import receiver
 from django.utils.text import slugify
@@ -12,7 +13,7 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.contrib.postgres.fields import JSONField
 
-from .ldap_module import ldap_sync_object, ldap_add_user, ldap_del_user, ldap_add_user_to_group, ldap_del_user_from_group
+from .ldap_module import LdapHandler as ldap
 from .ckan_module import CkanHandler as ckan
 
 
@@ -57,12 +58,12 @@ class Organisation(models.Model):
 
         # first save which sets the id we need to generate a LDAP gidNumber
         super(Organisation, self).save(*args, **kwargs)
-        self.sync_in_ldap = ldap_sync_object("organisations", self.name, self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, "add_or_update")
+        self.sync_in_ldap = ldap.sync_object("organisations", self.name, self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, "add_or_update")
         # then save the current LDAP sync result
         super(Organisation, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        res = ldap_sync_object("organisations", self.name, self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, "delete")
+        res = ldap.sync_object("organisations", self.name, self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, "delete")
         res_ckan = ckan.del_organization(self)
         if res and res_ckan:
             super(Organisation, self).delete()
@@ -95,12 +96,12 @@ class Profile(models.Model):
         super(Profile, self).save(*args, **kwargs)
         cn = self.user.username
         # ckan.add_user_to_organization(cn, self.organisation)
-        ldap_add_user_to_group(cn, "cn=%s,ou=organisations,dc=idgo,dc=local" % self.organisation.name)
+        ldap.add_user_to_group(cn, "cn=%s,ou=organisations,dc=idgo,dc=local" % self.organisation.name)
         try:
-            ldap_add_user_to_group(cn, "cn=active,ou=groups,dc=idgo,dc=local")
-            ldap_add_user_to_group(cn, "cn=staff,ou=groups,dc=idgo,dc=local")
-            ldap_add_user_to_group(cn, "cn=superuser,ou=groups,dc=idgo,dc=local")
-            ldap_add_user_to_group(cn, "cn=enabled,ou=django,ou=groups,dc=idgo,dc=local")
+            ldap.add_user_to_group(cn, "cn=active,ou=groups,dc=idgo,dc=local")
+            ldap.add_user_to_group(cn, "cn=staff,ou=groups,dc=idgo,dc=local")
+            ldap.add_user_to_group(cn, "cn=superuser,ou=groups,dc=idgo,dc=local")
+            ldap.add_user_to_group(cn, "cn=enabled,ou=django,ou=groups,dc=idgo,dc=local")
         except:
             pass
 
@@ -124,22 +125,31 @@ class Application(models.Model):
     def save(self, *args, **kwargs):
         # first save which sets the id we need to generate a LDAP gidNumber
         super(Application, self).save(*args, **kwargs)
-        self.sync_in_ldap = ldap_sync_object("applications", self.short_name, self.id + settings.LDAP_APPLICATION_ID_INCREMENT, "add_or_update")
+        self.sync_in_ldap = ldap.sync_object("applications", self.short_name, self.id + settings.LDAP_APPLICATION_ID_INCREMENT, "add_or_update")
         # then save the current LDAP sync result
         super(Application, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        res = ldap_sync_object("organisations", self.short_name, self.id + settings.LDAP_APPLICATION_ID_INCREMENT, "delete")
+        res = ldap.sync_object("organisations", self.short_name, self.id + settings.LDAP_APPLICATION_ID_INCREMENT, "delete")
         if res:
             super(Application, self).delete()
 
 
 # Signaux
 
+
+@receiver(pre_save, sender=User)
+def is_existing_user(sender, instance, **kwargs):
+    user_name = instance.username
+    if ckan.is_user_exists(user_name) \
+            or ldap.is_user_exists(user_name):
+        raise IntegrityError('User {0} already exists.'.format(user_name))
+
+
 # @receiver(post_delete, sender=User)
 # def delete_user_in_externals(sender, instance, **kwargs):
 #     ckan.del_user(instance.username) # User inactif
-#     ldap_del_user(instance.username) # User
+#     ldap.del_user(instance.username) # User
 
 
 @receiver(post_save, sender=User)
@@ -155,7 +165,7 @@ def update_externals(sender, instance, **kwargs):
         old_instance = Profile.objects.get(pk=instance.id)
         if old_instance.organisation.name != instance.organisation.name:
             ckan.del_user_from_organization(instance.user.username, old_instance.organisation)
-            ldap_del_user_from_group(instance.user.username, "cn={},ou=organisations,dc=idgo,dc=local".format(old_instance.organisation.name))
+            ldap.del_user_from_group(instance.user.username, "cn={},ou=organisations,dc=idgo,dc=local".format(old_instance.organisation.name))
 
 
 @receiver(pre_save, sender=Profile)

@@ -11,9 +11,17 @@ class CkanHandler(metaclass=Singleton):
     API_KEY = settings.CKAN_API_KEY
     URL = settings.CKAN_URL
 
-
     def __init__(self):
         self.remote = RemoteCKAN(self.URL, apikey=self.API_KEY)
+
+    def get_user(self, user_name):
+        try:
+            return self.remote.action.user_show(id=user_name)
+        except NotFound:
+            return None
+
+    def is_user_exists(self, user_name):
+        return self.get_user(user_name) and True or False
 
     def add_user(self, login, password):
 
@@ -24,13 +32,16 @@ class CkanHandler(metaclass=Singleton):
             raise Exception(r)  # TODO
 
     def del_user(self, user_name):
-        self.remote.action.user_delete(id=user_name)
+        try:
+            return self.remote.action.user_delete(id=user_name)
+        except NotFound:
+            return None
 
     def deactivate_user(self, user_name):
         try:
-            self.remote.action.user_update(id=user_name)
+            return self.remote.action.user_update(id=user_name)
         except NotFound:
-            pass
+            return None
 
     def add_organization(self, organization):
 
@@ -58,8 +69,6 @@ class CkanHandler(metaclass=Singleton):
             pass
 
     def add_user_to_organization(self, user_name, organization):
-
-        print(user_name)
 
         params = {'id': organization.ckan_slug,
                   'username': user_name,

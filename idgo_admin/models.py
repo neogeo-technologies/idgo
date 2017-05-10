@@ -6,6 +6,7 @@ from django.utils.text import slugify
 from profiles.ckan_module import CkanHandler as ckan
 from taggit.managers import TaggableManager
 
+
 class Category(models.Model):
     # MODELE LIE AUX GROUPES CKAN. A SYNCHRONISER DONC.
     name = models.CharField('Nom', max_length=100)

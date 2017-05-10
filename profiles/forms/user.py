@@ -19,23 +19,6 @@ class UserForm(forms.Form):
         model = User
         fields = ('first_name', 'last_name', 'email', 'password')
 
-    def save(self, data):
-        user = User.objects.create_user(
-                data['email'], password=data['password'], email=data['email'],
-                first_name=data['first_name'], last_name=data['last_name'])
-
-        user.is_active = False
-
-        # Params send for post_save signal on User instance: create_registration()
-        user._activation_key = data['activation_key']
-        user._profile_fields = {'role': data['role'],
-                                'phone': data['phone'],
-                                'organisation': data['organisation']}
-
-        user.save()
-
-        return user
-
 
 class UserProfileForm(forms.Form):
 

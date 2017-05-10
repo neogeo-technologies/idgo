@@ -19,12 +19,8 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 
-
-
 from .ckan_module import CkanHandler as ckan
-from .ldap_module import ldap_add_user, ldap_del_user
-
-
+from .ldap_module import LdapHandler as ldap
 from .forms.user import UserForm, UserProfileForm, UserDeleteForm
 from .models import Profile, Organisation, Registration
 from .utils import *
@@ -46,6 +42,22 @@ def test_mail(request):
 
 @csrf_exempt
 def add_user(request):
+
+    def save_user(data):
+        user = User.objects.create_user(
+                data['email'], password=data['password'], email=data['email'],
+                first_name=data['first_name'], last_name=data['last_name'])
+
+        user.is_active = False
+
+        # Params send for post_save signal on User instance: create_registration()
+        user._activation_key = data['activation_key']
+        user._profile_fields = {'role': data['role'],
+                                'phone': data['phone'],
+                                'organisation': data['organisation']}
+        user.save()
+
+        return user
 
     def create_activation_key(email_user):
         pwd = str(random.random()).encode('utf-8')
@@ -76,15 +88,16 @@ def add_user(request):
             'phone': pform.cleaned_data['phone']}
 
     error = []
+
     try:
-        user = uform.save(data)
+        user = save_user(data)
     except IntegrityError:
-        uform.add_error('email', "l'e-mail existe déjà!")
+        uform.add_error('email', "l'e-mail existe déjà.")
         return render(request, 'profiles/add.html',
                       {'uform': uform, 'pform': pform})
 
     try:
-        ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(data['password']))
+        ldap.add_user(user, passlib.hash.ldap_sha1.encrypt(data['password']))
     except Exception as e:
         user.delete()
         error.append(str(e))
@@ -159,7 +172,7 @@ def update_user(request, id):
 
             user.password = make_password(password)
             errors = {}
-            if ldap_add_user(user, passlib.hash.ldap_sha1.encrypt(password)) is False:
+            if ldap.add_user(user, passlib.hash.ldap_sha1.encrypt(password)) is False:
                 errors["LDAP"] = "Error during LDAP account creation"
 
             try:
