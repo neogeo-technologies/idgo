@@ -29,9 +29,7 @@ from .utils import *
 @csrf_exempt
 def login(request):
 
-
     uform = UserDeleteForm(data=request.POST or None)
-
     if not uform.is_valid():
         return render(request, 'profiles/login.html',
                       {'uform': uform})
@@ -46,7 +44,6 @@ def login(request):
         uform.add_error('password', 'Vérifiez le mot de passe !')
         return render(request, 'profiles/del.html', {'uform': uform})
 
-    print(request.session['user_id'])
     return render(request, 'profiles/main.html', {'uform': uform})
 
 @csrf_exempt
@@ -165,59 +162,30 @@ def activation(request, key):
 @csrf_exempt
 def update_user(request):
 
-    uform = UserForm(data=request.POST or None)
-    pform = UserProfileForm(data=request.POST or None)
+    user = User.objects.get(id=request.session['user_id'])
+    profile = Profile.objects.get(user=user)
+
+    udata = {'username': user.username,
+             'email': user.email,
+             'first_name': user.first_name,
+             'last_name': user.last_name}
+
+    pdata = {'role': profile.role,
+             'phone':profile.phone,
+             'organisation': profile.organisation.id}
+
+    uform = UserForm(initial=udata)
+    pform = UserProfileForm(initial=pdata)
 
     if not uform.is_valid() or not pform.is_valid():
-        return render(request, 'profiles/add.html',
+        print("uform or pform invalide")
+        return render(request, 'profiles/update.html',
                       {'uform': uform, 'pform': pform})
 
-    username = uform.cleaned_data['username']
-    password = uform.cleaned_data['password']
-    if authenticate(username=username, password=password):
-        user = User.objects.get(username=username)
-    else:
-        uform.add_error('username', 'Vérifiez le nom de connexion !')
-        uform.add_error('password', 'Vérifiez le mot de passe !')
-        return render(request, 'profiles/del.html', {'uform': uform})
+    print("uform or pform valide")
 
-
-        # attrs_needed = ['password', 'email']
-        # if all(hasattr(instance, attr) for attr in attrs_needed):
-        # user.password = data['password'], email = data['email'],
-        # first_name = data['first_name'], last_name = data['last_name']
-        # user.is_active = False
-        #
-        # # Params send for post_save signal on User instance: create_registration()
-        # user._activation_key = data['activation_key']
-        # user._profile_fields = {'role': data['role'],
-        #                         'phone': data['phone'],
-        #                         'organisation': data['organisation']}
-        # user.save()
-        #
-        # return user
-
-
-    if request.method == "GET":
-
-        return render(request, "profiles/add.html",
-                      {'context':"MODIFICATION D'UN COMPTE UTILISATEUR",
-                       'uform': UserForm(instance=user, initial={'password': None}),
-                       'pform': UserProfileForm(instance=profile)})
-
-    if request.method == "POST":
-
-        uform = UserForm(data=request.POST, instance=user)
-        pform = UserProfileForm(data=request.POST, instance=profile)
-
-        if uform.is_valid() and pform.is_valid():
-
-            password = uform.cleaned_data['password1']
-
-            update_user(uform.cleaned_data)
-
-            user.password = make_password(password)
-            errors = {}
+    """
+    errors = {}
             if ldap.add_user(user, password) is False:
                 errors["LDAP"] = "Error during LDAP account creation"
 
@@ -230,21 +198,21 @@ def update_user(request):
                 # user.delete()
                 return JsonResponse(data=errors,
                                     status=404)
+    """
+    user.first_name = uform.cleaned_data['first_name']
+    user.last_name = uform.cleaned_data['last_name']
+    user.email = uform.cleaned_data['email']
+    user.save()
 
-            else:
-                profile = pform.save(commit=False)
-                profile.user = user
-                profile.save()
 
-            return JsonResponse(data={"Success": "All users updated"},
-                                status=200)
-    else:
+    profile.organisatin = pform.cleaned_data['organisation']
+    profile.role = pform.cleaned_data['role']
+    profile.phone = pform.cleaned_data['phone']
+    profile.save()
 
-        return render(request,
-                      "profiles/user.html",
-                      {'context': "MODIFICATION D'UN COMPTE UTILISATEUR",
-                       'uform': UserForm(),
-                       'pform': UserProfileForm()})
+    print("*****************************")
+    return render(request, 'profiles/main.html', {'uform': uform})
+
 
 
 @csrf_exempt
