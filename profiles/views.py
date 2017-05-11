@@ -45,6 +45,15 @@ def login(request):
 
     return render(request, 'profiles/main.html', {'uform': uform})
 
+def logout(request):
+
+    try:
+        del request.session['user_id']
+    except KeyError:
+        pass
+    return render(request, 'profiles/main.html')
+
+
 @csrf_exempt
 def add_user(request):
 
