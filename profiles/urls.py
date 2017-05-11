@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-from profiles.views import add_user, activation, test_mail, delete_user
+from profiles.views import add_user, activation, delete_user
                            # update_user
                            # delete_user_id, delete_user,
                            # register,
@@ -9,8 +9,7 @@ from profiles.views import add_user, activation, test_mail, delete_user
 urlpatterns = [
     url(r"^add/?$", add_user, name="add_user"),
     url(r"^activate/(?P<key>.+)/?$", activation,  name="activation"),
-    url(r"^test_mail/?$", test_mail, name="test_mail"),
-    # url(r"^update_user/([0-9]+)/?$", update_user, name="update_user"),
+     # url(r"^update_user/([0-9]+)/?$", update_user, name="update_user"),
     url(r"^del//?$", delete_user, name="del"),
     # url(r"^del/?$", delete_user, name="delete_user"),
     # url(r"^register/?$", register, name="register"),

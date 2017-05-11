@@ -9,6 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.conf import settings
@@ -27,28 +28,14 @@ from .utils import *
 
 
 @csrf_exempt
-def test_mail(request):
-    if request.method == "GET":
-        error=[]
-        try:
-            send_confirmation_mail("cbenhabib@neogeo.fr")
-        except smtplib.SMTPException as e:
-            error.append(str(e))
-
-        if error:
-            return JsonResponse(status=400, data={'error': error})
-        return JsonResponse(data={"Success": "mail sent"}, status=200)
-
-
-@csrf_exempt
 def add_user(request):
 
     def save_user(data):
         user = User.objects.create_user(
-                username=data['username'], password=data['password'], email=data['email'],
-                first_name=data['first_name'], last_name=data['last_name'])
-
-        user.is_active = False
+                        username=data['username'], password=data['password'],
+                        email=data['email'], first_name=data['first_name'],
+                        last_name=data['last_name'],
+                        is_staff=False, is_superuser=False, is_active=False)
 
         # Params send for post_save signal on User instance: create_registration()
         user._activation_key = data['activation_key']
@@ -56,7 +43,6 @@ def add_user(request):
                                 'phone': data['phone'],
                                 'organisation': data['organisation']}
         user.save()
-
         return user
 
     def create_activation_key(email_user):
@@ -72,7 +58,7 @@ def add_user(request):
                       {'uform': uform, 'pform': pform})
 
     if uform.cleaned_data['password1'] != uform.cleaned_data['password2']:
-        uform.add_error('password1', "Verifiez les champs mot de passe")
+        uform.add_error('password1', 'Vérifiez les champs mot de passe')
         return render(request, 'profiles/add.html',
                       {'uform': uform, 'pform': pform})
 
@@ -86,13 +72,19 @@ def add_user(request):
             'role': pform.cleaned_data['role'],
             'phone': pform.cleaned_data['phone']}
 
+    if ckan.is_user_exists(data['username']) \
+            or ldap.is_user_exists(data['username']):
+        uform.add_error('username', 'Cet identifiant de connexion est réservé.')
+        return render(request, 'profiles/add.html', {'uform': uform,
+                                                     'pform': pform})
+
     try:
         user = save_user(data)
     except IntegrityError:
-        uform.add_error('email', "l'e-mail existe déjà.")
-        return render(request, 'profiles/add.html',
-                      {'uform': uform, 'pform': pform})
-
+        uform.add_error('username', 'Un utilisateur portant le même '
+                                    'identifiant de connexion existe déjà.')
+        return render(request, 'profiles/add.html', {'uform': uform,
+                                                     'pform': pform})
 
     error = []
     try:
@@ -144,7 +136,8 @@ def activation(request, key):
 
     # Envoyer mail de confirmation
     send_confirmation_mail(user.email)
-    return JsonResponse(data={"Success": "Profile created"}, status=200)
+    # TODO: page de confirmation
+    return JsonResponse(data={'Success': 'Profile created'}, status=200)
 
 
 @csrf_exempt
@@ -230,13 +223,12 @@ def delete_user(request):
     if not uform.is_valid():
         return render(request, 'profiles/del.html', {'uform': uform})
 
-    try:
-        user = User.objects.get(username=uform.cleaned_data['username'])
-    except ObjectDoesNotExist:
+    username = uform.cleaned_data['username']
+    password = uform.cleaned_data['password']
+    if authenticate(username=username, password=password):
+        user = User.objects.get(username=username)
+    else:
         uform.add_error('username', 'Vérifiez le nom de connexion !')
-        return render(request, 'profiles/del.html', {'uform': uform})
-
-    if user.password != uform.cleaned_data['password']:
         uform.add_error('password', 'Vérifiez le mot de passe !')
         return render(request, 'profiles/del.html', {'uform': uform})
 
@@ -247,7 +239,6 @@ def delete_user(request):
         return render(request, 'profiles/del.html', {'uform': uform})
 
     return render(request, 'profiles/success.html', status=200)
-
 
 # def register(request):
 #     if request.user.is_authenticated():

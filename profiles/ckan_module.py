@@ -14,15 +14,14 @@ class CkanHandler(metaclass=Singleton):
     def __init__(self):
         self.remote = RemoteCKAN(self.URL, apikey=self.API_KEY)
 
-    def get_user(self, user):
+    def get_user(self, username):
         try:
-            return self.remote.action.user_show(id=user.username)
+            return self.remote.action.user_show(id=username)
         except NotFound:
             return None
 
-    def is_user_exists(self, user):
-
-        return self.get_user(user) and True or False
+    def is_user_exists(self, username):
+        return self.get_user(username) and True or False
 
     def add_user(self, user, password):
 
@@ -38,7 +37,13 @@ class CkanHandler(metaclass=Singleton):
                 state='deleted')
 
     def activate_user(self, user):
-        return self.remote.action.user_update(id=user.username, state='active')
+        return self.remote.action.user_update(id=user.username,
+                                              name=user.username,
+                                              email=user.email,
+                                              fullname='{0} {1}'.format(
+                                                  user.first_name,
+                                                  user.last_name),
+                                              state='active')
 
     def del_user(self, user):
         try:

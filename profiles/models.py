@@ -138,12 +138,12 @@ class Application(models.Model):
 # Signaux
 
 
-@receiver(pre_save, sender=User)
-def is_existing_user(sender, instance, **kwargs):
-    if ckan.is_user_exists(instance) \
-            or ldap.is_user_exists(instance):
-        raise IntegrityError('User {0} already exists.'.format(
-                                                        instance.username))
+# @receiver(pre_save, sender=User)
+# def is_existing_user(sender, instance, **kwargs):
+#     if ckan.is_user_exists(instance) \
+#             or ldap.is_user_exists(instance):
+#         raise IntegrityError('User {0} already exists.'.format(
+#                                                         instance.username))
 
 
 @receiver(pre_delete, sender=User)

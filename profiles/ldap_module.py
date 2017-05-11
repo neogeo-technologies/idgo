@@ -16,15 +16,15 @@ class LdapHandler(metaclass=Singleton):
         self.conn = ldap.initialize(self.LDAP_URL, bytes_mode=False)
         self.conn.simple_bind_s(self.LDAP_ACCOUNT, self.LDAP_PASSWORD)
 
-    def get_user(self, user):
-        base = 'cn={0},ou=people,dc=idgo,dc=local'.format(user.username)
+    def get_user(self, username):
+        base = 'cn={0},ou=people,dc=idgo,dc=local'.format(username)
         try:
             return self.conn.search_s(base, ldap.SCOPE_SUBTREE)
         except ldap.NO_SUCH_OBJECT:
             return None
 
-    def is_user_exists(self, user):
-        return self.get_user(user) and True or False
+    def is_user_exists(self, username):
+        return self.get_user(username) and True or False
 
     def add_user(self, user, password):
 
