@@ -31,8 +31,7 @@ def login(request):
 
     uform = UserDeleteForm(data=request.POST or None)
     if not uform.is_valid():
-        return render(request, 'profiles/login.html',
-                      {'uform': uform})
+        return render(request, 'profiles/login.html', {'uform': uform})
 
     username = uform.cleaned_data['username']
     password = uform.cleaned_data['password']
@@ -42,7 +41,7 @@ def login(request):
     else:
         uform.add_error('username', 'Vérifiez le nom de connexion !')
         uform.add_error('password', 'Vérifiez le mot de passe !')
-        return render(request, 'profiles/del.html', {'uform': uform})
+        return render(request, 'profiles/login.html', {'uform': uform})
 
     return render(request, 'profiles/main.html', {'uform': uform})
 
@@ -73,13 +72,13 @@ def add_user(request):
     pform = UserProfileForm(data=request.POST or None)
 
     if not uform.is_valid() or not pform.is_valid():
-        return render(request, 'profiles/add.html',
-                      {'uform': uform, 'pform': pform})
+        return render(request, 'profiles/add.html', {'uform': uform,
+                                                     'pform': pform})
 
     if uform.cleaned_data['password1'] != uform.cleaned_data['password2']:
         uform.add_error('password1', 'Vérifiez les champs mot de passe')
-        return render(request, 'profiles/add.html',
-                      {'uform': uform, 'pform': pform})
+        return render(request, 'profiles/add.html', {'uform': uform,
+                                                     'pform': pform})
 
     data = {'activation_key': create_activation_key(uform.cleaned_data['email']),
             'username': uform.cleaned_data['username'],
@@ -125,9 +124,19 @@ def add_user(request):
         error.append(str(e))
 
     if error:
-        return JsonResponse(status=400, data={'error': error})
+        message = "Une erreur critique s'est produite lors de la création de " \
+                  "votre compte. Merci de contacter l'administrateur du site."
 
-    return JsonResponse(data={"Success": "All users created"}, status=200)
+        return render(request, 'profiles/failure.html',
+                      {'message': message}, status=400)
+
+    message = 'Votre compte a bien été créé. Vous recevrez un e-mail ' \
+              "de confirmation d'ici quelques minutes. Pour activer " \
+              'votre compte, cliquer sur le lien qui vous sera indiqué ' \
+              "dans les 48h après réception de l'e-mail."
+
+    return render(request, 'profiles/success.html',
+                  {'message': message}, status=200)
 
 
 @csrf_exempt
@@ -238,7 +247,8 @@ def delete_user(request):
         uform.add_error('email', 'Echec de la suppression !')
         return render(request, 'profiles/del.html', {'uform': uform})
 
-    return render(request, 'profiles/success.html', status=200)
+    return render(request, 'profiles/success.html',
+                  {'message': 'Votre compte a été supprimé.'}, status=200)
 
 # def register(request):
 #     if request.user.is_authenticated():

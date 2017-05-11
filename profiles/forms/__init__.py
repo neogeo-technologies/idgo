@@ -12,25 +12,23 @@ class CommonFields(metaclass=StaticClass):
 
     USERNAME = forms.CharField(
         error_messages={'invalid': 'invalid'},
-        label='Nom de connexion',
+        label="Nom d'utilisateur",
         max_length=255,
         min_length=3,
         validators=[validators.validate_slug],
-        widget=forms.TextInput(attrs={'placeholder': 'Nom de connexion'}))
+        widget=forms.TextInput(attrs={'placeholder': "Nom d'utilisateur"}))
 
     FIRST_NAME = forms.CharField(
         error_messages={'invalid': 'invalid'},
         label='Prénom',
         max_length=30,
         min_length=1,
-        validators=[validators.validate_slug],
         widget=forms.TextInput(attrs={'placeholder': 'Prénom'}))
 
     LAST_NAME = forms.CharField(
         label='Nom',
         max_length=30,
         min_length=1,
-        validators=[validators.validate_slug],
         widget=forms.TextInput(attrs={'placeholder': 'Nom'}))
 
     E_MAIL = forms.EmailField(
@@ -54,7 +52,6 @@ class CommonFields(metaclass=StaticClass):
 
     ORGANISATION = forms.IntegerField(
         label='Organisme',
-        validators=[validators.validate_slug],
         widget=forms.Select(
                 attrs={'placeholder': 'Organisme'},
                 choices=Organisation.objects.all().values_list('id', 'name')))
@@ -63,14 +60,13 @@ class CommonFields(metaclass=StaticClass):
         label='Rôle',
         max_length=150,
         min_length=3,
-        validators=[validators.validate_slug],
         widget=forms.TextInput(attrs={'placeholder': 'Rôle'}))
 
     PHONE = forms.CharField(
         label='Téléphone',
         max_length=150,
         min_length=3,
-        validators=[validators.validate_slug],
+        validators=[],  # TODO validator regex
         widget=forms.TextInput(attrs={'placeholder': 'Téléphone'}))
 
 
