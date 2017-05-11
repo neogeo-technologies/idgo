@@ -34,14 +34,12 @@ class UserProfileForm(forms.Form):
 
 class UserDeleteForm(forms.Form):
 
-    email = fields.E_MAIL
-    first_name = fields.FIRST_NAME
-    last_name = fields.LAST_NAME
+    username = fields.USERNAME
     password = fields.PASSWORD1
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'password')
+        fields = ('username', 'password')
 
 
 # class RegistrationForm(forms.Form):

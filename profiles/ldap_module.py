@@ -62,7 +62,7 @@ class LdapHandler(metaclass=Singleton):
 
     def del_user_from_group(self, user, group_dn):
         try:
-            self.conn.modify_s(group_dn, [(ldap.MOD_DELETE, "memberUid", user.username.encode())])
+            self.conn.modify_s(group_dn, [(ldap.MOD_DELETE, 'memberUid', user.username.encode())])
         except ldap.LDAPError:
             return False
         return True

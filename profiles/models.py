@@ -89,18 +89,16 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
-
     def save(self, *args, **kwargs):
         # first save which sets the id we need to generate a LDAP gidNumber
-
         super(Profile, self).save(*args, **kwargs)
         # ckan.add_user_to_organization(cn, self.organisation)
-        ldap.add_user_to_group(self.user, "cn=%s,ou=organisations,dc=idgo,dc=local" % self.organisation.name)
+        ldap.add_user_to_group(self.user, 'cn={0},ou=organisations,dc=idgo,dc=local'.format(self.organisation.name))
         try:
-            ldap.add_user_to_group(self.user, "cn=active,ou=groups,dc=idgo,dc=local")
-            ldap.add_user_to_group(self.user, "cn=staff,ou=groups,dc=idgo,dc=local")
-            ldap.add_user_to_group(self.user, "cn=superuser,ou=groups,dc=idgo,dc=local")
-            ldap.add_user_to_group(self.user, "cn=enabled,ou=django,ou=groups,dc=idgo,dc=local")
+            ldap.add_user_to_group(self.user, 'cn=active,ou=groups,dc=idgo,dc=local')
+            ldap.add_user_to_group(self.user, 'cn=staff,ou=groups,dc=idgo,dc=local')
+            ldap.add_user_to_group(self.user, 'cn=superuser,ou=groups,dc=idgo,dc=local')
+            ldap.add_user_to_group(self.user, 'cn=enabled,ou=django,ou=groups,dc=idgo,dc=local')
         except:
             pass
 
@@ -108,28 +106,31 @@ class Registration(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     activation_key = models.CharField(max_length=40, blank=True)
-    key_expires = models.DateTimeField(default=deltatime_2_days, blank=True, null=True)
-    profile_fields = JSONField("Champs profile", blank=True, null=True)
+    key_expires = models.DateTimeField(
+                        default=deltatime_2_days, blank=True, null=True)
+    profile_fields = JSONField('Champs profile', blank=True, null=True)
 
 
 class Application(models.Model):
 
-    name = models.CharField("Nom", max_length=150, unique=True, db_index=True)
-    short_name = models.CharField("Nom abrégé", max_length=20, unique=True, db_index=True)
-    url = models.URLField("URL publique", blank=True)
-    host = models.CharField("Serveur interne", max_length=50, blank=True)
-    sync_in_ldap = models.BooleanField("Synchronisé dans le LDAP", default=False)
-    users = models.ManyToManyField(User, verbose_name="Utilisateurs")
+    name = models.CharField('Nom', max_length=150, unique=True, db_index=True)
+    short_name = models.CharField(
+                        'Nom abrégé', max_length=20, unique=True, db_index=True)
+    url = models.URLField('URL publique', blank=True)
+    host = models.CharField('Serveur interne', max_length=50, blank=True)
+    sync_in_ldap = models.BooleanField(
+                        'Synchronisé dans le LDAP', default=False)
+    users = models.ManyToManyField(User, verbose_name='Utilisateurs')
 
     def save(self, *args, **kwargs):
         # first save which sets the id we need to generate a LDAP gidNumber
         super(Application, self).save(*args, **kwargs)
-        self.sync_in_ldap = ldap.sync_object("applications", self.short_name, self.id + settings.LDAP_APPLICATION_ID_INCREMENT, "add_or_update")
+        self.sync_in_ldap = ldap.sync_object('applications', self.short_name, self.id + settings.LDAP_APPLICATION_ID_INCREMENT, 'add_or_update')
         # then save the current LDAP sync result
         super(Application, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        res = ldap.sync_object("organisations", self.short_name, self.id + settings.LDAP_APPLICATION_ID_INCREMENT, "delete")
+        res = ldap.sync_object('organisations', self.short_name, self.id + settings.LDAP_APPLICATION_ID_INCREMENT, 'delete')
         if res:
             super(Application, self).delete()
 
@@ -141,20 +142,14 @@ class Application(models.Model):
 def is_existing_user(sender, instance, **kwargs):
     if ckan.is_user_exists(instance) \
             or ldap.is_user_exists(instance):
-        raise IntegrityError('User {0} already exists.'.format(instance.username))
+        raise IntegrityError('User {0} already exists.'.format(
+                                                        instance.username))
 
 
-# @receiver(post_delete, sender=User)
-# def delete_user_in_externals(sender, instance, **kwargs):
-#     ckan.del_user(instance) # User inactif
-#     ldap.del_user(instance) # User
-
-
-@receiver(post_save, sender=User)
-def check_user_status(sender, instance, **kwargs):
-    # vérification de l'état actif de l'utilisateur
-    if not instance.is_active:
-        ckan.deactivate_user(instance)
+@receiver(pre_delete, sender=User)
+def delete_user_in_externals(sender, instance, **kwargs):
+    ldap.del_user(instance)
+    ckan.del_user(instance)  # ->state='deleted'
 
 
 @receiver(pre_save, sender=Profile)
@@ -162,8 +157,11 @@ def update_externals(sender, instance, **kwargs):
     if instance.id:
         old_instance = Profile.objects.get(pk=instance.id)
         if old_instance.organisation.name != instance.organisation.name:
-            ckan.del_user_from_organization(instance.user, old_instance.organisation)
-            ldap.del_user_from_group(instance.user, "cn={},ou=organisations,dc=idgo,dc=local".format(old_instance.organisation.name))
+            ckan.del_user_from_organization(
+                                    instance.user, old_instance.organisation)
+            group_dn = 'cn={0},ou=organisations,dc=idgo,dc=local'.format(
+                                                old_instance.organisation.name)
+            ldap.del_user_from_group(instance.user, group_dn)
 
 
 @receiver(pre_save, sender=Profile)

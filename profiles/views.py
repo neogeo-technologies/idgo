@@ -71,7 +71,6 @@ def add_user(request):
         return render(request, 'profiles/add.html',
                       {'uform': uform, 'pform': pform})
 
-
     if uform.cleaned_data['password1'] != uform.cleaned_data['password2']:
         uform.add_error('password1', "Verifiez les champs mot de passe")
         return render(request, 'profiles/add.html',
@@ -87,8 +86,6 @@ def add_user(request):
             'role': pform.cleaned_data['role'],
             'phone': pform.cleaned_data['phone']}
 
-    error = []
-
     try:
         user = save_user(data)
     except IntegrityError:
@@ -96,6 +93,8 @@ def add_user(request):
         return render(request, 'profiles/add.html',
                       {'uform': uform, 'pform': pform})
 
+
+    error = []
     try:
         ldap.add_user(user, data['password'])
     except Exception as e:
@@ -116,34 +115,36 @@ def add_user(request):
 
     if error:
         return JsonResponse(status=400, data={'error': error})
+
     return JsonResponse(data={"Success": "All users created"}, status=200)
 
 
 @csrf_exempt
 def activation(request, key):
 
-    if request.method == "GET":
-        reg = get_object_or_404(Registration, activation_key=key)
-        if reg.key_expires >= timezone.now():
-            new_profile = Profile.objects.create(user=reg.user,
-                                                organisation = get_object_or_404(Organisation,
-                                                                                 pk=reg.profile_fields['organisation']),
-                                                phone=reg.profile_fields['phone'],
-                                                role = reg.profile_fields['role'])
+    if request.method != 'GET':
+        return
 
-            # Vider la table Registration pour le meme user
-            email_user = reg.user.email
-            Registration.objects.filter(user=reg.user).delete()
+    reg = get_object_or_404(Registration, activation_key=key)
 
-            # Envoyer mail de confirmation
-            send_confirmation_mail(email_user)
-            return JsonResponse(data={"Success": "Profile created"}, status=200)
+    organisation = get_object_or_404(
+                            Organisation, pk=reg.profile_fields['organisation'])
 
-        else:
-            # Supprimer Registration car key_expire revolue
-            reg.delete()
-            return JsonResponse(data={'error': "Echec de l'activation du profile"},
-                                status=404)
+    user = reg.user
+    Profile.objects.create(user=user,
+                           organisation=organisation,
+                           phone=reg.profile_fields['phone'],
+                           role=reg.profile_fields['role'])
+
+    # Vider la table Registration pour le meme user
+    Registration.objects.filter(user=user).delete()
+
+    # Activer l'utilisateur dans CKAN:
+    ckan.activate_user(user)
+
+    # Envoyer mail de confirmation
+    send_confirmation_mail(user.email)
+    return JsonResponse(data={"Success": "Profile created"}, status=200)
 
 
 @csrf_exempt
@@ -220,35 +221,33 @@ def update_user(request, id):
                        'uform': UserForm(),
                        'pform': UserProfileForm()})
 
+
 @csrf_exempt
 def delete_user(request):
 
     uform = UserDeleteForm(data=request.POST or None)
-    print(request.POST)
-    if uform.is_valid() is False:
-        print(uform.errors)
-        return render(request, 'profiles/del.html',
-                      {'uform': uform})
 
-    username = uform.cleaned_data['username']
+    if not uform.is_valid():
+        return render(request, 'profiles/del.html', {'uform': uform})
+
     try:
-        user = User.objects.get(username=username)
+        user = User.objects.get(username=uform.cleaned_data['username'])
     except ObjectDoesNotExist:
-        uform.add_error('username', "Verifiez le nom de connexion!")
-        return render(request, 'profiles/del.html',
-                      {'uform': uform})
+        uform.add_error('username', 'Vérifiez le nom de connexion !')
+        return render(request, 'profiles/del.html', {'uform': uform})
+
+    if user.password != uform.cleaned_data['password']:
+        uform.add_error('password', 'Vérifiez le mot de passe !')
+        return render(request, 'profiles/del.html', {'uform': uform})
+
     try:
         user.delete()
-    except Exception as err:
-        return JsonResponse(status=400, data={'error': str(err)})
+    except Exception as e:
+        uform.add_error('email', 'Echec de la suppression !')
+        return render(request, 'profiles/del.html', {'uform': uform})
 
-        # uform.add_error('email', "Echec de la suppression!")
-        # return render(request, 'profiles/del.html',
-        #               {'uform': uform})
+    return render(request, 'profiles/success.html', status=200)
 
-    return render(request, "profiles/success.html",
-                  {'context': "SUPPRESSION REUSSI"},
-                  status=200)
 
 # def register(request):
 #     if request.user.is_authenticated():
