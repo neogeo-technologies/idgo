@@ -188,7 +188,7 @@ def update_user(request):
 
     if not uform.is_valid() or not pform.is_valid():
         print("uform or pform invalide")
-        return render(request, 'profiles/update.html',
+        return render(request, 'profiles/account.html',
                       {'uform': uform, 'pform': pform})
 
     print("uform or pform valide")

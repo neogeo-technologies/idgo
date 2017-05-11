@@ -10,8 +10,9 @@ urlpatterns = [
     url(r"^login/?$", login, name="login"),
     url(r"^add/?$", add_user, name="add_user"),
     url(r"^activate/(?P<key>.+)/?$", activation,  name="activation"),
-    url(r"^update_user/?$", update_user, name="update_user"),
     url(r"^del//?$", delete_user, name="del"),
+    url(r"^account//?$", update_user, name="account"),
+
     # url(r"^register/?$", register, name="register"),
     # url(r"^new-activation-link/(?P<user_id>\d+)/$", new_activation_link,  name="new_activation_link"),
 ]
