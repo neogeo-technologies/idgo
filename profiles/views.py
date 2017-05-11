@@ -26,6 +26,28 @@ from .forms.user import UserForm, UserProfileForm, UserDeleteForm
 from .models import Profile, Organisation, Registration
 from .utils import *
 
+@csrf_exempt
+def login(request):
+
+
+    uform = UserDeleteForm(data=request.POST or None)
+
+    if not uform.is_valid():
+        return render(request, 'profiles/login.html',
+                      {'uform': uform})
+
+    username = uform.cleaned_data['username']
+    password = uform.cleaned_data['password']
+    if authenticate(username=username, password=password):
+        user = User.objects.get(username=username)
+        request.session['user_id'] = user.pk
+    else:
+        uform.add_error('username', 'Vérifiez le nom de connexion !')
+        uform.add_error('password', 'Vérifiez le mot de passe !')
+        return render(request, 'profiles/del.html', {'uform': uform})
+
+    print(request.session['user_id'])
+    return render(request, 'profiles/main.html', {'uform': uform})
 
 @csrf_exempt
 def add_user(request):
@@ -141,14 +163,24 @@ def activation(request, key):
 
 
 @csrf_exempt
-def update_user(request, id):
+def update_user(request):
 
-    user = get_object_or_404(User, pk=id)
-    profile = get_object_or_404(Profile, user=user)
+    uform = UserForm(data=request.POST or None)
+    pform = UserProfileForm(data=request.POST or None)
 
-    def update_user(data):
-        user = get_object_or_404(User,
-                username=data['username'])
+    if not uform.is_valid() or not pform.is_valid():
+        return render(request, 'profiles/add.html',
+                      {'uform': uform, 'pform': pform})
+
+    username = uform.cleaned_data['username']
+    password = uform.cleaned_data['password']
+    if authenticate(username=username, password=password):
+        user = User.objects.get(username=username)
+    else:
+        uform.add_error('username', 'Vérifiez le nom de connexion !')
+        uform.add_error('password', 'Vérifiez le mot de passe !')
+        return render(request, 'profiles/del.html', {'uform': uform})
+
 
         # attrs_needed = ['password', 'email']
         # if all(hasattr(instance, attr) for attr in attrs_needed):
