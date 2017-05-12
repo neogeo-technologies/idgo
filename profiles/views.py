@@ -203,6 +203,7 @@ def update_user(request):
 
 
 
+
 @csrf_exempt
 def delete_user(request):
 
