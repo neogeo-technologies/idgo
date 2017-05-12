@@ -7,7 +7,7 @@ from profiles.models import Profile, Organisation
 from . import common_fields as fields
 
 
-class UserForm(forms.ModelForm):
+class UserForm(forms.Form):
 
     username = fields.USERNAME
     email = fields.E_MAIL
@@ -51,7 +51,7 @@ class UserUpdateForm(UserForm):
         return user
 
 
-class UserProfileForm(forms.ModelForm):
+class UserProfileForm(forms.Form):
 
     organisation = fields.ORGANISATION
     phone = fields.PHONE

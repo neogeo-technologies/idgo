@@ -70,8 +70,7 @@ def add_user(request):
         user._activation_key = data['activation_key']
         user._profile_fields = {'role': data['role'],
                                 'phone': data['phone'],
-                                'organisations': data['organisations'],
-                                'organisation_manager': data['organisation_manager']}
+                                'organisation': data['organisation']}
         user.save()
         return user
 
@@ -179,8 +178,10 @@ def activation(request, key):
 
     # Envoyer mail de confirmation
     send_confirmation_mail(user.email)
-    # TODO: page de confirmation
-    return JsonResponse(data={'Success': 'Profile created'}, status=200)
+    message = 'Votre compte est désormais activé.'
+
+    return render(request, 'profiles/success.html',
+                  {'message': message}, status=200)
 
 
 @csrf_exempt
