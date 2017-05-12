@@ -27,6 +27,7 @@
 						<div class="panel-body">
                             <form method="post" action="">
 								{% csrf_token %}
+                                {% bootstrap_field uform.username %}
                                 {% bootstrap_field uform.first_name %}
                                 {% bootstrap_field uform.last_name %}
 								{% bootstrap_field uform.email %}

@@ -32,7 +32,7 @@ class UserUpdateForm(forms.ModelForm):
     password2 = forms.CharField(label="Password confirmation", required=False,
                                 max_length=150, min_length=6,
                                 widget=forms.PasswordInput(attrs={'placeholder': 'Mot de passe'}))
-    username = forms.CharField(widget = forms.HiddenInput(), required = False)
+    username = forms.CharField(widget = forms.HiddenInput(), required=True)
 
     class Meta:
         model = User
@@ -46,12 +46,10 @@ class UserUpdateForm(forms.ModelForm):
         #     return self.add_error('password1', 'Vérifiez les champs mot de passe')
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
-
+        user.username = self.cleaned_data["username"]
         password = self.cleaned_data["password1"]
         if password:
             user.set_password(password)
-
-
         user.save()
         return user
 
