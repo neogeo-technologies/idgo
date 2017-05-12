@@ -7,7 +7,7 @@ from profiles.models import Profile, Organisation
 from . import common_fields as fields
 
 
-class UserForm(forms.Form):
+class UserForm(forms.ModelForm):
 
     username = fields.USERNAME
     email = fields.E_MAIL
@@ -21,7 +21,37 @@ class UserForm(forms.Form):
         fields = ('first_name', 'last_name', 'email', 'username', 'password')
 
 
-class UserProfileForm(forms.Form):
+class UserUpdateForm(UserForm):
+    password1 = forms.CharField(required=False,label='Mot de passe',
+                                max_length=150, min_length=6,
+                                widget=forms.PasswordInput(attrs={'placeholder': 'Mot de passe'}))
+
+    password2 = forms.CharField(label="Password confirmation", required=False,
+                                max_length=150, min_length=6,
+                                widget=forms.PasswordInput(attrs={'placeholder': 'Mot de passe'}))
+    username = forms.CharField(widget = forms.HiddenInput(), required = False)
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email', 'username')
+
+    def save(self, commit=True):
+        user = super(UserUpdateForm, self).save(commit=False)
+
+        # if self.cleaned_data['password1'] != self.cleaned_data['password2']:
+        #     self.add_error('password1', 'Vérifiez les champs mot de passe')
+        #     return self.add_error('password1', 'Vérifiez les champs mot de passe')
+
+        # user.username = self.cleaned_data["username"]
+        password = self.cleaned_data["password1"]
+        if password:
+            user.set_password(password)
+        if commit:
+            user.save()
+        return user
+
+
+class UserProfileForm(forms.ModelForm):
 
     organisation = fields.ORGANISATION
     phone = fields.PHONE
@@ -30,6 +60,41 @@ class UserProfileForm(forms.Form):
     class Meta:
         model = Profile
         fields = ('organisation', 'role', 'phone')
+
+
+class ProfileUpdateForm(UserProfileForm):
+
+    organisation = forms.CharField(required=False,label='Organisme',
+        widget=forms.Select(
+            attrs={'placeholder': 'Organisme'},
+            choices=Organisation.objects.all().values_list('id', 'name')))
+
+    phone = forms.CharField(required=False,
+        label='Téléphone',
+        max_length=150,
+        min_length=3,
+        validators=[],  # TODO validator regex
+        widget=forms.TextInput(attrs={'placeholder': 'Téléphone'}))
+
+    role = forms.CharField(required = False,
+        label='Rôle',
+        max_length=150,
+        min_length=3,
+        widget=forms.TextInput(attrs={'placeholder': 'Rôle'}))
+
+    class Meta:
+        model = Profile
+        fields = ('organisation', 'phone','role')
+
+    def save(self, commit=True):
+        profile = super(ProfileUpdateForm, self).save(commit=False)
+
+        pk = self.cleaned_data["organisation"]
+        if pk:
+            profile.organisation = get_object_or_404(Organisation, pk=pk)
+        if commit:
+            profile.save()
+        return profile
 
 
 class UserDeleteForm(forms.Form):

@@ -22,7 +22,7 @@ from django.shortcuts import redirect, get_object_or_404
 
 from .ckan_module import CkanHandler as ckan
 from .ldap_module import LdapHandler as ldap
-from .forms.user import UserForm, UserProfileForm, UserDeleteForm
+from .forms.user import UserForm, UserProfileForm, UserDeleteForm, UserUpdateForm, ProfileUpdateForm
 from .models import Profile, Organisation, Registration
 from .utils import *
 
@@ -68,7 +68,8 @@ def add_user(request):
         user._activation_key = data['activation_key']
         user._profile_fields = {'role': data['role'],
                                 'phone': data['phone'],
-                                'organisation': data['organisation']}
+                                'organisations': data['organisations'],
+                                'organisation_manager': data['organisation_manager']}
         user.save()
         return user
 
@@ -183,52 +184,21 @@ def update_user(request):
     user = User.objects.get(id=request.session['user_id'])
     profile = Profile.objects.get(user=user)
 
-    udata = {'username': user.username,
-             'email': user.email,
-             'first_name': user.first_name,
-             'last_name': user.last_name}
-
-    pdata = {'role': profile.role,
-             'phone':profile.phone,
-             'organisation': profile.organisation.id}
-
-    uform = UserForm(initial=udata)
-    pform = UserProfileForm(initial=pdata)
+    uform = UserUpdateForm(instance=user, data=request.POST or None)
+    pform = ProfileUpdateForm(instance=profile, data=request.POST or None)
 
     if not uform.is_valid() or not pform.is_valid():
-        print("uform or pform invalide")
+
         return render(request, 'profiles/account.html',
                       {'uform': uform, 'pform': pform})
 
-    print("uform or pform valide")
 
     """
-    errors = {}
-            if ldap.add_user(user, password) is False:
-                errors["LDAP"] = "Error during LDAP account creation"
-
-            try:
-                ckan.add_user(user, password)
-            except:
-                errors["CKAN"] = "Error during CKAN account creation"
-
-            if errors:
-                # user.delete()
-                return JsonResponse(data=errors,
-                                    status=404)
+    Integrer ldap ckan
     """
-    user.first_name = uform.cleaned_data['first_name']
-    user.last_name = uform.cleaned_data['last_name']
-    user.email = uform.cleaned_data['email']
-    user.save()
+    uform.save()
+    pform.save()
 
-
-    profile.organisatin = pform.cleaned_data['organisation']
-    profile.role = pform.cleaned_data['role']
-    profile.phone = pform.cleaned_data['phone']
-    profile.save()
-
-    print("*****************************")
     return render(request, 'profiles/main.html', {'uform': uform})
 
 
