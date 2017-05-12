@@ -1,5 +1,5 @@
 from ckanapi import RemoteCKAN
-from ckanapi.errors import NotFound
+from ckanapi.errors import NotFound, CKANAPIError
 from django.conf import settings
 from .utils import Singleton
 
@@ -28,8 +28,13 @@ class CkanHandler(metaclass=Singleton):
         r = requests.post('{0}/ldap_login_handler'.format(settings.CKAN_URL),
                           data={'login': user.username, 'password': password})
 
-        if r.status_code != 200:
-            raise Exception()
+        if r.status_code == 200:
+            pass
+        elif r.status_code == 500:
+            raise SystemError('CKAN returns an internal error.')
+        else:
+            raise Exception(
+                        'CKAN returns a {0} code error.'.format(r.status_code))
 
         self.remote.action.user_update(
                 id=user.username, name=user.username, email=user.email,
@@ -49,6 +54,8 @@ class CkanHandler(metaclass=Singleton):
         try:
             return self.remote.action.user_delete(id=user.username)
         except NotFound:
+            return None
+        except CKANAPIError:
             return None
 
     def add_organization(self, organization):

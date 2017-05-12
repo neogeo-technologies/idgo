@@ -26,6 +26,8 @@ from .forms.user import UserForm, UserProfileForm, UserDeleteForm, UserUpdateFor
 from .models import Profile, Organisation, Registration
 from .utils import *
 
+
+
 @csrf_exempt
 def login(request):
 
@@ -118,22 +120,25 @@ def add_user(request):
     try:
         ldap.add_user(user, data['password'])
     except Exception as e:
-        user.delete()
         error.append(str(e))
+        user.delete()
 
     try:
         ckan.add_user(user, data['password'])
     except Exception as e:
-        user.delete()
         error.append(str(e))
+        user.delete()
 
     try:
         send_validation_mail(request, data['email'], data['activation_key'])
     except smtplib.SMTPException as e:
+        error.append(str(e))
         user.delete()
+    except Exception as e:
         error.append(str(e))
 
     if error:
+        print(error)
         message = "Une erreur critique s'est produite lors de la création de " \
                   "votre compte. Merci de contacter l'administrateur du site."
 
@@ -188,7 +193,6 @@ def update_user(request):
     pform = ProfileUpdateForm(instance=profile, data=request.POST or None)
 
     if not uform.is_valid() or not pform.is_valid():
-
         return render(request, 'profiles/account.html',
                       {'uform': uform, 'pform': pform})
 
@@ -200,8 +204,6 @@ def update_user(request):
     pform.save()
 
     return render(request, 'profiles/main.html', {'uform': uform})
-
-
 
 
 @csrf_exempt
