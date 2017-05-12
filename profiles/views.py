@@ -22,7 +22,7 @@ from django.shortcuts import redirect, get_object_or_404
 
 from .ckan_module import CkanHandler as ckan
 from .ldap_module import LdapHandler as ldap
-from .forms.user import UserForm, UserProfileForm, UserDeleteForm, UserUpdateForm, ProfileUpdateForm
+from .forms.user import UserForm, UserProfileForm, UserDeleteForm, UserUpdateForm, ProfileUpdateForm, UserLoginForm
 from .models import Profile, Organisation, Registration
 from .utils import *
 
@@ -31,25 +31,30 @@ from .utils import *
 @csrf_exempt
 def login(request):
 
-    uform = UserDeleteForm(data=request.POST or None)
+    uform = UserLoginForm(data=request.POST or None)
+    print("000000000")
     if not uform.is_valid():
+        print("111111111")
+        print(uform.__dict__)
         return render(request, 'profiles/login.html', {'uform': uform})
 
+    print("2222222222222")
     username = uform.cleaned_data['username']
     password = uform.cleaned_data['password']
     if not authenticate(username=username, password=password):
+        print("3333333333")
         uform.add_error('username', 'Vérifiez le nom de connexion !')
         uform.add_error('password', 'Vérifiez le mot de passe !')
         return render(request, 'profiles/login.html', {'uform': uform})
 
     user = User.objects.get(username=username)
-    print(user.is_active)
-    print(user.pk)
+
     if not user.is_active:
+        print("44444444444444444")
         uform.add_error('username', 'Votre compte est inactif !')
         return render(request, 'profiles/login.html', {'uform': uform})
-    request.session['user_id'] = user.pk
 
+    request.session['user_id'] = user.pk
     return render(request, 'profiles/main.html', {'uform': uform})
 
 def logout(request):
@@ -194,8 +199,9 @@ def activation(request, key):
 @csrf_exempt
 def update_user(request):
 
-    user = User.objects.get(id=request.session['user_id'])
-    profile = Profile.objects.get(user=user)
+    user = get_object_or_404(User, id=request.session['user_id'])
+
+    profile = get_object_or_404(Profile, user=user)
 
     uform = UserUpdateForm(instance=user, data=request.POST or None)
     pform = ProfileUpdateForm(instance=profile, data=request.POST or None)
@@ -214,29 +220,21 @@ def update_user(request):
 
 @csrf_exempt
 def delete_user(request):
+    user = get_object_or_404(User, id=request.session['user_id'])
 
-    uform = UserDeleteForm(data=request.POST or None)
+    uform = UserDeleteForm()
 
-    if not uform.is_valid():
-        return render(request, 'profiles/del.html', {'uform': uform})
-
-    username = uform.cleaned_data['username']
-    password = uform.cleaned_data['password']
-    if authenticate(username=username, password=password):
-        user = User.objects.get(username=username)
-    else:
-        uform.add_error('username', 'Vérifiez le nom de connexion !')
-        uform.add_error('password', 'Vérifiez le mot de passe !')
-        return render(request, 'profiles/del.html', {'uform': uform})
-
-    try:
+    if uform.is_valid():
         user.delete()
-    except Exception as e:
-        uform.add_error('email', 'Echec de la suppression !')
-        return render(request, 'profiles/del.html', {'uform': uform})
+        print("DONE")
+        return render(request, 'profiles/success.html',
+                      {'message': 'Votre compte a été supprimé.'}, status=200)
 
-    return render(request, 'profiles/success.html',
-                  {'message': 'Votre compte a été supprimé.'}, status=200)
+    print("NOT DONE")
+    # uform.add_error('username', 'Vérifiez le nom de connexion !')
+    # uform.add_error('password', 'Vérifiez le mot de passe !')
+    return render(request, 'profiles/del.html', {'uform': uform})
+
 
 # def register(request):
 #     if request.user.is_authenticated():

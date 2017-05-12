@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, get_object_or_404
 
@@ -98,6 +99,14 @@ class ProfileUpdateForm(forms.ModelForm):
             profile.save()
         return profile
 
+class UserLoginForm(AuthenticationForm):
+
+    username = fields.USERNAME
+    password = fields.PASSWORD1
+
+    class Meta:
+        model = User
+        fields = ('username', 'password')
 
 class UserDeleteForm(forms.Form):
 
@@ -107,6 +116,8 @@ class UserDeleteForm(forms.Form):
     class Meta:
         model = User
         fields = ('username', 'password')
+
+
 
 
 # class RegistrationForm(forms.Form):
