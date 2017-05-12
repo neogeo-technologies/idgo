@@ -21,7 +21,10 @@ class UserForm(forms.Form):
         fields = ('first_name', 'last_name', 'email', 'username', 'password')
 
 
-class UserUpdateForm(UserForm):
+class UserUpdateForm(forms.ModelForm):
+    first_name = fields.FIRST_NAME
+    last_name = fields.LAST_NAME
+
     password1 = forms.CharField(required=False,label='Mot de passe',
                                 max_length=150, min_length=6,
                                 widget=forms.PasswordInput(attrs={'placeholder': 'Mot de passe'}))
@@ -35,19 +38,21 @@ class UserUpdateForm(UserForm):
         model = User
         fields = ('first_name', 'last_name', 'email', 'username')
 
-    def save(self, commit=True):
-        user = super(UserUpdateForm, self).save(commit=False)
+    def save(self):
 
+        user = User.objects.get(username=self.cleaned_data["username"])
         # if self.cleaned_data['password1'] != self.cleaned_data['password2']:
         #     self.add_error('password1', 'Vérifiez les champs mot de passe')
         #     return self.add_error('password1', 'Vérifiez les champs mot de passe')
+        user.first_name = self.cleaned_data["first_name"]
+        user.last_name = self.cleaned_data["last_name"]
 
-        # user.username = self.cleaned_data["username"]
         password = self.cleaned_data["password1"]
         if password:
             user.set_password(password)
-        if commit:
-            user.save()
+
+
+        user.save()
         return user
 
 
@@ -62,12 +67,11 @@ class UserProfileForm(forms.Form):
         fields = ('organisation', 'role', 'phone')
 
 
-class ProfileUpdateForm(UserProfileForm):
+class ProfileUpdateForm(forms.ModelForm):
 
-    organisation = forms.CharField(required=False,label='Organisme',
-        widget=forms.Select(
-            attrs={'placeholder': 'Organisme'},
-            choices=Organisation.objects.all().values_list('id', 'name')))
+    organisation = forms.ModelChoiceField(required=False,
+                                          label='Organisme',
+                                          queryset=Organisation.objects.all())
 
     phone = forms.CharField(required=False,
         label='Téléphone',
@@ -89,9 +93,9 @@ class ProfileUpdateForm(UserProfileForm):
     def save(self, commit=True):
         profile = super(ProfileUpdateForm, self).save(commit=False)
 
-        pk = self.cleaned_data["organisation"]
-        if pk:
-            profile.organisation = get_object_or_404(Organisation, pk=pk)
+        organisation = self.cleaned_data["organisation"]
+        if organisation:
+            profile.organisation = organisation
         if commit:
             profile.save()
         return profile

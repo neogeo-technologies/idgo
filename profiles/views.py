@@ -37,13 +37,18 @@ def login(request):
 
     username = uform.cleaned_data['username']
     password = uform.cleaned_data['password']
-    if authenticate(username=username, password=password):
-        user = User.objects.get(username=username)
-        request.session['user_id'] = user.pk
-    else:
+    if not authenticate(username=username, password=password):
         uform.add_error('username', 'Vérifiez le nom de connexion !')
         uform.add_error('password', 'Vérifiez le mot de passe !')
         return render(request, 'profiles/login.html', {'uform': uform})
+
+    user = User.objects.get(username=username)
+    print(user.is_active)
+    print(user.pk)
+    if not user.is_active:
+        uform.add_error('username', 'Votre compte est inactif !')
+        return render(request, 'profiles/login.html', {'uform': uform})
+    request.session['user_id'] = user.pk
 
     return render(request, 'profiles/main.html', {'uform': uform})
 
@@ -165,6 +170,8 @@ def activation(request, key):
                             Organisation, pk=reg.profile_fields['organisation'])
 
     user = reg.user
+    user.is_active = True
+    user.save()
     Profile.objects.create(user=user,
                            organisation=organisation,
                            phone=reg.profile_fields['phone'],
@@ -197,10 +204,8 @@ def update_user(request):
         return render(request, 'profiles/account.html',
                       {'uform': uform, 'pform': pform})
 
+    #Integrer ldap ckan
 
-    """
-    Integrer ldap ckan
-    """
     uform.save()
     pform.save()
 

@@ -135,7 +135,7 @@ class Application(models.Model):
             super(Application, self).delete()
 
 
-# Signaux
+# Triggers
 
 
 # @receiver(pre_save, sender=User)
@@ -144,6 +144,16 @@ class Application(models.Model):
 #             or ldap.is_user_exists(instance):
 #         raise IntegrityError('User {0} already exists.'.format(
 #                                                         instance.username))
+
+
+@receiver(post_save, sender=User)
+def create_registration(sender, instance, **kwargs):
+    attrs_needed = ['_profile_fields', '_activation_key']
+    if all(hasattr(instance, attr) for attr in attrs_needed):
+        Registration.objects.create(
+            user=instance,
+            activation_key=instance._activation_key,
+            profile_fields=instance._profile_fields)
 
 
 @receiver(pre_delete, sender=User)
@@ -170,18 +180,3 @@ def delete_user_expire_date(sender, instance, **kwargs):
     for reg in expired_key_reg:
         u = reg.user
         u.delete()
-
-
-@receiver(post_save, sender=User)
-def create_registration(sender, instance, **kwargs):
-    attrs_needed = ['_profile_fields', '_activation_key']
-    if all(hasattr(instance, attr) for attr in attrs_needed):
-        Registration.objects.create(
-            user=instance,
-            activation_key=instance._activation_key,
-            profile_fields=instance._profile_fields)
-
-
-# @receiver(pre_delete, sender=User)
-# def clean_registration(sender, instance, **kwargs):
-#     Registration.objects.filter(user=instance).delete()
