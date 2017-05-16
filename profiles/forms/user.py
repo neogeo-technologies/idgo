@@ -1,8 +1,10 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.hashers import check_password
+from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, get_object_or_404
-
 from profiles.models import Profile, Organisation
 
 from . import common_fields as fields
@@ -39,18 +41,35 @@ class UserUpdateForm(forms.ModelForm):
         model = User
         fields = ('first_name', 'last_name', 'email', 'username')
 
-    def save(self):
+    def save_f(self, request):
+
+        if self.cleaned_data['password1'] != self.cleaned_data['password2']:
+            self.add_error('password1', 'Vérifiez les champs mot de passe')
+            raise ValidationError('Les mots de passe ne correspondent pas')
 
         user = User.objects.get(username=self.cleaned_data["username"])
-        # if self.cleaned_data['password1'] != self.cleaned_data['password2']:
-        #     self.add_error('password1', 'Vérifiez les champs mot de passe')
-        #     return self.add_error('password1', 'Vérifiez les champs mot de passe')
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
         user.username = self.cleaned_data["username"]
+
         password = self.cleaned_data["password1"]
         if password:
+            print("OLD PASSWORD == passepasse ? : {}".format(check_password("passepasse", user.password)))
+            print(user.username, user.password)
+
             user.set_password(password)
+            user.save()
+            logout(request)
+
+            print("NEW PASSWORD == posseposse ? : {}".format(check_password("posseposse", user.password)))
+            print(user.username, user.password)
+
+            # user = authenticate(username=user.username, password=user.password)
+            # if user is None:
+            #     raise ValidationError('Echec du changement de mot de passe')
+
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
         user.save()
         return user
 
@@ -89,7 +108,7 @@ class ProfileUpdateForm(forms.ModelForm):
         model = Profile
         fields = ('organisation', 'phone','role')
 
-    def save(self, commit=True):
+    def save_f(self, commit=True):
         profile = super(ProfileUpdateForm, self).save(commit=False)
 
         organisation = self.cleaned_data["organisation"]
@@ -108,7 +127,7 @@ class UserLoginForm(AuthenticationForm):
         model = User
         fields = ('username', 'password')
 
-class UserDeleteForm(forms.Form):
+class UserDeleteForm(AuthenticationForm):
 
     username = fields.USERNAME
     password = fields.PASSWORD1

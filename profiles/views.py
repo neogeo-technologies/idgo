@@ -6,10 +6,11 @@ import smtplib
 from datetime import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render
 from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import authenticate
+
+from django.contrib.auth import authenticate, logout, login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.conf import settings
@@ -23,26 +24,21 @@ from django.shortcuts import redirect, get_object_or_404
 from .ckan_module import CkanHandler as ckan
 from .ldap_module import LdapHandler as ldap
 from .forms.user import UserForm, UserProfileForm, UserDeleteForm, UserUpdateForm, ProfileUpdateForm, UserLoginForm
-from .models import Profile, Organisation, Registration
+from .models import Profile, Organisation, Registration, EmailAlreadyExist
 from .utils import *
 
 
 
 @csrf_exempt
-def login(request):
+def login_view(request):
 
     uform = UserLoginForm(data=request.POST or None)
-    print("000000000")
     if not uform.is_valid():
-        print("111111111")
-        print(uform.__dict__)
         return render(request, 'profiles/login.html', {'uform': uform})
 
-    print("2222222222222")
     username = uform.cleaned_data['username']
     password = uform.cleaned_data['password']
     if not authenticate(username=username, password=password):
-        print("3333333333")
         uform.add_error('username', 'Vérifiez le nom de connexion !')
         uform.add_error('password', 'Vérifiez le mot de passe !')
         return render(request, 'profiles/login.html', {'uform': uform})
@@ -50,20 +46,16 @@ def login(request):
     user = User.objects.get(username=username)
 
     if not user.is_active:
-        print("44444444444444444")
         uform.add_error('username', 'Votre compte est inactif !')
         return render(request, 'profiles/login.html', {'uform': uform})
 
-    request.session['user_id'] = user.pk
+    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     return render(request, 'profiles/main.html', {'uform': uform})
 
-def logout(request):
+def logout_view(request):
 
-    try:
-        del request.session['user_id']
-    except KeyError:
-        pass
-    return render(request, 'profiles/main.html')
+    logout(request)
+    return redirect('login')
 
 
 @csrf_exempt
@@ -81,7 +73,10 @@ def add_user(request):
         user._profile_fields = {'role': data['role'],
                                 'phone': data['phone'],
                                 'organisation': data['organisation']}
+
         user.save()
+
+
         return user
 
     def create_activation_key(email_user):
@@ -119,6 +114,8 @@ def add_user(request):
 
     try:
         user = save_user(data)
+    except EmailAlreadyExist:
+        uform.add_error('email', 'Adresse mail réservée')
     except IntegrityError:
         uform.add_error('username', 'Un utilisateur portant le même '
                                     'identifiant de connexion existe déjà.')
@@ -166,9 +163,6 @@ def add_user(request):
 @csrf_exempt
 def activation(request, key):
 
-    if request.method != 'GET':
-        return
-
     reg = get_object_or_404(Registration, activation_key=key)
 
     organisation = get_object_or_404(
@@ -196,10 +190,11 @@ def activation(request, key):
                   {'message': message}, status=200)
 
 
+@login_required(login_url='/profiles/login/')
 @csrf_exempt
 def update_user(request):
 
-    user = get_object_or_404(User, id=request.session['user_id'])
+    user = request.user
 
     profile = get_object_or_404(Profile, user=user)
 
@@ -212,7 +207,7 @@ def update_user(request):
 
     #Integrer ldap ckan
 
-    uform.save()
+    uform.save_f(request)
     pform.save()
 
     return render(request, 'profiles/main.html', {'uform': uform})
@@ -220,20 +215,18 @@ def update_user(request):
 
 @csrf_exempt
 def delete_user(request):
-    user = get_object_or_404(User, id=request.session['user_id'])
+    user = request.user
 
-    uform = UserDeleteForm()
+    uform = UserDeleteForm(data=request.POST or None)
 
-    if uform.is_valid():
-        user.delete()
-        print("DONE")
-        return render(request, 'profiles/success.html',
-                      {'message': 'Votre compte a été supprimé.'}, status=200)
+    if not uform.is_valid():
+        return render(request, 'profiles/del.html', {'uform': uform})
 
-    print("NOT DONE")
-    # uform.add_error('username', 'Vérifiez le nom de connexion !')
-    # uform.add_error('password', 'Vérifiez le mot de passe !')
-    return render(request, 'profiles/del.html', {'uform': uform})
+    user.delete()
+    logout(request)
+    return render(request, 'profiles/success.html',
+                  {'message': 'Votre compte a été supprimé.'}, status=200)
+
 
 
 # def register(request):

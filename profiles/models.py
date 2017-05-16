@@ -1,5 +1,4 @@
 import requests
-from datetime import timedelta
 
 from django.db import models
 from django.contrib.gis.db import models
@@ -144,7 +143,13 @@ class Application(models.Model):
 #             or ldap.is_user_exists(instance):
 #         raise IntegrityError('User {0} already exists.'.format(
 #                                                         instance.username))
+class EmailAlreadyExist(Exception):
+    pass
 
+@receiver(pre_save, sender=User)
+def email_is_unique(sender, instance, **kwargs):
+    if User.objects.filter(email=instance.email).exists():
+        raise EmailAlreadyExist
 
 @receiver(post_save, sender=User)
 def create_registration(sender, instance, **kwargs):
