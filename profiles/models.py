@@ -137,8 +137,6 @@ class Registration(models.Model):
 
 
 
-
-
 # Triggers
 
 
