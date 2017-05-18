@@ -28,11 +28,14 @@ class OrganisationType(models.Model):
         verbose_name = "Type d'organisation"
         verbose_name_plural = "Types d'organisations"
 
+    class Meta:
+        managed = False
+
 
 class Organisation(models.Model):
 
     name = models.CharField("Nom", max_length=150, unique=True, db_index=True)
-    organisation_type = models.ForeignKey(OrganisationType, verbose_name="Type d'organisme")
+    organisation_type = models.ForeignKey(OrganisationType, verbose_name="Type d'organisme", default='1')
     code_insee = models.CharField("Code INSEE", max_length=20, unique=True, db_index=True)
     parent = models.ForeignKey("self", on_delete=models.CASCADE, blank=True, null=True, verbose_name="Organisation parente")
     geom = models.MultiPolygonField("Territoire", srid=4171, blank=True, null=True)
@@ -40,6 +43,7 @@ class Organisation(models.Model):
     sync_in_ckan = models.BooleanField("Synchronisé dans CKAN", default=False)
     ckan_slug = models.SlugField("CKAN ID", max_length=150, unique=True, db_index=True)
     website = models.URLField("Site web", blank=True)
+    email = models.EmailField(verbose_name="Adresse mail de l'organisation")
     objects = models.GeoManager()
 
     def __str__(self):
@@ -67,6 +71,8 @@ class Organisation(models.Model):
         if res and res_ckan:
             super(Organisation, self).delete()
 
+    # class Meta:
+    #     managed = False
 
 def deltatime_2_days():
     return timezone.now() + timezone.timedelta(days=2)
@@ -75,6 +81,8 @@ def deltatime_2_days():
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     organisation = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance", blank=True, null=True)
+    # TODO : demander si l'utilisateur publie forcément pour son organisation
+    publish_for = models.ManyToManyField(Organisation, related_name='pub_org', verbose_name="Organisme associé", blank=True, null=True, help_text="Liste des organismes pour lesquels l'utilisateur publie des jeux de données.")
     phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
     role = models.CharField('Fonction', max_length=150, blank=True, null=True)
 
@@ -101,6 +109,28 @@ class Profile(models.Model):
         except:
             pass
 
+    class Meta:
+        managed = False
+
+
+class PublishRequest(models.Model):
+    user = models.ForeignKey(User, verbose_name="Utilisateur")
+    organisation = models.ForeignKey(Organisation, verbose_name="Organisme", help_text="Organisme pour lequel le statut de contributeur est demandé")
+    date_demande = models.DateField(verbose_name="Date de la demande", auto_now_add=timezone.now())
+    date_acceptation = models.DateField(verbose_name="Date acceptation", blank=True, null=True)
+
+    # prévoir une action externe ACCEPTER renseignant la date d'acceptation et enregistrant l'orga dans le publish_for du User.
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            # alerter les administrateurs (is_superuser=True par mail qu'une demande est déposée
+            # = message + liens vers ici (via admin django standard)
+            a = 0
+        super(PublishRequest, self).save(*args, **kwargs)
+
+    class Meta:
+        managed = False
+
 class Registration(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -110,28 +140,10 @@ class Registration(models.Model):
     profile_fields = JSONField('Champs profile', blank=True, null=True)
 
 
-class Application(models.Model):
+    class Meta:
+        managed = False
 
-    name = models.CharField('Nom', max_length=150, unique=True, db_index=True)
-    short_name = models.CharField(
-                        'Nom abrégé', max_length=20, unique=True, db_index=True)
-    url = models.URLField('URL publique', blank=True)
-    host = models.CharField('Serveur interne', max_length=50, blank=True)
-    sync_in_ldap = models.BooleanField(
-                        'Synchronisé dans le LDAP', default=False)
-    users = models.ManyToManyField(User, verbose_name='Utilisateurs')
 
-    def save(self, *args, **kwargs):
-        # first save which sets the id we need to generate a LDAP gidNumber
-        super(Application, self).save(*args, **kwargs)
-        self.sync_in_ldap = ldap.sync_object('applications', self.short_name, self.id + settings.LDAP_APPLICATION_ID_INCREMENT, 'add_or_update')
-        # then save the current LDAP sync result
-        super(Application, self).save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        res = ldap.sync_object('organisations', self.short_name, self.id + settings.LDAP_APPLICATION_ID_INCREMENT, 'delete')
-        if res:
-            super(Application, self).delete()
 
 
 # Triggers

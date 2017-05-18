@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.text import slugify
-
+from django.contrib.auth.models import User
 from profiles.models import Organisation
 from profiles.ckan_module import CkanHandler as ckan
 from taggit.managers import TaggableManager
@@ -112,8 +112,13 @@ class Territory(models.Model):
 
 
 class AccessLevel(models.Model):
+    LEVEL_CHOICES = (
+        ('O', 'tous les utilisateurs'),
+        ('1', 'utilisateurs authentifiés'),
+        ('2', 'utilisateurs authentifiés avec droits spécifiques'),
+    )
     name = models.CharField('Libellé', max_length=10)
-    code = models.IntegerField('Niveau')
+    code = models.IntegerField('Niveau', choices=LEVEL_CHOICES)
 
     def __str__(self):
         return self.name
@@ -159,16 +164,23 @@ class Dataset(models.Model):
 
     #######
     date_creation = models.DateField(verbose_name="Date de création du jeu de donnée",
-                                     auto_now_add=timezone.now(), blank=True, null=True)
+                                     auto_now_add=timezone.now())
     date_publication = models.DateField(verbose_name="Date de publication du jeu de donnée",
-                                        default=timezone.now(), blank=True, null=True)
+                                        default=timezone.now())
     date_modification = models.DateField(verbose_name="Date de dernière modification du jeu de donnée",
-                                         auto_now=timezone.now(), blank=True, null=True)
+                                         auto_now=timezone.now())
+    editor = models.ForeignKey(User)
     organisation = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance",
                                      blank=True, null=True)
-    licences = models.ManyToManyField(License, verbose_name="Vocabulaire contrôlé")
+    licences = models.ForeignKey(License, verbose_name="Licence d'utilisation")
     categories = models.ManyToManyField(Category, verbose_name="Catégories d'appartenance")
+    update_freq = models.CharField('Fréquence de mise à jour',
+                                max_length=30, choices=FREQUENCY_CHOICES)
+
+    # formulaire champ pré rempli
+    owner_email = models.EmailField('Email du producteur de la donnée')
     #######
+
 
 
     def __str__(self):
@@ -204,14 +216,20 @@ class Resource(models.Model):
     rfile = models.FileField('Fichier à télécharger', blank=True)
     lang = models.CharField('Langue', choices=LANG_CHOICES, default='french', max_length=10)
     format = models.CharField('Format', max_length=20, blank=True)
-    projection = models.ForeignKey(Projection, blank=True)
-    resolution = models.ForeignKey(Resolution, blank=True)
+    projection = models.ForeignKey(Projection, blank=True, null=True)
+    resolution = models.ForeignKey(Resolution, blank=True, null=True)
     acces = models.ForeignKey(AccessLevel)
     bbox = models.PolygonField('BBOX', blank=True)
+    geo_restriction = models.BooleanField("Restriction géographique", default=False) # dans le formulaire de saisie, ne montrer que si AccessLevel = 2
 
     ####
+    created_on = models.DateField(verbose_name="Date de creation de la resource",
+                                  auto_now_add=timezone.now())
+    last_update = models.DateField(verbose_name="Date de dernière modification de la resource",
+                                   auto_now=timezone.now())
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    type = models.CharField(verbose_name='type de resources', choices=TYPE_CHOICES, max_length=10)
+    type = models.CharField(verbose_name='type de resources',
+                            choices=TYPE_CHOICES, max_length=10)
     fichier = models.FileField(null=True, blank=True, default=None)
     ####
 

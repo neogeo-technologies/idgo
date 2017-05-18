@@ -34,7 +34,8 @@ def login_view(request):
 
     uform = UserLoginForm(data=request.POST or None)
     if not uform.is_valid():
-        return render(request, 'profiles/login.html', {'uform': uform})
+        return render(request, 'profiles/login.html',
+                      {'uform': uform})
 
     username = uform.cleaned_data['username']
     password = uform.cleaned_data['password']

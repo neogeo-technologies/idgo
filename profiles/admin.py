@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.gis import admin as geo_admin
 
-from .models import Organisation, Profile, OrganisationType, Application, Registration
+from .models import Organisation, Profile, OrganisationType, Registration
 
 
 geo_admin.GeoModelAdmin.default_lon = 160595
@@ -53,6 +53,3 @@ class ApplicationAdmin(admin.ModelAdmin):
     list_display=('name', 'url', 'sync_in_ldap')
     search_fields = ('name','short_name')
     list_filter = ('sync_in_ldap', 'host')
-
-
-admin.site.register(Application, ApplicationAdmin)
