@@ -24,9 +24,8 @@ from django.shortcuts import redirect, get_object_or_404
 from .ckan_module import CkanHandler as ckan
 from .ldap_module import LdapHandler as ldap
 from .forms.user import UserForm, UserProfileForm, UserDeleteForm, UserUpdateForm, ProfileUpdateForm, UserLoginForm
-from .models import Profile, Organisation, Registration, EmailAlreadyExist
+from .models import Profile, Organisation, Registration
 from .utils import *
-
 
 
 @csrf_exempt
@@ -34,8 +33,7 @@ def login_view(request):
 
     uform = UserLoginForm(data=request.POST or None)
     if not uform.is_valid():
-        return render(request, 'profiles/login.html',
-                      {'uform': uform})
+        return render(request, 'profiles/login.html', {'uform': uform})
 
     username = uform.cleaned_data['username']
     password = uform.cleaned_data['password']
@@ -63,20 +61,26 @@ def logout_view(request):
 def add_user(request):
 
     def save_user(data):
+
+        if User.objects.filter(email=data['email']).exists():
+            uform.add_error('email', "Cette adresse e-mail est reservé.")
+            return render(request, 'profiles/add.html', {'uform': uform,
+                                                         'pform': pform})
+
         user = User.objects.create_user(
                         username=data['username'], password=data['password'],
                         email=data['email'], first_name=data['first_name'],
                         last_name=data['last_name'],
                         is_staff=False, is_superuser=False, is_active=False)
 
-        # Params send for post_save signal on User instance: create_registration()
-        user._activation_key = data['activation_key']
-        user._profile_fields = {'role': data['role'],
-                                'phone': data['phone'],
-                                'organisation': data['organisation']}
-
         user.save()
 
+        Registration.objects.create(
+                        user=user,
+                        activation_key=data['activation_key'],
+                        profile_fields={'role': data['role'],
+                                        'phone': data['phone'],
+                                        'organisation': data['organisation']})
 
         return user
 
@@ -115,8 +119,6 @@ def add_user(request):
 
     try:
         user = save_user(data)
-    except EmailAlreadyExist:
-        uform.add_error('email', 'Adresse mail réservée')
     except IntegrityError:
         uform.add_error('username', 'Un utilisateur portant le même '
                                     'identifiant de connexion existe déjà.')

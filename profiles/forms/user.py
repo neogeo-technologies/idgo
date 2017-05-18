@@ -118,6 +118,7 @@ class ProfileUpdateForm(forms.ModelForm):
             profile.save()
         return profile
 
+
 class UserLoginForm(AuthenticationForm):
 
     username = fields.USERNAME
@@ -126,6 +127,7 @@ class UserLoginForm(AuthenticationForm):
     class Meta:
         model = User
         fields = ('username', 'password')
+
 
 class UserDeleteForm(AuthenticationForm):
 

@@ -27,8 +27,6 @@ class OrganisationType(models.Model):
     class Meta:
         verbose_name = "Type d'organisation"
         verbose_name_plural = "Types d'organisations"
-
-    class Meta:
         managed = False
 
 
@@ -73,6 +71,7 @@ class Organisation(models.Model):
 
     # class Meta:
     #     managed = False
+
 
 def deltatime_2_days():
     return timezone.now() + timezone.timedelta(days=2)
@@ -131,6 +130,7 @@ class PublishRequest(models.Model):
     class Meta:
         managed = False
 
+
 class Registration(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -144,33 +144,7 @@ class Registration(models.Model):
         managed = False
 
 
-
-
 # Triggers
-
-
-# @receiver(pre_save, sender=User)
-# def is_existing_user(sender, instance, **kwargs):
-#     if ckan.is_user_exists(instance) \
-#             or ldap.is_user_exists(instance):
-#         raise IntegrityError('User {0} already exists.'.format(
-#                                                         instance.username))
-class EmailAlreadyExist(Exception):
-    pass
-
-@receiver(pre_save, sender=User)
-def email_is_unique(sender, instance, **kwargs):
-    if User.objects.filter(email=instance.email).exists():
-        raise EmailAlreadyExist
-
-@receiver(post_save, sender=User)
-def create_registration(sender, instance, **kwargs):
-    attrs_needed = ['_profile_fields', '_activation_key']
-    if all(hasattr(instance, attr) for attr in attrs_needed):
-        Registration.objects.create(
-            user=instance,
-            activation_key=instance._activation_key,
-            profile_fields=instance._profile_fields)
 
 
 @receiver(pre_delete, sender=User)
