@@ -27,7 +27,6 @@ class OrganisationType(models.Model):
     class Meta:
         verbose_name = "Type d'organisation"
         verbose_name_plural = "Types d'organisations"
-        managed = False
 
 
 class Organisation(models.Model):
@@ -69,8 +68,7 @@ class Organisation(models.Model):
         if res and res_ckan:
             super(Organisation, self).delete()
 
-    # class Meta:
-    #     managed = False
+
 
 
 def deltatime_2_days():
@@ -108,8 +106,7 @@ class Profile(models.Model):
         except:
             pass
 
-    class Meta:
-        managed = False
+
 
 
 class PublishRequest(models.Model):
@@ -127,8 +124,7 @@ class PublishRequest(models.Model):
             a = 0
         super(PublishRequest, self).save(*args, **kwargs)
 
-    class Meta:
-        managed = False
+
 
 
 class Registration(models.Model):
@@ -140,8 +136,7 @@ class Registration(models.Model):
     profile_fields = JSONField('Champs profile', blank=True, null=True)
 
 
-    class Meta:
-        managed = False
+
 
 
 # Triggers
