@@ -1,16 +1,14 @@
 from django.conf.urls import url
 
-from profiles.views import add_user, activation, delete_user, update_user, login_view, logout_view
-                           # update_user
-                           # delete_user_id, delete_user,
-                           # register,
-                           # activation, new_activation_link
+from profiles.views import activation, delete_account, modify_account, \
+                           sign_in, sign_out, sign_up
+
 
 urlpatterns = [
-    url(r"^login/?$", login_view, name="login"),
-    url(r"^logout/?$", logout_view, name="logout"),
-    url(r"^add/?$", add_user, name="add_user"),
+    url(r"^signin/?$", sign_in, name="signIn"),
+    url(r"^signout/?$", sign_out, name="signOut"),
+    url(r"^signup/?$", sign_up, name="signUp"),
     url(r"^activate/(?P<key>.+)/?$", activation,  name="activation"),
-    url(r"^del/?$", delete_user, name="delete"),
-    url(r"^account/?$", update_user, name="account")
+    url(r"^deleteaccount/?$", delete_account, name="deleteAccount"),
+    url(r"^modifyaccount/?$", modify_account, name="modifyAccount")
 ]

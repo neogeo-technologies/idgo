@@ -29,44 +29,43 @@ from .utils import *
 
 
 @csrf_exempt
-def login_view(request):
+def sign_in(request):
 
     uform = UserLoginForm(data=request.POST or None)
     if not uform.is_valid():
-        return render(request, 'profiles/login.html', {'uform': uform})
+        return render(request, 'profiles/signin.html', {'uform': uform})
 
     username = uform.cleaned_data['username']
     password = uform.cleaned_data['password']
     if not authenticate(username=username, password=password):
         uform.add_error('username', 'Vérifiez le nom de connexion !')
         uform.add_error('password', 'Vérifiez le mot de passe !')
-        return render(request, 'profiles/login.html', {'uform': uform})
+        return render(request, 'profiles/signin.html', {'uform': uform})
 
     user = User.objects.get(username=username)
 
     if not user.is_active:
         uform.add_error('username', 'Votre compte est inactif !')
-        return render(request, 'profiles/login.html', {'uform': uform})
+        return render(request, 'profiles/signin.html', {'uform': uform})
 
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     return render(request, 'profiles/main.html', {'uform': uform})
 
-def logout_view(request):
 
+@csrf_exempt
+def sign_out(request):
     logout(request)
-    return redirect('login')
+    return redirect('signIn')
 
 
 @csrf_exempt
-def add_user(request):
+def sign_up(request):
 
     # class EMailIntegrityError(IntegrityError):
     #     pass
 
     def save_user(data):
 
-        # On vérifie si un utilisateur avec le même e-mail existe:
-        # mais c'est très moche ! Cela devrait être dans le modèle.
         # if User.objects.filter(email=data['email']).exists():
         #     raise EMailIntegrityError
 
@@ -97,7 +96,7 @@ def add_user(request):
     pform = UserProfileForm(data=request.POST or None)
 
     if not uform.is_valid() or not pform.is_valid():
-        return render(request, 'profiles/add.html', {'uform': uform,
+        return render(request, 'profiles/signup.html', {'uform': uform,
                                                      'pform': pform})
 
     if uform.cleaned_data['password1'] != uform.cleaned_data['password2']:
@@ -118,14 +117,14 @@ def add_user(request):
     if ckan.is_user_exists(data['username']) \
             or ldap.is_user_exists(data['username']):
         uform.add_error('username', 'Cet identifiant de connexion est réservé.')
-        return render(request, 'profiles/add.html', {'uform': uform,
+        return render(request, 'profiles/signup.html', {'uform': uform,
                                                      'pform': pform})
 
     try:
         user = save_user(data)
     except IntegrityError:
         uform.add_error('username', 'Cet identifiant de connexion est réservé.')
-        return render(request, 'profiles/add.html', {'uform': uform,
+        return render(request, 'profiles/signup.html', {'uform': uform,
                                                      'pform': pform})
     # except EMailIntegrityError:
     #     uform.add_error('email', 'Cet e-mail est réservé.')
@@ -200,9 +199,9 @@ def activation(request, key):
                   {'message': message}, status=200)
 
 
-@login_required(login_url='/profiles/login/')
+@login_required(login_url='/profiles/signin/')
 @csrf_exempt
-def update_user(request):
+def modify_account(request):
 
     user = request.user
 
@@ -212,7 +211,7 @@ def update_user(request):
     pform = ProfileUpdateForm(instance=profile, data=request.POST or None)
 
     if not uform.is_valid() or not pform.is_valid():
-        return render(request, 'profiles/account.html',
+        return render(request, 'profiles/modifyaccount.html',
                       {'uform': uform, 'pform': pform})
 
     #Integrer ldap ckan
@@ -235,94 +234,15 @@ def update_user(request):
 
 
 @csrf_exempt
-def delete_user(request):
+def delete_account(request):
     user = request.user
 
     uform = UserDeleteForm(data=request.POST or None)
 
     if not uform.is_valid():
-        return render(request, 'profiles/del.html', {'uform': uform})
+        return render(request, 'profiles/deleteaccount.html', {'uform': uform})
 
     user.delete()
     logout(request)
     return render(request, 'profiles/success.html',
                   {'message': 'Votre compte a été supprimé.'}, status=200)
-
-
-
-# def register(request):
-#     if request.user.is_authenticated():
-#         return redirect('/index')
-#     registration_form = RegistrationForm()
-#     if request.method == 'POST':
-#         form = RegistrationForm(data=request.POST)
-#         if form.is_valid():
-#             data={}
-#             data['username']=form.cleaned_data['username']
-#             data['email']=form.cleaned_data['email']
-#             data['password1']=form.cleaned_data['password1']
-#
-#             #We generate a random activation key
-#             salt = hashlib.sha1(str(random.random()).encode('utf-8')).hexdigest()[:5].encode('utf-8')
-#             usernamesalt = data['username'].encode('utf-8')
-#
-#             data['activation_key'] = hashlib.sha1(salt+usernamesalt).hexdigest()
-#
-#             data['email_path']="/ActivationEmail.txt"
-#             data['email_subject']="Activation de votre compte yourdomain"
-#
-#             form.sendEmail(data)
-#             form.save(data) #Save the user and his profile
-#
-#             request.session['registered']=True #For display purposes
-#             return redirect('/index')
-#         else:
-#             registration_form = form #Display form with error messages (incorrect fields, etc)
-#     return render(request, 'register.html', locals())
-#
-#
-# #View called from activation email. Activate user if link didn't expire (48h default), or offer to
-# #send a second link if the first expired.
-# def activation(request, key):
-#     activation_expired = False
-#     already_active = False
-#     profile = get_object_or_404(Profile, activation_key=key)
-#     if not profile.user.is_active:
-#         if timezone.now() > profile.key_expires:
-#             activation_expired = True    #Display: offer the user to send a new activation link
-#             id_user = profile.user.id
-#         else:    #Activation successful
-#             profile.user.is_active = True
-#             profile.user.save()
-#
-#     #If user is already active, simply display error message
-#     else:
-#         already_active = True #Display : error message
-#     return render(request, 'activation.html', locals())
-#
-#
-# def new_activation_link(request, user_id):
-#     form = RegistrationForm()
-#     datas={}
-#     user = User.objects.get(id=user_id)
-#     if user is not None and not user.is_active:
-#         datas['username']=user.username
-#         datas['email']=user.email
-#         datas['email_path']="/ResendEmail.txt"
-#         datas['email_subject']="Nouveau lien d'activation yourdomain"
-#
-#         salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
-#         usernamesalt = datas['username']
-#         if isinstance(usernamesalt, unicode):
-#             usernamesalt = usernamesalt.encode('utf8')
-#         datas['activation_key']= hashlib.sha1(salt+usernamesalt).hexdigest()
-#
-#         profile = Profile.objects.get(user=user)
-#         profile.activation_key = datas['activation_key']
-#         profile.key_expires = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=2), "%Y-%m-%d %H:%M:%S")
-#         profile.save()
-#
-#         form.sendEmail(datas)
-#         request.session['new_link']=True #Display: new link sent
-#
-#     return redirect(home)

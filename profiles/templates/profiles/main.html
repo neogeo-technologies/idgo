@@ -1,151 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
 		<meta charset="UTF-8">
 		<title>IDGO</title>
 
-        <script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+		{% load static %}
+
+		<script type="text/javascript" src="{% static "libs/jquery/jquery-3.2.1.min.js" %}"></script>
+		<link rel="stylesheet" href="{% static "css/main.css" %}" />
 
 		{% load bootstrap3 %}
 		{% bootstrap_css %}
 		{% bootstrap_javascript %}
 		{% bootstrap_messages %}
+
 	</head>
-	<style type="text/css">
-
-body {
-    background-color: #eee;
-    color: #333;
-}
-
-div.page-header {
-    padding-top: 0;
-    padding-bottom: 0;
-    margin: 0;
-    border-bottom: none;
-    background-color: #291809;
-    color: #fff;
-    position: relative;
-}
-
-div.page-header .title {
-    font-size: 2.666em;
-    margin-top: 30px;
-    margin-bottom: 30px;
-    font-weight: 400;
-}
-
-div.page-header .login {
-    right: 0;
-    vertical-align: middle;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-div.page-header .login button {
-    width: 2.666em;
-    height: 2.666em;
-    background: transparent;
-    border-color: transparent;
-    color: #ffffff;
-    border-radius: 9999px;
-    padding: 0;
-}
-
-div.page-header .login button:hover,
-div.page-header .login button:focus {
-    background: linear-gradient(#ffffff, #f3f3f3);
-    color: #291809;
-}
-
-ul.nav.nav-default > li {
-    float: left;
-}
-
-ul.nav.nav-default > li > a {
-    border-radius: 0;
-    margin: 0;
-    border-left: 1px solid transparent;
-    border-right: 1px solid transparent;
-    background: transparent;
-    color: #999;
-}
-
-ul.nav.nav-default > li > a:focus,
-ul.nav.nav-default > li > a:hover {
-    color: #666;
-}
-
-ul.nav.nav-default > li.active > a,
-ul.nav.nav-default > li.active > a:focus,
-ul.nav.nav-default > li.active > a:hover {
-    color: #000;
-    background-color: #fff;
-    border-left: 1px solid #ccc;
-    border-right: 1px solid #ccc;
-}
-
-div.main-container {
-    background-color: #fff;
-    border-top: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
-    margin-top: -1px;
-    padding-top: 60px;
-    padding-bottom: 90px;
-    bottom: 0;
-}
-
-	</style>
 	<body>
-        <div class="page-header">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-offset-1 col-md-10">
-                        <span class="title">Back-Office IDGO</span>
-                        <div class="btn-group login">
-                            <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="glyphicon glyphicon-user"></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><a href="{% url 'account'%}">Mon compte</a></li>
-                                <li><a href="{% url 'delete'%}">Supprimer mon compte</a></li>
-                                <li><a href="{% url 'logout'%}">Se déconnecter</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="container">
-            <div class="row">
-                <div class="col-md-offset-1 col-md-10">
-                    <ul id="menu" class="nav nav-default" role="tablist">
-                        <li role="presentation" class="active">
-                            <a href="#md" aria-controls="md" role="tab" data-toggle="tab">CRUD MD / Ress.</a>
-                        </li>
-                        <li role="presentation">
-                            <a href="#rules" aria-controls="rules" role="tab" data-toggle="tab">CRUD Droits accès</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="main-container">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-offset-1 col-md-10">
-                        <div class="tab-content">
-                            <div role="tabpanel" class="tab-pane fade in active" id="md">
-                                <span>foo</span>
-                            </div>
-                            <div role="tabpanel" class="tab-pane fade in" id="rules">
-                                <span>bar</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+		<div class="page-header">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-offset-1 col-md-10">
+						<span class="title">Back-Office IDGO</span>
+						<div class="btn-group login">
+							<button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								<span class="glyphicon glyphicon-user"></span>
+							</button>
+							<ul class="dropdown-menu">
+								<li><a href="{% url "modifyAccount" %}">Mon compte</a></li>
+								<!-- <li><a href="{% url "deleteAccount" %}">Supprimer mon compte</a></li> -->
+								<li><a href="{% url "signOut" %}">Se déconnecter</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-offset-1 col-md-10">
+					<ul id="menu" class="nav nav-default" role="tablist">
+						<li role="presentation" class="active">
+							<a href="#md" aria-controls="md" role="tab" data-toggle="tab">CRUD MD / Ress.</a>
+						</li>
+						<li role="presentation">
+							<a href="#rules" aria-controls="rules" role="tab" data-toggle="tab">CRUD Droits accès</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="main-container">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-offset-1 col-md-10">
+						<div class="tab-content">
+							<div role="tabpanel" class="tab-pane fade in active" id="md">
+								<span>foo</span>
+							</div>
+							<div role="tabpanel" class="tab-pane fade in" id="rules">
+								<span>bar</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 	</body>
 </html>
