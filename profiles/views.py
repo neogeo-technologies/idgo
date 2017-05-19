@@ -60,19 +60,21 @@ def logout_view(request):
 @csrf_exempt
 def add_user(request):
 
+    # class EMailIntegrityError(IntegrityError):
+    #     pass
+
     def save_user(data):
 
-        if User.objects.filter(email=data['email']).exists():
-            uform.add_error('email', "Cette adresse e-mail est reservé.")
-            return render(request, 'profiles/add.html', {'uform': uform,
-                                                         'pform': pform})
+        # On vérifie si un utilisateur avec le même e-mail existe:
+        # mais c'est très moche ! Cela devrait être dans le modèle.
+        # if User.objects.filter(email=data['email']).exists():
+        #     raise EMailIntegrityError
 
         user = User.objects.create_user(
                         username=data['username'], password=data['password'],
                         email=data['email'], first_name=data['first_name'],
                         last_name=data['last_name'],
                         is_staff=False, is_superuser=False, is_active=False)
-
         user.save()
 
         Registration.objects.create(
@@ -81,7 +83,6 @@ def add_user(request):
                         profile_fields={'role': data['role'],
                                         'phone': data['phone'],
                                         'organisation': data['organisation']})
-
         return user
 
     def create_activation_key(email_user):
@@ -91,8 +92,6 @@ def add_user(request):
 
     def delete_user(username):
         User.objects.get(username=username).delete()
-
-
 
     uform = UserForm(data=request.POST or None)
     pform = UserProfileForm(data=request.POST or None)
@@ -125,10 +124,13 @@ def add_user(request):
     try:
         user = save_user(data)
     except IntegrityError:
-        uform.add_error('username', 'Un utilisateur portant le même '
-                                    'identifiant de connexion existe déjà.')
+        uform.add_error('username', 'Cet identifiant de connexion est réservé.')
         return render(request, 'profiles/add.html', {'uform': uform,
                                                      'pform': pform})
+    # except EMailIntegrityError:
+    #     uform.add_error('email', 'Cet e-mail est réservé.')
+    #     return render(request, 'profiles/add.html', {'uform': uform,
+    #                                                  'pform': pform})
 
     error = []
     try:
