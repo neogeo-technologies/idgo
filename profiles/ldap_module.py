@@ -19,9 +19,12 @@ class LdapHandler(metaclass=Singleton):
     def get_user(self, username):
         base = 'cn={0},ou=people,dc=idgo,dc=local'.format(username)
         try:
-            return self.conn.search_s(base, ldap.SCOPE_SUBTREE)
+            res = self.conn.search_s(base, ldap.SCOPE_SUBTREE)
         except ldap.NO_SUCH_OBJECT:
             return None
+        if len(res) > 1:
+            raise Exception('More than one user found.')
+        return res[0]
 
     def is_user_exists(self, username):
         return self.get_user(username) and True or False
@@ -32,18 +35,43 @@ class LdapHandler(metaclass=Singleton):
         password = passlib.hash.ldap_sha1.encrypt(password)
         self.conn.add_s(
             'cn={0},ou=people,dc=idgo,dc=local'.format(user.username), [
-                ("objectclass", [b"inetOrgPerson", b"posixAccount"]),
-                ("uid", [user.username.encode()]),
-                ("gidNumber", [gid.encode()]),
-                ("uidNumber", [gid.encode()]),
-                ("sn", [user.last_name.encode()]),
-                ("givenName", [user.first_name.encode()]),
-                ("displayName", [user.get_full_name().encode()]),  # FullName: user.get_full_name().encode()
-                ("mail", [user.email.encode()]),
-                ("homeDirectory", ["/home/{0}".format(user.username).encode()]),
-                ("userPassword", [password.encode()]),
-                ("description", ["created by {0} at {1}".format(
-                                "guillaume", datetime.now()).encode()])])
+                ('objectclass', [b"inetOrgPerson", b"posixAccount"]),
+                ('uid', [user.username.encode()]),
+                ('gidNumber', [gid.encode()]),
+                ('uidNumber', [gid.encode()]),
+                ('sn', [user.last_name.encode()]),
+                ('givenName', [user.first_name.encode()]),
+                ('displayName', [user.get_full_name().encode()]),  # FullName: user.get_full_name().encode()
+                ('mail', [user.email.encode()]),
+                ('homeDirectory', ['/home/{0}'.format(user.username).encode()]),
+                ('userPassword', [password.encode()]),
+                ('description', ['created by {0} at {1}'.format(
+                                 'guillaume', datetime.now()).encode()])])
+
+    def update_user(self, user, password=None):
+
+        print(password)
+
+        if not self.is_user_exists:
+            return None
+        dn, moddict = self.get_user(user.username)
+
+        attrs = [('displayName', [user.get_full_name()]),
+                 ('givenName', [user.first_name]),
+                 ('mail', [user.email]),
+                 ('sn', [user.last_name])]
+
+        if password:
+            attrs.append(
+                ('userPassword', [passlib.hash.ldap_sha1.encrypt(password)]))
+
+        modlist = []
+        for m in attrs:
+            k = m[0]
+            modlist.append((ldap.MOD_DELETE, k, moddict[k]))
+            modlist.append((ldap.MOD_ADD, k, [e.encode() for e in m[1]]))
+
+        self.conn.modify_s(dn, modlist)
 
     def del_user(self, user):
         # TODO : delete user from all the groups he belongs to.

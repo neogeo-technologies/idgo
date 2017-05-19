@@ -5,6 +5,7 @@ import smtplib
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
@@ -196,34 +197,45 @@ def activation(request, key):
 @csrf_exempt
 def modify_account(request):
 
-    if request.method == 'GET':
-        return render(request, 'profiles/modifyaccount.html',
-                      {'uform': UserUpdateForm(), 'pform': ProfileUpdateForm()})
-
     user = request.user
-
     profile = get_object_or_404(Profile, user=user)
 
-    uform = UserUpdateForm(instance=user, data=request.POST)
-    pform = ProfileUpdateForm(instance=profile, data=request.POST)
+    uform = UserUpdateForm(instance=user, data=request.POST or None)
+    pform = ProfileUpdateForm(instance=profile, data=request.POST or None)
 
     if not uform.is_valid() or not pform.is_valid():
         return render(request, 'profiles/modifyaccount.html', {'uform': uform,
                                                                'pform': pform})
+    try:
+        ldap.update_user(user, password=uform.cleaned_data['password1'])
+    except:
+        message = "Une erreur critique s'est produite lors de la " \
+                  'mise à jour de votre compte. Merci de contacter ' \
+                  "l'administrateur du site."
+        return render(request, 'profiles/failure.html',
+                      {'message': message}, status=400)
 
-    #Integrer ldap ckan
-    data_user = ldap.get_user(user.username)
+    try:
+        ckan.update_user(user)
+    except:
+        # TODO: Si erreur, retablir LDAP
+        message = "Une erreur critique s'est produite lors de la " \
+                  "mise à jour de votre compte. Merci de contacter " \
+                  "l'administrateur du site."
+        return render(request, 'profiles/failure.html',
+                      {'message': message}, status=400)
 
-    for elem in data_user[0]:
-        if isinstance(elem, dict):
-            gid = elem['gidNumber']
-    # password = uform.cleaned_data["password1"]
+    try:
+        uform.save_f(request)
+    except ValidationError:
+        # TODO: Si erreur, retablir LDAP et CKAN
+        message = "Une erreur critique s'est produite lors de la " \
+                  "mise à jour de votre compte. Merci de contacter " \
+                  "l'administrateur du site."
+        return render(request, 'profiles/failure.html',
+                      {'message': message}, status=400)
 
-    ldap.sync_object('displayName', uform.cleaned_data['first_name'], gid[0])
-    # ckan.sync_group()
-
-    uform.save_f(request)
-    pform.save()
+    # pform.save_f()
 
     return render(request, 'profiles/main.html', {'uform': uform})
 

@@ -54,20 +54,9 @@ class UserUpdateForm(forms.ModelForm):
 
         password = self.cleaned_data["password1"]
         if password:
-            print("OLD PASSWORD == passepasse ? : {}".format(check_password("passepasse", user.password)))
-            print(user.username, user.password)
-
             user.set_password(password)
             user.save()
             logout(request)
-
-            print("NEW PASSWORD == posseposse ? : {}".format(check_password("posseposse", user.password)))
-            print(user.username, user.password)
-
-            # user = authenticate(username=user.username, password=user.password)
-            # if user is None:
-            #     raise ValidationError('Echec du changement de mot de passe')
-
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
         user.save()
@@ -112,6 +101,13 @@ class ProfileUpdateForm(forms.ModelForm):
         profile = super(ProfileUpdateForm, self).save(commit=False)
 
         organisation = self.cleaned_data["organisation"]
+        publish_org = self.cleaned_data["publish_for"]
+
+        if publish_org:
+            profile.publish_for = publish_org
+        else:
+            profile.publish_for.clear()
+
         if organisation:
             profile.organisation = organisation
         if commit:

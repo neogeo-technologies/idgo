@@ -38,16 +38,26 @@ class CkanHandler(metaclass=Singleton):
 
         self.remote.action.user_update(
                 id=user.username, name=user.username, email=user.email,
-                fullname='{0} {1}'.format(user.first_name, user.last_name),
+                fullname=user.get_full_name(),
                 state='deleted')
+
+    def update_user(self, user):
+
+        if not self.is_user_exists:
+            raise NotFound()
+        ckan_user = self.get_user(user.username)
+
+        return self.remote.action.user_update(id=ckan_user['id'],
+                                              name=ckan_user['name'],
+                                              email=user.email,
+                                              fullname=user.get_full_name(),
+                                              state=ckan_user['state'])
 
     def activate_user(self, user):
         return self.remote.action.user_update(id=user.username,
                                               name=user.username,
                                               email=user.email,
-                                              fullname='{0} {1}'.format(
-                                                  user.first_name,
-                                                  user.last_name),
+                                              fullname=user.get_full_name(),
                                               state='active')
 
     def del_user(self, user):
