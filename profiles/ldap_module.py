@@ -38,7 +38,7 @@ class LdapHandler(metaclass=Singleton):
                 ("uidNumber", [gid.encode()]),
                 ("sn", [user.last_name.encode()]),
                 ("givenName", [user.first_name.encode()]),
-                ("displayName", [user.first_name.encode()]),
+                ("displayName", [user.get_full_name().encode()]),  # FullName: user.get_full_name().encode()
                 ("mail", [user.email.encode()]),
                 ("homeDirectory", ["/home/{0}".format(user.username).encode()]),
                 ("userPassword", [password.encode()]),

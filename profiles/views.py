@@ -89,6 +89,11 @@ def add_user(request):
         salt = hashlib.sha1(pwd).hexdigest()[:5].encode('utf-8')
         return hashlib.sha1(salt + bytes(email_user, 'utf-8')).hexdigest()
 
+    def delete_user(username):
+        User.objects.get(username=username).delete()
+
+
+
     uform = UserForm(data=request.POST or None)
     pform = UserProfileForm(data=request.POST or None)
 
@@ -209,6 +214,17 @@ def update_user(request):
                       {'uform': uform, 'pform': pform})
 
     #Integrer ldap ckan
+    data_user = ldap.get_user(user.username)
+
+    for elem in data_user[0]:
+        if isinstance(elem, dict):
+            print(elem)
+            gid = elem["gidNumber"]
+    print(gid[0])
+    # password = uform.cleaned_data["password1"]
+
+    ldap.sync_object("displayName", uform.cleaned_data["first_name"], gid[0])
+    # ckan.sync_group()
 
     uform.save_f(request)
     pform.save()

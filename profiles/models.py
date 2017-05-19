@@ -107,8 +107,6 @@ class Profile(models.Model):
             pass
 
 
-
-
 class PublishRequest(models.Model):
     user = models.ForeignKey(User, verbose_name="Utilisateur")
     organisation = models.ForeignKey(Organisation, verbose_name="Organisme", help_text="Organisme pour lequel le statut de contributeur est demandé")
@@ -123,8 +121,6 @@ class PublishRequest(models.Model):
             # = message + liens vers ici (via admin django standard)
             a = 0
         super(PublishRequest, self).save(*args, **kwargs)
-
-
 
 
 class Registration(models.Model):
