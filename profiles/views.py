@@ -20,10 +20,14 @@ from .utils import *
 @csrf_exempt
 def sign_in(request):
 
-    uform = UserLoginForm(data=request.POST or None)
+    if request.method == 'GET':
+        return render(
+                    request, 'profiles/signin.html', {'uform': UserLoginForm()})
+
+    uform = UserLoginForm(data=request.POST)
     if not uform.is_valid():
-        # uform.add_error('username', 'Vérifiez le nom de connexion !')
-        # uform.add_error('password', 'Vérifiez le mot de passe !')
+        uform.add_error('username', 'Vérifiez le nom de connexion !')
+        uform.add_error('password', 'Vérifiez le mot de passe !')
         return render(request, 'profiles/signin.html', {'uform': uform})
 
     user = User.objects.get(username=uform.cleaned_data['username'])
@@ -44,6 +48,10 @@ def sign_out(request):
 
 @csrf_exempt
 def sign_up(request):
+
+    if request.method == 'GET':
+        return render(request, 'profiles/signup.html',
+                      {'uform': UserForm(), 'pform': UserProfileForm()})
 
     # class EMailIntegrityError(IntegrityError):
     #     pass
@@ -76,12 +84,12 @@ def sign_up(request):
     def delete_user(username):
         User.objects.get(username=username).delete()
 
-    uform = UserForm(data=request.POST or None)
-    pform = UserProfileForm(data=request.POST or None)
+    uform = UserForm(data=request.POST)
+    pform = UserProfileForm(data=request.POST)
 
     if not uform.is_valid() or not pform.is_valid():
         return render(request, 'profiles/signup.html', {'uform': uform,
-                                                     'pform': pform})
+                                                        'pform': pform})
 
     if uform.cleaned_data['password1'] != uform.cleaned_data['password2']:
         uform.add_error('password1', 'Vérifiez les champs mot de passe')
@@ -186,12 +194,17 @@ def activation(request, key):
 @login_required(login_url='/profiles/signin/')
 @csrf_exempt
 def modify_account(request):
+
+    if request.method == 'GET':
+        return render(request, 'profiles/modifyaccount.html',
+                      {'uform': UserUpdateForm(), 'pform': ProfileUpdateForm()})
+
     user = request.user
 
     profile = get_object_or_404(Profile, user=user)
 
-    uform = UserUpdateForm(instance=user, data=request.POST or None)
-    pform = ProfileUpdateForm(instance=profile, data=request.POST or None)
+    uform = UserUpdateForm(instance=user, data=request.POST)
+    pform = ProfileUpdateForm(instance=profile, data=request.POST)
 
     if not uform.is_valid() or not pform.is_valid():
         return render(request, 'profiles/modifyaccount.html',
@@ -202,11 +215,10 @@ def modify_account(request):
 
     for elem in data_user[0]:
         if isinstance(elem, dict):
-            print(elem)
-            gid = elem["gidNumber"]
+            gid = elem['gidNumber']
     # password = uform.cleaned_data["password1"]
 
-    ldap.sync_object("displayName", uform.cleaned_data["first_name"], gid[0])
+    ldap.sync_object('displayName', uform.cleaned_data['first_name'], gid[0])
     # ckan.sync_group()
 
     uform.save_f(request)
@@ -217,9 +229,13 @@ def modify_account(request):
 
 @csrf_exempt
 def delete_account(request):
-    user = request.user
 
-    uform = UserDeleteForm(data=request.POST or None)
+    if request.method == 'GET':
+        return render(request, 'profiles/deleteaccount.html',
+                      {'uform': UserDeleteForm()})
+
+    user = request.user
+    uform = UserDeleteForm(data=request.POST)
     if not uform.is_valid():
         return render(request, 'profiles/deleteaccount.html', {'uform': uform})
 
