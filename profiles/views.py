@@ -1,30 +1,19 @@
-import os
-import passlib.hash
 import hashlib
 import random
 import smtplib
-from datetime import datetime
 
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
-from django.views.decorators.csrf import csrf_exempt
-
-from django.contrib.auth import authenticate, logout, login
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
-from django.conf import settings
-from django.http import JsonResponse
-from django.utils import timezone
-from django.shortcuts import render
-from django.urls import reverse
-from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, get_object_or_404
+from django.db import IntegrityError
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 
 from .ckan_module import CkanHandler as ckan
 from .ldap_module import LdapHandler as ldap
-from .forms.user import UserForm, UserProfileForm, UserDeleteForm, UserUpdateForm, ProfileUpdateForm, UserLoginForm
-from .models import Profile, Organisation, Registration
+from .forms.user import UserForm, UserProfileForm, UserDeleteForm, \
+                        UserUpdateForm, ProfileUpdateForm, UserLoginForm
+from .models import Organisation, Profile, Registration
 from .utils import *
 
 
@@ -33,23 +22,18 @@ def sign_in(request):
 
     uform = UserLoginForm(data=request.POST or None)
     if not uform.is_valid():
+        # uform.add_error('username', 'Vérifiez le nom de connexion !')
+        # uform.add_error('password', 'Vérifiez le mot de passe !')
         return render(request, 'profiles/signin.html', {'uform': uform})
 
-    username = uform.cleaned_data['username']
-    password = uform.cleaned_data['password']
-    if not authenticate(username=username, password=password):
-        uform.add_error('username', 'Vérifiez le nom de connexion !')
-        uform.add_error('password', 'Vérifiez le mot de passe !')
-        return render(request, 'profiles/signin.html', {'uform': uform})
-
-    user = User.objects.get(username=username)
-
+    user = User.objects.get(username=uform.cleaned_data['username'])
     if not user.is_active:
         uform.add_error('username', 'Votre compte est inactif !')
         return render(request, 'profiles/signin.html', {'uform': uform})
 
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-    return render(request, 'profiles/main.html', {'uform': uform})
+
+    return redirect('main')
 
 
 @csrf_exempt
@@ -104,7 +88,8 @@ def sign_up(request):
         return render(request, 'profiles/add.html', {'uform': uform,
                                                      'pform': pform})
 
-    data = {'activation_key': create_activation_key(uform.cleaned_data['email']),
+    data = {'activation_key': create_activation_key(
+                                        uform.cleaned_data['email']),
             'username': uform.cleaned_data['username'],
             'email': uform.cleaned_data['email'],
             'password': uform.cleaned_data['password1'],
@@ -115,10 +100,10 @@ def sign_up(request):
             'phone': pform.cleaned_data['phone']}
 
     if ckan.is_user_exists(data['username']) \
-            or ldap.is_user_exists(data['username']):
+                or ldap.is_user_exists(data['username']):
         uform.add_error('username', 'Cet identifiant de connexion est réservé.')
         return render(request, 'profiles/signup.html', {'uform': uform,
-                                                     'pform': pform})
+                                                        'pform': pform})
 
     try:
         user = save_user(data)
@@ -153,7 +138,6 @@ def sign_up(request):
         error.append(str(e))
 
     if error:
-        print(error)
         message = "Une erreur critique s'est produite lors de la création de " \
                   "votre compte. Merci de contacter l'administrateur du site."
 
@@ -173,13 +157,13 @@ def sign_up(request):
 def activation(request, key):
 
     reg = get_object_or_404(Registration, activation_key=key)
-
     organisation = get_object_or_404(
-                            Organisation, pk=reg.profile_fields['organisation'])
+                        Organisation, pk=reg.profile_fields['organisation'])
 
     user = reg.user
     user.is_active = True
     user.save()
+
     Profile.objects.create(user=user,
                            organisation=organisation,
                            phone=reg.profile_fields['phone'],
@@ -202,7 +186,6 @@ def activation(request, key):
 @login_required(login_url='/profiles/signin/')
 @csrf_exempt
 def modify_account(request):
-
     user = request.user
 
     profile = get_object_or_404(Profile, user=user)
@@ -221,7 +204,6 @@ def modify_account(request):
         if isinstance(elem, dict):
             print(elem)
             gid = elem["gidNumber"]
-    print(gid[0])
     # password = uform.cleaned_data["password1"]
 
     ldap.sync_object("displayName", uform.cleaned_data["first_name"], gid[0])
@@ -238,11 +220,11 @@ def delete_account(request):
     user = request.user
 
     uform = UserDeleteForm(data=request.POST or None)
-
     if not uform.is_valid():
         return render(request, 'profiles/deleteaccount.html', {'uform': uform})
 
     user.delete()
     logout(request)
+
     return render(request, 'profiles/success.html',
                   {'message': 'Votre compte a été supprimé.'}, status=200)

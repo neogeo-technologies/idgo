@@ -1,19 +1,19 @@
-import requests
-
 from django.db import models
-from django.contrib.gis.db import models
-from django.contrib.auth.models import User
+from django.db.models.signals import pre_delete, pre_save
 from django.conf import settings
-from django.db import IntegrityError
-from django.db.models.signals import pre_save, post_save, pre_delete, post_delete, m2m_changed
-from django.dispatch import receiver
-from django.utils.text import slugify
-from django.utils import timezone
-from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
+from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
+from django.dispatch import receiver
+from django.utils import timezone
+from django.utils.text import slugify
 
 from .ldap_module import LdapHandler as ldap
 from .ckan_module import CkanHandler as ckan
+
+
+def deltatime_2_days():
+    return timezone.now() + timezone.timedelta(days=2)
 
 
 class OrganisationType(models.Model):
@@ -69,13 +69,8 @@ class Organisation(models.Model):
             super(Organisation, self).delete()
 
 
-
-
-def deltatime_2_days():
-    return timezone.now() + timezone.timedelta(days=2)
-
-
 class Profile(models.Model):
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     organisation = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance", blank=True, null=True)
     # TODO : demander si l'utilisateur publie forcément pour son organisation
@@ -108,6 +103,7 @@ class Profile(models.Model):
 
 
 class PublishRequest(models.Model):
+
     user = models.ForeignKey(User, verbose_name="Utilisateur")
     organisation = models.ForeignKey(Organisation, verbose_name="Organisme", help_text="Organisme pour lequel le statut de contributeur est demandé")
     date_demande = models.DateField(verbose_name="Date de la demande", auto_now_add=timezone.now())
@@ -130,7 +126,6 @@ class Registration(models.Model):
     key_expires = models.DateTimeField(
                         default=deltatime_2_days, blank=True, null=True)
     profile_fields = JSONField('Champs profile', blank=True, null=True)
-
 
 
 # Triggers
@@ -156,7 +151,8 @@ def update_externals(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Profile)
 def delete_user_expire_date(sender, instance, **kwargs):
-    expired_key_reg = Registration.objects.filter(key_expires__lte=timezone.now())
+    expired_key_reg = Registration.objects.filter(
+                                            key_expires__lte=timezone.now())
     for reg in expired_key_reg:
         u = reg.user
         u.delete()
