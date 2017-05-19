@@ -4,6 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.models import User
+from django.forms import CheckboxSelectMultiple
 from django.shortcuts import redirect, get_object_or_404
 from profiles.models import Profile, Organisation
 
@@ -45,7 +46,8 @@ class UserUpdateForm(forms.ModelForm):
 
         if self.cleaned_data['password1'] != self.cleaned_data['password2']:
             self.add_error('password1', 'Vérifiez les champs mot de passe')
-            raise ValidationError('Les mots de passe ne correspondent pas')
+            self.add_error('password2', '')
+            raise ValidationError('password error')
 
         user = User.objects.get(username=self.cleaned_data["username"])
         user.first_name = self.cleaned_data["first_name"]
@@ -80,6 +82,11 @@ class ProfileUpdateForm(forms.ModelForm):
                                           label='Organisme',
                                           queryset=Organisation.objects.all())
 
+    publish_for = forms.ModelMultipleChoiceField(required=False,
+                                         label='Organismes associés',
+                                         widget=CheckboxSelectMultiple(),
+                                         queryset=Organisation.objects.all())
+
     phone = forms.CharField(required=False,
         label='Téléphone',
         max_length=150,
@@ -95,7 +102,8 @@ class ProfileUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ('organisation', 'phone','role')
+        fields = ('organisation', 'phone','role', 'publish_for')
+
 
     def save_f(self, commit=True):
         profile = super(ProfileUpdateForm, self).save(commit=False)

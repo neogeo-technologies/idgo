@@ -225,15 +225,12 @@ def modify_account(request):
         return render(request, 'profiles/failure.html',
                       {'message': message}, status=400)
 
+
     try:
         uform.save_f(request)
     except ValidationError:
-        # TODO: Si erreur, retablir LDAP et CKAN
-        message = "Une erreur critique s'est produite lors de la " \
-                  "mise à jour de votre compte. Merci de contacter " \
-                  "l'administrateur du site."
-        return render(request, 'profiles/failure.html',
-                      {'message': message}, status=400)
+        return render(request, 'profiles/modifyaccount.html',
+                      {'uform': uform, 'pform': pform})
 
     # pform.save_f()
 
