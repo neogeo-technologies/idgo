@@ -84,17 +84,19 @@ def sign_up(request):
     def delete_user(username):
         User.objects.get(username=username).delete()
 
+    def render_on_error():
+        return render(request, 'profiles/signup.html', {'uform': uform,
+                                                        'pform': pform})
+
     uform = UserForm(data=request.POST)
     pform = UserProfileForm(data=request.POST)
 
     if not uform.is_valid() or not pform.is_valid():
-        return render(request, 'profiles/signup.html', {'uform': uform,
-                                                        'pform': pform})
+        return render_on_error()
 
     if uform.cleaned_data['password1'] != uform.cleaned_data['password2']:
         uform.add_error('password1', 'Vérifiez les champs mot de passe')
-        return render(request, 'profiles/add.html', {'uform': uform,
-                                                     'pform': pform})
+        return render_on_error()
 
     data = {'activation_key': create_activation_key(
                                         uform.cleaned_data['email']),
@@ -110,15 +112,14 @@ def sign_up(request):
     if ckan.is_user_exists(data['username']) \
                 or ldap.is_user_exists(data['username']):
         uform.add_error('username', 'Cet identifiant de connexion est réservé.')
-        return render(request, 'profiles/signup.html', {'uform': uform,
-                                                        'pform': pform})
+        return render_on_error()
 
     try:
         user = save_user(data)
     except IntegrityError:
         uform.add_error('username', 'Cet identifiant de connexion est réservé.')
-        return render(request, 'profiles/signup.html', {'uform': uform,
-                                                     'pform': pform})
+        return render_on_error()
+
     # except EMailIntegrityError:
     #     uform.add_error('email', 'Cet e-mail est réservé.')
     #     return render(request, 'profiles/add.html', {'uform': uform,
@@ -207,8 +208,8 @@ def modify_account(request):
     pform = ProfileUpdateForm(instance=profile, data=request.POST)
 
     if not uform.is_valid() or not pform.is_valid():
-        return render(request, 'profiles/modifyaccount.html',
-                      {'uform': uform, 'pform': pform})
+        return render(request, 'profiles/modifyaccount.html', {'uform': uform,
+                                                               'pform': pform})
 
     #Integrer ldap ckan
     data_user = ldap.get_user(user.username)
