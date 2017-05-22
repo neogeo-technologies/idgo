@@ -6,7 +6,7 @@ from profiles.views import activation, delete_account, modify_account, \
 
 
 urlpatterns = [
-    url(r'^/?$', TemplateView.as_view(
+    url(r'^$', TemplateView.as_view(
                             template_name='profiles/main.html'), name='main'),
     url(r'^signin/?$', sign_in, name='signIn'),
     url(r'^signout/?$', sign_out, name='signOut'),
