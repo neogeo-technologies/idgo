@@ -18,6 +18,14 @@ from .models import Organisation, Profile, Registration
 from .utils import *
 
 
+def render_an_critical_error(request):
+    message = "Une erreur critique s'est produite lors de la création de " \
+              "votre compte. Merci de contacter l'administrateur du site."
+
+    return render(
+            request, 'profiles/failure.html', {'message': message}, status=400)
+
+
 @csrf_exempt
 def sign_in(request):
 
@@ -54,20 +62,12 @@ def sign_up(request):
         return render(request, 'profiles/signup.html',
                       {'uform': UserForm(), 'pform': UserProfileForm()})
 
-    # class EMailIntegrityError(IntegrityError):
-    #     pass
-
     def save_user(data):
-
-        # if User.objects.filter(email=data['email']).exists():
-        #     raise EMailIntegrityError
-
         user = User.objects.create_user(
                         username=data['username'], password=data['password'],
                         email=data['email'], first_name=data['first_name'],
                         last_name=data['last_name'],
                         is_staff=False, is_superuser=False, is_active=False)
-        user.save()
 
         Registration.objects.create(
                         user=user,
@@ -121,38 +121,13 @@ def sign_up(request):
         uform.add_error('username', 'Cet identifiant de connexion est réservé.')
         return render_on_error()
 
-    # except EMailIntegrityError:
-    #     uform.add_error('email', 'Cet e-mail est réservé.')
-    #     return render(request, 'profiles/add.html', {'uform': uform,
-    #                                                  'pform': pform})
-
-    error = []
     try:
         ldap.add_user(user, data['password'])
-    except Exception as e:
-        error.append(str(e))
-        user.delete()
-
-    try:
+        ldap.add_user_to_groups(user.username, is_active=False)
         ckan.add_user(user, data['password'])
-    except Exception as e:
-        error.append(str(e))
-        user.delete()
-
-    try:
         send_validation_mail(request, data['email'], data['activation_key'])
-    except smtplib.SMTPException as e:
-        error.append(str(e))
-        user.delete()
-    except Exception as e:
-        error.append(str(e))
-
-    if error:
-        message = "Une erreur critique s'est produite lors de la création de " \
-                  "votre compte. Merci de contacter l'administrateur du site."
-
-        return render(request, 'profiles/failure.html',
-                      {'message': message}, status=400)
+    except:
+        return render_an_critical_error(request)
 
     message = 'Votre compte a bien été créé. Vous recevrez un e-mail ' \
               "de confirmation d'ici quelques minutes. Pour activer " \
@@ -167,28 +142,37 @@ def sign_up(request):
 def activation(request, key):
 
     reg = get_object_or_404(Registration, activation_key=key)
-    organisation = get_object_or_404(
+    organization = get_object_or_404(
                         Organisation, pk=reg.profile_fields['organisation'])
 
     user = reg.user
     user.is_active = True
     user.save()
 
-    Profile.objects.create(user=user,
-                           organisation=organisation,
-                           phone=reg.profile_fields['phone'],
-                           role=reg.profile_fields['role'])
+    try:
+        profile = Profile.objects.create(user=user,
+                                         organisation=organization,
+                                         phone=reg.profile_fields['phone'],
+                                         role=reg.profile_fields['role'])
+    except IntegrityError:
+        return render_an_critical_error(request)
 
-    # Vider la table Registration pour le meme user
-    Registration.objects.filter(user=user).delete()
+    try:
+        ldap.add_user_to_groups(user.username, is_active=True)
+        ldap.add_user_to_organization(user.username, organization.ckan_slug)
+        ckan.add_user_to_organization(user.username, organization.ckan_slug)
+        ckan.activate_user(user)
+        Registration.objects.filter(user=user).delete()
+    except Exception as e:
+        profile.delete()
+        return render_an_critical_error(request)
 
-    # Activer l'utilisateur dans CKAN:
-    ckan.activate_user(user)
+    try:
+        send_confirmation_mail(user.email)
+    except:
+        pass  # Ce n'est pas très grave si l'e-mail ne part pas...
 
-    # Envoyer mail de confirmation
-    send_confirmation_mail(user.email)
     message = 'Votre compte est désormais activé.'
-
     return render(request, 'profiles/success.html',
                   {'message': message}, status=200)
 
@@ -210,22 +194,13 @@ def modify_account(request):
     try:
         ldap.update_user(user, password=uform.cleaned_data['password1'])
     except:
-        message = "Une erreur critique s'est produite lors de la " \
-                  'mise à jour de votre compte. Merci de contacter ' \
-                  "l'administrateur du site."
-        return render(request, 'profiles/failure.html',
-                      {'message': message}, status=400)
+        return render_an_critical_error(request)
 
     try:
         ckan.update_user(user)
     except:
         # TODO: Si erreur, retablir LDAP
-        message = "Une erreur critique s'est produite lors de la " \
-                  "mise à jour de votre compte. Merci de contacter " \
-                  "l'administrateur du site."
-        return render(request, 'profiles/failure.html',
-                      {'message': message}, status=400)
-
+        return render_an_critical_error(request)
 
     try:
         uform.save_f(request)

@@ -33,7 +33,7 @@ class Category(models.Model):
             super(Category, self).save(*args, **kwargs)
 
     def delete(self):
-        if ckan.del_group(self):
+        if ckan.del_group(self.ckan_slug):
             super(Category, self).delete()
 
 

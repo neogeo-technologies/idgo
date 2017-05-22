@@ -18,8 +18,8 @@ def deltatime_2_days():
 
 class OrganisationType(models.Model):
 
-    name = models.CharField("Dénomination", max_length=50)
-    code = models.CharField("Code", max_length=3)
+    name = models.CharField('Dénomination', max_length=50)
+    code = models.CharField('Code', max_length=3)
 
     def __str__(self):
         return self.name
@@ -31,15 +31,23 @@ class OrganisationType(models.Model):
 
 class Organisation(models.Model):
 
-    name = models.CharField("Nom", max_length=150, unique=True, db_index=True)
-    organisation_type = models.ForeignKey(OrganisationType, verbose_name="Type d'organisme", default='1')
-    code_insee = models.CharField("Code INSEE", max_length=20, unique=True, db_index=True)
-    parent = models.ForeignKey("self", on_delete=models.CASCADE, blank=True, null=True, verbose_name="Organisation parente")
-    geom = models.MultiPolygonField("Territoire", srid=4171, blank=True, null=True)
-    sync_in_ldap = models.BooleanField("Synchronisé dans le LDAP", default=False)
-    sync_in_ckan = models.BooleanField("Synchronisé dans CKAN", default=False)
-    ckan_slug = models.SlugField("CKAN ID", max_length=150, unique=True, db_index=True)
-    website = models.URLField("Site web", blank=True)
+    name = models.CharField('Nom', max_length=150, unique=True, db_index=True)
+    organisation_type = models.ForeignKey(
+                OrganisationType, verbose_name="Type d'organisme", default='1')
+    code_insee = models.CharField(
+                'Code INSEE', max_length=20, unique=True, db_index=True)
+    parent = models.ForeignKey(
+                'self', on_delete=models.CASCADE, blank=True,
+                null=True, verbose_name="Organisation parente")
+    geom = models.MultiPolygonField(
+                'Territoire', srid=4171, blank=True, null=True)
+    sync_in_ldap = models.BooleanField(
+                'Synchronisé dans le LDAP', default=False)
+    sync_in_ckan = models.BooleanField(
+                'Synchronisé dans CKAN', default=False)
+    ckan_slug = models.SlugField(
+                'CKAN ID', max_length=150, unique=True, db_index=True)
+    website = models.URLField('Site web', blank=True)
     email = models.EmailField(verbose_name="Adresse mail de l'organisation")
     objects = models.GeoManager()
 
@@ -47,67 +55,67 @@ class Organisation(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
+
         if self.id:
-            created = False
-            self.sync_in_ckan = ckan.test_organization(self)
+            self.sync_in_ckan = ckan.is_organization_exists(self.ckan_slug)
         else:
-            created = True
             self.ckan_slug = slugify(self.name)
-            # now try to push this organization to CKAN ..
-            self.sync_in_ckan = ckan.add_organization(self)
+            try:
+                ckan.add_organization(self)
+            except:
+                self.sync_in_ckan = False
+            else:
+                self.sync_in_ckan = True
 
         # first save which sets the id we need to generate a LDAP gidNumber
-        super(Organisation, self).save(*args, **kwargs)
-        self.sync_in_ldap = ldap.sync_object("organisations", self.name, self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, "add_or_update")
+        super().save(*args, **kwargs)
+
+        self.sync_in_ldap = ldap.sync_object(
+            'organisations', self.name,
+            self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, 'add_or_update')
+
         # then save the current LDAP sync result
-        super(Organisation, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        res = ldap.sync_object("organisations", self.name, self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, "delete")
-        res_ckan = ckan.del_organization(self)
+
+        res = ldap.sync_object(
+            'organisations', self.name,
+            self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, 'delete')
+
+        res_ckan = ckan.del_organization(self.ckan_slug)
         if res and res_ckan:
-            super(Organisation, self).delete()
+            super().delete()
 
 
 class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    organisation = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance", blank=True, null=True)
-    # TODO : demander si l'utilisateur publie forcément pour son organisation
-    publish_for = models.ManyToManyField(Organisation, related_name='pub_org', verbose_name="Organisme associé", help_text="Liste des organismes pour lesquels l'utilisateur publie des jeux de données.")
+    organisation = models.ForeignKey(Organisation, blank=True, null=True,
+                                     verbose_name="Organisme d'appartenance")
+    publish_for = models.ManyToManyField(
+                        Organisation, related_name='pub_org',
+                        verbose_name='Organisme associé',
+                        help_text='Liste des organismes pour lesquels '
+                                  "l'utilisateur publie des jeux de données.")
     phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
     role = models.CharField('Fonction', max_length=150, blank=True, null=True)
-
-    # activation_key = models.CharField(max_length=40, blank=True)
-    # key_expires = models.DateTimeField(default=deltatime_2_days, blank=True, null=True)
-    # address = models.CharField("Adresse", max_length=150, blank=True)
-    # city = models.CharField("Ville", max_length=150, blank=True)
-    # zipcode = models.CharField("Code Postal", max_length=5, blank=True)
-    # country = models.CharField("Pays", max_length=100, blank=True)
 
     def __str__(self):
         return self.user.username
 
-    def save(self, *args, **kwargs):
-        # first save which sets the id we need to generate a LDAP gidNumber
-        super(Profile, self).save(*args, **kwargs)
-        # ckan.add_user_to_organization(cn, self.organisation)
-        ldap.add_user_to_group(self.user, 'cn={0},ou=organisations,dc=idgo,dc=local'.format(self.organisation.name))
-        try:
-            ldap.add_user_to_group(self.user, 'cn=active,ou=groups,dc=idgo,dc=local')
-            ldap.add_user_to_group(self.user, 'cn=staff,ou=groups,dc=idgo,dc=local')
-            ldap.add_user_to_group(self.user, 'cn=superuser,ou=groups,dc=idgo,dc=local')
-            ldap.add_user_to_group(self.user, 'cn=enabled,ou=django,ou=groups,dc=idgo,dc=local')
-        except:
-            pass
-
 
 class PublishRequest(models.Model):
 
-    user = models.ForeignKey(User, verbose_name="Utilisateur")
-    organisation = models.ForeignKey(Organisation, verbose_name="Organisme", help_text="Organisme pour lequel le statut de contributeur est demandé")
-    date_demande = models.DateField(verbose_name="Date de la demande", auto_now_add=timezone.now())
-    date_acceptation = models.DateField(verbose_name="Date acceptation", blank=True, null=True)
+    user = models.ForeignKey(User, verbose_name='Utilisateur')
+    organisation = models.ForeignKey(
+                            Organisation, verbose_name='Organisme',
+                            help_text='Organisme pour lequel le '
+                                      'statut de contributeur est demandé')
+    date_demande = models.DateField(verbose_name='Date de la demande',
+                                    auto_now_add=timezone.now())
+    date_acceptation = models.DateField(verbose_name='Date acceptation',
+                                        blank=True, null=True)
 
     # prévoir une action externe ACCEPTER renseignant la date d'acceptation et enregistrant l'orga dans le publish_for du User.
 
@@ -133,8 +141,8 @@ class Registration(models.Model):
 
 @receiver(pre_delete, sender=User)
 def delete_user_in_externals(sender, instance, **kwargs):
-    ldap.del_user(instance)
-    ckan.del_user(instance)  # ->state='deleted'
+    ldap.del_user(instance.username)
+    ckan.del_user(instance.username)  # ->state='deleted'
 
 
 @receiver(pre_save, sender=Profile)
@@ -143,10 +151,9 @@ def update_externals(sender, instance, **kwargs):
         old_instance = Profile.objects.get(pk=instance.id)
         if old_instance.organisation.name != instance.organisation.name:
             ckan.del_user_from_organization(
-                                    instance.user, old_instance.organisation)
-            group_dn = 'cn={0},ou=organisations,dc=idgo,dc=local'.format(
-                                                old_instance.organisation.name)
-            ldap.del_user_from_group(instance.user, group_dn)
+                    instance.user.username, old_instance.organisation.ckan_slug)
+            ldap.del_user_from_organization(
+                    instance.user.username, old_instance.organisation.ckan_slug)
 
 
 @receiver(pre_save, sender=Profile)

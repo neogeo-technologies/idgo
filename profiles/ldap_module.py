@@ -16,11 +16,37 @@ class LdapHandler(metaclass=Singleton):
         self.conn = ldap.initialize(self.LDAP_URL, bytes_mode=False)
         self.conn.simple_bind_s(self.LDAP_ACCOUNT, self.LDAP_PASSWORD)
 
-    def get_user(self, username):
-        base = 'cn={0},ou=people,dc=idgo,dc=local'.format(username)
+    def _search(self, base_dn, filterstr='(objectClass=*)', attrlist=None):
         try:
-            res = self.conn.search_s(base, ldap.SCOPE_SUBTREE)
-        except ldap.NO_SUCH_OBJECT:
+            return self.conn.search_s(base_dn, ldap.SCOPE_SUBTREE,
+                                      filterstr=filterstr, attrlist=attrlist)
+        except ldap.NO_SUCH_OBJECT as e:
+            print('NO_SUCH_OBJECT', e)
+            return None
+        except ldap.LDAPError as e:
+            print('base:', base_dn)
+            print('Catching error:', e)
+            raise e
+
+    def _modify(self, base_dn, modlist):
+        try:
+            self.conn.modify_s(base_dn, modlist)
+        except ldap.TYPE_OR_VALUE_EXISTS as e:
+            print('TYPE_OR_VALUE_EXISTS', e)
+            return None
+        except ldap.NO_SUCH_OBJECT as e:
+            print('NO_SUCH_OBJECT', e)
+            return None
+        except ldap.LDAPError as e:
+            print('dn:', base_dn)
+            print('modlist:', modlist)
+            print('Catching error:', e)
+            raise e
+
+    def get_user(self, username):
+
+        res = self._search('cn={0},ou=people,dc=idgo,dc=local'.format(username))
+        if res is None:
             return None
         if len(res) > 1:
             raise Exception('More than one user found.')
@@ -48,13 +74,17 @@ class LdapHandler(metaclass=Singleton):
                 ('description', ['created by {0} at {1}'.format(
                                  'guillaume', datetime.now()).encode()])])
 
-    def update_user(self, user, password=None):
+    def del_user(self, username):
 
-        print(password)
+        self.del_user_from_groups(username)
+        self.del_user_from_organizations(username)
+        self.conn.delete_s('cn={0},ou=people,dc=idgo,dc=local'.format(username))
+
+    def update_user(self, user, password=None):
 
         if not self.is_user_exists:
             return None
-        dn, moddict = self.get_user(user.username)
+        base_dn, moddict = self.get_user(user.username)
 
         attrs = [('displayName', [user.get_full_name()]),
                  ('givenName', [user.first_name]),
@@ -71,34 +101,75 @@ class LdapHandler(metaclass=Singleton):
             modlist.append((ldap.MOD_DELETE, k, moddict[k]))
             modlist.append((ldap.MOD_ADD, k, [e.encode() for e in m[1]]))
 
-        self.conn.modify_s(dn, modlist)
+        self._modify(base_dn, modlist)
 
-    def del_user(self, user):
-        # TODO : delete user from all the groups he belongs to.
-        try:
-            self.conn.delete_s(
-                    'cn={0},ou=people,dc=idgo,dc=local'.format(user.username))
-        except:
-            pass
+    def get_groups_which_user_belongs(self, username):
 
-    def add_user_to_group(self, user, group_dn):
-        try:
-            self.conn.modify_s(group_dn, [(ldap.MOD_ADD, "memberUid", user.username.encode())])
-        except ldap.LDAPError as e:
-            return False
-        return True
+        res = self._search('ou=groups,dc=idgo,dc=local',
+                           filterstr='(memberUid={0})'.format(username),
+                           attrlist=['cn'])
+        return res and [e[1]['cn'][0].decode() for e in res] or []
 
-    def del_user_from_group(self, user, group_dn):
-        try:
-            self.conn.modify_s(group_dn, [(ldap.MOD_DELETE, 'memberUid', user.username.encode())])
-        except ldap.LDAPError:
-            return False
-        return True
+    def add_user_to_groups(self, username, is_active=False, is_staff=False,
+                           is_superuser=False, is_enabled=False):
+        if is_active:
+            self.add_user_to_group(username, 'active')
+        # if is_staff:
+        #     self.add_user_to_group(username, 'staff')
+        # if is_superuser:
+        #     self.add_user_to_group(username, 'superuser')
+        # if is_enabled:
+        #     self.add_user_to_group(username, 'enabled', ou='django')
+        #     self.del_user_from_group(username, 'disabled', ou='django')
+        # else:
+        #     self.add_user_to_group(username, 'disabled', ou='django')
+        #     self.del_user_from_group(username, 'enabled', ou='django')
+
+    def add_user_to_group(self, username, group_name):
+        self._modify('cn={0},ou=groups,dc=idgo,dc=local'.format(group_name),
+                     [(ldap.MOD_ADD, 'memberUid', username.encode())])
+
+    def del_user_from_group(self, username, group_name):
+        self._modify('cn={0},ou=groups,dc=idgo,dc=local'.format(group_name),
+                     [(ldap.MOD_DELETE, 'memberUid', username.encode())])
+
+    def del_user_from_groups(self, username):
+
+        groups = self.get_groups_which_user_belongs(username)
+        for group_name in groups:
+            self.del_user_from_group(username, group_name)
+
+    def get_organizations_which_user_belongs(self, username):
+
+        res = self._search('ou=organisations,dc=idgo,dc=local',
+                           filterstr='(memberUid={0})'.format(username),
+                           attrlist=['cn'])
+        return res and [e[1]['cn'][0].decode() for e in res] or []
+
+    def add_user_to_organization(self, username, organization_name):
+
+        self._modify(
+            'cn={0},ou=organisations,dc=idgo,dc=local'.format(organization_name),
+            [(ldap.MOD_ADD, 'memberUid', username.encode())])
+
+    def del_user_from_organization(self, username, organization_name):
+
+        self._modify(
+            'cn={0},ou=organisations,dc=idgo,dc=local'.format(organization_name),
+            [(ldap.MOD_DELETE, 'memberUid', username.encode())])
+
+    def del_user_from_organizations(self, username):
+        organizations = self.get_organizations_which_user_belongs(username)
+        if not organizations:
+            return
+        for organization_name in organizations:
+            self.del_user_from_organization(username, organization_name)
 
     def create_object(self, object_type, object_name, gid, delete_first=False):
+
         u = get_current_user()
-        dn = "cn=%s,ou=%s,dc=idgo,dc=local" % (object_name, object_type)
-        self.conn.add_s(dn,[
+        base_dn = "cn=%s,ou=%s,dc=idgo,dc=local" % (object_name, object_type)
+        self.conn.add_s(base_dn,[
             ("objectclass", [b"posixGroup"]),
             ("gidNumber", ["{0}".format(gid).encode()]),
             ("description", ["created by {0} at {1}".format(
@@ -115,8 +186,8 @@ class LdapHandler(metaclass=Singleton):
             elif operation == 'add_or_update' and len(result) == 0:
                 res = self.create_object(object_type, object_name, gid)
             elif operation == 'add_or_update' and len(result) == 1:
-                dn = result[0][0]
-                self.conn.delete_s(dn)
+                base_dn = result[0][0]
+                self.conn.delete_s(base_dn)
                 res = self.create_object(object_type, object_name, gid)
             res = True
 
