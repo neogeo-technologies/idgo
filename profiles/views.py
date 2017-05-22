@@ -206,6 +206,7 @@ def modify_account(request):
     if not uform.is_valid() or not pform.is_valid():
         return render(request, 'profiles/modifyaccount.html', {'uform': uform,
                                                                'pform': pform})
+
     try:
         ldap.update_user(user, password=uform.cleaned_data['password1'])
     except:
@@ -232,7 +233,7 @@ def modify_account(request):
         return render(request, 'profiles/modifyaccount.html',
                       {'uform': uform, 'pform': pform})
 
-    # pform.save_f()
+    pform.save_f()
 
     return render(request, 'profiles/main.html', {'uform': uform})
 

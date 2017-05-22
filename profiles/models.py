@@ -74,7 +74,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     organisation = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance", blank=True, null=True)
     # TODO : demander si l'utilisateur publie forcément pour son organisation
-    publish_for = models.ManyToManyField(Organisation, related_name='pub_org', verbose_name="Organisme associé", blank=True, null=True, help_text="Liste des organismes pour lesquels l'utilisateur publie des jeux de données.")
+    publish_for = models.ManyToManyField(Organisation, related_name='pub_org', verbose_name="Organisme associé", help_text="Liste des organismes pour lesquels l'utilisateur publie des jeux de données.")
     phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
     role = models.CharField('Fonction', max_length=150, blank=True, null=True)
 

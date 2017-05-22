@@ -166,7 +166,7 @@ class Dataset(models.Model):
     date_creation = models.DateField(verbose_name="Date de création du jeu de donnée",
                                      auto_now_add=timezone.now())
     date_publication = models.DateField(verbose_name="Date de publication du jeu de donnée",
-                                        default=timezone.now())
+                                        default=timezone.now)
     date_modification = models.DateField(verbose_name="Date de dernière modification du jeu de donnée",
                                          auto_now=timezone.now())
     editor = models.ForeignKey(User)
