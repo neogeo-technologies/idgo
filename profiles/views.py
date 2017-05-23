@@ -33,6 +33,7 @@ def main(request):
     return render(request, 'profiles/main.html',
                   status=200)
 
+
 @csrf_exempt
 def sign_in(request):
 
@@ -74,12 +75,14 @@ def sign_up(request):
                         last_name=data['last_name'],
                         is_staff=False, is_superuser=False, is_active=False)
 
+        org_publ_pk = [entry['pk'] for entry in data['publish_for'].values('pk')]
         Registration.objects.create(
                         user=user,
                         activation_key=data['activation_key'],
                         profile_fields={'role': data['role'],
                                         'phone': data['phone'],
-                                        'organisation': data['organisation']})
+                                        'organisation': data['organisation'],
+                                        'publish_for': org_publ_pk})
         return user
 
     def create_activation_key(email_user):
@@ -113,7 +116,8 @@ def sign_up(request):
             'last_name': uform.cleaned_data['last_name'],
             'organisation': pform.cleaned_data['organisation'],
             'role': pform.cleaned_data['role'],
-            'phone': pform.cleaned_data['phone']}
+            'phone': pform.cleaned_data['phone'],
+            'publish_for': pform.cleaned_data['publish_for']}
 
     if ckan.is_user_exists(data['username']) \
                 or ldap.is_user_exists(data['username']):
@@ -153,12 +157,16 @@ def activation(request, key):
     user = reg.user
     user.is_active = True
     user.save()
-
     try:
         profile = Profile.objects.create(user=user,
                                          organisation=organization,
                                          phone=reg.profile_fields['phone'],
                                          role=reg.profile_fields['role'])
+
+        for org in reg.profile_fields['publish_for']:
+            profile.publish_for.add(Organisation.objects.get(pk=org))
+
+
     except IntegrityError:
         return render_an_critical_error(request)
 
@@ -220,7 +228,8 @@ def modify_account(request):
             pass
         render_an_critical_error(request)
 
-    return render(request, 'profiles/main.html', {'uform': uform})
+    message = 'Les informations de votre profile sont à jour.'
+    return render(request, 'profiles/success.html', {'message': message}, status=200)
 
 
 @csrf_exempt

@@ -1,7 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.hashers import check_password
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.models import User
 from django.forms import CheckboxSelectMultiple
@@ -68,12 +67,17 @@ class UserUpdateForm(forms.ModelForm):
 class UserProfileForm(forms.Form):
 
     organisation = fields.ORGANISATION
+
+    publish_for = forms.ModelMultipleChoiceField(required=False,
+                                                 label='Organismes associés',
+                                                 widget=CheckboxSelectMultiple(),
+                                                 queryset=Organisation.objects.all())
     phone = fields.PHONE
     role = fields.ROLE
 
     class Meta:
         model = Profile
-        fields = ('organisation', 'role', 'phone')
+        fields = ('organisation', 'publish_for', 'role', 'phone')
 
 
 class ProfileUpdateForm(forms.ModelForm):
@@ -102,7 +106,7 @@ class ProfileUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ('organisation', 'phone','role', 'publish_for')
+        fields = ('organisation', 'phone', 'role', 'publish_for')
 
 
     def save_f(self, commit=True):
