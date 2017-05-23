@@ -1,12 +1,10 @@
 from django import forms
-from django.core.exceptions import ValidationError
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.forms import CheckboxSelectMultiple
-from django.shortcuts import redirect, get_object_or_404
 from profiles.models import Profile, Organisation
-
 from . import common_fields as fields
 
 

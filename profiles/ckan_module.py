@@ -1,10 +1,9 @@
+import requests
 from ckanapi import RemoteCKAN
-from ckanapi.errors import NotFound, CKANAPIError
+from ckanapi.errors import NotFound
 from django.conf import settings
 from django.db import IntegrityError
 from .utils import Singleton
-
-import requests
 
 
 class CkanHandler(metaclass=Singleton):
@@ -42,34 +41,32 @@ class CkanHandler(metaclass=Singleton):
                 fullname=user.get_full_name(),
                 state='deleted')
 
-    def update_user(self, user):
+    def del_user(self, username):
 
-        print(user.get_full_name())
+        # self.del_user_from_groups(username)
+        self.del_user_from_organizations(username)
+        self.remote.action.user_delete(id=username)
+
+    def update_user(self, user, profile=None):
 
         if not self.is_user_exists:
             raise IntegrityError()
+
+        if profile:
+            self.del_user_from_organizations(user.username)
+            self.add_user_to_organization(
+                            user.username, profile.organisation.ckan_slug)
+
         ckan_user = self.get_user(user.username)
+        ckan_user.update({'email': user.email,
+                          'fullname': user.get_full_name()})
 
-        return self.remote.action.user_update(id=ckan_user['id'],
-                                              name=ckan_user['name'],
-                                              email=user.email,
-                                              fullname=user.get_full_name(),
-                                              state=ckan_user['state'])
+        self.remote.action.user_update(**ckan_user)
 
-    def activate_user(self, user):
-        return self.remote.action.user_update(id=user.username,
-                                              name=user.username,
-                                              email=user.email,
-                                              fullname=user.get_full_name(),
-                                              state='active')
-
-    def del_user(self, username):
-        try:
-            return self.remote.action.user_delete(id=username)
-        except NotFound:
-            return None
-        except CKANAPIError:
-            return None
+    def activate_user(self, username):
+        ckan_user = self.get_user(username)
+        ckan_user.update({'state': 'active'})
+        self.remote.action.user_update(**ckan_user)
 
     def get_organization(self, organization_name):
         try:
@@ -87,14 +84,20 @@ class CkanHandler(metaclass=Singleton):
     def del_organization(self, organization_name):
         self.remote.action.organization_purge(id=organization_name)
 
-    def get_organizations_which_user_belongs(self, username):
-        # TODO
-        return []
+    def get_organizations_which_user_belongs(
+                        self, username, permission='manage_group'):
 
-    def add_user_to_organization(self, username, organization_name):
-        self.remote.action.organization_member_create(id=organization_name,
-                                                      username=username,
-                                                      role='member')
+        # permission=read|create_dataset|manage_group
+        res = self.remote.action.organization_list_for_user(
+                                            id=username, permission=permission)
+        return [d['name'] for d in res if d['is_organization']]
+
+    def add_user_to_organization(
+                        self, username, organization_name, role='member'):
+
+        # role=member|editor|admin
+        self.remote.action.organization_member_create(
+                        id=organization_name, username=username, role=role)
 
     def del_user_from_organization(self, username, organization_name):
         self.remote.action.organization_member_delete(
@@ -106,6 +109,8 @@ class CkanHandler(metaclass=Singleton):
             return
         for organization_name in organizations:
             self.del_user_from_organization(username, organization_name)
+
+    ###
 
     def add_group(self, group):
         self.remote.action.group_create(name=group.ckan_slug,
