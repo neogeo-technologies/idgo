@@ -1,6 +1,7 @@
 from ckanapi import RemoteCKAN
 from ckanapi.errors import NotFound, CKANAPIError
 from django.conf import settings
+from django.db import IntegrityError
 from .utils import Singleton
 
 import requests
@@ -43,8 +44,10 @@ class CkanHandler(metaclass=Singleton):
 
     def update_user(self, user):
 
+        print(user.get_full_name())
+
         if not self.is_user_exists:
-            raise NotFound()
+            raise IntegrityError()
         ckan_user = self.get_user(user.username)
 
         return self.remote.action.user_update(id=ckan_user['id'],

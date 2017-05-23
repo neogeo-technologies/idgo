@@ -1,12 +1,11 @@
 import hashlib
 import random
-import smtplib
 
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
@@ -30,6 +29,7 @@ def render_an_critical_error(request):
 def sign_in(request):
 
     if request.method == 'GET':
+        logout(request)
         return render(
                     request, 'profiles/signin.html', {'uform': UserLoginForm()})
 
@@ -39,10 +39,7 @@ def sign_in(request):
         uform.add_error('password', 'Vérifiez le mot de passe !')
         return render(request, 'profiles/signin.html', {'uform': uform})
 
-    user = User.objects.get(username=uform.cleaned_data['username'])
-    if not user.is_active:
-        uform.add_error('username', 'Votre compte est inactif !')
-        return render(request, 'profiles/signin.html', {'uform': uform})
+    user = uform.get_user()
 
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
@@ -177,6 +174,7 @@ def activation(request, key):
                   {'message': message}, status=200)
 
 
+@transaction.atomic
 @login_required(login_url='/profiles/signin/')
 @csrf_exempt
 def modify_account(request):
@@ -186,29 +184,33 @@ def modify_account(request):
 
     uform = UserUpdateForm(instance=user, data=request.POST or None)
     pform = ProfileUpdateForm(instance=profile, data=request.POST or None)
-
     if not uform.is_valid() or not pform.is_valid():
         return render(request, 'profiles/modifyaccount.html', {'uform': uform,
                                                                'pform': pform})
 
+    error = False
     try:
-        ldap.update_user(user, password=uform.cleaned_data['password1'])
-    except:
-        return render_an_critical_error(request)
+        with transaction.atomic():
+            uform.save_f(request)
+            # pform.save_f()
+            ckan.update_user(user)
+            ldap.update_user(user, password=uform.cleaned_data['password1'])
 
-    try:
-        ckan.update_user(user)
-    except:
-        # TODO: Si erreur, retablir LDAP
-        return render_an_critical_error(request)
-
-    try:
-        uform.save_f(request)
     except ValidationError:
-        return render(request, 'profiles/modifyaccount.html',
-                      {'uform': uform, 'pform': pform})
+        return render(request, 'profiles/modifyaccount.html', {'uform': uform,
+                                                               'pform': pform})
+    except IntegrityError:
+        logout(request)
+        error = True
 
-    pform.save_f()
+    if error:
+        user = User.objects.get(username=user.username)
+        try:
+            ckan.update_user(user)
+            ldap.update_user(user)
+        except:
+            pass
+        render_an_critical_error(request)
 
     return render(request, 'profiles/main.html', {'uform': uform})
 

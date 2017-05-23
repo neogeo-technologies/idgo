@@ -2,6 +2,7 @@ import ldap
 import passlib.hash
 from datetime import datetime
 from django.conf import settings
+from django.db import IntegrityError
 from profiles.get_current_request import get_current_user
 from .utils import Singleton
 
@@ -48,8 +49,8 @@ class LdapHandler(metaclass=Singleton):
         res = self._search('cn={0},ou=people,dc=idgo,dc=local'.format(username))
         if res is None:
             return None
-        if len(res) > 1:
-            raise Exception('More than one user found.')
+        if len(res) > 1:  # TODO???
+            raise IntegrityError()
         return res[0]
 
     def is_user_exists(self, username):
@@ -67,7 +68,7 @@ class LdapHandler(metaclass=Singleton):
                 ('uidNumber', [gid.encode()]),
                 ('sn', [user.last_name.encode()]),
                 ('givenName', [user.first_name.encode()]),
-                ('displayName', [user.get_full_name().encode()]),  # FullName: user.get_full_name().encode()
+                ('displayName', [user.get_full_name().encode()]),
                 ('mail', [user.email.encode()]),
                 ('homeDirectory', ['/home/{0}'.format(user.username).encode()]),
                 ('userPassword', [password.encode()]),
@@ -83,7 +84,8 @@ class LdapHandler(metaclass=Singleton):
     def update_user(self, user, password=None):
 
         if not self.is_user_exists:
-            return None
+            raise IntegrityError()
+
         base_dn, moddict = self.get_user(user.username)
 
         attrs = [('displayName', [user.get_full_name()]),
@@ -110,20 +112,9 @@ class LdapHandler(metaclass=Singleton):
                            attrlist=['cn'])
         return res and [e[1]['cn'][0].decode() for e in res] or []
 
-    def add_user_to_groups(self, username, is_active=False, is_staff=False,
-                           is_superuser=False, is_enabled=False):
+    def add_user_to_groups(self, username, is_active=False):
         if is_active:
             self.add_user_to_group(username, 'active')
-        # if is_staff:
-        #     self.add_user_to_group(username, 'staff')
-        # if is_superuser:
-        #     self.add_user_to_group(username, 'superuser')
-        # if is_enabled:
-        #     self.add_user_to_group(username, 'enabled', ou='django')
-        #     self.del_user_from_group(username, 'disabled', ou='django')
-        # else:
-        #     self.add_user_to_group(username, 'disabled', ou='django')
-        #     self.del_user_from_group(username, 'enabled', ou='django')
 
     def add_user_to_group(self, username, group_name):
         self._modify('cn={0},ou=groups,dc=idgo,dc=local'.format(group_name),
