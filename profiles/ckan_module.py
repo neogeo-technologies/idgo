@@ -1,6 +1,7 @@
 import requests
 from ckanapi import RemoteCKAN
 from ckanapi.errors import NotFound
+from datetime import datetime
 from django.conf import settings
 from django.db import IntegrityError
 from .utils import Singleton
@@ -124,6 +125,86 @@ class CkanHandler(metaclass=Singleton):
         self.remote.action.group_update(name=group.ckan_slug,
                                         title=group.name,
                                         description=group.description)
+
+
+    # Datasets #
+
+    def _get_package(self, name):
+        try:
+            return self.remote.action.package_show(id=name,
+                                                   include_tracking=True)
+        except NotFound:
+            return False
+
+    def _is_package_exists(self, name):
+        return self._get_package(name) and True or False
+
+    def _add_package(self, name, **kwargs):
+        kwargs['name'] = name
+        return self.remote.action.package_create(**kwargs)
+
+    def _del_package(self, name):
+        # return self.remote.action.package_delete(id=name)
+        return self.remote.action.dataset_purge(id=name)
+
+    def _update_package(self, name, **kwargs):
+        kwargs['name'] = name
+        return self.remote.action.package_update(**kwargs)
+
+    def _push_resource(self, package, resource_type, **kwargs):
+
+        kwargs['package_id'] = package['id']
+        kwargs['created'] = datetime.now().isoformat()
+
+        count_resources = len(package['resources'])
+        if count_resources > 0:
+            for i in range(count_resources):
+                resource = package['resources'][i]
+                if resource['resource_type'] == resource_type:
+                    kwargs['id'] = resource['id']
+                    kwargs['last_modified'] = datetime.now().isoformat()
+                    del kwargs['created']
+                    return self.remote.action.resource_update(**kwargs)
+
+        kwargs['resource_type'] = resource_type
+
+        return self.remote.action.resource_create(**kwargs)
+
+    def _push_resource_view(self, resource_id, view_type, **kwargs):
+
+        kwargs['resource_id'] = resource_id
+        kwargs['view_type'] = view_type
+        kwargs['title'] = kwargs['title'] if 'title' in kwargs else 'Aperçu'
+        kwargs['description'] = kwargs['description'] \
+            if 'description' in kwargs else 'Aperçu du jeu de données'
+
+        views = self.remote.action.resource_view_list(id=resource_id)
+        for view in views:
+            if view['view_type'] == view_type:
+                return self.remote.action.resource_view_update(
+                                                        id=view['id'], **kwargs)
+
+        return self.remote.action.resource_view_create(**kwargs)
+
+    def publish_dataset(self, name, resources=None, **kwargs):
+
+        if self._is_package_exists(name):
+            package = self._update_package(name, **kwargs)
+        else:
+            package = self._add_package(name, **kwargs)
+
+        if not resources:
+            return
+        if not isinstance(resources, list):
+            raise TypeError('resources argument must be a list.')
+
+        for resource in resources:
+            r = self._push_resource(package, resource.type, **kwargs)
+            self._push_resource_view(r['id'], resource.view_type)
+
+    def delete_dataset(self, name):
+
+        self._del_package(name)
 
 
 CkanHandler = CkanHandler()
