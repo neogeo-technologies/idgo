@@ -26,6 +26,14 @@ def render_an_critical_error(request):
 
 
 @csrf_exempt
+def main(request):
+
+    if not request.user.is_authenticated:
+        return sign_in(request)
+    return render(request, 'profiles/main.html',
+                  status=200)
+
+@csrf_exempt
 def sign_in(request):
 
     if request.method == 'GET':
@@ -43,7 +51,7 @@ def sign_in(request):
 
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-    return redirect('main')
+    return main(request)
 
 
 @csrf_exempt
