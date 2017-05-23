@@ -1,14 +1,12 @@
 import hashlib
 import random
-
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.csrf import csrf_exempt
-
 from .ckan_module import CkanHandler as ckan
 from .ldap_module import LdapHandler as ldap
 from .forms.user import UserForm, UserProfileForm, UserDeleteForm, \
@@ -132,7 +130,6 @@ def sign_up(request):
 
     try:
         ldap.add_user(user, data['password'])
-        ldap.add_user_to_groups(user.username, is_active=False)
         ckan.add_user(user, data['password'])
         send_validation_mail(request, data['email'], data['activation_key'])
     except:
@@ -171,13 +168,14 @@ def activation(request, key):
         return render_an_critical_error(request)
 
     try:
-        ldap.add_user_to_groups(user.username, is_active=True)
         ldap.add_user_to_organization(user.username, organization.ckan_slug)
+        ldap.activate_user(user.username)
         ckan.add_user_to_organization(user.username, organization.ckan_slug)
-        ckan.activate_user(user)
+        ckan.activate_user(user.username)
         Registration.objects.filter(user=user).delete()
     except Exception as e:
         profile.delete()
+        # TODO: Rétablir l'état inactif du compte !
         return render_an_critical_error(request)
 
     try:
@@ -208,9 +206,10 @@ def modify_account(request):
     try:
         with transaction.atomic():
             uform.save_f(request)
-            # pform.save_f()
-            ckan.update_user(user)
-            ldap.update_user(user, password=uform.cleaned_data['password1'])
+            pform.save_f()
+            ckan.update_user(user, profile=profile)
+            ldap.update_user(user, profile=profile,
+                             password=uform.cleaned_data['password1'])
 
     except ValidationError:
         return render(request, 'profiles/modifyaccount.html', {'uform': uform,

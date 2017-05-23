@@ -38,6 +38,9 @@ class LdapHandler(metaclass=Singleton):
         except ldap.NO_SUCH_OBJECT as e:
             print('NO_SUCH_OBJECT', e)
             return None
+        except ldap.NO_SUCH_ATTRIBUTE as e:
+            print('NO_SUCH_ATTRIBUTE', e)
+            return None
         except ldap.LDAPError as e:
             print('dn:', base_dn)
             print('modlist:', modlist)
@@ -81,7 +84,7 @@ class LdapHandler(metaclass=Singleton):
         self.del_user_from_organizations(username)
         self.conn.delete_s('cn={0},ou=people,dc=idgo,dc=local'.format(username))
 
-    def update_user(self, user, password=None):
+    def update_user(self, user, password=None, profile=None):
 
         if not self.is_user_exists:
             raise IntegrityError()
@@ -97,6 +100,11 @@ class LdapHandler(metaclass=Singleton):
             attrs.append(
                 ('userPassword', [passlib.hash.ldap_sha1.encrypt(password)]))
 
+        if profile:
+            self.del_user_from_organizations(user.username)
+            self.add_user_to_organization(
+                            user.username, profile.organisation.ckan_slug)
+
         modlist = []
         for m in attrs:
             k = m[0]
@@ -105,16 +113,15 @@ class LdapHandler(metaclass=Singleton):
 
         self._modify(base_dn, modlist)
 
+    def activate_user(self, username):
+        self.add_user_to_group(username, 'active')
+
     def get_groups_which_user_belongs(self, username):
 
         res = self._search('ou=groups,dc=idgo,dc=local',
                            filterstr='(memberUid={0})'.format(username),
                            attrlist=['cn'])
         return res and [e[1]['cn'][0].decode() for e in res] or []
-
-    def add_user_to_groups(self, username, is_active=False):
-        if is_active:
-            self.add_user_to_group(username, 'active')
 
     def add_user_to_group(self, username, group_name):
         self._modify('cn={0},ou=groups,dc=idgo,dc=local'.format(group_name),
@@ -129,6 +136,18 @@ class LdapHandler(metaclass=Singleton):
         groups = self.get_groups_which_user_belongs(username)
         for group_name in groups:
             self.del_user_from_group(username, group_name)
+
+    def get_organization(self, organization_name):
+        pass  #TODO?
+
+    def is_organization_exists(self, organization_name):
+        pass  #TODO?
+
+    def add_organization(self, organization):
+        pass  #TODO?
+
+    def del_organization(self, organization_name):
+        pass  #TODO?
 
     def get_organizations_which_user_belongs(self, username):
 
@@ -155,6 +174,8 @@ class LdapHandler(metaclass=Singleton):
             return
         for organization_name in organizations:
             self.del_user_from_organization(username, organization_name)
+
+    ###
 
     def create_object(self, object_type, object_name, gid, delete_first=False):
 
