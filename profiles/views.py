@@ -1,6 +1,8 @@
 import hashlib
 import json
 import random
+
+from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -26,7 +28,24 @@ def render_an_critical_error(request):
     return render(
             request, 'profiles/failure.html', {'message': message}, status=400)
 
+def redirect_url(request):
+    next_path = None
+    mtd_d = {'GET': request.GET}
 
+    if request.method == 'GET':
+        try:
+            next_path = request.GET["next"]
+        except KeyError:
+            pass
+
+    if request.method == 'POST':
+        try:
+            next_path = request.GET["next"]
+        except KeyError:
+            pass
+    return next_path
+
+@login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def main(request):
 
@@ -44,29 +63,11 @@ def main(request):
     return render(request, 'profiles/main.html',
                   {'datasets': json.dumps(datasets)}, status=200)
 
-def get_param(request, param):
-    """
-        Retourne la valeur d'une clé param presente dans une requete GET ou POST
-    """
-    value = None
-
-    if request.method == "GET" and param in request.GET:
-        value = request.GET[param]
-
-    elif request.method == "POST":
-        try:
-            param_read = request.POST.get(param, request.GET.get(param))
-        except KeyError as e:
-            return None
-        value = param_read
-
-    return value
-
-
 @csrf_exempt
 def sign_in(request):
 
     if request.method == 'GET':
+
         logout(request)
         return render(
                     request, 'profiles/signin.html', {'uform': UserLoginForm()})
@@ -77,13 +78,8 @@ def sign_in(request):
         uform.add_error('password', 'Vérifiez le mot de passe !')
         return render(request, 'profiles/signin.html', {'uform': uform})
 
-    # TODO
-    # try:
-    #     redirect_url = request.POST.get("next", request.GET.get("next"))
-    # except KeyError as e:
-    #     redirect_url =  None
-    #
-    # print(redirect_url)
+
+
 
     user = uform.get_user()
     request.session.set_expiry(600) #time-out de la session

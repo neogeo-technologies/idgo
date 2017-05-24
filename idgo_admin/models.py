@@ -150,44 +150,39 @@ class Dataset(models.Model):
         ('continue', 'Continue'),
         ('realtime', 'Temps réel')
     )
-    name = models.CharField('Nom', max_length=100) #Titre CKAN
-    description = models.CharField('Description', max_length=1024) #Description CKAN
+    name = models.CharField('Nom', max_length=100, unique=True) #Titre CKAN
+    description = models.CharField('Description', max_length=1024, blank=True, null=True) #Description CKAN
     ckan_slug = models.SlugField('Ckan_ID', max_length=100, unique=True,
-                                 db_index=True, blank=True) #
+                                 db_index=True, blank=True, null=True)
     sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
-    url_inspire = models.URLField('URL Inspire', blank=True)
-    geocover = models.CharField('Couverture géographique',
-                                blank=True, max_length=30, choices=GEOCOVER_CHOICES) #Couverture geo
-    uf = models.CharField('Fréquence de mise à jour', max_length=15, choices=FREQUENCY_CHOICES,
-                          default='never') #frequence de maj
+    url_inspire = models.URLField('URL Inspire', blank=True, null=True)
+    geocover = models.CharField('Couverture géographique', blank=True, null=True,
+                                max_length=30, choices=GEOCOVER_CHOICES)
     keywords = TaggableManager()
 
-    #######
-    date_creation = models.DateField(verbose_name="Date de création du jeu de donnée",
+    date_creation = models.DateTimeField(verbose_name="Date de création du jeu de donnée",
                                      auto_now_add=timezone.now())
-    date_publication = models.DateField(verbose_name="Date de publication du jeu de donnée",
+    date_publication = models.DateTimeField(verbose_name="Date de publication du jeu de donnée",
                                         default=timezone.now)
-    date_modification = models.DateField(verbose_name="Date de dernière modification du jeu de donnée",
+    date_modification = models.DateTimeField(verbose_name="Date de dernière modification du jeu de donnée",
                                          auto_now=timezone.now())
     editor = models.ForeignKey(User)
     organisation = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance",
                                      blank=True, null=True)
     licences = models.ForeignKey(License, verbose_name="Licence d'utilisation")
     categories = models.ManyToManyField(Category, verbose_name="Catégories d'appartenance")
-    update_freq = models.CharField('Fréquence de mise à jour',
+    update_freq = models.CharField('Fréquence de mise à jour', default='never',
                                 max_length=30, choices=FREQUENCY_CHOICES)
 
     # formulaire champ pré rempli
     owner_email = models.EmailField('Email du producteur de la donnée')
-    #######
-
 
 
     def __str__(self):
         return self.name
 
     class Meta:
-        managed = False
+        # managed = False
         verbose_name = "Jeu de données"
         verbose_name_plural = "Jeux de données"
 

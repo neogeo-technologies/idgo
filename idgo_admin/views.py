@@ -43,15 +43,3 @@ class DatasetCreateV(View):
                           {'message': message}, status=200)
 
         return render_on_error(request, dform)
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class DatasetDisplayV(View):
-
-    def get(self, request):
-        from django.core import serializers
-
-        user = request.user
-        dataset = serializers.serialize("json", Dataset.objects.filter(editor=user))
-
-        return JsonResponse(data=dataset, status=200, safe=False)

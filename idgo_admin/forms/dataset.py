@@ -79,13 +79,3 @@ class DatasetForm(forms.ModelForm):
             dataset.save()
         except:
             raise IntegrityError
-
-class DatasetDisplayForm(forms.ModelForm):
-
-    class Meta:
-        model = Dataset
-        fields = ('name', 'description', 'url_inspire',
-                  'keywords', 'geocover', 'update_freq',
-                  'licences', 'organisation', 'licences',
-                  'owner_email',
-                  'date_publication',)
