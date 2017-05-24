@@ -28,29 +28,26 @@ def render_an_critical_error(request):
     return render(
             request, 'profiles/failure.html', {'message': message}, status=400)
 
-def redirect_url(request):
-    next_path = None
-    mtd_d = {'GET': request.GET}
 
+def redirect_url(request):
+
+    next_path = None
     if request.method == 'GET':
         try:
             next_path = request.GET["next"]
         except KeyError:
             pass
-
     if request.method == 'POST':
         try:
-            next_path = request.GET["next"]
+            next_path = request.POST["next"]
         except KeyError:
             pass
     return next_path
 
+
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def main(request):
-
-    if not request.user.is_authenticated:
-        return sign_in(request)
 
     user = request.user
 
@@ -66,8 +63,9 @@ def main(request):
 @csrf_exempt
 def sign_in(request):
 
-    if request.method == 'GET':
+    next_path = redirect_url(request)
 
+    if request.method == 'GET':
         logout(request)
         return render(
                     request, 'profiles/signin.html', {'uform': UserLoginForm()})
@@ -78,14 +76,13 @@ def sign_in(request):
         uform.add_error('password', 'Vérifiez le mot de passe !')
         return render(request, 'profiles/signin.html', {'uform': uform})
 
-
-
-
     user = uform.get_user()
     request.session.set_expiry(600) #time-out de la session
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-
-    return main(request)
+    if next_path:
+        print("redirect")
+        return redirect(next_path)
+    return redirect('profiles:main') #main(request)
 
 
 @csrf_exempt
@@ -224,7 +221,7 @@ def activation(request, key):
 
 
 @transaction.atomic
-@login_required(login_url='/profiles/signin/')
+@login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def modify_account(request):
 
@@ -266,6 +263,7 @@ def modify_account(request):
     return render(request, 'profiles/success.html', {'message': message}, status=200)
 
 
+@login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def delete_account(request):
 
