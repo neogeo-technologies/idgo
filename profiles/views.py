@@ -1,4 +1,5 @@
 import hashlib
+import json
 import random
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -33,9 +34,15 @@ def main(request):
         return sign_in(request)
 
     user = request.user
-    datasets = serializers.serialize("json", Dataset.objects.filter(editor=user))
-    return render(request, 'profiles/main.html', {'datasets':datasets},
-                  status=200)
+
+    datasets = [(o.name,
+                 o.description,
+                 o.date_creation.isoformat(),
+                 o.date_modification.isoformat(),
+                 o.sync_in_ckan) for o in Dataset.objects.filter(editor=user)]
+
+    return render(request, 'profiles/main.html',
+                  {'datasets': json.dumps(datasets)}, status=200)
 
 def get_param(request, param):
     """

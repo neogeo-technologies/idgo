@@ -92,3 +92,31 @@ div.main-container {
     padding-bottom: 90px;
     bottom: 0;
 }
+
+table tr.selected td {
+    background: linear-gradient(#3882f7, #2c68c5 80%);
+    color: #fff;
+}
+
+.btn-default {
+    background: linear-gradient(#eee, #ddd);
+    border-color: #ccc;
+    color: #666;
+}
+
+.btn-default:hover {
+    background: linear-gradient(#ddd, #ccc);
+    border-color: #bbb;
+    color: #333;
+}
+
+.btn-danger {
+    background: linear-gradient(#f82c38, #c6232c);
+    border-color: #941a21;
+}
+
+.btn-danger:hover {
+    color: #fff;
+    background: linear-gradient(#df2732, #ad1e27);
+    border-color: #7c161c;
+}
