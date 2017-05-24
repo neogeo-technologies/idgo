@@ -1,4 +1,7 @@
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.text import slugify
@@ -132,10 +135,10 @@ class AccessLevel(models.Model):
 class Dataset(models.Model):
 
     GEOCOVER_CHOICES = (
+        ('regionale', 'Régionale'),
         ('international', 'Internationale'),
         ('european', 'Européenne'),
         ('national', 'Nationale'),
-        ('regionale', 'Régionale'),
         ('departementale', 'Départementale'),
         ('intercommunal', 'Inter-Communale'),
         ('communal', 'Communale')
@@ -156,7 +159,7 @@ class Dataset(models.Model):
                                  db_index=True, blank=True, null=True)
     sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
     url_inspire = models.URLField('URL Inspire', blank=True, null=True)
-    geocover = models.CharField('Couverture géographique', blank=True, null=True,
+    geocover = models.CharField('Couverture géographique', blank=True, null=True, default='regionale',
                                 max_length=30, choices=GEOCOVER_CHOICES)
     keywords = TaggableManager()
 
@@ -175,14 +178,14 @@ class Dataset(models.Model):
                                 max_length=30, choices=FREQUENCY_CHOICES)
 
     # formulaire champ pré rempli
-    owner_email = models.EmailField('Email du producteur de la donnée')
+    owner_email = models.EmailField('Email du producteur de la donnée', blank=True, null=True)
 
 
     def __str__(self):
         return self.name
 
     class Meta:
-        # managed = False
+        managed = False
         verbose_name = "Jeu de données"
         verbose_name_plural = "Jeux de données"
 
@@ -215,9 +218,8 @@ class Resource(models.Model):
     resolution = models.ForeignKey(Resolution, blank=True, null=True)
     acces = models.ForeignKey(AccessLevel)
     bbox = models.PolygonField('BBOX', blank=True)
-    geo_restriction = models.BooleanField("Restriction géographique", default=False) # dans le formulaire de saisie, ne montrer que si AccessLevel = 2
+    geo_restriction = models.BooleanField("Restriction géographique", default=False) # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
 
-    ####
     created_on = models.DateField(verbose_name="Date de creation de la resource",
                                   auto_now_add=timezone.now())
     last_update = models.DateField(verbose_name="Date de dernière modification de la resource",
@@ -226,8 +228,6 @@ class Resource(models.Model):
     type = models.CharField(verbose_name='type de resources',
                             choices=TYPE_CHOICES, max_length=10)
     fichier = models.FileField(null=True, blank=True, default=None)
-    ####
-
 
     def __str__(self):
         return self.name
@@ -235,3 +235,9 @@ class Resource(models.Model):
     class Meta:
         managed = False
         verbose_name = "Ressource"
+
+
+# Triggers
+@receiver(pre_save, sender=Dataset)
+def pre_save_dataset(sender, instance, **kwargs):
+    instance.ckan_slug = slugify(instance.name)

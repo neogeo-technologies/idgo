@@ -66,7 +66,7 @@ def main(request):
 def sign_in(request):
 
     next_path = redirect_url(request)
-
+    print(next_path)
     if request.method == 'GET':
         logout(request)
         return render(

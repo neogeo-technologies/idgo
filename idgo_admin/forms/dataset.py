@@ -1,7 +1,6 @@
 from django.core import validators
 from django.db import IntegrityError
 from django.forms import CheckboxSelectMultiple
-from django.utils.text import slugify
 
 from idgo_admin.models import *
 from taggit.forms import *
@@ -34,14 +33,8 @@ class DatasetForm(forms.ModelForm):
 
     keywords = TagField()
 
-    # formulaire champ pré rempli
-    owner_email = forms.EmailField(
-        error_messages={'invalid': "L'adresse e-mail est invalide."},
-        label='Adresse e-mail',
-        validators=[validators.validate_email],
-        widget=forms.EmailInput(attrs={'placeholder': 'Adresse e-mail'}))
-
     # Champs formulaire cachés:
+    owner_email = forms.EmailField(widget=forms.HiddenInput(), required=False) #Importer par defaut l'email d'organisation
     sync_in_ckan = forms.BooleanField(widget=forms.HiddenInput(), required=False, initial=False)
     ckan_slug = forms.SlugField(widget=forms.HiddenInput(), required=False)
 
@@ -61,8 +54,7 @@ class DatasetForm(forms.ModelForm):
     def handle_dataset(self, request, publish=False):
         user = request.user
         try:
-            dataset = Dataset.objects.create(ckan_slug=slugify(self.cleaned_data["name"]),
-                                             description=self.cleaned_data["description"],
+            dataset = Dataset.objects.create(description=self.cleaned_data["description"],
                                              editor=user,
                                              geocover=self.cleaned_data["geocover"],
                                              keywords=self.cleaned_data["keywords"],
