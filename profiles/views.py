@@ -37,6 +37,24 @@ def main(request):
     return render(request, 'profiles/main.html', {'datasets':datasets},
                   status=200)
 
+def get_param(request, param):
+    """
+        Retourne la valeur d'une clé param presente dans une requete GET ou POST
+    """
+    value = None
+
+    if request.method == "GET" and param in request.GET:
+        value = request.GET[param]
+
+    elif request.method == "POST":
+        try:
+            param_read = request.POST.get(param, request.GET.get(param))
+        except KeyError as e:
+            return None
+        value = param_read
+
+    return value
+
 
 @csrf_exempt
 def sign_in(request):
@@ -52,6 +70,14 @@ def sign_in(request):
         uform.add_error('password', 'Vérifiez le mot de passe !')
         return render(request, 'profiles/signin.html', {'uform': uform})
 
+    # TODO
+    # try:
+    #     redirect_url = request.POST.get("next", request.GET.get("next"))
+    # except KeyError as e:
+    #     redirect_url =  None
+    #
+    # print(redirect_url)
+
     user = uform.get_user()
     request.session.set_expiry(600) #time-out de la session
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
@@ -62,7 +88,7 @@ def sign_in(request):
 @csrf_exempt
 def sign_out(request):
     logout(request)
-    return redirect('signIn')
+    return redirect('profiles:signIn')
 
 
 @csrf_exempt

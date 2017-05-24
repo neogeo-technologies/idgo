@@ -16,6 +16,11 @@
 
 	</head>
 	<body>
+
+		{% if dform.errors %}
+			{{  dform.errors }}
+		{% endif %}
+
 		<div class="container-fluide outer">
 			<div class="row middle">
 				<div class="col-sm-offset-3 col-md-offset-4 col-md-4 col-sm-6">
@@ -35,11 +40,11 @@
 								{% bootstrap_field dform.licences %}
 								{% bootstrap_field dform.owner_email %}
 								{% bootstrap_field dform.url_inspire %}
+								{% bootstrap_field dform.keywords %}
 								<hr />
 								{% buttons %}
-								<button type="submit" class="btn btn-default pull-right">Enregistrer</button>
-								<button type="" class="btn btn-default pull-right">Publier</button>
-
+								<button type="submit" name="integrate_only" value="True" class="btn btn-default pull-right">Enregistrer</button>
+								<button type="submit" name="publish" value="True" class="btn btn-default pull-right">Publier</button>
 								{% endbuttons %}
 							</form>
 

@@ -35,7 +35,7 @@ class UserUpdateForm(forms.ModelForm):
     password2 = forms.CharField(label="Password confirmation", required=False,
                                 max_length=150, min_length=6,
                                 widget=forms.PasswordInput(attrs={'placeholder': 'Mot de passe'}))
-    username = forms.CharField(widget = forms.HiddenInput(), required=True)
+    username = forms.CharField(widget=forms.HiddenInput(), required=True)
 
     class Meta:
         model = User

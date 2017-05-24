@@ -1,13 +1,13 @@
-from django import forms
 from django.core import validators
 from django.db import IntegrityError
 from django.forms import CheckboxSelectMultiple
+from django.utils.text import slugify
 
 from idgo_admin.models import *
-
+from taggit.forms import *
+from django import forms
 
 class DatasetForm(forms.ModelForm):
-
 
     # Champs modifiables:
     geocover = forms.ChoiceField(required=False,
@@ -32,6 +32,8 @@ class DatasetForm(forms.ModelForm):
                                           label="Licences",
                                           queryset=License.objects.all())
 
+    keywords = TagField()
+
     # formulaire champ pré rempli
     owner_email = forms.EmailField(
         error_messages={'invalid': "L'adresse e-mail est invalide."},
@@ -40,40 +42,43 @@ class DatasetForm(forms.ModelForm):
         widget=forms.EmailInput(attrs={'placeholder': 'Adresse e-mail'}))
 
     # Champs formulaire cachés:
-    sync_in_ckan = forms.BooleanField(widget=forms.HiddenInput())
-    ckan_slug = forms.SlugField(widget=forms.HiddenInput())
-
+    sync_in_ckan = forms.BooleanField(widget=forms.HiddenInput(), required=False, initial=False)
+    ckan_slug = forms.SlugField(widget=forms.HiddenInput(), required=False)
 
     class Meta:
         model = Dataset
-        fields = ('name', 'description', 'url_inspire',
-                  'keywords', 'geocover','update_freq',
-                  'licences','organisation', 'licences',
+        fields = ('ckan_slug',
+                  'description',
+                  'geocover',
+                  'keywords',
+                  'licences',
+                  'name',
+                  'organisation',
                   'owner_email',
-                  'date_publication',)
+                  'update_freq',
+                  'url_inspire',)
 
-    def integrate_in_bo(self, request):
+    def handle_dataset(self, request, publish=False):
         user = request.user
         try:
-            dataset = Dataset.objects.create(name=self.cleaned_data["name"],
+            dataset = Dataset.objects.create(ckan_slug=slugify(self.cleaned_data["name"]),
+                                             description=self.cleaned_data["description"],
                                              editor=user,
                                              geocover=self.cleaned_data["geocover"],
-                                             update_freq=self.cleaned_data["update_freq"],
+                                             keywords=self.cleaned_data["keywords"],
+                                             licences=self.cleaned_data["licences"],
+                                             name=self.cleaned_data["name"],
                                              organisation=self.cleaned_data["organisation"],
                                              owner_email=self.cleaned_data["owner_email"],
-                                             sync_in_ckan=self.cleaned_data["sync_in_ckan"],
-                                             ckan_slug=self.cleaned_data["ckan_slug"],
-                                             licences=self.cleaned_data["licences"])
-
+                                             update_freq=self.cleaned_data["update_freq"],
+                                             url_inspire=self.cleaned_data['url_inspire'],
+                                             sync_in_ckan=publish)
             if self.cleaned_data["categories"]:
                 dataset.categories = self.cleaned_data["categories"]
 
+            dataset.save()
         except:
             raise IntegrityError
-
-        dataset.save()
-        return dataset
-
 
 class DatasetDisplayForm(forms.ModelForm):
 
