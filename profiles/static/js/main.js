@@ -1,9 +1,17 @@
 /* js/main.js */
 
 var HASH_MENU = [];
-var DATE_FORMAT = "dddd Do MMMM YYYY à HH:mm:ss";
+
+
+var DATE_FORMAT = 'dddd Do MMMM YYYY à HH:mm:ss';
+
+
 var GRID_CLASS_NAME_PROPERTY = 'table table-striped table-bordered table-hover table-condensed';
+
+
 var RESOURCES_CONTAINER = 'table-resources';
+
+
 var RESOURCE_METADATA = [
 	{
 		name: 'name',
@@ -19,12 +27,12 @@ var RESOURCE_METADATA = [
 		name: 'date_creation',
 		label: 'Date de création',
 		editable: false,
-		datatype: 'date'
+		datatype: 'string'
 	}, {
 		name: 'last_modification',
 		label: 'Dernière modification',
 		editable: false,
-		datatype: 'date'
+		datatype: 'string'
 	}, {
 		name: 'published',
 		label: 'Publié',
@@ -69,6 +77,7 @@ deactivateButton([$deleteDataset, $modifyDataset]);
 
 var resourcesGrid = new EditableGrid('Resources');
 
+
 resourcesGrid.initializeGrid = function() {
 	var grid = resourcesGrid;
 	with (this) {
@@ -87,15 +96,33 @@ resourcesGrid.initializeGrid = function() {
 				cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
 			}
 		}));
+		setCellRenderer('date_creation', new CellRenderer({
+			render: function(cell, value) {
+				cell.innerHTML = moment(value).format(DATE_FORMAT);
+			}
+		}));
+		setCellRenderer('last_modification', new CellRenderer({
+			render: function(cell, value) {
+				cell.innerHTML = moment(value).format(DATE_FORMAT);
+			}
+		}));
 	};
 };
 
 
 function updateGrid(grid, containerId, metadata, data) {
-	grid.load({'metadata': metadata, 'data': data});
-	grid.renderGrid(containerId, GRID_CLASS_NAME_PROPERTY);
-	grid.initializeGrid();
-	grid.refreshGrid();
+	$containerId = $('#' + containerId);
+	$($containerId.parent().get(0)).find('div[role="alert"]').remove();
+	if (data.length > 0) {
+		grid.load({'metadata': metadata, 'data': data});
+		grid.renderGrid(containerId, GRID_CLASS_NAME_PROPERTY);
+		grid.initializeGrid();
+		grid.refreshGrid();
+		$containerId.show();
+	} else {
+		$containerId.after('<div role="alert" class="alert alert-info"><p>C\'est vide. Cliquez sur le bouton <strong>{Ajouter}</strong> pour commencer.</p><div/>');
+		$containerId.hide();
+	};
 };
 
 

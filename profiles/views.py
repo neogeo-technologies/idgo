@@ -57,6 +57,8 @@ def main(request):
                  o.date_modification.isoformat(),
                  o.sync_in_ckan) for o in Dataset.objects.filter(editor=user)]
 
+    print(datasets)
+
     return render(request, 'profiles/main.html',
                   {'datasets': json.dumps(datasets)}, status=200)
 
