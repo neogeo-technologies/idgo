@@ -4,8 +4,10 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.forms import CheckboxSelectMultiple
+
 from profiles.models import Profile, Organisation
 from . import common_fields as fields
+
 
 
 class UserForm(forms.Form):

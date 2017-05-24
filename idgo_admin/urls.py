@@ -5,6 +5,6 @@ from idgo_admin.views import *
 
 
 urlpatterns = [
-
-    url(r'^$', dataset, name='dataset'),
+    url(r'^$', DatasetCreateV.as_view(), name='dataset'),
+    url(r'^mydatasets/?$', DatasetDisplayV.as_view(), name='dataset_display'),
 ]

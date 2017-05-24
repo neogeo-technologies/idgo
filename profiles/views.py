@@ -3,14 +3,17 @@ import random
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.csrf import csrf_exempt
+
 from .ckan_module import CkanHandler as ckan
 from .ldap_module import LdapHandler as ldap
 from .forms.user import UserForm, UserProfileForm, UserDeleteForm, \
                         UserUpdateForm, ProfileUpdateForm, UserLoginForm
+from idgo_admin.models import Dataset
 from .models import Organisation, Profile, Registration
 from .utils import *
 
@@ -28,7 +31,10 @@ def main(request):
 
     if not request.user.is_authenticated:
         return sign_in(request)
-    return render(request, 'profiles/main.html',
+
+    user = request.user
+    datasets = serializers.serialize("json", Dataset.objects.filter(editor=user))
+    return render(request, 'profiles/main.html', {'datasets':datasets},
                   status=200)
 
 
@@ -47,7 +53,7 @@ def sign_in(request):
         return render(request, 'profiles/signin.html', {'uform': uform})
 
     user = uform.get_user()
-
+    request.session.set_expiry(600) #time-out de la session
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
     return main(request)
