@@ -72,14 +72,12 @@ var $modifyDataset = $('#datasets a[name="modify-dataset"]')
 	});
 
 
-deactivateButton([$deleteDataset, $modifyDataset]);
-
-
 var resourcesGrid = new EditableGrid('Resources');
 
 
 resourcesGrid.initializeGrid = function() {
 	var grid = resourcesGrid;
+	deactivateButton([$deleteDataset, $modifyDataset]);
 	with (this) {
 		rowSelected = function(pRowIdx, nRowIdx) {
 			$(grid.getRow(pRowIdx)).removeClass('selected');
