@@ -9,7 +9,6 @@
 		<script>;var DATASETS = {{ datasets | safe }};</script>
 
 		{% load static %}
-
 		<script src="{% static "libs/jquery/jquery-3.2.1.min.js" %}"></script>
 		<script src="{% static "libs/editablegrid/editablegrid.js" %}"></script>
 		<script src="{% static "libs/editablegrid/editablegrid_renderers.js" %}"></script>
@@ -69,14 +68,15 @@
 							<div id="datasets" role="tabpanel" class="tab-pane fade in">
 								<div id="table-resources" class="table-responsive"></div>
 								<div class="pull-right">
-									<a name="delete-dataset" class="btn btn-danger" href="">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
-									<a name="modify-dataset" class="btn btn-default" href="">Modifier</a>
-									<a name="add-dataset" class="btn btn-default" href="{% url "idgo_admin:dataset" %}">Ajouter</a>
+									<button name="delete-dataset" class="btn btn-danger">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+									<button name="modify-dataset" class="btn btn-default" href="">Modifier</button>
+									<a name="add-dataset" class="btn btn-default" href="{% url "idgo_admin:dataset" %}">Nouveau</a>
 								</div>
 							</div>
 							<div id="rules" role="tabpanel" class="tab-pane fade in">
 								<p>TODO</p>
 							</div>
+
 						</div>
 					</div>
 				</div>

@@ -2,15 +2,11 @@
 
 var HASH_MENU = [];
 
-
 var DATE_FORMAT = 'dddd Do MMMM YYYY à HH:mm:ss';
-
 
 var GRID_CLASS_NAME_PROPERTY = 'table table-striped table-bordered table-hover table-condensed';
 
-
 var RESOURCES_CONTAINER = 'table-resources';
-
 
 var RESOURCE_METADATA = [
 	{
@@ -41,18 +37,16 @@ var RESOURCE_METADATA = [
 	}
 ];
 
+var resourcesGrid = new EditableGrid('Resources');
 
-function activateButton($btnList) {
-	for (var i = 0; i < $btnList.length; i ++) {
-		$btnList[i].removeClass('disabled').prop('disabled', false);
-	};
+
+function activateButton($btn) {
+	$btn.removeClass('disabled').prop('disabled', false);
 };
 
 
-function deactivateButton($btnList) {
-	for (var i = 0; i < $btnList.length; i ++) {
-		$btnList[i].addClass('disabled').prop('disabled', true);
-	};
+function deactivateButton($btn) {
+	$btn.addClass('disabled').prop('disabled', true);
 };
 
 
@@ -72,19 +66,22 @@ var $modifyDataset = $('#datasets a[name="modify-dataset"]')
 	});
 
 
-var resourcesGrid = new EditableGrid('Resources');
-
-
 resourcesGrid.initializeGrid = function() {
 	var grid = resourcesGrid;
-	deactivateButton([$deleteDataset, $modifyDataset]);
+	console.log(grid)
+	var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
+
 	with (this) {
 		rowSelected = function(pRowIdx, nRowIdx) {
 			$(grid.getRow(pRowIdx)).removeClass('selected');
-			deactivateButton([$deleteDataset, $modifyDataset]);
+			$buttons.each(function() {
+				deactivateButton($(this));
+			});
 			if (pRowIdx != nRowIdx) {
 				$(grid.getRow(nRowIdx)).addClass('selected');
-				activateButton([$deleteDataset, $modifyDataset]);
+				$buttons.each(function() {
+					activateButton($(this));
+				});
 			};
 		};
 		setCellRenderer('published', new CellRenderer({
@@ -109,8 +106,12 @@ resourcesGrid.initializeGrid = function() {
 
 
 function updateGrid(grid, containerId, metadata, data) {
-	$containerId = $('#' + containerId);
-	$($containerId.parent().get(0)).find('div[role="alert"]').remove();
+	var $containerId = $('#' + containerId);
+	var $parent = $($containerId.parent().get(0));
+	$parent.find('div[role="alert"]').remove();
+	$parent.find('button').each(function() {
+		deactivateButton($(this));
+	});
 	if (data.length > 0) {
 		grid.load({'metadata': metadata, 'data': data});
 		grid.renderGrid(containerId, GRID_CLASS_NAME_PROPERTY);
@@ -118,8 +119,8 @@ function updateGrid(grid, containerId, metadata, data) {
 		grid.refreshGrid();
 		$containerId.show();
 	} else {
-		$containerId.after('<div role="alert" class="alert alert-info"><p>C\'est vide. Cliquez sur le bouton <strong>{Ajouter}</strong> pour commencer.</p><div/>');
 		$containerId.hide();
+		$containerId.after('<div role="alert" class="alert alert-info"><p>C\'est vide. Cliquez sur le bouton <strong>{' + $parent.find('a[name="add-dataset"]').get(0).text + '}</strong> pour commencer.</p><div/>');
 	};
 };
 

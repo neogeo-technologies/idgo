@@ -204,7 +204,8 @@ def activation(request, key):
     try:
         ldap.add_user_to_organization(user.username, organization.ckan_slug)
         ldap.activate_user(user.username)
-        ckan.add_user_to_organization(user.username, organization.ckan_slug)
+        ckan.add_user_to_organization(user.username, organization.ckan_slug,
+                                      role='editor')  # Qui détermine le rôle ?
         ckan.activate_user(user.username)
         Registration.objects.filter(user=user).delete()
     except Exception as e:

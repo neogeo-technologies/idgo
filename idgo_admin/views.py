@@ -36,7 +36,7 @@ class DatasetCreateV(View):
                     elif "publish" in request.POST:
                         dform.handle_dataset(request, publish=True)
             except IntegrityError:
-                return render_on_error()
+                return render_on_error(request)
 
             message = "dataset has been setup"
             return render(request, 'profiles/success.html',

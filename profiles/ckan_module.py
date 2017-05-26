@@ -1,24 +1,41 @@
 import requests
-from ckanapi import RemoteCKAN
-from ckanapi.errors import NotFound
+from ckanapi import errors as CkanError, RemoteCKAN
 from datetime import datetime
 from django.conf import settings
 from django.db import IntegrityError
+from functools import wraps
 from .utils import Singleton
 
 
-class CkanHandler(metaclass=Singleton):
+CKAN_URL = settings.CKAN_URL
+CKAN_API_KEY = settings.CKAN_API_KEY
 
-    API_KEY = settings.CKAN_API_KEY
-    URL = settings.CKAN_URL
+
+def exceptions_handler(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except CkanError.NotFound as e:
+            print('CkanError.NotFound', e)
+            raise ValueError()
+        except CkanError.NotAuthorized as e:
+            print('CkanError.NotAuthorized', e)
+            raise PermissionError()
+        except:
+            raise Exception()
+    return wrapper
+
+
+class CkanManagerHandler(metaclass=Singleton):
 
     def __init__(self):
-        self.remote = RemoteCKAN(self.URL, apikey=self.API_KEY)
+        self.remote = RemoteCKAN(CKAN_URL, apikey=CKAN_API_KEY)
 
     def get_user(self, username):
         try:
             return self.remote.action.user_show(id=username)
-        except NotFound:
+        except CkanError.NotFound:
             return None
 
     def is_user_exists(self, username):
@@ -72,7 +89,7 @@ class CkanHandler(metaclass=Singleton):
     def get_organization(self, organization_name):
         try:
             self.remote.action.organization_show(id=organization_name)
-        except NotFound:
+        except CkanError.NotFound:
             return None
 
     def is_organization_exists(self, organization_name):
@@ -111,8 +128,6 @@ class CkanHandler(metaclass=Singleton):
         for organization_name in organizations:
             self.del_user_from_organization(username, organization_name)
 
-    ###
-
     def add_group(self, group):
         self.remote.action.group_create(name=group.ckan_slug,
                                         title=group.name,
@@ -127,30 +142,44 @@ class CkanHandler(metaclass=Singleton):
                                         description=group.description)
 
 
-    # Datasets #
+CkanHandler = CkanManagerHandler()
 
+
+class CkanUserHandler():
+
+    def __init__(self, api_key):
+        self.remote = RemoteCKAN(CKAN_URL, apikey=api_key)
+
+    def close(self):
+        self.remote.close()
+
+    @exceptions_handler
     def _get_package(self, name):
         try:
             return self.remote.action.package_show(id=name,
                                                    include_tracking=True)
-        except NotFound:
+        except CkanError.NotFound:
             return False
 
+    @exceptions_handler
     def _is_package_exists(self, name):
         return self._get_package(name) and True or False
 
-    def _add_package(self, name, **kwargs):
-        kwargs['name'] = name
+    @exceptions_handler
+    def _add_package(self, **kwargs):
         return self.remote.action.package_create(**kwargs)
 
-    def _del_package(self, name):
-        # return self.remote.action.package_delete(id=name)
-        return self.remote.action.dataset_purge(id=name)
-
-    def _update_package(self, name, **kwargs):
-        kwargs['name'] = name
+    @exceptions_handler
+    def _update_package(self, **kwargs):
         return self.remote.action.package_update(**kwargs)
 
+    @exceptions_handler
+    def _del_package(self, name, purge=False):
+        if purge:
+            return self.remote.action.dataset_purge(id=name)
+        return self.remote.action.package_delete(id=name)
+
+    @exceptions_handler
     def _push_resource(self, package, resource_type, **kwargs):
 
         kwargs['package_id'] = package['id']
@@ -170,6 +199,7 @@ class CkanHandler(metaclass=Singleton):
 
         return self.remote.action.resource_create(**kwargs)
 
+    @exceptions_handler
     def _push_resource_view(self, resource_id, view_type, **kwargs):
 
         kwargs['resource_id'] = resource_id
@@ -189,22 +219,19 @@ class CkanHandler(metaclass=Singleton):
     def publish_dataset(self, name, resources=None, **kwargs):
 
         if self._is_package_exists(name):
-            package = self._update_package(name, **kwargs)
+            package = self._update_package(
+                                name, **self._get_package(name).update(kwargs))
         else:
-            package = self._add_package(name, **kwargs)
+            package = self._add_package(**kwargs)
 
         if not resources:
             return
         if not isinstance(resources, list):
             raise TypeError('resources argument must be a list.')
-
         for resource in resources:
             r = self._push_resource(package, resource.type, **kwargs)
             self._push_resource_view(r['id'], resource.view_type)
 
     def delete_dataset(self, name):
-
         self._del_package(name)
 
-
-CkanHandler = CkanHandler()
