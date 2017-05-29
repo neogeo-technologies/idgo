@@ -51,13 +51,12 @@ def main(request):
 
     user = request.user
 
-    datasets = [(o.name,
+    datasets = [(o.pk,
+                 o.name,
                  o.description,
                  o.date_creation.isoformat(),
                  o.date_modification.isoformat(),
                  o.sync_in_ckan) for o in Dataset.objects.filter(editor=user)]
-
-    print(datasets)
 
     return render(request, 'profiles/main.html',
                   {'datasets': json.dumps(datasets)}, status=200)
@@ -66,7 +65,6 @@ def main(request):
 def sign_in(request):
 
     next_path = redirect_url(request)
-    print(next_path)
     if request.method == 'GET':
         logout(request)
         return render(
@@ -82,7 +80,6 @@ def sign_in(request):
     request.session.set_expiry(600) #time-out de la session
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     if next_path:
-        print("redirect")
         return redirect(next_path)
     return redirect('profiles:main') #main(request)
 

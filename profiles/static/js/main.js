@@ -10,6 +10,12 @@ var RESOURCES_CONTAINER = 'table-resources';
 
 var RESOURCE_METADATA = [
 	{
+		name: 'pk',
+		label: 'ID',
+		editable: false,
+		datatype: 'string'
+	},
+	{
 		name: 'name',
 		label: 'Nom',
 		editable: false,
@@ -50,7 +56,7 @@ function deactivateButton($btn) {
 };
 
 
-var $deleteDataset = $('#datasets a[name="delete-dataset"]')
+var $deleteDataset = $('#datasets button[name="delete-dataset"]')
 	.on('click', function(e) {
 		e.preventDefault();
 		alert('TODO');
@@ -58,17 +64,17 @@ var $deleteDataset = $('#datasets a[name="delete-dataset"]')
 	});
 
 
-var $modifyDataset = $('#datasets a[name="modify-dataset"]')
+var $modifyDataset = $('#datasets button[name="modify-dataset"]')
 	.on('click', function(e) {
 		e.preventDefault();
-		alert('TODO');
+		var url = DATASET_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['pk'];
+		redirect(url);
 		e.stopPropagation();
 	});
 
 
 resourcesGrid.initializeGrid = function() {
 	var grid = resourcesGrid;
-	console.log(grid)
 	var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
 
 	with (this) {
@@ -141,7 +147,8 @@ function loadTab(hash) {
 							data[i][1],
 							data[i][2],
 							data[i][3],
-							data[i][4]
+							data[i][4],
+							data[i][5]
 						]
 					});
 				};
@@ -166,6 +173,11 @@ $('#menu a[data-toggle="tab"]')
 		loadTab($thisHash);
 		window.location = $thisHash;
 	});
+
+
+function redirect(path) {
+	window.location.replace(window.location.origin + path);
+};
 
 
 window.onhashchange = function(e) {

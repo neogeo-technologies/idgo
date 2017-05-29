@@ -8,8 +8,6 @@ from profiles.ckan_module import CkanHandler as ckan, \
 from taggit.forms import *
 
 
-
-
 class DatasetForm(forms.ModelForm):
 
     # Champs modifiables :
@@ -70,9 +68,12 @@ class DatasetForm(forms.ModelForm):
                   'update_freq',
                   'url_inspire')
 
-    def handle_dataset(self, request, publish=False):
+    def handle_dataset(self, request, dataset=None, publish=False):
 
         user = request.user
+
+        if dataset:
+            print(dataset)
 
         try:
             dataset = Dataset.objects.create(
