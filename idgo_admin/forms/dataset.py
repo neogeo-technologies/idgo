@@ -93,28 +93,26 @@ class DatasetForm(forms.ModelForm):
         except:
             raise IntegrityError
 
-        if publish:
-            ckan_user = my_ckan(ckan.get_user(user.username)['apikey'])
+        ckan_user = my_ckan(ckan.get_user(user.username)['apikey'])
+        params = {'author': user.username,
+                  'author_email': user.email,
+                  'geocover': dataset.geocover,
+                  # 'groups': [{'name': ... }]  # TODO
+                  'license_id': dataset.licences_id,
+                  'maintainer': user.username,
+                  'maintainer_email': user.email,
+                  'notes': dataset.description,
+                  'owner_org': dataset.organisation.ckan_slug,
+                  'private': publish,
+                  'state': 'active',
+                  'title': dataset.name,
+                  'update_frequency': dataset.update_freq,
+                  'url': None}
 
-            params = {'author': user.username,
-                      'author_email': user.email,
-                      'geocover': dataset.geocover,
-                      # 'groups': [{'name': ... }]  # TODO
-                      'license_id': dataset.licences_id,
-                      'maintainer': user.username,
-                      'maintainer_email': user.email,
-                      'notes': dataset.description,
-                      'owner_org': dataset.organisation.ckan_slug,
-                      'private': False,
-                      'state': 'active',
-                      'title': dataset.name,
-                      'update_frequency': dataset.update_freq,
-                      'url': None}
+        try:
+            ckan_user.publish_dataset(dataset.ckan_slug, **params)
+        except:
+            dataset.sync_in_ckan = False
+            dataset.save()
 
-            try:
-                ckan_user.publish_dataset(dataset.ckan_slug, **params)
-            except:
-                dataset.sync_in_ckan = False
-                dataset.save()
-
-            ckan_user.close()
+        ckan_user.close()
