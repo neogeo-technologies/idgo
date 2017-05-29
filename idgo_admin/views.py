@@ -38,14 +38,8 @@ class DatasetManager(View):
 
         dform = DatasetForm(data=request.POST)
         if dform.is_valid() and request.user.is_authenticated:
-            try:
-                with transaction.atomic():
-                    dform.handle_dataset(request,
-                                         dataset=dataset,
-                                         publish='publish' in request.POST)
-            except IntegrityError:
-                return render_on_error(request)
-
+            dform.handle_dataset(request,
+                                 publish='publish' in request.POST)
             message = 'dataset has been setup'
             return render(request, 'profiles/success.html',
                           {'message': message}, status=200)

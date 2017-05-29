@@ -161,7 +161,7 @@ class Dataset(models.Model):
     url_inspire = models.URLField('URL Inspire', blank=True, null=True)
     geocover = models.CharField('Couverture géographique', blank=True, null=True, default='regionale',
                                 max_length=30, choices=GEOCOVER_CHOICES)
-    keywords = TaggableManager()
+    keywords = TaggableManager(blank=True)
 
     date_creation = models.DateTimeField(verbose_name="Date de création du jeu de donnée",
                                      auto_now_add=timezone.now())

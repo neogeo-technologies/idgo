@@ -38,7 +38,7 @@ class DatasetForm(forms.ModelForm):
                             queryset=License.objects.all(),
                             required=False)
 
-    keywords = TagField()
+    keywords = TagField(required=False)
 
     # Champs cachés :
 
@@ -68,31 +68,26 @@ class DatasetForm(forms.ModelForm):
                   'update_freq',
                   'url_inspire')
 
-    def handle_dataset(self, request, dataset=None, publish=False):
+    def handle_dataset(self, request, publish=False):
 
         user = request.user
 
-        if dataset:
-            print(dataset)
+        params = {"description": self.cleaned_data['description'],
+                  "editor": user,
+                  "geocover": self.cleaned_data['geocover'],
+                  "keywords": self.cleaned_data['keywords'],
+                  "licences": self.cleaned_data['licences'],
+                  "organisation": self.cleaned_data['organisation'],
+                  "owner_email": self.cleaned_data['owner_email'],
+                  "update_freq": self.cleaned_data['update_freq'],
+                  "url_inspire": self.cleaned_data['url_inspire'],
+                  "sync_in_ckan": publish}
 
-        try:
-            dataset = Dataset.objects.create(
-                            description=self.cleaned_data['description'],
-                            editor=user,
-                            geocover=self.cleaned_data['geocover'],
-                            keywords=self.cleaned_data['keywords'],
-                            licences=self.cleaned_data['licences'],
-                            name=self.cleaned_data['name'],
-                            organisation=self.cleaned_data['organisation'],
-                            owner_email=self.cleaned_data['owner_email'],
-                            update_freq=self.cleaned_data['update_freq'],
-                            url_inspire=self.cleaned_data['url_inspire'],
-                            sync_in_ckan=publish)
-            if self.cleaned_data['categories']:
-                dataset.categories = self.cleaned_data['categories']
-            dataset.save()
-        except:
-            raise IntegrityError
+        dataset, created = Dataset.objects.get_or_create(name=self.cleaned_data['name'],
+                                                         defaults=params)
+
+        if self.cleaned_data['categories']:
+            dataset.categories = self.cleaned_data['categories']
 
         ckan_user = my_ckan(ckan.get_user(user.username)['apikey'])
         params = {'author': user.username,
@@ -114,6 +109,5 @@ class DatasetForm(forms.ModelForm):
             ckan_user.publish_dataset(dataset.ckan_slug, **params)
         except:
             dataset.sync_in_ckan = False
-            dataset.save()
-
+        dataset.save()
         ckan_user.close()
