@@ -157,6 +157,8 @@ class Dataset(models.Model):
     description = models.CharField('Description', max_length=1024, blank=True, null=True) #Description CKAN
     ckan_slug = models.SlugField('Ckan_ID', max_length=100, unique=True,
                                  db_index=True, blank=True, null=True)
+    ckan_id = models.UUIDField('Ckan UUID', unique=True,
+                                 db_index=True, blank=True, null=True)
     sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
     url_inspire = models.URLField('URL Inspire', blank=True, null=True)
     geocover = models.CharField('Couverture géographique', blank=True, null=True, default='regionale',
@@ -185,7 +187,7 @@ class Dataset(models.Model):
         return self.name
 
     class Meta:
-        managed = False
+        # managed = False
         verbose_name = "Jeu de données"
         verbose_name_plural = "Jeux de données"
 
