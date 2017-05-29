@@ -39,6 +39,7 @@ class DatasetManager(View):
         dform = DatasetForm(data=request.POST)
         if dform.is_valid() and request.user.is_authenticated:
             dform.handle_dataset(request,
+                                 id=id,
                                  publish='publish' in request.POST)
             message = 'dataset has been setup'
             return render(request, 'profiles/success.html',

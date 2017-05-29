@@ -68,7 +68,7 @@ class DatasetForm(forms.ModelForm):
                   'update_freq',
                   'url_inspire')
 
-    def handle_dataset(self, request, publish=False):
+    def handle_dataset(self, request, id=None, publish=False):
 
         user = request.user
 
@@ -81,13 +81,15 @@ class DatasetForm(forms.ModelForm):
                   "owner_email": self.cleaned_data['owner_email'],
                   "update_freq": self.cleaned_data['update_freq'],
                   "url_inspire": self.cleaned_data['url_inspire'],
-                  "sync_in_ckan": publish}
+                  "sync_in_ckan": publish,
+                  "name": self.cleaned_data['name']}
 
-        dataset, created = Dataset.objects.get_or_create(name=self.cleaned_data['name'],
+        dataset, created = Dataset.objects.update_or_create(pk=id,
                                                          defaults=params)
-
+        print(dataset.name)
         if self.cleaned_data['categories']:
             dataset.categories = self.cleaned_data['categories']
+
 
         ckan_user = my_ckan(ckan.get_user(user.username)['apikey'])
         params = {'author': user.username,
@@ -109,5 +111,7 @@ class DatasetForm(forms.ModelForm):
             ckan_user.publish_dataset(dataset.ckan_slug, **params)
         except:
             dataset.sync_in_ckan = False
+
         dataset.save()
         ckan_user.close()
+
