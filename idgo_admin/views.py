@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -21,8 +22,7 @@ def render_an_critical_error(request):
     message = "Une erreur critique s'est produite lors de la suppression " \
               "du jeu de donnée. "
 
-    return render(
-            request, 'profiles/failure.html', {'message': message}, status=400)
+    return JsonResponse(data={'error':message}, status=400)
 
 
 @method_decorator(decorators, name='dispatch')
@@ -84,5 +84,4 @@ class DatasetManager(View):
         dataset.delete()
 
         message = 'Le jeux de données a été supprimé avec succès.'
-        return render(request, 'profiles/success.html',
-                      {'message': message}, status=200)
+        return JsonResponse(data={'success':message}, status=200)
