@@ -48,7 +48,7 @@ class DatasetManager(View):
 
         dform = DatasetForm(data=request.POST)
         if dform.is_valid() and request.user.is_authenticated:
-            dform.handle_dataset(request, id=request.GET.get('id'))
+            dform.create_me(request, id=request.GET.get('id'))
 
             message = 'Le jeux de données a été mis à jour avec succès.'
             return render(request, 'profiles/success.html',
