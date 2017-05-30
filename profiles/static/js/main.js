@@ -82,7 +82,19 @@ $('#datasets button[name="delete-dataset"]')
 			.text('Oui, supprimer définitivement ce jeu de données')
 			.on('click', function(e) {
 				e.preventDefault();
-				alert('TODO');
+				$.ajax({
+					type: 'DELETE',
+					success: function() {
+						alert('Success');
+					},
+					url: DATASET_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']
+				}).done(function() {
+					$modal.find('.modal-title').text('Information');
+					$modal.find('.modal-body').append('<p>Le jeu de données a été supprimé avec succès.</p>');
+					$modal.modal('show');
+				}).fail(function(jqXHR, textStatus, errorThrown) {
+					alert('Failure');
+				});
 				e.stopPropagation();
 			});
 

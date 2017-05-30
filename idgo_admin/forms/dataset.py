@@ -1,39 +1,8 @@
 from django import forms
 from idgo_admin.models import *
 from profiles.ckan_module import CkanHandler as ckan, \
-                                 CkanUserHandler as my_ckan
+                                 CkanUserHandler as ckan_me
 from taggit.forms import TagField
-
-
-def synchronize_ckan_dataset(user, dataset):
-
-    ckan_user = my_ckan(ckan.get_user(user.username)['apikey'])
-
-    params = {'author': user.username,
-              'author_email': user.email,
-              'geocover': dataset.geocover,
-              # 'groups': [{'name': ... }]  # TODO
-              'license_id': dataset.licences_id,
-              'maintainer': user.username,
-              'maintainer_email': user.email,
-              'notes': dataset.description,
-              'owner_org': dataset.organisation.ckan_slug,
-              'private': False,
-              'state': 'active',
-              'title': dataset.name,
-              'update_frequency': dataset.update_freq,
-              'url': None}
-
-    try:
-        ckan_dataset = ckan_user.publish_dataset(
-                dataset.ckan_slug, id=str(dataset.ckan_id), **params)
-    except:
-        dataset.sync_in_ckan = False
-    else:
-        dataset.ckan_id = ckan_dataset['id']
-        dataset.sync_in_ckan = True
-
-    ckan_user.close()
 
 
 class DatasetForm(forms.ModelForm):
@@ -111,17 +80,13 @@ class DatasetForm(forms.ModelForm):
          'update_freq': data['update_freq'],
          'url_inspire': data['url_inspire']}
 
-        #Mise a jour d'un datatset
-        if id:
+        if id:  # Mise à jour du dataset :
             params.pop('editor',None)
             dataset = Dataset.objects.get(pk=id)
             for key, value in params.items():
                 setattr(dataset, key, value)
-
-        #Creation d'un dataset
-        if id is None:
+        else:  # Création d'un nouveau dataset :
             dataset = Dataset.objects.create(**params)
-            print(dataset.name)
 
         if data['categories']:
             dataset.categories = data['categories']
@@ -131,5 +96,31 @@ class DatasetForm(forms.ModelForm):
             for tag in data['keywords']:
                 dataset.keywords.add(tag)
 
-        synchronize_ckan_dataset(request.user, dataset)
+        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+
+        params = {'author': user.username,
+                  'author_email': user.email,
+                  'geocover': dataset.geocover,
+                  # 'groups': [{'name': ... }]  # TODO
+                  'license_id': dataset.licences_id,
+                  'maintainer': user.username,
+                  'maintainer_email': user.email,
+                  'notes': dataset.description,
+                  'owner_org': dataset.organisation.ckan_slug,
+                  'private': False,
+                  'state': 'active',
+                  'title': dataset.name,
+                  'update_frequency': dataset.update_freq,
+                  'url': None}
+
+        try:
+            ckan_dataset = ckan_user.publish_dataset(
+                dataset.ckan_slug, id=str(dataset.ckan_id), **params)
+        except:
+            dataset.sync_in_ckan = False
+        else:
+            dataset.ckan_id = ckan_dataset['id']
+            dataset.sync_in_ckan = True
+
+        ckan_user.close()
         dataset.save()
