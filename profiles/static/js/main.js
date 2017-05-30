@@ -42,6 +42,7 @@ var RESOURCE_METADATA = [
 	}
 ];
 
+
 var resourcesGrid = new EditableGrid('Resources');
 
 
@@ -55,15 +56,56 @@ function deactivateButton($btn) {
 };
 
 
-var $deleteDataset = $('#datasets button[name="delete-dataset"]')
-	.on('click', function(e) {
-		e.preventDefault();
-		alert('TODO');
-		e.stopPropagation();
+function closeAllModalDialog() {
+	$('.modal[role="dialog"]').modal('hide');
+};
+
+
+var $modal = $('.modal[role="dialog"]')
+	.on('show.bs.modal', function(e) {
+		closeAllModalDialog();
+	})
+	.on('hidden.bs.modal', function(e) {
+		$(this).find('.modal-body').empty();
+		$(this).find('.modal-title').val('');
 	});
 
 
-var $modifyDataset = $('#datasets button[name="modify-dataset"]')
+$('#datasets button[name="delete-dataset"]')
+	.on('click', function(e) {
+		e.preventDefault();
+
+		var $button = $('<button/>')
+			.prop('type', 'button')
+			.prop('class', 'btn btn-danger btn-block disabled')
+			.prop('disabled', true)
+			.text('Oui, supprimer définitivement ce jeu de données')
+			.on('click', function(e) {
+				e.preventDefault();
+				alert('TODO');
+				e.stopPropagation();
+			});
+
+		var $input = $('<input/>')
+			.prop('type', 'text')
+			.prop('class', 'form-control')
+			.prop('placeholder', 'Nom du jeu de données à supprimer')
+			.on('input', function(e) {
+				if ($(this).val() === resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['name']) {
+					$button.removeClass('disabled').prop('disabled', false);
+				} else {
+					$button.addClass('disabled').prop('disabled', true);
+				};
+			});
+
+		$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
+		$modal.find('.modal-body').append('<p>Cette action est irreversible et supprimera <strong>définitivement</strong> le jeu de données ainsi que toutes les ressources qui lui sont attachées.</p>').append($('<form/>').append($('<div/>').prop('class', 'form-group').append('<p>Pour confirmer, veuillez réécrire le nom du jeu de données à supprimer.</p>').append($input)).append($button));
+		$modal.modal('show');
+
+		e.stopPropagation();
+	});
+
+$('#datasets button[name="modify-dataset"]')
 	.on('click', function(e) {
 		e.preventDefault();
 		redirect(DATASET_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']);

@@ -134,8 +134,6 @@ table tr.selected:focus td {
     background: #0571cf;
 }
 
-/* Buttons */
-
 .btn-default {
     background-color: #f3f3f3;
     border-color: #e3e3e3;
