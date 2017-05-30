@@ -1,11 +1,8 @@
 from django import forms
-from django.core import validators
-from django.db import IntegrityError
-from django.forms import CheckboxSelectMultiple
 from idgo_admin.models import *
 from profiles.ckan_module import CkanHandler as ckan, \
                                  CkanUserHandler as my_ckan
-from taggit.forms import *
+from taggit.forms import TagField
 
 
 class DatasetForm(forms.ModelForm):
@@ -26,7 +23,7 @@ class DatasetForm(forms.ModelForm):
                             label='categories associés',
                             queryset=Category.objects.all(),
                             required=False,
-                            widget=CheckboxSelectMultiple())
+                            widget=forms.CheckboxSelectMultiple())
 
     organisation = forms.ModelChoiceField(
                             label="Organisme d'appartenance",
@@ -68,28 +65,25 @@ class DatasetForm(forms.ModelForm):
                   'update_freq',
                   'url_inspire')
 
-    def handle_dataset(self, request, id=None, publish=False):
+    def handle_dataset(self, request, id=None):
 
         user = request.user
+        data = self.cleaned_data
 
-        params = {"description": self.cleaned_data['description'],
-                  "editor": user,
-                  "geocover": self.cleaned_data['geocover'],
-                  "keywords": self.cleaned_data['keywords'],
-                  "licences": self.cleaned_data['licences'],
-                  "organisation": self.cleaned_data['organisation'],
-                  "owner_email": self.cleaned_data['owner_email'],
-                  "update_freq": self.cleaned_data['update_freq'],
-                  "url_inspire": self.cleaned_data['url_inspire'],
-                  "sync_in_ckan": publish,
-                  "name": self.cleaned_data['name']}
+        dataset, created = Dataset.objects.update_or_create(
+                    pk=id, defaults={'description': data['description'],
+                                     'editor': user,
+                                     'geocover': data['geocover'],
+                                     'keywords': data['keywords'],
+                                     'licences': data['licences'],
+                                     'name': data['name'],
+                                     'organisation': data['organisation'],
+                                     'owner_email': data['owner_email'],
+                                     'update_freq': data['update_freq'],
+                                     'url_inspire': data['url_inspire']})
 
-        dataset, created = Dataset.objects.update_or_create(pk=id,
-                                                         defaults=params)
-        print(dataset.name)
-        if self.cleaned_data['categories']:
-            dataset.categories = self.cleaned_data['categories']
-
+        if data['categories']:
+            dataset.categories = data['categories']
 
         ckan_user = my_ckan(ckan.get_user(user.username)['apikey'])
         params = {'author': user.username,
@@ -101,17 +95,20 @@ class DatasetForm(forms.ModelForm):
                   'maintainer_email': user.email,
                   'notes': dataset.description,
                   'owner_org': dataset.organisation.ckan_slug,
-                  'private': publish,
+                  'private': False,
                   'state': 'active',
                   'title': dataset.name,
                   'update_frequency': dataset.update_freq,
                   'url': None}
 
         try:
-            ckan_user.publish_dataset(dataset.ckan_slug, **params)
+            ckan_dataset = ckan_user.publish_dataset(
+                    dataset.ckan_slug, id=str(dataset.ckan_id), **params)
         except:
             dataset.sync_in_ckan = False
+        else:
+            dataset.ckan_id = ckan_dataset['id']
+            dataset.sync_in_ckan = True
 
         dataset.save()
         ckan_user.close()
-

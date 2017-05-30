@@ -16,14 +16,24 @@ def exceptions_handler(f):
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
-        except CkanError.NotFound as e:
-            print('CkanError.NotFound', e)
-            raise ValueError()
         except CkanError.NotAuthorized as e:
-            print('CkanError.NotAuthorized', e)
+            print('NotAuthorized', e)
             raise PermissionError()
-        except:
-            raise Exception()
+        except CkanError.ValidationError as e:
+            print('ValidationError', e)
+            raise Exception(e)
+        except CkanError.NotFound as e:
+            print('NotFound', e)
+            raise Exception(e)
+        except CkanError.SearchQueryError as e:
+            print('SearchQueryError', e)
+            raise Exception(e)
+        except CkanError.SearchError as e:
+            print('SearchError', e)
+            raise Exception(e)
+        except CkanError.SearchIndexError as e:
+            print('SearchIndexError', e)
+            raise Exception(e)
     return wrapper
 
 
@@ -154,16 +164,15 @@ class CkanUserHandler():
         self.remote.close()
 
     @exceptions_handler
-    def _get_package(self, name):
+    def _get_package(self, id):
         try:
-            return self.remote.action.package_show(id=name,
-                                                   include_tracking=True)
+            return self.remote.action.package_show(id=id, include_tracking=True)
         except CkanError.NotFound:
             return False
 
     @exceptions_handler
-    def _is_package_exists(self, name):
-        return self._get_package(name) and True or False
+    def _is_package_exists(self, id):
+        return self._get_package(id) and True or False
 
     @exceptions_handler
     def _add_package(self, **kwargs):
@@ -174,10 +183,10 @@ class CkanUserHandler():
         return self.remote.action.package_update(**kwargs)
 
     @exceptions_handler
-    def _del_package(self, name, purge=False):
+    def _del_package(self, id, purge=False):
         if purge:
-            return self.remote.action.dataset_purge(id=name)
-        return self.remote.action.package_delete(id=name)
+            return self.remote.action.dataset_purge(id=id)
+        return self.remote.action.package_delete(id=id)
 
     @exceptions_handler
     def _push_resource(self, package, resource_type, **kwargs):
@@ -206,7 +215,7 @@ class CkanUserHandler():
         kwargs['view_type'] = view_type
         kwargs['title'] = kwargs['title'] if 'title' in kwargs else 'Aperçu'
         kwargs['description'] = kwargs['description'] \
-            if 'description' in kwargs else 'Aperçu du jeu de données'
+                    if 'description' in kwargs else 'Aperçu du jeu de données'
 
         views = self.remote.action.resource_view_list(id=resource_id)
         for view in views:
@@ -216,22 +225,21 @@ class CkanUserHandler():
 
         return self.remote.action.resource_view_create(**kwargs)
 
-    def publish_dataset(self, name, resources=None, **kwargs):
+    def publish_dataset(self, name, id=None, resources=None, **kwargs):
+        kwargs['name'] = name
 
-        if self._is_package_exists(name):
+        if id and self._is_package_exists(id):
             package = self._update_package(
-                                name, **self._get_package(name).update(kwargs))
+                                **{**self._get_package(id), **kwargs})
         else:
-            package = self._add_package(**kwargs)
+            package = self._add_package(name=name, **kwargs)
 
-        if not resources:
-            return
-        if not isinstance(resources, list):
-            raise TypeError('resources argument must be a list.')
-        for resource in resources:
-            r = self._push_resource(package, resource.type, **kwargs)
-            self._push_resource_view(r['id'], resource.view_type)
+        if resources:
+            for resource in resources:
+                m = self._push_resource(package, resource.type, **kwargs)
+                self._push_resource_view(m['id'], resource.view_type)
 
-    def delete_dataset(self, name):
-        self._del_package(name)
+        return package
 
+    def delete_dataset(self, id, purge=False):
+        self._del_package(id, purge=purge)

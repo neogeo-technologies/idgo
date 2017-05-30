@@ -10,12 +10,6 @@ var RESOURCES_CONTAINER = 'table-resources';
 
 var RESOURCE_METADATA = [
 	{
-		name: 'pk',
-		label: 'ID',
-		editable: false,
-		datatype: 'string'
-	},
-	{
 		name: 'name',
 		label: 'Nom',
 		editable: false,
@@ -40,6 +34,11 @@ var RESOURCE_METADATA = [
 		label: 'Publié',
 		editable: false,
 		datatype: 'boolean'
+	}, {
+		name: 'id',
+		label: '_HIDDEN',  //->https://github.com/webismymind/editablegrid/issues/153
+		editable: false,
+		datatype: 'integer'
 	}
 ];
 
@@ -67,8 +66,7 @@ var $deleteDataset = $('#datasets button[name="delete-dataset"]')
 var $modifyDataset = $('#datasets button[name="modify-dataset"]')
 	.on('click', function(e) {
 		e.preventDefault();
-		var url = DATASET_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['pk'];
-		redirect(url);
+		redirect(DATASET_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']);
 		e.stopPropagation();
 	});
 
@@ -143,12 +141,12 @@ function loadTab(hash) {
 					m.push({
 						id: i,
 						values: [
-							data[i][0],
 							data[i][1],
 							data[i][2],
 							data[i][3],
 							data[i][4],
-							data[i][5]
+							data[i][5],
+							data[i][0]  // =id
 						]
 					});
 				};

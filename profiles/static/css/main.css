@@ -54,16 +54,18 @@ div.page-header .login {
 div.page-header .login button {
     width: 2.666em;
     height: 2.666em;
-    background: transparent;
+    background-color: transparent;
     border-color: transparent;
     color: #ffffff;
     border-radius: 9999px;
     padding: 0;
+    -webkit-transition: background-color .123s, color .123s;
+            transition: background-color .123s, color .123s;
 }
 
 div.page-header .login button:hover,
 div.page-header .login button:focus {
-    background: #f3f3f3;
+    background-color: #ffffff;
     color: #291809;
 }
 
@@ -104,7 +106,21 @@ div.main-container {
     bottom: 0;
 }
 
-table tr {
+table>thead {
+    color: #333333;
+}
+
+table>thead a {
+    color: inherit;
+}
+
+table>thead a:hover,
+table>thead a:focus {
+    text-decoration: underline;
+    color: inherit;
+}
+
+table>tbody>tr {
     cursor: pointer;
 }
 
