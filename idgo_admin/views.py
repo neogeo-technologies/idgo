@@ -19,14 +19,32 @@ def render_on_error(request, dform=DatasetForm()):
 class DatasetManager(View):
 
     def get(self, request):
-        id = request.GET.get('id')
-        dataset = id and get_object_or_404(
-                            Dataset, id=id, editor=request.user) or None
+
+        id = request.GET.get('id') or None
+        if id:
+            dataset = get_object_or_404(
+                                Dataset, id=id, editor=request.user)
+            return render(request, 'idgo_admin/dataset.html',
+                          {'dform': DatasetForm(instance=dataset)})
 
         return render(request, 'idgo_admin/dataset.html',
-                      {'dform': DatasetForm(instance=dataset)})
+                      {'dform': DatasetForm()})
 
     def post(self, request):
+
+        id = request.POST.get('id', request.GET.get('id')) or None
+        if id:
+            dataset = get_object_or_404(Dataset, id=id, editor=request.user)
+            dform = DatasetForm(instance=dataset, data=request.POST)
+            if not dform.is_valid() or not request.user.is_authenticated:
+                return render(request, 'idgo_admin/dataset.html',
+                              {'dform': DatasetForm(instance=dataset)})
+
+            dform.update_me(request, id)
+            message = 'Le jeux de données a été mis à jour avec succès.'
+            return render(request, 'profiles/success.html',
+                          {'message': message}, status=200)
+
 
         dform = DatasetForm(data=request.POST)
         if dform.is_valid() and request.user.is_authenticated:

@@ -112,3 +112,56 @@ class DatasetForm(forms.ModelForm):
 
         dataset.save()
         ckan_user.close()
+
+    def update_me(self, request, id):
+
+        data = self.cleaned_data
+        params = {'description': data['description'],
+                  'geocover': data['geocover'],
+                  'licences': data['licences'],
+                  'name': data['name'],
+                  'organisation': data['organisation'],
+                  'owner_email': data['owner_email'],
+                  'update_freq': data['update_freq'],
+                  'url_inspire': data['url_inspire']}
+
+        dataset = Dataset.objects.get(pk=id)
+        for (key, value) in params.items():
+            setattr(dataset, key, value)
+
+        if data['categories']:
+            dataset.categories = data['categories']
+
+        if data['keywords']:
+            dataset.keywords.clear()
+            for tag in data['keywords']:
+                dataset.keywords.add(tag)
+
+        user=request.user
+        ckan_user = my_ckan(ckan.get_user(user.username)['apikey'])
+        params = {'author': user.username,
+                  'author_email': user.email,
+                  'geocover': dataset.geocover,
+                  # 'groups': [{'name': ... }]  # TODO
+                  'license_id': dataset.licences_id,
+                  'maintainer': user.username,
+                  'maintainer_email': user.email,
+                  'notes': dataset.description,
+                  'owner_org': dataset.organisation.ckan_slug,
+                  'private': False,
+                  'state': 'active',
+                  'title': dataset.name,
+                  'update_frequency': dataset.update_freq,
+                  'url': None}
+
+        try:
+            ckan_dataset = ckan_user.publish_dataset(
+                dataset.ckan_slug, id=str(dataset.ckan_id), **params)
+        except:
+            dataset.sync_in_ckan = False
+        else:
+            dataset.ckan_id = ckan_dataset['id']
+            dataset.sync_in_ckan = True
+
+        dataset.save()
+        ckan_user.close()
