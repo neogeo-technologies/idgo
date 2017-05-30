@@ -59,12 +59,12 @@ class DatasetForm(forms.ModelForm):
     organisation = forms.ModelChoiceField(
                             label="Organisme d'appartenance",
                             queryset=Organisation.objects.all(),
-                            required=False)
+                            required=True)
 
     licences = forms.ModelChoiceField(
                             label='Licences',
                             queryset=License.objects.all(),
-                            required=False)
+                            required=True)
 
     keywords = TagField(required=False)
 
@@ -96,49 +96,32 @@ class DatasetForm(forms.ModelForm):
                   'update_freq',
                   'url_inspire')
 
-    def create_me(self, request):
-
+    def handle_me(self, request, id=None):
         user = request.user
         data = self.cleaned_data
-        dataset, created = Dataset.objects.create(
-                    pk=id, defaults={'description': data['description'],
-                                     'editor': user,
-                                     'geocover': data['geocover'],
-                                     'keywords': data['keywords'],
-                                     'licences': data['licences'],
-                                     'name': data['name'],
-                                     'organisation': data['organisation'],
-                                     'owner_email': data['owner_email'],
-                                     'update_freq': data['update_freq'],
-                                     'url_inspire': data['url_inspire']})
 
-        if data['categories']:
-            dataset.categories = data['categories']
-
-        if data['keywords']:
-            dataset.keywords.clear()
-            for tag in data['keywords']:
-                dataset.keywords.add(tag)
-
-        synchronize_ckan_dataset(user, dataset)
-        dataset.save()
-
-    def update_me(self, request, id):
-
-        data = self.cleaned_data
         params = {'description': data['description'],
-                  'geocover': data['geocover'],
-                  'keywords': data['keywords'],
-                  'licences': data['licences'],
-                  'name': data['name'],
-                  'organisation': data['organisation'],
-                  'owner_email': data['owner_email'],
-                  'update_freq': data['update_freq'],
-                  'url_inspire': data['url_inspire']}
+         'editor': user,
+         'geocover': data['geocover'],
+         'keywords': data['keywords'],
+         'licences': data['licences'],
+         'name': data['name'],
+         'organisation': data['organisation'],
+         'owner_email': data['owner_email'],
+         'update_freq': data['update_freq'],
+         'url_inspire': data['url_inspire']}
 
-        dataset = Dataset.objects.get(pk=id)
-        for key, value in params.items():
-            setattr(dataset, key, value)
+        #Mise a jour d'un datatset
+        if id:
+            params.pop('editor',None)
+            dataset = Dataset.objects.get(pk=id)
+            for key, value in params.items():
+                setattr(dataset, key, value)
+
+        #Creation d'un dataset
+        if id is None:
+            dataset = Dataset.objects.create(**params)
+            print(dataset.name)
 
         if data['categories']:
             dataset.categories = data['categories']
