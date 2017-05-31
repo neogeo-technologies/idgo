@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -22,7 +22,7 @@ def render_an_critical_error(request):
     message = "Une erreur critique s'est produite lors de la suppression " \
               "du jeu de donnée. "
 
-    return JsonResponse(data={'error':message}, status=400)
+    return JsonResponse(data={'message':message}, status=400)
 
 
 @method_decorator(decorators, name='dispatch')
@@ -73,15 +73,23 @@ class DatasetManager(View):
             return render_an_critical_error(request)
 
         dataset = get_object_or_404(Dataset, id=id, editor=request.user)
+        name = dataset.name
 
         ckan_user = ckan_me(ckan.get_user(request.user.username)['apikey'])
         try:
-            ckan_user.delete_dataset(dataset.ckan_id, purge=True)
+            ckan_user.delete_dataset(str(dataset.ckan_id))
+            ckan.purge_dataset(str(dataset.ckan_id))
         except:
-            pass
+            message = 'Le jeu de données <strong>{0}</strong> ' \
+                      'ne peut pas être supprimé.'.format(name)
+            status = 400
+        else:
+            dataset.delete()
+            message = 'Le jeu de données <strong>{0}</strong> ' \
+                      'a été supprimé avec succès.'.format(name)
+            status = 200
+
         ckan_user.close()
 
-        dataset.delete()
-
-        message = 'Le jeux de données a été supprimé avec succès.'
-        return JsonResponse(data={'success':message}, status=200)
+        return render(request, 'profiles/response.htm',
+                      {'message': message}, status=status)

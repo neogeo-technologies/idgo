@@ -62,6 +62,7 @@ function closeAllModalDialog() {
 
 
 var $modal = $('.modal[role="dialog"]')
+	.modal({'backdrop': 'static', 'show': false})  // Important!
 	.on('show.bs.modal', function(e) {
 		closeAllModalDialog();
 	})
@@ -77,23 +78,28 @@ $('#datasets button[name="delete-dataset"]')
 
 		var $button = $('<button/>')
 			.prop('type', 'button')
-			.prop('class', 'btn btn-danger btn-block disabled')
+			.prop('class', 'btn btn-danger disabled')
 			.prop('disabled', true)
 			.text('Oui, supprimer définitivement ce jeu de données')
 			.on('click', function(e) {
 				e.preventDefault();
+				closeAllModalDialog();
 				$.ajax({
 					type: 'DELETE',
-					success: function() {
-						alert('Success');
-					},
+					// success: function() {},
 					url: DATASET_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']
-				}).done(function() {
+				})
+				.done(function(response, textStatus, jqXHR) {
+					// $modal.find('.close').remove();
 					$modal.find('.modal-title').text('Information');
-					$modal.find('.modal-body').append('<p>Le jeu de données a été supprimé avec succès.</p>');
+					$modal.find('.modal-body').append(jqXHR.responseText);
 					$modal.modal('show');
-				}).fail(function(jqXHR, textStatus, errorThrown) {
-					alert('Failure');
+				})
+				.fail(function(jqXHR, textStatus, errorThrown) {
+					// $modal.find('.close').remove();
+					$modal.find('.modal-title').text("L'opération a échouée");
+					$modal.find('.modal-body').append(jqXHR.responseText);
+					$modal.modal('show');
 				});
 				e.stopPropagation();
 			});
@@ -111,9 +117,19 @@ $('#datasets button[name="delete-dataset"]')
 			});
 
 		$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
-		$modal.find('.modal-body').append('<p>Cette action est irreversible et supprimera <strong>définitivement</strong> le jeu de données ainsi que toutes les ressources qui lui sont attachées.</p>').append($('<form/>').append($('<div/>').prop('class', 'form-group').append('<p>Pour confirmer, veuillez réécrire le nom du jeu de données à supprimer.</p>').append($input)).append($button));
+		$modal.find('.modal-body')
+			.append('<p>Cette action est irreversible et supprimera <strong>définitivement</strong> le jeu de données ainsi que toutes les ressources qui lui sont attachées.</p>')
+			.append(
+				$('<form/>')
+					.append(
+						$('<div/>').prop('class', 'form-group')
+							.append('<p>Pour confirmer, veuillez réécrire le nom du jeu de données à supprimer.</p>')
+							.append($input))
+					.append(
+						$('<div class="buttons-on-the-right-side">')
+							.append($button)
+							.append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
 		$modal.modal('show');
-
 		e.stopPropagation();
 	});
 
@@ -178,7 +194,7 @@ function updateGrid(grid, containerId, metadata, data) {
 		$containerId.show();
 	} else {
 		$containerId.hide();
-		$containerId.after('<div role="alert" class="alert alert-info"><p>C\'est vide. Cliquez sur le bouton <strong>{' + $parent.find('a[name="add-dataset"]').get(0).text + '}</strong> pour commencer.</p><div/>');
+		$containerId.after('<div role="alert" class="alert alert-info"><p>C\'est vide. Cliquez sur le bouton <strong>[ ' + $parent.find('a[name="add-dataset"]').get(0).text + ' ]</strong> pour commencer.</p><div/>');
 	};
 };
 
@@ -230,7 +246,6 @@ $('#menu a[data-toggle="tab"]')
 function redirect(path) {
 	window.location.replace(window.location.origin + path);
 };
-
 
 window.onhashchange = function(e) {
 	$('#menu a[href="' + window.location.hash + '"]').tab('show');

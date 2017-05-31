@@ -18,7 +18,7 @@ def exceptions_handler(f):
             return f(*args, **kwargs)
         except CkanError.NotAuthorized as e:
             print('NotAuthorized', e)
-            raise PermissionError()
+            raise PermissionError(e)
         except CkanError.ValidationError as e:
             print('ValidationError', e)
             raise Exception(e)
@@ -41,6 +41,10 @@ class CkanManagerHandler(metaclass=Singleton):
 
     def __init__(self):
         self.remote = RemoteCKAN(CKAN_URL, apikey=CKAN_API_KEY)
+
+    @exceptions_handler
+    def _del_package(self, id):
+        return self.remote.action.dataset_purge(id=id)
 
     def get_user(self, username):
         try:
@@ -151,8 +155,8 @@ class CkanManagerHandler(metaclass=Singleton):
                                         title=group.name,
                                         description=group.description)
 
-
-CkanHandler = CkanManagerHandler()
+    def purge_dataset(self, id):
+        self._del_package(id)
 
 
 class CkanUserHandler():
@@ -183,9 +187,7 @@ class CkanUserHandler():
         return self.remote.action.package_update(**kwargs)
 
     @exceptions_handler
-    def _del_package(self, id, purge=False):
-        if purge:
-            return self.remote.action.dataset_purge(id=id)
+    def _del_package(self, id):
         return self.remote.action.package_delete(id=id)
 
     @exceptions_handler
@@ -232,14 +234,17 @@ class CkanUserHandler():
             package = self._update_package(
                                 **{**self._get_package(id), **kwargs})
         else:
-            package = self._add_package(name=name, **kwargs)
+            package = self._add_package(**kwargs)
 
-        if resources:
-            for resource in resources:
-                m = self._push_resource(package, resource.type, **kwargs)
-                self._push_resource_view(m['id'], resource.view_type)
+        # if resources:
+        #     for resource in resources:
+        #         m = self._push_resource(package, resource.type, **kwargs)
+        #         self._push_resource_view(m['id'], resource.view_type)
 
         return package
 
-    def delete_dataset(self, id, purge=False):
-        self._del_package(id, purge=purge)
+    def delete_dataset(self, id):
+        self._del_package(id)
+
+
+CkanHandler = CkanManagerHandler()

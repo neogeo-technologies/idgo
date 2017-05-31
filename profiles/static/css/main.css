@@ -175,3 +175,56 @@ table tr.selected:focus td {
     background-color: #db0022;
     border-color: #db0022;
 }
+
+.buttons-on-the-right-side {
+    text-align: right;
+}
+
+.buttons-on-the-right-side>.btn {
+    margin-left: 5px;
+}
+
+.alert {
+    border-radius: 0px;
+    border-width: 0;
+}
+
+.alert-success {
+    color: #fff;
+    background-color: #14d47f;
+}
+
+.alert-info {
+    color: #fff;
+    background-color: #067ee6;
+}
+
+.alert-warning {
+    color: #333;
+    background-color: #fbbb1b;
+}
+
+.danger {
+    color: #fff;
+    background-color: #f5193b;
+}
+
+.success {
+    color: #fff;
+    background-color: #14d47f;
+}
+
+.info {
+    color: #fff;
+    background-color: #067ee6;
+}
+
+.warning {
+    color: #333;
+    background-color: #fbbb1b;
+}
+
+.danger {
+    color: #fff;
+    background-color: #f5193b;
+}

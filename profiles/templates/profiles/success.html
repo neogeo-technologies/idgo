@@ -24,9 +24,9 @@
 						<div class="panel-body">
 							<form method="post" action="{% url 'profiles:main' %}">
 								<div class="alert alert-success" role="alert">{{ message }}</div>
-								{% buttons %}
-								<button type="submit" class="btn btn-default pull-right">Fermer</button>
-								{% endbuttons %}
+								<div class="pull-right">
+									<button type="submit" class="btn btn-default">Fermer</button>
+								</div>
 							</form>
 						</div>
 					</div>
