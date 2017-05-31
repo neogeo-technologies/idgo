@@ -22,11 +22,11 @@ class LdapHandler(metaclass=Singleton):
             return self.conn.search_s(base_dn, ldap.SCOPE_SUBTREE,
                                       filterstr=filterstr, attrlist=attrlist)
         except ldap.NO_SUCH_OBJECT as e:
-            print('NO_SUCH_OBJECT', e)
             return None
         except ldap.LDAPError as e:
-            print('base:', base_dn)
-            print('Catching error:', e)
+            print('~> base_dn:', base_dn)
+            print('~> filterstr:', filterstr)
+            print('~> catching error:', e)
             raise e
 
     def _modify(self, base_dn, modlist):
@@ -42,9 +42,9 @@ class LdapHandler(metaclass=Singleton):
             print('NO_SUCH_ATTRIBUTE', e)
             return None
         except ldap.LDAPError as e:
-            print('dn:', base_dn)
-            print('modlist:', modlist)
-            print('Catching error:', e)
+            print('~> base_dn:', base_dn)
+            print('~> modlist:', modlist)
+            print('~> catching error:', e)
             raise e
 
     def get_user(self, username):

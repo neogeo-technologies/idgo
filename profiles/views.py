@@ -104,7 +104,9 @@ def sign_up(request):
                         last_name=data['last_name'],
                         is_staff=False, is_superuser=False, is_active=False)
 
-        org_publ_pk = [entry['pk'] for entry in data['publish_for'].values('pk')]
+        org_publ_pk = [entry['pk'] for entry in
+                       data['publish_for'].values('pk')]
+
         Registration.objects.create(
                         user=user,
                         activation_key=data['activation_key'],
@@ -163,7 +165,9 @@ def sign_up(request):
         ldap.add_user(user, data['password'])
         ckan.add_user(user, data['password'])
         send_validation_mail(request, data['email'], data['activation_key'])
-    except:
+    except Exception as e:
+        print('Error:', e)
+        delete_user(user.username)
         return render_an_critical_error(request)
 
     message = 'Votre compte a bien été créé. Vous recevrez un e-mail ' \
@@ -260,7 +264,8 @@ def modify_account(request):
         render_an_critical_error(request)
 
     message = 'Les informations de votre profile sont à jour.'
-    return render(request, 'profiles/success.html', {'message': message}, status=200)
+    return render(request, 'profiles/success.html',
+                  {'message': message}, status=200)
 
 
 @login_required(login_url=settings.LOGIN_URL)

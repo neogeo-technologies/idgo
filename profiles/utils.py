@@ -36,7 +36,8 @@ Bonjour,
 Veuillez valider votre inscription en cliquant sur le lien suivant : {0}
 
 Ceci est un message automatique. Merci de ne pas y répondre.'''.format(
-        request.build_absolute_uri(reverse('activation', kwargs={'key': key})))
+        request.build_absolute_uri(
+                    reverse('profiles:activation', kwargs={'key': key})))
 
     send_mail(subject=subject,
               message=message,
