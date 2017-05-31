@@ -194,7 +194,7 @@ function updateGrid(grid, containerId, metadata, data) {
 		$containerId.show();
 	} else {
 		$containerId.hide();
-		$containerId.after('<div role="alert" class="alert alert-info"><p>C\'est vide. Cliquez sur le bouton <strong>[ ' + $parent.find('a[name="add-dataset"]').get(0).text + ' ]</strong> pour commencer.</p><div/>');
+		$containerId.after('<div role="alert" class="alert alert-warning"><p>C\'est vide. Cliquez sur le bouton <strong>[ ' + $parent.find('a[name="add-dataset"]').get(0).text + ' ]</strong> pour commencer.</p><div/>');
 	};
 };
 

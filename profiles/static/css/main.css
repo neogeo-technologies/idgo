@@ -1,14 +1,24 @@
+/* css/main.css */
+
+/*
+ * red    #f5193b
+ * green  #14d47f
+ * blue   #067ee6
+ * yellow #fbbb1b
+ */
+
+html {
+    min-width: 767px;
+}
+
 body {
     background-color: #fff;
     color: #333;
 }
 
-/*
-    red: #f5193b
-    green: #14d47f
-    blue: #067ee6
-    yellow: #fbbb1b
-*/
+.modal {
+    min-width: 767px;
+}
 
 .outer {
     display: table;
@@ -17,7 +27,7 @@ body {
     height: 100%;
 }
 
-.middle, .v-middle {
+.v-middle {
     display: table-cell;
     vertical-align: middle;
 }
