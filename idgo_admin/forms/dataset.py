@@ -37,6 +37,8 @@ class DatasetForm(forms.ModelForm):
 
     keywords = TagField(required=False)
 
+    published = forms.BooleanField(initial=True, label="Publier ce jeu de donnée ", required=False)
+
     # Champs cachés :
 
     owner_email = forms.EmailField(
@@ -63,29 +65,30 @@ class DatasetForm(forms.ModelForm):
                   'organisation',
                   'owner_email',
                   'update_freq',
-                  'url_inspire')
+                  'url_inspire',
+                  'published')
 
     def handle_me(self, request, id=None):
         user = request.user
         data = self.cleaned_data
 
         params = {'description': data['description'],
-         'editor': user,
-         'geocover': data['geocover'],
-         'keywords': data['keywords'],
-         'licences': data['licences'],
-         'name': data['name'],
-         'organisation': data['organisation'],
-         'owner_email': data['owner_email'],
-         'update_freq': data['update_freq'],
-         'url_inspire': data['url_inspire']}
+                  'editor': user,
+                  'geocover': data['geocover'],
+                  'licences': data['licences'],
+                  'name': data['name'],
+                  'organisation': data['organisation'],
+                  'owner_email': data['owner_email'],
+                  'update_freq': data['update_freq'],
+                  'url_inspire': data['url_inspire'],
+                  'published': data['published']}
 
-        if id:  # Mise à jour du dataset :
-            params.pop('editor',None)
+        if id:  # Mise à jour du dataset
+            params.pop('editor', None)
             dataset = Dataset.objects.get(pk=id)
             for key, value in params.items():
                 setattr(dataset, key, value)
-        else:  # Création d'un nouveau dataset :
+        else:  # Création d'un nouveau dataset
             dataset = Dataset.objects.create(**params)
 
         if data['categories']:
@@ -94,7 +97,9 @@ class DatasetForm(forms.ModelForm):
         if data['keywords']:
             dataset.keywords.clear()
             for tag in data['keywords']:
+
                 dataset.keywords.add(tag)
+            # dataset.save()
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
 
@@ -111,7 +116,7 @@ class DatasetForm(forms.ModelForm):
                   'state': 'active',
                   'title': dataset.name,
                   'update_frequency': dataset.update_freq,
-                  'url': None}
+                  'url': None, 'published':True}
 
         try:
             ckan_dataset = ckan_user.publish_dataset(

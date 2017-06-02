@@ -1,11 +1,11 @@
+from django.contrib.auth.models import User
 from django.db import models
+from django.contrib.gis.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-
-from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.text import slugify
-from django.contrib.auth.models import User
+
 from profiles.models import Organisation
 from profiles.ckan_module import CkanHandler as ckan
 from taggit.managers import TaggableManager
@@ -153,6 +153,8 @@ class Dataset(models.Model):
         ('continue', 'Continue'),
         ('realtime', 'Temps réel')
     )
+
+
     name = models.CharField('Nom', max_length=100, unique=True) #Titre CKAN
     description = models.CharField('Description', max_length=1024, blank=True, null=True) #Description CKAN
     ckan_slug = models.SlugField('Ckan_ID', max_length=100, unique=True,
@@ -172,16 +174,18 @@ class Dataset(models.Model):
     date_modification = models.DateTimeField(verbose_name="Date de dernière modification du jeu de donnée",
                                          auto_now=timezone.now())
     editor = models.ForeignKey(User)
+
     organisation = models.ForeignKey(Organisation, verbose_name="Organisme d'appartenance",
                                      blank=True, null=True)
     licences = models.ForeignKey(License, verbose_name="Licence d'utilisation")
+
     categories = models.ManyToManyField(Category, verbose_name="Catégories d'appartenance")
     update_freq = models.CharField('Fréquence de mise à jour', default='never',
                                 max_length=30, choices=FREQUENCY_CHOICES)
 
-    # formulaire champ pré rempli
     owner_email = models.EmailField('Email du producteur de la donnée', blank=True, null=True)
 
+    published = models.BooleanField('Etat du jeu de donnée', default=False)
 
     def __str__(self):
         return self.name

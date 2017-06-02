@@ -55,7 +55,6 @@ class DatasetManager(View):
             return render(request, 'profiles/success.html',
                           {'message': message}, status=200)
 
-
         dform = DatasetForm(data=request.POST)
         if dform.is_valid() and request.user.is_authenticated:
             dform.handle_me(request, id=request.GET.get('id'))

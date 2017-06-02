@@ -10,14 +10,15 @@ from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, render, redirect
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .ckan_module import CkanHandler as ckan
 from .ldap_module import LdapHandler as ldap
 from .forms.user import UserForm, UserProfileForm, UserDeleteForm, \
-                        UserUpdateForm, ProfileUpdateForm, UserLoginForm
+    UserUpdateForm, ProfileUpdateForm, UserLoginForm, PublishRequestForm
 from idgo_admin.models import Dataset
-from .models import Organisation, Profile, Registration
+from .models import Organisation, Profile, Registration, PublishRequest
 from .utils import *
 
 
@@ -56,7 +57,8 @@ def main(request):
                  o.description,
                  o.date_creation.isoformat(),
                  o.date_modification.isoformat(),
-                 o.sync_in_ckan) for o in Dataset.objects.filter(editor=user)]
+                 o.sync_in_ckan,
+                 o.published) for o in Dataset.objects.filter(editor=user)]
 
     return render(request, 'profiles/main.html',
                   {'datasets': json.dumps(datasets)}, status=200)
@@ -110,10 +112,12 @@ def sign_up(request):
         Registration.objects.create(
                         user=user,
                         activation_key=data['activation_key'],
+                        admin_key=data['admin_key'],
                         profile_fields={'role': data['role'],
                                         'phone': data['phone'],
                                         'organisation': data['organisation'],
                                         'publish_for': org_publ_pk})
+
         return user
 
     def create_activation_key(email_user):
@@ -140,6 +144,7 @@ def sign_up(request):
 
     data = {'activation_key': create_activation_key(
                                         uform.cleaned_data['email']),
+            'admin_key': create_activation_key(settings.ADMIN_EMAIL),
             'username': uform.cleaned_data['username'],
             'email': uform.cleaned_data['email'],
             'password': uform.cleaned_data['password1'],
@@ -166,7 +171,7 @@ def sign_up(request):
         ckan.add_user(user, data['password'])
         send_validation_mail(request, data['email'], data['activation_key'])
     except Exception as e:
-        print('Error:', e)
+
         delete_user(user.username)
         return render_an_critical_error(request)
 
@@ -180,11 +185,30 @@ def sign_up(request):
 
 
 @csrf_exempt
-def activation(request, key):
+def confirmation_email(request, key): #confirmation de l'email par l'utilisateur
 
-    reg = get_object_or_404(Registration, activation_key=key)
+    registration = get_object_or_404(Registration, activation_key=key)
+
+    try:
+        send_activation_mail(request, registration, email_admin=settings.ADMIN_EMAIL)
+        registration.key_expires = None
+    except:
+        pass  # Ce n'est pas très grave si l'e-mail ne part pas...
+
+    message = """Merci d'avoir confirmer votre adresse email,
+        Vous receverez un message une fois votre compte activé par l'administeur
+        """
+
+    return render(request, 'profiles/success.html',
+                  {'message': message}, status=200)
+
+
+@csrf_exempt
+def activation_admin(request, key): # activation du compte par l'administrateur
+
+    reg = get_object_or_404(Registration, admin_key=key)
     organization = get_object_or_404(
-                        Organisation, pk=reg.profile_fields['organisation'])
+        Organisation, pk=reg.profile_fields['organisation'])
 
     user = reg.user
     user.is_active = True
@@ -219,7 +243,7 @@ def activation(request, key):
     except:
         pass  # Ce n'est pas très grave si l'e-mail ne part pas...
 
-    message = 'Votre compte est désormais activé.'
+    message = 'Le compte de {username} est désormais activé.'.format(username=user.username)
     return render(request, 'profiles/success.html',
                   {'message': message}, status=200)
 
@@ -266,6 +290,41 @@ def modify_account(request):
     message = 'Les informations de votre profile sont à jour.'
     return render(request, 'profiles/success.html',
                   {'message': message}, status=200)
+
+
+@transaction.atomic
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def publish_request(request, key):
+
+    pub_req = get_object_or_404(PublishRequest, publish_request_key=key)
+
+    try:
+        send_publish_confirmation(pub_req)
+        pub_req.date_acceptation = timezone.now()
+
+    except:
+        pass  # Ce n'est pas très grave si l'e-mail ne part pas...
+
+    message = """Merci d'avoir confirmer votre adresse email,
+            Vous receverez un message une fois votre compte activé par l'administeur
+            """
+
+    return render(request, 'profiles/success.html',
+                  {'message': message}, status=200)
+
+
+@transaction.atomic
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def publish_manager(request):
+
+    publications = PublishRequest.objects.filter(user=request.user).exclude(date_acceptation=None)
+    publications_form = PublishRequestForm(instance=publications, data=request.POST or None)
+    if not publications_form.is_valid():
+        return render(request, 'profiles/publish.html', {'publications_form': publications_form})
+    # TODO : diplay form publish manager
+
 
 
 @login_required(login_url=settings.LOGIN_URL)

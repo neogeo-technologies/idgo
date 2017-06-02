@@ -1,16 +1,21 @@
+import hashlib
+import random
+
 from django.db import models
 from django.db.models.signals import pre_delete, pre_save
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
+from django.contrib.sites.shortcuts import get_current_site
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
 
 from .ldap_module import LdapHandler as ldap
 from .ckan_module import CkanHandler as ckan
-
+# from idgo_admin.models import Commune
+from profiles.utils import send_publish_request
 
 def deltatime_2_days():
     return timezone.now() + timezone.timedelta(days=2)
@@ -31,25 +36,59 @@ class OrganisationType(models.Model):
 
 class Organisation(models.Model):
 
+
+    STATUS_CHOICES = (
+        ('commune', 'Commune'),
+        ('communaute_de_communes', 'Communauté de Commune'),
+        ('communaute_d_agglomeration', "Communauté d'Agglomération"),
+        ('communaute_urbaine', 'Communauté Urbaine'),
+        ('metrople', 'Métropoles'),
+        ('conseil_departemental', 'Conseil Départemental'),
+        ('conseil_regional', 'Conseil Régional'),
+        ('organisme_de_recherche', 'Organisme de recherche'),
+        ('universite', 'Université')
+    )
+
+    FINANCEUR_CHOICES = (
+        ('etat', 'Etat'),
+        ('region_PACA', 'Région PACA'),
+        ('epci', 'EPCI'),
+        ('cd02', 'CD02'),
+
+    )
+
     name = models.CharField('Nom', max_length=150, unique=True, db_index=True)
     organisation_type = models.ForeignKey(
-                OrganisationType, verbose_name="Type d'organisme", default='1')
+        OrganisationType, verbose_name="Type d'organisme", default='1')
     code_insee = models.CharField(
-                'Code INSEE', max_length=20, unique=True, db_index=True)
+        'Code INSEE', max_length=20, unique=True, db_index=True)
     parent = models.ForeignKey(
-                'self', on_delete=models.CASCADE, blank=True,
-                null=True, verbose_name="Organisation parente")
+        'self', on_delete=models.CASCADE, blank=True,
+        null=True, verbose_name="Organisation parente")
+
+    # Territoire de compétence
     geom = models.MultiPolygonField(
-                'Territoire', srid=4171, blank=True, null=True)
+        'Territoire', srid=4171, blank=True, null=True)
     sync_in_ldap = models.BooleanField(
-                'Synchronisé dans le LDAP', default=False)
+        'Synchronisé dans le LDAP', default=False)
     sync_in_ckan = models.BooleanField(
-                'Synchronisé dans CKAN', default=False)
+        'Synchronisé dans CKAN', default=False)
     ckan_slug = models.SlugField(
-                'CKAN ID', max_length=150, unique=True, db_index=True)
+        'CKAN ID', max_length=150, unique=True, db_index=True)
     website = models.URLField('Site web', blank=True)
     email = models.EmailField(verbose_name="Adresse mail de l'organisation")
     objects = models.GeoManager()
+
+    # Nouveaux Champs à valider:
+    # communes = models.ManyToManyField(Commune) # Territoires de compétence
+    # id_url_unique = models.URLField('URL unique', blank=True)
+    # titre = models.CharField('Nom', max_length=100, unique=True)  # Titre CKAN
+    # description = models.CharField('Description', max_length=1024, blank=True, null=True)  # Description CKAN
+    # Logo = models.ImageField('Logo')
+    # statut = models.CharField('Statut', blank=True, null=True, default='conseil_regional',
+    #                           max_length=30, choices=STATUS_CHOICES)
+    # financeur = models.CharField('Financeur', blank=True, null=True, default='conseil_regional',
+    #                           max_length=30, choices=FINANCEUR_CHOICES)
 
     def __str__(self):
         return self.name
@@ -116,14 +155,18 @@ class PublishRequest(models.Model):
                                     auto_now_add=timezone.now())
     date_acceptation = models.DateField(verbose_name='Date acceptation',
                                         blank=True, null=True)
+    publish_request_key = models.CharField(max_length=40, blank=True)
 
     # prévoir une action externe ACCEPTER renseignant la date d'acceptation et enregistrant l'orga dans le publish_for du User.
+    def create_key(self, data):
+        pwd = str(random.random()).encode('utf-8')
+        salt = hashlib.sha1(pwd).hexdigest()[:5].encode('utf-8')
+        return hashlib.sha1(salt + bytes(data, 'utf-8')).hexdigest()
 
     def save(self, *args, **kwargs):
         if not self.id:
-            # alerter les administrateurs (is_superuser=True par mail qu'une demande est déposée
-            # = message + liens vers ici (via admin django standard)
-            a = 0
+            self.publish_request_key = self.create_key(self.organisation.name)
+            send_publish_request(get_current_site, self, email_admin=settings.ADMIN_EMAIL)
         super(PublishRequest, self).save(*args, **kwargs)
 
 
@@ -131,6 +174,7 @@ class Registration(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     activation_key = models.CharField(max_length=40, blank=True)
+    admin_key = models.CharField(max_length=40, blank=True)
     key_expires = models.DateTimeField(
                         default=deltatime_2_days, blank=True, null=True)
     profile_fields = JSONField('Champs profile', blank=True, null=True)
@@ -159,7 +203,7 @@ def update_externals(sender, instance, **kwargs):
 @receiver(pre_save, sender=Profile)
 def delete_user_expire_date(sender, instance, **kwargs):
     expired_key_reg = Registration.objects.filter(
-                                            key_expires__lte=timezone.now())
+                                            key_expires__lte=timezone.now()).exclude(key_expires=None)
     for reg in expired_key_reg:
         u = reg.user
         u.delete()
