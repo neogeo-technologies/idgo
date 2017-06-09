@@ -29,7 +29,7 @@ class Singleton(type):
 # Methods:
 
 
-def send_validation_mail(request, email_user, key):
+def send_validation_mail(request, reg):
 
     from_email = 'idgo@neogeo-technologies.fr'
     subject = 'Validation de votre inscription sur le site IDGO'
@@ -40,34 +40,12 @@ Veuillez valider votre inscription en cliquant sur le lien suivant : {0}
 
 Ceci est un message automatique. Merci de ne pas y répondre.'''.format(
         request.build_absolute_uri(
-                    reverse('profiles:confirmation_mail', kwargs={'key': key})))
+                    reverse('profiles:confirmation_mail', kwargs={'key': reg.activation_key})))
 
     send_mail(subject=subject,
               message=message,
               from_email=from_email,
-              recipient_list=[email_user])
-
-
-def send_activation_mail(request, registration, email_admin=settings.ADMIN_EMAIL):
-
-    from_email = 'idgo@neogeo-technologies.fr'
-    subject = 'Un nouveau compte sur IDGO attend votre confirmation'
-    message = '''
-Bonjour,
-
-Un nouvel utilisateur ({username}, {user_mail}) a fait une demande d'inscription aux services IDGO. 
-Cliquez sur ce lien pour valider son inscription et activer son compte : {url}
-
-Ceci est un message automatique. Merci de ne pas y répondre.'''.format(
-        username=registration.user.username,
-        user_mail=registration.user.email,
-        url=request.build_absolute_uri(
-                    reverse('profiles:activation_admin', kwargs={'key': registration.admin_key})))
-
-    send_mail(subject=subject,
-              message=message,
-              from_email=from_email,
-              recipient_list=[email_admin])
+              recipient_list=[reg.user.email])
 
 
 def send_confirmation_mail(email_user):
@@ -85,6 +63,72 @@ Ceci est un message automatique. Merci de ne pas y répondre.'''
               message=message,
               from_email=from_email,
               recipient_list=[email_user])
+
+
+def send_affiliate_request(request, reg, email_admin=settings.ADMIN_EMAIL):
+
+    from_email = 'idgo@neogeo-technologies.fr'
+    subject = 'Un utilisateur demande son rattachement à une organisation'
+    if reg.profile_fields['is_new_orga']:
+        message = '''
+        Bonjour,
+
+        Un nouvel utilisateur ({username}, {user_mail}) a fait une demande de rattachement 
+        pour l'organisation nouvellement crée: 
+        
+        Veuillez vérifier les données renseigner avant de valider son inscription:
+        - Nom de l'organisation: {organisation_name}
+        - Adresse URL de l'organisation: {website}
+        
+        Cliquez sur ce lien pour valider son inscription et activer son compte : 
+        {url}
+        
+        Ceci est un message automatique. Merci de ne pas y répondre.'''.format(
+            username=reg.user.username,
+            user_mail=reg.user.email,
+            organisation_name=reg.profile_fields['organisation'],
+            website=reg.profile_fields['new_website'],
+            url=request.build_absolute_uri(
+                reverse('profiles:activation_admin', kwargs={'key': reg.affiliate_orga_key})))
+
+    else:
+        message = '''
+        Bonjour,
+    
+        Un nouvel utilisateur ({username}, {user_mail}) a fait une demande de rattachement 
+        pour l'organisation: {organisation_name}.
+        Cliquez sur ce lien pour valider son inscription et activer son compte : {url}
+    
+        Ceci est un message automatique. Merci de ne pas y répondre.'''.format(
+            username=reg.user.username,
+            user_mail=reg.user.email,
+            organisation_name=reg.profile_fields['organisation'],
+            url=request.build_absolute_uri(
+                reverse('profiles:affiliate_request', kwargs={'key': reg.affiliate_orga_key})))
+
+    send_mail(subject=subject,
+              message=message,
+              from_email=from_email,
+              recipient_list=[email_admin])
+
+
+def send_affiliate_confirmation(profile):
+    from_email = settings.DEFAULT_FROM_EMAIL
+
+    subject = 'Confirmation de votre rattachement organisation'
+    message = '''
+    Bonjour,
+
+    Votre demande de rattachement pour l'organisation: {organisation_name} à été validé.
+
+    Ceci est un message automatique. Merci de ne pas y répondre.'''.format(
+        organisation_name = profile.organisation.name)
+
+    send_mail(subject=subject,
+              message=message,
+              from_email=from_email,
+              recipient_list=[profile.user.email])
+
 
 def send_publish_request(get_current_site, publish_request, email_admin=settings.ADMIN_EMAIL):
 
@@ -109,9 +153,10 @@ def send_publish_request(get_current_site, publish_request, email_admin=settings
               from_email=from_email,
               recipient_list=[email_admin])
 
+
 def send_publish_confirmation(publish_request):
 
-    from_email = settings.DEFAULT_FROM_EMAIL #TODO: replace w/ "publish_request.organisation.email"
+    from_email = settings.DEFAULT_FROM_EMAIL  # TODO: replace w/ "publish_request.organisation.email"
 
     subject = 'Confirmation de votre inscription en tant que contributeur pour une nouvelle organisation'
     message = '''

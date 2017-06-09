@@ -57,6 +57,7 @@ class CommonFields(metaclass=StaticClass):
                 choices=Organisation.objects.all().values_list('id', 'name')))
 
     ROLE = forms.CharField(
+        required=False,
         label='Rôle',
         max_length=150,
         min_length=3,

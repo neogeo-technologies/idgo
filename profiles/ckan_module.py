@@ -86,8 +86,11 @@ class CkanManagerHandler(metaclass=Singleton):
 
         if profile:
             self.del_user_from_organizations(user.username)
-            self.add_user_to_organization(
-                            user.username, profile.organisation.ckan_slug)
+
+            # TODO: possibilité d'avoir une organisation Null
+            if profile.organisation:
+                self.add_user_to_organization(
+                                user.username, profile.organisation.ckan_slug)
 
         ckan_user = self.get_user(user.username)
         ckan_user.update({'email': user.email,
@@ -108,6 +111,7 @@ class CkanManagerHandler(metaclass=Singleton):
 
     def is_organization_exists(self, organization_name):
         return self.get_organization(organization_name) and True or False
+
 
     def add_organization(self, organization):
         self.remote.action.organization_create(id=organization.ckan_slug,

@@ -238,3 +238,14 @@ table tr.selected:focus td {
     color: #fff;
     background-color: #f5193b;
 }
+
+#overlay {
+     visibility: hidden;
+     position: absolute;
+     left: 0px;
+     top: 0px;
+     width:100%;
+     height:100%;
+     text-align:center;
+     z-index: 1000;
+}

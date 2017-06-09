@@ -102,8 +102,11 @@ class LdapHandler(metaclass=Singleton):
 
         if profile:
             self.del_user_from_organizations(user.username)
-            self.add_user_to_organization(
-                            user.username, profile.organisation.ckan_slug)
+
+            # Todo orga a null en modification
+            if profile.organisation:
+                self.add_user_to_organization(
+                                user.username, profile.organisation.ckan_slug)
 
         modlist = []
         for m in attrs:

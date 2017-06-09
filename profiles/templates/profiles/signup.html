@@ -14,8 +14,8 @@
 		{% bootstrap_javascript %}
 		{% bootstrap_messages %}
 		<link rel="stylesheet" href="{% static "css/main.css" %}" />
-
 	</head>
+
 	<body>
 		<div class="container-fluide outer">
 			<div class="row middle">
@@ -47,7 +47,22 @@
 								</div>
 								<hr />
 								{% bootstrap_field pform.organisation show_label=False %}
-								{% bootstrap_field pform.publish_for show_label=False %}
+								{% bootstrap_field pform.is_new_orga %}
+								<div class="row">
+									<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+										<label>Vous pouvez ajouter le nom d'un nouvel organisme pour en demander le rattachement et la création. Dans ce cas laisser le champs organisation ci-dessus vide.</label>
+										<a href='#' onclick='overlay()'>Créer nouvelle organisation?</a>
+									</div>
+									<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+										<div id="overlay">
+											<div>
+												{% bootstrap_field pform.new_orga show_label=False %}
+												{% bootstrap_field pform.new_website show_label=False %}
+											</div>
+										</div>
+									</div>
+								</div>
+								<hr />
 								<div class="row">
 									<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 										{% bootstrap_field pform.role show_label=False %}
@@ -67,4 +82,5 @@
 			</div>
 		</div>
 	</body>
+	<script src="{% static "js/main.js" %}"></script>
 </html>

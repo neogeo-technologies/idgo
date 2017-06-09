@@ -258,3 +258,8 @@ window.onload = function(e) {
 	$('#menu a[href="' + ((HASH_MENU.indexOf(hash) === -1) ? HASH_MENU[0] : hash) + '"]').tab('show');
 	e.preventDefault();
 };
+
+function overlay() {
+	el = document.getElementById("overlay");
+	el.style.visibility = (el.style.visibility == "visible") ? "hidden" : "visible";
+}

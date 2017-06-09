@@ -2,8 +2,10 @@ from django import forms
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
+from django.core import validators
 from django.core.exceptions import ValidationError
-from django.forms import CheckboxSelectMultiple
+from django.forms import CheckboxSelectMultiple, inlineformset_factory
+
 
 from profiles.models import Profile, Organisation, PublishRequest
 from . import common_fields as fields
@@ -66,18 +68,56 @@ class UserUpdateForm(forms.ModelForm):
 
 class UserProfileForm(forms.Form):
 
-    organisation = fields.ORGANISATION
 
-    publish_for = forms.ModelMultipleChoiceField(required=False,
-                                                 label='Organismes associés',
-                                                 widget=CheckboxSelectMultiple(),
-                                                 queryset=Organisation.objects.all())
+    def clean(self):
+
+        organisation = self.cleaned_data.get('organisation')
+
+        if organisation is None:
+            # Retourne le nom d'une nouvelle organisation si demande de creation
+            self.cleaned_data['organisation'] = self.cleaned_data.get('new_orga')
+            self.cleaned_data['website'] = self.cleaned_data.get('website')
+            self.cleaned_data['is_new_orga'] = True
+
+        else:
+            # Mettre les valeurs de new_orga et website lorsque l'user a deja choisi parmi la liste déroulante
+            self.cleaned_data['new_orga'] = ''
+            self.cleaned_data['website'] = ''
+            self.cleaned_data['is_new_orga'] = False
+
+            # Pour ne manipuler que le nom de l'organisation meme si existante
+            self.cleaned_data['organisation'] = self.cleaned_data['organisation'].name
+
+        return self.cleaned_data
+
+
+    organisation = forms.ModelChoiceField(required=False,
+                                          label='Organisme',
+                                          queryset=Organisation.objects.all())
+
+    new_orga = forms.CharField(
+        required=False,
+        error_messages={'invalid': 'invalid'},
+        label="Nom organisme de rattachement",
+        max_length=255,
+        min_length=3,
+        validators=[validators.validate_slug],
+        widget=forms.TextInput(attrs={'placeholder': """Entrez le nom d'un nouvel organisme pour en créer un. """}))
+
+    new_website = forms.URLField(
+        required = False,
+        error_messages={'invalid': "L'adresse url de l'organisation est invalide."},
+        label="URL de pour une nouvelle organisation")
+
+    is_new_orga = forms.BooleanField(widget=forms.HiddenInput(), required=False, initial=False)
+
     phone = fields.PHONE
+
     role = fields.ROLE
 
     class Meta:
         model = Profile
-        fields = ('organisation', 'publish_for', 'role', 'phone')
+        fields = ('organisation', 'role', 'phone', 'new_orga', 'new_website', 'is_new_orga')
 
 
 class ProfileUpdateForm(forms.ModelForm):
@@ -112,16 +152,18 @@ class ProfileUpdateForm(forms.ModelForm):
     def save_f(self, commit=True):
         profile = super(ProfileUpdateForm, self).save(commit=False)
 
-        organisation = self.cleaned_data["organisation"]
         publish_org = self.cleaned_data["publish_for"]
+        org = self.cleaned_data['organisation']
+
+        if org:
+            profile.organisation = org
 
         if publish_org:
             profile.publish_for = publish_org
         else:
             profile.publish_for.clear()
 
-        if organisation:
-            profile.organisation = organisation
+
         if commit:
             profile.save()
         return profile
@@ -145,14 +187,13 @@ class UserDeleteForm(AuthenticationForm):
         model = User
         fields = ('username', 'password')
 
-#
+
 # class PublishRequestForm(forms.ModelForm):
 #
 #     publish_for = forms.ModelMultipleChoiceField(required=False,
 #                                                  label='Organismes publication',
 #                                                  widget=CheckboxSelectMultiple(),
 #                                                  queryset=Organisation.objects.all())
-#     date_demande = forms.DateField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
 #     class Meta:
 #         model = PublishRequest
 #         fields = ('organisation', 'date_demande', 'date_acceptation')

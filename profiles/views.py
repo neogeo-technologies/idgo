@@ -1,6 +1,5 @@
-import hashlib
 import json
-import random
+
 
 from django.conf import settings
 from django.contrib.auth import login, logout
@@ -16,15 +15,16 @@ from django.views.decorators.csrf import csrf_exempt
 from .ckan_module import CkanHandler as ckan
 from .ldap_module import LdapHandler as ldap
 from .forms.user import UserForm, UserProfileForm, UserDeleteForm, \
-    UserUpdateForm, ProfileUpdateForm, UserLoginForm, PublishRequestForm
+    UserUpdateForm, ProfileUpdateForm, UserLoginForm
 from idgo_admin.models import Dataset
-from .models import Organisation, Profile, Registration, PublishRequest
+from .models import Organisation, Profile, Registration
 from .utils import *
 
 
-def render_an_critical_error(request):
+def render_an_critical_error(request, e=None):
     message = "Une erreur critique s'est produite lors de la création de " \
-              "votre compte. Merci de contacter l'administrateur du site."
+              "votre compte. Merci de contacter l'administrateur du site. " \
+              "{error}".format(error=e)
 
     return render(
             request, 'profiles/failure.html', {'message': message}, status=400)
@@ -106,24 +106,16 @@ def sign_up(request):
                         last_name=data['last_name'],
                         is_staff=False, is_superuser=False, is_active=False)
 
-        org_publ_pk = [entry['pk'] for entry in
-                       data['publish_for'].values('pk')]
-
-        Registration.objects.create(
+        reg = Registration.objects.create(
                         user=user,
-                        activation_key=data['activation_key'],
-                        admin_key=data['admin_key'],
                         profile_fields={'role': data['role'],
                                         'phone': data['phone'],
                                         'organisation': data['organisation'],
-                                        'publish_for': org_publ_pk})
+                                        'new_website': data['new_website'],
+                                        'is_new_orga': data['is_new_orga'],
+                                        })
 
-        return user
-
-    def create_activation_key(email_user):
-        pwd = str(random.random()).encode('utf-8')
-        salt = hashlib.sha1(pwd).hexdigest()[:5].encode('utf-8')
-        return hashlib.sha1(salt + bytes(email_user, 'utf-8')).hexdigest()
+        return user, reg
 
     def delete_user(username):
         User.objects.get(username=username).delete()
@@ -136,44 +128,44 @@ def sign_up(request):
     pform = UserProfileForm(data=request.POST)
 
     if not uform.is_valid() or not pform.is_valid():
+        print(pform.errors)
         return render_on_error()
 
     if uform.cleaned_data['password1'] != uform.cleaned_data['password2']:
         uform.add_error('password1', 'Vérifiez les champs mot de passe')
         return render_on_error()
 
-    data = {'activation_key': create_activation_key(
-                                        uform.cleaned_data['email']),
-            'admin_key': create_activation_key(settings.ADMIN_EMAIL),
-            'username': uform.cleaned_data['username'],
+    data = {'username': uform.cleaned_data['username'],
             'email': uform.cleaned_data['email'],
             'password': uform.cleaned_data['password1'],
             'first_name': uform.cleaned_data['first_name'],
             'last_name': uform.cleaned_data['last_name'],
             'organisation': pform.cleaned_data['organisation'],
+            'new_website': pform.cleaned_data['new_website'],
+            'is_new_orga': pform.cleaned_data['is_new_orga'],
             'role': pform.cleaned_data['role'],
-            'phone': pform.cleaned_data['phone'],
-            'publish_for': pform.cleaned_data['publish_for']}
+            'phone': pform.cleaned_data['phone']}
 
     if ckan.is_user_exists(data['username']) \
                 or ldap.is_user_exists(data['username']):
-        uform.add_error('username', 'Cet identifiant de connexion est réservé.')
+        uform.add_error('username',
+                        'Cet identifiant de connexion est réservé. ckan')
         return render_on_error()
 
     try:
-        user = save_user(data)
+        user, reg = save_user(data)
     except IntegrityError:
-        uform.add_error('username', 'Cet identifiant de connexion est réservé.')
+        uform.add_error('username',
+                        'Cet identifiant de connexion est réservé. ldap')
         return render_on_error()
 
     try:
         ldap.add_user(user, data['password'])
         ckan.add_user(user, data['password'])
-        send_validation_mail(request, data['email'], data['activation_key'])
+        send_validation_mail(request, reg)
     except Exception as e:
-
         delete_user(user.username)
-        return render_an_critical_error(request)
+        return render_an_critical_error(request, e)
 
     message = 'Votre compte a bien été créé. Vous recevrez un e-mail ' \
               "de confirmation d'ici quelques minutes. Pour activer " \
@@ -185,18 +177,42 @@ def sign_up(request):
 
 
 @csrf_exempt
-def confirmation_email(request, key): #confirmation de l'email par l'utilisateur
+def confirmation_email(request, key): # confirmation de l'email par l'utilisateur
 
-    registration = get_object_or_404(Registration, activation_key=key)
+    reg = get_object_or_404(Registration, activation_key=key)
 
     try:
-        send_activation_mail(request, registration, email_admin=settings.ADMIN_EMAIL)
-        registration.key_expires = None
+        reg.key_expires = None
+    except:
+        pass
+
+    user = reg.user
+    user.is_active = True
+    user.save()
+    # try:
+    Profile.objects.get_or_create(user=user,
+                           defaults={"phone":reg.profile_fields['phone'],
+                           "role":reg.profile_fields['role']})
+
+    # except IntegrityError as e:
+    #     return render_an_critical_error(request, e)
+
+    if reg.profile_fields['organisation'] not in ['', None] :
+        try:
+            send_affiliate_request(request, reg)
+        except:
+            return render_an_critical_error(request)
+
+    try:
+        send_confirmation_mail(user.email)
     except:
         pass  # Ce n'est pas très grave si l'e-mail ne part pas...
 
+
+
     message = """Merci d'avoir confirmer votre adresse email,
-        Vous receverez un message une fois votre compte activé par l'administeur
+        si vous avez fait une demande de rattachement à une organisation, 
+        celle-ci sera effective après validation par un administrateur. 
         """
 
     return render(request, 'profiles/success.html',
@@ -204,49 +220,69 @@ def confirmation_email(request, key): #confirmation de l'email par l'utilisateur
 
 
 @csrf_exempt
-def activation_admin(request, key): # activation du compte par l'administrateur
+def activation_admin(request, key):  # activation du compte par l'administrateur et rattachement
 
-    reg = get_object_or_404(Registration, admin_key=key)
-    organization = get_object_or_404(
-        Organisation, pk=reg.profile_fields['organisation'])
+    reg = get_object_or_404(Registration, affiliate_orga_key=key)
+    profile = get_object_or_404(Profile, user=reg.user)
 
-    user = reg.user
-    user.is_active = True
-    user.save()
+    reg_org_name = reg.profile_fields['organisation']
+    if reg_org_name:
+        org, created = Organisation.objects.get_or_create(name=reg_org_name,
+                                                 defaults={"website":reg.profile_fields['new_website'],
+                                              "email":"xxxxxxx@xxxxxx.xxxx",
+                                              "code_insee":"000000000000000"})
+
+
+        profile.organisation = org
+        profile.save()
+        username = reg.user.username
+        try:
+            # Todo: a voir si activate_user() necessite add_user_to_organization().
+            if reg.profile_fields['organisation']:
+                ldap.add_user_to_organization(username, org.ckan_slug)
+            ldap.activate_user(reg.user.username)
+
+            if reg.profile_fields['organisation']:
+                ckan.add_user_to_organization(username, org.ckan_slug,
+                                              role='editor')  # Qui détermine le rôle ?
+            ckan.activate_user(username)
+            reg.delete()
+
+        except Exception as e:
+            # profile.delete()
+            # TODO: Rétablir l'état inactif du compte !
+            return render_an_critical_error(request)
+
+    else:
+        profile.organisation = None
+        profile.save()
     try:
-        profile = Profile.objects.create(user=user,
-                                         organisation=organization,
-                                         phone=reg.profile_fields['phone'],
-                                         role=reg.profile_fields['role'])
-
-        for org in reg.profile_fields['publish_for']:
-            profile.publish_for.add(Organisation.objects.get(pk=org))
-
-
-    except IntegrityError:
-        return render_an_critical_error(request)
-
-    try:
-        ldap.add_user_to_organization(user.username, organization.ckan_slug)
-        ldap.activate_user(user.username)
-        ckan.add_user_to_organization(user.username, organization.ckan_slug,
-                                      role='editor')  # Qui détermine le rôle ?
-        ckan.activate_user(user.username)
-        Registration.objects.filter(user=user).delete()
-    except Exception as e:
-        profile.delete()
-        # TODO: Rétablir l'état inactif du compte !
-        return render_an_critical_error(request)
-
-    try:
-        send_confirmation_mail(user.email)
+        send_affiliate_confirmation(profile)
+        reg.delete()
     except:
         pass  # Ce n'est pas très grave si l'e-mail ne part pas...
 
-    message = 'Le compte de {username} est désormais activé.'.format(username=user.username)
+    message = 'Le compte de {username} est désormais activé. ' \
+              'et son rattachement à {orga} est effectif'.format(username=username,
+                                                                 orga=profile.organisation.name)
     return render(request, 'profiles/success.html',
                   {'message': message}, status=200)
 
+
+@csrf_exempt
+def affiliate_request(request, key):
+
+    reg = get_object_or_404(Registration, affiliate_orga_key=key)
+
+    try:
+        send_affiliate_confirmation(reg)
+        reg.date_acceptation = timezone.now()
+    except:
+        pass
+
+    message = "La confirmation de la demande de rattachement a bien été prise en compte. "
+    return render(request, 'profiles/success.html',
+                  {'message': message}, status=200)
 
 @transaction.atomic
 @login_required(login_url=settings.LOGIN_URL)
@@ -292,38 +328,36 @@ def modify_account(request):
                   {'message': message}, status=200)
 
 
-@transaction.atomic
-@login_required(login_url=settings.LOGIN_URL)
-@csrf_exempt
-def publish_request(request, key):
+# @transaction.atomic
+# @login_required(login_url=settings.LOGIN_URL)
+# @csrf_exempt
+# def publish_request(request, key):
+#
+#     pub_req = get_object_or_404(PublishRequest, publish_request_key=key)
+#
+#     try:
+#         send_publish_confirmation(pub_req)
+#         pub_req.date_acceptation = timezone.now()
+#
+#     except:
+#         pass  # Ce n'est pas très grave si l'e-mail ne part pas...
+#
+#     message = """Merci d'avoir confirmer votre adresse email,
+#             Vous receverez un message une fois votre compte activé par l'administeur
+#             """
+#
+#     return render(request, 'profiles/success.html',
+#                   {'message': message}, status=200)
 
-    pub_req = get_object_or_404(PublishRequest, publish_request_key=key)
-
-    try:
-        send_publish_confirmation(pub_req)
-        pub_req.date_acceptation = timezone.now()
-
-    except:
-        pass  # Ce n'est pas très grave si l'e-mail ne part pas...
-
-    message = """Merci d'avoir confirmer votre adresse email,
-            Vous receverez un message une fois votre compte activé par l'administeur
-            """
-
-    return render(request, 'profiles/success.html',
-                  {'message': message}, status=200)
-
-
-@transaction.atomic
-@login_required(login_url=settings.LOGIN_URL)
-@csrf_exempt
-def publish_manager(request):
-
-    publications = PublishRequest.objects.filter(user=request.user).exclude(date_acceptation=None)
-    publications_form = PublishRequestForm(instance=publications, data=request.POST or None)
-    if not publications_form.is_valid():
-        return render(request, 'profiles/publish.html', {'publications_form': publications_form})
-    # TODO : diplay form publish manager
+# @transaction.atomic
+# @login_required(login_url=settings.LOGIN_URL)
+# @csrf_exempt
+# def publish_manager(request):
+#
+#     publications = PublishRequest.objects.filter(user=request.user).exclude(date_acceptation=None)
+#     publications_form = PublishRequestForm(instance=publications, data=request.POST or None)
+#     if not publications_form.is_valid():
+#         return render(request, 'profiles/publish.html', {'publications_form': publications_form})
 
 
 

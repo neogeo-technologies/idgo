@@ -1,8 +1,9 @@
 import hashlib
 import random
+import uuid
 
 from django.db import models
-from django.db.models.signals import pre_delete, pre_save
+from django.db.models.signals import pre_delete, pre_save, post_save
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
@@ -14,7 +15,6 @@ from django.utils.text import slugify
 
 from .ldap_module import LdapHandler as ldap
 from .ckan_module import CkanHandler as ckan
-# from idgo_admin.models import Commune
 from profiles.utils import send_publish_request
 
 def deltatime_2_days():
@@ -54,14 +54,13 @@ class Organisation(models.Model):
         ('region_PACA', 'Région PACA'),
         ('epci', 'EPCI'),
         ('cd02', 'CD02'),
-
     )
 
     name = models.CharField('Nom', max_length=150, unique=True, db_index=True)
     organisation_type = models.ForeignKey(
         OrganisationType, verbose_name="Type d'organisme", default='1')
     code_insee = models.CharField(
-        'Code INSEE', max_length=20, unique=True, db_index=True)
+        'Code INSEE', max_length=20, unique=False, db_index=True)
     parent = models.ForeignKey(
         'self', on_delete=models.CASCADE, blank=True,
         null=True, verbose_name="Organisation parente")
@@ -93,28 +92,28 @@ class Organisation(models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-
-        if self.id:
-            self.sync_in_ckan = ckan.is_organization_exists(self.ckan_slug)
-        else:
-            self.ckan_slug = slugify(self.name)
-            try:
-                ckan.add_organization(self)
-            except:
-                self.sync_in_ckan = False
-            else:
-                self.sync_in_ckan = True
-
-        # first save which sets the id we need to generate a LDAP gidNumber
-        super().save(*args, **kwargs)
-
-        self.sync_in_ldap = ldap.sync_object(
-            'organisations', self.name,
-            self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, 'add_or_update')
-
-        # then save the current LDAP sync result
-        super().save(*args, **kwargs)
+    # REMPLACER PAR DES TRIGGERS
+    # def save(self, *args, **kwargs):
+    #
+    #     if self.id:
+    #         self.sync_in_ckan = ckan.is_organization_exists(self.ckan_slug)
+    #     else:
+    #         self.ckan_slug = slugify(self.name)
+    #         try:
+    #             ckan.add_organization(self)
+    #         except:
+    #             self.sync_in_ckan = False
+    #         else:
+    #             self.sync_in_ckan = True
+    #
+    #     # first save which sets the id we need to generate a LDAP gidNumber
+    #     super().save(*args, **kwargs)
+    #     self.sync_in_ldap = ldap.sync_object(
+    #         'organisations', self.name,
+    #         self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, 'add_or_update')
+    #
+    #     # then save the current LDAP sync result
+    #     super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
 
@@ -144,7 +143,7 @@ class Profile(models.Model):
         return self.user.username
 
 
-class PublishRequest(models.Model):
+class PublishRequest(models.Model): # Demande de contribution
 
     user = models.ForeignKey(User, verbose_name='Utilisateur')
     organisation = models.ForeignKey(
@@ -157,7 +156,6 @@ class PublishRequest(models.Model):
                                         blank=True, null=True)
     publish_request_key = models.CharField(max_length=40, blank=True)
 
-    # prévoir une action externe ACCEPTER renseignant la date d'acceptation et enregistrant l'orga dans le publish_for du User.
     def create_key(self, data):
         pwd = str(random.random()).encode('utf-8')
         salt = hashlib.sha1(pwd).hexdigest()[:5].encode('utf-8')
@@ -173,12 +171,11 @@ class PublishRequest(models.Model):
 class Registration(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    activation_key = models.CharField(max_length=40, blank=True)
-    admin_key = models.CharField(max_length=40, blank=True)
+    activation_key = models.UUIDField(default=uuid.uuid4, editable=False) # User validation email
+    affiliate_orga_key = models.UUIDField(default=uuid.uuid4, editable=False)  # Admin validation profile
     key_expires = models.DateTimeField(
                         default=deltatime_2_days, blank=True, null=True)
     profile_fields = JSONField('Champs profile', blank=True, null=True)
-
 
 # Triggers
 
@@ -191,14 +188,31 @@ def delete_user_in_externals(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Profile)
 def update_externals(sender, instance, **kwargs):
+    end_trigger = False
     if instance.id:
         old_instance = Profile.objects.get(pk=instance.id)
-        if old_instance.organisation.name != instance.organisation.name:
+
+        # TODO: possibilité d'inscrire un profile sans organisation
+        # todo: et possiblité de modifier un abonnment apres inscription
+        # todo: et possiblité de suppremier ancienne organisation par nouvelle
+        print("old", old_instance.organisation)
+        print("new", instance.organisation)
+        if old_instance.organisation is None:
+            end_trigger = True
+
+        if instance.organisation is None:
+            ckan.del_user_from_organization(
+                instance.user.username, old_instance.organisation.ckan_slug)
+            ldap.del_user_from_organization(
+                instance.user.username, old_instance.organisation.ckan_slug)
+            end_trigger = True
+
+        if end_trigger is False and \
+                    old_instance.organisation != instance.organisation:
             ckan.del_user_from_organization(
                     instance.user.username, old_instance.organisation.ckan_slug)
             ldap.del_user_from_organization(
                     instance.user.username, old_instance.organisation.ckan_slug)
-
 
 @receiver(pre_save, sender=Profile)
 def delete_user_expire_date(sender, instance, **kwargs):
@@ -207,3 +221,21 @@ def delete_user_expire_date(sender, instance, **kwargs):
     for reg in expired_key_reg:
         u = reg.user
         u.delete()
+
+@receiver(pre_save, sender=Organisation)
+def orga_ckan_presave(sender, instance, **kwargs):
+
+    instance.sync_in_ckan = ckan.is_organization_exists(instance.ckan_slug)
+    instance.ckan_slug = slugify(instance.name)
+    try:
+        ckan.add_organization(instance)
+    except:
+        instance.sync_in_ckan = False
+    else:
+        instance.sync_in_ckan = True
+
+@receiver(post_save, sender=Organisation)
+def orga_ldap_postsave(sender, instance, **kwargs):
+    instance.sync_in_ldap = ldap.sync_object(
+        'organisations', instance.name,
+        instance.id + settings.LDAP_ORGANISATION_ID_INCREMENT, 'add_or_update')
