@@ -163,6 +163,7 @@ class Dataset(models.Model):
                                  db_index=True, blank=True, null=True)
     sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
     url_inspire = models.URLField('URL Inspire', blank=True, null=True)
+    is_inspire = models.BooleanField("L'URL Inspire est valide", default=False)
     geocover = models.CharField('Couverture géographique', blank=True, null=True, default='regionale',
                                 max_length=30, choices=GEOCOVER_CHOICES)
     keywords = TaggableManager(blank=True)

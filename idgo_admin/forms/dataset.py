@@ -37,7 +37,14 @@ class DatasetForm(forms.ModelForm):
 
     keywords = TagField(required=False)
 
-    published = forms.BooleanField(initial=True, label="Publier ce jeu de donnée ", required=False)
+    published = forms.BooleanField(initial=True,
+                                   label="Publier ce jeu de donnée ",
+                                   required=False)
+
+    is_inspire = forms.BooleanField(initial=False,
+                                    label="URL au format INSPIRE",
+                                    required=False,)
+
 
     # Champs cachés :
 
@@ -65,8 +72,8 @@ class DatasetForm(forms.ModelForm):
                   'organisation',
                   'owner_email',
                   'update_freq',
-                  'url_inspire',
-                  'published')
+                  'published',
+                  'is_inspire')
 
     def handle_me(self, request, id=None):
         user = request.user
