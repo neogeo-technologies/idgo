@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.sites.shortcuts import get_current_site
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
@@ -17,7 +18,7 @@ from .ldap_module import LdapHandler as ldap
 from .forms.user import UserForm, UserProfileForm, UserDeleteForm, \
     UserUpdateForm, ProfileUpdateForm, UserLoginForm
 from idgo_admin.models import Dataset
-from .models import Organisation, Profile, Registration
+from .models import Organisation, Profile, Registration, PublishRequest
 from .utils import *
 
 
@@ -35,12 +36,12 @@ def redirect_url(request):
     next_path = None
     if request.method == 'GET':
         try:
-            next_path = request.GET["next"]
+            next_path = request.GET.get("next")
         except KeyError:
             pass
     if request.method == 'POST':
         try:
-            next_path = request.POST["next"]
+            next_path = request.POST.get("next")
         except KeyError:
             pass
     return next_path
@@ -80,8 +81,10 @@ def sign_in(request):
     user = uform.get_user()
     request.session.set_expiry(600) #time-out de la session
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-    if next_path:
-        return redirect(next_path)
+    nxt_pth = request.GET.get('next', None)
+    if nxt_pth:
+        print(nxt_pth)
+        # return redirect(next_path)
     return redirect('profiles:main') #main(request)
 
 
@@ -127,7 +130,6 @@ def sign_up(request):
     pform = UserProfileForm(data=request.POST)
 
     if not uform.is_valid() or not pform.is_valid():
-        print(pform.errors)
         return render_on_error()
 
     if uform.cleaned_data['password1'] != uform.cleaned_data['password2']:
@@ -188,13 +190,11 @@ def confirmation_email(request, key): # confirmation de l'email par l'utilisateu
     user = reg.user
     user.is_active = True
     user.save()
-    # try:
-    Profile.objects.get_or_create(user=user,
-                           defaults={"phone":reg.profile_fields['phone'],
-                           "role":reg.profile_fields['role']})
 
-    # except IntegrityError as e:
-    #     return render_an_critical_error(request, e)
+    Profile.objects.get_or_create(user=user,
+                                  defaults={"phone":reg.profile_fields['phone'],
+                                            "role":reg.profile_fields['role']})
+
 
     if reg.profile_fields['organisation'] not in ['', None] :
         try:
@@ -327,37 +327,53 @@ def modify_account(request):
                   {'message': message}, status=200)
 
 
-# @transaction.atomic
-# @login_required(login_url=settings.LOGIN_URL)
-# @csrf_exempt
-# def publish_request(request, key):
-#
-#     pub_req = get_object_or_404(PublishRequest, publish_request_key=key)
-#
-#     try:
-#         send_publish_confirmation(pub_req)
-#         pub_req.date_acceptation = timezone.now()
-#
-#     except:
-#         pass  # Ce n'est pas très grave si l'e-mail ne part pas...
-#
-#     message = """Merci d'avoir confirmer votre adresse email,
-#             Vous receverez un message une fois votre compte activé par l'administeur
-#             """
-#
-#     return render(request, 'profiles/success.html',
-#                   {'message': message}, status=200)
 
-# @transaction.atomic
-# @login_required(login_url=settings.LOGIN_URL)
-# @csrf_exempt
-# def publish_manager(request):
-#
-#     publications = PublishRequest.objects.filter(user=request.user).exclude(date_acceptation=None)
-#     publications_form = PublishRequestForm(instance=publications, data=request.POST or None)
-#     if not publications_form.is_valid():
-#         return render(request, 'profiles/publish.html', {'publications_form': publications_form})
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def publish_request(request):
 
+    user = request.user
+    profile = get_object_or_404(Profile, user=user)
+
+    if request.method == 'GET':
+        return render(request, 'profiles/publish.html',
+                      {'pform': ProfileUpdateForm()})
+
+    pform = ProfileUpdateForm(instance=profile, data=request.POST or None)
+    if not pform.is_valid():
+        return render(request, 'profiles/publish.html', {'pform': pform})
+
+    pub_req = PublishRequest.objects.create(user=user, organisation=pform.cleaned_data['publish_for'])
+    try:
+        send_publish_request(request, pub_req)
+    except:
+        render_an_critical_error(request)
+
+    message = """Votre demande de contribution à l'organisation {new_orga} est en cours de traitement.
+    Celle-ci sera effective après validation par un administrateur """.format(new_orga=pub_req.organisation.name)
+    return render(request, 'profiles/success.html',
+                  {'message': message}, status=200)
+
+
+@csrf_exempt
+def publish_request_confirme(request, key):
+
+    pub_req = get_object_or_404(PublishRequest, pub_req_key=key)
+    profile = get_object_or_404(Profile, user=pub_req.user)
+
+    if pub_req.organisation:
+        profile.publish_for.add(pub_req.organisation)
+        profile.save()
+    try:
+        send_publish_confirmation(pub_req)
+        pub_req.date_acceptation = timezone.now()
+    except:
+        pass
+
+    pub_req.delete()
+    message = "La confirmation de la demande de contribution a bien été prise en compte. "
+    return render(request, 'profiles/success.html',
+                  {'message': message}, status=200)
 
 
 @login_required(login_url=settings.LOGIN_URL)

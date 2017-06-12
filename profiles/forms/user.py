@@ -127,9 +127,9 @@ class ProfileUpdateForm(forms.ModelForm):
                                           label='Organisme',
                                           queryset=Organisation.objects.all())
 
-    publish_for = forms.ModelMultipleChoiceField(required=False,
+    publish_for = forms.ModelChoiceField(required=False,
                                          label='Organismes associés',
-                                         widget=CheckboxSelectMultiple(),
+                                         widget=forms.RadioSelect,
                                          queryset=Organisation.objects.all())
 
     phone = forms.CharField(required=False,
@@ -153,17 +153,11 @@ class ProfileUpdateForm(forms.ModelForm):
     def save_f(self, commit=True):
         profile = super(ProfileUpdateForm, self).save(commit=False)
 
-        publish_org = self.cleaned_data["publish_for"]
+
         org = self.cleaned_data['organisation']
 
         if org:
             profile.organisation = org
-
-        if publish_org:
-            profile.publish_for = publish_org
-        else:
-            profile.publish_for.clear()
-
 
         if commit:
             profile.save()

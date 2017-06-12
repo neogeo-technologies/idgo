@@ -130,23 +130,24 @@ def send_affiliate_confirmation(profile):
               recipient_list=[profile.user.email])
 
 
-def send_publish_request(get_current_site, publish_request, email_admin=settings.ADMIN_EMAIL):
+def send_publish_request(request, publish_request, email_admin=settings.ADMIN_EMAIL):
 
     from_email = 'idgo@neogeo-technologies.fr'
     subject = 'Un utilisateur requiert un status de contributeur pour une organisation'
+    url = request.build_absolute_uri(
+                reverse('profiles:publish_request_confirme', kwargs={'key': publish_request.pub_req_key}))
     message = '''
     Bonjour,
 
     Un nouvel utilisateur ({username}, {user_mail}) a fait une demande de contribution 
     pour l'organisation: {organisation_name}.
-    Cliquez sur ce lien pour valider son inscription et activer son compte : {url}
+    Cliquez sur ce lien pour valider sa demande : {url}
 
     Ceci est un message automatique. Merci de ne pas y répondre.'''.format(
         username=publish_request.user.username,
         user_mail=publish_request.user.email,
         organisation_name=publish_request.organisation.name,
-        url=get_current_site(
-            reverse('profiles:publish_request', kwargs={'key': publish_request.publish_request_key})))
+        url=url)
 
     send_mail(subject=subject,
               message=message,

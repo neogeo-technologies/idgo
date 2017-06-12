@@ -154,19 +154,7 @@ class PublishRequest(models.Model): # Demande de contribution
                                     auto_now_add=timezone.now())
     date_acceptation = models.DateField(verbose_name='Date acceptation',
                                         blank=True, null=True)
-    publish_request_key = models.CharField(max_length=40, blank=True)
-
-    def create_key(self, data):
-        pwd = str(random.random()).encode('utf-8')
-        salt = hashlib.sha1(pwd).hexdigest()[:5].encode('utf-8')
-        return hashlib.sha1(salt + bytes(data, 'utf-8')).hexdigest()
-
-    def save(self, *args, **kwargs):
-        if not self.id:
-            self.publish_request_key = self.create_key(self.organisation.name)
-            send_publish_request(get_current_site, self, email_admin=settings.ADMIN_EMAIL)
-        super(PublishRequest, self).save(*args, **kwargs)
-
+    pub_req_key = models.UUIDField(default=uuid.uuid4, editable=False)
 
 class Registration(models.Model):
 
