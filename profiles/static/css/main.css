@@ -239,13 +239,8 @@ table tr.selected:focus td {
     background-color: #f5193b;
 }
 
-#overlay {
-     visibility: hidden;
-     position: absolute;
-     left: 0px;
-     top: 0px;
-     width:100%;
-     height:100%;
-     text-align:center;
-     z-index: 1000;
+.well > .close {
+    position: relative;
+    top: -17px;
+    right: -11px;
 }

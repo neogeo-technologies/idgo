@@ -96,18 +96,19 @@ class UserProfileForm(forms.Form):
                                           queryset=Organisation.objects.all())
 
     new_orga = forms.CharField(
-        required=False,
         error_messages={'invalid': 'invalid'},
-        label="Nom organisme de rattachement",
+        label="Nom de l'organisme",
         max_length=255,
         min_length=3,
+        required=False,
         validators=[validators.validate_slug],
-        widget=forms.TextInput(attrs={'placeholder': """Entrez le nom d'un nouvel organisme pour en créer un. """}))
+        widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisme"}))
 
     new_website = forms.URLField(
-        required = False,
-        error_messages={'invalid': "L'adresse url de l'organisation est invalide."},
-        label="URL de pour une nouvelle organisation")
+        error_messages={
+            'invalid': "L'adresse URL est éronée. "},
+        label="URL du site internet de l'organisme",
+        required = False)
 
     is_new_orga = forms.BooleanField(widget=forms.HiddenInput(), required=False, initial=False)
 

@@ -57,7 +57,6 @@ def main(request):
                  o.description,
                  o.date_creation.isoformat(),
                  o.date_modification.isoformat(),
-                 o.sync_in_ckan,
                  o.published) for o in Dataset.objects.filter(editor=user)]
 
     return render(request, 'profiles/main.html',
