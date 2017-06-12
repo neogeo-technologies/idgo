@@ -145,14 +145,14 @@ table tr.selected:focus td {
 }
 
 .btn-default {
-    background-color: #f3f3f3;
-    border-color: #e3e3e3;
+    color: #333;
+    background-color: #fff;
+    border-color: 333;
 }
 
 .btn-default:hover,
 .btn-default:focus {
-    background-color: #e3e3e3;
-    border-color: #d3d3d3;
+    background-color: #fcfcfc;
 }
 
 .btn-link {
@@ -184,6 +184,14 @@ table tr.selected:focus td {
 .btn-danger:focus {
     background-color: #db0022;
     border-color: #db0022;
+}
+
+.btn.disabled,
+.btn.disabled:hover,
+.btn.disabled:focus {
+    color: #aaa;
+    background-color: #fdfdfd;
+    border-color: #aaa;
 }
 
 .buttons-on-the-right-side {
