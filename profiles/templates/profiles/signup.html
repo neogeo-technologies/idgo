@@ -66,10 +66,40 @@
 											<div class="col-xs-12 col-sm-6">
 												{% bootstrap_field pform.new_website show_label=False %}
 											</div>
+											{% if "new_website" in pform.errors or "new_orga" in pform.errors %}
+												<script>
+													var $collapseOne = $('#collapse-one')
+													.collapse({
+														toggle: false
+													})
+													.on('hidden.bs.collapse', function() {
+														$('#collapse-one select').each(function(i) {
+															$(this)[0].selectedIndex = 0;
+														});
+													});
+													var $collapseTwo = $('#collapse-two')
+														.collapse({
+															toggle: false
+														})
+														.on('hidden.bs.collapse', function() {
+															$('#collapse-two input').each(function(i) {
+																$(this).val('');
+															});
+														});
+
+													function tggl() {
+														$collapseOne.collapse('toggle');
+														$collapseTwo.collapse('toggle');
+													};
+
+													$('#add-organization').click(tggl);
+													$('#collapse-two .close').click(tggl);
+													tggl()
+												</script>
+											{% endif%}
 										</div>
 									</div>
 								</div>
-
 								<hr />
 								<div class="row">
 									<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">

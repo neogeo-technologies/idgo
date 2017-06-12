@@ -1,14 +1,12 @@
 import json
 
-
-from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.contrib.sites.shortcuts import get_current_site
-from django.core import serializers
+
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -31,22 +29,6 @@ def render_an_critical_error(request, e=None):
             request, 'profiles/failure.html', {'message': message}, status=400)
 
 
-def redirect_url(request):
-
-    next_path = None
-    if request.method == 'GET':
-        try:
-            next_path = request.GET.get("next")
-        except KeyError:
-            pass
-    if request.method == 'POST':
-        try:
-            next_path = request.POST.get("next")
-        except KeyError:
-            pass
-    return next_path
-
-
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def main(request):
@@ -66,7 +48,6 @@ def main(request):
 @csrf_exempt
 def sign_in(request):
 
-    next_path = redirect_url(request)
     if request.method == 'GET':
         logout(request)
         return render(
@@ -83,9 +64,8 @@ def sign_in(request):
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     nxt_pth = request.GET.get('next', None)
     if nxt_pth:
-        print(nxt_pth)
-        # return redirect(next_path)
-    return redirect('profiles:main') #main(request)
+        return HttpResponseRedirect(nxt_pth)
+    return redirect('profiles:main')
 
 
 @csrf_exempt
@@ -102,6 +82,7 @@ def sign_up(request):
                       {'uform': UserForm(), 'pform': UserProfileForm()})
 
     def save_user(data):
+
         user = User.objects.create_user(
                         username=data['username'], password=data['password'],
                         email=data['email'], first_name=data['first_name'],
@@ -150,14 +131,14 @@ def sign_up(request):
     if ckan.is_user_exists(data['username']) \
                 or ldap.is_user_exists(data['username']):
         uform.add_error('username',
-                        'Cet identifiant de connexion est réservé. ckan')
+                        'Cet identifiant de connexion est réservé. ')
         return render_on_error()
 
     try:
         user, reg = save_user(data)
     except IntegrityError:
         uform.add_error('username',
-                        'Cet identifiant de connexion est réservé. ldap')
+                        'Cet identifiant de connexion est réservé. ')
         return render_on_error()
 
     try:
