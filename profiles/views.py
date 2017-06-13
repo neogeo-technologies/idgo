@@ -315,12 +315,14 @@ def publish_request(request):
 
     user = request.user
     profile = get_object_or_404(Profile, user=user)
-
+    pub_liste = profile.publish_for
     if request.method == 'GET':
         return render(request, 'profiles/publish.html',
-                      {'pform': ProfileUpdateForm()})
+                      {'pform': ProfileUpdateForm(),
+                       "pub_liste": pub_liste})
 
     pform = ProfileUpdateForm(instance=profile, data=request.POST or None)
+
     if not pform.is_valid():
         return render(request, 'profiles/publish.html', {'pform': pform})
 

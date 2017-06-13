@@ -1,5 +1,3 @@
-import hashlib
-import random
 import uuid
 
 from django.db import models
@@ -8,14 +6,12 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
-from django.contrib.sites.shortcuts import get_current_site
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
 
 from .ldap_module import LdapHandler as ldap
 from .ckan_module import CkanHandler as ckan
-from profiles.utils import send_publish_request
 
 def deltatime_2_days():
     return timezone.now() + timezone.timedelta(days=2)

@@ -4,12 +4,9 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.core import validators
 from django.core.exceptions import ValidationError
-from django.forms import CheckboxSelectMultiple, inlineformset_factory
-
 
 from profiles.models import Profile, Organisation, PublishRequest
 from . import common_fields as fields
-
 
 
 class UserForm(forms.Form):
@@ -125,6 +122,8 @@ class UserProfileForm(forms.Form):
 
 class ProfileUpdateForm(forms.ModelForm):
 
+
+
     organisation = forms.ModelChoiceField(required=False,
                                           label='Organisme',
                                           queryset=Organisation.objects.all())
@@ -151,6 +150,10 @@ class ProfileUpdateForm(forms.ModelForm):
         model = Profile
         fields = ('organisation', 'phone', 'role', 'publish_for')
 
+    # def __init__(self, *args, **kwargs):
+    #     exclude_args = kwargs.pop('exclude', {})
+    #     super(ProfileUpdateForm, self).__init__(*args, **kwargs)
+    #     self.fields['publish_for'].queryset = P.objects.exclude(**exclude_args)
 
     def save_f(self, commit=True):
         profile = super(ProfileUpdateForm, self).save(commit=False)
@@ -186,15 +189,10 @@ class UserDeleteForm(AuthenticationForm):
 
 # class PublishRequestForm(forms.ModelForm):
 #
-#     publish_for = forms.ModelMultipleChoiceField(required=False,
-#                                                  label='Organismes publication',
-#                                                  widget=CheckboxSelectMultiple(),
-#                                                  queryset=Organisation.objects.all())
+#     publish_for = forms.ModelChoiceField(required=False,
+#                                          label='Organismes de contribution',
+#                                          widget=forms.RadioSelect(),
+#                                          queryset=Organisation.objects.all())
 #     class Meta:
 #         model = PublishRequest
 #         fields = ('organisation', 'date_demande', 'date_acceptation')
-#
-#     def save_f(self, commit=True):
-#         publish_request = super(PublishRequestForm, self).save(commit=False)
-#
-#         publish_for = self.cleaned_data["publish_for"]
