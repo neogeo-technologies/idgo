@@ -131,7 +131,7 @@ class ProfileUpdateForm(forms.ModelForm):
 
     publish_for = forms.ModelChoiceField(required=False,
                                          label='Organismes associés',
-                                         widget=forms.RadioSelect,
+                                         widget=forms.RadioSelect(),
                                          queryset=Organisation.objects.all())
 
     phone = forms.CharField(required=False,
@@ -154,7 +154,6 @@ class ProfileUpdateForm(forms.ModelForm):
 
     def save_f(self, commit=True):
         profile = super(ProfileUpdateForm, self).save(commit=False)
-
 
         org = self.cleaned_data['organisation']
 

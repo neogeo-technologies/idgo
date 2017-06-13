@@ -20,23 +20,60 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-md-offset-1 col-lg-offset-2 col-xs-12 col-sm-12 col-md-10 col-lg-8">
-					<div class="panel panel-default">
-						<div class="panel-body">
-							<h3>Demande de contribution à une organisation</h3>
-							<br />
-							<form method="post" action="">
-								<hr />
-								{% bootstrap_field pform.publish_for show_label=False %}
-								<hr />
-								<div class="pull-right">
-									<a class="btn btn-default" href="{% url "profiles:main" %}">Revenir</a>
-									<button type="submit" class="btn btn-primary">Valider</button>
+					<h1>Je contribue pour...</h1>
+					<br />
+					<form>
+						<div class="form-group">
+							<div class="row">
+								<div class="col-md-6">
+									<div class="input-group" name="organization">
+										<input type="text" class="form-control" placeholder="Rechercher l'organisme...">
+										<span class="input-group-btn">
+											<button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+										</span>
+									</div>
 								</div>
-							</form>
+							</div>
 						</div>
-					</div>
+					</form>
+
+					<form method="post" action="">
+						<div class="btn-group-vertical btn-block scrolling-box"  style="height: 205px;" data-toggle="buttons">
+							{% for choice in pform.publish_for %}
+							<div class="btn btn-radio">{{ choice }}</div>
+							{% endfor %}
+						</div>
+						<div class="pull-right">
+							<a class="btn btn-default" href="{% url "profiles:main" %}">Annuler</a>
+							<button type="submit" class="btn btn-primary disabled" disabled=True>Envoyer la demande</button>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>
 	</body>
+	<script>
+$(function() {
+	var $radioInputs = $('form input:radio');
+	$('div[name="organization"] button[type="button"]').click(function() {
+		$radioInputs.each(function() {
+			var $entry = $(this).parent();
+			var $container = $('div.scrolling-box');
+			if ($entry.text().trim().toLowerCase().startsWith($('div[name="organization"] input[type="text"]').val().trim().toLowerCase())) {
+				$container.animate({
+					scrollTop: $entry.offset().top - $container.offset().top + $container.scrollTop() - 7
+				}, 606);
+			};
+		});
+	});
+	var $submit = $('form button[type="submit"]');
+	$radioInputs.change(function() {
+		if ($('div.btn-radio').hasClass('active')) {
+			$submit.removeClass('disabled').prop('disabled', false);
+		} else {
+			$submit.addClass('disabled').prop('disabled', true)
+		};
+	});
+});
+	</script>
 </html>

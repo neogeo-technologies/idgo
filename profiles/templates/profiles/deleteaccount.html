@@ -20,32 +20,26 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-md-offset-2 col-lg-offset-2 col-xs-12 col-sm-12 col-md-8 col-lg-8">
-					<div class="panel panel-default">
-						<div class="panel-body">
-							<h3>Êtes-vous absolument sûr ?</h3>
-							<br />
-							<p>Vous êtes sur le point de supprimer votre compte.</p>
-							<p>Cette action est irreversible et supprimera <strong>définitivement</strong> votre compte.</p>
-							<p>Pour confirmer, veuillez réécrire votre identifiant de connexion ainsi que votre mot de passe.</p>
-							<br />
-							<form method="post" action="">
-								{% csrf_token %}
-								<div class="row">
-									<div class="col-xs-12 col-sm-6">
-										{% bootstrap_field uform.username show_label=False %}
-									</div>
-									<div class="col-xs-12 col-sm-6">
-										{% bootstrap_field uform.password show_label=False %}
-									</div>
-								</div>
-								<br />
-								<div class="pull-right">
-									<a class="btn btn-default" href="{% url "profiles:main" %}">Annuler</a>
-									<button type="submit" class="btn btn-danger">Supprimer définitivement mon compte</button>
-								</div>
-							</form>
+					<h1>Êtes-vous absolument sûr ?</h1>
+					<br />
+					<p>Vous êtes sur le point de supprimer votre compte.</p>
+					<p>Cette action est irreversible et supprimera <strong>définitivement</strong> votre compte.</p>
+					<p>Pour confirmer, veuillez réécrire votre identifiant de connexion ainsi que votre mot de passe.</p>
+					<form method="post" action="">
+						{% csrf_token %}
+						<div class="row">
+							<div class="col-xs-12 col-sm-6">
+								{% bootstrap_field uform.username show_label=False %}
+							</div>
+							<div class="col-xs-12 col-sm-6">
+								{% bootstrap_field uform.password show_label=False %}
+							</div>
 						</div>
-					</div>
+						<div class="pull-right">
+							<a class="btn btn-default" href="{% url "profiles:main" %}">Annuler</a>
+							<button type="submit" class="btn btn-danger">Supprimer définitivement mon compte</button>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>

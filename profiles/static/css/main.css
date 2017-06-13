@@ -16,6 +16,18 @@ body {
     color: #333;
 }
 
+br {
+    line-height: 3.5em;
+}
+
+.form-control {
+    color: #555;
+    background-color: #fff;
+    border-color: #999;
+    -webkit-box-shadow: none;
+            box-shadow: none;
+}
+
 .modal {
     min-width: 767px;
 }
@@ -145,14 +157,28 @@ table tr.selected:focus td {
 }
 
 .btn-default {
-    color: #333;
+    color: #555;
     background-color: #fff;
-    border-color: 333;
+    border-color: #666;
 }
 
 .btn-default:hover,
 .btn-default:focus {
+    color: #444;
     background-color: #fcfcfc;
+    border-color: #444;
+}
+
+a {
+    cursor: pointer;
+    color: #067ee6;
+    font-weight: bold;
+}
+
+a:hover,
+a:focus {
+    color: #067ee6;
+    text-decoration: underline;
 }
 
 .btn-link {
@@ -161,7 +187,7 @@ table tr.selected:focus td {
 
 .btn-link:hover,
 .btn-link:focus, {
-    color: #0571cf;
+    color: #067ee6;
 }
 
 .btn-primary {
@@ -184,6 +210,55 @@ table tr.selected:focus td {
 .btn-danger:focus {
     background-color: #db0022;
     border-color: #db0022;
+}
+
+.btn-radio {
+    background-color: #fff;
+    border-color: #ccc;
+    border-radius: 0;
+}
+
+.btn-radio:hover,
+.btn-radio:focus {
+    background-color: #eee;
+    border-color: #ccc;
+}
+
+.btn-radio.active,
+.btn-radio.active:hover,
+.btn-radio.active:focus {
+    background-color: #067ee6;
+    border-color: #ccc;
+    box-shadow: none;
+    color: #fff;
+}
+
+.btn-radio label {
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 0;
+    font-weight: 500;
+}
+
+.scrolling-box {
+    overflow: auto;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+}
+
+.scrolling-box .btn-radio {
+    border-right: 0;
+    border-left: 0;
+}
+
+.scrolling-box .btn-radio:first-child {
+    border-top: 0;
+    border-radius: 0;
+}
+
+.scrolling-box .btn-radio:last-child {
+    border-bottom: 0;
+    border-radius: 0;
 }
 
 .btn.disabled,
