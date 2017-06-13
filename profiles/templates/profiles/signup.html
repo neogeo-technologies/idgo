@@ -51,14 +51,14 @@
 									{% bootstrap_field pform.organisation show_label=False %}
 									{% bootstrap_field pform.is_new_orga %}
 									<p>Si celui-ci n'est pas dans la liste, vous pouvez <a id="add-organization" type="button">indiquer un nouvel organisme</a>. </p>
-
 								</div>
 								<div id="collapse-two" class="collapse">
 									<div class="well">
 										<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 											<span aria-hidden="true">&times;</span>
 										</button>
-										<p>Veuillez indiquer le nom et l'URL du site internet de l'organisme auquel vous êtes rattaché : </p>
+										<p>Veuillez indiquer ci-dessous le nom et l'URL du site internet de l'organisme auquel vous êtes rattaché. </p>
+										<p>Une demande de création d'organisme sera soumise à l'administrateur du site pour validation. </p>
 										<div class="row">
 											<div class="col-xs-12 col-sm-6">
 												{% bootstrap_field pform.new_orga show_label=False %}
@@ -66,37 +66,6 @@
 											<div class="col-xs-12 col-sm-6">
 												{% bootstrap_field pform.new_website show_label=False %}
 											</div>
-											{% if "new_website" in pform.errors or "new_orga" in pform.errors %}
-												<script>
-													var $collapseOne = $('#collapse-one')
-													.collapse({
-														toggle: false
-													})
-													.on('hidden.bs.collapse', function() {
-														$('#collapse-one select').each(function(i) {
-															$(this)[0].selectedIndex = 0;
-														});
-													});
-													var $collapseTwo = $('#collapse-two')
-														.collapse({
-															toggle: false
-														})
-														.on('hidden.bs.collapse', function() {
-															$('#collapse-two input').each(function(i) {
-																$(this).val('');
-															});
-														});
-
-													function tggl() {
-														$collapseOne.collapse('toggle');
-														$collapseTwo.collapse('toggle');
-													};
-
-													$('#add-organization').click(tggl);
-													$('#collapse-two .close').click(tggl);
-													tggl()
-												</script>
-											{% endif%}
 										</div>
 									</div>
 								</div>
@@ -150,5 +119,8 @@ function tggl() {
 $('#add-organization').click(tggl);
 $('#collapse-two .close').click(tggl);
 
+window.onload = function(e) {
+	{% if pform.new_website.value or pform.new_orga.value %} tggl(); {% endif %}
+};
 	</script>
 </html>

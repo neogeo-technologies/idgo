@@ -110,7 +110,8 @@ class UserProfileForm(forms.Form):
         label="URL du site internet de l'organisme",
         required = False)
 
-    is_new_orga = forms.BooleanField(widget=forms.HiddenInput(), required=False, initial=False)
+    is_new_orga = forms.BooleanField(widget=forms.HiddenInput(),
+                                     required=False, initial=False)
 
     phone = fields.PHONE
 
@@ -118,7 +119,8 @@ class UserProfileForm(forms.Form):
 
     class Meta:
         model = Profile
-        fields = ('organisation', 'role', 'phone', 'new_orga', 'new_website', 'is_new_orga')
+        fields = ('organisation', 'role', 'phone',
+                  'new_orga', 'new_website', 'is_new_orga')
 
 
 class ProfileUpdateForm(forms.ModelForm):
