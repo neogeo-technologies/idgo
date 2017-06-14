@@ -318,10 +318,10 @@ def publish_request(request):
     pub_liste = profile.publish_for
     if request.method == 'GET':
         return render(request, 'profiles/publish.html',
-                      {'pform': ProfileUpdateForm(),
+                      {'pform': ProfileUpdateForm(exclude={'user':user}),
                        "pub_liste": pub_liste})
 
-    pform = ProfileUpdateForm(instance=profile, data=request.POST or None)
+    pform = ProfileUpdateForm(instance=profile, data=request.POST or None, exclude={'user':user})
 
     if not pform.is_valid():
         return render(request, 'profiles/publish.html', {'pform': pform})

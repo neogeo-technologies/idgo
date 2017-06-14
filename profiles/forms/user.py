@@ -150,10 +150,13 @@ class ProfileUpdateForm(forms.ModelForm):
         model = Profile
         fields = ('organisation', 'phone', 'role', 'publish_for')
 
-    # def __init__(self, *args, **kwargs):
-    #     exclude_args = kwargs.pop('exclude', {})
-    #     super(ProfileUpdateForm, self).__init__(*args, **kwargs)
-    #     self.fields['publish_for'].queryset = P.objects.exclude(**exclude_args)
+    def __init__(self, *args, **kwargs):
+        exclude_args = kwargs.pop('exclude', {})
+        super(ProfileUpdateForm, self).__init__(*args, **kwargs)
+        ppf = Profile.publish_for.through
+        set = ppf.objects.filter(profile__user=exclude_args['user'])
+        black_l = [e.organisation_id for e in set]
+        self.fields['publish_for'].queryset = Organisation.objects.exclude(pk__in=black_l)
 
     def save_f(self, commit=True):
         profile = super(ProfileUpdateForm, self).save(commit=False)
