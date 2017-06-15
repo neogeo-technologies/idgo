@@ -21,38 +21,44 @@
 			<div class="row">
 				<div class="col-md-offset-1 col-lg-offset-2 col-xs-12 col-sm-12 col-md-10 col-lg-8">
 					<h1>Je contribue pour...</h1>
-					<div>
-						{% for contribute in pub_liste.all %}
-							<li>{{ contribute }}</li>
-						{% endfor %}
-					</div>
 					<br />
-					<form>
-						<div class="form-group">
-							<div class="row">
-								<div class="col-md-6">
-									<div class="input-group" name="organization">
-										<input type="text" class="form-control" placeholder="Rechercher l'organisme...">
-										<span class="input-group-btn">
-											<button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
-										</span>
+					<ul class="list-group">
+						{% for contribute in pub_liste.all %}
+							<li class="list-group-item">{{ contribute }}</li>
+						{% endfor %}
+					</ul>
+					<br />
+					<a class="btn btn-link" role="button" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample">Je souhaite contribuer pour...</a>
+					<br />
+					<div class="collapse" id="collapseExample">
+						<div class="well">
+							<form>
+								<div class="form-group">
+									<div class="row">
+										<div class="col-md-6">
+											<div class="input-group" name="organization">
+												<input type="text" class="form-control" placeholder="Rechercher l'organisme...">
+												<span class="input-group-btn">
+													<button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+												</span>
+											</div>
+										</div>
 									</div>
 								</div>
-							</div>
+							</form>
+							<form method="post" action="">
+								<div class="btn-group-vertical btn-block scrolling-box"  style="height: 205px;" data-toggle="buttons">
+									{% for choice in pform.publish_for %}
+									<div class="btn btn-radio">{{ choice }}</div>
+									{% endfor %}
+								</div>
+								<div>
+									<a class="btn btn-default" href="{% url "profiles:main" %}">Annuler</a>
+									<button type="submit" class="btn btn-primary disabled" disabled=True>Envoyer la demande</button>
+								</div>
+							</form>
 						</div>
-					</form>
-
-					<form method="post" action="">
-						<div class="btn-group-vertical btn-block scrolling-box"  style="height: 205px;" data-toggle="buttons">
-							{% for choice in pform.publish_for %}
-							<div class="btn btn-radio">{{ choice }}</div>
-							{% endfor %}
-						</div>
-						<div class="pull-right">
-							<a class="btn btn-default" href="{% url "profiles:main" %}">Annuler</a>
-							<button type="submit" class="btn btn-primary disabled" disabled=True>Envoyer la demande</button>
-						</div>
-					</form>
+					</div>
 				</div>
 			</div>
 		</div>

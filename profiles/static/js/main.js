@@ -247,8 +247,19 @@ function redirect(path) {
 	window.location.replace(window.location.origin + path);
 };
 
+
+function test() {
+
+};
+
+
 window.onhashchange = function(e) {
-	$('#menu a[href="' + window.location.hash + '"]').tab('show');
+	var hash = window.location.hash;
+	if (hash == '#modifyaccount') {
+		test();
+	} else if (HASH_MENU.indexOf(hash) === -1) {
+		$('#menu a[href="' + hash + '"]').tab('show');
+	};
 	e.preventDefault();
 };
 

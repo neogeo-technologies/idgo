@@ -17,7 +17,11 @@ body {
 }
 
 br {
-    line-height: 3.5em;
+    line-height: 300%;
+}
+
+.h1, h1 {
+    margin-top: 40px;
 }
 
 .form-control {
@@ -242,21 +246,22 @@ a:focus {
 
 .scrolling-box {
     overflow: auto;
-    border: 1px solid #ccc;
+    border: 1px solid #999;
     margin-bottom: 15px;
 }
 
 .scrolling-box .btn-radio {
     border-right: 0;
     border-left: 0;
+    text-align: left;
 }
 
-.scrolling-box .btn-radio:first-child {
+.scrolling-box .btn-radio:first-child:not(:last-child) {
     border-top: 0;
     border-radius: 0;
 }
 
-.scrolling-box .btn-radio:last-child {
+.scrolling-box .btn-radio:last-child:not(:first-child) {
     border-bottom: 0;
     border-radius: 0;
 }
