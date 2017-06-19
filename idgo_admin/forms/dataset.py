@@ -43,7 +43,7 @@ class DatasetForm(forms.ModelForm):
 
     is_inspire = forms.BooleanField(initial=False,
                                     label="Cette ressource nécessite une URL au format INSPIRE",
-                                    required=False,)
+                                    required=False)
 
 
     # Champs cachés :
@@ -87,7 +87,6 @@ class DatasetForm(forms.ModelForm):
                   'organisation': data['organisation'],
                   'owner_email': data['owner_email'],
                   'update_freq': data['update_freq'],
-                  'url_inspire': data['url_inspire'],
                   'published': data['published']}
 
         if id:  # Mise à jour du dataset
