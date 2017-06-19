@@ -147,7 +147,7 @@ def sign_up(request):
         ckan.add_user(user, data['password'])
         send_validation_mail(request, reg)
     except Exception as e:
-        delete_user(user.username)
+        # delete_user(user.username)
         return render_an_critical_error(request, e)
 
     message = 'Votre compte a bien été créé. Vous recevrez un e-mail ' \
@@ -192,8 +192,8 @@ def confirmation_email(request, key): # confirmation de l'email par l'utilisateu
 
 
     message = """Merci d'avoir confirmer votre adresse email,
-        si vous avez fait une demande de rattachement à une organisation, 
-        celle-ci sera effective après validation par un administrateur. 
+        si vous avez fait une demande de rattachement à une organisation,
+        celle-ci sera effective après validation par un administrateur.
         """
 
     return render(request, 'profiles/success.html',
