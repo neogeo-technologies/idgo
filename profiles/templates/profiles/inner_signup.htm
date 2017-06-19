@@ -70,35 +70,33 @@
 </div>
 
 <script>
-$(function (){
-	var $collapseOne = $('#collapse-one')
-		.collapse({
-			toggle: false
-		})
-		.on('hidden.bs.collapse', function() {
-			$('#collapse-one select').each(function(i) {
-				$(this)[0].selectedIndex = 0;
-			});
+var $collapseOne = $('#collapse-one')
+	.collapse({
+		toggle: false
+	})
+	.on('hidden.bs.collapse', function() {
+		$('#collapse-one select').each(function(i) {
+			$(this)[0].selectedIndex = 0;
 		});
+	});
 
-	var $collapseTwo = $('#collapse-two')
-		.collapse({
-			toggle: false
-		})
-		.on('hidden.bs.collapse', function() {
-			$('#collapse-two input').each(function(i) {
-				$(this).val('');
-			});
+var $collapseTwo = $('#collapse-two')
+	.collapse({
+		toggle: false
+	})
+	.on('hidden.bs.collapse', function() {
+		$('#collapse-two input').each(function(i) {
+			$(this).val('');
 		});
+	});
 
-	function tggl() {
-		$collapseOne.collapse('toggle');
-		$collapseTwo.collapse('toggle');
-	};
+function tggl() {
+	$collapseOne.collapse('toggle');
+	$collapseTwo.collapse('toggle');
+};
 
-	$('#add-organization').click(tggl);
-	$('#collapse-two .close').click(tggl);
-});
+$('#add-organization').click(tggl);
+$('#collapse-two .close').click(tggl);
 
 window.onload = function(e) {
 	{% if pform.new_website.value or pform.new_orga.value %} tggl(); {% endif %}
