@@ -76,7 +76,7 @@ class LdapHandler(metaclass=Singleton):
                 ('homeDirectory', ['/home/{0}'.format(user.username).encode()]),
                 ('userPassword', [password.encode()]),
                 ('description', ['created by {0} at {1}'.format(
-                                 'guillaume', datetime.now()).encode()])])
+                                            'idgo', datetime.now()).encode()])])
 
     def del_user(self, username):
 
@@ -141,16 +141,27 @@ class LdapHandler(metaclass=Singleton):
             self.del_user_from_group(username, group_name)
 
     def get_organization(self, organization_name):
-        pass  #TODO?
+        res = self._search('cn={0},ou=organisations,dc=idgo,dc=local'.format(
+                                                            organization_name))
+        if res is None:
+            return None
+        if len(res) > 1:  # TODO???
+            raise IntegrityError()
+        return res[0]
 
     def is_organization_exists(self, organization_name):
-        pass  #TODO?
+        return self.get_organization(organization_name) and True or False
 
     def add_organization(self, organization):
-        pass  #TODO?
+        self.conn.add_s(
+            'cn=%s,ou=organisations,dc=idgo,dc=local'.format(user.username), [
+                ('objectclass', [b"posixGroup"]),
+                # ('gidNumber', [gid.encode()]),
+                ('description', ['created by {0} at {1}'.format(
+                                            'idgo', datetime.now()).encode()])])
 
     def del_organization(self, organization_name):
-        pass  #TODO?
+        pass #TODO
 
     def get_organizations_which_user_belongs(self, username):
 
@@ -188,7 +199,7 @@ class LdapHandler(metaclass=Singleton):
             ("objectclass", [b"posixGroup"]),
             ("gidNumber", ["{0}".format(gid).encode()]),
             ("description", ["created by {0} at {1}".format(
-                            u.username, datetime.now()).encode()])])
+                                        u.username, datetime.now()).encode()])])
         return True
 
     def sync_object(self, object_type, object_name, gid, operation='add_or_update'):
