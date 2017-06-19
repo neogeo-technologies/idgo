@@ -248,16 +248,9 @@ function redirect(path) {
 };
 
 
-function test() {
-
-};
-
-
 window.onhashchange = function(e) {
 	var hash = window.location.hash;
-	if (hash == '#modifyaccount') {
-		test();
-	} else if (HASH_MENU.indexOf(hash) === -1) {
+	if (HASH_MENU.indexOf(hash) === -1) {
 		$('#menu a[href="' + hash + '"]').tab('show');
 	};
 	e.preventDefault();
