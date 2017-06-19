@@ -362,6 +362,16 @@ def publish_request_confirme(request, key):
 
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
+def contributions(request):
+    profile = get_object_or_404(Profile, user=request.user)
+    if request.method == 'GET':
+        return render(request, 'profiles/contributions.html',
+                      {"my_profile": profile})
+
+
+
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
 def delete_account(request):
 
     if request.method == 'GET':

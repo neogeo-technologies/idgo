@@ -4,7 +4,7 @@ from django.conf.urls import url
 from profiles.views import confirmation_email, delete_account, modify_account, \
     sign_in, sign_out, sign_up, main, \
     activation_admin, affiliate_request, publish_request, \
-    publish_request_confirme
+    publish_request_confirme, contributions
 
 
 urlpatterns = [
@@ -18,5 +18,6 @@ urlpatterns = [
     url(r'^affiliate_request/(?P<key>.+)/?$', affiliate_request, name='affiliate_request'),
     url(r'^publish_request/(?P<key>.+)/?$', publish_request_confirme, name='publish_request_confirme'),
     url(r'^publish_request/?$', publish_request, name='publish_request'),
+    url(r'^contributions/?$', contributions, name='contributions'),
     url(r'^deleteaccount/?$', delete_account, name='deleteAccount'),
 ]
