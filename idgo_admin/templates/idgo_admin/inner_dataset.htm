@@ -1,0 +1,29 @@
+{% load bootstrap3 %}
+
+<div class="container">
+	<div class="row">
+		<div class="col-sm-offset-1 col-md-offset-2 col-lg-offset-3 col-xs-12 col-sm-10 col-md-8 col-lg-6">
+			<br />
+			<h2>Création d'un jeu de données</h2>
+			<br />
+			<form method="post" action="">
+				{% csrf_token %}
+				{% bootstrap_field dform.name %}
+				{% bootstrap_field dform.description %}
+				{% bootstrap_field dform.geocover %}
+				{% bootstrap_field dform.update_freq %}
+				{% bootstrap_field dform.categories %}
+				{% bootstrap_field dform.organisation %}
+				{% bootstrap_field dform.licences %}
+				{% bootstrap_field dform.owner_email %}
+				{% bootstrap_field dform.is_inspire %}
+				{% bootstrap_field dform.keywords %}
+				{% bootstrap_field dform.published %}
+				<div class="buttons-on-the-right-side">
+					<button type="submit" class="btn btn-default">Enregistrer</button>
+					<a class="btn btn-default" href="{% url "profiles:main" %}">Annuler</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

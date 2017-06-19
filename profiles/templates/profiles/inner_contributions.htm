@@ -4,9 +4,17 @@
 	<div class="row">
 		<div class="col-md-offset-1 col-lg-offset-2 col-xs-12 col-sm-12 col-md-10 col-lg-8">
 			<br/>
-			<h2 class="modal-title">Mes contributions</h4>
+			<h2 class="modal-title">Mes contributions</h2>
+			<p>Organismes pour lesquels vous avez les droits nécessaires pour publier des jeux de données.</p>
 			<br/>
-            {% for pub in my_profile.publish_for.all %}{{ pub }}<br/>{% endfor %}
+			<ul class="list-group">
+				{% for organization in my_profile.publish_for.all %}
+				<li class="list-group-item">{{ organization }}</li>
+				{% endfor %}
+			</ul>
+			<div class="buttons-on-the-right-side">
+				<a class="btn btn-default" href="{% url "profiles:main" %}">Revenir</a>
+			</div>
 		</div>
 	</div>
 </div>
