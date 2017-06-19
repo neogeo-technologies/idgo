@@ -42,7 +42,7 @@ class DatasetForm(forms.ModelForm):
                                    required=False)
 
     is_inspire = forms.BooleanField(initial=False,
-                                    label="URL au format INSPIRE",
+                                    label="Cette ressource nécessite une URL au format INSPIRE",
                                     required=False,)
 
 
@@ -106,7 +106,6 @@ class DatasetForm(forms.ModelForm):
             for tag in data['keywords']:
 
                 dataset.keywords.add(tag)
-            # dataset.save()
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
 

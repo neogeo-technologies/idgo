@@ -16,8 +16,7 @@ urlpatterns = [
     url(r'^activation_admin/(?P<key>.+)/?$', activation_admin,  name='activation_admin'),
     url(r'^modifyaccount/?$', modify_account, name='modifyAccount'),
     url(r'^affiliate_request/(?P<key>.+)/?$', affiliate_request, name='affiliate_request'),
-    # url(r'^manage_publication/?$', publish_manager, name='publish_manager'),
     url(r'^publish_request/(?P<key>.+)/?$', publish_request_confirme, name='publish_request_confirme'),
     url(r'^publish_request/?$', publish_request, name='publish_request'),
-    url(r'^deleteaccount/?$', delete_account, name='deleteAccount')
+    url(r'^deleteaccount/?$', delete_account, name='deleteAccount'),
 ]

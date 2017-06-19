@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
+
 from .ckan_module import CkanHandler as ckan
 from .ldap_module import LdapHandler as ldap
 from .forms.user import UserForm, UserProfileForm, UserDeleteForm, \
@@ -273,7 +274,7 @@ def modify_account(request):
     profile = get_object_or_404(Profile, user=user)
 
     uform = UserUpdateForm(instance=user, data=request.POST or None)
-    pform = ProfileUpdateForm(instance=profile, data=request.POST or None)
+    pform = ProfileUpdateForm(instance=profile, data=request.POST or None, exclude={'user':user})
     if not uform.is_valid() or not pform.is_valid():
         return render(request, 'profiles/modifyaccount.html', {'uform': uform,
                                                                'pform': pform})

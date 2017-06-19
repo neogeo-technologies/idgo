@@ -122,8 +122,6 @@ class UserProfileForm(forms.Form):
 
 class ProfileUpdateForm(forms.ModelForm):
 
-
-
     organisation = forms.ModelChoiceField(required=False,
                                           label='Organisme',
                                           queryset=Organisation.objects.all())
@@ -199,3 +197,13 @@ class UserDeleteForm(AuthenticationForm):
 #     class Meta:
 #         model = PublishRequest
 #         fields = ('organisation', 'date_demande', 'date_acceptation')
+
+
+class TestForm(AuthenticationForm):
+
+    username = fields.USERNAME
+    password = fields.PASSWORD1
+
+    class Meta:
+        model = User
+        fields = ('username', 'password')

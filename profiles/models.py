@@ -179,8 +179,7 @@ def update_externals(sender, instance, **kwargs):
         # TODO: possibilité d'inscrire un profile sans organisation
         # todo: et possiblité de modifier un abonnment apres inscription
         # todo: et possiblité de suppremier ancienne organisation par nouvelle
-        print("old", old_instance.organisation)
-        print("new", instance.organisation)
+
         if old_instance.organisation is None:
             end_trigger = True
 
