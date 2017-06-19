@@ -1,0 +1,23 @@
+{% load bootstrap3 %}
+
+<div class="outer">
+	<div class="v-middle">
+		<div class="h-middle" style="width: 303px">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3>IDGO</h3>
+					<h4>Connexion</h4>
+				</div>
+				<div class="panel-body">
+					<form method="post" action="">
+						{% csrf_token %}
+						{% bootstrap_field uform.username show_label=False %}
+						{% bootstrap_field uform.password show_label=False %}
+						<button type="submit" class="btn btn-block btn-primary">Se connecter</button>
+						<a class="btn btn-block btn-link" href="{% url "profiles:signUp" %}">Pas encore de compte ?</a>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
