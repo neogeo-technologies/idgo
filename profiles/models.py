@@ -172,15 +172,19 @@ def delete_user_in_externals(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Profile)
 def update_externals(sender, instance, **kwargs):
+
+    # TODO: possibilité d'inscrire un profile sans organisation
+    # todo: et possiblité de modifier un abonnment apres inscription
+    # todo: et possiblité de suppremier ancienne organisation par nouvelle
+
     end_trigger = False
     if instance.id:
-        old_instance = Profile.objects.get(pk=instance.id)
+        try:
+            old_instance = Profile.objects.get(pk=instance.id)
+        except Profile.DoesNotExist:
+            end_trigger = True
 
-        # TODO: possibilité d'inscrire un profile sans organisation
-        # todo: et possiblité de modifier un abonnment apres inscription
-        # todo: et possiblité de suppremier ancienne organisation par nouvelle
-
-        if old_instance.organisation is None:
+        if end_trigger is False and old_instance.organisation is None:
             end_trigger = True
 
         if instance.organisation is None:
