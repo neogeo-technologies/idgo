@@ -64,6 +64,7 @@ class CommonFields(metaclass=StaticClass):
         widget=forms.TextInput(attrs={'placeholder': 'Rôle'}))
 
     PHONE = forms.CharField(
+        required=False,
         label='Téléphone',
         max_length=150,
         min_length=3,
