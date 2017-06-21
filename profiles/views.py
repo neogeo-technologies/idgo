@@ -359,11 +359,11 @@ def publish_request_confirme(request, key):
     try:
         send_publish_confirmation(pub_req)
         pub_req.date_acceptation = timezone.now()
+        pub_req.save()
     except:
         pass
 
-    pub_req.date_acceptation = datetime.now()
-    pub_req.save()
+
     message = "La confirmation de la demande de contribution a bien été prise en compte. "
     return render(request, 'profiles/success.html',
                   {'message': message}, status=200)

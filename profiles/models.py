@@ -187,7 +187,7 @@ def update_externals(sender, instance, **kwargs):
         if end_trigger is False and old_instance.organisation is None:
             end_trigger = True
 
-        if instance.organisation is None:
+        if instance.organisation is None and old_instance.organisation:
             ckan.del_user_from_organization(
                 instance.user.username, old_instance.organisation.ckan_slug)
             ldap.del_user_from_organization(
