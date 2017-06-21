@@ -65,7 +65,7 @@ Ceci est un message automatique. Merci de ne pas y répondre.'''
               recipient_list=[email_user])
 
 
-def send_affiliate_request(request, reg, email_admin=settings.ADMIN_EMAIL):
+def send_affiliate_request(request, reg):
 
     from_email = 'idgo@neogeo-technologies.fr'
     subject = 'Un utilisateur demande son rattachement à une organisation'
@@ -109,7 +109,7 @@ def send_affiliate_request(request, reg, email_admin=settings.ADMIN_EMAIL):
     send_mail(subject=subject,
               message=message,
               from_email=from_email,
-              recipient_list=[usr.email for u in User.objects.filter(is_staff=True, is_active=True)])
+              recipient_list=[usr.email for usr in User.objects.filter(is_staff=True, is_active=True)])
 
 
 def send_affiliate_confirmation(profile):
