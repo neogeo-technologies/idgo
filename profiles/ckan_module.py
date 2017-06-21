@@ -39,7 +39,6 @@ def exceptions_handler(f):
 class CkanManagerHandler(metaclass=Singleton):
 
     def __init__(self):
-
         self.remote = RemoteCKAN(CKAN_URL, apikey=CKAN_API_KEY)
 
     @exceptions_handler
@@ -165,9 +164,9 @@ class CkanManagerHandler(metaclass=Singleton):
 
 class CkanUserHandler():
 
-    def __init__(self):
+    def __init__(self, api_key):
 
-        self.remote = RemoteCKAN(CKAN_URL, apikey=set)
+        self.remote = RemoteCKAN(CKAN_URL, apikey=api_key)
 
     def close(self):
         self.remote.close()
