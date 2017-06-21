@@ -205,6 +205,13 @@ def activation_admin(request, key):  # activation du compte par l'administrateur
     reg = get_object_or_404(Registration, affiliate_orga_key=key)
     profile = get_object_or_404(Profile, user=reg.user)
 
+    if reg.is_activated is True:
+        message = 'Le compte de {username} a déjà été activé. ' \
+                  'et son rattachement à {orga} est effectif'.format(username=profile.user.username,
+                                                                     orga=profile.organisation.name)
+        return render(request, 'profiles/success.html',
+                      {'message': message}, status=200)
+
     reg_org_name = reg.profile_fields['organisation']
     if reg_org_name:
         org, created = Organisation.objects.get_or_create(name=reg_org_name,
@@ -236,9 +243,11 @@ def activation_admin(request, key):  # activation du compte par l'administrateur
     else:
         profile.organisation = None
         profile.save()
+        reg.is_activated = True
+        reg.save()
+
     try:
         send_affiliate_confirmation(profile)
-        reg.delete()
     except:
         pass  # Ce n'est pas très grave si l'e-mail ne part pas...
 

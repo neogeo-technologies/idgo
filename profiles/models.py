@@ -160,6 +160,7 @@ class Registration(models.Model):
     key_expires = models.DateTimeField(
                         default=deltatime_2_days, blank=True, null=True)
     profile_fields = JSONField('Champs profile', blank=True, null=True)
+    is_activated = models.BooleanField(default=False)
 
 # Triggers
 

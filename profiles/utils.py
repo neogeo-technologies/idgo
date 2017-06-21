@@ -129,7 +129,7 @@ def send_affiliate_confirmation(profile):
               recipient_list=[profile.user.email])
 
 
-def send_publish_request(request, publish_request, email_admin=settings.ADMIN_EMAIL):
+def send_publish_request(request, publish_request):
 
     from_email = 'idgo@neogeo-technologies.fr'
     subject = 'Un utilisateur requiert un statut de contributeur pour une organisation'
@@ -151,7 +151,7 @@ def send_publish_request(request, publish_request, email_admin=settings.ADMIN_EM
     send_mail(subject=subject,
               message=message,
               from_email=from_email,
-              recipient_list=[email_admin])
+              recipient_list=[usr.email for usr in User.objects.filter(is_staff=True, is_active=True)])
 
 
 def send_publish_confirmation(publish_request):
