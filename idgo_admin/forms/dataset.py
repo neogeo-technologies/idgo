@@ -107,8 +107,8 @@ class DatasetForm(forms.ModelForm):
 
                 dataset.keywords.add(tag)
 
-        ckan_user = ckan_me(ckan.get_user(user.username), api_key=Profile.objects.get(user=user).ckan_api_key)
-        # ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+
+        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
 
         params = {'author': user.username,
                   'author_email': user.email,

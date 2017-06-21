@@ -10,7 +10,6 @@ from .utils import Singleton
 CKAN_URL = settings.CKAN_URL
 CKAN_API_KEY = settings.CKAN_API_KEY
 
-
 def exceptions_handler(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -39,8 +38,9 @@ def exceptions_handler(f):
 
 class CkanManagerHandler(metaclass=Singleton):
 
-    def __init__(self, api_key):
-        self.remote = RemoteCKAN(CKAN_URL, apikey=api_key)
+    def __init__(self):
+
+        self.remote = RemoteCKAN(CKAN_URL, apikey=CKAN_API_KEY)
 
     @exceptions_handler
     def _del_package(self, id):
@@ -129,7 +129,7 @@ class CkanManagerHandler(metaclass=Singleton):
         return [d['name'] for d in res if d['is_organization']]
 
     def add_user_to_organization(
-                        self, username, organization_name, role='member'):
+                        self, username, organization_name, role='editor'):
 
         # role=member|editor|admin
         self.remote.action.organization_member_create(
@@ -165,20 +165,21 @@ class CkanManagerHandler(metaclass=Singleton):
 
 class CkanUserHandler():
 
-    def __init__(self, api_key):
-        self.remote = RemoteCKAN(CKAN_URL, apikey=api_key)
+    def __init__(self):
+
+        self.remote = RemoteCKAN(CKAN_URL, apikey=set)
 
     def close(self):
         self.remote.close()
 
-    @exceptions_handler
+    # @exceptions_handler
     def _get_package(self, id):
         try:
             return self.remote.action.package_show(id=id, include_tracking=True)
         except CkanError.NotFound:
             return False
 
-    @exceptions_handler
+    # @exceptions_handler
     def _is_package_exists(self, id):
         return self._get_package(id) and True or False
 
