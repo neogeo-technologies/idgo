@@ -224,7 +224,7 @@ def activation_admin(request, key):  # activation du compte par l'administrateur
 
             if reg.profile_fields['organisation']:
                 ckan.add_user_to_organization(username, org.ckan_slug,
-                                              role='member')  # Qui détermine le rôle ?
+                                              role='editor')  # Qui détermine le rôle ?
             ckan.activate_user(username)
             reg.delete()
 

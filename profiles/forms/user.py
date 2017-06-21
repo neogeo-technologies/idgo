@@ -93,12 +93,11 @@ class UserProfileForm(forms.Form):
                                           queryset=Organisation.objects.all())
 
     new_orga = forms.CharField(
-        error_messages={'invalid': 'invalid'},
+        error_messages={"Nom de l'organisme invalide": 'invalid'},
         label="Nom de l'organisme",
         max_length=255,
         min_length=3,
         required=False,
-        validators=[validators.validate_slug],
         widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisme"}))
 
     new_website = forms.URLField(
