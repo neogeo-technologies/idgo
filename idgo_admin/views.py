@@ -14,7 +14,8 @@ from .forms.dataset import DatasetForm
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
-def render_on_error(request, dform=DatasetForm()):
+def render_on_error(request):
+    dform = DatasetForm(include={'user': request.user})
     return render(request, 'idgo_admin/dataset.html', {'dform': dform})
 
 
@@ -35,27 +36,27 @@ class DatasetManager(View):
             dataset = get_object_or_404(
                                 Dataset, id=id, editor=request.user)
             return render(request, 'idgo_admin/dataset.html',
-                          {'dform': DatasetForm(instance=dataset)})
+                          {'dform': DatasetForm(instance=dataset, include={'user': request.user})})
 
         return render(request, 'idgo_admin/dataset.html',
-                      {'dform': DatasetForm()})
+                      {'dform': DatasetForm(include={'user': request.user})})
 
     def post(self, request):
 
         id = request.POST.get('id', request.GET.get('id')) or None
         if id:
             dataset = get_object_or_404(Dataset, id=id, editor=request.user)
-            dform = DatasetForm(instance=dataset, data=request.POST)
+            dform = DatasetForm(instance=dataset, data=request.POST, include={'user': request.user})
             if not dform.is_valid() or not request.user.is_authenticated:
                 return render(request, 'idgo_admin/dataset.html',
-                              {'dform': DatasetForm(instance=dataset)})
+                              {'dform': DatasetForm(instance=dataset, include={'user': request.user})})
 
             dform.handle_me(request, id)
             message = 'Le jeu de données a été mis à jour avec succès.'
             return render(request, 'profiles/success.html',
                           {'message': message}, status=200)
 
-        dform = DatasetForm(data=request.POST)
+        dform = DatasetForm(data=request.POST, include={'user': request.user})
         if dform.is_valid() and request.user.is_authenticated:
             dform.handle_me(request, id=request.GET.get('id'))
 
@@ -63,7 +64,7 @@ class DatasetManager(View):
             return render(request, 'profiles/success.html',
                           {'message': message}, status=200)
 
-        return render_on_error(request, dform)
+        return render_on_error(request)
 
     def delete(self, request):
 

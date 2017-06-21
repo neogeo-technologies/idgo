@@ -3,7 +3,7 @@ from idgo_admin.models import *
 from profiles.ckan_module import CkanHandler as ckan, \
                                  CkanUserHandler as ckan_me
 from taggit.forms import TagField
-
+from profiles.models import Profile
 
 class DatasetForm(forms.ModelForm):
 
@@ -26,7 +26,7 @@ class DatasetForm(forms.ModelForm):
                             widget=forms.CheckboxSelectMultiple())
 
     organisation = forms.ModelChoiceField(
-                            label="Organisme d'appartenance",
+                            label="Organisme de publication",
                             queryset=Organisation.objects.all(),
                             required=True)
 
@@ -75,6 +75,14 @@ class DatasetForm(forms.ModelForm):
                   'published',
                   'is_inspire',
                   'categories')
+
+    def __init__(self, *args, **kwargs):
+        include_args = kwargs.pop('include', {})
+        super(DatasetForm, self).__init__(*args, **kwargs)
+        ppf = Profile.publish_for.through
+        set = ppf.objects.filter(profile__user=include_args['user'])
+        my_pub_l = [e.organisation_id for e in set]
+        self.fields['organisation'].queryset = Organisation.objects.filter(pk__in=my_pub_l)
 
     def handle_me(self, request, id=None):
         user = request.user
