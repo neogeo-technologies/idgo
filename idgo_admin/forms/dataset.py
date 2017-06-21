@@ -20,7 +20,7 @@ class DatasetForm(forms.ModelForm):
                             required=False)
 
     categories = forms.ModelMultipleChoiceField(
-                            label='categories associés',
+                            label='Catégories associées',
                             queryset=Category.objects.all(),
                             required=False,
                             widget=forms.CheckboxSelectMultiple())
@@ -31,18 +31,18 @@ class DatasetForm(forms.ModelForm):
                             required=True)
 
     licences = forms.ModelChoiceField(
-                            label='Licences',
+                            label='Licence',
                             queryset=License.objects.all(),
                             required=True)
 
     keywords = TagField(required=False)
 
     published = forms.BooleanField(initial=True,
-                                   label="Publier ce jeu de donnée ",
+                                   label="Publier immédiatement ce jeu de donnée (sinon vous pourrez le faire plus tard)",
                                    required=False)
 
     is_inspire = forms.BooleanField(initial=False,
-                                    label="Cette ressource nécessite une URL au format INSPIRE",
+                                    label="Ce jeu de données est soumis à la règlementation INSPIRE",
                                     required=False)
 
 
@@ -73,7 +73,8 @@ class DatasetForm(forms.ModelForm):
                   'owner_email',
                   'update_freq',
                   'published',
-                  'is_inspire')
+                  'is_inspire',
+                  'categories')
 
     def handle_me(self, request, id=None):
         user = request.user
@@ -106,12 +107,19 @@ class DatasetForm(forms.ModelForm):
 
                 dataset.keywords.add(tag)
 
-        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+        ckan_user = ckan_me(ckan.get_user(user.username), api_key=Profile.objects.get(user=user).ckan_api_key)
+        # ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
 
         params = {'author': user.username,
                   'author_email': user.email,
                   'geocover': dataset.geocover,
-                  # 'groups': [{'name': ... }]  # TODO
+                  'groups': [{'name': dataset.name,
+                              'title':dataset.name,
+                              'description': dataset.description,
+                              'state': 'active',
+                              'type':'group',
+                              'approval_status':'approved',
+                              'is_organization': False}],
                   'license_id': dataset.licences_id,
                   'maintainer': user.username,
                   'maintainer_email': user.email,
@@ -124,8 +132,7 @@ class DatasetForm(forms.ModelForm):
                   'url': None, 'published':True}
 
         try:
-            ckan_dataset = ckan_user.publish_dataset(
-                dataset.ckan_slug, id=str(dataset.ckan_id), **params)
+            ckan_dataset = ckan_user.publish_dataset(dataset.ckan_slug, id=str(dataset.ckan_id), **params)
         except:
             dataset.sync_in_ckan = False
         else:

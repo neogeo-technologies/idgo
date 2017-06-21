@@ -1,4 +1,5 @@
 import uuid
+import psycopg2
 
 from django.db import models
 from django.db.models.signals import pre_delete, pre_save, post_save
@@ -134,7 +135,7 @@ class Profile(models.Model):
                                   "l'utilisateur publie des jeux de données.")
     phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
     role = models.CharField('Fonction', max_length=150, blank=True, null=True)
-
+    ckan_api_key = models.CharField('Clé API CKAN', max_length=250, blank=True, null=True)
     def __str__(self):
         return self.user.username
 
@@ -208,6 +209,13 @@ def delete_user_expire_date(sender, instance, **kwargs):
     for reg in expired_key_reg:
         u = reg.user
         u.delete()
+
+@receiver(pre_save, sender=Profile)
+def retrieve_ckan_api_key(sender, instance, **kwargs):
+    conn = psycopg2.connect(settings.CKAN_DSN)
+    cursor = conn.cursor()
+    cursor.execute("SELECT apikey FROM user WHERE name = %s", (instance.user.username))
+    instance.ckan_api_key = cursor.fetchone()[0]
 
 @receiver(pre_save, sender=Organisation)
 def orga_ckan_presave(sender, instance, **kwargs):

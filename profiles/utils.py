@@ -1,6 +1,6 @@
 import hashlib
 import random
-
+from django.contrib.auth.models import User 
 from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
@@ -109,7 +109,7 @@ def send_affiliate_request(request, reg, email_admin=settings.ADMIN_EMAIL):
     send_mail(subject=subject,
               message=message,
               from_email=from_email,
-              recipient_list=[email_admin])
+              recipient_list=[usr.email for u in User.objects.filter(is_staff=True, is_active=True)])
 
 
 def send_affiliate_confirmation(profile):

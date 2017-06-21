@@ -32,8 +32,7 @@ class Category(models.Model):
             self.ckan_slug = slugify(self.name)
             self.sync_in_ckan = ckan.add_group(self)
 
-        if self.sync_in_ckan:
-            super(Category, self).save(*args, **kwargs)
+        super(Category, self).save(*args, **kwargs)
 
     def delete(self):
         if ckan.del_group(self.ckan_slug):

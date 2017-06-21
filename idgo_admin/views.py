@@ -51,7 +51,7 @@ class DatasetManager(View):
                               {'dform': DatasetForm(instance=dataset)})
 
             dform.handle_me(request, id)
-            message = 'Le jeux de données a été mis à jour avec succès.'
+            message = 'Le jeu de données a été mis à jour avec succès.'
             return render(request, 'profiles/success.html',
                           {'message': message}, status=200)
 
@@ -59,7 +59,7 @@ class DatasetManager(View):
         if dform.is_valid() and request.user.is_authenticated:
             dform.handle_me(request, id=request.GET.get('id'))
 
-            message = 'Le jeux de données a été crée avec succès.'
+            message = 'Le jeu de données a été créé avec succès.'
             return render(request, 'profiles/success.html',
                           {'message': message}, status=200)
 

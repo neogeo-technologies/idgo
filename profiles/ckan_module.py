@@ -39,8 +39,8 @@ def exceptions_handler(f):
 
 class CkanManagerHandler(metaclass=Singleton):
 
-    def __init__(self):
-        self.remote = RemoteCKAN(CKAN_URL, apikey=CKAN_API_KEY)
+    def __init__(self, api_key):
+        self.remote = RemoteCKAN(CKAN_URL, apikey=api_key)
 
     @exceptions_handler
     def _del_package(self, id):
@@ -150,15 +150,15 @@ class CkanManagerHandler(metaclass=Singleton):
         self.remote.action.group_create(name=group.ckan_slug,
                                         title=group.name,
                                         description=group.description)
-
+        return True
     def del_group(self, group_name):
         self.remote.action.group_purge(id=group_name)
 
     def sync_group(self, group):
-        self.remote.action.group_update(name=group.ckan_slug,
+        self.remote.action.group_update(id=group.ckan_slug,name=group.ckan_slug,
                                         title=group.name,
                                         description=group.description)
-
+        return True
     def purge_dataset(self, id):
         self._del_package(id)
 
