@@ -36,7 +36,7 @@ def send_validation_mail(request, reg):
     message = '''
 Bonjour,
 
-Veuillez valider votre inscription en cliquant sur le lien suivant : {0}
+Merci de valider votre inscription en cliquant sur le lien suivant : {0}
 
 Ceci est un message automatique. Merci de ne pas y répondre.'''.format(
         request.build_absolute_uri(
@@ -73,13 +73,13 @@ def send_affiliate_request(request, reg):
         Bonjour,
 
         Un nouvel utilisateur ({username}, {user_mail}) a fait une demande de rattachement 
-        pour l'organisation nouvellement crée: 
+        pour l'organisation qu'il a également créée: 
         
-        Veuillez vérifier les données renseigner avant de valider son inscription:
+        Veuillez vérifier les données renseignées avant de valider son inscription:
         - Nom de l'organisation: {organisation_name}
         - Adresse URL de l'organisation: {website}
         
-        Cliquez sur ce lien pour valider son inscription et activer son compte : 
+        Cliquez sur ce lien pour valider son inscription, cette nouvelle organisation et activer son compte : 
         {url}
         
         Ceci est un message automatique. Merci de ne pas y répondre.'''.format(
@@ -95,7 +95,7 @@ def send_affiliate_request(request, reg):
         Bonjour,
     
         Un nouvel utilisateur ({username}, {user_mail}) a fait une demande de rattachement 
-        pour l'organisation: {organisation_name}.
+        à l'organisation: {organisation_name}.
         Cliquez sur ce lien pour valider son inscription et activer son compte : {url}
     
         Ceci est un message automatique. Merci de ne pas y répondre.'''.format(
@@ -118,7 +118,7 @@ def send_affiliate_confirmation(profile):
     message = '''
     Bonjour,
 
-    Votre demande de rattachement pour l'organisation: {organisation_name} à été validé.
+    Votre demande de rattachement à l'organisation: {organisation_name} à été validée.
 
     Ceci est un message automatique. Merci de ne pas y répondre.'''.format(
         organisation_name = profile.organisation.name)
@@ -132,7 +132,7 @@ def send_affiliate_confirmation(profile):
 def send_publish_request(request, publish_request, email_admin=settings.ADMIN_EMAIL):
 
     from_email = 'idgo@neogeo-technologies.fr'
-    subject = 'Un utilisateur requiert un status de contributeur pour une organisation'
+    subject = 'Un utilisateur requiert un statut de contributeur pour une organisation'
     url = request.build_absolute_uri(
                 reverse('profiles:publish_request_confirme', kwargs={'key': publish_request.pub_req_key}))
     message = '''
@@ -158,7 +158,7 @@ def send_publish_confirmation(publish_request):
 
     from_email = settings.DEFAULT_FROM_EMAIL  # TODO: replace w/ "publish_request.organisation.email"
 
-    subject = 'Confirmation de votre inscription en tant que contributeur pour une nouvelle organisation'
+    subject = 'Confirmation de votre inscription en tant que contributeur pour une organisation'
     message = '''
     Bonjour,
     

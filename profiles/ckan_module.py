@@ -113,8 +113,8 @@ class CkanManagerHandler(metaclass=Singleton):
 
 
     def add_organization(self, organization):
-        self.remote.action.organization_create(id=organization.ckan_slug,
-                                               name=organization.name)
+        self.remote.action.organization_create(name=organization.ckan_slug,
+                                               title=organization.name)
 
     def del_organization(self, organization_name):
         self.remote.action.organization_purge(id=organization_name)
