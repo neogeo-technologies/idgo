@@ -66,7 +66,7 @@ Ceci est un message automatique. Merci de ne pas y répondre.'''
 
 
 def send_affiliate_request(request, reg):
-
+    print(reg)
     from_email = 'idgo@neogeo-technologies.fr'
     subject = 'Un utilisateur demande son rattachement à une organisation'
     if reg.profile_fields['is_new_orga']:
@@ -104,7 +104,7 @@ def send_affiliate_request(request, reg):
             user_mail=reg.user.email,
             organisation_name=reg.profile_fields['organisation'],
             url=request.build_absolute_uri(
-                reverse('profiles:affiliate_request', kwargs={'key': reg.affiliate_orga_key})))
+                reverse('profiles:activation_admin', kwargs={'key': reg.affiliate_orga_key})))
 
     send_mail(subject=subject,
               message=message,

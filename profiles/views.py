@@ -177,7 +177,6 @@ def confirmation_email(request, key): # confirmation de l'email par l'utilisateu
                                   defaults={"phone":reg.profile_fields['phone'],
                                             "role":reg.profile_fields['role']})
 
-
     if reg.profile_fields['organisation'] not in ['', None] :
         try:
             send_affiliate_request(request, reg)
@@ -264,6 +263,7 @@ def affiliate_request(request, key):
     message = "La confirmation de la demande de rattachement a bien été prise en compte. "
     return render(request, 'profiles/success.html',
                   {'message': message}, status=200)
+
 
 @transaction.atomic
 @login_required(login_url=settings.LOGIN_URL)
