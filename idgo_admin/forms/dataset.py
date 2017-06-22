@@ -37,14 +37,15 @@ class DatasetForm(forms.ModelForm):
 
     keywords = TagField(required=False)
 
-    published = forms.BooleanField(initial=True,
-                                   label="Publier immédiatement ce jeu de donnée (sinon vous pourrez le faire plus tard)",
-                                   required=False)
+    published = forms.BooleanField(
+                            initial=True,
+                            label="Publier immédiatement ce jeu de donnée (sinon vous pourrez le faire plus tard)",
+                            required=False)
 
-    is_inspire = forms.BooleanField(initial=False,
-                                    label="Ce jeu de données est soumis à la règlementation INSPIRE",
-                                    required=False)
-
+    is_inspire = forms.BooleanField(
+                            initial=False,
+                            label="Ce jeu de données est soumis à la règlementation INSPIRE",
+                            required=False)
 
     # Champs cachés :
 
@@ -118,15 +119,16 @@ class DatasetForm(forms.ModelForm):
 
         params = {'author': user.username,
                   'author_email': user.email,
-                  'groups': [],
+                  'groups': [],  # Cf. plus bas..
                   'geocover': dataset.geocover,
-                  'license_id': dataset.licences_id,
+                  'license_id': dataset.licences.title,
                   'maintainer': user.username,
                   'maintainer_email': user.email,
                   'notes': dataset.description,
                   'owner_org': dataset.organisation.ckan_slug,
                   'private': False,
                   'state': 'active',
+                  'tags': [{'name': name} for name in data['keywords']],
                   'title': dataset.name,
                   'update_frequency': dataset.update_freq,
                   'url': '',  # TODO: Générer l'URL INSPIRE.
@@ -137,7 +139,8 @@ class DatasetForm(forms.ModelForm):
             params['groups'].append({'name': category.ckan_slug})
 
         try:
-            ckan_dataset = ckan_user.publish_dataset(dataset.ckan_slug, id=str(dataset.ckan_id), **params)
+            ckan_dataset = ckan_user.publish_dataset(
+                        dataset.ckan_slug, id=str(dataset.ckan_id), **params)
         except:
             dataset.sync_in_ckan = False
         else:
