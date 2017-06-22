@@ -60,6 +60,7 @@ div.page-header {
     background-color: #291809;
     color: #fff;
     position: relative;
+    z-index: 9999;
 }
 
 div.page-header .title {
@@ -331,4 +332,3 @@ a:focus {
     top: -17px;
     right: -11px;
 }
-
