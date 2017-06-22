@@ -167,8 +167,11 @@ class Registration(models.Model):
 
 @receiver(pre_delete, sender=User)
 def delete_user_in_externals(sender, instance, **kwargs):
-    ldap.del_user(instance.username)
-    ckan.del_user(instance.username)  # ->state='deleted'
+    try:
+        ldap.del_user(instance.username)
+        ckan.del_user(instance.username)  # ->state='deleted'
+    except:
+        pass
 
 
 @receiver(pre_save, sender=Profile)
