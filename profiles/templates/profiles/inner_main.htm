@@ -41,5 +41,5 @@
 		</div>
 	</div>
 </div>
-<script>;var DATASETS = {{ datasets | safe }}, IS_CONTRIBUTOR = {{ is_contributor | safe }}, DATASET_URL = '{% url "idgo_admin:dataset" %}';</script>
+<script>;var DATASETS = {{ datasets | safe }}, IS_CONTRIBUTOR = {{ is_contributor | safe }}, DATASET_URL = '{% url "idgo_admin:dataset" %}', CONTRIBUTE_URL = '{% url "profiles:publish_request" %}';</script>
 <script src="{% static "js/main.js" %}"></script>

@@ -201,7 +201,7 @@ function updateGrid(grid, containerId, metadata, data) {
 	};
 
 	if (IS_CONTRIBUTOR == false && data.length == 0) {
-		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucun organisme. Pour devenir contributeur, vous devez <a href="{% url "profiles:publish_request" %}">ajouter un organisme auquel contribuer</a>.');
+		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucun organisme. Pour devenir contributeur, vous devez <a href="' + CONTRIBUTE_URL + '">ajouter un organisme auquel contribuer</a>.');
 		deactivateButton($('a[name="add-dataset"]'));
 	};
 

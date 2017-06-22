@@ -10,6 +10,10 @@
 			<ul class="list-group">
 				{% for organization in my_profile.publish_for.all %}
 				<li class="list-group-item">{{ organization }}</li>
+				{% empty %}
+				<div role="alert" class="alert alert-warning">
+					<p>Vous n'êtes contributeur d'aucun organisme. Pour devenir contributeur, vous devez <a href="{% url "profiles:publish_request" %}">ajouter un organisme auquel contribuer</a></p>
+				</div>
 				{% endfor %}
 			</ul>
 			<div class="buttons-on-the-right-side">
