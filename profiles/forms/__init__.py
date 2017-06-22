@@ -11,7 +11,7 @@ __all__ = ['fields']
 class CommonFields(metaclass=StaticClass):
 
     USERNAME = forms.CharField(
-        error_messages={'invalid': 'invalid'},
+        error_messages={'invalid': "Seuls les caractères alpha-numériques et le caractère « _ » sont autorisés. "},
         label="Nom d'utilisateur",
         max_length=255,
         min_length=3,
