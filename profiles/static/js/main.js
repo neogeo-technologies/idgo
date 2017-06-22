@@ -194,8 +194,17 @@ function updateGrid(grid, containerId, metadata, data) {
 		$containerId.show();
 	} else {
 		$containerId.hide();
+	};
+
+	if (IS_CONTRIBUTOR == true && data.length == 0) {
 		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'avez encore jamais ajouté de ressource. Cliquez sur le bouton <strong>[ ' + $parent.find('a[name="add-dataset"]').get(0).text + ' ]</strong> pour commencer.</p><div/>');
 	};
+
+	if (IS_CONTRIBUTOR == false && data.length == 0) {
+		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucun organisme. Pour devenir contributeur, vous devez <a href="{% url "profiles:publish_request" %}">ajouter un organisme auquel contribuer</a>.');
+		deactivateButton($('a[name="add-dataset"]'));
+	};
+
 };
 
 

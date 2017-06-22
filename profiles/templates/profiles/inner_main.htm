@@ -5,6 +5,9 @@
 	<div class="row">
 		<div class="col-md-offset-1 col-md-10">
 			<ul id="menu" class="nav nav-default" role="tablist">
+				<!-- <li role="presentation">
+					<a href="#home" aria-controls="home" role="tab" data-toggle="tab">Accueil</a>
+				</li> -->
 				<li role="presentation">
 					<a href="#datasets" aria-controls="datasets" role="tab" data-toggle="tab">Mes jeux de données</a>
 				</li>
@@ -20,6 +23,8 @@
 		<div class="row">
 			<div class="col-md-offset-1 col-md-10">
 				<div class="tab-content">
+					<!-- <div id="home" role="tabpanel" class="tab-pane fade in">
+					</div> -->
 					<div id="datasets" role="tabpanel" class="tab-pane fade in">
 						<div id="table-resources" class="table-responsive"></div>
 						<div class="buttons-on-the-right-side">
@@ -36,5 +41,5 @@
 		</div>
 	</div>
 </div>
-<script>;var DATASETS = {{ datasets | safe }}, DATASET_URL = '{% url "idgo_admin:dataset" %}';</script>
+<script>;var DATASETS = {{ datasets | safe }}, IS_CONTRIBUTOR = {{ is_contributor | safe }}, DATASET_URL = '{% url "idgo_admin:dataset" %}';</script>
 <script src="{% static "js/main.js" %}"></script>

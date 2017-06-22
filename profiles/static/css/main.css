@@ -287,6 +287,10 @@ a:focus {
     border-width: 0;
 }
 
+.alert a {
+    color: inherit;
+}
+
 .alert-success {
     color: #fff;
     background-color: #14d47f;

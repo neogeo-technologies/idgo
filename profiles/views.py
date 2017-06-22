@@ -44,8 +44,15 @@ def main(request):
                  o.date_modification.isoformat(),
                  o.published) for o in Dataset.objects.filter(editor=user)]
 
+    ppf = Profile.publish_for.through
+    set = ppf.objects.filter(profile__user=user)
+    my_pub_l = [e.organisation_id for e in set]
+    is_contributor = len(Organisation.objects.filter(pk__in=my_pub_l)) > 0
+    print ("-> is_contributor:", is_contributor)
+
     return render(request, 'profiles/main.html',
-                  {'datasets': json.dumps(datasets)}, status=200)
+                  {'datasets': json.dumps(datasets),
+                   'is_contributor': json.dumps(is_contributor)}, status=200)
 
 @csrf_exempt
 def sign_in(request):
