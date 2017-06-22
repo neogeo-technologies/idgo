@@ -244,9 +244,6 @@ class CkanUserHandler():
         kwargs['name'] = name
 
         if id and self._is_package_exists(id):
-
-            print(self._get_package(id))
-
             package = self._update_package(
                                 **{**self._get_package(id), **kwargs})
         else:
