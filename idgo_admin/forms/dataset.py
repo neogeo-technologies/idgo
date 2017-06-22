@@ -5,6 +5,7 @@ from profiles.ckan_module import CkanHandler as ckan, \
 from taggit.forms import TagField
 from profiles.models import Profile
 
+
 class DatasetForm(forms.ModelForm):
 
     # Champs modifiables :
@@ -119,6 +120,8 @@ class DatasetForm(forms.ModelForm):
 
         params = {'author': user.username,
                   'author_email': user.email,
+                  'dataset_creation_date': str(dataset.date_creation.date()),
+                  'dataset_publication_date': str(dataset.date_publication.date()),
                   'groups': [],  # Cf. plus bas..
                   'geocover': dataset.geocover,
                   'license_id': dataset.licences.title,
