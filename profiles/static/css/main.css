@@ -60,7 +60,7 @@ div.page-header {
     background-color: #291809;
     color: #fff;
     position: relative;
-    z-index: 9999;
+    z-index: 999;
 }
 
 div.page-header .title {

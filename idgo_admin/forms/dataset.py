@@ -112,22 +112,14 @@ class DatasetForm(forms.ModelForm):
         if data['keywords']:
             dataset.keywords.clear()
             for tag in data['keywords']:
-
                 dataset.keywords.add(tag)
-
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
 
         params = {'author': user.username,
                   'author_email': user.email,
+                  'groups': [],
                   'geocover': dataset.geocover,
-                  'groups': [{'name': dataset.name,
-                              'title':dataset.name,
-                              'description': dataset.description,
-                              'state': 'active',
-                              'type':'group',
-                              'approval_status':'approved',
-                              'is_organization': False}],
                   'license_id': dataset.licences_id,
                   'maintainer': user.username,
                   'maintainer_email': user.email,
@@ -137,7 +129,12 @@ class DatasetForm(forms.ModelForm):
                   'state': 'active',
                   'title': dataset.name,
                   'update_frequency': dataset.update_freq,
-                  'url': None, 'published':True}
+                  'url': '',  # TODO: Générer l'URL INSPIRE.
+                  'published': dataset.published}
+
+        for category in Category.objects.filter(pk__in=data['categories']):
+            ckan.add_user_to_group(user.username, category.ckan_slug)
+            params['groups'].append({'name': category.ckan_slug})
 
         try:
             ckan_dataset = ckan_user.publish_dataset(dataset.ckan_slug, id=str(dataset.ckan_id), **params)

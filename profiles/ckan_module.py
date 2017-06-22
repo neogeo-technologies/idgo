@@ -15,24 +15,24 @@ def exceptions_handler(f):
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
-        except CkanError.NotAuthorized as e:
-            print('NotAuthorized', e)
-            raise PermissionError(e)
-        except CkanError.ValidationError as e:
-            print('ValidationError', e)
-            raise Exception(e)
-        except CkanError.NotFound as e:
-            print('NotFound', e)
-            raise Exception(e)
-        except CkanError.SearchQueryError as e:
-            print('SearchQueryError', e)
-            raise Exception(e)
-        except CkanError.SearchError as e:
-            print('SearchError', e)
-            raise Exception(e)
-        except CkanError.SearchIndexError as e:
-            print('SearchIndexError', e)
-            raise Exception(e)
+        except CkanError.NotAuthorized:
+            print('NotAuthorized')
+            raise PermissionError()
+        except CkanError.ValidationError:
+            print('ValidationError')
+            raise Exception('ValidationError')
+        except CkanError.NotFound:
+            print('NotFound')
+            raise Exception('NotFound')
+        except CkanError.SearchQueryError:
+            print('SearchQueryError')
+            raise Exception('SearchQueryError')
+        except CkanError.SearchError:
+            print('SearchError')
+            raise Exception('SearchError')
+        except CkanError.SearchIndexError:
+            print('SearchIndexError')
+            raise Exception('SearchIndexError')
     return wrapper
 
 
@@ -145,19 +145,30 @@ class CkanManagerHandler(metaclass=Singleton):
         for organization_name in organizations:
             self.del_user_from_organization(username, organization_name)
 
+    def get_group(self, group_name):
+        return self.remote.action.group_show(id=group_name)
+
     def add_group(self, group):
         self.remote.action.group_create(name=group.ckan_slug,
                                         title=group.name,
                                         description=group.description)
         return True
+
     def del_group(self, group_name):
         self.remote.action.group_purge(id=group_name)
+
+    def add_user_to_group(self, username, group_name):
+        group = self.get_group(group_name)
+        if not username in [user['name'] for user in group['users']]:
+            group['users'].append({'name': username, 'capacity': 'admin'})
+        self.remote.action.group_update(**group)
 
     def sync_group(self, group):
         self.remote.action.group_update(id=group.ckan_slug,name=group.ckan_slug,
                                         title=group.name,
                                         description=group.description)
         return True
+
     def purge_dataset(self, id):
         self._del_package(id)
 
@@ -171,14 +182,12 @@ class CkanUserHandler():
     def close(self):
         self.remote.close()
 
-    # @exceptions_handler
     def _get_package(self, id):
         try:
             return self.remote.action.package_show(id=id, include_tracking=True)
         except CkanError.NotFound:
             return False
 
-    # @exceptions_handler
     def _is_package_exists(self, id):
         return self._get_package(id) and True or False
 

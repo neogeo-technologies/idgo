@@ -80,6 +80,7 @@ class DatasetManager(View):
             ckan_user.delete_dataset(str(dataset.ckan_id))
             ckan.purge_dataset(str(dataset.ckan_id))
         except:
+            dataset.delete()
             message = 'Le jeu de données <strong>{0}</strong> ' \
                       'ne peut pas être supprimé.'.format(name)
             status = 400
