@@ -169,6 +169,7 @@ def delete_user_in_externals(sender, instance, **kwargs):
     try:
         ldap.del_user(instance.username)
         ckan.del_user(instance.username)  # ->state='deleted'
+
     except:
         pass
 
