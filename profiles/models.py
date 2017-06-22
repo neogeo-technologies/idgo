@@ -1,18 +1,18 @@
 import uuid
 
-
-from django.db import models
-from django.db.models.signals import pre_delete, pre_save, post_save
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
+from django.db import models
+from django.db.models.signals import pre_delete, pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
 
-from .ldap_module import LdapHandler as ldap
 from .ckan_module import CkanHandler as ckan
+from .ldap_module import LdapHandler as ldap
+
 
 def deltatime_2_days():
     return timezone.now() + timezone.timedelta(days=2)
@@ -166,9 +166,11 @@ class Registration(models.Model):
 
 @receiver(pre_delete, sender=User)
 def delete_user_in_externals(sender, instance, **kwargs):
-    ldap.del_user(instance.username)
-    ckan.del_user(instance.username)  # ->state='deleted'
-
+    try:
+        ldap.del_user(instance.username)
+        ckan.del_user(instance.username)  # ->state='deleted'
+    except:
+        pass
 
 @receiver(pre_save, sender=Profile)
 def update_externals(sender, instance, **kwargs):
