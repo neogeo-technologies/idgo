@@ -3,5 +3,4 @@ from idgo_admin.views import DatasetManager
 
 
 urlpatterns = [
-    url('^$', DatasetManager.as_view(), name='dataset')
-]
+    url('^$', DatasetManager.as_view(), name='dataset')]

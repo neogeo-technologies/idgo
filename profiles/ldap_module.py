@@ -1,10 +1,10 @@
-import ldap
-import passlib.hash
+from .utils import Singleton
 from datetime import datetime
 from django.conf import settings
 from django.db import IntegrityError
+import ldap
+import passlib.hash
 from profiles.get_current_request import get_current_user
-from .utils import Singleton
 
 
 class LdapHandler(metaclass=Singleton):
@@ -49,10 +49,11 @@ class LdapHandler(metaclass=Singleton):
 
     def get_user(self, username):
 
-        res = self._search('cn={0},ou=people,dc=idgo,dc=local'.format(username))
+        res = self._search(
+            'cn={0},ou=people,dc=idgo,dc=local'.format(username))
         if res is None:
             return None
-        if len(res) > 1:  # TODO???
+        if len(res) > 1:  # TODO(@m431m)
             raise IntegrityError()
         return res[0]
 
@@ -73,16 +74,18 @@ class LdapHandler(metaclass=Singleton):
                 ('givenName', [user.first_name.encode()]),
                 ('displayName', [user.get_full_name().encode()]),
                 ('mail', [user.email.encode()]),
-                ('homeDirectory', ['/home/{0}'.format(user.username).encode()]),
+                ('homeDirectory', [
+                    '/home/{0}'.format(user.username).encode()]),
                 ('userPassword', [password.encode()]),
                 ('description', ['created by {0} at {1}'.format(
-                                            'idgo', datetime.now()).encode()])])
+                                 'idgo', datetime.now()).encode()])])
 
     def del_user(self, username):
 
         self.del_user_from_groups(username)
         self.del_user_from_organizations(username)
-        self.conn.delete_s('cn={0},ou=people,dc=idgo,dc=local'.format(username))
+        self.conn.delete_s(
+            'cn={0},ou=people,dc=idgo,dc=local'.format(username))
 
     def update_user(self, user, password=None, profile=None):
 
@@ -106,7 +109,7 @@ class LdapHandler(metaclass=Singleton):
             # Todo orga a null en modification
             if profile.organisation:
                 self.add_user_to_organization(
-                                user.username, profile.organisation.ckan_slug)
+                    user.username, profile.organisation.ckan_slug)
 
         modlist = []
         for m in attrs:
@@ -141,8 +144,9 @@ class LdapHandler(metaclass=Singleton):
             self.del_user_from_group(username, group_name)
 
     def get_organization(self, organization_name):
-        res = self._search('cn={0},ou=organisations,dc=idgo,dc=local'.format(
-                                                            organization_name))
+        res = self._search(
+            'cn={0},ou=organisations,dc=idgo,dc=local'.format(
+                organization_name))
         if res is None:
             return None
         if len(res) > 1:  # TODO???
@@ -154,11 +158,11 @@ class LdapHandler(metaclass=Singleton):
 
     def add_organization(self, organization):
         self.conn.add_s(
-            'cn=%s,ou=organisations,dc=idgo,dc=local'.format(user.username), [
-                ('objectclass', [b"posixGroup"]),
-                # ('gidNumber', [gid.encode()]),
-                ('description', ['created by {0} at {1}'.format(
-                                            'idgo', datetime.now()).encode()])])
+            'cn=%s,ou=organisations,dc=idgo,dc=local'.format(user.username),
+            [('objectclass', [b"posixGroup"]),
+             # ('gidNumber', [gid.encode()]),
+             ('description', ['created by {0} at {1}'.format(
+                 'idgo', datetime.now()).encode()])])
 
     def del_organization(self, organization_name):
         pass #TODO
@@ -173,13 +177,15 @@ class LdapHandler(metaclass=Singleton):
     def add_user_to_organization(self, username, organization_name):
 
         self._modify(
-            'cn={0},ou=organisations,dc=idgo,dc=local'.format(organization_name),
+            'cn={0},ou=organisations,dc=idgo,dc=local'.format(
+                organization_name),
             [(ldap.MOD_ADD, 'memberUid', username.encode())])
 
     def del_user_from_organization(self, username, organization_name):
 
         self._modify(
-            'cn={0},ou=organisations,dc=idgo,dc=local'.format(organization_name),
+            'cn={0},ou=organisations,dc=idgo,dc=local'.format(
+                organization_name),
             [(ldap.MOD_DELETE, 'memberUid', username.encode())])
 
     def del_user_from_organizations(self, username):
@@ -195,18 +201,20 @@ class LdapHandler(metaclass=Singleton):
 
         u = get_current_user()
         base_dn = "cn=%s,ou=%s,dc=idgo,dc=local" % (object_name, object_type)
-        self.conn.add_s(base_dn,[
+        self.conn.add_s(base_dn, [
             ("objectclass", [b"posixGroup"]),
             ("gidNumber", ["{0}".format(gid).encode()]),
             ("description", ["created by {0} at {1}".format(
-                                        u.username, datetime.now()).encode()])])
+                u.username, datetime.now()).encode()])])
         return True
 
-    def sync_object(self, object_type, object_name, gid, operation='add_or_update'):
-
+    def sync_object(self, object_type, object_name,
+                    gid, operation='add_or_update'):
         try:
-            result = self.conn.search_s('ou=%s,dc=idgo,dc=local' % object_type,
-                                     ldap.SCOPE_SUBTREE, "(gidNumber=%s)" % gid)
+            result = self.conn.search_s(
+                'ou=%s,dc=idgo,dc=local' % object_type,
+                ldap.SCOPE_SUBTREE, "(gidNumber=%s)" % gid)
+
             if operation == 'delete' and len(result) == 1:
                 res = self.conn.delete_s(result[0][0])
             elif operation == 'add_or_update' and len(result) == 0:

@@ -1,14 +1,16 @@
-import requests
-from ckanapi import errors as CkanError, RemoteCKAN
+from .utils import Singleton
+from ckanapi import errors as CkanError
+from ckanapi import RemoteCKAN
 from datetime import datetime
 from django.conf import settings
 from django.db import IntegrityError
 from functools import wraps
-from .utils import Singleton
+import requests
 
 
 CKAN_URL = settings.CKAN_URL
 CKAN_API_KEY = settings.CKAN_API_KEY
+
 
 def exceptions_handler(f):
     @wraps(f)
@@ -65,12 +67,11 @@ class CkanManagerHandler(metaclass=Singleton):
             raise SystemError('CKAN returns an internal error.')
         else:
             raise Exception(
-                        'CKAN returns a {0} code error.'.format(r.status_code))
+                'CKAN returns a {0} code error.'.format(r.status_code))
 
         self.remote.action.user_update(
-                id=user.username, name=user.username, email=user.email,
-                fullname=user.get_full_name(),
-                state='deleted')
+            id=user.username, name=user.username, email=user.email,
+            fullname=user.get_full_name(), state='deleted')
 
     def del_user(self, username):
 
@@ -86,10 +87,10 @@ class CkanManagerHandler(metaclass=Singleton):
         if profile:
             self.del_user_from_organizations(user.username)
 
-            # TODO: possibilité d'avoir une organisation Null
+            # TODO(@m431m): possibilité d'avoir une organisation Null
             if profile.organisation:
                 self.add_user_to_organization(
-                                user.username, profile.organisation.ckan_slug)
+                    user.username, profile.organisation.ckan_slug)
 
         ckan_user = self.get_user(user.username)
         ckan_user.update({'email': user.email,
@@ -111,7 +112,6 @@ class CkanManagerHandler(metaclass=Singleton):
     def is_organization_exists(self, organization_name):
         return self.get_organization(organization_name) and True or False
 
-
     def add_organization(self, organization):
         self.remote.action.organization_create(name=organization.ckan_slug,
                                                title=organization.name)
@@ -120,23 +120,23 @@ class CkanManagerHandler(metaclass=Singleton):
         self.remote.action.organization_purge(id=organization_name)
 
     def get_organizations_which_user_belongs(
-                        self, username, permission='manage_group'):
+            self, username, permission='manage_group'):
 
         # permission=read|create_dataset|manage_group
         res = self.remote.action.organization_list_for_user(
-                                            id=username, permission=permission)
+            id=username, permission=permission)
         return [d['name'] for d in res if d['is_organization']]
 
     def add_user_to_organization(
-                        self, username, organization_name, role='editor'):
+            self, username, organization_name, role='editor'):
 
         # role=member|editor|admin
         self.remote.action.organization_member_create(
-                        id=organization_name, username=username, role=role)
+            id=organization_name, username=username, role=role)
 
     def del_user_from_organization(self, username, organization_name):
         self.remote.action.organization_member_delete(
-                                        id=organization_name, username=username)
+            id=organization_name, username=username)
 
     def del_user_from_organizations(self, username):
         organizations = self.get_organizations_which_user_belongs(username)
@@ -159,21 +159,21 @@ class CkanManagerHandler(metaclass=Singleton):
 
     def add_user_to_group(self, username, group_name):
         group = self.get_group(group_name)
-        if not username in [user['name'] for user in group['users']]:
+        if username not in [user['name'] for user in group['users']]:
             group['users'].append({'name': username, 'capacity': 'admin'})
         self.remote.action.group_update(**group)
 
     def sync_group(self, group):
-        self.remote.action.group_update(id=group.ckan_slug,name=group.ckan_slug,
-                                        title=group.name,
-                                        description=group.description)
+        self.remote.action.group_update(
+            id=group.ckan_slug, name=group.ckan_slug,
+            title=group.name, description=group.description)
         return True
 
     def purge_dataset(self, id):
         self._del_package(id)
 
 
-class CkanUserHandler():
+class CkanUserHandler(object):
 
     def __init__(self, api_key):
 
@@ -184,7 +184,8 @@ class CkanUserHandler():
 
     def _get_package(self, id):
         try:
-            return self.remote.action.package_show(id=id, include_tracking=True)
+            return self.remote.action.package_show(
+                id=id, include_tracking=True)
         except CkanError.NotFound:
             return False
 
@@ -230,13 +231,13 @@ class CkanUserHandler():
         kwargs['view_type'] = view_type
         kwargs['title'] = kwargs['title'] if 'title' in kwargs else 'Aperçu'
         kwargs['description'] = kwargs['description'] \
-                    if 'description' in kwargs else 'Aperçu du jeu de données'
+            if 'description' in kwargs else 'Aperçu du jeu de données'
 
         views = self.remote.action.resource_view_list(id=resource_id)
         for view in views:
             if view['view_type'] == view_type:
-                return self.remote.action.resource_view_update(
-                                                        id=view['id'], **kwargs)
+                return self.remote.action.resource_view_update(id=view['id'],
+                                                               **kwargs)
 
         return self.remote.action.resource_view_create(**kwargs)
 
@@ -245,7 +246,7 @@ class CkanUserHandler():
 
         if id and self._is_package_exists(id):
             package = self._update_package(
-                                **{**self._get_package(id), **kwargs})
+                **{**self._get_package(id), **kwargs})
         else:
             package = self._add_package(**kwargs)
 

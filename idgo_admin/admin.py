@@ -1,5 +1,13 @@
+from .models import AccessLevel
+from .models import Category
+from .models import Commune
+from .models import Dataset
+from .models import License
+from .models import Projection
+from .models import Resolution
+from .models import Resource
+from .models import Territory
 from django.contrib import admin
-from .models import Category, Commune, Territory, License, Projection, Resolution, AccessLevel, Resource, Dataset
 
 
 # Register your models here.
@@ -13,14 +21,14 @@ admin.site.register(AccessLevel)
 
 
 class ResourceInline(admin.StackedInline):
-   model = Resource
-   max_num = 5
-   can_delete = True
-   readonly_fields = ('bbox',)
+    model = Resource
+    max_num = 5
+    can_delete = True
+    readonly_fields = ('bbox',)
 
 
 class DatasetAdmin(admin.ModelAdmin):
-   inlines = [ResourceInline]
+    inlines = [ResourceInline]
 
 
 admin.site.register(Dataset, DatasetAdmin)

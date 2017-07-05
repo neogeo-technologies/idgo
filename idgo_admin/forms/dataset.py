@@ -1,9 +1,12 @@
 from django import forms
-from idgo_admin.models import *
-from profiles.ckan_module import CkanHandler as ckan, \
-                                 CkanUserHandler as ckan_me
-from taggit.forms import TagField
+from idgo_admin.models import Category
+from idgo_admin.models import Dataset
+from idgo_admin.models import License
+from idgo_admin.models import Organisation
+from profiles.ckan_module import CkanHandler as ckan
+from profiles.ckan_module import CkanUserHandler as ckan_me
 from profiles.models import Profile
+from taggit.forms import TagField
 
 
 class DatasetForm(forms.ModelForm):
@@ -11,59 +14,54 @@ class DatasetForm(forms.ModelForm):
     # Champs modifiables :
 
     geocover = forms.ChoiceField(
-                            choices=Dataset.GEOCOVER_CHOICES,
-                            label='Couverture géographique',
-                            required = False)
+        choices=Dataset.GEOCOVER_CHOICES,
+        label='Couverture géographique',
+        required=False)
 
     update_freq = forms.ChoiceField(
-                            choices=Dataset.FREQUENCY_CHOICES,
-                            label='Fréquence de mise à jour',
-                            required=False)
+        choices=Dataset.FREQUENCY_CHOICES,
+        label='Fréquence de mise à jour',
+        required=False)
 
     categories = forms.ModelMultipleChoiceField(
-                            label='Catégories associées',
-                            queryset=Category.objects.all(),
-                            required=False,
-                            widget=forms.CheckboxSelectMultiple())
+        label='Catégories associées',
+        queryset=Category.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple())
 
     organisation = forms.ModelChoiceField(
-                            label="Organisme de publication",
-                            queryset=Organisation.objects.all(),
-                            required=True)
+        label='Organisme de publication',
+        queryset=Organisation.objects.all(),
+        required=True)
 
     licences = forms.ModelChoiceField(
-                            label='Licence',
-                            queryset=License.objects.all(),
-                            required=True)
+        label='Licence',
+        queryset=License.objects.all(),
+        required=True)
 
     keywords = TagField(required=False)
 
     published = forms.BooleanField(
-                            initial=True,
-                            label="Publier immédiatement ce jeu de donnée (sinon vous pourrez le faire plus tard)",
-                            required=False)
+        initial=True,
+        label=('Publier immédiatement ce jeu de donnée (sinon '
+               'vous pourrez le faire plus tard)'),
+        required=False)
 
     is_inspire = forms.BooleanField(
-                            initial=False,
-                            label="Ce jeu de données est soumis à la règlementation INSPIRE",
-                            required=False)
+        initial=False,
+        label='Ce jeu de données est soumis à la règlementation INSPIRE',
+        required=False)
 
     # Champs cachés :
 
-    owner_email = forms.EmailField(
-                            required=False,
-                            widget=forms.HiddenInput())
+    owner_email = forms.EmailField(required=False, widget=forms.HiddenInput())
 
     sync_in_ckan = forms.BooleanField(
-                            initial=False,
-                            required=False,
-                            widget=forms.HiddenInput())
+        initial=False, required=False, widget=forms.HiddenInput())
 
-    ckan_slug = forms.SlugField(
-                            required=False,
-                            widget=forms.HiddenInput())
+    ckan_slug = forms.SlugField(required=False, widget=forms.HiddenInput())
 
-    class Meta:
+    class Meta(object):
         model = Dataset
         fields = ('ckan_slug',
                   'description',
@@ -80,11 +78,15 @@ class DatasetForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         include_args = kwargs.pop('include', {})
+
         super(DatasetForm, self).__init__(*args, **kwargs)
+
         ppf = Profile.publish_for.through
         set = ppf.objects.filter(profile__user=include_args['user'])
         my_pub_l = [e.organisation_id for e in set]
-        self.fields['organisation'].queryset = Organisation.objects.filter(pk__in=my_pub_l)
+
+        self.fields['organisation'].queryset = \
+            Organisation.objects.filter(pk__in=my_pub_l)
 
     def handle_me(self, request, id=None):
         user = request.user
@@ -118,24 +120,25 @@ class DatasetForm(forms.ModelForm):
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
 
-        params = {'author': user.username,
-                  'author_email': user.email,
-                  'dataset_creation_date': str(dataset.date_creation.date()),
-                  'dataset_publication_date': str(dataset.date_publication.date()),
-                  'groups': [],  # Cf. plus bas..
-                  'geocover': dataset.geocover,
-                  'license_id': dataset.licences.title,
-                  'maintainer': user.username,
-                  'maintainer_email': user.email,
-                  'notes': dataset.description,
-                  'owner_org': dataset.organisation.ckan_slug,
-                  'private': False,
-                  'state': 'active',
-                  'tags': [{'name': name} for name in data['keywords']],
-                  'title': dataset.name,
-                  'update_frequency': dataset.update_freq,
-                  'url': '',  # TODO: Générer l'URL INSPIRE.
-                  'published': dataset.published}
+        params = {
+            'author': user.username,
+            'author_email': user.email,
+            'dataset_creation_date': str(dataset.date_creation.date()),
+            'dataset_publication_date': str(dataset.date_publication.date()),
+            'groups': [],  # Cf. plus bas..
+            'geocover': dataset.geocover,
+            'license_id': dataset.licences.title,
+            'maintainer': user.username,
+            'maintainer_email': user.email,
+            'notes': dataset.description,
+            'owner_org': dataset.organisation.ckan_slug,
+            'private': False,
+            'state': 'active',
+            'tags': [{'name': name} for name in data['keywords']],
+            'title': dataset.name,
+            'update_frequency': dataset.update_freq,
+            'url': '',  # TODO: Générer l'URL INSPIRE.
+            'published': dataset.published}
 
         for category in Category.objects.filter(pk__in=data['categories']):
             ckan.add_user_to_group(user.username, category.ckan_slug)
@@ -143,8 +146,8 @@ class DatasetForm(forms.ModelForm):
 
         try:
             ckan_dataset = ckan_user.publish_dataset(
-                        dataset.ckan_slug, id=str(dataset.ckan_id), **params)
-        except:
+                dataset.ckan_slug, id=str(dataset.ckan_id), **params)
+        except Exception:
             dataset.sync_in_ckan = False
         else:
             dataset.ckan_id = ckan_dataset['id']

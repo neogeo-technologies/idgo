@@ -235,7 +235,6 @@ function loadTab(hash) {
 	};
 };
 
-
 $('#menu a[data-toggle="tab"]')
 	.each(function(e) {
 		HASH_MENU.push($(this).prop('hash'));

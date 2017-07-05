@@ -70,6 +70,22 @@ div.page-header .title {
     font-weight: 400;
 }
 
+div.page-header .title a,
+div.page-header .title a:hover,
+div.page-header .title a:focus {
+    color: inherit;
+    font-weight: inherit;
+    text-decoration: none;
+}
+
+div.page-header .username {
+    right: 49px;
+    vertical-align: middle;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 div.page-header .login {
     right: 0;
     vertical-align: middle;
@@ -107,6 +123,7 @@ ul.nav.nav-default>li>a {
     border-right: 1px solid transparent;
     background: transparent;
     color: #999;
+    font-weight: normal;
 }
 
 ul.nav.nav-default>li>a:focus,
