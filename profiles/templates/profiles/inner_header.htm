@@ -4,10 +4,14 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-offset-1 col-md-10">
-				<span class="title"><a href="{% url "profiles:main" %}">Back-Office IDGO</a></span>
+				<span class="title">
+					<a href="{% url "profiles:main" %}" data-toggle="popover" data-placement="right" data-content="Revenir à la page d'accueil">Back-Office IDGO</a>
+				</span>
 				<span class="username">{{ first_name}} {{ last_name }}</span>
 				<div class="btn-group login">
-					<button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-user"></span></button>
+					<button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<span class="glyphicon glyphicon-user"></span>
+					</button>
 					<ul name="my-account-menu" class="dropdown-menu dropdown-menu-right">
 						<li style="text-align: left"><a href="{% url "profiles:modifyAccount" %}">Mon compte</a></li>
 						<li style="text-align: left"><a href="{% url "profiles:contributions" %}">Mes organismes (pour lesquels je contribue)</a></li>
@@ -20,3 +24,11 @@
 		</div>
 	</div>
 </div>
+<script>
+$(function() {
+	$('[data-toggle="popover"]').popover({
+		delay: {'show': 10, 'hide': 10},
+		trigger: 'hover'
+	});
+});
+</script>

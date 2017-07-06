@@ -132,6 +132,7 @@ class ProfileUpdateForm(forms.ModelForm):
                                          widget=forms.RadioSelect(),
                                          queryset=Organisation.objects.all())
     phone = forms.CharField(
+        error_messages={'invalid': 'Le numéro est invalide.'},
         required=False, label='Téléphone',
         min_length=3, max_length=150,
         validators=[validators.RegexValidator(regex='^0\d{9}$')],

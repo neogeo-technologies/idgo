@@ -52,6 +52,10 @@ br {
     margin: 0 auto;
 }
 
+.popover{
+    color: #000;
+}
+
 div.page-header {
     padding-top: 0;
     padding-bottom: 0;
