@@ -77,8 +77,8 @@ def sign_in(request):
 
     uform = UserLoginForm(data=request.POST)
     if not uform.is_valid():
-        uform.add_error('username', 'Vérifiez le nom de connexion !')
-        uform.add_error('password', 'Vérifiez le mot de passe !')
+        uform.add_error('username', 'Vérifiez votre nom de connexion !')
+        uform.add_error('password', 'Vérifiez votre mot de passe !')
         return render(request, 'profiles/signin.html', {'uform': uform})
 
     user = uform.get_user()
@@ -176,7 +176,7 @@ def sign_up(request):
 
     message = ('Votre compte a bien été créé. Vous recevrez un e-mail '
                "de confirmation d'ici quelques minutes. Pour activer "
-               'votre compte, cliquer sur le lien qui vous sera indiqué '
+               'votre compte, cliquez sur le lien qui vous sera indiqué '
                "dans les 48h après réception de l'e-mail.")
 
     return render(request, 'profiles/information.html',
@@ -221,7 +221,7 @@ def confirmation_email(request, key):
 
     reg.date_validation_user = timezone.now()
     reg.save()
-    message = ("Merci d'avoir confirmer votre adresse email. "
+    message = ("Merci d'avoir confirmer votre adresse e-mail. "
                'Si vous avez fait une demande de rattachement à une '
                "organisation, celle-ci ne sera effective qu'après "
                'validation par un administrateur.')
@@ -282,8 +282,9 @@ def activation_admin(request, key):
 
     reg.date_affiliate_admin = timezone.now()
     reg.save()
-    message = ('Le compte de {0} est désormais activé et son rattachement à '
-               '{1} est effectif').format(username, profile.organisation.name)
+    message = ('Le compte <strong>{0}</strong> est désormais activé et son '
+               'rattachement à {1} est effectif'
+               ).format(username, profile.organisation.name)
 
     return render(request, 'profiles/information.html',
                   {'message': message}, status=200)
@@ -293,7 +294,7 @@ def activation_admin(request, key):
 # def affiliate_request(request, key):
 #
 #     reg = get_object_or_404(Registration, affiliate_orga_key=key)
-# 
+#
 #     try:
 #         send_affiliate_confirmation(reg)
 #     except Exception:
@@ -352,7 +353,7 @@ def modify_account(request):
             pass
         render_an_critical_error(request)
 
-    message = 'Les informations de votre profile sont à jour.'
+    message = 'Les informations de votre profil sont à jour.'
     return render(request, 'profiles/information.html',
                   {'message': message}, status=200)
 
@@ -385,9 +386,9 @@ def publish_request(request):
     except Exception:
         render_an_critical_error(request)
 
-    message = ("Votre demande de contribution à l'organisation {0}"
-               'est en cours de traitement. Celle-ci sera effective après '
-               'validation par un administrateur.'
+    message = ("Votre demande de contribution à l'organisation "
+               '<strong>{0}</strong> est en cours de traitement. Celle-ci '
+               "ne sera effective qu'après validation par un administrateur."
                ).format(pub_req.organisation.name)
 
     return render(request, 'profiles/information.html',
@@ -401,7 +402,8 @@ def publish_request_confirme(request, key):
     profile = get_object_or_404(Profile, user=pub_req.user)
 
     if pub_req.date_acceptation:
-        message = 'La confirmation de la demande de contribution a déjà été faite.'
+        message = ('La confirmation de la demande de '
+                   'contribution a déjà été faite.')
         return render(request, 'profiles/information.html',
                       {'message': message}, status=200)
 
@@ -415,7 +417,8 @@ def publish_request_confirme(request, key):
     except Exception:
         pass
 
-    message = 'La confirmation de la demande de contribution a bien été prise en compte.'
+    message = ('La confirmation de la demande de contribution '
+               'a bien été prise en compte.')
     return render(request, 'profiles/information.html',
                   {'message': message}, status=200)
 
