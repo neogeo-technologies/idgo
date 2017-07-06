@@ -27,7 +27,7 @@ class UserUpdateForm(forms.ModelForm):
     first_name = fields.FIRST_NAME
     last_name = fields.LAST_NAME
 
-    password1 = forms.CharField(required=False,label='Mot de passe',
+    password1 = forms.CharField(required=False, label='Mot de passe',
                                 max_length=150, min_length=6,
                                 widget=forms.PasswordInput(attrs={'placeholder': 'Mot de passe'}))
 
@@ -46,6 +46,12 @@ class UserUpdateForm(forms.ModelForm):
             self.add_error('password1', 'Vérifiez les champs mot de passe')
             self.add_error('password2', '')
             raise ValidationError('password error')
+
+        if self.cleaned_data["email"] and \
+                User.objects.filter(
+                    email=self.cleaned_data["email"]).count() > 0:
+            raise forms.ValidationError(
+                'Cette adresse e-mail est réservée.')
 
         user = User.objects.get(username=self.cleaned_data["username"])
         user.first_name = self.cleaned_data["first_name"]

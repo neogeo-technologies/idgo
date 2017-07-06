@@ -136,6 +136,12 @@ def sign_up(request):
         uform.add_error('password1', 'Vérifiez les champs mot de passe')
         return render_on_error()
 
+    if uform.cleaned_data["email"] and \
+            User.objects.filter(
+                email=uform.cleaned_data["email"]).count() > 0:
+        uform.add_error('email', 'Cette adresse e-mail est réservée.')
+        return render_on_error()
+
     data = {'username': uform.cleaned_data['username'],
             'email': uform.cleaned_data['email'],
             'password': uform.cleaned_data['password1'],
