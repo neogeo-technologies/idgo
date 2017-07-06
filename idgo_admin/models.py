@@ -158,7 +158,7 @@ class Dataset(models.Model):
 
     name = models.CharField('Nom', max_length=100, unique=True)  # Titre CKAN
 
-    description = models.CharField(
+    description = models.TextField(
         'Description', max_length=1024, blank=True, null=True)
 
     ckan_slug = models.SlugField(
