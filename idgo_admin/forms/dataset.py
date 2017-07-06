@@ -147,11 +147,15 @@ class DatasetForm(forms.ModelForm):
         try:
             ckan_dataset = ckan_user.publish_dataset(
                 dataset.ckan_slug, id=str(dataset.ckan_id), **params)
-        except Exception:
+        except Exception as err:
             dataset.sync_in_ckan = False
+            dataset.published = False
+            dataset.delete()
+            raise err
         else:
             dataset.ckan_id = ckan_dataset['id']
             dataset.sync_in_ckan = True
+            dataset.published = True
 
         ckan_user.close()
         dataset.save()

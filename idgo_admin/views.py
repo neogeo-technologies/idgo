@@ -63,20 +63,28 @@ class DatasetManager(View):
                                    instance=dataset,
                                    include={'user': user})})
 
-            dform.handle_me(request, id)
-            message = 'Le jeu de données a été mis à jour avec succès.'
+            try:
+                dform.handle_me(request, id)
+            except Exception as e:
+                message = ("L'erreur suivante est survenue : "
+                           '<strong>{0}</strong>.').format(str(e))
+            else:
+                message = 'Le jeu de données a été mis à jour avec succès.'
 
-            return render(request, 'profiles/information.html',
-                          {'message': message}, status=200)
+        else:
+            dform = DatasetForm(
+                data=request.POST, include={'user': request.user})
+            if dform.is_valid() and request.user.is_authenticated:
+                try:
+                    dform.handle_me(request, id=request.GET.get('id'))
+                except Exception as e:
+                    message = ("L'erreur suivante est survenue : "
+                               '<strong>{0}</strong>.').format(str(e))
+                else:
+                    message = 'Le jeu de données a été créé avec succès.'
 
-        dform = DatasetForm(data=request.POST, include={'user': request.user})
-        if dform.is_valid() and request.user.is_authenticated:
-            dform.handle_me(request, id=request.GET.get('id'))
-
-            message = 'Le jeu de données a été créé avec succès.'
-
-            return render(request, 'profiles/information.html',
-                          {'message': message}, status=200)
+        return render(request, 'profiles/information.html',
+                      {'message': message}, status=200)
 
         return render_on_error(request)
 

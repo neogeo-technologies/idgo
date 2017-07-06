@@ -18,23 +18,17 @@ def exceptions_handler(f):
         try:
             return f(*args, **kwargs)
         except CkanError.NotAuthorized:
-            print('NotAuthorized')
-            raise PermissionError()
+            raise PermissionError('CkanError.NotAuthorized')
         except CkanError.ValidationError:
-            print('ValidationError')
-            raise Exception('ValidationError')
+            raise Exception('CkanError.ValidationError')
         except CkanError.NotFound:
-            print('NotFound')
-            raise Exception('NotFound')
+            raise Exception('CkanError.NotFound')
         except CkanError.SearchQueryError:
-            print('SearchQueryError')
-            raise Exception('SearchQueryError')
+            raise Exception('CkanError.SearchQueryError')
         except CkanError.SearchError:
-            print('SearchError')
-            raise Exception('SearchError')
+            raise Exception('CkanError.SearchError')
         except CkanError.SearchIndexError:
-            print('SearchIndexError')
-            raise Exception('SearchIndexError')
+            raise Exception('CkanError.SearchIndexError')
     return wrapper
 
 

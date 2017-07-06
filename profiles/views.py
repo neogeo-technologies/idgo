@@ -240,7 +240,7 @@ def activation_admin(request, key):
 
     if reg.date_affiliate_admin:
         message = ("Le compte <strong>{0}</strong> est déjà activé.").format(
-                reg.user.username)
+            reg.user.username)
         return render(request, 'profiles/information.html',
                       {'message': message}, status=200)
 
