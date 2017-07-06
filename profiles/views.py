@@ -82,7 +82,7 @@ def sign_in(request):
         return render(request, 'profiles/signin.html', {'uform': uform})
 
     user = uform.get_user()
-    request.session.set_expiry(600)  # time-out de la session
+    request.session.set_expiry(3600)  # time-out de la session
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     nxt_pth = request.GET.get('next', None)
     if nxt_pth:
