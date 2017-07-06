@@ -190,6 +190,10 @@ def confirmation_email(request, key):
 
     reg = get_object_or_404(Registration, activation_key=key)
 
+    if reg.date_validation_user:
+        message = "Vous avez déjà validé votre adresse e-mail."
+        return render(request, 'profiles/information.html',
+                      {'message': message}, status=200)
     try:
         reg.key_expires = None
     except Exception:
@@ -215,6 +219,8 @@ def confirmation_email(request, key):
     except Exception:
         pass  # Ce n'est pas très grave si l'e-mail ne part pas...
 
+    reg.date_validation_user = timezone.now()
+    reg.save()
     message = ("Merci d'avoir confirmer votre adresse email. "
                'Si vous avez fait une demande de rattachement à une '
                "organisation, celle-ci ne sera effective qu'après "
@@ -231,6 +237,12 @@ def activation_admin(request, key):
 
     reg = get_object_or_404(Registration, affiliate_orga_key=key)
     profile = get_object_or_404(Profile, user=reg.user)
+
+    if reg.date_affiliate_admin:
+        message = ("Le compte <strong>{0}</strong> est déjà activé.").format(
+                reg.user.username)
+        return render(request, 'profiles/information.html',
+                      {'message': message}, status=200)
 
     reg_org_name = reg.profile_fields['organisation']
     if reg_org_name:
@@ -254,7 +266,6 @@ def activation_admin(request, key):
                 ckan.add_user_to_organization(
                     username, org.ckan_slug, role='editor')
             ckan.activate_user(username)
-            reg.delete()
 
         except Exception:
             # profile.delete()
@@ -263,13 +274,14 @@ def activation_admin(request, key):
     else:
         profile.organisation = None
         profile.save()
-        reg.delete()
 
     try:
         send_affiliate_confirmation(profile)
     except Exception:
         pass  # Ce n'est pas très grave si l'e-mail ne part pas...
 
+    reg.date_affiliate_admin = timezone.now()
+    reg.save()
     message = ('Le compte de {0} est désormais activé et son rattachement à '
                '{1} est effectif').format(username, profile.organisation.name)
 
@@ -277,22 +289,21 @@ def activation_admin(request, key):
                   {'message': message}, status=200)
 
 
-@csrf_exempt
-def affiliate_request(request, key):
-
-    reg = get_object_or_404(Registration, affiliate_orga_key=key)
-
-    try:
-        send_affiliate_confirmation(reg)
-        reg.date_acceptation = timezone.now()
-    except Exception:
-        pass
-
-    message = ('La confirmation de la demande de '
-               'rattachement a bien été prise en compte.')
-
-    return render(request, 'profiles/information.html',
-                  {'message': message}, status=200)
+# @csrf_exempt
+# def affiliate_request(request, key):
+#
+#     reg = get_object_or_404(Registration, affiliate_orga_key=key)
+# 
+#     try:
+#         send_affiliate_confirmation(reg)
+#     except Exception:
+#         pass
+#
+#     message = ('La confirmation de la demande de '
+#                'rattachement a bien été prise en compte.')
+#
+#     return render(request, 'profiles/information.html',
+#                   {'message': message}, status=200)
 
 
 @transaction.atomic

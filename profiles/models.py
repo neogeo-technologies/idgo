@@ -138,6 +138,12 @@ class Registration(models.Model):
     key_expires = models.DateTimeField(default=deltatime_2_days,
                                        blank=True, null=True)
     profile_fields = JSONField('Champs profile', blank=True, null=True)
+    date_validation_user = models.DateField(
+            verbose_name="Date validation par l'utilisateur",
+            blank=True, null=True)
+    date_affiliate_admin = models.DateField(
+            verbose_name="Date activation par un administrateur",
+            blank=True, null=True)
 
 
 # Triggers

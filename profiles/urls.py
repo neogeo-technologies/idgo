@@ -1,6 +1,5 @@
 from django.conf.urls import url
 from profiles.views import activation_admin
-from profiles.views import affiliate_request
 from profiles.views import confirmation_email
 from profiles.views import contributions
 from profiles.views import delete_account
@@ -23,8 +22,6 @@ urlpatterns = [
     url('^activation_admin/(?P<key>.+)/?$',
         activation_admin, name='activation_admin'),
     url('^modifyaccount/?$', modify_account, name='modifyAccount'),
-    url('^affiliate_request/(?P<key>.+)/?$',
-        affiliate_request, name='affiliate_request'),
     url('^publish_request/(?P<key>.+)/?$',
         publish_request_confirme, name='publish_request_confirme'),
     url('^publish_request/?$', publish_request, name='publish_request'),
