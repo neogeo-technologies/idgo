@@ -40,7 +40,7 @@
 </div>
 <script>
 $(function() {
-	$('input[checked="checked"]').each(function() {
+	$('input[checked=""],input[checked="checked"]').each(function() {
 		$('label[for="' + this.id + '"]').addClass('active');
 	});
 });
