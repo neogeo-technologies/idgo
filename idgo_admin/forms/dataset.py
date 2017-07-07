@@ -48,7 +48,7 @@ class DatasetForm(forms.ModelForm):
 
     is_inspire = forms.BooleanField(
         initial=False,
-        label='Ce jeu de données est soumis à la règlementation INSPIRE',
+        label='Le jeu de données est soumis à la règlementation INSPIRE',
         required=False)
 
     # Champs cachés :

@@ -10,12 +10,25 @@
 				{% bootstrap_field dform.description %}
 				{% bootstrap_field dform.geocover %}
 				{% bootstrap_field dform.update_freq %}
-				{% bootstrap_field dform.categories %}
 				{% bootstrap_field dform.organisation %}
 				{% bootstrap_field dform.licences %}
 				{% bootstrap_field dform.owner_email %}
-				{% bootstrap_field dform.is_inspire %}
 				{% bootstrap_field dform.keywords %}
+				<div class="form-group">
+					<label for="categories">Catégories</label></br>
+					<div id="categories" class="btn-group" data-toggle="buttons">
+						{% for category in dform.categories %}
+						<label for="{{ category.id_for_label }}" class="btn">
+							{{ category.tag }}
+							<span class="badge">{{ category.choice_label }}</span></label>
+						{% empty %}
+						<div role="alert" class="alert alert-warning">
+							<p>Aucune catégorie n'est disponible.</p>
+						</div>
+						{% endfor %}
+					</div>
+				</div>
+				{% bootstrap_field dform.is_inspire %}
 				{% bootstrap_field dform.published %}
 				<div class="buttons-on-the-right-side">
 					<button type="submit" class="btn btn-default">Enregistrer</button>
@@ -25,3 +38,4 @@
 		</div>
 	</div>
 </div>
+<script>;$(function() { $('input[checked="checked"]').each(function() { $('label[for="' + this.id + '"]').addClass('active'); }); });</script>
