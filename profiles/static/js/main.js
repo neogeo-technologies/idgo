@@ -43,7 +43,7 @@ var RESOURCE_METADATA = [
 ];
 
 
-var resourcesGrid = new EditableGrid('Resources');
+var resourcesGrid = new EditableGrid('Resources', {pageSize: 5});
 
 
 function activateButton($btn) {
@@ -141,11 +141,95 @@ $('#datasets button[name="modify-dataset"]')
 	});
 
 
+EditableGrid.prototype.updatePaginator = function(grid){
+
+	var paginator = $('#' + this.currentContainerid + '-paginator').empty();
+	var pageCount = this.getPageCount();
+
+	var interval = this.getSlidingPageInterval(9);
+	if (interval == null) {
+		return;
+	};
+
+	var pages = this.getPagesInInterval(interval, function(pageIndex, isCurrent) {
+		var pageLink = $('<li>').html('<a href="#">' + (pageIndex + 1) + '</a>');
+		if (isCurrent) {
+			return pageLink.addClass('active');
+		};
+		return pageLink.click(function(e) {
+			e.stopPropagation();
+			grid.setPageIndex(parseInt(e.currentTarget.innerText) - 1);
+			selectRow(grid, rowIdOnTop(grid));
+			e.preventDefault();
+		});
+	});
+
+	var firstLink = $('<li>').html('<a href="#" aria-label="First page"><span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span></a>');
+	if (!this.canGoBack()) {
+		firstLink.addClass('disabled');
+	} else {
+		firstLink.click(function(e) {
+			e.stopPropagation();
+			grid.firstPage();
+			selectRow(grid, rowIdOnTop(grid));
+			e.preventDefault();
+		});
+	};
+	paginator.append(firstLink);
+
+	var prevLink = $('<li>').html('<a href="#" aria-label="Previous page"><span class="glyphicon glyphicon-backward" aria-hidden="true"></span></a>');
+	if (!this.canGoBack()) {
+		prevLink.addClass('disabled');
+	} else {
+		prevLink.click(function(e) {
+			e.stopPropagation();
+			grid.prevPage();
+			selectRow(grid, rowIdOnTop(grid));
+			e.preventDefault();
+		});
+	};
+	paginator.append(prevLink);
+
+	for (p = 0; p < pages.length; p++) {
+		paginator.append(pages[p]);
+	};
+
+	var nextLink = $('<li>').html('<a href="#" aria-label="Next page"><span class="glyphicon glyphicon-forward" aria-hidden="true"></span></a>');
+	if (!this.canGoForward()) {
+		nextLink.addClass('disabled');
+	} else {
+		nextLink.click(function(e) {
+			e.stopPropagation();
+			grid.nextPage();
+			selectRow(grid, rowIdOnTop(grid));
+			e.preventDefault();
+		});
+	};
+	paginator.append(nextLink);
+
+	var lastLink = $('<li>').html('<a href="#" aria-label="Last page"><span class="glyphicon glyphicon-fast-forward aria-hidden="true"></span></a>');
+	if (!this.canGoForward()) {
+		lastLink.addClass('disabled');
+	} else {
+		lastLink.click(function(e) {
+			e.stopPropagation();
+			grid.lastPage();
+			selectRow(grid, rowIdOnTop(grid));
+			e.preventDefault();
+		});
+	};
+	paginator.append(lastLink);
+};
+
+
 resourcesGrid.initializeGrid = function() {
 	var grid = resourcesGrid;
 	var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
 
 	with (this) {
+		tableRendered = function() {
+			this.updatePaginator(grid);
+		};
 		rowSelected = function(pRowIdx, nRowIdx) {
 			$(grid.getRow(pRowIdx)).removeClass('selected');
 			$buttons.each(function() {

@@ -55,13 +55,13 @@ class DatasetManager(View):
             dform = DatasetForm(instance=dataset,
                                 data=request.POST,
                                 include={'user': user})
+
             if not dform.is_valid() or not request.user.is_authenticated:
                 return render(request, 'idgo_admin/dataset.html',
                               {'first_name': user.first_name,
                                'last_name': user.last_name,
-                               'dform': DatasetForm(
-                                   instance=dataset,
-                                   include={'user': user})})
+                               'dform': DatasetForm(instance=dataset,
+                                                    include={'user': user})})
 
             try:
                 dform.handle_me(request, id)
@@ -71,6 +71,8 @@ class DatasetManager(View):
             else:
                 message = 'Le jeu de données a été mis à jour avec succès.'
 
+            return render(request, 'profiles/information.html',
+                          {'message': message}, status=200)
         else:
             dform = DatasetForm(
                 data=request.POST, include={'user': request.user})
@@ -83,8 +85,8 @@ class DatasetManager(View):
                 else:
                     message = 'Le jeu de données a été créé avec succès.'
 
-        return render(request, 'profiles/information.html',
-                      {'message': message}, status=200)
+                return render(request, 'profiles/information.html',
+                              {'message': message}, status=200)
 
         return render_on_error(request)
 

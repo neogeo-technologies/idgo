@@ -43,8 +43,7 @@ class DatasetForm(forms.ModelForm):
 
     published = forms.BooleanField(
         initial=True,
-        label=('Publier immédiatement ce jeu de donnée (sinon '
-               'vous pourrez le faire plus tard)'),
+        label='Publier le jeu de donnée',
         required=False)
 
     is_inspire = forms.BooleanField(
@@ -132,13 +131,13 @@ class DatasetForm(forms.ModelForm):
             'maintainer_email': user.email,
             'notes': dataset.description,
             'owner_org': dataset.organisation.ckan_slug,
-            'private': False,
+            'private': dataset.published and False or True,
             'state': 'active',
             'tags': [{'name': name} for name in data['keywords']],
             'title': dataset.name,
             'update_frequency': dataset.update_freq,
-            'url': '',  # TODO: Générer l'URL INSPIRE.
-            'published': dataset.published}
+            # TODO(@m431m): Générer l'URL INSPIRE.
+            'url': ''}
 
         for category in Category.objects.filter(pk__in=data['categories']):
             ckan.add_user_to_group(user.username, category.ckan_slug)
@@ -149,13 +148,11 @@ class DatasetForm(forms.ModelForm):
                 dataset.ckan_slug, id=str(dataset.ckan_id), **params)
         except Exception as err:
             dataset.sync_in_ckan = False
-            dataset.published = False
             dataset.delete()
             raise err
         else:
             dataset.ckan_id = ckan_dataset['id']
             dataset.sync_in_ckan = True
-            dataset.published = True
 
         ckan_user.close()
         dataset.save()
