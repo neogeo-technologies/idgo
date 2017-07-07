@@ -1,6 +1,5 @@
 /* css/main.css */
 
-
 /*
  * red    #f5193b
  * green  #14d47f
@@ -21,6 +20,13 @@ br {
     line-height: 300%;
 }
 
+.checkbox, .radio {
+    position: relative;
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
 .h1, h1 {
     margin-top: 40px;
 }
@@ -30,7 +36,7 @@ br {
     background-color: #fff;
     border-color: #999;
     -webkit-box-shadow: none;
-    box-shadow: none;
+            box-shadow: none;
 }
 
 .modal {
@@ -75,7 +81,9 @@ div.page-header .title {
     font-weight: 400;
 }
 
-div.page-header .title a, div.page-header .title a:hover, div.page-header .title a:focus {
+div.page-header .title a,
+div.page-header .title a:hover,
+div.page-header .title a:focus {
     color: inherit;
     font-weight: inherit;
     text-decoration: none;
@@ -106,10 +114,11 @@ div.page-header .login button {
     border-radius: 9999px;
     padding: 0;
     -webkit-transition: background-color .123s, color .123s;
-    transition: background-color .123s, color .123s;
+            transition: background-color .123s, color .123s;
 }
 
-div.page-header .login button:hover, div.page-header .login button:focus {
+div.page-header .login button:hover,
+div.page-header .login button:focus {
     background-color: #ffffff;
     color: #291809;
 }
@@ -128,11 +137,14 @@ ul.nav.nav-default>li>a {
     font-weight: normal;
 }
 
-ul.nav.nav-default>li>a:focus, ul.nav.nav-default>li>a:hover {
+ul.nav.nav-default>li>a:focus,
+ul.nav.nav-default>li>a:hover {
     color: #666;
 }
 
-ul.nav.nav-default>li.active>a, ul.nav.nav-default>li.active>a:focus, ul.nav.nav-default>li.active>a:hover {
+ul.nav.nav-default>li.active>a,
+ul.nav.nav-default>li.active>a:focus,
+ul.nav.nav-default>li.active>a:hover {
     color: #000;
     background-color: #fff;
     border-left: 1px solid #ccc;
@@ -156,7 +168,8 @@ table>thead a {
     color: inherit;
 }
 
-table>thead a:hover, table>thead a:focus {
+table>thead a:hover,
+table>thead a:focus {
     text-decoration: underline;
     color: inherit;
 }
@@ -170,7 +183,8 @@ table tr.selected td {
     color: #fff;
 }
 
-table tr.selected:hover td, table tr.selected:focus td {
+table tr.selected:hover td,
+table tr.selected:focus td {
     background: #0571cf;
 }
 
@@ -180,7 +194,8 @@ table tr.selected:hover td, table tr.selected:focus td {
     border-color: #666;
 }
 
-.btn-default:hover, .btn-default:focus {
+.btn-default:hover,
+.btn-default:focus {
     color: #444;
     background-color: #fcfcfc;
     border-color: #444;
@@ -192,7 +207,8 @@ a {
     font-weight: bold;
 }
 
-a:hover, a:focus {
+a:hover,
+a:focus {
     color: #067ee6;
     text-decoration: underline;
 }
@@ -201,7 +217,8 @@ a:hover, a:focus {
     color: #067ee6;
 }
 
-.btn-link:hover, .btn-link:focus, {
+.btn-link:hover,
+.btn-link:focus, {
     color: #067ee6;
 }
 
@@ -210,7 +227,8 @@ a:hover, a:focus {
     border-color: #067ee6;
 }
 
-.btn-primary:hover, .btn-primary:focus {
+.btn-primary:hover,
+.btn-primary:focus {
     background-color: #0571cf;
     border-color: #0571cf;
 }
@@ -220,7 +238,8 @@ a:hover, a:focus {
     border-color: #f5193b;
 }
 
-.btn-danger:hover, .btn-danger:focus {
+.btn-danger:hover,
+.btn-danger:focus {
     background-color: #db0022;
     border-color: #db0022;
 }
@@ -231,12 +250,15 @@ a:hover, a:focus {
     border-radius: 0;
 }
 
-.btn-radio:hover, .btn-radio:focus {
+.btn-radio:hover,
+.btn-radio:focus {
     background-color: #eee;
     border-color: #ccc;
 }
 
-.btn-radio.active, .btn-radio.active:hover, .btn-radio.active:focus {
+.btn-radio.active,
+.btn-radio.active:hover,
+.btn-radio.active:focus {
     background-color: #067ee6;
     border-color: #ccc;
     box-shadow: none;
@@ -272,7 +294,9 @@ a:hover, a:focus {
     border-radius: 0;
 }
 
-.btn.disabled, .btn.disabled:hover, .btn.disabled:focus {
+.btn.disabled,
+.btn.disabled:hover,
+.btn.disabled:focus {
     color: #aaa;
     background-color: #fdfdfd;
     border-color: #aaa;
@@ -345,7 +369,8 @@ nav>ul.pagination>li>a {
     color: #666;
 }
 
-nav>ul.pagination>li>a:hover, nav>ul.pagination>li>a:focus {
+nav>ul.pagination>li>a:hover,
+nav>ul.pagination>li>a:focus {
     color: #666;
 }
 
@@ -363,7 +388,8 @@ nav>ul.pagination>li.active>a {
     border-color: #067ee6;
 }
 
-nav>ul.pagination>li.active>a:hover, nav>ul.pagination>li.active>a:focus {
+nav>ul.pagination>li.active>a:hover,
+nav>ul.pagination>li.active>a:focus {
     background-color: #0571cf;
     border-color: #0571cf;
 }
