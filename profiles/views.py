@@ -334,7 +334,7 @@ def modify_account(request):
             ldap.update_user(user, profile=profile,
                              password=uform.cleaned_data['password1'])
 
-    except ValidationError:
+    except ValidationError:        
         return render(request, 'profiles/modifyaccount.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,

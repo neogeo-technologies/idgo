@@ -45,18 +45,20 @@ class UserUpdateForm(forms.ModelForm):
         fields = ('first_name', 'last_name', 'email', 'username')
 
     def save_f(self, request):
+        user = User.objects.get(username=self.cleaned_data['username'])
 
         if self.cleaned_data['password1'] != self.cleaned_data['password2']:
             self.add_error('password1', 'Vérifiez les champs mot de passe')
             self.add_error('password2', '')
             raise ValidationError('Les mots de passe ne sont pas identiques.')
 
-        if self.cleaned_data['email'] and \
-                User.objects.filter(
-                    email=self.cleaned_data['email']).count() > 0:
-            raise forms.ValidationError('Cette adresse e-mail est réservée.')
+        if "email" in self.cleaned_data and self.cleaned_data['email']:
+            email = self.cleaned_data['email']
+            if email != user.email and User.objects.filter(
+                    email=email).count() > 0:
+                raise forms.ValidationError('Cette adresse e-mail \
+                                             est réservée.')
 
-        user = User.objects.get(username=self.cleaned_data['username'])
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
         user.username = self.cleaned_data['username']
