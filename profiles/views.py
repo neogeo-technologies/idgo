@@ -201,6 +201,12 @@ def confirmation_email(request, key):
 
     user = reg.user
     user.is_active = True
+    try:
+        ldap.activate_user(user.username)
+        ckan.activate_user(user.username)
+    except Exception:
+        return render_an_critical_error(request)
+
     user.save()
 
     Profile.objects.get_or_create(
@@ -233,9 +239,8 @@ def confirmation_email(request, key):
 @csrf_exempt
 def activation_admin(request, key):
 
-    # Activation du compte par l'administrateur et rattachement
-
     reg = get_object_or_404(Registration, affiliate_orga_key=key)
+    username = reg.user.username
     profile = get_object_or_404(Profile, user=reg.user)
 
     if reg.date_affiliate_admin:
@@ -254,27 +259,9 @@ def activation_admin(request, key):
 
         profile.organisation = org
         profile.save()
-        username = reg.user.username
-        try:
-            # TODO: voir si activate_user() necessite
-            # add_user_to_organization()
-            if reg.profile_fields['organisation']:
-                ldap.add_user_to_organization(username, org.ckan_slug)
-            ldap.activate_user(reg.user.username)
-
-            if reg.profile_fields['organisation']:
-                ckan.add_user_to_organization(
-                    username, org.ckan_slug, role='editor')
-            ckan.activate_user(username)
-
-        except Exception:
-            # profile.delete()
-            # TODO: Rétablir l'état inactif du compte !
-            return render_an_critical_error(request)
-    else:
+    else:  # Est-ce tjs nécessaire ?
         profile.organisation = None
         profile.save()
-
     try:
         send_affiliate_confirmation(profile)
     except Exception:
@@ -333,16 +320,18 @@ def modify_account(request):
             ckan.update_user(user, profile=profile)
             ldap.update_user(user, profile=profile,
                              password=uform.cleaned_data['password1'])
-
-    except ValidationError:        
+    except ValidationError as e:
+        print('ValidationError', e)
         return render(request, 'profiles/modifyaccount.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
                        'uform': uform, 'pform': pform})
-
-    except IntegrityError:
+    except IntegrityError as e:
+        print('IntegrityError', e)
         logout(request)
         error = True
+    except Exception as e:
+        print('Exception', e)
 
     if error:
         user = User.objects.get(username=user.username)
@@ -400,6 +389,8 @@ def publish_request_confirme(request, key):
 
     pub_req = get_object_or_404(PublishRequest, pub_req_key=key)
     profile = get_object_or_404(Profile, user=pub_req.user)
+    user = profile.user
+    organization = pub_req.organisation
 
     if pub_req.date_acceptation:
         message = ('La confirmation de la demande de '
@@ -409,7 +400,12 @@ def publish_request_confirme(request, key):
 
     if pub_req.organisation:
         profile.publish_for.add(pub_req.organisation)
+        # ldap.add_user_to_organization(
+        #     user.username, organization.ckan_slug)
+        ckan.add_user_to_organization(
+            user.username, organization.ckan_slug, role='editor')
         profile.save()
+
     try:
         send_publish_confirmation(pub_req)
         pub_req.date_acceptation = timezone.now()

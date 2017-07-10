@@ -160,34 +160,23 @@ def delete_user_in_externals(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Profile)
 def update_externals(sender, instance, **kwargs):
-
-    # TODO: Possibilité d'inscrire un profile sans organisation
-    # et possiblité de modifier un abonnment apres inscription
-    # et possiblité de suppremier ancienne organisation par nouvelle
-
-    end_trigger = False
-    if instance.id:
-        try:
-            old_instance = Profile.objects.get(pk=instance.id)
-        except Profile.DoesNotExist:
-            end_trigger = True
-
-        if end_trigger is False and old_instance.organisation is None:
-            end_trigger = True
-
-        if instance.organisation is None and old_instance.organisation:
+    user = instance.user
+    try:
+        old = Profile.objects.get(pk=instance.id)
+    except Profile.DoesNotExist:
+        pass
+    except Exception as e:
+        print('Error:', e)
+        pass
+    else:
+        if old.organisation and old.organisation.ckan_slug in \
+                ckan.get_organizations_which_user_belongs(user.username):
             ckan.del_user_from_organization(
-                instance.user.username, old_instance.organisation.ckan_slug)
-            ldap.del_user_from_organization(
-                instance.user.username, old_instance.organisation.ckan_slug)
-            end_trigger = True
+                user.username, old.organisation.ckan_slug)
 
-        if end_trigger is False and \
-                old_instance.organisation != instance.organisation:
-            ckan.del_user_from_organization(
-                instance.user.username, old_instance.organisation.ckan_slug)
-            ldap.del_user_from_organization(
-                instance.user.username, old_instance.organisation.ckan_slug)
+    if instance.organisation:
+        ckan.add_user_to_organization(
+            user.username, instance.organisation.ckan_slug)
 
 
 @receiver(pre_save, sender=Profile)
