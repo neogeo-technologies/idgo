@@ -151,6 +151,15 @@ ul.nav.nav-default>li.active>a:hover {
     border-right: 1px solid #ccc;
 }
 
+div.nav-container {
+}
+
+div.nav-container .breadcrumb {
+    margin-top: 0;
+    margin-bottom: 0;
+    background-color: transparent;
+}
+
 div.main-container {
     background-color: #fff;
     border-top: 1px solid #ccc;

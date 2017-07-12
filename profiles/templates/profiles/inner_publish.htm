@@ -1,42 +1,35 @@
 {% load bootstrap3 %}
 
-<div class="container">
-	<div class="row">
-		<div class="col-md-offset-1 col-md-10">
-			<br/>
-			<h2 class="modal-title">Nouvelle demande de contribution</h2>
-			<p>Toute demande de rattachement à un organisme est soumise à validation de l'administrateur du site.</p>
-			<br/>
-			<form>
-				<div class="form-group">
-					<div class="row">
-						<div class="col-md-6">
-							<div class="input-group" name="organization">
-								<input type="text" class="form-control" placeholder="Rechercher l'organisme...">
-								<span class="input-group-btn">
-									<button type="button" class="btn btn-primary">
-										<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-									</button>
-								</span>
-							</div>
-						</div>
-					</div>
+<h2 class="modal-title">Nouvelle demande de contribution</h2>
+<p>Toute demande de rattachement à un organisme est soumise à validation de l'administrateur du site.</p>
+<br/>
+<form>
+	<div class="form-group">
+		<div class="row">
+			<div class="col-md-6">
+				<div class="input-group" name="organization">
+					<input type="text" class="form-control" placeholder="Rechercher l'organisme...">
+					<span class="input-group-btn">
+						<button type="button" class="btn btn-primary">
+							<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+						</button>
+					</span>
 				</div>
-			</form>
-			<form method="post" action="">
-				<div class="btn-group-vertical btn-block scrolling-box"  style="height: 205px;" data-toggle="buttons">
-					{% for choice in pform.publish_for %}
-					<div class="btn btn-radio">{{ choice }}</div>
-					{% endfor %}
-				</div>
-				<div class="buttons-on-the-right-side">
-					<a class="btn btn-default" href="{% url "profiles:main" %}">Annuler</a>
-					<button type="submit" class="btn btn-primary disabled" disabled=True>Envoyer la demande</button>
-				</div>
-			</form>
+			</div>
 		</div>
 	</div>
-</div>
+</form>
+<form method="post" action="">
+	<div class="btn-group-vertical btn-block scrolling-box"  style="height: 205px;" data-toggle="buttons">
+		{% for choice in pform.publish_for %}
+		<div class="btn btn-radio">{{ choice }}</div>
+		{% endfor %}
+	</div>
+	<div class="buttons-on-the-right-side">
+		<a class="btn btn-default" href="{% url "profiles:home" %}">Annuler</a>
+		<button type="submit" class="btn btn-primary disabled" disabled=True>Envoyer la demande</button>
+	</div>
+</form>
 <script>
 $(function() {
 	var $radioInputs = $('form input:radio');

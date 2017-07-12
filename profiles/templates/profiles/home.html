@@ -1,0 +1,23 @@
+{% extends "profiles/base.html" %}
+
+{% block nav %}
+<ul id="menu" class="nav nav-default" role="tablist">
+	<li role="presentation">
+		<a href="#datasets" aria-controls="datasets" role="tab" data-toggle="tab">Mes jeux de données</a>
+	</li>
+	<li role="presentation">
+		<a href="#rules" aria-controls="rules" role="tab" data-toggle="tab">Gestion des droits d'accès</a>
+	</li>
+</ul>
+{% endblock nav %}
+
+{% block main %}
+<div class="tab-content">
+	<div id="datasets" role="tabpanel" class="tab-pane fade in">
+		{% include "profiles/inner_datasets.htm" %}
+	</div>
+	<div id="rules" role="tabpanel" class="tab-pane fade in">
+		{% include "profiles/inner_rules.htm" %}
+	</div>
+</div>
+{% endblock main %}

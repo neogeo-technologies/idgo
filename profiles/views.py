@@ -45,7 +45,7 @@ def render_an_critical_error(request, error=None):
 
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
-def main(request):
+def home(request):
 
     user = request.user
     datasets = [(o.pk,
@@ -60,7 +60,7 @@ def main(request):
     my_pub_l = [e.organisation_id for e in set]
     is_contributor = len(Organisation.objects.filter(pk__in=my_pub_l)) > 0
 
-    return render(request, 'profiles/main.html',
+    return render(request, 'profiles/home.html',
                   {'first_name': user.first_name,
                    'last_name': user.last_name,
                    'datasets': json.dumps(datasets),
@@ -87,7 +87,7 @@ def sign_in(request):
     nxt_pth = request.GET.get('next', None)
     if nxt_pth:
         return HttpResponseRedirect(nxt_pth)
-    return redirect('profiles:main')
+    return redirect('profiles:home')
 
 
 @csrf_exempt

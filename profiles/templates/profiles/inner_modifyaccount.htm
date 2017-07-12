@@ -1,34 +1,27 @@
 {% load bootstrap3 %}
 
-<div class="container">
+<h2 class="modal-title">Mes informations personnelles</h2>
+<br/>
+<form method="post" action="">
+	{% csrf_token %}
+	{% bootstrap_field uform.username %}
+	{% bootstrap_field uform.first_name %}
+	{% bootstrap_field uform.last_name %}
+	{% bootstrap_field uform.email %}
+	<p>Entrez un nouveau mot de passe ci-dessous si vous souhaitez le modifier. <br />Sinon, laissez les champs vides.</p>
 	<div class="row">
-		<div class="col-md-offset-1 col-md-10">
-			<br/>
-			<h2 class="modal-title">Mes informations personnelles</h2>
-			<br/>
-			<form method="post" action="">
-				{% csrf_token %}
-				{% bootstrap_field uform.username %}
-				{% bootstrap_field uform.first_name %}
-				{% bootstrap_field uform.last_name %}
-				{% bootstrap_field uform.email %}
-				<p>Entrez un nouveau mot de passe ci-dessous si vous souhaitez le modifier. <br />Sinon, laissez les champs vides.</p>
-				<div class="row">
-					<div class="col-xs-12 col-sm-6">
-						{% bootstrap_field uform.password1 show_label=False %}
-					</div>
-					<div class="col-xs-12 col-sm-6">
-						{% bootstrap_field uform.password2 show_label=False %}
-					</div>
-				</div>
-				{% bootstrap_field pform.organisation %}
-				{% bootstrap_field pform.role %}
-				{% bootstrap_field pform.phone %}
-				<div class="buttons-on-the-right-side">
-					<a class="btn btn-default" href="{% url "profiles:main" %}">Annuler</a>
-					<button type="submit" class="btn btn-default">Valider les changements</button>
-				</div>
-			</form>
+		<div class="col-xs-12 col-sm-6">
+			{% bootstrap_field uform.password1 show_label=False %}
+		</div>
+		<div class="col-xs-12 col-sm-6">
+			{% bootstrap_field uform.password2 show_label=False %}
 		</div>
 	</div>
-</div>
+	{% bootstrap_field pform.organisation %}
+	{% bootstrap_field pform.role %}
+	{% bootstrap_field pform.phone %}
+	<div class="buttons-on-the-right-side">
+		<a class="btn btn-default" href="{% url "profiles:home" %}">Annuler</a>
+		<button type="submit" class="btn btn-default">Valider les changements</button>
+	</div>
+</form>

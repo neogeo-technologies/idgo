@@ -1,9 +1,29 @@
-{% extends "idgo_admin/base.html" %}
+{% extends "profiles/base.html" %}
 
-{% block header %}
-{% include "profiles/inner_header.htm" %}
-{% endblock header %}
+{% block nav %}
+<ol class="breadcrumb">
+	<li><a href="{% url "profiles:home" %}#datasets">Mes jeux de données</a></li>
+	<li class="active">{{ dataset_name | safe }}</li>
+</ol>
+{% endblock nav %}
 
-{% block body %}
-{% include "idgo_admin/inner_dataset.htm" %}
-{% endblock body %}
+{% block main %}
+<ul class="nav nav-tabs">
+	<li role="presentation">
+		<a href="#dataset" aria-controls="dataset" role="tab" data-toggle="tab">Jeu de donnée</a>
+	</li>
+	<li role="presentation">
+		<a href="#resources" aria-controls="resources" role="tab" data-toggle="tab">Ressource(s) associée(s)</a>
+	</li>
+</ul>
+<div class="tab-content">
+	<div id="dataset" role="tabpanel" class="tab-pane fade in">
+		<br />
+		{% include "idgo_admin/inner_dataset.htm" %}
+	</div>
+	<div id="resources" role="tabpanel" class="tab-pane fade in">
+		<br />
+		{% include "idgo_admin/inner_resources.htm" %}
+	</div>
+</div>
+{% endblock main %}

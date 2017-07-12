@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
+import json
 from profiles.ckan_module import CkanHandler as ckan
 from profiles.ckan_module import CkanUserHandler as ckan_me
 
@@ -34,12 +35,22 @@ class DatasetManager(View):
 
     def get(self, request):
         user = request.user
+
         id = request.GET.get('id') or None
         if id:
             dataset = get_object_or_404(Dataset, id=id, editor=user)
+            resources = [
+                (o.pk,
+                 o.name,
+                 o.created_on.isoformat(),
+                 o.last_update.isoformat(),
+                 o.acces) for o in Resource.objects.filter(dataset=dataset)]
+
             return render(request, 'idgo_admin/dataset.html',
                           {'first_name': user.first_name,
                            'last_name': user.last_name,
+                           'dataset_name': dataset.name,
+                           'resources': json.dumps(resources),
                            'dform': DatasetForm(
                                instance=dataset,
                                include={'user': request.user})})
@@ -47,6 +58,8 @@ class DatasetManager(View):
         return render(request, 'idgo_admin/dataset.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
+                       'dataset_name': 'Nouveau',
+                       'resources': '[]',
                        'dform': DatasetForm(include={'user': user})})
 
     def post(self, request):
@@ -54,6 +67,13 @@ class DatasetManager(View):
         id = request.POST.get('id', request.GET.get('id')) or None
         if id:
             dataset = get_object_or_404(Dataset, id=id, editor=user)
+            resources = [
+                (o.pk,
+                 o.name,
+                 o.created_on.isoformat(),
+                 o.last_update.isoformat(),
+                 o.acces) for o in Resource.objects.filter(dataset=dataset)]
+
             dform = DatasetForm(instance=dataset,
                                 data=request.POST,
                                 include={'user': user})
@@ -62,6 +82,8 @@ class DatasetManager(View):
                 return render(request, 'idgo_admin/dataset.html',
                               {'first_name': user.first_name,
                                'last_name': user.last_name,
+                               'dataset_name': dataset.name,
+                               'resources': json.dumps(resources),
                                'dform': DatasetForm(instance=dataset,
                                                     include={'user': user})})
 
@@ -133,11 +155,17 @@ class ResourceManager(View):
             return render(request, 'idgo_admin/resource.html',
                           {'first_name': user.first_name,
                            'last_name': user.last_name,
+                           'dataset_name': resource.dataset.name,
+                           'dataset_id': resource.dataset.id,
+                           'resource_name': 'Nouveau',
                            'rform': ResourceForm(instance=resource)})
 
         return render(request, 'idgo_admin/resource.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
+                       'dataset_name': 'foo',  # TODO
+                       'dataset_id': '123',  # TODO
+                       'resource_name': 'Nouveau',
                        'rform': ResourceForm()})
 
     def post(self, request):
@@ -151,6 +179,9 @@ class ResourceManager(View):
                 return render(request, 'idgo_admin/resource.html',
                               {'first_name': user.first_name,
                                'last_name': user.last_name,
+                               'resource_name': resource.dataset.name,
+                               'dataset_id': resource.dataset.id,
+                               'resource_name': resource.name,
                                'rform': Resource(instance=resource)})
 
             try:

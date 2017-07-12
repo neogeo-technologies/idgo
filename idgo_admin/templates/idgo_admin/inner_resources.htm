@@ -1,0 +1,198 @@
+{% load bootstrap3 %}
+
+<div id="table-resources" class="table-responsive"></div>
+<nav aria-label="Page navigation" style="text-align: center;">
+	<ul id="table-resources-paginator" class="pagination pagination-sm"></ul>
+</nav>
+<div class="buttons-on-the-right-side">
+	<button name="delete-resource" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+	<button name="edit-resource" class="btn btn-default">Editer</button>
+	<a name="add-resource" class="btn btn-default" href="{% url "idgo_admin:resource" %}">Ajouter une ressource</a>
+</div>
+
+<script>
+var RESOURCE_URL = '';
+var RESOURCES = {{ resources | safe }};
+var RESOURCES_CONTAINER = 'table-resources';
+var RESOURCES_METADATA = [
+	{
+		name: 'title',
+		label: 'Titre',
+		editable: false,
+		datatype: 'string'
+	}, {
+		name: 'date_creation',
+		label: 'Date de création',
+		editable: false,
+		datatype: 'string'
+	}, {
+		name: 'last_modification',
+		label: 'Dernière modification',
+		editable: false,
+		datatype: 'string'
+	}, {
+		name: 'restrictions',
+		label: "Restrictions d'accès",
+		editable: false,
+		datatype: 'string'
+	}, {
+		name: 'id',
+		label: '_HIDDEN',  //->https://github.com/webismymind/editablegrid/issues/153
+		editable: false,
+		datatype: 'integer'
+	}
+];
+
+var resourcesGrid = new EditableGrid('Resources', {pageSize: 10});
+
+$('#resources button[name="delete-resource"]')
+	.on('click', function(e) {
+		e.preventDefault();
+
+		var $button = $('<button/>')
+			.prop('type', 'button')
+			.prop('class', 'btn btn-danger disabled')
+			.prop('disabled', true)
+			.text('Oui, supprimer définitivement cette ressource')
+			.on('click', function(e) {
+				e.preventDefault();
+				closeAllModalDialog();
+				$.ajax({
+					type: 'DELETE',
+					// success: function() {},
+					url: RESOURCE_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']
+				})
+				.done(function(response, textStatus, jqXHR) {
+					// $modal.find('.close').remove();
+					$modal.find('.modal-title').text('Information');
+					$modal.find('.modal-body').append(jqXHR.responseText);
+					$modal.modal('show');
+				})
+				.fail(function(jqXHR, textStatus, errorThrown) {
+					// $modal.find('.close').remove();
+					$modal.find('.modal-title').text("L'opération a échouée");
+					$modal.find('.modal-body').append(jqXHR.responseText);
+					$modal.modal('show');
+				});
+				e.stopPropagation();
+			});
+
+		var $input = $('<input/>')
+			.prop('type', 'text')
+			.prop('class', 'form-control')
+			.prop('placeholder', 'Nom de la ressource à supprimer')
+			.on('input', function(e) {
+				if ($(this).val() === resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['name']) {
+					$button.removeClass('disabled').prop('disabled', false);
+				} else {
+					$button.addClass('disabled').prop('disabled', true);
+				};
+			});
+
+		$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
+
+		$modal.find('.modal-body')
+			.append('<p>Cette action est irreversible et supprimera <strong>définitivement</strong> la ressource.</p>')
+			.append(
+				$('<form/>')
+					.append(
+						$('<div/>').prop('class', 'form-group')
+							.append('<p>Pour confirmer, veuillez réécrire le nom de la ressource à supprimer.</p>')
+							.append($input))
+					.append(
+						$('<div class="buttons-on-the-right-side">')
+							.append($button)
+							.append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
+
+		$modal.modal('show');
+
+		e.stopPropagation();
+	});
+
+$('#resources button[name="edit-resource"]')
+	.on('click', function(e) {
+		e.preventDefault();
+		redirect(RESOURCE_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']);
+		e.stopPropagation();
+	});
+
+resourcesGrid.initializeGrid = function() {
+	var grid = resourcesGrid;
+	var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
+
+	with (this) {
+		tableRendered = function() {
+			this.updatePaginator(grid);
+		};
+		rowSelected = function(pRowIdx, nRowIdx) {
+			$(grid.getRow(pRowIdx)).removeClass('selected');
+			$buttons.each(function() {
+				deactivateButton($(this));
+			});
+			if (pRowIdx != nRowIdx) {
+				$(grid.getRow(nRowIdx)).addClass('selected');
+				$buttons.each(function() {
+					activateButton($(this));
+				});
+			};
+		};
+		var DATE_FORMAT = 'dddd Do MMMM YYYY à HH:mm:ss';
+		setCellRenderer('date_creation', new CellRenderer({
+			render: function(cell, value) {
+				cell.innerHTML = moment(value).format(DATE_FORMAT);
+			}
+		}));
+		setCellRenderer('last_modification', new CellRenderer({
+			render: function(cell, value) {
+				cell.innerHTML = moment(value).format(DATE_FORMAT);
+			}
+		}));
+	};
+};
+
+function updateResourcesGrid(grid, containerId, metadata, data) {
+	var $containerId = $('#' + containerId);
+	var $parent = $($containerId.parent().get(0));
+	$parent.find('div[role="alert"]').remove();
+	$parent.find('button').each(function() {
+		deactivateButton($(this));
+	});
+	if (data.length > 0) {
+		grid.load({'metadata': metadata, 'data': data});
+		grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
+		grid.initializeGrid();
+		grid.refreshGrid();
+		$containerId.show();
+	} else {
+		$containerId.hide();
+	};
+
+	if (data.length == 0) {
+		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'avez encore jamais ajouté de ressource. Cliquez sur le bouton <strong>[ ' + $parent.find('a[name="add-resource"]').get(0).text + ' ]</strong> pour commencer.</p><div/>');
+	};
+
+};
+
+updateResourcesGrid(
+	resourcesGrid,
+	RESOURCES_CONTAINER,
+	RESOURCES_METADATA,
+	(function(data) {
+		var m = [];
+		for (var i = 0; i < data.length; i ++) {
+			m.push({
+				id: i,
+				values: [
+					data[i][1],  // title
+					data[i][2],  // date_creation
+					data[i][3],  // last_modification
+					data[i][4],  // restrictions
+					data[i][0]   // id
+				]
+			});
+		};
+		return m;
+	})(RESOURCES)
+);
+
+</script>
