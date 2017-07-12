@@ -1,4 +1,5 @@
 from .forms.dataset import DatasetForm
+from .forms.dataset import ResourceForm
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -8,6 +9,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.models import Dataset
+from idgo_admin.models import Resource
 from profiles.ckan_module import CkanHandler as ckan
 from profiles.ckan_module import CkanUserHandler as ckan_me
 
@@ -118,3 +120,62 @@ class DatasetManager(View):
 
         return render(request, 'profiles/response.htm',
                       {'message': message}, status=status)
+
+
+@method_decorator(decorators, name='dispatch')
+class ResourceManager(View):
+
+    def get(self, request):
+        user = request.user
+        id = request.GET.get('id') or None
+        if id:
+            resource = get_object_or_404(Resource, id=id, dataset__user=user)
+            return render(request, 'idgo_admin/resource.html',
+                          {'first_name': user.first_name,
+                           'last_name': user.last_name,
+                           'rform': ResourceForm(instance=resource)})
+
+        return render(request, 'idgo_admin/resource.html',
+                      {'first_name': user.first_name,
+                       'last_name': user.last_name,
+                       'rform': ResourceForm()})
+
+    def post(self, request):
+        user = request.user
+        id = request.POST.get('id', request.GET.get('id')) or None
+        if id:
+            resource = get_object_or_404(Resource, id=id, dataset__user=user)
+            rform = DatasetForm(instance=resource, data=request.POST)
+
+            if not rform.is_valid() or not request.user.is_authenticated:
+                return render(request, 'idgo_admin/resource.html',
+                              {'first_name': user.first_name,
+                               'last_name': user.last_name,
+                               'rform': Resource(instance=resource)})
+
+            try:
+                rform.handle_me(request, id)
+            except Exception as e:
+                message = ("L'erreur suivante est survenue : "
+                           '<strong>{0}</strong>.').format(str(e))
+            else:
+                message = 'Le jeu de données a été mis à jour avec succès.'
+
+            return render(request, 'profiles/information.html',
+                          {'message': message}, status=200)
+        else:
+            rform = ResourceForm(
+                data=request.POST)
+            if rform.is_valid() and request.user.is_authenticated:
+                try:
+                    rform.handle_me(request, id=request.GET.get('id'))
+                except Exception as e:
+                    message = ("L'erreur suivante est survenue : "
+                               '<strong>{0}</strong>.').format(str(e))
+                else:
+                    message = 'Le jeu de données a été créé avec succès.'
+
+                return render(request, 'profiles/information.html',
+                              {'message': message}, status=200)
+
+        return render_on_error(request)

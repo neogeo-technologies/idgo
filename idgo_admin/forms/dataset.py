@@ -3,6 +3,7 @@ from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
+from idgo_admin.models import Resource
 from profiles.ckan_module import CkanHandler as ckan
 from profiles.ckan_module import CkanUserHandler as ckan_me
 from profiles.models import Profile
@@ -156,3 +157,52 @@ class DatasetForm(forms.ModelForm):
 
         ckan_user.close()
         dataset.save()
+
+
+class ResourceForm(forms.ModelForm):
+    # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
+    # geo_restriction, created_on, last_update dataset, type, fichier
+
+    class Meta(object):
+        model = Resource
+        fields = ('name',
+                  'description',
+                  'url',
+                  'lang',
+                  'format',
+                  'projection',
+                  'resolution',
+                  'acces',
+                  'bbox',
+                  'geo_restriction',
+                  'dataset',
+                  'type',
+                  'fichier')
+
+    def handle_me(self, request, id=None):
+
+        data = self.cleaned_data
+
+        params = {'name': data['name'],
+                  'description': data['description'],
+                  'url': data['geocurlover'],
+                  'lang': data['licences'],
+                  'format': data['format'],
+                  'projection': data['projection'],
+                  'resolution': data['resolution'],
+                  'acces': data['acces'],
+                  'bbox': data['bbox'],
+                  'geo_restriction': data['geo_restriction'],
+                  'last_update': data['last_update'],
+                  'dataset': data['dataset'],
+                  'type': data['type'],
+                  'fichier': data['fichier'],
+                  }
+
+        if id:  # Mise à jour d'un ressource
+            resource = Resource.objects.get(pk=id)
+            for key, value in params.items():
+                setattr(resource, key, value)
+
+        else:  # Création d'une nouvelle ressource
+            resource = Resource.objects.create(**params)
