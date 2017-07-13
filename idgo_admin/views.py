@@ -50,6 +50,7 @@ class DatasetManager(View):
                           {'first_name': user.first_name,
                            'last_name': user.last_name,
                            'dataset_name': dataset.name,
+                           'dataset_id': dataset.id,
                            'resources': json.dumps(resources),
                            'dform': DatasetForm(
                                instance=dataset,
@@ -83,6 +84,7 @@ class DatasetManager(View):
                               {'first_name': user.first_name,
                                'last_name': user.last_name,
                                'dataset_name': dataset.name,
+                               'dataset_id': dataset.id,
                                'resources': json.dumps(resources),
                                'dform': DatasetForm(instance=dataset,
                                                     include={'user': user})})
@@ -147,40 +149,41 @@ class DatasetManager(View):
 @method_decorator(decorators, name='dispatch')
 class ResourceManager(View):
 
-    def get(self, request):
+    def get(self, request, dataset_id):
         user = request.user
         id = request.GET.get('id') or None
         if id:
-            resource = get_object_or_404(Resource, id=id, dataset__user=user)
+            dataset = get_object_or_404(Dataset, id=dataset_id)
+            resource = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
             return render(request, 'idgo_admin/resource.html',
                           {'first_name': user.first_name,
                            'last_name': user.last_name,
-                           'dataset_name': resource.dataset.name,
+                           'dataset_name': dataset.name,
                            'dataset_id': resource.dataset.id,
-                           'resource_name': 'Nouveau',
+                           'resource_name': resource.name,
                            'rform': ResourceForm(instance=resource)})
 
         return render(request, 'idgo_admin/resource.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
-                       'dataset_name': 'foo',  # TODO
-                       'dataset_id': '123',  # TODO
+                       'dataset_name': dataset.name,  # TODO
+                       'dataset_id': dataset.id,  # TODO
                        'resource_name': 'Nouveau',
                        'rform': ResourceForm()})
 
-    def post(self, request):
+    def post(self, request, dataset_id):
         user = request.user
         id = request.POST.get('id', request.GET.get('id')) or None
         if id:
-            resource = get_object_or_404(Resource, id=id, dataset__user=user)
-            rform = DatasetForm(instance=resource, data=request.POST)
-
+            resource = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+            rform = ResourceForm(instance=resource, data=request.POST)
+            dataset = get_object_or_404(Dataset, id=dataset_id)
             if not rform.is_valid() or not request.user.is_authenticated:
                 return render(request, 'idgo_admin/resource.html',
                               {'first_name': user.first_name,
                                'last_name': user.last_name,
-                               'resource_name': resource.dataset.name,
-                               'dataset_id': resource.dataset.id,
+                               'dataset_name': dataset.name,
+                               'dataset_id': dataset.id,
                                'resource_name': resource.name,
                                'rform': Resource(instance=resource)})
 

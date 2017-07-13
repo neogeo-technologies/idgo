@@ -272,7 +272,7 @@ class Resource(models.Model):
         return self.name
 
     class Meta(object):
-        managed = False
+        # managed = False
         verbose_name = "Ressource"
 
 

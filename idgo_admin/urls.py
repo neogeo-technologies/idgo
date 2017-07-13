@@ -5,5 +5,5 @@ from idgo_admin.views import ResourceManager
 
 urlpatterns = [
     url('^$', DatasetManager.as_view(), name='dataset'),
-    url('^resources/?$', ResourceManager.as_view(), name='resource'),
+    url('^(?P<dataset_id>(\d+))/resources/?$', ResourceManager.as_view(), name='resource'),
     ]
