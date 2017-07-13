@@ -168,16 +168,16 @@ class ResourceForm(forms.ModelForm):
         fields = ('name',
                   'description',
                   'lang',
-                  'format',
+                  'data_format',
                   'projection',
                   'resolution',
                   'access',
                   'bbox',
                   'geo_restriction',
                   'dataset',
-                  'type',
+                  'data_type',
                   'url',
-                  'file')
+                  'up_file')
 
     def handle_me(self, request, dataset, id=None):
 
@@ -185,16 +185,16 @@ class ResourceForm(forms.ModelForm):
 
         params = {'name': data['name'],
                   'description': data['description'],
-                  'url': data['geocurlover'],
+                  'url': data['url'],
                   'lang': data['licences'],
-                  'format': data['format'],
+                  'data_format': data['data_format'],
                   'projection': data['projection'],
                   'resolution': data['resolution'],
-                  'acces': data['acces'],
+                  'access': data['access'],
                   'bbox': data['bbox'],
                   'geo_restriction': data['geo_restriction'],
-                  'type': data['type'],
-                  'fichier': data['fichier'],
+                  'data_type': data['data_type'],
+                  'up_file': data['up_file'],
                   'dataset': dataset
                   }
 

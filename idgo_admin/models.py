@@ -244,14 +244,15 @@ class Resource(models.Model):
     name = models.CharField('Nom', max_length=150)
     description = models.TextField('Description')
     url = models.URLField('URL distante', blank=True, null=True)
-    file = models.FileField('Fichier à télécharger', blank=True, null=True)
+    up_file = models.FileField('Fichier à télécharger', blank=True, null=True)
     lang = models.CharField(
         'Langue', choices=LANG_CHOICES, default='french', max_length=10)
-    format = models.CharField('Format', max_length=20, blank=True)
+    data_format = models.CharField('Format', max_length=20, blank=True)
     projection = models.ForeignKey(Projection, blank=True, null=True)
     resolution = models.ForeignKey(Resolution, blank=True, null=True)
     access = models.ForeignKey(AccessLevel, blank=True, null=True)
-    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, blank=True, null=True)
+    dataset = models.ForeignKey(
+        Dataset, on_delete=models.CASCADE, blank=True, null=True)
     bbox = models.PolygonField('BBOX', blank=True, null=True)
 
     # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
@@ -264,8 +265,8 @@ class Resource(models.Model):
     last_update = models.DateField(
         verbose_name="Date de dernière modification de la resource",
         blank=True, null=True)
-    type = models.CharField(verbose_name='type de resources',
-                            choices=TYPE_CHOICES, max_length=10)
+    data_type = models.CharField(verbose_name='type de resources',
+                                 choices=TYPE_CHOICES, max_length=10)
 
     def __str__(self):
         return self.name
