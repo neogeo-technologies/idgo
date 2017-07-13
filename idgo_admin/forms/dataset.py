@@ -167,7 +167,6 @@ class ResourceForm(forms.ModelForm):
         model = Resource
         fields = ('name',
                   'description',
-                  'url',
                   'lang',
                   'format',
                   'projection',
@@ -177,7 +176,9 @@ class ResourceForm(forms.ModelForm):
                   'geo_restriction',
                   'dataset',
                   'type',
-                  'fichier')
+                  'fichier',
+                  'url',
+                  'rfile')
 
     def handle_me(self, request, dataset, id=None):
 
@@ -193,7 +194,6 @@ class ResourceForm(forms.ModelForm):
                   'acces': data['acces'],
                   'bbox': data['bbox'],
                   'geo_restriction': data['geo_restriction'],
-                  'last_update': data['last_update'],
                   'type': data['type'],
                   'fichier': data['fichier'],
                   'dataset': dataset
