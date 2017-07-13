@@ -2,25 +2,52 @@
 
 <form method="post" action="">
 	{% csrf_token %}
+
+	<div class="form-group">
+		<label class="control-label">Fichier</label>
+		{% for widget in rform.up_file %}
+		<div class="input-group">
+			<label class="input-group-btn">
+				<span class="btn btn-default">
+					Parcourir <input id="{{ widget.attrs.id }}" name="{{ widget.name }}" type="file" style="display: none;" multiple>
+				</span>
+			</label>
+			<input type="text" class="form-control" readonly>
+		</div>
+		{% endfor %}
+	</div>
+
+	{% bootstrap_field rform.url show_label=False %}
+
 	{% bootstrap_field rform.name %}
 	{% bootstrap_field rform.description %}
 	{% bootstrap_field rform.lang %}
-	{% bootstrap_field rform.format %}
-	{% bootstrap_field rform.projection %}
-	{% bootstrap_field rform.resolution %}
-	{% bootstrap_field rform.acces %}
-	{% bootstrap_field rform.geo_restriction %}
-	{% bootstrap_field rform.dataset %}
-	{% bootstrap_field rform.type %}
-	{% bootstrap_field rform.fichier %}
-	{% bootstrap_field rform.url %}
-	{% bootstrap_field rform.rfile %}
+
+	{% bootstrap_field rform.data_format %}
+	{% bootstrap_field rform.access %}
 	<div class="buttons-on-the-right-side">
-		<button type="submit" class="btn btn-default">Enregistrer</button>
+		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
 		<a class="btn btn-default" href="{% url "profiles:home" %}">Annuler</a>
 	</div>
 </form>
-
 <script>
-
+$(function() {
+	$(document).on('change', ':file', function() {
+		var $this = $(this);
+		var $files = $this.get(0).files;
+		var count = $files ? $files.length : 1;
+		var fileName = [];
+		for (var i = 0; i < $files.length; i ++) {
+			fileName.push($files[i].name);
+		};
+		$this.trigger('fileselect', [count, fileName.join(', ')]);
+	});
+	$(document).ready(function() {
+		$(':file').on('fileselect', function(e, count, label) {
+			var $this = $(this);
+			var $input = $this.parents('.input-group').find(':text');
+			$input.val((count > 1) ? count + ' fichiers : ' + label : label);
+		});
+	});
+});
 </script>

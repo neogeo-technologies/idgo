@@ -3,9 +3,9 @@
 {% block nav_content %}
 <ol class="breadcrumb">
 	<li><a href="{% url "profiles:home" %}#datasets">Mes jeux de données</a></li>
-	<li class="active">{{ dataset_name | safe }}</li>
+	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">{{ dataset_name }}</a></li>
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">ressources</a></li>
-	<li class="active">{{ resource_name | safe }}</li>
+	<li class="active">{{ resource_name }}</li>
 </ol>
 {% endblock nav_content %}
 

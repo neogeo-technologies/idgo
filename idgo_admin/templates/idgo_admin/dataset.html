@@ -2,15 +2,15 @@
 
 {% block nav_content %}
 <ol class="breadcrumb">
-	<li><a href="{% url "profiles:home" %}#datasets" data-toggle="popover" data-placement="bottom" data-content="Revenir à la liste des jeux de données">Mes jeux de données</a></li>
-	<li class="active">{{ dataset_name | safe }}</li>
+	<li><a href="{% url "profiles:home" %}#datasets">Mes jeux de données</a></li>
+	<li class="active">{{ dataset_name }}</li>
 </ol>
 {% endblock nav_content %}
 
 {% block main_content %}
 <ul class="nav nav-tabs">
 	<li role="presentation">
-		<a href="#dataset" aria-controls="dataset" role="tab" data-toggle="tab">Jeu de donnée</a>
+		<a href="#dataset" aria-controls="dataset" role="tab" data-toggle="tab">Editer les métadonnées</a>
 	</li>
 	{% if dataset_id %}
 	<li role="presentation">

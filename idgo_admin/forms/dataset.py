@@ -163,6 +163,8 @@ class ResourceForm(forms.ModelForm):
     # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
     # geo_restriction, created_on, last_update dataset, type, fichier
 
+    fichier = forms.FileField()
+
     class Meta(object):
         model = Resource
         fields = ('name',

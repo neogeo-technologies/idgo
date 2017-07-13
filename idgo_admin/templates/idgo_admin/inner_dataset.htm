@@ -27,7 +27,10 @@
 	{% bootstrap_field dform.is_inspire %}
 	{% bootstrap_field dform.published %}
 	<div class="buttons-on-the-right-side">
-		<button type="submit" class="btn btn-default">Enregistrer</button>
+		{% if not dataset_id %}
+		<button type="submit" name="next" class="btn btn-default">Enregistrer et continuer</button>
+		{% endif %}
+		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
 		<a class="btn btn-default" href="{% url "profiles:home" %}">Annuler</a>
 	</div>
 </form>

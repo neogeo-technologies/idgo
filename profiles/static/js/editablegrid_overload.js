@@ -254,6 +254,4 @@ function CreateGrid($, container, options) {
 	this.grid = new EditableGrid(container, {pageSize: options.pageSize});
 	// TODO
 };
-
-
-Context.prototype.constructor = CreateGrid;
+CreateGrid.prototype.constructor = CreateGrid;
