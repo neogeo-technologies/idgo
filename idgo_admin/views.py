@@ -157,7 +157,7 @@ class ResourceManager(View):
             resource = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
             return render(request, 'idgo_admin/resource.html',
                           {'first_name': user.first_name,
-                           'last_name': user.last_name,
+                           'last_name': user.last_name,resource
                            'dataset_name': dataset.name,
                            'dataset_id': resource.dataset.id,
                            'resource_name': resource.name,
