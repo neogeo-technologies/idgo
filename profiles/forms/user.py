@@ -8,6 +8,7 @@ from django.core import validators
 from django import forms
 from profiles.models import Organisation
 from profiles.models import Profile
+from profiles.models import PublishRequest
 
 
 class UserForm(forms.Form):
@@ -188,3 +189,23 @@ class UserDeleteForm(AuthenticationForm):
     class Meta(object):
         model = User
         fields = ('username', 'password')
+
+
+class PublishDeleteForm(forms.ModelForm):
+    publish_for = forms.ModelChoiceField(required=False,
+                                         label='Organismes associés',
+                                         widget=forms.RadioSelect(),
+                                         queryset=Organisation.objects.all())
+
+    def __init__(self, *args, **kwargs):
+        include_args = kwargs.pop('include', {})
+        super(PublishDeleteForm, self).__init__(*args, **kwargs)
+        ppf = Profile.publish_for.through
+        set = ppf.objects.filter(profile__user=include_args['user'])
+        org_contrib = [e.organisation_id for e in set]
+        self.fields['publish_for'].queryset = \
+            Organisation.objects.filter(pk__in=org_contrib)
+
+    class Meta(object):
+        model = Profile
+        fields = ('publish_for', )

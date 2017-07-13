@@ -5,6 +5,7 @@ from profiles.views import contributions
 from profiles.views import delete_account
 from profiles.views import home
 from profiles.views import modify_account
+from profiles.views import publish_delete
 from profiles.views import publish_request
 from profiles.views import publish_request_confirme
 from profiles.views import sign_in
@@ -25,5 +26,6 @@ urlpatterns = [
     url('^publish_request/(?P<key>.+)/?$',
         publish_request_confirme, name='publish_request_confirme'),
     url('^publish_request/?$', publish_request, name='publish_request'),
+    url('^publish_delete/?$', publish_delete, name='publish_delete'),
     url('^contributions/?$', contributions, name='contributions'),
     url('^deleteaccount/?$', delete_account, name='deleteAccount')]

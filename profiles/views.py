@@ -1,5 +1,6 @@
 from .ckan_module import CkanHandler as ckan
 from .forms.user import ProfileUpdateForm
+from .forms.user import PublishDeleteForm
 from .forms.user import UserDeleteForm
 from .forms.user import UserForm
 from .forms.user import UserLoginForm
@@ -415,6 +416,35 @@ def publish_request_confirme(request, key):
 
     message = ('La confirmation de la demande de contribution '
                'a bien été prise en compte.')
+    return render(request, 'profiles/information.html',
+                  {'message': message}, status=200)
+
+
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def publish_delete(request):
+    user = request.user
+    profile = get_object_or_404(Profile, user=user)
+    if request.method == 'GET':
+        return render(request, 'profiles/publishdelete.html',
+                      {'first_name': user.first_name,
+                       'last_name': user.last_name,
+                       'pubform': PublishDeleteForm(include={'user': user})})
+
+    pubform = PublishDeleteForm(data=request.POST, include={'user': user})
+    if not pubform.is_valid():
+        return render(request, 'profiles/publishdelete.html',
+                      {'first_name': user.first_name,
+                       'last_name': user.last_name,
+                       'pubform': pubform})
+
+    org = pubform.cleaned_data['publish_for']
+    ppf = Profile.publish_for.through
+    set = ppf.objects.get(profile_id=profile.id, organisation_id=org.id)
+    set.delete()
+
+    message = ("Vous n'etes plus contributeur pour l'organisation "
+               "<strong>{org_name}</strong>").format(org_name=org.name)
     return render(request, 'profiles/information.html',
                   {'message': message}, status=200)
 

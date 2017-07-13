@@ -214,3 +214,32 @@ class ResourceManager(View):
                               {'message': message}, status=200)
 
         return render_on_error(request)
+
+    def delete(self, request, dataset_id):
+
+        id = request.POST.get('id', request.GET.get('id')) or None
+        if not id:
+            return render_an_critical_error(request)
+
+        resource = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+
+        # ckan_user = ckan_me(ckan.get_user(request.user.username)['apikey'])
+        try:
+            # TODO: services CKAN
+            # ckan_user.delete_resource(str(dataset.ckan_id))
+            # ckan.purge_resource(str(dataset.ckan_id))
+            pass
+        except Exception:
+            message = ('La ressource <strong>{0}</strong> '
+                       'ne peut pas être supprimé.').format(resource.name)
+            status = 400
+        else:
+            resource.delete()
+            message = ('Le jeu de données <strong>{0}</strong> '
+                       'a été supprimé avec succès.').format(resource.name)
+            status = 200
+
+        # ckan_user.close()
+
+        return render(request, 'profiles/response.htm',
+                      {'message': message}, status=status)
