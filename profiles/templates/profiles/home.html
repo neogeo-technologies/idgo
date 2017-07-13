@@ -1,6 +1,6 @@
 {% extends "profiles/base.html" %}
 
-{% block nav %}
+{% block nav_content %}
 <ul id="menu" class="nav nav-default" role="tablist">
 	<li role="presentation">
 		<a href="#datasets" aria-controls="datasets" role="tab" data-toggle="tab">Mes jeux de données</a>
@@ -9,9 +9,9 @@
 		<a href="#rules" aria-controls="rules" role="tab" data-toggle="tab">Gestion des droits d'accès</a>
 	</li>
 </ul>
-{% endblock nav %}
+{% endblock nav_content %}
 
-{% block main %}
+{% block main_content %}
 <div class="tab-content">
 	<div id="datasets" role="tabpanel" class="tab-pane fade in">
 		{% include "profiles/inner_datasets.htm" %}
@@ -20,4 +20,4 @@
 		{% include "profiles/inner_rules.htm" %}
 	</div>
 </div>
-{% endblock main %}
+{% endblock main_content %}

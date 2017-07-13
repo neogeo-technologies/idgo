@@ -1,14 +1,14 @@
 {% extends "profiles/base.html" %}
 
-{% block nav %}
+{% block nav_content %}
 <ol class="breadcrumb">
 	<li><a href="{% url "profiles:home" %}#datasets">Mes jeux de données</a></li>
 	<li class="active">{{ dataset_name | safe }}</li>
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">ressources</a></li>
 	<li class="active">{{ resource_name | safe }}</li>
 </ol>
-{% endblock nav %}
+{% endblock nav_content %}
 
-{% block main %}
+{% block main_content %}
 {% include "idgo_admin/inner_resource.htm" %}
-{% endblock main %}
+{% endblock main_content %}

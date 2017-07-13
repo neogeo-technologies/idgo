@@ -1,29 +1,33 @@
 {% extends "profiles/base.html" %}
 
-{% block nav %}
+{% block nav_content %}
 <ol class="breadcrumb">
-	<li><a href="{% url "profiles:home" %}#datasets">Mes jeux de données</a></li>
+	<li><a href="{% url "profiles:home" %}#datasets" data-toggle="popover" data-placement="bottom" data-content="Revenir à la liste des jeux de données">Mes jeux de données</a></li>
 	<li class="active">{{ dataset_name | safe }}</li>
 </ol>
-{% endblock nav %}
+{% endblock nav_content %}
 
-{% block main %}
+{% block main_content %}
 <ul class="nav nav-tabs">
 	<li role="presentation">
 		<a href="#dataset" aria-controls="dataset" role="tab" data-toggle="tab">Jeu de donnée</a>
 	</li>
+	{% if dataset_id %}
 	<li role="presentation">
 		<a href="#resources" aria-controls="resources" role="tab" data-toggle="tab">Ressource(s) associée(s)</a>
 	</li>
+	{% endif %}
 </ul>
 <div class="tab-content">
 	<div id="dataset" role="tabpanel" class="tab-pane fade in">
 		<br />
 		{% include "idgo_admin/inner_dataset.htm" %}
 	</div>
+	{% if dataset_id %}
 	<div id="resources" role="tabpanel" class="tab-pane fade in">
 		<br />
 		{% include "idgo_admin/inner_resources.htm" %}
 	</div>
+	{% endif %}
 </div>
-{% endblock main %}
+{% endblock main_content %}

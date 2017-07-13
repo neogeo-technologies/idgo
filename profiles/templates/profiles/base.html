@@ -41,52 +41,46 @@
 				</div>
 			</div>
 		</div>
-		<script>
-var $modal = $('.modal[role="dialog"]')
-	.modal({'backdrop': 'static', 'show': false})  // Important!
-	.on('show.bs.modal', function(e) {
-		closeAllModalDialog();
-	})
-	.on('hidden.bs.modal', function(e) {
-		$(this).find('.modal-body').empty();
-		$(this).find('.modal-title').val('');
-	});
-		</script>
+		{% block header %}
 		<div class="page-header">
 			<div class="container">
 				<div class="row">
 					<div class="col-md-offset-1 col-md-10">
-						{% block header %}
+						{% block header_content %}
 						{% include "profiles/inner_header.htm" %}
-						{% endblock header %}
+						{% endblock header_content %}
 					</div>
 				</div>
 			</div>
 		</div>
+		{% endblock header %}
+		{% block nav %}
 		<div class="nav-container">
 			<div class="container">
 				<div class="row">
 					<div class="col-md-offset-1 col-md-10">
-						{% block nav %}
-						{% endblock nav %}
+						{% block nav_content %}
+						{% endblock nav_content %}
 					</div>
 				</div>
 			</div>
 		</div>
+		{% endblock nav %}
+		{% block main %}
 		<div class="main-container">
 			<div class="container">
 				<div class="row">
 					<div class="col-md-offset-1 col-md-10">
-						{% block main %}
-						{% endblock main %}
+						{% block main_content %}
+						{% endblock main_content %}
 					</div>
 				</div>
 			</div>
 		</div>
+		{% endblock main %}
 	</body>
 	<script>
 var HASH_MENU = [];
-
 $('a[data-toggle="tab"]')
 	.each(function(e) {
 		HASH_MENU.push($(this).prop('hash'));
@@ -98,10 +92,8 @@ $('a[data-toggle="tab"]')
 		e.stopPropagation();
 		var $this = $(e.target);
 		var $thisHash = $this.prop('hash')
-		// loadTab($thisHash);
 		window.location = $thisHash;
 	});
-
 window.onhashchange = function(e) {
 	var hash = window.location.hash;
 	if (HASH_MENU.indexOf(hash) === -1) {
@@ -109,11 +101,27 @@ window.onhashchange = function(e) {
 	};
 	e.preventDefault();
 };
-
 window.onload = function(e) {
 	var hash = window.location.hash;
 	$('a[href="' + ((HASH_MENU.indexOf(hash) === -1) ? HASH_MENU[0] : hash) + '"]').tab('show');
 	e.preventDefault();
 };
+
+var $popover = $('[data-toggle="popover"]')
+	.popover({
+		delay: {'show': 10, 'hide': 10},
+		trigger: 'hover'
+	});
+
+var $modal = $('.modal[role="dialog"]')
+	.modal({'backdrop': 'static', 'show': false})  // Important!
+	.on('show.bs.modal', function(e) {
+		closeAllModalDialog();
+	})
+	.on('hidden.bs.modal', function(e) {
+		$(this).find('.modal-body').empty();
+		$(this).find('.modal-title').val('');
+	});
+
 	</script>
 </html>
