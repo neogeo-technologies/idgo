@@ -152,14 +152,15 @@ class ResourceManager(View):
     def get(self, request, dataset_id):
         user = request.user
         id = request.GET.get('id') or None
+        dataset = get_object_or_404(Dataset, id=dataset_id)
         if id:
-            dataset = get_object_or_404(Dataset, id=dataset_id)
-            resource = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+            resource = get_object_or_404(Resource, id=id,
+                                         dataset_id=dataset_id)
             return render(request, 'idgo_admin/resource.html',
                           {'first_name': user.first_name,
                            'last_name': user.last_name,
                            'dataset_name': dataset.name,
-                           'dataset_id': resource.dataset.id,
+                           'dataset_id': dataset.id,
                            'resource_name': resource.name,
                            'rform': ResourceForm(instance=resource)})
 
@@ -174,10 +175,11 @@ class ResourceManager(View):
     def post(self, request, dataset_id):
         user = request.user
         id = request.POST.get('id', request.GET.get('id')) or None
+        dataset = get_object_or_404(Dataset, id=dataset_id)
         if id:
-            resource = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+            resource = get_object_or_404(Resource, id=id,
+                                         dataset_id=dataset_id)
             rform = ResourceForm(instance=resource, data=request.POST)
-            dataset = get_object_or_404(Dataset, id=dataset_id)
             if not rform.is_valid() or not request.user.is_authenticated:
                 return render(request, 'idgo_admin/resource.html',
                               {'first_name': user.first_name,
@@ -188,26 +190,25 @@ class ResourceManager(View):
                                'rform': Resource(instance=resource)})
 
             try:
-                rform.handle_me(request, id)
+                rform.handle_me(request, dataset, id)
             except Exception as e:
                 message = ("L'erreur suivante est survenue : "
                            '<strong>{0}</strong>.').format(str(e))
             else:
-                message = 'Le jeu de données a été mis à jour avec succès.'
+                message = 'La ressource a été mise à jour avec succès.'
 
             return render(request, 'profiles/information.html',
                           {'message': message}, status=200)
         else:
-            rform = ResourceForm(
-                data=request.POST)
+            rform = ResourceForm(data=request.POST)
             if rform.is_valid() and request.user.is_authenticated:
                 try:
-                    rform.handle_me(request, id=request.GET.get('id'))
+                    rform.handle_me(request, dataset)
                 except Exception as e:
                     message = ("L'erreur suivante est survenue : "
                                '<strong>{0}</strong>.').format(str(e))
                 else:
-                    message = 'Le jeu de données a été créé avec succès.'
+                    message = 'La ressource a été créée avec succès.'
 
                 return render(request, 'profiles/information.html',
                               {'message': message}, status=200)

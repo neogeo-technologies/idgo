@@ -179,7 +179,7 @@ class ResourceForm(forms.ModelForm):
                   'type',
                   'fichier')
 
-    def handle_me(self, request, id=None):
+    def handle_me(self, request, dataset, id=None):
 
         data = self.cleaned_data
 
@@ -194,9 +194,9 @@ class ResourceForm(forms.ModelForm):
                   'bbox': data['bbox'],
                   'geo_restriction': data['geo_restriction'],
                   'last_update': data['last_update'],
-                  'dataset': data['dataset'],
                   'type': data['type'],
                   'fichier': data['fichier'],
+                  'dataset': dataset
                   }
 
         if id:  # Mise à jour d'un ressource
