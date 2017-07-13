@@ -24,6 +24,7 @@ class OrganisationType(models.Model):
     code = models.CharField('Code', max_length=3)
 
     class Meta(object):
+        managed = False
         verbose_name = "Type d'organisation"
         verbose_name_plural = "Types d'organisations"
 
@@ -83,6 +84,9 @@ class Organisation(models.Model):
     # financeur = models.CharField('Financeur', blank=True, null=True, default='conseil_regional',
     #                           max_length=30, choices=FINANCEUR_CHOICES)
 
+    class Meta(object):
+        managed = False
+
     def __str__(self):
         return self.name
 
@@ -112,6 +116,9 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
+    class Meta(object):
+        managed = False
+
 
 class PublishRequest(models.Model):  # Demande de contribution
 
@@ -126,6 +133,9 @@ class PublishRequest(models.Model):  # Demande de contribution
     date_acceptation = models.DateField(verbose_name='Date acceptation',
                                         blank=True, null=True)
     pub_req_key = models.UUIDField(default=uuid.uuid4, editable=False)
+
+    class Meta(object):
+        managed = False
 
 
 class Registration(models.Model):
@@ -144,6 +154,25 @@ class Registration(models.Model):
     date_affiliate_admin = models.DateField(
         verbose_name="Date activation par un administrateur",
         blank=True, null=True)
+
+    class Meta(object):
+        managed = False
+
+
+class Mail(models.Model):
+
+    template_name = models.CharField("Nom du model du message",
+                                     primary_key=True, max_length=255)
+
+    subject = models.CharField("Objet", max_length=255, blank=True, null=True)
+    message = models.TextField("Corps du message", blank=True, null=True)
+    from_email = models.EmailField("Adresse expediteur",
+                                   default=settings.DEFAULT_FROM_EMAIL)
+
+    dynamic_data = JSONField("Données dynamiques")
+
+    def __str__(self):
+        return self.template_name
 
 
 # Triggers

@@ -217,7 +217,7 @@ class Dataset(models.Model):
         return self.name
 
     class Meta(object):
-        # managed = False
+        managed = False
         verbose_name = "Jeu de données"
         verbose_name_plural = "Jeux de données"
 
@@ -243,15 +243,16 @@ class Resource(models.Model):
 
     name = models.CharField('Nom', max_length=150)
     description = models.TextField('Description')
-    url = models.URLField('URL distante', blank=True)
-    rfile = models.FileField('Fichier à télécharger', blank=True)
+    url = models.URLField('URL distante', blank=True, null=True)
+    file = models.FileField('Fichier à télécharger', blank=True, null=True)
     lang = models.CharField(
         'Langue', choices=LANG_CHOICES, default='french', max_length=10)
     format = models.CharField('Format', max_length=20, blank=True)
     projection = models.ForeignKey(Projection, blank=True, null=True)
     resolution = models.ForeignKey(Resolution, blank=True, null=True)
-    acces = models.ForeignKey(AccessLevel)
-    bbox = models.PolygonField('BBOX', blank=True)
+    access = models.ForeignKey(AccessLevel, blank=True, null=True)
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, blank=True, null=True)
+    bbox = models.PolygonField('BBOX', blank=True, null=True)
 
     # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
     geo_restriction = models.BooleanField(
@@ -259,14 +260,12 @@ class Resource(models.Model):
 
     created_on = models.DateField(
         verbose_name="Date de creation de la resource",
-        auto_now_add=timezone.now())
+        blank=True, null=True)
     last_update = models.DateField(
         verbose_name="Date de dernière modification de la resource",
-        auto_now=timezone.now())
-    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
+        blank=True, null=True)
     type = models.CharField(verbose_name='type de resources',
                             choices=TYPE_CHOICES, max_length=10)
-    fichier = models.FileField(null=True, blank=True, default=None)
 
     def __str__(self):
         return self.name

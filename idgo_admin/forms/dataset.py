@@ -171,14 +171,13 @@ class ResourceForm(forms.ModelForm):
                   'format',
                   'projection',
                   'resolution',
-                  'acces',
+                  'access',
                   'bbox',
                   'geo_restriction',
                   'dataset',
                   'type',
-                  'fichier',
                   'url',
-                  'rfile')
+                  'file')
 
     def handle_me(self, request, dataset, id=None):
 

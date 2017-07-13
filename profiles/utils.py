@@ -69,7 +69,7 @@ Ceci est un message automatique. Merci de ne pas y répondre.
 
 def send_affiliate_request(request, reg):
 
-    from_email = 'idgo@neogeo-technologies.fr'
+    from_email = settings.DEFAULT_FROM_EMAIL
     subject = 'Un utilisateur demande son rattachement à une organisation'
 
     if reg.profile_fields['is_new_orga']:
