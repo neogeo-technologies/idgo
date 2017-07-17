@@ -51,7 +51,7 @@ Ceci est un message automatique. Merci de ne pas y répondre.
 
 
 def send_confirmation_mail(first_name, last_name, username, email):
-
+    # TODO a remplacer par model Mail.confirmation_user_mail
     from_email = settings.DEFAULT_FROM_EMAIL
     subject = 'Confirmation de votre inscription sur le site IDGO'
     message = '''
@@ -68,7 +68,8 @@ Ceci est un message automatique. Merci de ne pas y répondre.
 
 
 def send_affiliate_request(request, reg):
-
+    # TODO a remplacer par model Mail.affiliate_request_to_administrators_with_new_org
+    # TODO a remplacer par model Mail.affiliate_request_to_administrators_with_old_org
     from_email = settings.DEFAULT_FROM_EMAIL
     subject = 'Un utilisateur demande son rattachement à une organisation'
 
@@ -122,7 +123,7 @@ Ceci est un message automatique. Merci de ne pas y répondre.
 
 
 def send_affiliate_confirmation(profile):
-
+    # TODO a remplacer par model Mail.affiliate_confirmation_to_user
     from_email = settings.DEFAULT_FROM_EMAIL
     subject = 'Confirmation de votre rattachement organisation'
     message = '''
@@ -138,8 +139,8 @@ Ceci est un message automatique. Merci de ne pas y répondre.
 
 
 def send_publish_request(request, publish_request):
-
-    from_email = 'idgo@neogeo-technologies.fr'
+    # TODO a remplacer par model Mail.publish_request_to_administrators
+    from_email = settings.DEFAULT_FROM_EMAIL
     subject = ('Un utilisateur requiert un statut de'
                'contributeur pour une organisation')
     message = '''
@@ -166,7 +167,7 @@ Ceci est un message automatique. Merci de ne pas y répondre.
 
 
 def send_publish_confirmation(publish_request):
-
+    # TODO a remplacer par model Mail.publish_confirmation_to_user
     # TODO: replace w/ "publish_request.organisation.email"
     from_email = settings.DEFAULT_FROM_EMAIL
     subject = ('Confirmation de votre inscription en tant'

@@ -6,7 +6,9 @@ from .forms.user import UserForm
 from .forms.user import UserLoginForm
 from .forms.user import UserProfileForm
 from .forms.user import UserUpdateForm
+
 # from .ldap_module import LdapHandler as ldap
+from .models import Mail
 from .models import Organisation
 from .models import Profile
 from .models import PublishRequest
@@ -16,7 +18,7 @@ from .utils import send_affiliate_request
 from .utils import send_confirmation_mail
 from .utils import send_publish_confirmation
 from .utils import send_publish_request
-from .utils import send_validation_mail
+# from .utils import send_validation_mail
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
@@ -171,7 +173,7 @@ def sign_up(request):
     try:
         # ldap.add_user(user, data['password'])
         ckan.add_user(user, data['password'])
-        send_validation_mail(request, reg)
+        Mail.validation_user_mail(request, reg)
     except Exception as e:
         # delete_user(user.username)
         return render_an_critical_error(request, e)
@@ -217,13 +219,14 @@ def confirmation_email(request, key):
 
     if reg.profile_fields['organisation'] not in ['', None]:
         try:
-            send_affiliate_request(request, reg)
+            Mail.affiliate_request_to_administrators(request, reg)
         except Exception:
             return render_an_critical_error(request)
 
     try:
-        send_confirmation_mail(
-            user.first_name, user.last_name, user.username, user.email)
+        Mail.confirmation_user_mail(user)
+        # send_confirmation_mail(
+        #     user.first_name, user.last_name, user.username, user.email)
     except Exception:
         pass  # Ce n'est pas très grave si l'e-mail ne part pas...
 
@@ -265,7 +268,7 @@ def activation_admin(request, key):
         profile.organisation = None
         profile.save()
     try:
-        send_affiliate_confirmation(profile)
+        Mail.affiliate_confirmation_to_user(profile)
     except Exception:
         pass  # Ce n'est pas très grave si l'e-mail ne part pas...
 
@@ -373,7 +376,7 @@ def publish_request(request):
     pub_req = PublishRequest.objects.create(
         user=user, organisation=pform.cleaned_data['publish_for'])
     try:
-        send_publish_request(request, pub_req)
+        Mail.publish_request_to_administrators(request, pub_req)
     except Exception:
         render_an_critical_error(request)
 
@@ -409,7 +412,7 @@ def publish_request_confirme(request, key):
         profile.save()
 
     try:
-        send_publish_confirmation(pub_req)
+        Mail.publish_confirmation_to_user(publish_request)
         pub_req.date_acceptation = timezone.now()
         pub_req.save()
     except Exception:

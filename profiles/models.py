@@ -6,11 +6,13 @@ from django.contrib.auth.models import User
 # from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
+from django.core.mail import send_mail
 from django.contrib.gis.db import models  # TODO(@m431m)
 from django.contrib.postgres.fields import JSONField
 from django.dispatch import receiver
 from django.utils.text import slugify
 from django.utils import timezone
+from django.urls import reverse
 import uuid
 
 
@@ -171,11 +173,116 @@ class Mail(models.Model):
     from_email = models.EmailField("Adresse expediteur",
                                    default=settings.DEFAULT_FROM_EMAIL)
 
-    dynamic_data = JSONField("Données dynamiques")
-
     def __str__(self):
         return self.template_name
 
+    @classmethod
+    def validation_user_mail(cls, request, reg):
+        mail_template = Mail.objects.get(template_name="validation_user_mail")
+        from_email = mail_template.from_email
+        subject = mail_template.subject
+
+        '''MESSAGE MODIFIABLE PAR CLIENT DANS ADMIN:
+            Bonjour {first_name} {last_name} ({username}),
+            Pour valider votre inscription, veuillez cliquer sur le lien suivant : {url}
+            Ceci est un message automatique. Merci de ne pas y répondre.
+        '''
+        message = mail_template.message.format(
+            first_name=reg.user.first_name,
+            last_name=reg.user.last_name,
+            username=reg.user.username,
+            url=request.build_absolute_uri(
+                reverse('profiles:confirmation_mail',
+                        kwargs={'key': reg.activation_key})))
+
+        send_mail(subject=subject, message=message,
+                  from_email=from_email, recipient_list=[reg.user.email])
+
+    @classmethod
+    def confirmation_user_mail(cls, user):
+
+        mail_template = Mail.objects.get(template_name="confirmation_user_mail")
+
+        '''MESSAGE MODIFIABLE PAR CLIENT DANS ADMIN:
+            Bonjour {first_name} {last_name} ({username}),
+            Nous confirmons votre inscription sur le site IDGO.
+            Ceci est un message automatique. Merci de ne pas y répondre.
+        '''
+        message = mail_template.message.format(
+                first_name=user.first_name, last_name=user.last_name,
+                username=user.username)
+
+        send_mail(subject=mail_template.subject, message=message,
+                  from_email=mail_template.from_email, recipient_list=[user.email])
+
+    @classmethod
+    def affiliate_request_to_administrators(cls, request, reg):
+
+        if reg.profile_fields['is_new_orga']:
+            mail_template = Mail.objects.get(
+                    template_name="affiliate_request_to_administrators_with_new_org")
+            message = mail_template.message.format(
+                        username=reg.user.username,
+                        user_mail=reg.user.email,
+                        organisation_name=reg.profile_fields['organisation'],
+                        website=reg.profile_fields['new_website'],
+                        url=request.build_absolute_uri(
+                            reverse('profiles:activation_admin',
+                                    kwargs={'key': reg.affiliate_orga_key})))
+        else:
+            mail_template = Mail.objects.get(
+                    template_name="affiliate_request_to_administrators_with_old_org")
+            message = mail_template.message.format(
+                        username=reg.user.username,
+                        user_mail=reg.user.email,
+                        organisation_name=reg.profile_fields['organisation'],
+                        url=request.build_absolute_uri(
+                            reverse('profiles:activation_admin',
+                                    kwargs={'key': reg.affiliate_orga_key})))
+
+        send_mail(
+            subject=mail_template.subject, message=message,
+            from_email=mail_template.from_email,
+            recipient_list=[usr.email for usr
+                            in User.objects.filter(is_staff=True, is_active=True)])
+
+    @classmethod
+    def affiliate_confirmation_to_user(cls, profile):
+
+        mail_template = Mail.objects.get(template_name="affiliate_confirmation_to_user")
+        message = mail_template.message.format(organisation=profile.organisation.name)
+
+        send_mail(subject=mail_template.subject, message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=[profile.user.email])
+
+    @classmethod
+    def publish_request_to_administrators(cls, request, publish_request):
+
+        mail_template = Mail.objects.get(template_name="publish_request_to_administrators")
+        message = mail_template.message.format(
+                username=publish_request.user.username,
+                mail=publish_request.user.email,
+                organisation=publish_request.organisation.name,
+                url=request.build_absolute_uri(
+                    reverse('profiles:publish_request_confirme',
+                            kwargs={'key': publish_request.pub_req_key})))
+
+        send_mail(subject=mail_template.subject, message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=[usr.email for usr
+                            in User.objects.filter(is_staff=True, is_active=True)])
+
+    @classmethod
+    def publish_confirmation_to_user(cls, publish_request):
+
+        mail_template = Mail.objects.get(
+                template_name="publish_confirmation_to_user")
+        message = mail_template.message.format(
+                organisation=publish_request.organisation.name)
+        send_mail(subject=mail_template.subject, message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=[publish_request.user.email])
 
 # Triggers
 

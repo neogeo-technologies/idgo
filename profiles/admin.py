@@ -1,3 +1,4 @@
+from .models import Mail
 from .models import Organisation
 from .models import OrganisationType
 from .models import Profile
@@ -54,3 +55,28 @@ class ApplicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'url', 'sync_in_ldap')
     search_fields = ('name', 'short_name')
     list_filter = ('sync_in_ldap', 'host')
+
+
+class MailAdmin(admin.ModelAdmin):
+    model = Mail
+
+    # Vue dev:
+    # list_display = ('template_name', 'subject', )
+    # fieldsets = (
+    #     ('Personnalisation des messages automatiques',
+    #      {'fields': ('template_name', 'subject', 'message', 'from_email')}),)
+
+    # Vue client:
+    list_display = ('subject', )
+    fieldsets = (
+        ('Personnalisation des messages automatiques',
+         {'fields': ('subject', 'message', )}),)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+admin.site.register(Mail, MailAdmin)

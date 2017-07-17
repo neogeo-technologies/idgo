@@ -1,4 +1,5 @@
 from django import forms
+from idgo_admin.models import AccessLevel
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import License
@@ -163,7 +164,10 @@ class ResourceForm(forms.ModelForm):
     # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
     # geo_restriction, created_on, last_update dataset, type, fichier
 
-    fichier = forms.FileField()
+    access = forms.ModelChoiceField(
+        label="Niveau d'acces",
+        queryset=AccessLevel.objects.all(),
+        required=True)
 
     class Meta(object):
         model = Resource
