@@ -1,8 +1,8 @@
-{% extends "profiles/base.html" %}
+{% extends "idgo_admin/base.html" %}
 
 {% block nav_content %}
 <ol class="breadcrumb">
-	<li><a href="{% url "profiles:home" %}#datasets">Mes jeux de données</a></li>
+	<li><a href="{% url "idgo_admin:home" %}#datasets">Mes jeux de données</a></li>
 	<li class="active">{{ dataset_name }}</li>
 </ol>
 {% endblock nav_content %}

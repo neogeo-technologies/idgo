@@ -50,17 +50,6 @@
 					{% bootstrap_field pform.new_website show_label=False %}
 				</div>
 			</div>
-			<div class="row">
-				<div class="col-xs-12 col-sm-6">
-					{% bootstrap_field pform.parent show_label=False %}
-				</div>
-				<div class="col-xs-12 col-sm-6">
-					{% bootstrap_field pform.organisation_type show_label=False %}
-				</div>
-				<div class="col-xs-12 col-sm-6">
-					{% bootstrap_field pform.code_insee show_label=False %}
-				</div>
-			</div>
 		</div>
 	</div>
 	<hr />
@@ -73,7 +62,7 @@
 		</div>
 	</div>
 	<div class="buttons-on-the-right-side">
-		<a class="btn btn-default" href="{% url "profiles:signIn" %}">Revenir</a>
+		<a class="btn btn-default" href="{% url "idgo_admin:signIn" %}">Revenir</a>
 		<button type="submit" class="btn btn-primary">Valider</button>
 	</div>
 </form>

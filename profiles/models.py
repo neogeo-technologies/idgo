@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.urls import reverse
 import uuid
 
+from idgo_admin.models import Commune
 
 def deltatime_2_days():
     return timezone.now() + timezone.timedelta(days=2)
@@ -35,6 +36,7 @@ class OrganisationType(models.Model):
 
 
 class Organisation(models.Model):
+
 
     STATUS_CHOICES = (
         ('commune', 'Commune'),
@@ -76,18 +78,19 @@ class Organisation(models.Model):
     objects = models.GeoManager()
 
     # Nouveaux Champs à valider:
-    # communes = models.ManyToManyField(Commune) # Territoires de compétence
-    # id_url_unique = models.URLField('URL unique', blank=True)
-    # titre = models.CharField('Nom', max_length=100, unique=True)  # Titre CKAN
-    # description = models.CharField('Description', max_length=1024, blank=True, null=True)  # Description CKAN
-    # Logo = models.ImageField('Logo')
-    # statut = models.CharField('Statut', blank=True, null=True, default='conseil_regional',
-    #                           max_length=30, choices=STATUS_CHOICES)
-    # financeur = models.CharField('Financeur', blank=True, null=True, default='conseil_regional',
-    #                           max_length=30, choices=FINANCEUR_CHOICES)
+    communes = models.ManyToManyField(Commune) # Territoires de compétence
+    id_url_unique = models.URLField('URL unique', blank=True)
+    titre = models.CharField('Nom', max_length=100, unique=True)  # Titre CKAN
+    description = models.CharField('Description', max_length=1024, blank=True, null=True)  # Description CKAN
+    Logo = models.ImageField('Logo', upload_to="logos/")
+    statut = models.CharField('Statut', blank=True, null=True, default='conseil_regional',
+                              max_length=30, choices=STATUS_CHOICES)
+    financeur = models.CharField('Financeur', blank=True, null=True, default='conseil_regional',
+                              max_length=30, choices=FINANCEUR_CHOICES)
 
     class Meta(object):
-        managed = False
+        # managed = False
+        pass
 
     def __str__(self):
         return self.name

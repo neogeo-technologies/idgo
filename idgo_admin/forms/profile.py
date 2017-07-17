@@ -6,9 +6,9 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core import validators
 from django import forms
-from profiles.models import Organisation
-from profiles.models import Profile
-from profiles.models import PublishRequest
+
+from idgo_admin.models import Organisation
+from idgo_admin.models import Profile
 
 
 class UserForm(forms.Form):
@@ -82,9 +82,9 @@ class UserProfileForm(forms.Form):
                                           label='Organisme',
                                           queryset=Organisation.objects.all())
 
-    parent = forms.ModelChoiceField(required=False,
-                                    label='Organisme',
-                                    queryset=Organisation.objects.all())
+    # parent = forms.ModelChoiceField(required=False,
+    #                                 label='Organisme',
+    #                                 queryset=Organisation.objects.all())
 
     new_orga = forms.CharField(
         error_messages={"Nom de l'organisme invalide": 'invalid'},
@@ -105,8 +105,7 @@ class UserProfileForm(forms.Form):
     class Meta(object):
         model = Profile
         fields = ('organisation', 'role', 'phone',
-                  'new_orga', 'new_website', 'is_new_orga', 'parent',
-                  'code_insee', 'organisation_type')
+                  'new_orga', 'new_website', 'is_new_orga',)
 
     def clean(self):
 
@@ -117,18 +116,20 @@ class UserProfileForm(forms.Form):
             self.cleaned_data['organisation'] = \
                 self.cleaned_data.get('new_orga')
             self.cleaned_data['website'] = self.cleaned_data.get('website')
-            self.cleaned_data['parent'] = self.cleaned_data.get('parent')
-            self.cleaned_data['code_insee'] = self.cleaned_data.get('code_insee')
-            self.cleaned_data['organisation_type'] = self.cleaned_data.get('organisation_type')
+            # self.cleaned_data['parent'] = self.cleaned_data.get('parent')
+            # self.cleaned_data['code_insee'] = \
+            #     self.cleaned_data.get('code_insee')
+            # self.cleaned_data['organisation_type'] = \
+            #     self.cleaned_data.get('organisation_type')
             self.cleaned_data['is_new_orga'] = True
         else:
             # Mettre les valeurs de `new_orga` et `website` lorsque
             # l'utilisateur a déjà choisi parmi la liste déroulante
             self.cleaned_data['new_orga'] = ''
             self.cleaned_data['website'] = ''
-            self.cleaned_data['parent'] = ''
-            self.cleaned_data['code_insee'] = ''
-            self.cleaned_data['organisation_type'] = ''
+            # self.cleaned_data['parent'] = ''
+            # self.cleaned_data['code_insee'] = ''
+            # self.cleaned_data['organisation_type'] = ''
             self.cleaned_data['is_new_orga'] = False
 
             # Pour ne manipuler que le nom de l'organisation meme si existante

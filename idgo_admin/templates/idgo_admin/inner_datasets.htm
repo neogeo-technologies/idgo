@@ -1,0 +1,217 @@
+{% load bootstrap3 %}
+
+<div id="table-datasets" class="table-responsive" data-toggle="popover" data-placement="top" data-content="Sélectionnez un jeu de données"></div>
+<nav aria-label="Page navigation" style="text-align: center;">
+	<ul id="table-datasets-paginator" class="pagination pagination-sm"></ul>
+</nav>
+<div class="buttons-on-the-right-side">
+	<button name="delete-dataset" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+	<button name="edit-dataset" class="btn btn-default">Editer</button>
+	<a name="add-dataset" class="btn btn-default" href="{% url "idgo_admin:dataset" %}">Créer un jeu de données</a>
+</div>
+<script>
+var DATASET_URL = '{% url "idgo_admin:dataset" %}';
+var CONTRIBUTE_URL = '{% url "idgo_admin:publish_request" %}';
+var DATASETS = {{ datasets | safe }};
+var IS_CONTRIBUTOR = {{ is_contributor | safe }};
+var DATASETS_CONTAINER = 'table-datasets';
+var DATASETS_METADATA = [
+	{
+		name: 'name',
+		label: 'Nom',
+		editable: false,
+		datatype: 'string'
+	}, {
+	// 	name: 'description',
+	// 	label: 'Description',
+	// 	editable: false,
+	// 	datatype: 'string'
+	// }, {
+		name: 'date_creation',
+		label: 'Date de création',
+		editable: false,
+		datatype: 'string'
+	}, {
+		name: 'last_modification',
+		label: 'Dernière modification',
+		editable: false,
+		datatype: 'string'
+	}, {
+		name: 'published',
+		label: 'Publié',
+		editable: false,
+		datatype: 'boolean'
+	}, {
+		name: 'id',
+		label: '_HIDDEN',  //->https://github.com/webismymind/editablegrid/issues/153
+		editable: false,
+		datatype: 'integer'
+	}
+];
+
+var resourcesGrid = new EditableGrid('Datasets', {pageSize: 10});
+
+$('#datasets button[name="delete-dataset"]')
+	.on('click', function(e) {
+		e.preventDefault();
+
+		var $button = $('<button/>')
+			.prop('type', 'button')
+			.prop('class', 'btn btn-danger disabled')
+			.prop('disabled', true)
+			.text('Oui, supprimer définitivement ce jeu de données')
+			.on('click', function(e) {
+				e.preventDefault();
+				closeAllModalDialog();
+				$.ajax({
+					type: 'DELETE',
+					// success: function() {},
+					url: DATASET_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']
+				})
+				.done(function(response, textStatus, jqXHR) {
+					// $modal.find('.close').remove();
+					$modal.find('.modal-title').text('Information');
+					$modal.find('.modal-body').append(jqXHR.responseText);
+					$modal.modal('show');
+				})
+				.fail(function(jqXHR, textStatus, errorThrown) {
+					// $modal.find('.close').remove();
+					$modal.find('.modal-title').text("L'opération a échouée");
+					$modal.find('.modal-body').append(jqXHR.responseText);
+					$modal.modal('show');
+				});
+				e.stopPropagation();
+			});
+
+		var $input = $('<input/>')
+			.prop('type', 'text')
+			.prop('class', 'form-control')
+			.prop('placeholder', 'Nom du jeu de données à supprimer')
+			.on('input', function(e) {
+				if ($(this).val() === resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['name']) {
+					$button.removeClass('disabled').prop('disabled', false);
+				} else {
+					$button.addClass('disabled').prop('disabled', true);
+				};
+			});
+
+		$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
+
+		$modal.find('.modal-body')
+			.append('<p>Cette action est irreversible et supprimera <strong>définitivement</strong> le jeu de données ainsi que toutes les ressources qui lui sont attachées.</p>')
+			.append(
+				$('<form/>')
+					.append(
+						$('<div/>').prop('class', 'form-group')
+							.append('<p>Pour confirmer, veuillez réécrire le nom du jeu de données à supprimer.</p>')
+							.append($input))
+					.append(
+						$('<div class="buttons-on-the-right-side">')
+							.append($button)
+							.append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
+
+		$modal.modal('show');
+
+		e.stopPropagation();
+	});
+
+$('#datasets button[name="edit-dataset"]')
+	.on('click', function(e) {
+		e.preventDefault();
+		redirect(DATASET_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']);
+		e.stopPropagation();
+	});
+
+resourcesGrid.initializeGrid = function() {
+	var grid = resourcesGrid;
+	var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
+
+	with (this) {
+		tableRendered = function() {
+			this.updatePaginator(grid);
+		};
+		rowSelected = function(pRowIdx, nRowIdx) {
+			$(grid.getRow(pRowIdx)).removeClass('selected');
+			$buttons.each(function() {
+				deactivateButton($(this));
+			});
+			if (pRowIdx != nRowIdx) {
+				$(grid.getRow(nRowIdx)).addClass('selected');
+				$buttons.each(function() {
+					activateButton($(this));
+				});
+			};
+		};
+		setCellRenderer('published', new CellRenderer({
+			render: function(cell, value) {
+				cell.style.textAlign = 'center';
+				cell.style.width = '32px';
+				cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
+			}
+		}));
+		var DATE_FORMAT = 'dddd Do MMMM YYYY à HH:mm:ss';
+		setCellRenderer('date_creation', new CellRenderer({
+			render: function(cell, value) {
+				cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
+			}
+		}));
+		setCellRenderer('last_modification', new CellRenderer({
+			render: function(cell, value) {
+				cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
+			}
+		}));
+	};
+};
+
+function updateDatasetsGrid(grid, containerId, metadata, data) {
+	var $containerId = $('#' + containerId);
+	var $parent = $($containerId.parent().get(0));
+	$parent.find('div[role="alert"]').remove();
+	$parent.find('button').each(function() {
+		deactivateButton($(this));
+	});
+	if (data.length > 0) {
+		grid.load({'metadata': metadata, 'data': data});
+		grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
+		grid.initializeGrid();
+		grid.refreshGrid();
+		$containerId.show();
+	} else {
+		$containerId.hide();
+	};
+
+	if (IS_CONTRIBUTOR == true && data.length == 0) {
+		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'avez encore jamais créé de jeu de données. Cliquez sur le bouton <strong>[ ' + $parent.find('a[name="add-dataset"]').get(0).text + ' ]</strong> pour commencer.</p><div/>');
+	};
+
+	if (IS_CONTRIBUTOR == false && data.length == 0) {
+		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucun organisme. Pour devenir contributeur, vous devez <a href="' + CONTRIBUTE_URL + '">ajouter un organisme auquel contribuer</a>.');
+		deactivateButton($('a[name="add-dataset"]'));
+	};
+
+};
+
+updateDatasetsGrid(
+	resourcesGrid,
+	DATASETS_CONTAINER,
+	DATASETS_METADATA,
+	(function(data) {
+		var m = [];
+		for (var i = 0; i < data.length; i ++) {
+			m.push({
+				id: i,
+				values: [
+					data[i][1],  // name
+					// data[i][2],  // description
+					data[i][3],  // date_creation
+					data[i][4],  // last_modification
+					data[i][5],  // published
+					data[i][0]   // id
+				]
+			});
+		};
+		return m;
+	})(DATASETS)
+);
+
+</script>

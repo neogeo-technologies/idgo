@@ -1,0 +1,18 @@
+{% load bootstrap3 %}
+
+<span class="title">
+	<a href="{% url "idgo_admin:home" %}" data-toggle="popover" data-placement="right" data-content="Revenir à la page d'accueil">Back-Office IDGO</a>
+</span>
+<span class="username">{{ first_name}} {{ last_name }}</span>
+<div class="btn-group login">
+	<button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		<span class="glyphicon glyphicon-user"></span>
+	</button>
+	<ul name="my-account-menu" class="dropdown-menu dropdown-menu-right">
+		<li style="text-align: left"><a href="{% url "idgo_admin:modifyAccount" %}">Mon compte</a></li>
+		<li style="text-align: left"><a href="{% url "idgo_admin:contributions" %}">Mes organismes (pour lesquels je contribue)</a></li>
+		<li style="text-align: left"><a href="{% url "idgo_admin:publish_request" %}">Ajouter un organisme auquel contribuer</a></li>
+		<li style="text-align: left"><a href="{% url "idgo_admin:deleteAccount" %}">Supprimer mon compte</a></li>
+		<li style="text-align: left"><a href="{% url "idgo_admin:signOut" %}">Se déconnecter</a></li>
+	</ul>
+</div>

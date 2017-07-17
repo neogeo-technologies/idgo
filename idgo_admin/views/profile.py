@@ -1,24 +1,19 @@
-from .ckan_module import CkanHandler as ckan
-from .forms.user import ProfileUpdateForm
-from .forms.user import PublishDeleteForm
-from .forms.user import UserDeleteForm
-from .forms.user import UserForm
-from .forms.user import UserLoginForm
-from .forms.user import UserProfileForm
-from .forms.user import UserUpdateForm
+from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.forms.profile import ProfileUpdateForm
+from idgo_admin.forms.profile import PublishDeleteForm
+from idgo_admin.forms.profile import UserDeleteForm
+from idgo_admin.forms.profile import UserForm
+from idgo_admin.forms.profile import UserLoginForm
+from idgo_admin.forms.profile import UserProfileForm
+from idgo_admin.forms.profile import UserUpdateForm
 
-# from .ldap_module import LdapHandler as ldap
-from .models import Mail
-from .models import Organisation
-from .models import Profile
-from .models import PublishRequest
-from .models import Registration
-# from .utils import send_affiliate_confirmation
-# from .utils import send_affiliate_request
-# from .utils import send_confirmation_mail
-# from .utils import send_publish_confirmation
-# from .utils import send_publish_request
-# from .utils import send_validation_mail
+
+from idgo_admin.models import Mail
+from idgo_admin.models import Organisation
+from idgo_admin.models import Profile
+from idgo_admin.models import PublishRequest
+from idgo_admin.models import Registration
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
@@ -42,7 +37,7 @@ def render_an_critical_error(request, error=None):
     message = ("Une erreur critique s'est produite lors de la création de "
                "votre compte. Merci de contacter l'administrateur du site. ")
 
-    return render(request, 'profiles/information.html',
+    return render(request, 'idgo_admin/information.html',
                   {'message': message}, status=400)
 
 
@@ -63,7 +58,7 @@ def home(request):
     my_pub_l = [e.organisation_id for e in set]
     is_contributor = len(Organisation.objects.filter(pk__in=my_pub_l)) > 0
 
-    return render(request, 'profiles/home.html',
+    return render(request, 'idgo_admin/home.html',
                   {'first_name': user.first_name,
                    'last_name': user.last_name,
                    'datasets': json.dumps(datasets),
@@ -75,14 +70,14 @@ def sign_in(request):
 
     if request.method == 'GET':
         logout(request)
-        return render(request, 'profiles/signin.html',
+        return render(request, 'idgo_admin/signin.html',
                       {'uform': UserLoginForm()})
 
     uform = UserLoginForm(data=request.POST)
     if not uform.is_valid():
         uform.add_error('username', 'Vérifiez votre nom de connexion !')
         uform.add_error('password', 'Vérifiez votre mot de passe !')
-        return render(request, 'profiles/signin.html', {'uform': uform})
+        return render(request, 'idgo_admin/signin.html', {'uform': uform})
 
     user = uform.get_user()
     request.session.set_expiry(3600)  # time-out de la session
@@ -90,20 +85,20 @@ def sign_in(request):
     nxt_pth = request.GET.get('next', None)
     if nxt_pth:
         return HttpResponseRedirect(nxt_pth)
-    return redirect('profiles:home')
+    return redirect('idgo_admin:home')
 
 
 @csrf_exempt
 def sign_out(request):
     logout(request)
-    return redirect('profiles:signIn')
+    return redirect('idgo_admin:signIn')
 
 
 @csrf_exempt
 def sign_up(request):
 
     if request.method == 'GET':
-        return render(request, 'profiles/signup.html',
+        return render(request, 'idgo_admin/signup.html',
                       {'uform': UserForm(), 'pform': UserProfileForm()})
 
     def save_user(data):
@@ -126,7 +121,7 @@ def sign_up(request):
         User.objects.get(username=username).delete()
 
     def render_on_error():
-        return render(request, 'profiles/signup.html',
+        return render(request, 'idgo_admin/signup.html',
                       {'uform': uform, 'pform': pform})
 
     uform = UserForm(data=request.POST)
@@ -151,9 +146,9 @@ def sign_up(request):
             'first_name': uform.cleaned_data['first_name'],
             'last_name': uform.cleaned_data['last_name'],
             'organisation': pform.cleaned_data['organisation'],
-            'parent': pform.cleaned_data['parent'],
-            'organisation_type': pform.cleaned_data['organisation_type'],
-            'code_insee': pform.cleaned_data['code_insee'],
+            # 'parent': pform.cleaned_data['parent'],
+            # 'organisation_type': pform.cleaned_data['organisation_type'],
+            # 'code_insee': pform.cleaned_data['code_insee'],
             'new_website': pform.cleaned_data['new_website'],
             'is_new_orga': pform.cleaned_data['is_new_orga'],
             'role': pform.cleaned_data['role'],
@@ -186,7 +181,7 @@ def sign_up(request):
                'votre compte, cliquez sur le lien qui vous sera indiqué '
                "dans les 48h après réception de l'e-mail.")
 
-    return render(request, 'profiles/information.html',
+    return render(request, 'idgo_admin/information.html',
                   {'message': message}, status=200)
 
 
@@ -199,7 +194,7 @@ def confirmation_email(request, key):
 
     if reg.date_validation_user:
         message = "Vous avez déjà validé votre adresse e-mail."
-        return render(request, 'profiles/information.html',
+        return render(request, 'idgo_admin/information.html',
                       {'message': message}, status=200)
     try:
         reg.key_expires = None
@@ -240,7 +235,7 @@ def confirmation_email(request, key):
                "organisation, celle-ci ne sera effective qu'après "
                'validation par un administrateur.')
 
-    return render(request, 'profiles/information.html',
+    return render(request, 'idgo_admin/information.html',
                   {'message': message}, status=200)
 
 
@@ -254,7 +249,7 @@ def activation_admin(request, key):
     if reg.date_affiliate_admin:
         message = ("Le compte <strong>{0}</strong> est déjà activé.").format(
             reg.user.username)
-        return render(request, 'profiles/information.html',
+        return render(request, 'idgo_admin/information.html',
                       {'message': message}, status=200)
 
     reg_org_name = reg.profile_fields['organisation']
@@ -281,25 +276,8 @@ def activation_admin(request, key):
                'rattachement à {1} est effectif'
                ).format(username, profile.organisation.name)
 
-    return render(request, 'profiles/information.html',
+    return render(request, 'idgo_admin/information.html',
                   {'message': message}, status=200)
-
-
-# @csrf_exempt
-# def affiliate_request(request, key):
-#
-#     reg = get_object_or_404(Registration, affiliate_orga_key=key)
-#
-#     try:
-#         send_affiliate_confirmation(reg)
-#     except Exception:
-#         pass
-#
-#     message = ('La confirmation de la demande de '
-#                'rattachement a bien été prise en compte.')
-#
-#     return render(request, 'profiles/information.html',
-#                   {'message': message}, status=200)
 
 
 @transaction.atomic
@@ -315,7 +293,7 @@ def modify_account(request):
         instance=profile, data=request.POST or None, exclude={'user': user})
 
     if not uform.is_valid() or not pform.is_valid():
-        return render(request, 'profiles/modifyaccount.html',
+        return render(request, 'idgo_admin/modifyaccount.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
                        'uform': uform, 'pform': pform})
@@ -330,7 +308,7 @@ def modify_account(request):
             #                  password=uform.cleaned_data['password1'])
     except ValidationError as e:
         print('ValidationError', e)
-        return render(request, 'profiles/modifyaccount.html',
+        return render(request, 'idgo_admin/modifyaccount.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
                        'uform': uform, 'pform': pform})
@@ -351,7 +329,7 @@ def modify_account(request):
         render_an_critical_error(request)
 
     message = 'Les informations de votre profil sont à jour.'
-    return render(request, 'profiles/information.html',
+    return render(request, 'idgo_admin/information.html',
                   {'message': message}, status=200)
 
 
@@ -364,7 +342,7 @@ def publish_request(request):
     pub_liste = profile.publish_for
     if request.method == 'GET':
         return render(
-            request, 'profiles/publish.html',
+            request, 'idgo_admin/publish.html',
             {'first_name': user.first_name,
              'last_name': user.last_name,
              'pform': ProfileUpdateForm(exclude={'user': user}),
@@ -374,7 +352,7 @@ def publish_request(request):
         instance=profile, data=request.POST or None, exclude={'user': user})
 
     if not pform.is_valid():
-        return render(request, 'profiles/publish.html', {'pform': pform})
+        return render(request, 'idgo_admin/publish.html', {'pform': pform})
 
     pub_req = PublishRequest.objects.create(
         user=user, organisation=pform.cleaned_data['publish_for'])
@@ -388,7 +366,7 @@ def publish_request(request):
                "ne sera effective qu'après validation par un administrateur."
                ).format(pub_req.organisation.name)
 
-    return render(request, 'profiles/information.html',
+    return render(request, 'idgo_admin/information.html',
                   {'message': message}, status=200)
 
 
@@ -403,7 +381,7 @@ def publish_request_confirme(request, key):
     if pub_req.date_acceptation:
         message = ('La confirmation de la demande de '
                    'contribution a déjà été faite.')
-        return render(request, 'profiles/information.html',
+        return render(request, 'idgo_admin/information.html',
                       {'message': message}, status=200)
 
     if pub_req.organisation:
@@ -423,7 +401,7 @@ def publish_request_confirme(request, key):
 
     message = ('La confirmation de la demande de contribution '
                'a bien été prise en compte.')
-    return render(request, 'profiles/information.html',
+    return render(request, 'idgo_admin/information.html',
                   {'message': message}, status=200)
 
 
@@ -433,14 +411,14 @@ def publish_delete(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
     if request.method == 'GET':
-        return render(request, 'profiles/publishdelete.html',
+        return render(request, 'idgo_admin/publishdelete.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
                        'pubform': PublishDeleteForm(include={'user': user})})
 
     pubform = PublishDeleteForm(data=request.POST, include={'user': user})
     if not pubform.is_valid():
-        return render(request, 'profiles/publishdelete.html',
+        return render(request, 'idgo_admin/publishdelete.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
                        'pubform': pubform})
@@ -452,7 +430,7 @@ def publish_delete(request):
 
     message = ("Vous n'etes plus contributeur pour l'organisation "
                "<strong>{org_name}</strong>").format(org_name=org.name)
-    return render(request, 'profiles/information.html',
+    return render(request, 'idgo_admin/information.html',
                   {'message': message}, status=200)
 
 
@@ -462,7 +440,7 @@ def contributions(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
     if request.method == 'GET':
-        return render(request, 'profiles/contributions.html',
+        return render(request, 'idgo_admin/contributions.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
                        'my_profile': profile})
@@ -473,7 +451,7 @@ def contributions(request):
 def delete_account(request):
     user = request.user
     if request.method == 'GET':
-        return render(request, 'profiles/deleteaccount.html',
+        return render(request, 'idgo_admin/deleteaccount.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
                        'uform': UserDeleteForm()})
@@ -481,7 +459,7 @@ def delete_account(request):
     user = request.user
     uform = UserDeleteForm(data=request.POST)
     if not uform.is_valid():
-        return render(request, 'profiles/deleteaccount.html',
+        return render(request, 'idgo_admin/deleteaccount.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
                        'uform': uform})
@@ -489,5 +467,5 @@ def delete_account(request):
     user.delete()
     logout(request)
 
-    return render(request, 'profiles/information.html',
+    return render(request, 'idgo_admin/information.html',
                   {'message': 'Votre compte a été supprimé.'}, status=200)
