@@ -24,16 +24,16 @@ def exceptions_handler(f):
             return f(*args, **kwargs)
         except CkanError.NotAuthorized:
             raise PermissionError('CkanError.NotAuthorized')
-        except CkanError.ValidationError:
-            raise Exception('CkanError.ValidationError')
-        except CkanError.NotFound:
-            raise Exception('CkanError.NotFound')
-        except CkanError.SearchQueryError:
-            raise Exception('CkanError.SearchQueryError')
-        except CkanError.SearchError:
-            raise Exception('CkanError.SearchError')
-        except CkanError.SearchIndexError:
-            raise Exception('CkanError.SearchIndexError')
+        except CkanError.ValidationError as e:
+            raise Exception('CkanError.ValidationError', e)
+        except CkanError.NotFound as e:
+            raise Exception('CkanError.NotFound', e)
+        except CkanError.SearchQueryError as e:
+            raise Exception('CkanError.SearchQueryError', e)
+        except CkanError.SearchError as e:
+            raise Exception('CkanError.SearchError', e)
+        except CkanError.SearchIndexError as e:
+            raise Exception('CkanError.SearchIndexError', e)
     return wrapper
 
 
@@ -204,7 +204,7 @@ class CkanUserHandler(object):
         return self.remote.action.package_delete(id=id)
 
     @exceptions_handler
-    def _push_resource(self, package, resource_type, **kwargs):
+    def _push_resource(self, package, **kwargs):
 
         kwargs['package_id'] = package['id']
         kwargs['created'] = datetime.now().isoformat()
@@ -213,30 +213,17 @@ class CkanUserHandler(object):
         if count_resources > 0:
             for i in range(count_resources):
                 resource = package['resources'][i]
-                if resource['resource_type'] == resource_type:
+                if resource['resource_type'] == kwargs['resource_type']:
                     kwargs['id'] = resource['id']
                     kwargs['last_modified'] = datetime.now().isoformat()
                     del kwargs['created']
                     return self.remote.action.resource_update(**kwargs)
 
-        kwargs['resource_type'] = resource_type
-
         return self.remote.action.resource_create(**kwargs)
 
     @exceptions_handler
-    def _push_csv_resource(
-            self, package, resource_type, csv_file=None, **kwargs):
-
-        if csv_file:
-            kwargs['url'] = package['id']
-            kwargs['upload'] = open(csv_file, 'rb')
-            kwargs['size'] = get_size_file(csv_file)
-        kwargs['name'] = 'Fichier CSV'
-        kwargs['description'] = 'Extraction CSV du jeu de données'
-        kwargs['format'] = 'csv'
-        kwargs['mimetype'] = 'text/csv'
-
-        # return self._push_resource(package, resource_type, **kwargs)
+    def _del_resource(self, id):
+        return self.remote.action.resource_delete(id=id)
 
     @exceptions_handler
     def _push_resource_view(self, resource_id, view_type, **kwargs):
@@ -249,6 +236,7 @@ class CkanUserHandler(object):
 
         views = self.remote.action.resource_view_list(id=resource_id)
         for view in views:
+            print(view)
             if view['view_type'] == view_type:
                 return self.remote.action.resource_view_update(id=view['id'],
                                                                **kwargs)
@@ -267,13 +255,18 @@ class CkanUserHandler(object):
         return package
 
     def publish_resource(self, dataset_id, **kwargs):
+        self._push_resource_view(
+            self._push_resource(
+                self._get_package(str(dataset_id)), **kwargs)['id'],
+            {'csv': 'recline_view',
+             'json': 'text_view',
+             'wms': 'geo_view',
+             'xls': 'recline_view',
+             'xml': 'text_view'
+             }.get(kwargs['format'], 'text_view'))
 
-        package = self._get_package(dataset_id)
-
-        resource_type = kwargs['filename']
-        data_format = kwargs['format']
-        if data_format == 'csv':
-            self._push_csv_resource(package, resource_type, **kwargs)
+    def delete_resource(self, id):
+        self._del_resource(id)
 
     def delete_dataset(self, id):
         self._del_package(id)
