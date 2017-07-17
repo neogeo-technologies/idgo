@@ -124,7 +124,7 @@ class AccessLevel(models.Model):
         ('O', 'Tous les utilisateurs'),
         ('1', 'Utilisateurs authentifiés'),
         ('2', 'Utilisateurs authentifiés avec droits spécifiques'))
-    name = models.CharField('Libellé', max_length=10)
+    name = models.CharField('Libellé', max_length=250)
     code = models.IntegerField('Niveau', choices=LEVEL_CHOICES)
 
     def __str__(self):
@@ -134,6 +134,8 @@ class AccessLevel(models.Model):
         managed = False
         verbose_name = "Condition d'accès"
         verbose_name_plural = "Conditions d'accès"
+
+
 
 
 class Dataset(models.Model):
