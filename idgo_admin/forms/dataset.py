@@ -124,8 +124,8 @@ class DatasetForm(forms.ModelForm):
         params = {
             'author': user.username,
             'author_email': user.email,
-            'dataset_creation_date': str(dataset.date_creation.date()),
-            'dataset_publication_date': str(dataset.date_publication.date()),
+            'dataset_creation_date': str(dataset.date_creation.date()) if dataset.date_creation else '',
+            'dataset_publication_date': str(dataset.date_publication.date()) if dataset.date_publication else '',
             'groups': [],  # Cf. plus bas..
             'geocover': dataset.geocover,
             'license_id': dataset.licences.title,
@@ -133,7 +133,7 @@ class DatasetForm(forms.ModelForm):
             'maintainer_email': user.email,
             'notes': dataset.description,
             'owner_org': dataset.organisation.ckan_slug,
-            'private': dataset.published and False or True,
+            'private': not dataset.published,  # Reverse boolean
             'state': 'active',
             'tags': [{'name': name} for name in data['keywords']],
             'title': dataset.name,
@@ -165,11 +165,9 @@ class ResourceForm(forms.ModelForm):
     # geo_restriction, created_on, last_update dataset, type, fichier
 
     access = forms.ModelChoiceField(
-        label="Niveau d'acces",
+        label="Restriction d'accès",
         queryset=AccessLevel.objects.all(),
         required=True)
-
-
 
     class Meta(object):
         model = Resource
@@ -183,9 +181,8 @@ class ResourceForm(forms.ModelForm):
                   'up_file')
 
     def handle_me(self, request, dataset, id=None):
-
+        user = request.user
         data = self.cleaned_data
-
         params = {'name': data['name'],
                   'description': data['description'],
                   'dl_url': data['dl_url'],
@@ -194,13 +191,47 @@ class ResourceForm(forms.ModelForm):
                   'data_format': data['data_format'],
                   'access': data['access'],
                   'up_file': data['up_file'],
-                  'dataset': dataset
-                  }
+                  'dataset': dataset}
 
         if id:  # Mise à jour d'un ressource
             resource = Resource.objects.get(pk=id)
             for key, value in params.items():
                 setattr(resource, key, value)
-
         else:  # Création d'une nouvelle ressource
             resource = Resource.objects.create(**params)
+
+        dataset = resource.dataset
+
+        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+
+        print(data)
+
+        params = {
+            # 'url'
+            # 'revision_id'
+            'name': resource.name,
+            'description': resource.description,
+            'format': resource.data_format,
+            'resource_type': '',
+            'created': str(resource.created_on.date()) if resource.created_on else '',
+            'last_modified': str(resource.last_update.date()) if resource.last_update else ''}
+
+        if resource.referenced_url:
+            return
+        if resource.dl_url:
+            return
+        if resource.up_file:
+            print(resource.up_file)
+
+        # try:
+        #     ckan_resource = ckan_user.publish_resource(dataset.ckan_id, **params)
+        # except Exception as err:
+        #     dataset.sync_in_ckan = False
+        #     dataset.delete()
+        #     raise err
+        # else:
+        #     dataset.ckan_id = ckan_dataset['id']
+        #     dataset.sync_in_ckan = True
+
+        ckan_user.close()
+        # dataset.save()

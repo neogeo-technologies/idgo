@@ -11,7 +11,7 @@
 </div>
 
 <script>
-var RESOURCE_URL = '';
+var RESOURCE_URL = '{% url "idgo_admin:resource" dataset_id=dataset_id %}';
 var RESOURCES = {{ resources | safe }};
 var RESOURCES_CONTAINER = 'table-resources';
 var RESOURCES_METADATA = [
@@ -139,12 +139,12 @@ resourcesGrid.initializeGrid = function() {
 		var DATE_FORMAT = 'dddd Do MMMM YYYY à HH:mm:ss';
 		setCellRenderer('date_creation', new CellRenderer({
 			render: function(cell, value) {
-				cell.innerHTML = moment(value).format(DATE_FORMAT);
+				cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
 			}
 		}));
 		setCellRenderer('last_modification', new CellRenderer({
 			render: function(cell, value) {
-				cell.innerHTML = moment(value).format(DATE_FORMAT);
+				cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
 			}
 		}));
 	};

@@ -1,11 +1,11 @@
 {% load bootstrap3 %}
 
-<form method="post" action="">
+<form method="post" action="" enctype="multipart/form-data">
 	{% csrf_token %}
 	<div class="form-group">
 		<div name="data-selector" class="btn-group btn-group-justified" data-toggle="buttons">
 			<label class="btn btn-default active">
-				<input type="radio" name="options" value="up_file" autocomplete="off" checked> Fichier(s)
+				<input type="radio" name="options" value="up_file" autocomplete="off" checked> Téléverser un fichier
 			</label>
 			<label class="btn btn-default">
 				<input type="radio" name="options" value="url1" autocomplete="off"> Télécharger depuis une URL
@@ -16,7 +16,7 @@
 		</div>
 		<div class="well" name="data-selector-panel">
 			<div name="up_file" class="form-group">
-				<p>Veuillez séléctionner un ou plusieurs fichiers bla bla bla...</p>
+				<p>Veuillez séléctionner un ou plusieurs fichiers... (TODO: texte explicatif)</p>
 				{% for widget in rform.up_file %}
 				<div class="input-group">
 					<label class="input-group-btn">
@@ -29,19 +29,21 @@
 				{% endfor %}
 			</div>
 			<div name="url1" class="form-group" style="display: none;">
-				<p>Veuillez indiquer l'URL d'une données à télécharger bla bla bla...</p>
-				{% for widget in rform.url %}
+				<p>Veuillez indiquer l'URL d'un jeu de données à télécharger... (TODO: texte explicatif)</p>
+				{% for widget in rform.dl_url %}
 				<input id="{{ widget.attrs.id }}" name="{{ widget.name }}" type="text" class="form-control"></input>
 				{% endfor %}
 			</div>
 			<div name="url2" class="form-group" style="display: none;">
-				<p>Veuillez indiquer l'URL d'une données à référencer bla bla bla...</p>
-				{% for widget in rform.url %}
+				<p>Veuillez indiquer l'URL d'un jeu de données à référencer (TODO: texte explicatif)</p>
+				{% for widget in rform.referenced_url %}
 				<input id="{{ widget.attrs.id }}" name="{{ widget.name }}" type="text" class="form-control"></input>
 				{% endfor %}
 			</div>
 		</div>
 	</div>
+	{% bootstrap_field rform.up_file %}
+
 	{% bootstrap_field rform.name %}
 	{% bootstrap_field rform.description %}
 	{% bootstrap_field rform.lang %}
@@ -49,7 +51,7 @@
 	{% bootstrap_field rform.access %}
 	<div class="buttons-on-the-right-side">
 		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
-		<a class="btn btn-default" href="{% url "profiles:home" %}">Annuler</a>
+		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">Annuler</a>
 	</div>
 </form>
 <script>

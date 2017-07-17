@@ -5,11 +5,16 @@ from datetime import datetime
 from django.conf import settings
 from django.db import IntegrityError
 from functools import wraps
+import os
 import requests
 
 
 CKAN_URL = settings.CKAN_URL
 CKAN_API_KEY = settings.CKAN_API_KEY
+
+
+def get_size_file(f):
+    return os.stat(f).st_size
 
 
 def exceptions_handler(f):
@@ -219,6 +224,21 @@ class CkanUserHandler(object):
         return self.remote.action.resource_create(**kwargs)
 
     @exceptions_handler
+    def _push_csv_resource(
+            self, package, resource_type, csv_file=None, **kwargs):
+
+        if csv_file:
+            kwargs['url'] = package['id']
+            kwargs['upload'] = open(csv_file, 'rb')
+            kwargs['size'] = get_size_file(csv_file)
+        kwargs['name'] = 'Fichier CSV'
+        kwargs['description'] = 'Extraction CSV du jeu de données'
+        kwargs['format'] = 'csv'
+        kwargs['mimetype'] = 'text/csv'
+
+        # return self._push_resource(package, resource_type, **kwargs)
+
+    @exceptions_handler
     def _push_resource_view(self, resource_id, view_type, **kwargs):
 
         kwargs['resource_id'] = resource_id
@@ -244,12 +264,16 @@ class CkanUserHandler(object):
         else:
             package = self._add_package(**kwargs)
 
-        # if resources:
-        #     for resource in resources:
-        #         m = self._push_resource(package, resource.type, **kwargs)
-        #         self._push_resource_view(m['id'], resource.view_type)
-
         return package
+
+    def publish_resource(self, dataset_id, **kwargs):
+
+        package = self._get_package(dataset_id)
+
+        resource_type = kwargs['filename']
+        data_format = kwargs['format']
+        if data_format == 'csv':
+            self._push_csv_resource(package, resource_type, **kwargs)
 
     def delete_dataset(self, id):
         self._del_package(id)

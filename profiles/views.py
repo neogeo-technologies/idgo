@@ -54,8 +54,8 @@ def home(request):
     datasets = [(o.pk,
                  o.name,
                  o.description,
-                 o.date_creation.isoformat(),
-                 o.date_modification.isoformat(),
+                 o.date_creation.isoformat() if o.date_creation else None,
+                 o.date_modification.isoformat() if o.date_modification else None,
                  o.published) for o in Dataset.objects.filter(editor=user)]
 
     ppf = Profile.publish_for.through

@@ -72,8 +72,8 @@ class DatasetManager(View):
             resources = [
                 (o.pk,
                  o.name,
-                 o.created_on.isoformat(),
-                 o.last_update.isoformat(),
+                 o.created_on.isoformat() if o.created_on else None,
+                 o.last_update.isoformat() if o.last_update else None,
                  o.acces) for o in Resource.objects.filter(dataset=dataset)]
 
             dform = DatasetForm(instance=dataset,
