@@ -6,7 +6,7 @@ from .forms.user import UserForm
 from .forms.user import UserLoginForm
 from .forms.user import UserProfileForm
 from .forms.user import UserUpdateForm
-from .ldap_module import LdapHandler as ldap
+# from .ldap_module import LdapHandler as ldap
 from .models import Organisation
 from .models import Profile
 from .models import PublishRequest
@@ -154,8 +154,9 @@ def sign_up(request):
             'role': pform.cleaned_data['role'],
             'phone': pform.cleaned_data['phone']}
 
-    if ckan.is_user_exists(data['username']) \
-            or ldap.is_user_exists(data['username']):
+    # if ckan.is_user_exists(data['username']) \
+    #         or ldap.is_user_exists(data['username']):
+    if ckan.is_user_exists(data['username']):
         uform.add_error('username',
                         'Cet identifiant de connexion est réservé.')
         return render_on_error()
@@ -168,7 +169,7 @@ def sign_up(request):
         return render_on_error()
 
     try:
-        ldap.add_user(user, data['password'])
+        # ldap.add_user(user, data['password'])
         ckan.add_user(user, data['password'])
         send_validation_mail(request, reg)
     except Exception as e:
@@ -203,7 +204,7 @@ def confirmation_email(request, key):
     user = reg.user
     user.is_active = True
     try:
-        ldap.activate_user(user.username)
+        # ldap.activate_user(user.username)
         ckan.activate_user(user.username)
     except Exception:
         return render_an_critical_error(request)
@@ -319,8 +320,8 @@ def modify_account(request):
             uform.save_f(request)
             pform.save_f()
             ckan.update_user(user, profile=profile)
-            ldap.update_user(user, profile=profile,
-                             password=uform.cleaned_data['password1'])
+            # ldap.update_user(user, profile=profile,
+            #                  password=uform.cleaned_data['password1'])
     except ValidationError as e:
         print('ValidationError', e)
         return render(request, 'profiles/modifyaccount.html',
@@ -338,7 +339,7 @@ def modify_account(request):
         user = User.objects.get(username=user.username)
         try:
             ckan.update_user(user)
-            ldap.update_user(user)
+            # ldap.update_user(user)
         except Exception:
             pass
         render_an_critical_error(request)

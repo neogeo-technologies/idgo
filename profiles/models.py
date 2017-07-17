@@ -1,9 +1,9 @@
 from .ckan_module import CkanHandler as ckan
-from .ldap_module import LdapHandler as ldap
+# from .ldap_module import LdapHandler as ldap
 from django.conf import settings
 from django.contrib.auth.models import User
 # from django.db import models  # ???
-from django.db.models.signals import post_save
+# from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
 from django.contrib.gis.db import models  # TODO(@m431m)
@@ -91,14 +91,16 @@ class Organisation(models.Model):
         return self.name
 
     def delete(self, *args, **kwargs):
+        ckan.del_organization(self.ckan_slug)
+        super().delete()
 
-        res = ldap.sync_object(
-            'organisations', self.name,
-            self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, 'delete')
-
-        res_ckan = ckan.del_organization(self.ckan_slug)
-        if res and res_ckan:
-            super().delete()
+    # def delete(self, *args, **kwargs):
+    #     res = ldap.sync_object(
+    #         'organisations', self.name,
+    #         self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, 'delete')
+    #     res_ckan = ckan.del_organization(self.ckan_slug)
+    #     if res and res_ckan:
+    #         super().delete()
 
 
 class Profile(models.Model):
@@ -181,7 +183,7 @@ class Mail(models.Model):
 @receiver(pre_delete, sender=User)
 def delete_user_in_externals(sender, instance, **kwargs):
     try:
-        ldap.del_user(instance.username)
+        # ldap.del_user(instance.username)
         ckan.del_user(instance.username)  # ->state='deleted'
     except Exception:
         pass
@@ -230,8 +232,8 @@ def orga_ckan_presave(sender, instance, **kwargs):
         instance.sync_in_ckan = True
 
 
-@receiver(post_save, sender=Organisation)
-def orga_ldap_postsave(sender, instance, **kwargs):
-    instance.sync_in_ldap = ldap.sync_object(
-        'organisations', instance.name,
-        instance.id + settings.LDAP_ORGANISATION_ID_INCREMENT, 'add_or_update')
+# @receiver(post_save, sender=Organisation)
+# def orga_ldap_postsave(sender, instance, **kwargs):
+#     instance.sync_in_ldap = ldap.sync_object(
+#         'organisations', instance.name,
+#         instance.id + settings.LDAP_ORGANISATION_ID_INCREMENT, 'add_or_update')
