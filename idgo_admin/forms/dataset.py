@@ -169,20 +169,17 @@ class ResourceForm(forms.ModelForm):
         queryset=AccessLevel.objects.all(),
         required=True)
 
+
+
     class Meta(object):
         model = Resource
         fields = ('name',
                   'description',
                   'lang',
                   'data_format',
-                  'projection',
-                  'resolution',
                   'access',
-                  'bbox',
-                  'geo_restriction',
-                  'dataset',
-                  'data_type',
-                  'url',
+                  'dl_url',
+                  'referenced_url',
                   'up_file')
 
     def handle_me(self, request, dataset, id=None):
@@ -191,15 +188,11 @@ class ResourceForm(forms.ModelForm):
 
         params = {'name': data['name'],
                   'description': data['description'],
-                  'url': data['url'],
-                  'lang': data['licences'],
+                  'dl_url': data['dl_url'],
+                  'referenced_url': data['referenced_url'],
+                  'lang': data['lang'],
                   'data_format': data['data_format'],
-                  'projection': data['projection'],
-                  'resolution': data['resolution'],
                   'access': data['access'],
-                  'bbox': data['bbox'],
-                  'geo_restriction': data['geo_restriction'],
-                  'data_type': data['data_type'],
                   'up_file': data['up_file'],
                   'dataset': dataset
                   }

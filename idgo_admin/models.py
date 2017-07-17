@@ -136,8 +136,6 @@ class AccessLevel(models.Model):
         verbose_name_plural = "Conditions d'accès"
 
 
-
-
 class Dataset(models.Model):
 
     GEOCOVER_CHOICES = (
@@ -245,7 +243,8 @@ class Resource(models.Model):
 
     name = models.CharField('Nom', max_length=150)
     description = models.TextField('Description')
-    url = models.URLField('URL distante', blank=True, null=True)
+    referenced_url = models.URLField('Référencer une URL', blank=True, null=True)
+    dl_url = models.URLField('Télécharger depuis une URL', blank=True, null=True)
     up_file = models.FileField('Fichier à télécharger', blank=True, null=True)
     lang = models.CharField(
         'Langue', choices=LANG_CHOICES, default='french', max_length=10)

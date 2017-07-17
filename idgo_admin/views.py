@@ -39,12 +39,13 @@ class DatasetManager(View):
         id = request.GET.get('id') or None
         if id:
             dataset = get_object_or_404(Dataset, id=id, editor=user)
+
             resources = [
                 (o.pk,
                  o.name,
-                 o.created_on.isoformat(),
-                 o.last_update.isoformat(),
-                 o.acces) for o in Resource.objects.filter(dataset=dataset)]
+                 o.created_on.isoformat() if o.created_on else None,
+                 o.last_update.isoformat() if o.last_update else None,
+                 o.access.name) for o in Resource.objects.filter(dataset=dataset)]
 
             return render(request, 'idgo_admin/dataset.html',
                           {'first_name': user.first_name,
@@ -213,7 +214,13 @@ class ResourceManager(View):
                 return render(request, 'profiles/information.html',
                               {'message': message}, status=200)
 
-        return render_on_error(request)
+        return render(request, 'idgo_admin/resource.html', {
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'dataset_name': dataset.name,  # TODO
+            'dataset_id': dataset.id,  # TODO
+            'resource_name': 'Nouveau',
+            'rform': rform})
 
     def delete(self, request, dataset_id):
 
