@@ -305,7 +305,6 @@ class Mail(models.Model):
                 first_name=user_copy["first_name"],
                 last_name=user_copy["last_name"],
                 username=user_copy["username"])
-        print(message, mail_template.subject)
         try:
             send_mail(subject=mail_template.subject, message=message,
                       from_email=mail_template.from_email,
