@@ -1,14 +1,11 @@
 from django import forms
-
+from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
-
-from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-
 from taggit.forms import TagField
 
 
@@ -125,8 +122,12 @@ class DatasetForm(forms.ModelForm):
         params = {
             'author': user.username,
             'author_email': user.email,
-            'dataset_creation_date': str(dataset.date_creation.date()) if dataset.date_creation else '',
-            'dataset_publication_date': str(dataset.date_publication.date()) if dataset.date_publication else '',
+            'dataset_creation_date': str(
+                dataset.date_creation.date()
+                if dataset.date_creation else ''),
+            'dataset_publication_date': str(
+                dataset.date_publication.date()
+                if dataset.date_publication else ''),
             'groups': [],  # Cf. plus bas..
             'geocover': dataset.geocover,
             'license_id': dataset.licences.title,

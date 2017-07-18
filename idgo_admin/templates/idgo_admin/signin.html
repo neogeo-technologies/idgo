@@ -1,11 +1,13 @@
 {% extends "idgo_admin/base.html" %}
 
-{% block header %}
-{% endblock header %}
-
-{% block nav %}
-{% endblock nav %}
-
+{% block header %}{% endblock header %}
+{% block nav %}{% endblock nav %}
 {% block main %}
-{% include "idgo_admin/inner_signin.htm" %}
+<div class="outer">
+	<div class="v-middle">
+		<div class="h-middle" style="width: 333px">
+			{% include "idgo_admin/inner_signin.htm" %}
+		</div>
+	</div>
+</div>
 {% endblock main %}

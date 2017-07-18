@@ -1,7 +1,10 @@
+from django.conf import settings
 from django import forms
-from idgo_admin.models import Resource
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.models import Resource
+import os
+from urllib.request import urlretrieve
 
 
 class ResourceForm(forms.ModelForm):
@@ -19,9 +22,10 @@ class ResourceForm(forms.ModelForm):
                   'referenced_url',
                   'up_file')
 
-    def handle_me(self, request, dataset, id=None):
+    def handle_me(self, request, dataset, id=None, uploaded_file=None):
         user = request.user
         data = self.cleaned_data
+
         params = {'name': data['name'],
                   'description': data['description'],
                   'dl_url': data['dl_url'],
@@ -43,34 +47,35 @@ class ResourceForm(forms.ModelForm):
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
 
-        print(data)
-
-        params = {
-            # 'url'
-            # 'revision_id'
-            'name': resource.name,
-            'description': resource.description,
-            'format': resource.data_format,
-            'resource_type': '',
-            'created': str(resource.created_on.date()) if resource.created_on else '',
-            'last_modified': str(resource.last_update.date()) if resource.last_update else ''}
+        params = {'name': resource.name,
+                  'description': resource.description,
+                  'format': resource.data_format,
+                  'lang': resource.lang}
 
         if resource.referenced_url:
-            return
-        if resource.dl_url:
-            return
-        if resource.up_file:
-            print(resource.up_file)
+            params['url'] = resource.referenced_url
+            params['resource_type'] = '{0}.{1}'.format(resource.name,
+                                                       resource.data_format)
 
-        # try:
-        #     ckan_resource = ckan_user.publish_resource(dataset.ckan_id, **params)
-        # except Exception as err:
-        #     dataset.sync_in_ckan = False
-        #     dataset.delete()
-        #     raise err
-        # else:
-        #     dataset.ckan_id = ckan_dataset['id']
-        #     dataset.sync_in_ckan = True
+        if resource.dl_url:
+            filename = os.path.join(settings.MEDIA_ROOT,
+                                    resource.dl_url.split('/')[-1])
+            retreive_url = urlretrieve(resource.dl_url, filename=filename)
+            headers = retreive_url[1]
+            f = open(filename, 'wb')
+            params['upload'] = f
+            params['size'] = os.stat(f).st_size
+            params['mimetype'] = headers["Content-Type"]
+            params['resource_type'] = filename
+            ckan_user.publish_resource(dataset.ckan_id, **params)
+            f.close()
+        if uploaded_file:
+            params['upload'] = uploaded_file
+            params['size'] = uploaded_file.size
+            params['mimetype'] = uploaded_file.content_type
+            params['resource_type'] = uploaded_file.name
+
+        ckan_user.publish_resource(dataset.ckan_id, **params)
 
         ckan_user.close()
-        # dataset.save()
+        dataset.save()

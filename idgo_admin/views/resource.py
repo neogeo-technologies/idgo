@@ -1,4 +1,3 @@
-from idgo_admin.forms.resource import ResourceForm
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -7,6 +6,9 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.forms.resource import ResourceForm
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
 
@@ -58,9 +60,15 @@ class ResourceManager(View):
         id = request.POST.get('id', request.GET.get('id')) or None
         dataset = get_object_or_404(Dataset, id=dataset_id)
         if id:
-            resource = get_object_or_404(Resource, id=id,
-                                         dataset_id=dataset_id)
-            rform = ResourceForm(instance=resource, data=request.POST)
+            resource = get_object_or_404(
+                Resource, id=id, dataset_id=dataset_id)
+            rform = ResourceForm(
+                request.POST, request.FILES, instance=resource)
+
+            uploaded_file = None
+            if rform.is_multipart():
+                uploaded_file = 'up_file' in request.FILES and request.FILES['up_file'] or None
+
             if not rform.is_valid() or not request.user.is_authenticated:
                 return render(request, 'idgo_admin/resource.html',
                               {'first_name': user.first_name,
@@ -71,14 +79,15 @@ class ResourceManager(View):
                                'rform': Resource(instance=resource)})
 
             try:
-                rform.handle_me(request, dataset, id)
+                rform.handle_me(
+                    request, dataset, id=id, uploaded_file=uploaded_file)
             except Exception as e:
                 message = ("L'erreur suivante est survenue : "
                            '<strong>{0}</strong>.').format(str(e))
             else:
                 message = 'La ressource a été mise à jour avec succès.'
 
-            return render(request, 'idgo_admin/information.html',
+            return render(request, 'idgo_admin/response.html',
                           {'message': message}, status=200)
         else:
             rform = ResourceForm(data=request.POST)
@@ -91,7 +100,7 @@ class ResourceManager(View):
                 else:
                     message = 'La ressource a été créée avec succès.'
 
-                return render(request, 'idgo_admin/information.html',
+                return render(request, 'idgo_admin/response.html',
                               {'message': message}, status=200)
 
         return render(request, 'idgo_admin/resource.html', {
@@ -110,12 +119,9 @@ class ResourceManager(View):
 
         resource = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
 
-        # ckan_user = ckan_me(ckan.get_user(request.user.username)['apikey'])
+        ckan_user = ckan_me(ckan.get_user(request.user.username)['apikey'])
         try:
-            # TODO: services CKAN
-            # ckan_user.delete_resource(str(dataset.ckan_id))
-            # ckan.purge_resource(str(dataset.ckan_id))
-            pass
+            ckan_user.delete_resource(str(resource.ckan_id))
         except Exception:
             message = ('La ressource <strong>{0}</strong> '
                        'ne peut pas être supprimé.').format(resource.name)
@@ -126,7 +132,7 @@ class ResourceManager(View):
                        'a été supprimé avec succès.').format(resource.name)
             status = 200
 
-        # ckan_user.close()
+        ckan_user.close()
 
         return render(request, 'idgo_admin/response.htm',
                       {'message': message}, status=status)

@@ -144,7 +144,6 @@ EditableGrid.prototype._rendergrid = function(containerid, className, tableid) {
 
 };
 
-
 EditableGrid.prototype.editCell = function(rowIndex, columnIndex) {
 	var target = this.getCell(rowIndex, columnIndex);
 	with (this) {
@@ -172,7 +171,6 @@ EditableGrid.prototype.editCell = function(rowIndex, columnIndex) {
 		};
 	};
 };
-
 
 EditableGrid.prototype.updatePaginator = function(grid) {
 
@@ -249,9 +247,9 @@ EditableGrid.prototype.updatePaginator = function(grid) {
 	paginator.append(lastLink);
 };
 
-
 function CreateGrid($, container, options) {
 	this.grid = new EditableGrid(container, {pageSize: options.pageSize});
 	// TODO
 };
+
 CreateGrid.prototype.constructor = CreateGrid;

@@ -5,16 +5,10 @@ from datetime import datetime
 from django.conf import settings
 from django.db import IntegrityError
 from functools import wraps
-import os
-import requests
 
 
 CKAN_URL = settings.CKAN_URL
 CKAN_API_KEY = settings.CKAN_API_KEY
-
-
-def get_size_file(f):
-    return os.stat(f).st_size
 
 
 def exceptions_handler(f):
@@ -57,20 +51,30 @@ class CkanManagerHandler(metaclass=Singleton):
 
     def add_user(self, user, password):
 
-        r = requests.post('{0}/ldap_login_handler'.format(settings.CKAN_URL),
-                          data={'login': user.username, 'password': password})
+        params = {'email': user.email,
+                  'fullname': user.get_full_name(),
+                  'name': user.username,
+                  'password': password,
+                  'state': 'deleted'}
+        try:
+            user = self.remote.action.user_create(**params)
+        except Exception as e:
+            raise Exception(e)
 
-        if r.status_code == 200:
-            pass
-        elif r.status_code == 500:
-            raise SystemError('CKAN returns an internal error.')
-        else:
-            raise Exception(
-                'CKAN returns a {0} code error.'.format(r.status_code))
-
-        self.remote.action.user_update(
-            id=user.username, name=user.username, email=user.email,
-            fullname=user.get_full_name(), state='deleted')
+        # r = requests.post('{0}/ldap_login_handler'.format(settings.CKAN_URL),
+        #                   data={'login': user.username, 'password': password})
+        #
+        # if r.status_code == 200:
+        #     pass
+        # elif r.status_code == 500:
+        #     raise SystemError('CKAN returns an internal error.')
+        # else:
+        #     raise Exception(
+        #         'CKAN returns a {0} code error.'.format(r.status_code))
+        #
+        # self.remote.action.user_update(
+        #     id=user.username, name=user.username, email=user.email,
+        #     fullname=user.get_full_name(), state='deleted')
 
     def del_user(self, username):
 
