@@ -98,6 +98,7 @@ class ResourceForm(forms.ModelForm):
         try:
             ckan_res = ckan_user.publish_resource(dataset.ckan_id, **params)
         except Exception as e:
+            print('Error', e)
             # resource.delete()  # TODO(@m431m)
             raise Exception(e)
         else:
