@@ -87,7 +87,7 @@ class ResourceManager(View):
             else:
                 message = 'La ressource a été mise à jour avec succès.'
 
-            return render(request, 'idgo_admin/response.html',
+            return render(request, 'idgo_admin/',
                           {'message': message}, status=200)
         else:
             rform = ResourceForm(data=request.POST)
@@ -100,7 +100,7 @@ class ResourceManager(View):
                 else:
                     message = 'La ressource a été créée avec succès.'
 
-                return render(request, 'idgo_admin/response.html',
+                return render(request, 'idgo_admin/',
                               {'message': message}, status=200)
 
         return render(request, 'idgo_admin/resource.html', {
