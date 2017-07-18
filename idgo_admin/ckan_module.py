@@ -16,18 +16,24 @@ def exceptions_handler(f):
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
-        except CkanError.NotAuthorized:
-            raise PermissionError('CkanError.NotAuthorized')
+        except CkanError.NotAuthorized as e:
+            print('CkanError', e.__str__())
+            raise PermissionError('CkanError.NotAuthorized', e.extra_msg['message'])
         except CkanError.ValidationError as e:
-            raise Exception('CkanError.ValidationError', e)
+            print('CkanError', e.__str__())
+            raise Exception('CkanError.ValidationError', e.extra_msg['message'])
         except CkanError.NotFound as e:
-            raise Exception('CkanError.NotFound', e)
+            print('CkanError', e.__str__())
+            raise Exception('CkanError.NotFound', e.extra_msg['message'])
         except CkanError.SearchQueryError as e:
-            raise Exception('CkanError.SearchQueryError', e)
+            print('CkanError', e.__str__())
+            raise Exception('CkanError.SearchQueryError', e.extra_msg['message'])
         except CkanError.SearchError as e:
-            raise Exception('CkanError.SearchError', e)
+            print('CkanError', e.__str__())
+            raise Exception('CkanError.SearchError', e.extra_msg['message'])
         except CkanError.SearchIndexError as e:
-            raise Exception('CkanError.SearchIndexError', e)
+            print('CkanError', e.__str__())
+            raise Exception('CkanError.SearchIndexError', e.extra_msg['message'])
     return wrapper
 
 
@@ -87,13 +93,11 @@ class CkanManagerHandler(metaclass=Singleton):
         if not self.is_user_exists:
             raise IntegrityError()
 
-        if profile:
-            self.del_user_from_organizations(user.username)
-
-            # TODO(@m431m): possibilité d'avoir une organisation Null
-            if profile.organisation:
-                self.add_user_to_organization(
-                    user.username, profile.organisation.ckan_slug)
+        # if profile:
+        #     self.del_user_from_organizations(user.username)
+        #     if profile.organisation:
+        #         self.add_user_to_organization(
+        #             user.username, profile.organisation.ckan_slug)
 
         ckan_user = self.get_user(user.username)
         ckan_user.update({'email': user.email,

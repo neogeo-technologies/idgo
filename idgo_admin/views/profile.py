@@ -117,7 +117,6 @@ def sign_up(request):
     def delete_user(username):
         User.objects.get(username=username).delete()
 
-
     def render_on_error():
         return render(request, 'idgo_admin/signup.html',
                       {'uform': uform, 'pform': pform})

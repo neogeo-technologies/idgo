@@ -591,7 +591,20 @@ def delete_user_in_externals(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Profile)
 def update_externals(sender, instance, **kwargs):
+
     user = instance.user
+    through = Profile.publish_for.through
+
+    def remove(name):
+        if name in ckan.get_organizations_which_user_belongs(user.username):
+            ckan.del_user_from_organization(user.username, name)
+
+    def add(name):
+        ckan.add_user_to_organization(user.username, name)
+
+    def iter_organization(profile, callback):
+        for e in through.objects.filter(profile=profile):
+            callback(Organisation.objects.get(id=e.organisation_id).ckan_slug)
     try:
         old = Profile.objects.get(pk=instance.id)
     except Profile.DoesNotExist:
@@ -600,14 +613,8 @@ def update_externals(sender, instance, **kwargs):
         print('Error:', e)
         pass
     else:
-        if old.organisation and old.organisation.ckan_slug in \
-                ckan.get_organizations_which_user_belongs(user.username):
-            ckan.del_user_from_organization(
-                user.username, old.organisation.ckan_slug)
-
-    if instance.organisation:
-        ckan.add_user_to_organization(
-            user.username, instance.organisation.ckan_slug)
+        iter_organization(old, remove)
+        iter_organization(instance, add)
 
 
 @receiver(pre_save, sender=Profile)
