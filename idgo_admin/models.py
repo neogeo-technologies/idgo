@@ -498,23 +498,42 @@ class Resource(models.Model):
     # Une fiche dataset correspond à n fiches Resource
 
     name = models.CharField('Nom', max_length=150)
+
     ckan_id = models.UUIDField(
         'Ckan UUID', unique=True, db_index=True, blank=True, null=True)
-    description = models.TextField('Description')
 
-    referenced_url = models.URLField('Référencer une URL', blank=True, null=True)
-    dl_url = models.URLField('Télécharger depuis une URL', blank=True, null=True)
-    up_file = models.FileField('Fichier à télécharger', blank=True, null=True)
+    description = models.TextField('Description')  # TODO(@cbenhabib) -> opt
+
+    referenced_url = models.URLField(
+        'Référencer une URL', blank=True, null=True)
+
+    dl_url = models.URLField(
+        'Télécharger depuis une URL', blank=True, null=True)
+
+    up_file = models.FileField(
+        'Téléverser un ou plusieurs fichiers', blank=True, null=True)
+
     lang = models.CharField(
         'Langue', choices=LANG_CHOICES, default='french', max_length=10)
-    data_format = models.CharField('Format', max_length=20, blank=True)
-    projection = models.ForeignKey(Projection, blank=True, null=True)
-    resolution = models.ForeignKey(Resolution, blank=True, null=True)
-    access = models.CharField("Condition d'accès", choices=LEVEL_CHOICES,
-                              default="0", max_length=20, blank=True, null=True)
+
+    data_format = models.CharField(
+        'Format', max_length=20, blank=True)
+
+    projection = models.ForeignKey(
+        Projection, blank=True, null=True)
+
+    resolution = models.ForeignKey(
+        Resolution, blank=True, null=True)
+
+    access = models.CharField(
+        "Restriction d'accès", choices=LEVEL_CHOICES,
+        default="0", max_length=20, blank=True, null=True)
+
     dataset = models.ForeignKey(
         Dataset, on_delete=models.CASCADE, blank=True, null=True)
-    bbox = models.PolygonField('BBOX', blank=True, null=True)
+
+    bbox = models.PolygonField(
+        'Rectangle englobant', blank=True, null=True)
 
     # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
     geo_restriction = models.BooleanField(
@@ -523,9 +542,11 @@ class Resource(models.Model):
     created_on = models.DateField(
         verbose_name="Date de creation de la resource",
         blank=True, null=True)
+
     last_update = models.DateField(
         verbose_name="Date de dernière modification de la resource",
         blank=True, null=True)
+
     data_type = models.CharField(verbose_name='type de resources',
                                  choices=TYPE_CHOICES, max_length=10)
 

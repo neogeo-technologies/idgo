@@ -259,7 +259,7 @@ class CkanUserHandler(object):
         return package
 
     def publish_resource(self, dataset_id, **kwargs):
-        self._push_resource_view(
+        return self._push_resource_view(
             self._push_resource(
                 self._get_package(str(dataset_id)), **kwargs)['id'],
             {'csv': 'recline_view',

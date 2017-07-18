@@ -68,7 +68,8 @@ class ResourceManager(View):
 
             uploaded_file = None
             if rform.is_multipart():
-                uploaded_file = 'up_file' in request.FILES and request.FILES['up_file'] or None
+                uploaded_file = 'up_file' in request.FILES \
+                                and request.FILES['up_file'] or None
 
             if not rform.is_valid() or not request.user.is_authenticated:
                 return render(request, 'idgo_admin/resource.html',

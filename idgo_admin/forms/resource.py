@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils import timezone
 from django import forms
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
@@ -79,9 +80,13 @@ class ResourceForm(forms.ModelForm):
             params['resource_type'] = uploaded_file.name
 
         try:
-            ckan_user.publish_resource(dataset.ckan_id, **params)
-        except Exception:
+            ckan_res = ckan_user.publish_resource(dataset.ckan_id, **params)
+        except Exception as e:
             resource.delete()
-
-        ckan_user.close()
-        resource.save()
+            raise Exception(e)
+        else:
+            resource.ckan_id = ckan_res['resource_id']
+            resource.last_update = timezone.now()
+            resource.save()
+        finally:
+            ckan_user.close()

@@ -21,6 +21,11 @@ var RESOURCES_METADATA = [
 		editable: false,
 		datatype: 'string'
 	}, {
+		name: 'format',
+		label: 'Format',
+		editable: false,
+		datatype: 'string'
+	}, {
 		name: 'date_creation',
 		label: 'Date de création',
 		editable: false,
@@ -82,7 +87,7 @@ $('#resources button[name="delete-resource"]')
 			.prop('class', 'form-control')
 			.prop('placeholder', 'Nom de la ressource à supprimer')
 			.on('input', function(e) {
-				if ($(this).val() === resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['name']) {
+				if ($(this).val() === resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['title']) {
 					$button.removeClass('disabled').prop('disabled', false);
 				} else {
 					$button.addClass('disabled').prop('disabled', true);
@@ -184,9 +189,10 @@ updateResourcesGrid(
 				id: i,
 				values: [
 					data[i][1],  // title
-					data[i][2],  // date_creation
-					data[i][3],  // last_modification
-					data[i][4],  // restrictions
+					data[i][2],  // format
+					data[i][3],  // date_creation
+					data[i][4],  // last_modification
+					data[i][5],  // restrictions
 					data[i][0]   // id
 				]
 			});
