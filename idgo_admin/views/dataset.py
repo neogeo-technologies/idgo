@@ -97,7 +97,7 @@ class DatasetManager(View):
             else:
                 message = 'Le jeu de données a été mis à jour avec succès.'
 
-            return render(request, 'idgo_admin/response.html',
+            return render(request, 'idgo_admin/response.htm',
                           {'message': message}, status=200)
         else:
             dform = DatasetForm(
@@ -111,7 +111,7 @@ class DatasetManager(View):
                 else:
                     message = 'Le jeu de données a été créé avec succès.'
 
-                return render(request, 'idgo_admin/response.html',
+                return render(request, 'idgo_admin/response.htm',
                               {'message': message}, status=200)
 
         return render_on_error(request)

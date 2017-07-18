@@ -16,11 +16,10 @@
 			{% for category in dform.categories %}
 			<label for="{{ category.id_for_label }}" class="btn">
 				{{ category.tag }}
-				<span class="badge">{{ category.choice_label }}</span></label>
+				<span class="badge">{{ category.choice_label }}</span>
+			</label>
 			{% empty %}
-			<div role="alert" class="alert alert-warning">
-				<p>Aucune catégorie n'est disponible.</p>
-			</div>
+			<p>Aucune catégorie n'est disponible.</p>
 			{% endfor %}
 		</div>
 	</div>
