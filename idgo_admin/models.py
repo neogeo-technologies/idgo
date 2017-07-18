@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.gis.db import models  # TODO(@m431m)
 from django.contrib.postgres.fields import JSONField
 from django.core.mail import send_mail
+from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -582,7 +583,7 @@ def pre_save_dataset(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Resource)
 def post_save_resource(sender, instance, **kwargs):
-    instance.ckan_slug = slugify(instance.name)
+    pass
 
 
 @receiver(pre_delete, sender=User)
