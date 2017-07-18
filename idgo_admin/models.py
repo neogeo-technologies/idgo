@@ -31,10 +31,6 @@ class Commune(models.Model):
     def __str__(self):
         return self.name
 
-    class Meta(object):
-        # managed = False
-        pass
-
 
 class OrganisationType(models.Model):
 
@@ -42,7 +38,6 @@ class OrganisationType(models.Model):
     code = models.CharField('Code', max_length=3)
 
     class Meta(object):
-        # managed = False
         verbose_name = "Type d'organisation"
         verbose_name_plural = "Types d'organisations"
 
@@ -81,8 +76,6 @@ class Organisation(models.Model):
     # Territoire de compétence
     geom = models.MultiPolygonField(
         'Territoire', srid=4171, blank=True, null=True)
-    sync_in_ldap = models.BooleanField(
-        'Synchronisé dans le LDAP', default=False)
     sync_in_ckan = models.BooleanField(
         'Synchronisé dans CKAN', default=False)
     ckan_slug = models.SlugField(
@@ -102,9 +95,6 @@ class Organisation(models.Model):
     financeur = models.CharField('Financeur', blank=True, null=True, default='conseil_regional',
                               max_length=30, choices=FINANCEUR_CHOICES)
 
-    class Meta(object):
-        # managed = False
-        pass
 
     def __str__(self):
         return self.name
@@ -137,9 +127,6 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
-    class Meta(object):
-        managed = False
-
 
 class PublishRequest(models.Model):  # Demande de contribution
 
@@ -154,10 +141,6 @@ class PublishRequest(models.Model):  # Demande de contribution
     date_acceptation = models.DateField(verbose_name='Date acceptation',
                                         blank=True, null=True)
     pub_req_key = models.UUIDField(default=uuid.uuid4, editable=False)
-
-    class Meta(object):
-        # managed = False
-        pass
 
 
 class Registration(models.Model):
@@ -176,10 +159,6 @@ class Registration(models.Model):
     date_affiliate_admin = models.DateField(
         verbose_name="Date activation par un administrateur",
         blank=True, null=True)
-
-    class Meta(object):
-        # managed = False
-        pass
 
 
 class Mail(models.Model):
@@ -303,6 +282,20 @@ class Mail(models.Model):
                   from_email=mail_template.from_email,
                   recipient_list=[publish_request.user.email])
 
+    @classmethod
+    def conf_deleting_dataset_res_by_user(cls, profile, dataset=None, resource=None):
+
+        if dataset:
+            mail_template = Mail.objects.get(template_name="conf_deleting_dataset_by_user")
+            message = mail_template.message.format(dataset=dataset.name)
+        elif resource:
+            mail_template = Mail.objects.get(template_name="conf_deleting_res_by_user")
+            message = mail_template.message.format(resource=resource.name)
+
+        send_mail(subject=mail_template.subject, message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=[profile.user.email])
+
 
 class Category(models.Model):
 
@@ -316,7 +309,6 @@ class Category(models.Model):
         return self.name
 
     class Meta(object):
-        # managed = False
         verbose_name = "Catégorie"
 
     def save(self, *args, **kwargs):
@@ -355,7 +347,6 @@ class License(models.Model):
         return self.title
 
     class Meta(object):
-        # managed = False
         verbose_name = 'Licence'
 
 
@@ -367,7 +358,6 @@ class Projection(models.Model):
         return self.name
 
     class Meta(object):
-        # managed = False
         verbose_name = 'Projection'
 
 
@@ -378,7 +368,6 @@ class Resolution(models.Model):
         return self.value
 
     class Meta(object):
-        # managed = False
         verbose_name = 'Resolution'
 
 
@@ -395,7 +384,6 @@ class Territory(models.Model):
         return self.name
 
     class Meta(object):
-        # managed = False
         verbose_name = 'Territoire'
 
 
@@ -480,7 +468,6 @@ class Dataset(models.Model):
         return self.name
 
     class Meta(object):
-        # managed = False
         verbose_name = "Jeu de données"
         verbose_name_plural = "Jeux de données"
 
@@ -510,7 +497,10 @@ class Resource(models.Model):
     # Une fiche dataset correspond à n fiches Resource
 
     name = models.CharField('Nom', max_length=150)
+    ckan_id = models.UUIDField(
+        'Ckan UUID', unique=True, db_index=True, blank=True, null=True)
     description = models.TextField('Description')
+
     referenced_url = models.URLField('Référencer une URL', blank=True, null=True)
     dl_url = models.URLField('Télécharger depuis une URL', blank=True, null=True)
     up_file = models.FileField('Fichier à télécharger', blank=True, null=True)
@@ -542,7 +532,6 @@ class Resource(models.Model):
         return self.name
 
     class Meta(object):
-        # managed = False
         verbose_name = "Ressource"
 
 

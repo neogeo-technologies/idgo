@@ -74,38 +74,39 @@ class OrganisationAdmin(geo_admin.OSMGeoAdmin):
     list_display = ('name', 'organisation_type', 'parent')
     list_filter = ('organisation_type',)
     # prepopulated_fields = {"ckan_slug": ("name",)}
-    readonly_fields = ('ckan_slug', 'sync_in_ldap', 'sync_in_ckan')
+    readonly_fields = ('ckan_slug', 'sync_in_ckan')
 
 
 admin.site.register(Organisation, OrganisationAdmin)
 
 
 class ApplicationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'url', 'sync_in_ldap')
+    list_display = ('name', 'url')
     search_fields = ('name', 'short_name')
-    list_filter = ('sync_in_ldap', 'host')
+    list_filter = ('host',)
 
 
 class MailAdmin(admin.ModelAdmin):
     model = Mail
 
     # Vue dev:
-    # list_display = ('template_name', 'subject', )
-    # fieldsets = (
-    #     ('Personnalisation des messages automatiques',
-    #      {'fields': ('template_name', 'subject', 'message', 'from_email')}),)
-
-    # Vue client:
-    list_display = ('subject', )
+    list_display = ('template_name', 'subject', )
     fieldsets = (
         ('Personnalisation des messages automatiques',
-         {'fields': ('subject', 'message', )}),)
+         {'fields': ('template_name', 'subject', 'message', 'from_email')}),)
 
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request, obj=None):
-        return False
+    # Vue client:
+    # list_display = ('subject', )
+    # fieldsets = (
+    #     ('Personnalisation des messages automatiques',
+    #      {'fields': ('subject', 'message', )}),)
+    #
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
+    #
+    # def has_add_permission(self, request, obj=None):
+    #     return False
+    # Fin Vue client
 
 
 admin.site.register(Mail, MailAdmin)
