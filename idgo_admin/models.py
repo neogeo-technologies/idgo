@@ -95,7 +95,6 @@ class Organisation(models.Model):
     financeur = models.CharField('Financeur', blank=True, null=True, default='conseil_regional',
                               max_length=30, choices=FINANCEUR_CHOICES)
 
-
     def __str__(self):
         return self.name
 
@@ -283,18 +282,20 @@ class Mail(models.Model):
                   recipient_list=[publish_request.user.email])
 
     @classmethod
-    def conf_deleting_dataset_res_by_user(cls, profile, dataset=None, resource=None):
+    def conf_deleting_dataset_res_by_user(cls, user, dataset=None, resource=None):
 
         if dataset:
             mail_template = Mail.objects.get(template_name="conf_deleting_dataset_by_user")
-            message = mail_template.message.format(dataset=dataset.name)
+            message = mail_template.message.format(dataset_name=dataset.name)
         elif resource:
             mail_template = Mail.objects.get(template_name="conf_deleting_res_by_user")
-            message = mail_template.message.format(resource=resource.name)
+            message = mail_template.message.format(
+                    dataset_name=resource.dataset.name,
+                    resource_name=resource.name)
 
         send_mail(subject=mail_template.subject, message=message,
                   from_email=mail_template.from_email,
-                  recipient_list=[profile.user.email])
+                  recipient_list=[user.email])
 
 
 class Category(models.Model):

@@ -10,6 +10,7 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.forms.dataset import DatasetForm
 from idgo_admin.models import Dataset
+from idgo_admin.models import Mail
 from idgo_admin.models import Resource
 import json
 
@@ -130,7 +131,7 @@ class DatasetManager(View):
             ckan_user.delete_dataset(str(dataset.ckan_id))
             ckan.purge_dataset(str(dataset.ckan_id))
         except Exception:
-            dataset.delete()
+            dataset.delete()  # TODO
             message = ('Le jeu de données <strong>{0}</strong> '
                        'ne peut pas être supprimé.').format(name)
             status = 400
@@ -140,6 +141,10 @@ class DatasetManager(View):
                        'a été supprimé avec succès.').format(name)
             status = 200
 
+        try:
+            Mail.conf_deleting_dataset_res_by_user(request.user, dataset=dataset)
+        except:
+            pass
         ckan_user.close()
 
         return render(request, 'idgo_admin/response.htm',

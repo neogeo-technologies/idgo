@@ -10,6 +10,7 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.forms.resource import ResourceForm
 from idgo_admin.models import Dataset
+from idgo_admin.models import Mail
 from idgo_admin.models import Resource
 
 
@@ -131,6 +132,13 @@ class ResourceManager(View):
             message = ('Le jeu de données <strong>{0}</strong> '
                        'a été supprimé avec succès.').format(resource.name)
             status = 200
+
+        try:
+
+            Mail.conf_deleting_dataset_res_by_user(request.user,
+                                                   resource=resource)
+        except:
+            pass
 
         ckan_user.close()
 
