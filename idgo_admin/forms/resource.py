@@ -57,25 +57,31 @@ class ResourceForm(forms.ModelForm):
             params['resource_type'] = '{0}.{1}'.format(resource.name,
                                                        resource.data_format)
 
-        if resource.dl_url:
-            filename = os.path.join(settings.MEDIA_ROOT,
-                                    resource.dl_url.split('/')[-1])
-            retreive_url = urlretrieve(resource.dl_url, filename=filename)
-            headers = retreive_url[1]
-            f = open(filename, 'wb')
-            params['upload'] = f
-            params['size'] = os.stat(f).st_size
-            params['mimetype'] = headers["Content-Type"]
-            params['resource_type'] = filename
-            ckan_user.publish_resource(dataset.ckan_id, **params)
-            f.close()
+        if resource.dl_url:  # TODO(@m431m)
+            pass
+            # filename = os.path.join(settings.MEDIA_ROOT,
+            #                         resource.dl_url.split('/')[-1])
+            # retreive_url = urlretrieve(resource.dl_url, filename=filename)
+            # headers = retreive_url[1]
+            # f = open(filename, 'wb')
+            # params['upload'] = f
+            # params['size'] = os.stat(f).st_size
+            # params['mimetype'] = headers["Content-Type"]
+            # params['resource_type'] = filename
+            # ckan_user.publish_resource(dataset.ckan_id, **params)
+            # f.close()
+
         if uploaded_file:
+            params['url'] = ''  # empty character string
             params['upload'] = uploaded_file
             params['size'] = uploaded_file.size
             params['mimetype'] = uploaded_file.content_type
             params['resource_type'] = uploaded_file.name
 
-        ckan_user.publish_resource(dataset.ckan_id, **params)
+        try:
+            ckan_user.publish_resource(dataset.ckan_id, **params)
+        except Exception:
+            resource.delete()
 
         ckan_user.close()
-        dataset.save()
+        resource.save()

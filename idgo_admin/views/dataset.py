@@ -44,7 +44,7 @@ class DatasetManager(View):
                  o.name,
                  o.created_on.isoformat() if o.created_on else None,
                  o.last_update.isoformat() if o.last_update else None,
-                 o.access.name) for o in Resource.objects.filter(dataset=dataset)]
+                 o.access) for o in Resource.objects.filter(dataset=dataset)]
 
             return render(request, 'idgo_admin/dataset.html',
                           {'first_name': user.first_name,
