@@ -502,7 +502,7 @@ class Resource(models.Model):
     ckan_id = models.UUIDField(
         'Ckan UUID', unique=True, db_index=True, blank=True, null=True)
 
-    description = models.TextField('Description')  # TODO(@cbenhabib) -> opt
+    description = models.TextField('Description', blank=True, null=True)
 
     referenced_url = models.URLField(
         'Référencer une URL', blank=True, null=True)
@@ -539,11 +539,11 @@ class Resource(models.Model):
     geo_restriction = models.BooleanField(
         "Restriction géographique", default=False)
 
-    created_on = models.DateField(
+    created_on = models.DateTimeField(
         verbose_name="Date de creation de la resource",
         blank=True, null=True)
 
-    last_update = models.DateField(
+    last_update = models.DateTimeField(
         verbose_name="Date de dernière modification de la resource",
         blank=True, null=True)
 
