@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.forms.resource import ResourceForm
+from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import Mail
 from idgo_admin.models import Resource
@@ -38,15 +38,14 @@ class ResourceManager(View):
         id = request.GET.get('id') or None
         dataset = get_object_or_404(Dataset, id=dataset_id)
         if id:
-            resource = get_object_or_404(Resource, id=id,
-                                         dataset_id=dataset_id)
+            instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
             return render(request, 'idgo_admin/resource.html',
                           {'first_name': user.first_name,
                            'last_name': user.last_name,
                            'dataset_name': dataset.name,
                            'dataset_id': dataset.id,
-                           'resource_name': resource.name,
-                           'rform': ResourceForm(instance=resource)})
+                           'resource_name': instance.name,
+                           'rform': Form(instance=instance)})
 
         return render(request, 'idgo_admin/resource.html',
                       {'first_name': user.first_name,
@@ -54,54 +53,44 @@ class ResourceManager(View):
                        'dataset_name': dataset.name,  # TODO
                        'dataset_id': dataset.id,  # TODO
                        'resource_name': 'Nouveau',
-                       'rform': ResourceForm()})
+                       'rform': Form()})
 
     def post(self, request, dataset_id):
+
+        def get_uploaded_file(form):
+            return (form.is_multipart() and 'up_file' in request.FILES
+                    ) and request.FILES['up_file'] or None
+
         user = request.user
-        id = request.POST.get('id', request.GET.get('id')) or None
         dataset = get_object_or_404(Dataset, id=dataset_id)
+
+        id = request.POST.get('id', request.GET.get('id')) or None
         if id:
-            resource = get_object_or_404(
-                Resource, id=id, dataset_id=dataset_id)
-            rform = ResourceForm(
-                request.POST, request.FILES, instance=resource)
+            instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+            resource_name = instance.name
 
-            uploaded_file = None
-            if rform.is_multipart():
-                uploaded_file = 'up_file' in request.FILES \
-                                and request.FILES['up_file'] or None
-
-            if not rform.is_valid() or not request.user.is_authenticated:
-                return render(request, 'idgo_admin/resource.html',
-                              {'first_name': user.first_name,
-                               'last_name': user.last_name,
-                               'dataset_name': dataset.name,
-                               'dataset_id': dataset.id,
-                               'resource_name': resource.name,
-                               'rform': Resource(instance=resource)})
-
-            try:
-                rform.handle_me(
-                    request, dataset, id=id, uploaded_file=uploaded_file)
-            except Exception as e:
-                message = ("L'erreur suivante est survenue : "
-                           '<strong>{0}</strong>.').format(str(e))
-            else:
-                message = 'La ressource a été mise à jour avec succès.'
-
-            return render(request, 'idgo_admin/response.htm',
-                          {'message': message}, status=200)
-        else:
-            rform = ResourceForm(data=request.POST)
-            if rform.is_valid() and request.user.is_authenticated:
+            form = Form(request.POST, request.FILES, instance=instance)
+            if form.is_valid() and user.is_authenticated:
                 try:
-                    rform.handle_me(request, dataset)
+                    form.handle_me(request, dataset, id=id,
+                                   uploaded_file=get_uploaded_file(form))
                 except Exception as e:
                     message = ("L'erreur suivante est survenue : "
                                '<strong>{0}</strong>.').format(str(e))
-                else:
-                    message = 'La ressource a été créée avec succès.'
-
+                message = 'La ressource a été mise à jour avec succès.'
+                return render(request, 'idgo_admin/response.htm',
+                              {'message': message}, status=200)
+        else:
+            resource_name = 'Nouveau'
+            form = Form(request.POST)
+            if form.is_valid() and user.is_authenticated:
+                try:
+                    form.handle_me(request, dataset,
+                                   uploaded_file=get_uploaded_file(form))
+                except Exception as e:
+                    message = ("L'erreur suivante est survenue : "
+                               '<strong>{0}</strong>.').format(str(e))
+                message = 'La ressource a été créée avec succès.'
                 return render(request, 'idgo_admin/response.htm',
                               {'message': message}, status=200)
 
@@ -110,8 +99,8 @@ class ResourceManager(View):
             'last_name': user.last_name,
             'dataset_name': dataset.name,  # TODO
             'dataset_id': dataset.id,  # TODO
-            'resource_name': 'Nouveau',
-            'rform': rform})
+            'resource_name': resource_name,
+            'rform': form})
 
     def delete(self, request, dataset_id):
 
@@ -133,15 +122,15 @@ class ResourceManager(View):
             message = ('Le jeu de données <strong>{0}</strong> '
                        'a été supprimé avec succès.').format(resource.name)
             status = 200
+        finally:
+            ckan_user.close()
 
         try:
-
             Mail.conf_deleting_dataset_res_by_user(request.user,
                                                    resource=resource)
-        except:
+        except Exception as e:
+            print(e)
             pass
-
-        ckan_user.close()
 
         return render(request, 'idgo_admin/response.htm',
                       {'message': message}, status=status)

@@ -213,15 +213,13 @@ class CkanUserHandler(object):
         kwargs['package_id'] = package['id']
         kwargs['created'] = datetime.now().isoformat()
 
-        count_resources = len(package['resources'])
-        if count_resources > 0:
-            for i in range(count_resources):
-                resource = package['resources'][i]
-                if resource['resource_type'] == kwargs['resource_type']:
-                    kwargs['id'] = resource['id']
-                    kwargs['last_modified'] = datetime.now().isoformat()
-                    del kwargs['created']
-                    return self.remote.action.resource_update(**kwargs)
+        for resource in package['resources']:
+            if resource['id'] != kwargs['id']:
+                print(0)
+                continue
+            kwargs['last_modified'] = datetime.now().isoformat()
+            del kwargs['created']
+            return self.remote.action.resource_update(**kwargs)
 
         return self.remote.action.resource_create(**kwargs)
 
@@ -230,18 +228,16 @@ class CkanUserHandler(object):
         return self.remote.action.resource_delete(id=id)
 
     @exceptions_handler
-    def _push_resource_view(self, resource_id, view_type, **kwargs):
+    def _push_resource_view(self, **kwargs):
 
-        kwargs['resource_id'] = resource_id
-        kwargs['view_type'] = view_type
         kwargs['title'] = kwargs['title'] if 'title' in kwargs else 'Aperçu'
         kwargs['description'] = kwargs['description'] \
             if 'description' in kwargs else 'Aperçu du jeu de données'
 
-        views = self.remote.action.resource_view_list(id=resource_id)
+        views = self.remote.action.resource_view_list(id=kwargs['resource_id'])
         for view in views:
             print(view)
-            if view['view_type'] == view_type:
+            if view['view_type'] == kwargs['view_type']:
                 return self.remote.action.resource_view_update(id=view['id'],
                                                                **kwargs)
 
@@ -259,15 +255,21 @@ class CkanUserHandler(object):
         return package
 
     def publish_resource(self, dataset_id, **kwargs):
-        return self._push_resource_view(
-            self._push_resource(
-                self._get_package(str(dataset_id)), **kwargs)['id'],
-            {'csv': 'recline_view',
-             'json': 'text_view',
-             'wms': 'geo_view',
-             'xls': 'recline_view',
-             'xml': 'text_view'
-             }.get(kwargs['format'], 'text_view'))
+        resource = self._push_resource(
+            self._get_package(str(dataset_id)), **kwargs)
+
+        params = {
+            'resource_id': str(resource['id']),
+            'view_type': {
+                'csv': 'recline_view',
+                'json': 'text_view',
+                'wms': 'geo_view',
+                'xls': 'recline_view',
+                'xml': 'text_view'
+                }.get(kwargs['format'], 'text_view')}
+
+        self._push_resource_view(**params)
+        return resource['id']
 
     def delete_resource(self, id):
         self._del_resource(id)

@@ -1,16 +1,31 @@
-from django.conf import settings
-from django.utils import timezone
+# from django.conf import settings
 from django import forms
+from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Resource
-import os
-from urllib.request import urlretrieve
+# import os
+# from urllib.request import urlretrieve
 
 
 class ResourceForm(forms.ModelForm):
     # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
     # geo_restriction, created_on, last_update dataset, type, fichier
+
+    name = forms.CharField(
+        label='Titre',
+        widget=forms.TextInput(
+            attrs={'placeholder': 'Titre'}))
+
+    description = forms.CharField(
+        label='Description',
+        widget=forms.Textarea(
+            attrs={'placeholder': 'Vous pouvez utiliser le langage Markdown ici'}))
+
+    data_format = forms.CharField(
+        label='Format',
+        widget=forms.TextInput(
+            attrs={'placeholder': 'CSV, XML, JSON, XLS... '}))
 
     class Meta(object):
         model = Resource
@@ -51,6 +66,7 @@ class ResourceForm(forms.ModelForm):
         params = {'name': resource.name,
                   'description': resource.description,
                   'format': resource.data_format,
+                  'id': str(resource.ckan_id) or None,
                   'lang': resource.lang}
 
         if resource.referenced_url:
@@ -82,7 +98,7 @@ class ResourceForm(forms.ModelForm):
         try:
             ckan_res = ckan_user.publish_resource(dataset.ckan_id, **params)
         except Exception as e:
-            resource.delete()
+            # resource.delete()  # TODO(@m431m)
             raise Exception(e)
         else:
             resource.ckan_id = ckan_res['resource_id']
