@@ -34,7 +34,7 @@ def render_an_critical_error(request, error=None):
     message = ("Une erreur critique s'est produite lors de la création de "
                "votre compte. Merci de contacter l'administrateur du site. ")
 
-    return render(request, 'idgo_admin/',
+    return render(request, 'idgo_admin/response.htm',
                   {'message': message}, status=400)
 
 
@@ -178,7 +178,7 @@ def sign_up(request):
                'votre compte, cliquez sur le lien qui vous sera indiqué '
                "dans les 48h après réception de l'e-mail.")
 
-    return render(request, 'idgo_admin/',
+    return render(request, 'idgo_admin/response.htm',
                   {'message': message}, status=200)
 
 
@@ -191,7 +191,7 @@ def confirmation_email(request, key):
 
     if reg.date_validation_user:
         message = "Vous avez déjà validé votre adresse e-mail."
-        return render(request, 'idgo_admin/',
+        return render(request, 'idgo_admin/response.htm',
                       {'message': message}, status=200)
     try:
         reg.key_expires = None
@@ -232,7 +232,7 @@ def confirmation_email(request, key):
                "organisation, celle-ci ne sera effective qu'après "
                'validation par un administrateur.')
 
-    return render(request, 'idgo_admin/',
+    return render(request, 'idgo_admin/response.htm',
                   {'message': message}, status=200)
 
 
@@ -246,7 +246,7 @@ def activation_admin(request, key):
     if reg.date_affiliate_admin:
         message = ("Le compte <strong>{0}</strong> est déjà activé.").format(
             reg.user.username)
-        return render(request, 'idgo_admin/',
+        return render(request, 'idgo_admin/response.htm',
                       {'message': message}, status=200)
 
     reg_org_name = reg.profile_fields['organisation']
@@ -273,7 +273,7 @@ def activation_admin(request, key):
                'rattachement à {1} est effectif'
                ).format(username, profile.organisation.name)
 
-    return render(request, 'idgo_admin/',
+    return render(request, 'idgo_admin/response.htm',
                   {'message': message}, status=200)
 
 
@@ -326,7 +326,7 @@ def modify_account(request):
         render_an_critical_error(request)
 
     message = 'Les informations de votre profil sont à jour.'
-    return render(request, 'idgo_admin/',
+    return render(request, 'idgo_admin/response.htm',
                   {'message': message}, status=200)
 
 
@@ -363,7 +363,7 @@ def publish_request(request):
                "ne sera effective qu'après validation par un administrateur."
                ).format(pub_req.organisation.name)
 
-    return render(request, 'idgo_admin/',
+    return render(request, 'idgo_admin/response.htm',
                   {'message': message}, status=200)
 
 
@@ -378,7 +378,7 @@ def publish_request_confirme(request, key):
     if pub_req.date_acceptation:
         message = ('La confirmation de la demande de '
                    'contribution a déjà été faite.')
-        return render(request, 'idgo_admin/',
+        return render(request, 'idgo_admin/response.htm',
                       {'message': message}, status=200)
 
     if pub_req.organisation:
@@ -398,7 +398,7 @@ def publish_request_confirme(request, key):
 
     message = ('La confirmation de la demande de contribution '
                'a bien été prise en compte.')
-    return render(request, 'idgo_admin/',
+    return render(request, 'idgo_admin/response.htm',
                   {'message': message}, status=200)
 
 
@@ -427,7 +427,7 @@ def publish_delete(request):
 
     message = ("Vous n'etes plus contributeur pour l'organisation "
                "<strong>{org_name}</strong>").format(org_name=org.name)
-    return render(request, 'idgo_admin/',
+    return render(request, 'idgo_admin/response.htm',
                   {'message': message}, status=200)
 
 
@@ -464,5 +464,5 @@ def delete_account(request):
     user.delete()
     logout(request)
 
-    return render(request, 'idgo_admin/',
+    return render(request, 'idgo_admin/response.htm',
                   {'message': 'Votre compte a été supprimé.'}, status=200)
