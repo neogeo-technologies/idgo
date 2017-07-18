@@ -117,6 +117,7 @@ def sign_up(request):
     def delete_user(username):
         User.objects.get(username=username).delete()
 
+
     def render_on_error():
         return render(request, 'idgo_admin/signup.html',
                       {'uform': uform, 'pform': pform})
@@ -461,8 +462,16 @@ def delete_account(request):
                        'last_name': user.last_name,
                        'uform': uform})
 
+    user_data_copy = {"last_name": user.last_name,
+                      "first_name": user.first_name,
+                      "username": user.username,
+                      "email": user.email}
     user.delete()
     logout(request)
-
+    try:
+        Mail.conf_deleting_profile_to_user(user_data_copy)
+    except Exception as e:
+        print(e)
+        pass
     return render(request, 'idgo_admin/response.htm',
                   {'message': 'Votre compte a été supprimé.'}, status=200)

@@ -297,6 +297,22 @@ class Mail(models.Model):
                   from_email=mail_template.from_email,
                   recipient_list=[user.email])
 
+    @classmethod
+    def conf_deleting_profile_to_user(cls, user_copy):
+        mail_template = Mail.objects.get(template_name="conf_deleting_profile_to_user")
+
+        message = mail_template.message.format(
+                first_name=user_copy["first_name"],
+                last_name=user_copy["last_name"],
+                username=user_copy["username"])
+        print(message, mail_template.subject)
+        try:
+            send_mail(subject=mail_template.subject, message=message,
+                      from_email=mail_template.from_email,
+                      recipient_list=[user_copy["email"]])
+        except Exception as e:
+            raise e
+
 
 class Category(models.Model):
 
