@@ -556,7 +556,7 @@ class Resource(models.Model):
 
     created_on = models.DateTimeField(
         verbose_name="Date de creation de la resource",
-        blank=True, null=True)
+        blank=True, null=True, default=timezone.now)
 
     last_update = models.DateTimeField(
         verbose_name="Date de dernière modification de la resource",
@@ -577,6 +577,11 @@ class Resource(models.Model):
 
 @receiver(pre_save, sender=Dataset)
 def pre_save_dataset(sender, instance, **kwargs):
+    instance.ckan_slug = slugify(instance.name)
+
+
+@receiver(post_save, sender=Resource)
+def post_save_resource(sender, instance, **kwargs):
     instance.ckan_slug = slugify(instance.name)
 
 
