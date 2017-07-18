@@ -120,14 +120,16 @@ class DatasetManager(View):
 
     def delete(self, request):
 
+        user = request.user
+
         id = request.POST.get('id', request.GET.get('id')) or None
         if not id:
             return render_an_critical_error(request)
 
-        dataset = get_object_or_404(Dataset, id=id, editor=request.user)
+        dataset = get_object_or_404(Dataset, id=id, editor=user)
         name = dataset.name
 
-        ckan_user = ckan_me(ckan.get_user(request.user.username)['apikey'])
+        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
             ckan_user.delete_dataset(str(dataset.ckan_id))
             ckan.purge_dataset(str(dataset.ckan_id))
@@ -143,8 +145,8 @@ class DatasetManager(View):
             status = 200
 
         try:
-            Mail.conf_deleting_dataset_res_by_user(request.user, dataset=dataset)
-        except:
+            Mail.conf_deleting_dataset_res_by_user(user, dataset=dataset)
+        except Exception:
             pass
         ckan_user.close()
 

@@ -61,6 +61,7 @@ class ResourceManager(View):
             return (form.is_multipart() and 'up_file' in request.FILES
                     ) and request.FILES['up_file'] or None
 
+        message = {'status': None, 'text': None}
         user = request.user
         dataset = get_object_or_404(Dataset, id=dataset_id)
 
@@ -75,11 +76,14 @@ class ResourceManager(View):
                     form.handle_me(request, dataset, id=id,
                                    uploaded_file=get_uploaded_file(form))
                 except Exception as e:
-                    message = ("L'erreur suivante est survenue : "
-                               '<strong>{0}</strong>.').format(str(e))
-                message = 'La ressource a été mise à jour avec succès.'
-                return render(request, 'idgo_admin/response.htm',
-                              {'message': message}, status=200)
+                    message = {
+                        'status': 'failure',
+                        'text': ("L'erreur suivante est survenue : "
+                                 '<strong>{0}</strong>.').format(str(e))}
+                message = {
+                    'status': 'success',
+                    'text': 'La ressource a été mise à jour avec succès.'}
+
         else:
             resource_name = 'Nouveau'
             form = Form(request.POST)
@@ -88,11 +92,13 @@ class ResourceManager(View):
                     form.handle_me(request, dataset,
                                    uploaded_file=get_uploaded_file(form))
                 except Exception as e:
-                    message = ("L'erreur suivante est survenue : "
-                               '<strong>{0}</strong>.').format(str(e))
-                message = 'La ressource a été créée avec succès.'
-                return render(request, 'idgo_admin/response.htm',
-                              {'message': message}, status=200)
+                    message = {
+                        'status': 'failure',
+                        'text': ("L'erreur suivante est survenue : "
+                                 '<strong>{0}</strong>.').format(str(e))}
+                message = {
+                    'status': 'success',
+                    'text': 'La ressource a été mise à jour avec succès.'}
 
         return render(request, 'idgo_admin/resource.html', {
             'first_name': user.first_name,
@@ -100,7 +106,8 @@ class ResourceManager(View):
             'dataset_name': dataset.name,  # TODO
             'dataset_id': dataset.id,  # TODO
             'resource_name': resource_name,
-            'rform': form})
+            'rform': form,
+            'message': message})
 
     def delete(self, request, dataset_id):
 
@@ -129,7 +136,7 @@ class ResourceManager(View):
             Mail.conf_deleting_dataset_res_by_user(request.user,
                                                    resource=resource)
         except Exception as e:
-            print(e)
+            print('Error', e)
             pass
 
         return render(request, 'idgo_admin/response.htm',

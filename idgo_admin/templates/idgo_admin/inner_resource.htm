@@ -47,6 +47,11 @@
 	{% bootstrap_field rform.lang %}
 	{% bootstrap_field rform.data_format %}
 	{% bootstrap_field rform.access %}
+	{% if message.status == 'success' %}
+	<div class="alert alert-success" role="alert">{{ message.text }}</div>
+	{% elif message.status == 'failure' %}
+	<div class="alert alert-danger" role="alert">{{ message.text }}</div>
+	{% endif %}
 	<div class="buttons-on-the-right-side">
 		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
 		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">Annuler</a>
