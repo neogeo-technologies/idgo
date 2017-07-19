@@ -458,7 +458,7 @@ class Dataset(models.Model):
 
     date_modification = models.DateTimeField(
         verbose_name="Date de dernière modification du jeu de donnée",
-        auto_now=timezone.now())
+        default=timezone.now)
 
     editor = models.ForeignKey(User)
 
@@ -583,7 +583,8 @@ def pre_save_dataset(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Resource)
 def post_save_resource(sender, instance, **kwargs):
-    pass
+    instance.dataset.date_modification = timezone.now()
+    instance.dataset.save()
 
 
 @receiver(pre_delete, sender=User)
