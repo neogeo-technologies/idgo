@@ -142,7 +142,7 @@ class PublishRequest(models.Model):  # Demande de contribution
 
 
 class Registration(models.Model):
-
+    # Todo: action_list
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     # User validation email
     activation_key = models.UUIDField(default=uuid.uuid4, editable=False)

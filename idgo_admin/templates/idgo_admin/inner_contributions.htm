@@ -11,7 +11,6 @@
 	<div class="buttons-on-the-right-side">
 		<button name="unsubscribe" class="btn btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus contribuer</span></button>
 		<a class="btn btn-default" href="{% url "idgo_admin:home" %}">Revenir</a>
-		<!-- <a class="btn btn-default" href="{% url "idgo_admin:publish_delete" %}">Désinscription contribution</a> -->
 	</div>
 </form>
 
@@ -49,7 +48,7 @@ var $button = $('button[name="unsubscribe"]')
 				$.ajax({
 					type: 'DELETE',
 					// success: function() {},
-					url: null // TODO(@m431m)
+					url: '{% url "idgo_admin:contributions" %}' + '?id=' + organizationsGrid.getRowValues(organizationsGrid.lastSelectedRowIndex)['id']
 				})
 				.done(function(response, textStatus, jqXHR) {
 					// $modal.find('.close').remove();

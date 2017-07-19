@@ -2,12 +2,11 @@ from django.conf.urls import url
 from idgo_admin.views.dataset import DatasetManager
 from idgo_admin.views.profile import activation_admin
 from idgo_admin.views.profile import confirmation_email
-from idgo_admin.views.profile import contributions
+from idgo_admin.views.profile import Contributions
 from idgo_admin.views.profile import delete_account
 from idgo_admin.views.profile import forgotten_password
 from idgo_admin.views.profile import home
 from idgo_admin.views.profile import modify_account
-from idgo_admin.views.profile import publish_delete
 from idgo_admin.views.profile import publish_request
 from idgo_admin.views.profile import publish_request_confirme
 from idgo_admin.views.profile import reset_password
@@ -35,6 +34,5 @@ urlpatterns = [
     url('^publish_request/(?P<key>.+)/?$',
         publish_request_confirme, name='publish_request_confirme'),
     url('^publish_request/?$', publish_request, name='publish_request'),
-    url('^publish_delete/?$', publish_delete, name='publish_delete'),
-    url('^contributions/?$', contributions, name='contributions'),
+    url('^Contributions/?$', Contributions.as_view(), name='contributions'),
     url('^deleteaccount/?$', delete_account, name='deleteAccount')]
