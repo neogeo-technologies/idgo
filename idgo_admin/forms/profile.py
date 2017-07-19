@@ -75,6 +75,53 @@ class UserUpdateForm(forms.ModelForm):
         return user
 
 
+class UserForgetPassword(forms.Form):
+    email = common_fields.E_MAIL
+
+    class Meta(object):
+        model = User
+        fields = ('email',)
+
+
+class UserResetPassword(forms.Form):
+
+    username = forms.CharField(widget=forms.HiddenInput(), required=False)
+    password1 = forms.CharField(
+        label='Nouveau mot de passe',
+        min_length=6, max_length=150, required=False,
+        widget=forms.PasswordInput(
+            attrs={'placeholder': 'Nouveau mot de passe'}))
+    password2 = forms.CharField(
+        label='Confirmer le nouveau mot de passe',
+        min_length=6, max_length=150, required=False,
+        widget=forms.PasswordInput(
+            attrs={'placeholder': 'Confirmer le nouveau mot de passe'}))
+
+    class Meta(object):
+        model = User
+        fields = ('username', 'password')
+
+    def clean(self):
+        if self.cleaned_data['password1'] != self.cleaned_data['password2']:
+            self.add_error('password1', 'Vérifiez les champs mot de passe')
+            self.add_error('password2', '')
+            raise ValidationError('Les mots de passe ne sont pas identiques.')
+
+    def save(self, request, user):
+        password = self.cleaned_data['password1']
+        print(user.username)
+        print(password)
+        if password:
+            user.set_password(password)
+            user.save()
+            logout(request)
+            login(request, user,
+                  backend='django.contrib.auth.backends.ModelBackend')
+
+        user.save()
+        return user
+
+
 class UserProfileForm(forms.Form):
 
     organisation = forms.ModelChoiceField(required=False,

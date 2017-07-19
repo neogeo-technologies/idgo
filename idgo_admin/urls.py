@@ -5,11 +5,13 @@ from .views.profile import activation_admin
 from .views.profile import confirmation_email
 from .views.profile import contributions
 from .views.profile import delete_account
+from .views.profile import forgotten_password
 from .views.profile import home
 from .views.profile import modify_account
 from .views.profile import publish_delete
 from .views.profile import publish_request
 from .views.profile import publish_request_confirme
+from .views.profile import reset_password
 from .views.profile import sign_in
 from .views.profile import sign_out
 from .views.profile import sign_up
@@ -23,6 +25,8 @@ urlpatterns = [
     url('^signin/?$', sign_in, name='signIn'),
     url('^signout/?$', sign_out, name='signOut'),
     url('^signup/?$', sign_up, name='signUp'),
+    url('^forgotten_password/?$', forgotten_password, name='forgottenPassword'),
+    url('^reset_password/(?P<key>.+)/?$', reset_password, name='resetPassword'),
     url('^confirmation_email/(?P<key>.+)/?$',
         confirmation_email, name='confirmation_mail'),
     url('^activation_admin/(?P<key>.+)/?$',

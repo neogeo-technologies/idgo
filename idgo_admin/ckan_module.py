@@ -100,6 +100,7 @@ class CkanManagerHandler(metaclass=Singleton):
         #             user.username, profile.organisation.ckan_slug)
 
         ckan_user = self.get_user(user.username)
+
         ckan_user.update({'email': user.email,
                           'fullname': user.get_full_name()})
 

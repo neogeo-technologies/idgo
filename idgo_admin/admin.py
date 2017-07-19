@@ -53,7 +53,7 @@ class UserRegistrationInline(admin.StackedInline):
     model = Registration
     max_num = 1
     can_delete = False
-    readonly_fields = ('activation_key', 'key_expires')
+    readonly_fields = ('activation_key', 'affiliate_orga_key', 'reset_password_key')
 
 
 class UserProfileInline(admin.StackedInline):
@@ -90,22 +90,22 @@ class MailAdmin(admin.ModelAdmin):
     model = Mail
 
     # Vue dev:
-    # list_display = ('template_name', 'subject', )
-    # fieldsets = (
-    #     ('Personnalisation des messages automatiques',
-    #      {'fields': ('template_name', 'subject', 'message', 'from_email')}),)
-
-    # Vue client:
-    list_display = ('subject', )
+    list_display = ('template_name', 'subject', )
     fieldsets = (
         ('Personnalisation des messages automatiques',
-         {'fields': ('subject', 'message', )}),)
+         {'fields': ('template_name', 'subject', 'message', 'from_email')}),)
 
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request, obj=None):
-        return False
+    # Vue client:
+    # list_display = ('subject', )
+    # fieldsets = (
+    #     ('Personnalisation des messages automatiques',
+    #      {'fields': ('subject', 'message', )}),)
+    #
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
+    #
+    # def has_add_permission(self, request, obj=None):
+    #     return False
     # Fin Vue client
 
 

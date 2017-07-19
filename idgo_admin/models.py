@@ -150,8 +150,8 @@ class Registration(models.Model):
     activation_key = models.UUIDField(default=uuid.uuid4, editable=False)
     # Admin validation profile
     affiliate_orga_key = models.UUIDField(default=uuid.uuid4, editable=False)
-    key_expires = models.DateTimeField(default=deltatime_2_days,
-                                       blank=True, null=True)
+    # User resetting password key
+    reset_password_key = models.UUIDField(default=uuid.uuid4, editable=False)
     profile_fields = JSONField('Champs profile', blank=True, null=True)
     date_validation_user = models.DateField(
         verbose_name="Date validation par l'utilisateur",
@@ -180,11 +180,6 @@ class Mail(models.Model):
         from_email = mail_template.from_email
         subject = mail_template.subject
 
-        '''MESSAGE MODIFIABLE PAR CLIENT DANS ADMIN:
-            Bonjour {first_name} {last_name} ({username}),
-            Pour valider votre inscription, veuillez cliquer sur le lien suivant : {url}
-            Ceci est un message automatique. Merci de ne pas y répondre.
-        '''
         message = mail_template.message.format(
             first_name=reg.user.first_name,
             last_name=reg.user.last_name,
@@ -201,11 +196,6 @@ class Mail(models.Model):
 
         mail_template = Mail.objects.get(template_name="confirmation_user_mail")
 
-        '''MESSAGE MODIFIABLE PAR CLIENT DANS ADMIN:
-            Bonjour {first_name} {last_name} ({username}),
-            Nous confirmons votre inscription sur le site IDGO.
-            Ceci est un message automatique. Merci de ne pas y répondre.
-        '''
         message = mail_template.message.format(
                 first_name=user.first_name, last_name=user.last_name,
                 username=user.username)
@@ -312,6 +302,23 @@ class Mail(models.Model):
                       recipient_list=[user_copy["email"]])
         except Exception as e:
             raise e
+
+    @classmethod
+    def send_reset_password_link_to_user(cls, request, reg):
+        mail_template = Mail.objects.get(template_name="send_reset_password_link_to_user")
+        user = reg.user
+
+        message = mail_template.message.format(
+            first_name=user.first_name,
+            last_name=user.last_name,
+            username=user.username,
+            url=request.build_absolute_uri(
+                reverse('idgo_admin:resetPassword',
+                        kwargs={'key': reg.reset_password_key})))
+
+        send_mail(subject=mail_template.subject, message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=[user.email])
 
 
 class Category(models.Model):

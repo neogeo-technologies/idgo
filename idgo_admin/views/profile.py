@@ -17,8 +17,10 @@ from idgo_admin.forms.profile import ProfileUpdateForm
 from idgo_admin.forms.profile import PublishDeleteForm
 from idgo_admin.forms.profile import UserDeleteForm
 from idgo_admin.forms.profile import UserForm
+from idgo_admin.forms.profile import UserForgetPassword
 from idgo_admin.forms.profile import UserLoginForm
 from idgo_admin.forms.profile import UserProfileForm
+from idgo_admin.forms.profile import UserResetPassword
 from idgo_admin.forms.profile import UserUpdateForm
 from idgo_admin.models import Dataset
 from idgo_admin.models import Mail
@@ -180,6 +182,92 @@ def sign_up(request):
 
     return render(request, 'idgo_admin/response.htm',
                   {'message': message}, status=200)
+
+
+@csrf_exempt
+def forgotten_password(request):
+
+    if request.method == 'GET':
+        return render(request, 'idgo_admin/forgottenpassword.html',
+                      {'form': UserForgetPassword()})
+
+    form = UserForgetPassword(data=request.POST)
+
+    if not form.is_valid():
+        return render(request, 'idgo_admin/forgottenpassword.html',
+                      {'form': form})
+
+    user = get_object_or_404(User, email=form.cleaned_data["email"])
+
+    # Get or create: cas ou la table Registration a été vidé (CRON à 48h)
+    reg, created = Registration.objects.get_or_create(user=user)
+
+    try:
+        Mail.send_reset_password_link_to_user(request, reg)
+    except Exception as e:
+        message = ("Une erreur s'est produite lors de l'envoi du mail "
+                   "de réinitialisation: {error}".format(error=e))
+
+        status = 400
+    else:
+        message = ('Vous recevrez un e-mail '
+                   "de réinitialisation de mot de passe d'ici quelques minutes. "
+                   'Pour changer votre mot de passe, '
+                   'cliquez sur le lien qui vous sera indiqué '
+                   "dans les 48h après réception de l'e-mail.")
+        status = 200
+    finally:
+        return render(request, 'idgo_admin/response.htm',
+                      {'message': message}, status=status)
+
+
+@transaction.atomic
+@csrf_exempt
+def reset_password(request, key):
+    if request.method == 'GET':
+        return render(request, 'idgo_admin/resetpassword.html',
+                      {'form': UserResetPassword()})
+
+    form = UserResetPassword(data=request.POST)
+    if not form.is_valid():
+        print(form.errors)
+        return render(request, 'idgo_admin/resetpassword.html',
+                      {'form': form})
+    reg = get_object_or_404(Registration, reset_password_key=key)
+    user = get_object_or_404(User, username=reg.user.username)
+
+    # MAJ MDP: TODO() a voir en fonction du SSO
+    error = False
+    try:
+        with transaction.atomic():
+            user = form.save(request, user)
+            ckan.update_user(user)
+    except ValidationError as e:
+        print('ValidationError', e)
+        return render(request, 'idgo_admin/resetpassword.html',
+                      {'form': form})
+    except IntegrityError as e:
+        print('IntegrityError', e)
+        logout(request)
+        error = True
+    except Exception as e:
+        print('Exception1', e)
+        error = True
+    if error:
+        user = User.objects.get(username=user.username)
+        try:
+            ckan.update_user(user)
+        except Exception as e:
+            print('Exception', e)
+        message = 'Erreur critique lors de la réinitialisation du mot de passe. '
+
+        return render(request, 'idgo_admin/response.htm',
+                      {'message': message}, status=400)
+    else:
+        message = 'Votre mot de passe a été réinitialisé. '
+
+        return render(request, 'idgo_admin/response.htm',
+                      {'message': message}, status=200)
 
 
 @csrf_exempt
