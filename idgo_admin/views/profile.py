@@ -585,13 +585,11 @@ class Contributions(View):
         message = ("Vous n'etes plus contributeur pour l'organisation "
                    "<strong>{org_name}</strong>").format(org_name=org.name)
 
-
         context = {
             'message': message,
             'action': reverse('idgo_admin:contributions')}
         return render(
             request, 'idgo_admin/response.htm', context=context, status=200)
-
 
 
 @login_required(login_url=settings.LOGIN_URL)

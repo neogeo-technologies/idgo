@@ -10,6 +10,7 @@
 	</nav>
 	<div class="buttons-on-the-right-side">
 		<button name="unsubscribe" class="btn btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus contribuer</span></button>
+		<a class="btn btn-default" href="{% url "idgo_admin:publish_request" %}">Demande de contribution</a>
 		<a class="btn btn-default" href="{% url "idgo_admin:home" %}">Revenir</a>
 	</div>
 </form>
@@ -68,7 +69,7 @@ var $button = $('button[name="unsubscribe"]')
 		var $input = $('<input/>')
 			.prop('type', 'text')
 			.prop('class', 'form-control')
-			.prop('placeholder', 'Nom du jeu de données à supprimer')
+			.prop('placeholder', "Nom de l'organisation")
 			.on('input', function(e) {
 				if ($(this).val() === organizationsGrid.getRowValues(organizationsGrid.lastSelectedRowIndex)['name']) {
 					$button.removeClass('disabled').prop('disabled', false);
@@ -139,7 +140,7 @@ function updateOrganizationsGrid(grid, containerId, metadata, data) {
 	};
 
 	if (data.length == 0) {
-		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucun organisme. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:publish_request" %}">ajouter un organisme auquel contribuer.</p><div/>');
+		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucun organisme. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:publish_request" %}">ajouter un organisme auquel contribuer</a>.</p><div/>');
 	};
 
 };

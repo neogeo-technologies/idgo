@@ -7,6 +7,11 @@
  * yellow #fbbb1b
  */
 
+a.small-link {
+    font-size: .9em;
+    font-weight: normal;
+}
+
 html {
     min-width: 767px;
 }
