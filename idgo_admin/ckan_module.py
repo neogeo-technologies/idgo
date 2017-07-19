@@ -1,10 +1,10 @@
-from .utils import Singleton
 from ckanapi import errors as CkanError
 from ckanapi import RemoteCKAN
 from datetime import datetime
 from django.conf import settings
 from django.db import IntegrityError
 from functools import wraps
+from idgo_admin.utils import Singleton
 
 
 CKAN_URL = settings.CKAN_URL
@@ -18,22 +18,22 @@ def exceptions_handler(f):
             return f(*args, **kwargs)
         except CkanError.NotAuthorized as e:
             print('CkanError', e.__str__())
-            raise PermissionError('CkanError.NotAuthorized', e.extra_msg['message'])
+            raise PermissionError('CkanError.NotAuthorized', e.__str__())
         except CkanError.ValidationError as e:
             print('CkanError', e.__str__())
-            raise Exception('CkanError.ValidationError', e.extra_msg['message'])
+            raise Exception('CkanError.ValidationError', e.__str__())
         except CkanError.NotFound as e:
             print('CkanError', e.__str__())
-            raise Exception('CkanError.NotFound', e.extra_msg['message'])
+            raise Exception('CkanError.NotFound', e.__str__())
         except CkanError.SearchQueryError as e:
             print('CkanError', e.__str__())
-            raise Exception('CkanError.SearchQueryError', e.extra_msg['message'])
+            raise Exception('CkanError.SearchQueryError', e.__str__())
         except CkanError.SearchError as e:
             print('CkanError', e.__str__())
-            raise Exception('CkanError.SearchError', e.extra_msg['message'])
+            raise Exception('CkanError.SearchError', e.__str__())
         except CkanError.SearchIndexError as e:
             print('CkanError', e.__str__())
-            raise Exception('CkanError.SearchIndexError', e.extra_msg['message'])
+            raise Exception('CkanError.SearchIndexError', e.__str__())
     return wrapper
 
 
@@ -214,18 +214,14 @@ class CkanUserHandler(object):
 
     @exceptions_handler
     def _push_resource(self, package, **kwargs):
-
         kwargs['package_id'] = package['id']
         kwargs['created'] = datetime.now().isoformat()
-
         for resource in package['resources']:
-            if resource['id'] != kwargs['id']:
-                print(0)
-                continue
-            kwargs['last_modified'] = datetime.now().isoformat()
-            del kwargs['created']
-            return self.remote.action.resource_update(**kwargs)
-
+            if resource['id'] == kwargs['id']:
+                kwargs['last_modified'] = kwargs['created']
+                del kwargs['created']
+                resource.update(kwargs)
+                return self.remote.action.resource_update(**resource)
         return self.remote.action.resource_create(**kwargs)
 
     @exceptions_handler
@@ -241,11 +237,11 @@ class CkanUserHandler(object):
 
         views = self.remote.action.resource_view_list(id=kwargs['resource_id'])
         for view in views:
-            print(view)
+            print('Update view ->', view)
             if view['view_type'] == kwargs['view_type']:
                 return self.remote.action.resource_view_update(id=view['id'],
                                                                **kwargs)
-
+        print('Create view ->', kwargs)
         return self.remote.action.resource_view_create(**kwargs)
 
     def publish_dataset(self, name, id=None, resources=None, **kwargs):
@@ -260,11 +256,9 @@ class CkanUserHandler(object):
         return package
 
     def publish_resource(self, dataset_id, **kwargs):
-        resource = self._push_resource(
-            self._get_package(str(dataset_id)), **kwargs)
-
+        resource = self._push_resource(self._get_package(dataset_id), **kwargs)
         params = {
-            'resource_id': str(resource['id']),
+            'resource_id': resource['id'],
             'view_type': {
                 'csv': 'recline_view',
                 'json': 'text_view',
@@ -272,9 +266,7 @@ class CkanUserHandler(object):
                 'xls': 'recline_view',
                 'xml': 'text_view'
                 }.get(kwargs['format'], 'text_view')}
-
         self._push_resource_view(**params)
-        return resource['id']
 
     def delete_resource(self, id):
         self._del_resource(id)

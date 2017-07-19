@@ -1,5 +1,11 @@
 {% load bootstrap3 %}
 
+{% if message and message.status == 'success' %}
+<div class="alert alert-success" role="alert">{{ message.text }}</div>
+{% elif message and message.status == 'failure' %}
+<div class="alert alert-danger" role="alert">{{ message.text }}</div>
+{% endif %}
+
 <h2 class="modal-title">Mes informations personnelles</h2>
 <br/>
 <form method="post" action="">

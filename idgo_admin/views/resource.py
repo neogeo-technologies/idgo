@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
@@ -39,21 +40,21 @@ class ResourceManager(View):
         dataset = get_object_or_404(Dataset, id=dataset_id)
         if id:
             instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
-            return render(request, 'idgo_admin/resource.html',
-                          {'first_name': user.first_name,
-                           'last_name': user.last_name,
-                           'dataset_name': dataset.name,
-                           'dataset_id': dataset.id,
-                           'resource_name': instance.name,
-                           'rform': Form(instance=instance)})
+            return render(request, 'idgo_admin/resource.html', context={
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'dataset_name': dataset.name,
+                'dataset_id': dataset.id,
+                'resource_name': instance.name,
+                'form': Form(instance=instance)})
 
-        return render(request, 'idgo_admin/resource.html',
-                      {'first_name': user.first_name,
-                       'last_name': user.last_name,
-                       'dataset_name': dataset.name,  # TODO
-                       'dataset_id': dataset.id,  # TODO
-                       'resource_name': 'Nouveau',
-                       'rform': Form()})
+        return render(request, 'idgo_admin/resource.html', context={
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'dataset_name': dataset.name,  # TODO
+            'dataset_id': dataset.id,  # TODO
+            'resource_name': 'Nouveau',
+            'form': Form()})
 
     def post(self, request, dataset_id):
 
@@ -61,7 +62,6 @@ class ResourceManager(View):
             return (form.is_multipart() and 'up_file' in request.FILES
                     ) and request.FILES['up_file'] or None
 
-        message = {'status': None, 'text': None}
         user = request.user
         dataset = get_object_or_404(Dataset, id=dataset_id)
 
@@ -76,38 +76,42 @@ class ResourceManager(View):
                     form.handle_me(request, dataset, id=id,
                                    uploaded_file=get_uploaded_file(form))
                 except Exception as e:
-                    message = {
-                        'status': 'failure',
-                        'text': ("L'erreur suivante est survenue : "
-                                 '<strong>{0}</strong>.').format(str(e))}
-                message = {
-                    'status': 'success',
-                    'text': 'La ressource a été mise à jour avec succès.'}
+                    success = False
+                    text = ("L'erreur suivante est survenue : "
+                            '<strong>{0}</strong>.').format(str(e))
+                else:
+                    success = True
+                    text = 'La ressource a été mise à jour avec succès.'
 
         else:
             resource_name = 'Nouveau'
-            form = Form(request.POST)
+            form = Form(request.POST, request.FILES)
             if form.is_valid() and user.is_authenticated:
                 try:
-                    form.handle_me(request, dataset,
-                                   uploaded_file=get_uploaded_file(form))
+                    instance = form.handle_me(
+                        request, dataset, uploaded_file=get_uploaded_file(form))
                 except Exception as e:
-                    message = {
-                        'status': 'failure',
-                        'text': ("L'erreur suivante est survenue : "
-                                 '<strong>{0}</strong>.').format(str(e))}
-                message = {
-                    'status': 'success',
-                    'text': 'La ressource a été mise à jour avec succès.'}
+                    print('Exception:', e)
+                    success = False
+                    text = ("L'erreur suivante est survenue : "
+                            '<strong>{0}</strong>.').format(str(e))
+                else:
+                    success = True
+                    text = 'La ressource a été créée avec succès.'
 
-        return render(request, 'idgo_admin/resource.html', {
+                    form = Form(request.POST, request.FILES, instance=instance)
+                    resource_name = instance.name
+
+        return render(request, 'idgo_admin/resource.html', context={
             'first_name': user.first_name,
             'last_name': user.last_name,
             'dataset_name': dataset.name,  # TODO
             'dataset_id': dataset.id,  # TODO
             'resource_name': resource_name,
-            'rform': form,
-            'message': message})
+            'form': form,
+            'message': {
+                'status': success and 'success' or 'failure',
+                'text': text}})
 
     def delete(self, request, dataset_id):
 
@@ -139,5 +143,9 @@ class ResourceManager(View):
             print('Error', e)
             pass
 
-        return render(request, 'idgo_admin/response.htm',
-                      {'message': message}, status=status)
+        context = {
+            'message': message,
+            'action': '{0}{1}'.format(reverse('idgo_admin:dataset'),
+                                      '?id={0}#resources'.format(dataset_id))}
+        return render(
+            request, 'idgo_admin/response.htm', context=context, status=status)

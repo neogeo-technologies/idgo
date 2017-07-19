@@ -6,6 +6,7 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Resource
 # import os
 # from urllib.request import urlretrieve
+from uuid import uuid4
 
 
 class ResourceForm(forms.ModelForm):
@@ -52,21 +53,21 @@ class ResourceForm(forms.ModelForm):
                   'up_file': data['up_file'],
                   'dataset': dataset}
 
-        if id:  # Mise à jour d'un ressource
+        if id:  # Màj
             resource = Resource.objects.get(pk=id)
             for key, value in params.items():
                 setattr(resource, key, value)
-        else:  # Création d'une nouvelle ressource
+        else:  # Créer
             resource = Resource.objects.create(**params)
+            resource.ckan_id = uuid4()
 
         dataset = resource.dataset
-
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
 
         params = {'name': resource.name,
                   'description': resource.description,
                   'format': resource.data_format,
-                  'id': str(resource.ckan_id) or None,
+                  'id': str(resource.ckan_id),
                   'lang': resource.lang}
 
         if resource.referenced_url:
@@ -96,14 +97,14 @@ class ResourceForm(forms.ModelForm):
             params['resource_type'] = uploaded_file.name
 
         try:
-            ckan_res = ckan_user.publish_resource(dataset.ckan_id, **params)
+            ckan_user.publish_resource(str(dataset.ckan_id), **params)
         except Exception as e:
-            print('Error', e)
             # resource.delete()  # TODO(@m431m)
             raise Exception(e)
         else:
-            resource.ckan_id = ckan_res['resource_id']
             resource.last_update = timezone.now()
             resource.save()
         finally:
             ckan_user.close()
+
+        return resource

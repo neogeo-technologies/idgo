@@ -1,20 +1,167 @@
 {% load bootstrap3 %}
 
-<h2 class="modal-title">Mes organismes</h2>
-<p>Organismes pour lesquels vous avez le droit de publier des jeux de données.</p>
+<h2 class="modal-title">Mes organisations</h2>
+<p>Organisations pour lesquels vous avez le droit de publier des jeux de données.</p>
 <br/>
-<ul class="list-group">
-	{% for organization in my_profile.publish_for.all %}
-	<li class="list-group-item">{{ organization }}</li>
-	{% empty %}
-	<div role="alert" class="alert alert-warning">
-		<p>Vous n'êtes contributeur d'aucun organisme. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:publish_request" %}">ajouter un organisme auquel contribuer</a></p>
+<form name="organization">
+	<div id="table-organizations" class="table-responsive"></div>
+	<nav aria-label="Page navigation" style="text-align: center;">
+		<ul id="table-organizations-paginator" class="pagination pagination-sm"></ul>
+	</nav>
+	<div class="buttons-on-the-right-side">
+		<button name="unsubscribe" class="btn btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus contribuer</span></button>
+		<a class="btn btn-default" href="{% url "idgo_admin:home" %}">Revenir</a>
+		<!-- <a class="btn btn-default" href="{% url "idgo_admin:publish_delete" %}">Désinscription contribution</a> -->
 	</div>
-	{% endfor %}
-</ul>
-<div class="buttons-on-the-right-side">
-	<a class="btn btn-default" href="{% url "idgo_admin:home" %}">Revenir</a>
-</div>
-<div class="buttons-on-the-right-side">
-	<a class="btn btn-default" href="{% url "idgo_admin:publish_delete" %}">Désinscription contribution</a>
-</div>
+</form>
+
+<script>
+var ORGANIZATIONS = {{ organizations | safe }};
+var ORGANIZATIONS_CONTAINER = 'table-organizations';
+var ORGANIZATIONS_METADATA = [
+	{
+		name: 'name',
+		label: "Nom de l'organisation",
+		editable: false,
+		datatype: 'string'
+	}, {
+		name: 'id',
+		label: '_HIDDEN',  //->https://github.com/webismymind/editablegrid/issues/153
+		editable: false,
+		datatype: 'integer'
+	}
+];
+
+var organizationsGrid = new EditableGrid('Organizations', {pageSize: 10});
+
+var $button = $('button[name="unsubscribe"]')
+	.on('click', function(e) {
+		e.preventDefault();
+
+		var $button = $('<button/>')
+			.prop('type', 'button')
+			.prop('class', 'btn btn-danger disabled')
+			.prop('disabled', true)
+			.text('Oui, je ne souhaite plus contribuer pour cette organisation')
+			.on('click', function(e) {
+				e.preventDefault();
+				closeAllModalDialog();
+				$.ajax({
+					type: 'DELETE',
+					// success: function() {},
+					url: null // TODO(@m431m)
+				})
+				.done(function(response, textStatus, jqXHR) {
+					// $modal.find('.close').remove();
+					$modal.find('.modal-title').text('Information');
+					$modal.find('.modal-body').append(jqXHR.responseText);
+					$modal.modal('show');
+				})
+				.fail(function(jqXHR, textStatus, errorThrown) {
+					// $modal.find('.close').remove();
+					$modal.find('.modal-title').text("L'opération a échouée");
+					$modal.find('.modal-body').append(jqXHR.responseText);
+					$modal.modal('show');
+				});
+				e.stopPropagation();
+			});
+
+		var $input = $('<input/>')
+			.prop('type', 'text')
+			.prop('class', 'form-control')
+			.prop('placeholder', 'Nom du jeu de données à supprimer')
+			.on('input', function(e) {
+				if ($(this).val() === organizationsGrid.getRowValues(organizationsGrid.lastSelectedRowIndex)['name']) {
+					$button.removeClass('disabled').prop('disabled', false);
+				} else {
+					$button.addClass('disabled').prop('disabled', true);
+				};
+			});
+
+		$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
+
+		$modal.find('.modal-body')
+			.append('<p>Cette action est irreversible...</p>')
+			.append(
+				$('<form/>')
+					.append(
+						$('<div/>').prop('class', 'form-group')
+							.append("<p>Pour confirmer, veuillez réécrire le nom de l'organisation.</p>")
+							.append($input))
+					.append(
+						$('<div class="buttons-on-the-right-side">')
+							.append($button)
+							.append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
+
+		$modal.modal('show');
+
+		e.stopPropagation();
+	});
+
+
+organizationsGrid.initializeGrid = function() {
+	var grid = organizationsGrid;
+	var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
+
+	with (this) {
+		tableRendered = function() {
+			this.updatePaginator(grid);
+		};
+		rowSelected = function(pRowIdx, nRowIdx) {
+			$(grid.getRow(pRowIdx)).removeClass('selected');
+			$buttons.each(function() {
+				deactivateButton($(this));
+			});
+			if (pRowIdx != nRowIdx) {
+				$(grid.getRow(nRowIdx)).addClass('selected');
+				$buttons.each(function() {
+					activateButton($(this));
+				});
+			};
+		};
+	};
+};
+
+function updateOrganizationsGrid(grid, containerId, metadata, data) {
+	var $containerId = $('#' + containerId);
+	var $parent = $($containerId.parent().get(0));
+	$parent.find('div[role="alert"]').remove();
+	$parent.find('button').each(function() {
+		deactivateButton($(this));
+	});
+	if (data.length > 0) {
+		grid.load({'metadata': metadata, 'data': data});
+		grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
+		grid.initializeGrid();
+		grid.refreshGrid();
+		$containerId.show();
+	} else {
+		$containerId.hide();
+	};
+
+	if (data.length == 0) {
+		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucun organisme. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:publish_request" %}">ajouter un organisme auquel contribuer.</p><div/>');
+	};
+
+};
+
+updateOrganizationsGrid(
+	organizationsGrid,
+	ORGANIZATIONS_CONTAINER,
+	ORGANIZATIONS_METADATA,
+	(function(data) {
+		var m = [];
+		for (var i = 0; i < data.length; i ++) {
+			m.push({
+				id: i,
+				values: [
+					data[i][1],  // name
+					data[i][0]   // id
+				]
+			});
+		};
+		return m;
+	})(ORGANIZATIONS)
+);
+
+</script>

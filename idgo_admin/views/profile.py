@@ -16,8 +16,8 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.forms.profile import ProfileUpdateForm
 from idgo_admin.forms.profile import PublishDeleteForm
 from idgo_admin.forms.profile import UserDeleteForm
-from idgo_admin.forms.profile import UserForm
 from idgo_admin.forms.profile import UserForgetPassword
+from idgo_admin.forms.profile import UserForm
 from idgo_admin.forms.profile import UserLoginForm
 from idgo_admin.forms.profile import UserProfileForm
 from idgo_admin.forms.profile import UserResetPassword
@@ -50,6 +50,7 @@ def home(request):
                  o.description,
                  o.date_creation.isoformat() if o.date_creation else None,
                  o.date_modification.isoformat() if o.date_modification else None,
+                 Organisation.objects.get(id=o.organisation_id).name,
                  o.published) for o in Dataset.objects.filter(editor=user)]
 
     ppf = Profile.publish_for.through
@@ -180,7 +181,7 @@ def sign_up(request):
                'votre compte, cliquez sur le lien qui vous sera indiqué '
                "dans les 48h après réception de l'e-mail.")
 
-    return render(request, 'idgo_admin/response.htm',
+    return render(request, 'idgo_admin/message.htm',
                   {'message': message}, status=200)
 
 
@@ -217,7 +218,7 @@ def forgotten_password(request):
                    "dans les 48h après réception de l'e-mail.")
         status = 200
     finally:
-        return render(request, 'idgo_admin/response.htm',
+        return render(request, 'idgo_admin/message.html',
                       {'message': message}, status=status)
 
 
@@ -261,12 +262,12 @@ def reset_password(request, key):
             print('Exception', e)
         message = 'Erreur critique lors de la réinitialisation du mot de passe. '
 
-        return render(request, 'idgo_admin/response.htm',
+        return render(request, 'idgo_admin/message.html',
                       {'message': message}, status=400)
     else:
         message = 'Votre mot de passe a été réinitialisé. '
 
-        return render(request, 'idgo_admin/response.htm',
+        return render(request, 'idgo_admin/message.html',
                       {'message': message}, status=200)
 
 
@@ -279,7 +280,7 @@ def confirmation_email(request, key):
 
     if reg.date_validation_user:
         message = "Vous avez déjà validé votre adresse e-mail."
-        return render(request, 'idgo_admin/response.htm',
+        return render(request, 'idgo_admin/message.htm',
                       {'message': message}, status=200)
     try:
         reg.key_expires = None
@@ -320,7 +321,7 @@ def confirmation_email(request, key):
                "organisation, celle-ci ne sera effective qu'après "
                'validation par un administrateur.')
 
-    return render(request, 'idgo_admin/response.htm',
+    return render(request, 'idgo_admin/message.htm',
                   {'message': message}, status=200)
 
 
@@ -334,7 +335,7 @@ def activation_admin(request, key):
     if reg.date_affiliate_admin:
         message = ("Le compte <strong>{0}</strong> est déjà activé.").format(
             reg.user.username)
-        return render(request, 'idgo_admin/response.htm',
+        return render(request, 'idgo_admin/message.htm',
                       {'message': message}, status=200)
 
     reg_org_name = reg.profile_fields['organisation']
@@ -361,8 +362,8 @@ def activation_admin(request, key):
                'rattachement à {1} est effectif'
                ).format(username, profile.organisation.name)
 
-    return render(request, 'idgo_admin/response.htm',
-                  {'message': message}, status=200)
+    return render(request, 'idgo_admin/message.htm',
+                  context={'message': message}, status=200)
 
 
 @transaction.atomic
@@ -396,7 +397,8 @@ def modify_account(request):
         return render(request, 'idgo_admin/modifyaccount.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
-                       'uform': uform, 'pform': pform})
+                       'uform': uform,
+                       'pform': pform})
     except IntegrityError as e:
         print('IntegrityError', e)
         logout(request)
@@ -413,9 +415,14 @@ def modify_account(request):
             pass
         render_an_critical_error(request)
 
-    message = 'Les informations de votre profil sont à jour.'
-    return render(request, 'idgo_admin/response.htm',
-                  {'message': message}, status=200)
+    return render(request, 'idgo_admin/modifyaccount.html',
+                  {'first_name': user.first_name,
+                   'last_name': user.last_name,
+                   'uform': uform,
+                   'pform': pform,
+                   'message': {
+                       'status': 'success',
+                       'text': 'Les informations de votre profil sont à jour.'}})
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -446,13 +453,19 @@ def publish_request(request):
     except Exception:
         render_an_critical_error(request)
 
-    message = ("Votre demande de contribution à l'organisation "
-               '<strong>{0}</strong> est en cours de traitement. Celle-ci '
-               "ne sera effective qu'après validation par un administrateur."
-               ).format(pub_req.organisation.name)
-
-    return render(request, 'idgo_admin/response.htm',
-                  {'message': message}, status=200)
+    return render(
+        request, 'idgo_admin/publish.html',
+        {'first_name': user.first_name,
+         'last_name': user.last_name,
+         'pform': ProfileUpdateForm(exclude={'user': user}),
+         'pub_liste': pub_liste,
+         'message': {
+             'status': 'success',
+             'text': (
+                 "Votre demande de contribution à l'organisation "
+                 '<strong>{0}</strong> est en cours de traitement. Celle-ci '
+                 "ne sera effective qu'après validation par un administrateur."
+                 ).format(pub_req.organisation.name)}})
 
 
 @csrf_exempt
@@ -466,8 +479,8 @@ def publish_request_confirme(request, key):
     if pub_req.date_acceptation:
         message = ('La confirmation de la demande de '
                    'contribution a déjà été faite.')
-        return render(request, 'idgo_admin/response.htm',
-                      {'message': message}, status=200)
+        return render(request, 'idgo_admin/message.htm',
+                      context={'message': message}, status=200)
 
     if pub_req.organisation:
         profile.publish_for.add(pub_req.organisation)
@@ -486,8 +499,8 @@ def publish_request_confirme(request, key):
 
     message = ('La confirmation de la demande de contribution '
                'a bien été prise en compte.')
-    return render(request, 'idgo_admin/response.htm',
-                  {'message': message}, status=200)
+    return render(request, 'idgo_admin/message.htm',
+                  context={'message': message}, status=200)
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -515,8 +528,8 @@ def publish_delete(request):
 
     message = ("Vous n'etes plus contributeur pour l'organisation "
                "<strong>{org_name}</strong>").format(org_name=org.name)
-    return render(request, 'idgo_admin/response.htm',
-                  {'message': message}, status=200)
+    return render(request, 'idgo_admin/message.htm',
+                  context={'message': message}, status=200)
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -524,10 +537,16 @@ def publish_delete(request):
 def contributions(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
+    ppf = Profile.publish_for.through
+    organizations = [(o.organisation.id, o.organisation.name)
+                     for o in ppf.objects.filter(profile_id=profile.id)]
+    print(organizations)
+
     if request.method == 'GET':
         return render(request, 'idgo_admin/contributions.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
+                       'organizations': json.dumps(organizations),
                        'my_profile': profile})
 
 
@@ -560,5 +579,6 @@ def delete_account(request):
     except Exception as e:
         print(e)
         pass
-    return render(request, 'idgo_admin/response.htm',
-                  {'message': 'Votre compte a été supprimé.'}, status=200)
+
+    return render(request, 'idgo_admin/message.htm',
+                  context={'message': 'Votre compte a été supprimé.'}, status=200)

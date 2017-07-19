@@ -3,12 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.forms.dataset import DatasetForm
+from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import Mail
 from idgo_admin.models import Resource
@@ -19,8 +20,8 @@ decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
 def render_on_error(request):
-    dform = DatasetForm(include={'user': request.user})
-    return render(request, 'idgo_admin/dataset.html', {'dform': dform})
+    form = Form(include={'user': request.user})
+    return render(request, 'idgo_admin/dataset.html', {'form': form})
 
 
 def render_an_critical_error(request):
@@ -34,89 +35,98 @@ def render_an_critical_error(request):
 class DatasetManager(View):
 
     def get(self, request):
+
         user = request.user
+        form = Form(include={'user': user})
+        dataset_name = 'Nouveau'
+        dataset_id = None
+        resources = []
 
         id = request.GET.get('id') or None
         if id:
-            dataset = get_object_or_404(Dataset, id=id, editor=user)
+            instance = get_object_or_404(Dataset, id=id, editor=user)
+            form = Form(instance=instance, include={'user': user})
+            dataset_name = instance.name
+            dataset_id = instance.id
+            resources = [(
+                o.pk,
+                o.name,
+                o.created_on.isoformat() if o.created_on else None,
+                o.last_update.isoformat() if o.last_update else None,
+                o.access) for o in Resource.objects.filter(dataset=instance)]
 
-            resources = [
-                (o.pk,
-                 o.name,
-                 o.data_format,
-                 o.created_on.isoformat() if o.created_on else None,
-                 o.last_update.isoformat() if o.last_update else None,
-                 o.access) for o in Resource.objects.filter(dataset=dataset)]
+        context = {'form': form,
+                   'first_name': user.first_name,
+                   'last_name': user.last_name,
+                   'dataset_name': dataset_name,
+                   'dataset_id': dataset_id,
+                   'resources': json.dumps(resources)}
 
-            return render(request, 'idgo_admin/dataset.html',
-                          {'first_name': user.first_name,
-                           'last_name': user.last_name,
-                           'dataset_name': dataset.name,
-                           'dataset_id': dataset.id,
-                           'resources': json.dumps(resources),
-                           'dform': DatasetForm(
-                               instance=dataset,
-                               include={'user': request.user})})
-
-        return render(request, 'idgo_admin/dataset.html',
-                      {'first_name': user.first_name,
-                       'last_name': user.last_name,
-                       'dataset_name': 'Nouveau',
-                       'resources': '[]',
-                       'dform': DatasetForm(include={'user': user})})
+        return render(
+            request, 'idgo_admin/dataset.html', context=context)
 
     def post(self, request):
+
         user = request.user
+
         id = request.POST.get('id', request.GET.get('id')) or None
         if id:
-            dataset = get_object_or_404(Dataset, id=id, editor=user)
-            resources = [
-                (o.pk,
-                 o.name,
-                 o.created_on.isoformat() if o.created_on else None,
-                 o.last_update.isoformat() if o.last_update else None,
-                 o.access) for o in Resource.objects.filter(dataset=dataset)]
+            instance = get_object_or_404(Dataset, id=id, editor=user)
 
-            dform = DatasetForm(instance=dataset,
-                                data=request.POST,
-                                include={'user': user})
+            form = Form(
+                data=request.POST, instance=instance, include={'user': user})
 
-            if not dform.is_valid() or not request.user.is_authenticated:
-                return render(request, 'idgo_admin/dataset.html',
-                              {'first_name': user.first_name,
-                               'last_name': user.last_name,
-                               'dataset_name': dataset.name,
-                               'dataset_id': dataset.id,
-                               'resources': json.dumps(resources),
-                               'dform': DatasetForm(instance=dataset,
-                                                    include={'user': user})})
+            dataset_name = instance.name
+            dataset_id = instance.id
+            resources = [(
+                o.pk,
+                o.name,
+                o.created_on.isoformat() if o.created_on else None,
+                o.last_update.isoformat() if o.last_update else None,
+                o.access) for o in Resource.objects.filter(dataset=instance)]
 
-            try:
-                dform.handle_me(request, id)
-            except Exception as e:
-                message = ("L'erreur suivante est survenue : "
-                           '<strong>{0}</strong>.').format(str(e))
-            else:
-                message = 'Le jeu de données a été mis à jour avec succès.'
-
-            return render(request, 'idgo_admin/response.htm',
-                          {'message': message}, status=200)
-        else:
-            dform = DatasetForm(
-                data=request.POST, include={'user': request.user})
-            if dform.is_valid() and request.user.is_authenticated:
+            if form.is_valid() or request.user.is_authenticated:
                 try:
-                    dform.handle_me(request, id=request.GET.get('id'))
+                    form.handle_me(request, id=id)
                 except Exception as e:
-                    message = ("L'erreur suivante est survenue : "
-                               '<strong>{0}</strong>.').format(str(e))
+                    success = False
+                    text = ("L'erreur suivante est survenue : "
+                            '<strong>{0}</strong>.').format(str(e))
                 else:
-                    message = 'Le jeu de données a été créé avec succès.'
+                    success = True
+                    text = 'Le jeu de données a été mis à jour avec succès.'
 
-                return render(request, 'idgo_admin/response.htm',
-                              {'message': message}, status=200)
+        else:
+            dataset_name = 'Nouveau'
+            form = Form(data=request.POST, include={'user': user})
+            if form.is_valid() and request.user.is_authenticated:
+                try:
+                    instance = form.handle_me(request, id=request.GET.get('id'))
+                except Exception as e:
+                    print('Exception:', e)
+                    success = False
+                    text = ("L'erreur suivante est survenue : "
+                            '<strong>{0}</strong>.').format(str(e))
+                else:
+                    success = True
+                    text = 'Le jeu de données a été créé avec succès.'
 
-        return render_on_error(request)
+                    form = Form(request.POST, request.FILES, instance=instance)
+                    dataset_name = instance.name
+
+        context = {
+            'form': form,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'dataset_name': dataset_name,
+            'dataset_id': dataset_id,
+            'resources': json.dumps(resources),
+            'message': {
+                'status': success and 'success' or 'failure',
+                'text': text}}
+
+        return render(
+            request, 'idgo_admin/dataset.html', context=context)
 
     def delete(self, request):
 
@@ -150,5 +160,9 @@ class DatasetManager(View):
             pass
         ckan_user.close()
 
-        return render(request, 'idgo_admin/response.htm',
-                      {'message': message}, status=status)
+        context = {
+            'message': message,
+            'action': '{0}#datasets'.format(reverse('idgo_admin:home'))}
+
+        return render(
+            request, 'idgo_admin/response.htm', context=context, status=status)

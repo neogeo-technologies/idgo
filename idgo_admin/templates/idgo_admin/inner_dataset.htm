@@ -1,19 +1,25 @@
 {% load bootstrap3 %}
 
+{% if message and message.status == 'success' %}
+<div class="alert alert-success" role="alert">{{ message.text | safe }}</div>
+{% elif message and message.status == 'failure' %}
+<div class="alert alert-danger" role="alert">{{ message.text | safe }}</div>
+{% endif %}
+
 <form method="post" action="">
 	{% csrf_token %}
-	{% bootstrap_field dform.name %}
-	{% bootstrap_field dform.description %}
-	{% bootstrap_field dform.geocover %}
-	{% bootstrap_field dform.update_freq %}
-	{% bootstrap_field dform.organisation %}
-	{% bootstrap_field dform.licences %}
-	{% bootstrap_field dform.owner_email %}
-	{% bootstrap_field dform.keywords %}
+	{% bootstrap_field form.name %}
+	{% bootstrap_field form.description %}
+	{% bootstrap_field form.geocover %}
+	{% bootstrap_field form.update_freq %}
+	{% bootstrap_field form.organisation %}
+	{% bootstrap_field form.licences %}
+	{% bootstrap_field form.owner_email %}
+	{% bootstrap_field form.keywords %}
 	<div class="form-group">
 		<label for="categories">Catégories</label></br>
 		<div id="categories" class="btn-group" data-toggle="buttons">
-			{% for category in dform.categories %}
+			{% for category in form.categories %}
 			<label for="{{ category.id_for_label }}" class="btn">
 				{{ category.tag }}
 				<span class="badge">{{ category.choice_label }}</span>
@@ -23,8 +29,8 @@
 			{% endfor %}
 		</div>
 	</div>
-	{% bootstrap_field dform.is_inspire %}
-	{% bootstrap_field dform.published %}
+	{% bootstrap_field form.is_inspire %}
+	{% bootstrap_field form.published %}
 	<div class="buttons-on-the-right-side">
 		{% if not dataset_id %}
 		<button type="submit" name="next" class="btn btn-default">Enregistrer et continuer</button>

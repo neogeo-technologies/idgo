@@ -1,5 +1,11 @@
 {% load bootstrap3 %}
 
+{% if message and message.status == 'success' %}
+<div class="alert alert-success" role="alert">{{ message.text | safe }}</div>
+{% elif message and message.status == 'failure' %}
+<div class="alert alert-danger" role="alert">{{ message.text | safe }}</div>
+{% endif %}
+
 <form method="post" action="" enctype="multipart/form-data">
 	{% csrf_token %}
 	<div class="form-group">
@@ -17,20 +23,24 @@
 		<div class="well" name="data-selector-panel">
 			<div name="up_file" class="form-group">
 				<p>Veuillez séléctionner un ou plusieurs fichiers... (TODO: texte explicatif)</p>
-				{% for widget in rform.up_file %}
+				{% for widget in form.up_file %}
 				<div class="input-group">
 					<label class="input-group-btn">
 						<span class="btn btn-default">
 							Parcourir... <input id="{{ widget.attrs.id }}" name="{{ widget.name }}" type="file" style="display: none;" multiple></input>
 						</span>
 					</label>
-					<input type="text" class="form-control" readonly></input>
+					<input type="text" {% if widget.value != 'False' %} value="{{ widget.value }}"{% endif %} class="form-control" readonly></input>
 				</div>
+				{% if widget.value != 'False' %}
+				<input type="checkbox" name="{{ widget.name }}-clear" id="{{ widget.name }}-clear_id" />
+				<label for="{{ widget.name }}-clear_id">Effacer</label>
+				{% endif %}
 				{% endfor %}
 			</div>
 			<div name="url1" class="form-group" style="display: none;">
 				<p>Veuillez indiquer l'URL d'un jeu de données à télécharger... (TODO: texte explicatif)</p>
-				{% for widget in rform.dl_url %}
+				{% for widget in form.dl_url %}
 				<input id="{{ widget.attrs.id }}" name="{{ widget.name }}" type="text" class="form-control"></input>
 				{% endfor %}
 			</div>
@@ -42,19 +52,14 @@
 			</div>
 		</div>
 	</div>
-	{% bootstrap_field rform.name %}
-	{% bootstrap_field rform.description %}
-	{% bootstrap_field rform.lang %}
-	{% bootstrap_field rform.data_format %}
-	{% bootstrap_field rform.access %}
-	{% if message.status == 'success' %}
-	<div class="alert alert-success" role="alert">{{ message.text }}</div>
-	{% elif message.status == 'failure' %}
-	<div class="alert alert-danger" role="alert">{{ message.text }}</div>
-	{% endif %}
+	{% bootstrap_field form.name %}
+	{% bootstrap_field form.description %}
+	{% bootstrap_field form.lang %}
+	{% bootstrap_field form.data_format %}
+	{% bootstrap_field form.access %}
 	<div class="buttons-on-the-right-side">
 		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
-		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">Annuler</a>
+		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">Annuler</a>
 	</div>
 </form>
 <script>
@@ -81,6 +86,8 @@ $(function() {
 		$(':file').on('fileselect', function(e, count, label) {
 			var $this = $(this);
 			var $input = $this.parents('.input-group').find(':text');
+			console.log('label')
+			console.log(label)
 			$input.val((count > 1) ? count + ' fichiers : ' + label : label);
 		});
 	});

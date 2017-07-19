@@ -1,20 +1,20 @@
 from django.conf.urls import url
-from .views.dataset import DatasetManager
-from .views.resource import ResourceManager
-from .views.profile import activation_admin
-from .views.profile import confirmation_email
-from .views.profile import contributions
-from .views.profile import delete_account
-from .views.profile import forgotten_password
-from .views.profile import home
-from .views.profile import modify_account
-from .views.profile import publish_delete
-from .views.profile import publish_request
-from .views.profile import publish_request_confirme
-from .views.profile import reset_password
-from .views.profile import sign_in
-from .views.profile import sign_out
-from .views.profile import sign_up
+from idgo_admin.views.dataset import DatasetManager
+from idgo_admin.views.profile import activation_admin
+from idgo_admin.views.profile import confirmation_email
+from idgo_admin.views.profile import contributions
+from idgo_admin.views.profile import delete_account
+from idgo_admin.views.profile import forgotten_password
+from idgo_admin.views.profile import home
+from idgo_admin.views.profile import modify_account
+from idgo_admin.views.profile import publish_delete
+from idgo_admin.views.profile import publish_request
+from idgo_admin.views.profile import publish_request_confirme
+from idgo_admin.views.profile import reset_password
+from idgo_admin.views.profile import sign_in
+from idgo_admin.views.profile import sign_out
+from idgo_admin.views.profile import sign_up
+from idgo_admin.views.resource import ResourceManager
 
 
 urlpatterns = [

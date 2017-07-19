@@ -8,12 +8,10 @@ from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils.text import slugify
 from django.utils import timezone
-from django.urls import reverse
-
 from idgo_admin.ckan_module import CkanHandler as ckan
-
 from taggit.managers import TaggableManager
 import uuid
 

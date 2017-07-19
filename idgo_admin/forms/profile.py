@@ -139,9 +139,11 @@ class UserProfileForm(forms.Form):
         min_length=3,
         required=False,
         widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisme"}))
+
     new_website = forms.URLField(
         error_messages={'invalid': "L'adresse URL est éronée. "},
         label="URL du site internet de l'organisme", required=False)
+
     is_new_orga = forms.BooleanField(widget=forms.HiddenInput(),
                                      required=False, initial=False)
 
