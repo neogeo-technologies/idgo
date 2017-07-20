@@ -60,7 +60,8 @@ class DatasetManager(View):
                    'last_name': user.last_name,
                    'dataset_name': dataset_name,
                    'dataset_id': dataset_id,
-                   'resources': json.dumps(resources)}
+                   'resources': json.dumps(resources),
+                   'tags': json.dumps(ckan.get_tags())}
 
         return render(
             request, 'idgo_admin/dataset.html', context=context)
@@ -121,6 +122,7 @@ class DatasetManager(View):
             'dataset_name': dataset_name,
             'dataset_id': dataset_id,
             'resources': json.dumps(resources),
+            'tags': json.dumps(ckan.get_tags()),
             'message': {
                 'status': success and 'success' or 'failure',
                 'text': text}}

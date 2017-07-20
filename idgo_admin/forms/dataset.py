@@ -51,6 +51,10 @@ class DatasetForm(forms.ModelForm):
         label='Le jeu de données est soumis à la règlementation INSPIRE',
         required=False)
 
+    # date_creation
+    # date_modification
+    # date_publication
+
     # Champs cachés :
 
     owner_email = forms.EmailField(required=False, widget=forms.HiddenInput())
@@ -62,18 +66,21 @@ class DatasetForm(forms.ModelForm):
 
     class Meta(object):
         model = Dataset
-        fields = ('ckan_slug',
+        fields = ('categories',
+                  'ckan_slug',
+                  'date_creation',
+                  'date_modification',
+                  'date_publication',
                   'description',
                   'geocover',
+                  'is_inspire',
                   'keywords',
                   'licences',
                   'name',
                   'organisation',
                   'owner_email',
-                  'update_freq',
                   'published',
-                  'is_inspire',
-                  'categories')
+                  'update_freq')
 
     def __init__(self, *args, **kwargs):
         include_args = kwargs.pop('include', {})

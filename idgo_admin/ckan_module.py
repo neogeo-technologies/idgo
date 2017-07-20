@@ -180,6 +180,9 @@ class CkanManagerHandler(metaclass=Singleton):
     def purge_dataset(self, id):
         self._del_package(id)
 
+    def get_tags(self, query=None):
+        return self.remote.action.tag_list(query=query)
+
 
 class CkanUserHandler(object):
 
