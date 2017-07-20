@@ -121,7 +121,6 @@ def sign_up(request):
                                        'organisation_type': data['organisation_type'],
                                        'code_insee': data['code_insee'],
                                        'description': data['description'],
-                                       'logo': data['logo'],
                                        'adresse': data['adresse'],
                                        'code_postal': data['code_postal'],
                                        'ville': data['ville'],
