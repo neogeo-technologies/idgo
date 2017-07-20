@@ -31,6 +31,31 @@ class Commune(models.Model):
         return self.name
 
 
+class Financeur(models.Model):
+
+    name = models.CharField('Nom du financeur', max_length=250)
+    code = models.CharField('Code du financeur', max_length=250)
+
+    class Meta(object):
+        verbose_name = "Nom du financeur d'une organisation"
+        verbose_name_plural = "Noms des financeurs"
+
+    def __str__(self):
+        return self.name
+
+
+class Status(models.Model):
+
+    name = models.CharField("Status d'une organisation", max_length=250)
+    code = models.CharField('Code du status', max_length=250)
+
+    class Meta(object):
+        verbose_name = "Status d'une organisation"
+
+    def __str__(self):
+        return self.name
+
+
 class OrganisationType(models.Model):
 
     name = models.CharField('Dénomination', max_length=50)
@@ -46,22 +71,22 @@ class OrganisationType(models.Model):
 
 class Organisation(models.Model):
 
-    STATUS_CHOICES = (
-        ('commune', 'Commune'),
-        ('communaute_de_communes', 'Communauté de Commune'),
-        ('communaute_d_agglomeration', "Communauté d'Agglomération"),
-        ('communaute_urbaine', 'Communauté Urbaine'),
-        ('metrople', 'Métropoles'),
-        ('conseil_departemental', 'Conseil Départemental'),
-        ('conseil_regional', 'Conseil Régional'),
-        ('organisme_de_recherche', 'Organisme de recherche'),
-        ('universite', 'Université'))
-
-    FINANCEUR_CHOICES = (
-        ('etat', 'Etat'),
-        ('region_PACA', 'Région PACA'),
-        ('epci', 'EPCI'),
-        ('cd02', 'CD02'))
+    # STATUS_CHOICES = (
+    #     ('commune', 'Commune'),
+    #     ('communaute_de_communes', 'Communauté de Commune'),
+    #     ('communaute_d_agglomeration', "Communauté d'Agglomération"),
+    #     ('communaute_urbaine', 'Communauté Urbaine'),
+    #     ('metrople', 'Métropoles'),
+    #     ('conseil_departemental', 'Conseil Départemental'),
+    #     ('conseil_regional', 'Conseil Régional'),
+    #     ('organisme_de_recherche', 'Organisme de recherche'),
+    #     ('universite', 'Université'))
+    #
+    # FINANCEUR_CHOICES = (
+    #     ('etat', 'Etat'),
+    #     ('region_PACA', 'Région PACA'),
+    #     ('epci', 'EPCI'),
+    #     ('cd02', 'CD02'))
 
     name = models.CharField('Nom', max_length=150, unique=True, db_index=True)
     organisation_type = models.ForeignKey(
@@ -75,24 +100,33 @@ class Organisation(models.Model):
     # Territoire de compétence
     geom = models.MultiPolygonField(
         'Territoire', srid=4171, blank=True, null=True)
+    objects = models.GeoManager()
+
+    # Champs à integrer:
     sync_in_ckan = models.BooleanField(
         'Synchronisé dans CKAN', default=False)
     ckan_slug = models.SlugField(
         'CKAN ID', max_length=150, unique=True, db_index=True)
     website = models.URLField('Site web', blank=True)
     email = models.EmailField(verbose_name="Adresse mail de l'organisation")
-    objects = models.GeoManager()
-
-    # Nouveaux Champs à valider:
-    communes = models.ManyToManyField(Commune) # Territoires de compétence
-    id_url_unique = models.URLField('URL unique', blank=True)
-    titre = models.CharField('Nom', max_length=100, blank=True, null=True)  # Titre CKAN unique=True
-    description = models.CharField('Description', max_length=1024, blank=True, null=True)  # Description CKAN
-    Logo = models.ImageField('Logo', upload_to="logos/")
-    statut = models.CharField('Statut', blank=True, null=True, default='conseil_regional',
-                              max_length=30, choices=STATUS_CHOICES)
-    financeur = models.CharField('Financeur', blank=True, null=True, default='conseil_regional',
-                              max_length=30, choices=FINANCEUR_CHOICES)
+    id_url_unique = models.URLField('URL unique', blank=True, null=True)
+    titre = models.CharField('Titre', max_length=100, blank=True, null=True)  # Todo: unique=True
+    description = models.CharField('Description', max_length=1024, blank=True,
+                                   null=True)  # Description CKAN
+    logo = models.ImageField('Logo', upload_to="logos/", blank=True, null=True)
+    adresse = models.CharField('Adresse', max_length=100, blank=True, null=True)
+    code_postal = models.CharField('Code postal', max_length=100, blank=True,
+                                   null=True)
+    ville = models.CharField('Ville', max_length=100, blank=True, null=True)
+    org_phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
+    communes = models.ManyToManyField(Commune)  # Territoires de compétence
+    license = models.ForeignKey('License', on_delete=models.CASCADE,
+                                blank=True, null=True)
+    financeur = models.ForeignKey(Financeur,
+                                  blank=True, null=True,
+                                  on_delete=models.CASCADE)
+    status = models.ForeignKey(Status, blank=True, null=True,
+                               on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name

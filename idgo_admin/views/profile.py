@@ -116,7 +116,18 @@ def sign_up(request):
                                        'phone': data['phone'],
                                        'organisation': data['organisation'],
                                        'new_website': data['new_website'],
-                                       'is_new_orga': data['is_new_orga']})
+                                       'is_new_orga': data['is_new_orga'],
+                                       'parent': data['parent'],
+                                       'organisation_type': data['organisation_type'],
+                                       'code_insee': data['code_insee'],
+                                       'description': data['description'],
+                                       'logo': data['logo'],
+                                       'adresse': data['adresse'],
+                                       'code_postal': data['code_postal'],
+                                       'ville': data['ville'],
+                                       'org_phone': data['org_phone'],
+                                       'financeur': data['financeur'],
+                                       'license': data['license']})
         return user, reg
 
     def delete_user(username):
@@ -127,7 +138,7 @@ def sign_up(request):
                       {'uform': uform, 'pform': pform})
 
     uform = UserForm(data=request.POST)
-    pform = UserProfileForm(data=request.POST)
+    pform = UserProfileForm(request.FILES, data=request.POST)
 
     if not uform.is_valid() or not pform.is_valid():
         return render_on_error()
@@ -148,13 +159,21 @@ def sign_up(request):
             'first_name': uform.cleaned_data['first_name'],
             'last_name': uform.cleaned_data['last_name'],
             'organisation': pform.cleaned_data['organisation'],
-            # 'parent': pform.cleaned_data['parent'],
-            # 'organisation_type': pform.cleaned_data['organisation_type'],
-            # 'code_insee': pform.cleaned_data['code_insee'],
-            'new_website': pform.cleaned_data['new_website'],
-            'is_new_orga': pform.cleaned_data['is_new_orga'],
             'role': pform.cleaned_data['role'],
-            'phone': pform.cleaned_data['phone']}
+            'phone': pform.cleaned_data['phone'],
+            'parent': pform.cleaned_data['parent'],
+            'organisation_type': pform.cleaned_data['organisation_type'],
+            'code_insee': pform.cleaned_data['code_insee'],
+            'description': pform.cleaned_data['description'],
+            'logo': pform.cleaned_data['logo'],
+            'adresse': pform.cleaned_data['adresse'],
+            'code_postal': pform.cleaned_data['code_postal'],
+            'ville': pform.cleaned_data['ville'],
+            'org_phone': pform.cleaned_data['org_phone'],
+            'financeur': pform.cleaned_data['financeur'],
+            'license': pform.cleaned_data['license'],
+            'new_website': pform.cleaned_data['new_website'],
+            'is_new_orga': pform.cleaned_data['is_new_orga']}
 
     # if ckan.is_user_exists(data['username']) \
     #         or ldap.is_user_exists(data['username']):

@@ -45,9 +45,18 @@
 			<div class="row">
 				<div class="col-xs-12 col-sm-6">
 					{% bootstrap_field pform.new_orga show_label=False %}
-				</div>
-				<div class="col-xs-12 col-sm-6">
+					{% bootstrap_field pform.description show_label=False %}
 					{% bootstrap_field pform.new_website show_label=False %}
+					{% bootstrap_field pform.organisation_type show_label=False %}
+					{% bootstrap_field pform.financeur show_label=False %}
+					{% bootstrap_field pform.license show_label=False %}
+				</div>
+				<div class="col-xs-12 col-sm-6">					
+					{% bootstrap_field pform.code_insee show_label=False %}
+					{% bootstrap_field pform.adresse show_label=False %}
+					{% bootstrap_field pform.code_postal show_label=False %}
+					{% bootstrap_field pform.ville show_label=False %}
+					{% bootstrap_field pform.org_phone show_label=False %}
 				</div>
 			</div>
 		</div>

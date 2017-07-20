@@ -6,7 +6,10 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core import validators
 from django import forms
+from idgo_admin.models import Financeur
+from idgo_admin.models import License
 from idgo_admin.models import Organisation
+from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
 
 
@@ -124,13 +127,19 @@ class UserResetPassword(forms.Form):
 
 class UserProfileForm(forms.Form):
 
-    organisation = forms.ModelChoiceField(required=False,
-                                          label='Organisme',
-                                          queryset=Organisation.objects.all())
+    phone = common_fields.PHONE
+    role = common_fields.ROLE
 
-    # parent = forms.ModelChoiceField(required=False,
-    #                                 label='Organisme',
-    #                                 queryset=Organisation.objects.all())
+    # Champs Organisation
+    organisation = forms.ModelChoiceField(
+            required=False,
+            label='Organisme',
+            queryset=Organisation.objects.all())
+
+    parent = forms.ModelChoiceField(
+            required=False,
+            label='Organisme',
+            queryset=Organisation.objects.all())
 
     new_orga = forms.CharField(
         error_messages={"Nom de l'organisme invalide": 'invalid'},
@@ -147,13 +156,67 @@ class UserProfileForm(forms.Form):
     is_new_orga = forms.BooleanField(widget=forms.HiddenInput(),
                                      required=False, initial=False)
 
-    phone = common_fields.PHONE
-    role = common_fields.ROLE
+    code_insee = forms.CharField(
+        required=False,
+        label="Code INSEE",
+        max_length=10,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Code INSEE"}))
+    description = forms.CharField(
+        required=False,
+        label="Description",
+        max_length=10,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Description"}))
+    adresse = forms.CharField(
+        required=False,
+        label="Adresse",
+        max_length=10,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Adresse"}))
+
+    code_postal = forms.CharField(
+        required=False,
+        label="Code postal",
+        max_length=10,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Code postal"}))
+
+    ville = forms.CharField(
+        required=False,
+        label="Ville",
+        max_length=150,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Ville de d'organisation"}))
+
+    org_phone = PHONE = forms.CharField(
+        error_messages={'invalid': 'Le numéro est invalide.'},
+        required=False,
+        label='Téléphone',
+        max_length=150,
+        min_length=3,
+        # '^(0|\+33|\+33\s*\(0\)\s*)(\d\s*){9}$'
+        validators=[validators.RegexValidator(regex='^0\d{9}$')],
+        widget=forms.TextInput(
+            attrs={'placeholder': "Téléphone de l'organisation"}))
+
+    organisation_type = forms.ModelChoiceField(
+            required=False,
+            label="Type d'organisation",
+            queryset=OrganisationType.objects.all())
+    financeur = forms.ModelChoiceField(
+            required=False,
+            label="Financeur de l'organisation",
+            queryset=Financeur.objects.all())
+    license = forms.ModelChoiceField(
+            required=False,
+            label="Licence par défault pour les jeu de donnée",
+            queryset=License.objects.all())
 
     class Meta(object):
         model = Profile
         fields = ('organisation', 'role', 'phone',
-                  'new_orga', 'new_website', 'is_new_orga',)
+                  'new_orga', 'new_website', 'is_new_orga', )
 
     def clean(self):
 
@@ -163,12 +226,11 @@ class UserProfileForm(forms.Form):
             # nouvelle demande de création
             self.cleaned_data['organisation'] = \
                 self.cleaned_data.get('new_orga')
-            self.cleaned_data['website'] = self.cleaned_data.get('website')
-            # self.cleaned_data['parent'] = self.cleaned_data.get('parent')
-            # self.cleaned_data['code_insee'] = \
-            #     self.cleaned_data.get('code_insee')
-            # self.cleaned_data['organisation_type'] = \
-            #     self.cleaned_data.get('organisation_type')
+            params = ['website', 'parent', 'code_insee', 'organisation_type',
+                      'description', 'adresse', 'ville', 'code_postal',
+                      'org_phone', 'financeur', 'license']
+            for p in params:
+                self.cleaned_data[p] = self.cleaned_data.get(p)
             self.cleaned_data['is_new_orga'] = True
         else:
             # Mettre les valeurs de `new_orga` et `website` lorsque
