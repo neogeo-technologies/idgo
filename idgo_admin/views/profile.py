@@ -11,10 +11,10 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.decorators import method_decorator
-from django.views import View
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.forms.profile import ProfileUpdateForm
 from idgo_admin.forms.profile import UserDeleteForm
@@ -261,8 +261,9 @@ def reset_password(request, key):
     error = False
     try:
         with transaction.atomic():
-            user = form.save(request, user)
-            ckan.update_user(user)
+            raise Exception('TODO!!!')  # TODO(@cbenhabib) <-------------------
+        #     user = form.save(request, user)
+        #     ckan.update_user(user)
     except ValidationError as e:
         print('ValidationError', e)
         return render(request, 'idgo_admin/resetpassword.html',
@@ -280,7 +281,7 @@ def reset_password(request, key):
             ckan.update_user(user)
         except Exception as e:
             print('Exception', e)
-        message = 'Erreur critique lors de la réinitialisation du mot de passe. '
+        message = 'Erreur critique lors de la réinitialisation du mot de passe.'
 
         return render(request, 'idgo_admin/message.html',
                       {'message': message}, status=400)
@@ -519,52 +520,6 @@ def publish_request_confirme(request, key):
                   context={'message': message}, status=200)
 
 
-# @login_required(login_url=settings.LOGIN_URL)
-# @csrf_exempt
-# def publish_delete(request):
-#     user = request.user
-#     profile = get_object_or_404(Profile, user=user)
-#     if request.method == 'GET':
-#         return render(request, 'idgo_admin/publishdelete.html',
-#                       {'first_name': user.first_name,
-#                        'last_name': user.last_name,
-#                        'pubform': PublishDeleteForm(include={'user': user})})
-#
-#     pubform = PublishDeleteForm(data=request.POST, include={'user': user})
-#     if not pubform.is_valid():
-#         return render(request, 'idgo_admin/publishdelete.html',
-#                       {'first_name': user.first_name,
-#                        'last_name': user.last_name,
-#                        'pubform': pubform})
-#
-#     org = pubform.cleaned_data['publish_for']
-#     ppf = Profile.publish_for.through
-#     set = ppf.objects.get(profile_id=profile.id, organisation_id=org.id)
-#     set.delete()
-#
-#     message = ("Vous n'etes plus contributeur pour l'organisation "
-#                "<strong>{org_name}</strong>").format(org_name=org.name)
-#     return render(request, 'idgo_admin/message.htm',
-#                   context={'message': message}, status=200)
-
-
-# @login_required(login_url=settings.LOGIN_URL)
-# @csrf_exempt
-# def contributions(request):
-#     user = request.user
-#     profile = get_object_or_404(Profile, user=user)
-#     ppf = Profile.publish_for.through
-#     organizations = [(o.organisation.id, o.organisation.name)
-#                      for o in ppf.objects.filter(profile_id=profile.id)]
-#     print(organizations)
-#
-#     if request.method == 'GET':
-#         return render(request, 'idgo_admin/contributions.html',
-#                       {'first_name': user.first_name,
-#                        'last_name': user.last_name,
-#                        'organizations': json.dumps(organizations),
-#                        'my_profile': profile})
-
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
@@ -574,34 +529,33 @@ class Contributions(View):
     def get(self, request):
             user = request.user
             profile = get_object_or_404(Profile, user=user)
-            ppf = Profile.publish_for.through
-            organizations = [(o.organisation.id, o.organisation.name)
-                             for o in ppf.objects.filter(profile_id=profile.id)]
+            organizations = [
+                (o.organisation.id, o.organisation.name)
+                for o in Profile.publish_for.through.objects.filter(profile_id=profile.id)]
 
-            if request.method == 'GET':
-                return render(request, 'idgo_admin/contributions.html',
-                              {'first_name': user.first_name,
-                               'last_name': user.last_name,
-                               'organizations': json.dumps(organizations),
-                               'my_profile': profile})
+            return render(
+                request, 'idgo_admin/contributions.html',
+                context={'first_name': user.first_name,
+                         'last_name': user.last_name,
+                         'organizations': json.dumps(organizations)})
 
     def delete(self, request):
-        user = request.user
-        profile = get_object_or_404(Profile, user=user)
-        publish_id = request.POST.get('id', request.GET.get('id')) or None
-        if not id:
+
+        organization_id = request.POST.get('id', request.GET.get('id')) or None
+        if not organization_id:
             return render_an_critical_error(request)
 
-        org = Organisation.objects.get(id=publish_id)
-        ppf = Profile.publish_for.through
-        set = ppf.objects.get(profile_id=profile.id, organisation_id=publish_id)
+        organization = Organisation.objects.get(id=organization_id)
+        profile = get_object_or_404(Profile, user=request.user)
+        set = Profile.publish_for.through.objects.get(
+            profile_id=profile.id, organisation_id=organization_id)
         set.delete()
-        message = ("Vous n'etes plus contributeur pour l'organisation "
-                   "<strong>{org_name}</strong>").format(org_name=org.name)
 
         context = {
-            'message': message,
-            'action': reverse('idgo_admin:contributions')}
+            'action': reverse('idgo_admin:contributions'),
+            'message': ("Vous n'êtes plus contributeur pour l'organisation "
+                        "<strong>{0}</strong>").format(organization.name)}
+
         return render(
             request, 'idgo_admin/response.htm', context=context, status=200)
 
