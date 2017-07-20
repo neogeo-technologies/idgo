@@ -618,7 +618,7 @@ def update_externals(sender, instance, **kwargs):
         for e in through.objects.filter(profile=profile):
             callback(Organisation.objects.get(id=e.organisation_id).ckan_slug)
     try:
-        old = Profile.objects.get(pk=instance.id)
+        old = Profile.obmessage.jects.get(pk=instance.id)
     except Profile.DoesNotExist:
         pass
     except Exception as e:
@@ -627,15 +627,6 @@ def update_externals(sender, instance, **kwargs):
     else:
         iter_organization(old, remove)
         iter_organization(instance, add)
-
-
-@receiver(pre_save, sender=Profile)
-def delete_user_expire_date(sender, instance, **kwargs):
-    expired_key_reg = Registration.objects.filter(
-        key_expires__lte=timezone.now()).exclude(key_expires=None)
-    for reg in expired_key_reg:
-        u = reg.user
-        u.delete()
 
 
 @receiver(pre_save, sender=Organisation)

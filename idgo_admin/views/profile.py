@@ -284,10 +284,6 @@ def confirmation_email(request, key):
         message = "Vous avez déjà validé votre adresse e-mail."
         return render(request, 'idgo_admin/message.htm',
                       {'message': message}, status=200)
-    try:
-        reg.key_expires = None
-    except Exception:
-        pass
 
     user = reg.user
     user.is_active = True
@@ -481,7 +477,7 @@ def publish_request_confirme(request, key):
     if pub_req.date_acceptation:
         message = ('La confirmation de la demande de '
                    'contribution a déjà été faite.')
-        return render(request, 'idgo_admin/message.htm',
+        return render(request, 'idgo_admin/message.html',
                       context={'message': message}, status=200)
 
     if pub_req.organisation:
@@ -501,7 +497,7 @@ def publish_request_confirme(request, key):
 
     message = ('La confirmation de la demande de contribution '
                'a bien été prise en compte.')
-    return render(request, 'idgo_admin/message.htm',
+    return render(request, 'idgo_admin/message.html',
                   context={'message': message}, status=200)
 
 
