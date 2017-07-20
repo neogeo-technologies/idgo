@@ -25,11 +25,15 @@ from idgo_admin.forms.profile import UserProfileForm
 from idgo_admin.forms.profile import UserResetPassword
 from idgo_admin.forms.profile import UserUpdateForm
 from idgo_admin.models import Dataset
+from idgo_admin.models import Financeur
+from idgo_admin.models import License
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
+from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
 from idgo_admin.models import PublishRequest
 from idgo_admin.models import Registration
+from idgo_admin.models import Status
 import json
 
 
@@ -115,18 +119,19 @@ def sign_up(request):
             user=user, profile_fields={'role': data['role'],
                                        'phone': data['phone'],
                                        'organisation': data['organisation'],
-                                       'new_website': data['new_website'],
+                                       'website': data['website'],
                                        'is_new_orga': data['is_new_orga'],
-                                       'parent': data['parent'],
-                                       'organisation_type': data['organisation_type'],
+                                       'parent': data['parent'].id,
+                                       'organisation_type': data['organisation_type'].id,
                                        'code_insee': data['code_insee'],
                                        'description': data['description'],
                                        'adresse': data['adresse'],
                                        'code_postal': data['code_postal'],
                                        'ville': data['ville'],
                                        'org_phone': data['org_phone'],
-                                       'financeur': data['financeur'],
-                                       'license': data['license']})
+                                       'financeur': data['financeur'].id,
+                                       'status': data['status'].id,
+                                       'license': data['license'].id})
         return user, reg
 
     def delete_user(username):
@@ -137,7 +142,7 @@ def sign_up(request):
                       {'uform': uform, 'pform': pform})
 
     uform = UserForm(data=request.POST)
-    pform = UserProfileForm(request.FILES, data=request.POST)
+    pform = UserProfileForm(data=request.POST)
 
     if not uform.is_valid() or not pform.is_valid():
         return render_on_error()
@@ -164,14 +169,14 @@ def sign_up(request):
             'organisation_type': pform.cleaned_data['organisation_type'],
             'code_insee': pform.cleaned_data['code_insee'],
             'description': pform.cleaned_data['description'],
-            'logo': pform.cleaned_data['logo'],
             'adresse': pform.cleaned_data['adresse'],
             'code_postal': pform.cleaned_data['code_postal'],
             'ville': pform.cleaned_data['ville'],
             'org_phone': pform.cleaned_data['org_phone'],
             'financeur': pform.cleaned_data['financeur'],
+            'status': pform.cleaned_data['status'],
             'license': pform.cleaned_data['license'],
-            'new_website': pform.cleaned_data['new_website'],
+            'website': pform.cleaned_data['website'],
             'is_new_orga': pform.cleaned_data['is_new_orga']}
 
     # if ckan.is_user_exists(data['username']) \
@@ -194,6 +199,7 @@ def sign_up(request):
         Mail.validation_user_mail(request, reg)
     except Exception as e:
         # delete_user(user.username)  # TODO
+        print('Exception', e)
         return render_an_critical_error(request, e)
 
     message = ('Votre compte a bien été créé. Vous recevrez un e-mail '
@@ -201,7 +207,7 @@ def sign_up(request):
                'votre compte, cliquez sur le lien qui vous sera indiqué '
                "dans les 48h après réception de l'e-mail.")
 
-    return render(request, 'idgo_admin/message.htm',
+    return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=200)
 
 
@@ -301,7 +307,7 @@ def confirmation_email(request, key):
 
     if reg.date_validation_user:
         message = "Vous avez déjà validé votre adresse e-mail."
-        return render(request, 'idgo_admin/message.htm',
+        return render(request, 'idgo_admin/message.html',
                       {'message': message}, status=200)
 
     user = reg.user
@@ -338,7 +344,7 @@ def confirmation_email(request, key):
                "organisation, celle-ci ne sera effective qu'après "
                'validation par un administrateur.')
 
-    return render(request, 'idgo_admin/message.htm',
+    return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=200)
 
 
@@ -352,16 +358,40 @@ def activation_admin(request, key):
     if reg.date_affiliate_admin:
         message = ("Le compte <strong>{0}</strong> est déjà activé.").format(
             reg.user.username)
-        return render(request, 'idgo_admin/message.htm',
+        return render(request, 'idgo_admin/message.html',
                       {'message': message}, status=200)
 
-    reg_org_name = reg.profile_fields['organisation']
-    if reg_org_name:
+    org_name = reg.profile_fields['organisation']
+    if org_name:
+
+        d = {'organisation_type': OrganisationType,
+             'parent': Organisation,
+             'financeur': Financeur,
+             'status': Status,
+             'license': License}
+        res = {}
+        for key, model in d.items():
+            try:
+                res[key] = model.objects.get(
+                        id=reg.profile_fields[key])
+            except:
+                res[key] = None
+
         org, created = Organisation.objects.get_or_create(
-            name=reg_org_name, defaults={
-                'website': reg.profile_fields['new_website'],
-                'email': 'xxxxxxx@xxxxxx.xxxx',
-                'code_insee': '000000000000000'})
+            name=org_name, defaults={
+                'website': reg.profile_fields['website'],
+                'parent': res['parent'],
+                'organisation_type': res['organisation_type'],
+                'code_insee': reg.profile_fields['code_insee'],
+                'description': reg.profile_fields['description'],
+                'adresse': reg.profile_fields['adresse'],
+                'code_postal': reg.profile_fields['code_postal'],
+                'ville': reg.profile_fields['ville'],
+                'org_phone': reg.profile_fields['org_phone'],
+                'financeur': res['financeur'],
+                'status': res['status'],
+                'license': res['license'],
+                'email': 'xxxxxxx@xxxxxx.xxxx'})
 
         profile.organisation = org
         profile.save()
@@ -379,7 +409,7 @@ def activation_admin(request, key):
                'rattachement à {1} est effectif'
                ).format(username, profile.organisation.name)
 
-    return render(request, 'idgo_admin/message.htm',
+    return render(request, 'idgo_admin/message.html',
                   context={'message': message}, status=200)
 
 
@@ -590,5 +620,5 @@ def delete_account(request):
         print(e)
         pass
 
-    return render(request, 'idgo_admin/message.htm',
+    return render(request, 'idgo_admin/message.html',
                   context={'message': 'Votre compte a été supprimé.'}, status=200)

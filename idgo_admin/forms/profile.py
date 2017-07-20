@@ -11,6 +11,7 @@ from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
+from idgo_admin.models import Status
 
 
 class UserForm(forms.Form):
@@ -138,7 +139,7 @@ class UserProfileForm(forms.Form):
 
     parent = forms.ModelChoiceField(
             required=False,
-            label='Organisme',
+            label='Organisme parent',
             queryset=Organisation.objects.all())
 
     new_orga = forms.CharField(
@@ -150,7 +151,7 @@ class UserProfileForm(forms.Form):
         widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisme"}))
 
     new_website = forms.URLField(
-        error_messages={'invalid': "L'adresse URL est éronée. "},
+        error_messages={'invalid': "L'adresse URL est érronée. "},
         label="URL du site internet de l'organisme", required=False)
 
     is_new_orga = forms.BooleanField(widget=forms.HiddenInput(),
@@ -162,16 +163,18 @@ class UserProfileForm(forms.Form):
         max_length=10,
         widget=forms.TextInput(
             attrs={'placeholder': "Code INSEE"}))
+
     description = forms.CharField(
         required=False,
         label="Description",
-        max_length=10,
+        max_length=1024,
         widget=forms.TextInput(
             attrs={'placeholder': "Description"}))
+
     adresse = forms.CharField(
         required=False,
         label="Adresse",
-        max_length=10,
+        max_length=1024,
         widget=forms.TextInput(
             attrs={'placeholder': "Adresse"}))
 
@@ -189,12 +192,12 @@ class UserProfileForm(forms.Form):
         widget=forms.TextInput(
             attrs={'placeholder': "Ville de d'organisation"}))
 
-    org_phone = PHONE = forms.CharField(
+    org_phone = forms.CharField(
         error_messages={'invalid': 'Le numéro est invalide.'},
         required=False,
         label='Téléphone',
         max_length=150,
-        min_length=3,
+        min_length=2,
         # '^(0|\+33|\+33\s*\(0\)\s*)(\d\s*){9}$'
         validators=[validators.RegexValidator(regex='^0\d{9}$')],
         widget=forms.TextInput(
@@ -204,10 +207,17 @@ class UserProfileForm(forms.Form):
             required=False,
             label="Type d'organisation",
             queryset=OrganisationType.objects.all())
+
     financeur = forms.ModelChoiceField(
             required=False,
             label="Financeur de l'organisation",
             queryset=Financeur.objects.all())
+
+    status = forms.ModelChoiceField(
+            required=False,
+            label="Status de l'organisation",
+            queryset=Status.objects.all())
+
     license = forms.ModelChoiceField(
             required=False,
             label="Licence par défault pour les jeu de donnée",
@@ -215,8 +225,6 @@ class UserProfileForm(forms.Form):
 
     class Meta(object):
         model = Profile
-        fields = ('organisation', 'role', 'phone',
-                  'new_orga', 'new_website', 'is_new_orga', )
 
     def clean(self):
 
@@ -226,23 +234,29 @@ class UserProfileForm(forms.Form):
             # nouvelle demande de création
             self.cleaned_data['organisation'] = \
                 self.cleaned_data.get('new_orga')
-            params = ['website', 'parent', 'code_insee', 'organisation_type',
+            self.cleaned_data['website'] = \
+                self.cleaned_data.get('new_website')
+            self.cleaned_data['is_new_orga'] = True
+
+            params = ['parent', 'code_insee', 'organisation_type',
                       'description', 'adresse', 'ville', 'code_postal',
-                      'org_phone', 'financeur', 'license']
+                      'org_phone', 'financeur', 'license', 'status']
             for p in params:
                 self.cleaned_data[p] = self.cleaned_data.get(p)
-            self.cleaned_data['is_new_orga'] = True
+
         else:
-            # Mettre les valeurs de `new_orga` et `website` lorsque
-            # l'utilisateur a déjà choisi parmi la liste déroulante
-            self.cleaned_data['new_orga'] = ''
-            self.cleaned_data['website'] = ''
-            # self.cleaned_data['parent'] = ''
-            # self.cleaned_data['code_insee'] = ''
-            # self.cleaned_data['organisation_type'] = ''
+            # Vider les champs pour nouvelle orga dans le cas
+            # ou l'utilisateur ne crée pas de nouvelle orga
+            # mais laisse de champs rempli
+            params = ['website', 'parent', 'code_insee', 'organisation_type',
+                      'description', 'adresse', 'ville', 'code_postal',
+                      'org_phone', 'status', 'financeur', 'license', 'new_orga']
+            for p in params:
+                self.cleaned_data[p] = ''
             self.cleaned_data['is_new_orga'] = False
 
-            # Pour ne manipuler que le nom de l'organisation meme si existante
+            # # Pour ne manipuler que l'identifiant de l'organisation meme si
+            # # existante car pas d'id pour new_orga...
             self.cleaned_data['organisation'] = \
                 self.cleaned_data['organisation'].name
 

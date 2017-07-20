@@ -71,23 +71,6 @@ class OrganisationType(models.Model):
 
 class Organisation(models.Model):
 
-    # STATUS_CHOICES = (
-    #     ('commune', 'Commune'),
-    #     ('communaute_de_communes', 'Communauté de Commune'),
-    #     ('communaute_d_agglomeration', "Communauté d'Agglomération"),
-    #     ('communaute_urbaine', 'Communauté Urbaine'),
-    #     ('metrople', 'Métropoles'),
-    #     ('conseil_departemental', 'Conseil Départemental'),
-    #     ('conseil_regional', 'Conseil Régional'),
-    #     ('organisme_de_recherche', 'Organisme de recherche'),
-    #     ('universite', 'Université'))
-    #
-    # FINANCEUR_CHOICES = (
-    #     ('etat', 'Etat'),
-    #     ('region_PACA', 'Région PACA'),
-    #     ('epci', 'EPCI'),
-    #     ('cd02', 'CD02'))
-
     name = models.CharField('Nom', max_length=150, unique=True, db_index=True)
     organisation_type = models.ForeignKey(
         OrganisationType, verbose_name="Type d'organisme", default='1')
@@ -208,7 +191,10 @@ class Mail(models.Model):
 
     @classmethod
     def validation_user_mail(cls, request, reg):
-        mail_template = Mail.objects.get(template_name="validation_user_mail")
+        try:
+            mail_template = Mail.objects.get(template_name="validation_user_mail")
+        except Mail.DoesNotExist as e:
+            raise e
         from_email = mail_template.from_email
         subject = mail_template.subject
 
@@ -219,9 +205,11 @@ class Mail(models.Model):
             url=request.build_absolute_uri(
                 reverse('idgo_admin:confirmation_mail',
                         kwargs={'key': reg.activation_key})))
-
-        send_mail(subject=subject, message=message,
-                  from_email=from_email, recipient_list=[reg.user.email])
+        try:
+            send_mail(subject=subject, message=message,
+                      from_email=from_email, recipient_list=[reg.user.email])
+        except Exception as e:
+            raise e
 
     @classmethod
     def confirmation_user_mail(cls, user):
@@ -245,10 +233,11 @@ class Mail(models.Model):
                         username=reg.user.username,
                         user_mail=reg.user.email,
                         organisation_name=reg.profile_fields['organisation'],
-                        website=reg.profile_fields['new_website'],
+                        website=reg.profile_fields['website'],
                         url=request.build_absolute_uri(
                             reverse('idgo_admin:activation_admin',
                                     kwargs={'key': reg.affiliate_orga_key})))
+
         else:
             mail_template = Mail.objects.get(
                     template_name="affiliate_request_to_administrators_with_old_org")
@@ -269,8 +258,11 @@ class Mail(models.Model):
     @classmethod
     def affiliate_confirmation_to_user(cls, profile):
 
-        mail_template = Mail.objects.get(template_name="affiliate_confirmation_to_user")
-        message = mail_template.message.format(organisation=profile.organisation.name)
+        mail_template = Mail.objects.get(
+                template_name="affiliate_confirmation_to_user")
+
+        message = mail_template.message.format(
+                organisation=profile.organisation.name)
 
         send_mail(subject=mail_template.subject, message=message,
                   from_email=mail_template.from_email,
@@ -279,7 +271,9 @@ class Mail(models.Model):
     @classmethod
     def publish_request_to_administrators(cls, request, publish_request):
 
-        mail_template = Mail.objects.get(template_name="publish_request_to_administrators")
+        mail_template = Mail.objects.get(
+                template_name="publish_request_to_administrators")
+
         message = mail_template.message.format(
                 username=publish_request.user.username,
                 mail=publish_request.user.email,
@@ -652,7 +646,7 @@ def update_externals(sender, instance, **kwargs):
         for e in through.objects.filter(profile=profile):
             callback(Organisation.objects.get(id=e.organisation_id).ckan_slug)
     try:
-        old = Profile.obmessage.jects.get(pk=instance.id)
+        old = Profile.objects.get(pk=instance.id)
     except Profile.DoesNotExist:
         pass
     except Exception as e:
