@@ -34,5 +34,5 @@ urlpatterns = [
     url('^publish_request/(?P<key>.+)/?$',
         publish_request_confirme, name='publish_request_confirme'),
     url('^publish_request/?$', publish_request, name='publish_request'),
-    url('^Contributions/?$', Contributions.as_view(), name='contributions'),
+    url('^contributions/?$', Contributions.as_view(), name='contributions'),
     url('^deleteaccount/?$', delete_account, name='deleteAccount')]
