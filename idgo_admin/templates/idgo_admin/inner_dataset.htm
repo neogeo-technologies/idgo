@@ -8,79 +8,10 @@
 
 <form name="dataset" method="post" action="">
 	{% csrf_token %}
+
 	{% bootstrap_field form.name %}
 	{% bootstrap_field form.description %}
-	{% bootstrap_field form.geocover %}
-	{% bootstrap_field form.update_freq %}
-
-	{% for widget in form.date_creation %}
-	<div class="form-group">
-		<label class="control-label" for="{{ widget.attrs.id }}">{{ widget.name }}</label>
-		<input class="form-control date start"  name="{{ widget.name }}" id="{{ widget.attrs.id }}" type="text" {% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}" {% endif %} {% if widget.attrs.required == True %} required="" {% endif %} ></input>
-		<script>;$('#{{ widget.attrs.id }}').datepicker();</script>
-	</div>
-	{% endfor %}
-
-	{% for widget in form.date_modification %}
-	<div class="form-group">
-		<label class="control-label" for="{{ widget.attrs.id }}">{{ widget.name }}</label>
-		<input class="form-control"  name="{{ widget.name }}" id="{{ widget.attrs.id }}" type="text" {% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}" {% endif %} {% if widget.attrs.required == True %} required="" {% endif %} ></input>
-		<script>;$('#{{ widget.attrs.id }}').datepicker();</script>
-	</div>
-	{% endfor %}
-
-	{% for widget in form.date_publication %}
-	<div class="form-group">
-		<label class="control-label" for="{{ widget.attrs.id }}">{{ widget.name }}</label>
-		<input class="form-control"  name="{{ widget.name }}" id="{{ widget.attrs.id }}" type="text" {% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}" {% endif %} {% if widget.attrs.required == True %} required="" {% endif %} ></input>
-		<script>;$('#{{ widget.attrs.id }}').datepicker();</script>
-	</div>
-	{% endfor %}
-
-	{% bootstrap_field form.organisation %}
-	{% bootstrap_field form.licences %}
-	{% bootstrap_field form.owner_email %}
-
-	{% for widget in form.keywords %}
-	<div class="form-group">
-		<label class="control-label" for="{{ widget.attrs.id }}">{{ widget.name }}</label>
-		<input class="form-control" name="{{ widget.name }}" id="{{ widget.attrs.id }}" type="text"></input>
-	</div>
-	<script>
-
-	{% if widget.value %}
-		console.log("{{ widget.value }}")
-	{% endif %}
-
-	function extractor(query) {
-		var result = /([^,]+)$/.exec(query);
-		if(result && result[1]) {
-			return result[1].trim();
-		};
-		return '';
-	};
-	$('#{{ widget.attrs.id }}').typeahead({
-		source: {{ tags | safe }},
-		updater: function(item) {
-			return this.$element.val().replace(/[^,]*$/,'') + ' ' + item + ', ';
-		},
-		matcher: function (item) {
-			var tquery = extractor(this.query);
-			if (!tquery) {
-				return false;
-			};
-			return ~item.toLowerCase().indexOf(tquery.toLowerCase())
-		},
-		highlighter: function (item) {
-			var query = extractor(this.query).replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&')
-			return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-				return '<strong>' + match + '</strong>';
-			});
-		}
-	});
-	</script>
-	{% endfor %}
-
+	{% bootstrap_field form.keywords %}
 	<div class="form-group">
 		<label for="categories">Catégories</label></br>
 		<div id="categories" class="btn-group" data-toggle="buttons">
@@ -94,7 +25,26 @@
 			{% endfor %}
 		</div>
 	</div>
+	<hr />
+	{% bootstrap_field form.update_freq %}
+	<div class="row">
+		<div class="col-xs-4">
+			{% bootstrap_field form.date_creation %}
+		</div>
+		<div class="col-xs-4">
+			{% bootstrap_field form.date_modification %}
+		</div>
+		<div class="col-xs-4">
+			{% bootstrap_field form.date_publication %}
+		</div>
+	</div>
+	<hr />
+	{% bootstrap_field form.geocover %}
 	{% bootstrap_field form.is_inspire %}
+	<hr />
+	{% bootstrap_field form.organisation %}
+	{% bootstrap_field form.licences %}
+	{% bootstrap_field form.owner_email %}
 	{% bootstrap_field form.published %}
 	<div class="buttons-on-the-right-side">
 		{% if not dataset_id %}
@@ -105,7 +55,37 @@
 	</div>
 </form>
 <script>
+
+$('.datepicker').datepicker();
+
 $('form[name="dataset"] input[checked=""], form[name="dataset"] input[checked="checked"]').each(function() {
 	$('label[for="' + this.id + '"]').addClass('active');
+});
+
+function extractor(query) {
+	var result = /([^,]+)$/.exec(query);
+	if(result && result[1]) {
+		return result[1].trim();
+	};
+	return '';
+};
+$('.typeahead').typeahead({
+	source: {{ tags | safe }},
+	updater: function(item) {
+		return this.$element.val().replace(/[^,]*$/,'') + item + ',';
+	},
+	matcher: function (item) {
+		var tquery = extractor(this.query);
+		if (!tquery) {
+			return false;
+		};
+		return ~item.toLowerCase().indexOf(tquery.toLowerCase())
+	},
+	highlighter: function (item) {
+		var query = extractor(this.query).replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&')
+		return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+			return '<strong>' + match + '</strong>';
+		});
+	}
 });
 </script>

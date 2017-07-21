@@ -39,11 +39,16 @@ class DatasetForm(forms.ModelForm):
         queryset=License.objects.all(),
         required=True)
 
-    keywords = TagField(required=False)
+    keywords = TagField(
+        label='Liste de mots-clés',
+        required=False,
+        widget=forms.TextInput(
+            attrs={'class': 'typeahead',
+                   'placeholder': 'Utilisez la virgule pour séparer les valeurs.'}))
 
     published = forms.BooleanField(
         initial=True,
-        label='Publier le jeu de donnée',
+        label='Publier le jeu de données',
         required=False)
 
     is_inspire = forms.BooleanField(
@@ -51,18 +56,35 @@ class DatasetForm(forms.ModelForm):
         label='Le jeu de données est soumis à la règlementation INSPIRE',
         required=False)
 
-    # date_creation
-    # date_modification
-    # date_publication
+    date_creation = forms.DateField(
+        label='Date de création',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'datepicker'}))
+
+    date_modification = forms.DateField(
+        label='Dernière modification',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'datepicker'}))
+
+    date_publication = forms.DateField(
+        label='Date de publication',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'datepicker'}))
 
     # Champs cachés :
 
-    owner_email = forms.EmailField(required=False, widget=forms.HiddenInput())
+    owner_email = forms.EmailField(
+        required=False,
+        widget=forms.HiddenInput())
 
     sync_in_ckan = forms.BooleanField(
-        initial=False, required=False, widget=forms.HiddenInput())
+        initial=False,
+        required=False,
+        widget=forms.HiddenInput())
 
-    ckan_slug = forms.SlugField(required=False, widget=forms.HiddenInput())
+    ckan_slug = forms.SlugField(
+        required=False,
+        widget=forms.HiddenInput())
 
     class Meta(object):
         model = Dataset
