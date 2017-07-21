@@ -7,6 +7,7 @@ from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from taggit.forms import TagField
+from taggit.forms import TagWidget
 
 
 class DatasetForm(forms.ModelForm):
@@ -20,7 +21,7 @@ class DatasetForm(forms.ModelForm):
     keywords = TagField(
         label='Liste de mots-clés',
         required=False,
-        widget=forms.TextInput(
+        widget=TagWidget(
             attrs={'autocomplete': 'off',
                    'class': 'typeahead',
                    'placeholder': 'Utilisez la virgule pour séparer les valeurs.'}))
