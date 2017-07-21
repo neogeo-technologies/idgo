@@ -51,6 +51,7 @@ class DatasetManager(View):
             resources = [(
                 o.pk,
                 o.name,
+                o.data_format,
                 o.created_on.isoformat() if o.created_on else None,
                 o.last_update.isoformat() if o.last_update else None,
                 o.access) for o in Resource.objects.filter(dataset=instance)]
@@ -82,6 +83,7 @@ class DatasetManager(View):
             resources = [(
                 o.pk,
                 o.name,
+                o.data_format,
                 o.created_on.isoformat() if o.created_on else None,
                 o.last_update.isoformat() if o.last_update else None,
                 o.access) for o in Resource.objects.filter(dataset=instance)]

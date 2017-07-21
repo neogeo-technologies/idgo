@@ -13,6 +13,18 @@ class DatasetForm(forms.ModelForm):
 
     # Champs modifiables :
 
+    name = forms.CharField(label='Titre', required=True)
+
+    # description
+
+    keywords = TagField(
+        label='Liste de mots-clés',
+        required=False,
+        widget=forms.TextInput(
+            attrs={'autocomplete': 'off',
+                   'class': 'typeahead',
+                   'placeholder': 'Utilisez la virgule pour séparer les valeurs.'}))
+
     geocover = forms.ChoiceField(
         choices=Dataset.GEOCOVER_CHOICES,
         label='Couverture géographique',
@@ -30,7 +42,7 @@ class DatasetForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple())
 
     organisation = forms.ModelChoiceField(
-        label='Organisme de publication',
+        label='Organisame de publication',
         queryset=Organisation.objects.all(),
         required=True)
 
@@ -38,13 +50,6 @@ class DatasetForm(forms.ModelForm):
         label='Licence',
         queryset=License.objects.all(),
         required=True)
-
-    keywords = TagField(
-        label='Liste de mots-clés',
-        required=False,
-        widget=forms.TextInput(
-            attrs={'class': 'typeahead',
-                   'placeholder': 'Utilisez la virgule pour séparer les valeurs.'}))
 
     published = forms.BooleanField(
         initial=True,

@@ -55,7 +55,6 @@
 	</div>
 </form>
 <script>
-
 $('.datepicker').datepicker();
 
 $('form[name="dataset"] input[checked=""], form[name="dataset"] input[checked="checked"]').each(function() {
@@ -69,17 +68,18 @@ function extractor(query) {
 	};
 	return '';
 };
+
 $('.typeahead').typeahead({
 	source: {{ tags | safe }},
 	updater: function(item) {
 		return this.$element.val().replace(/[^,]*$/,'') + item + ',';
 	},
 	matcher: function (item) {
-		var tquery = extractor(this.query);
-		if (!tquery) {
+		var query = extractor(this.query);
+		if (!query) {
 			return false;
 		};
-		return ~item.toLowerCase().indexOf(tquery.toLowerCase())
+		return ~item.toLowerCase().indexOf(query.toLowerCase())
 	},
 	highlighter: function (item) {
 		var query = extractor(this.query).replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&')
