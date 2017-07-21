@@ -23,20 +23,7 @@
 		<div class="well" name="data-selector-panel">
 			<div name="up_file" class="form-group">
 				<p>Veuillez séléctionner un ou plusieurs fichiers... (TODO: texte explicatif)</p>
-				{% for widget in form.up_file %}
-				<div class="input-group">
-					<label class="input-group-btn">
-						<span class="btn btn-default">
-							Parcourir... <input id="{{ widget.attrs.id }}" name="{{ widget.name }}" type="file" style="display: none;" multiple></input>
-						</span>
-					</label>
-					<input type="text" {% if widget.value != 'False' %} value="{{ widget.value }}"{% endif %} class="form-control" readonly></input>
-				</div>
-				{% if widget.value != 'False' %}
-				<input type="checkbox" name="{{ widget.name }}-clear" id="{{ widget.name }}-clear_id" />
-				<label for="{{ widget.name }}-clear_id">Effacer</label>
-				{% endif %}
-				{% endfor %}
+				{% bootstrap_field form.up_file %}
 			</div>
 			<div name="url1" class="form-group" style="display: none;">
 				<p>Veuillez indiquer l'URL d'un jeu de données à télécharger... (TODO: texte explicatif)</p>

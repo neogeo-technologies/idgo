@@ -28,6 +28,13 @@ class ResourceForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={'placeholder': 'CSV, XML, JSON, XLS... '}))
 
+    class CustomClearableFileInput(forms.ClearableFileInput):
+        template_name = 'idgo_admin/clearable_file_input.html'
+
+    up_file = forms.FileField(
+        label='Téléversement',
+        widget=CustomClearableFileInput())
+
     class Meta(object):
         model = Resource
         fields = ('name',

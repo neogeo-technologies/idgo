@@ -640,7 +640,7 @@ def delete_account(request):
     try:
         Mail.conf_deleting_profile_to_user(user_data_copy)
     except Exception as e:
-        print(e)
+        print('Error', e)
         pass
 
     return render(request, 'idgo_admin/message.html',
