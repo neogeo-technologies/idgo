@@ -27,8 +27,13 @@ var DATASETS_METADATA = [
 		editable: false,
 		datatype: 'string'
 	}, {
-		name: 'last_modification',
+		name: 'date_modification',
 		label: 'Dernière modification',
+		editable: false,
+		datatype: 'string'
+	}, {
+		name: 'date_publication',
+		label: 'Date de publication',
 		editable: false,
 		datatype: 'string'
 	}, {
@@ -149,13 +154,18 @@ resourcesGrid.initializeGrid = function() {
 				cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
 			}
 		}));
-		var DATE_FORMAT = 'dddd Do MMMM YYYY à HH:mm:ss';
+		var DATE_FORMAT = 'dddd Do MMMM YYYY';
 		setCellRenderer('date_creation', new CellRenderer({
 			render: function(cell, value) {
 				cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
 			}
 		}));
-		setCellRenderer('last_modification', new CellRenderer({
+		setCellRenderer('date_modification', new CellRenderer({
+			render: function(cell, value) {
+				cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
+			}
+		}));
+		setCellRenderer('date_publication', new CellRenderer({
 			render: function(cell, value) {
 				cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
 			}
@@ -204,9 +214,10 @@ updateDatasetsGrid(
 					data[i][1],  // name
 					// data[i][2],  // description
 					data[i][3],  // date_creation
-					data[i][4],  // last_modification
-					data[i][5],  // organization
-					data[i][6],  // published
+					data[i][4],  // date_modification
+					data[i][5],  // date_publication
+					data[i][6],  // organization
+					data[i][7],  // published
 					data[i][0]   // id
 				]
 			});

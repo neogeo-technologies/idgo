@@ -12,8 +12,9 @@
 	{% bootstrap_field form.name %}
 	{% bootstrap_field form.description %}
 	{% bootstrap_field form.keywords %}
+
 	<div class="form-group">
-		<label for="categories">Catégories</label></br>
+		<label for="categories">Catégories (sélectionnez dans la liste ci-dessous une ou plusieurs catégories)</label></br>
 		<div id="categories" class="btn-group" data-toggle="buttons">
 			{% for category in form.categories %}
 			<label for="{{ category.id_for_label }}" class="btn">
@@ -25,6 +26,7 @@
 			{% endfor %}
 		</div>
 	</div>
+	{% bootstrap_field form.is_inspire %}
 	<hr />
 	{% bootstrap_field form.update_freq %}
 	<div class="row">
@@ -40,7 +42,6 @@
 	</div>
 	<hr />
 	{% bootstrap_field form.geocover %}
-	{% bootstrap_field form.is_inspire %}
 	<hr />
 	{% bootstrap_field form.organisation %}
 	{% bootstrap_field form.licences %}
@@ -63,7 +64,7 @@ $('form[name="dataset"] input[checked=""], form[name="dataset"] input[checked="c
 
 function extractor(query) {
 	var result = /([^,]+)$/.exec(query);
-	if(result && result[1]) {
+	if (result && result[1]) {
 		return result[1].trim();
 	};
 	return '';

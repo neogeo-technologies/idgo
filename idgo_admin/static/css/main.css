@@ -419,6 +419,11 @@ div#categories.btn-group {
     position: relative;
     display: inline-block;
     vertical-align: middle;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    width: 100%;
+    padding-left: 9px;
+    padding-right: 9px;
 }
 
 div#categories.btn-group>label.btn {
@@ -437,21 +442,35 @@ div#categories.btn-group>label.btn:hover {
     background-color: transparent;
     border: none;
     border-radius: 0;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
 }
 
-div#categories.btn-group>label.btn>span.badge {
-    background-color: #aaa;
-    color: #fff;
-    font-size: .9em;
-    font-weight: normal;
-    padding: 5px 10px;
-    border-radius: 99px;
+div#categories.btn-group>label.btn:not(:last-child)::after {
+    content: ',';
+    margin-right: 6px;
 }
 
-div#categories.btn-group>label.btn:hover>span.badge,
+div#categories.btn-group>label.btn>span.badge,
 div#categories.btn-group>label.btn:focus>span.badge,
 div#categories.btn-group>label.btn.focus>span.badge {
-    background-color: #999;
+    background-color: transparent;
+    color: inherit;
+    font-size: inherit;
+    font-weight: normal;
+    top: 0px;
+    padding: 3px 3px;
+    margin-left: 0;
+    margin-right: 0;
+    border: none;
+    border-radius: 5px;
+}
+
+
+div#categories.btn-group>label.btn:hover>span.badge {
+    background-color: #aaa;
     color: #fff;
 }
 

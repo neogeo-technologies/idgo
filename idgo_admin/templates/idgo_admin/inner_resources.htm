@@ -141,7 +141,7 @@ resourcesGrid.initializeGrid = function() {
 				});
 			};
 		};
-		var DATE_FORMAT = 'dddd Do MMMM YYYY à HH:mm:ss';
+		var DATE_FORMAT = 'dddd Do MMMM YYYY';
 		setCellRenderer('date_creation', new CellRenderer({
 			render: function(cell, value) {
 				cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
