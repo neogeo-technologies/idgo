@@ -186,9 +186,12 @@ class Registration(models.Model):
 #     user = models.ForeignKey(User, on_delete=models.CASCADE)
 #     key = models.UUIDField(default=uuid.uuid4, editable=False)
 #     action = models.CharField(
-#         'Couverture géographique', blank=True, null=True,
-#         default='regionale', max_length=30, choices=ACTION_CHOICES)
-#
+#         'Action de gestion de profile', blank=True, null=True,
+#         default='confirm_mail', max_length=250, choices=ACTION_CHOICES)
+#     created = models.DateField(auto_now_add=True)
+#     closed = models.DateField(
+#         verbose_name="Date validation par l'utilisateur",
+#         blank=True, null=True)
 #     class Meta:
 #         unique_together = (("user", "action"), )
 

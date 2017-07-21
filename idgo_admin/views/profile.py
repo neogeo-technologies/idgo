@@ -24,6 +24,7 @@ from idgo_admin.forms.profile import UserLoginForm
 from idgo_admin.forms.profile import UserProfileForm
 from idgo_admin.forms.profile import UserResetPassword
 from idgo_admin.forms.profile import UserUpdateForm
+# from idgo_admin.models import AccountActions  # TODO(cbenhabib)
 from idgo_admin.models import Dataset
 from idgo_admin.models import Financeur
 from idgo_admin.models import License
@@ -56,7 +57,6 @@ def home(request):
                  o.description,
                  o.date_creation.isoformat() if o.date_creation else None,
                  o.date_modification.isoformat() if o.date_modification else None,
-                 o.date_publication.isoformat() if o.date_publication else None,
                  Organisation.objects.get(id=o.organisation_id).name,
                  o.published) for o in Dataset.objects.filter(editor=user)]
 
@@ -116,6 +116,7 @@ def sign_up(request):
             last_name=data['last_name'],
             is_staff=False, is_superuser=False, is_active=False)
 
+        # TODO(cbenhabib): Registration -> AccountActions
         reg = Registration.objects.create(
             user=user, profile_fields={'role': data['role'],
                                        'phone': data['phone'],
@@ -133,6 +134,11 @@ def sign_up(request):
                                        'financeur': data['financeur'].id,
                                        'status': data['status'].id,
                                        'license': data['license'].id})
+        # TODO(cbenhabib): determiner si on crée une orga non active pour deporter profile_fields
+        # signup_action = AccountActions.object.create(user=user, action="confirm_mail")
+        # contrib_action = AccountActions.objects.create(user=user, action="confirm_mail_contrib")
+
+
         return user, reg
 
     def delete_user(username):
@@ -227,10 +233,16 @@ def forgotten_password(request):
 
     user = get_object_or_404(User, email=form.cleaned_data["email"])
 
+    # TODO(cbenhabib): Registration -> AccountActions
     # Get or create: cas ou la table Registration a été vidé (CRON à 48h)
     reg, created = Registration.objects.get_or_create(user=user)
     # reg, created = AccountActions.objects.get_or_create(user=user, action='reset_password')
-
+    # if created is False:
+    #     message = ('Un e-mail de réinitialisation à déjà été envoyé '
+    #                '"'Veuillez vérifier votre messagerie')
+    #     status = 200
+    #     return render(request, 'idgo_admin/message.html',
+    #                   {'message': message}, status=status)
     try:
         Mail.send_reset_password_link_to_user(request, reg)
     except Exception as e:
@@ -261,8 +273,12 @@ def reset_password(request, key):
     if not form.is_valid():
         return render(request, 'idgo_admin/resetpassword.html',
                       {'form': form})
+
+    # TODO(cbenhabib): Registration -> AccountActions
     reg = get_object_or_404(Registration, reset_password_key=key)
     user = get_object_or_404(User, username=reg.user.username)
+    # reset_action = get_object_or_404(AccountActions, key=key, action="reset_password")
+    # user = reset_action.user
 
     # MAJ MDP: TODO() a voir en fonction du SSO
     error = False
@@ -303,8 +319,14 @@ def reset_password(request, key):
 def confirmation_email(request, key):
 
     # confirmation de l'email par l'utilisateur
-
+    
+    # TODO(cbenhabib): Registration -> AccountActions
     reg = get_object_or_404(Registration, activation_key=key)
+    # activation_action = get_object_or_404(AccountActions, key=key, action='confirm_mail')
+    # if activation_action.closed:
+    #     message = "Vous avez déjà validé votre adresse e-mail."
+    #     return render(request, 'idgo_admin/message.html',
+    #                   {'message': message}, status=200)
 
     if reg.date_validation_user:
         message = "Vous avez déjà validé votre adresse e-mail."
