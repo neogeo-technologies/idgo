@@ -113,8 +113,6 @@ class UserResetPassword(forms.Form):
 
     def save(self, request, user):
         password = self.cleaned_data['password1']
-        print(user.username)
-        print(password)
         if password:
             user.set_password(password)
             user.save()
@@ -247,7 +245,7 @@ class UserProfileForm(forms.Form):
         else:
             # Vider les champs pour nouvelle orga dans le cas
             # ou l'utilisateur ne crée pas de nouvelle orga
-            # mais laisse de champs rempli
+            # mais laisse des champs remplis
             params = ['website', 'parent', 'code_insee', 'organisation_type',
                       'description', 'adresse', 'ville', 'code_postal',
                       'org_phone', 'status', 'financeur', 'license', 'new_orga']

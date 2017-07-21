@@ -176,6 +176,23 @@ class Registration(models.Model):
         blank=True, null=True)
 
 
+# TODO: en remplacement de class Registraion
+# class AccountActions(models.Model):
+#     ACTION_CHOICES = (
+#         ("confirm_mail", "Confirmation de l'email par l'utilisateur"),
+#         ("confirm_contrib", "Confirmation de contribution par un administrateur"),
+#         ("reset_password", "Réinitialisation du mot de passe"),
+#     )
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     key = models.UUIDField(default=uuid.uuid4, editable=False)
+#     action = models.CharField(
+#         'Couverture géographique', blank=True, null=True,
+#         default='regionale', max_length=30, choices=ACTION_CHOICES)
+#
+#     class Meta:
+#         unique_together = (("user", "action"), )
+
+
 class Mail(models.Model):
 
     template_name = models.CharField("Nom du model du message",

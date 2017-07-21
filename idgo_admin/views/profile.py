@@ -228,6 +228,7 @@ def forgotten_password(request):
 
     # Get or create: cas ou la table Registration a été vidé (CRON à 48h)
     reg, created = Registration.objects.get_or_create(user=user)
+    # reg, created = AccountActions.objects.get_or_create(user=user, action='reset_password')
 
     try:
         Mail.send_reset_password_link_to_user(request, reg)
@@ -257,7 +258,6 @@ def reset_password(request, key):
 
     form = UserResetPassword(data=request.POST)
     if not form.is_valid():
-        print(form.errors)
         return render(request, 'idgo_admin/resetpassword.html',
                       {'form': form})
     reg = get_object_or_404(Registration, reset_password_key=key)
