@@ -10,7 +10,8 @@ from idgo_admin.views.profile import modify_account
 from idgo_admin.views.profile import publish_request
 from idgo_admin.views.profile import publish_request_confirme
 from idgo_admin.views.profile import reset_password
-from idgo_admin.views.profile import sign_in
+# from idgo_admin.views.profile import sign_in
+from idgo_admin.views.profile import SignIn
 from idgo_admin.views.profile import sign_out
 from idgo_admin.views.profile import sign_up
 from idgo_admin.views.resource import ResourceManager
@@ -21,7 +22,7 @@ urlpatterns = [
     url('^(?P<dataset_id>(\d+))/resources/?$', ResourceManager.as_view(),
         name='resource'),
     url('^$', home, name='home'),
-    url('^signin/?$', sign_in, name='signIn'),
+    url('^signin/?$', SignIn.as_view(), name='signIn'),
     url('^signout/?$', sign_out, name='signOut'),
     url('^signup/?$', sign_up, name='signUp'),
     url('^forgotten_password/?$', forgotten_password, name='forgottenPassword'),

@@ -3,10 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
+from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db import transaction
-from django.http import HttpResponseRedirect
+# from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
@@ -20,7 +21,7 @@ from idgo_admin.forms.profile import ProfileUpdateForm
 from idgo_admin.forms.profile import UserDeleteForm
 from idgo_admin.forms.profile import UserForgetPassword
 from idgo_admin.forms.profile import UserForm
-from idgo_admin.forms.profile import UserLoginForm
+# from idgo_admin.forms.profile import UserLoginForm
 from idgo_admin.forms.profile import UserProfileForm
 from idgo_admin.forms.profile import UserResetPassword
 from idgo_admin.forms.profile import UserUpdateForm
@@ -36,6 +37,10 @@ from idgo_admin.models import PublishRequest
 from idgo_admin.models import Registration
 from idgo_admin.models import Status
 import json
+from mama_cas.compat import is_authenticated
+from mama_cas.models import ServiceTicket
+from mama_cas.utils import to_bool
+from mama_cas.views import LoginView
 
 
 def render_an_critical_error(request, error=None):
@@ -72,27 +77,74 @@ def home(request):
                    'is_contributor': json.dumps(is_contributor)}, status=200)
 
 
-@csrf_exempt
-def sign_in(request):
+# @csrf_exempt
+# def sign_in(request):
+#
+#     if request.method == 'GET':
+#         logout(request)
+#         return render(request, 'idgo_admin/signin.html',
+#                       {'uform': UserLoginForm()})
+#
+#     uform = UserLoginForm(data=request.POST)
+#     if not uform.is_valid():
+#         uform.add_error('username', 'Vérifiez votre nom de connexion !')
+#         uform.add_error('password', 'Vérifiez votre mot de passe !')
+#         return render(request, 'idgo_admin/signin.html', {'uform': uform})
+#
+#     user = uform.get_user()
+#     request.session.set_expiry(3600)  # time-out de la session
+#     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+#     nxt_pth = request.GET.get('next', None)
+#     if nxt_pth:
+#         return HttpResponseRedirect(nxt_pth)
+#     return redirect('idgo_admin:home')
 
-    if request.method == 'GET':
-        logout(request)
-        return render(request, 'idgo_admin/signin.html',
-                      {'uform': UserLoginForm()})
 
-    uform = UserLoginForm(data=request.POST)
-    if not uform.is_valid():
-        uform.add_error('username', 'Vérifiez votre nom de connexion !')
-        uform.add_error('password', 'Vérifiez votre mot de passe !')
-        return render(request, 'idgo_admin/signin.html', {'uform': uform})
+class SignIn(LoginView):
 
-    user = uform.get_user()
-    request.session.set_expiry(3600)  # time-out de la session
-    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-    nxt_pth = request.GET.get('next', None)
-    if nxt_pth:
-        return HttpResponseRedirect(nxt_pth)
-    return redirect('idgo_admin:home')
+    template_name = 'idgo_admin/signin.html'
+
+    def get(self, request, *args, **kwargs):
+
+        service = request.GET.get('service')
+        gateway = to_bool(request.GET.get('gateway'))
+
+        if gateway and service:
+            if is_authenticated(request.user):
+                st = ServiceTicket.objects.create_ticket(
+                    service=service, user=request.user)
+                if self.warn_user():
+                    return redirect('cas_warn', params={'service': service,
+                                                        'ticket': st.ticket})
+                return redirect(service, params={'ticket': st.ticket})
+            else:
+                return redirect(service)
+        elif is_authenticated(request.user):
+            if service:
+                st = ServiceTicket.objects.create_ticket(
+                    service=service, user=request.user)
+                if self.warn_user():
+                    return redirect('cas_warn', params={'service': service,
+                                                        'ticket': st.ticket})
+                return redirect(service, params={'ticket': st.ticket})
+            else:
+                return redirect('idgo_admin:home')
+
+        return super().get(request, *args, **kwargs)
+
+    def form_valid(self, form):
+
+        login(self.request, form.user)
+
+        if form.cleaned_data.get('warn'):
+            self.request.session['warn'] = True
+
+        service = self.request.GET.get('service')
+        if service:
+            st = ServiceTicket.objects.create_ticket(
+                service=service, user=self.request.user, primary=True)
+            return redirect(service, params={'ticket': st.ticket})
+        return redirect('idgo_admin:home')
 
 
 @csrf_exempt
@@ -319,7 +371,7 @@ def reset_password(request, key):
 def confirmation_email(request, key):
 
     # confirmation de l'email par l'utilisateur
-    
+
     # TODO(cbenhabib): Registration -> AccountActions
     reg = get_object_or_404(Registration, activation_key=key)
     # activation_action = get_object_or_404(AccountActions, key=key, action='confirm_mail')
@@ -396,7 +448,7 @@ def activation_admin(request, key):
         for key, model in d.items():
             try:
                 res[key] = model.objects.get(
-                        id=reg.profile_fields[key])
+                    id=reg.profile_fields[key])
             except:
                 res[key] = None
 
