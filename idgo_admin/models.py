@@ -110,6 +110,8 @@ class Organisation(models.Model):
                                   on_delete=models.CASCADE)
     status = models.ForeignKey(Status, blank=True, null=True,
                                on_delete=models.CASCADE)
+    # is_active = models.BooleanField("Si l'organisation créée par un administrateur",
+    #                                 default=False)
 
     def __str__(self):
         return self.name
@@ -142,6 +144,8 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
+
+# TODO(cbenhabib):
 
 class PublishRequest(models.Model):  # Demande de contribution
 
@@ -177,24 +181,78 @@ class Registration(models.Model):
 
 
 # TODO: en remplacement de class Registraion
-# class AccountActions(models.Model):
-#     ACTION_CHOICES = (
-#         ("confirm_mail", "Confirmation de l'email par l'utilisateur"),
-#         ("confirm_contrib", "Confirmation de contribution par un administrateur"),
-#         ("reset_password", "Réinitialisation du mot de passe"),
+class AccountActions(models.Model):
+    ACTION_CHOICES = (
+        ("confirm_mail", "Confirmation de l'email par l'utilisateur"),
+        ("confirm_rattachmnt", "Rattachement d'un utilisateur à une organsiation par un administrateur"),
+        ("confirm_referent", ("Confirmation du rôle de réferent d'une organisation"
+                              "pour un utilisatur par un administrateur")),
+        ("confirm_contrib", ("Confirmation du rôle de contributeur d'une organisation"
+                             "pour un utilisatur par un administrateur")),
+        ("reset_password", "Réinitialisation du mot de passe")
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    key = models.UUIDField(default=uuid.uuid4, editable=False)
+    action = models.CharField(
+        'Action de gestion de profile', blank=True, null=True,
+        default='confirm_mail', max_length=250, choices=ACTION_CHOICES)
+    created = models.DateField(auto_now_add=True)
+    closed = models.DateField(
+        verbose_name="Date de validation de l'action",
+        blank=True, null=True)
+
+    class Meta:
+        unique_together = (("user", "action"), )
+
+
+# TODO: en remplacement du champs ManyToMany: Profile-publish_request
+# et ajout de la notion de référent.
+# Le rattachement est conservé sur FK: Profile-Organisation
+# TODO(cbenhabib): ADD is_actif Boolean field à organisation
+class Liaisons_Referents(models.Model):
+
+    id = models.UUIDField(default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    created_on = models.DateField(auto_now_add=True)
+    validated_on = models.DateField(
+        verbose_name="Date de validation de l'action",
+        blank=True, null=True)
+
+
+class Liaisons_Contributeurs(models.Model):
+
+    id = models.UUIDField(default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    created_on = models.DateField(auto_now_add=True)
+    validated_on = models.DateField(
+        verbose_name="Date de validation de l'action",
+        blank=True, null=True)
+
+
+# TODO: en remplacement de class Registraion
+# class Status_User_Orga(models.Model):
+#
+#     TYPE_LIAISON = (
+#         ("rattachement", "Utilisateur rattaché"),
+#         ("referent", "utiliateur référent"),
+#         ("contribution", "utiliateur est référent"),
 #     )
+#     Status = (
+#         ("en cours", ""),
+#         ("validé", "utiliateur est référent"),
+#         ("refusé", "utiliateur est référent"), # Si refu de creation suppression de la ligne orga
+#     )
+#
+#     id = models.UUIDField(default=uuid.uuid4, editable=False)
 #     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     key = models.UUIDField(default=uuid.uuid4, editable=False)
-#     action = models.CharField(
-#         'Action de gestion de profile', blank=True, null=True,
-#         default='confirm_mail', max_length=250, choices=ACTION_CHOICES)
+#     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
 #     created = models.DateField(auto_now_add=True)
 #     closed = models.DateField(
-#         verbose_name="Date validation par l'utilisateur",
+#         verbose_name="Date de validation de l'action",
 #         blank=True, null=True)
-#     class Meta:
-#         unique_together = (("user", "action"), )
-
+#     is_confirmed = models.BooleanField("", default=False)
 
 class Mail(models.Model):
 

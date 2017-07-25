@@ -380,6 +380,7 @@ def confirmation_email(request, key):
     #     return render(request, 'idgo_admin/message.html',
     #                   {'message': message}, status=200)
 
+    reg = get_object_or_404(Registration, activation_key=key)
     if reg.date_validation_user:
         message = "Vous avez déjà validé votre adresse e-mail."
         return render(request, 'idgo_admin/message.html',
@@ -407,8 +408,7 @@ def confirmation_email(request, key):
 
     try:
         Mail.confirmation_user_mail(user)
-        # send_confirmation_mail(
-        #     user.first_name, user.last_name, user.username, user.email)
+
     except Exception:
         pass  # Ce n'est pas très grave si l'e-mail ne part pas...
 
@@ -422,6 +422,54 @@ def confirmation_email(request, key):
     return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=200)
 
+
+# # TODO(cbenhabib): Registration -> AccountActions
+# @csrf_exempt
+# def confirmation_email_prepa(request, key):
+#
+#     # confirmation de l'email par l'utilisateur
+#     activation_action = get_object_or_404(
+#             AccountActions, key=key, action='confirm_mail')
+#     if activation_action.closed:
+#         message = "Vous avez déjà validé votre adresse e-mail."
+#         return render(request, 'idgo_admin/message.html',
+#                       {'message': message}, status=200)
+#
+#
+#     user = activation_action.user
+#     user.is_active = True
+#     try:
+#         ckan.activate_user(user.username)
+#     except Exception:
+#         return render_an_critical_error(request)
+#     user.save()
+#
+#     Profile.objects.get_or_create(
+#         user=user, defaults={'phone': reg.profile_fields['phone'],
+#                              'role': reg.profile_fields['role']})
+#
+#     if reg.profile_fields['organisation'] not in ['', None]:
+#         try:
+#             Mail.affiliate_request_to_administrators(request, reg)
+#         except Exception:
+#             return render_an_critical_error(request)
+#
+#     try:
+#         Mail.confirmation_user_mail(user)
+#         # send_confirmation_mail(
+#         #     user.first_name, user.last_name, user.username, user.email)
+#     except Exception:
+#         pass  # Ce n'est pas très grave si l'e-mail ne part pas...
+#
+#     reg.date_validation_user = timezone.now()
+#     reg.save()
+#     message = ("Merci d'avoir confirmer votre adresse e-mail. "
+#                'Si vous avez fait une demande de rattachement à une '
+#                "organisation, celle-ci ne sera effective qu'après "
+#                'validation par un administrateur.')
+#
+#     return render(request, 'idgo_admin/message.html',
+#                   {'message': message}, status=200)
 
 @csrf_exempt
 def activation_admin(request, key):
