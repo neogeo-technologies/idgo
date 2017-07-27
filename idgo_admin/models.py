@@ -282,7 +282,7 @@ class Liaisons_Contributeurs(models.Model):
     @classmethod
     def get_contribs(cls, profile):
         return [e.organisation for e in Liaisons_Contributeurs.objects.filter(
-                    profile=profile)]
+                    profile=profile, validated_on__isnull=False)]
 
 
 class Liaisons_Resources(models.Model):
