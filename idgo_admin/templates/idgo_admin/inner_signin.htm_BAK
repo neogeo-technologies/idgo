@@ -1,0 +1,57 @@
+{% load bootstrap3 %}
+
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<h3>IDGO</h3>
+		<h4>Connexion</h4>
+	</div>
+	<div class="panel-body">
+		<form method="post" action="">
+			{% csrf_token %}
+			{% bootstrap_field uform.username show_label=False %}
+			{% bootstrap_field uform.password show_label=False %}
+			<div class="row">
+				<div class="col-md-7">
+					<div class="checkbox">
+						<label>
+							<input name="remember-me" type="checkbox"></input> Se souvenir de moi
+						</label>
+					</div>
+				</div>
+				<div class="col-md-5">
+					<button type="submit" class="btn btn-block btn-primary">Se connecter</button>
+				</div>
+			</div>
+			<a class="small-link" href="{% url "idgo_admin:signUp" %}">Pas encore de compte ?</a>
+			<br />
+			<a class="small-link" href="{% url "idgo_admin:forgottenPassword" %}">Mot de passe oublié ?</a>
+		</form>
+	</div>
+</div>
+<script>
+$(function() {
+	$rememberMe = $('input[name="remember-me"]');
+	$userName = $('#id_username');
+	$password = $('#id_password');
+	if (localStorage.checkBoxValidation && localStorage.checkBoxValidation != '') {
+		$rememberMe.attr('checked', 'checked');
+		$userName.val(localStorage.userName);
+		$password.val(localStorage.password);
+	} else {
+		$rememberMe.removeAttr('checked');
+		$userName.val('');
+		$password.val('');
+	};
+	$('form').on('submit', function() {
+		if ($rememberMe.is(':checked')) {
+			localStorage.userName = $userName.val();
+			localStorage.password = $password.val();
+			localStorage.checkBoxValidation = $rememberMe.val();
+		} else {
+			localStorage.userName = '';
+			localStorage.password = '';
+			localStorage.checkBoxValidation = '';
+		};
+	});
+});
+</script>

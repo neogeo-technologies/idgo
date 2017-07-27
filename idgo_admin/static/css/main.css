@@ -444,14 +444,9 @@ div#categories.btn-group>label.btn:hover {
     border: none;
     border-radius: 0;
     margin-left: 0;
-    margin-right: 0;
+    margin-right: 7px;
     padding-left: 0;
     padding-right: 0;
-}
-
-div#categories.btn-group>label.btn:not(:last-child)::after {
-    content: ',';
-    margin-right: 6px;
 }
 
 div#categories.btn-group>label.btn>span.badge,
@@ -462,7 +457,7 @@ div#categories.btn-group>label.btn.focus>span.badge {
     font-size: inherit;
     font-weight: normal;
     top: 0px;
-    padding: 3px 3px;
+    padding: 3px 7px;
     margin-left: 0;
     margin-right: 0;
     border: none;
@@ -486,66 +481,37 @@ div#categories.btn-group>label.btn.active:focus>span.badge {
     color: #fff;
 }
 
-div[name="data-selector"] label.btn {
-    color: #555555;
-    background-color: #ffffff;
-    border-color: #666;
-    -webkit-box-shadow: none;
-            box-shadow: none;
+.nav[name="data-selector"] {
+    border-bottom: none;
 }
 
-div[name="data-selector"] label.btn:hover,
-div[name="data-selector"] label.btn:focus {
-    color: #444;
+.nav[name="data-selector"] li[role="presentation"] a {
+    color: inherit;
+    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+            box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+    border-bottom: #fcfcfc;
+    border: 1px solid rgb(221, 221, 221);
+}
+
+.nav[name="data-selector"] li[role="presentation"].active a {
     background-color: #fcfcfc;
-    border-color: #444;
-    -webkit-box-shadow: none;
-            box-shadow: none;
-}
-
-div[name="data-selector"] label.btn:first-child:not(:last-child) {
-    border-bottom-left-radius: 0;
-}
-
-div[name="data-selector"] label.btn:last-child:not(:first-child) {
-    border-bottom-right-radius: 0;
-}
-
-div[name="data-selector"] label.btn.active {
-    color: #444;
-    background-color: #fcfcfc;
-    border-color: #666;
-    border-bottom-color: #fcfcfc;
-    -webkit-box-shadow: none;
-            box-shadow: none;
-}
-
-div[name="data-selector"] label.btn.active:not(:first-child):not(:last-child) {
-    border-right: 0px;
-    border-left: 0px;
-}
-
-div[name="data-selector"] label.btn.active:first-child:not(:last-child) {
-    border-right: 0px;
-}
-
-div[name="data-selector"] label.btn.active:last-child:not(:first-child) {
-    border-left: 0px;
+    border-bottom: #fcfcfc;
 }
 
 .well[name="data-selector-panel"] {
+    z-index: 999 !important;
+    position: relative;
     border-top: 0px;
     border-top-left-radius: 0;
-    border-top-right-radius: 0;
     min-height: 20px;
     padding: 19px;
-    margin-top: -1px;
+    padding-top: 40px;
+    margin-top: 0px;
     margin-bottom: 20px;
     background-color: #fcfcfc;
-    border: 1px solid #666;
-    border-top-color: transparent;
-    -webkit-box-shadow: none;
-            box-shadow: none;
+    border: 1px solid rgb(221, 221, 221);
+    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+            box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
 }
 
 .well[name="data-selector-panel"] .form-control[readonly] {

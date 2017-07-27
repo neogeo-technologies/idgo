@@ -1,3 +1,9 @@
+import os
+import requests
+from urllib.parse import urlparse
+from uuid import uuid4
+
+
 # Metaclasses:
 
 
@@ -17,3 +23,40 @@ class Singleton(type):
         # else:
         #     cls._instances[cls].__init__(*args, **kwargs)
         return cls.__instances[cls]
+
+
+# Others stuffs
+
+
+def create_dir(media_root):
+    directory = os.path.join(media_root, str(uuid4())[:7])
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        return directory
+    return create_dir(media_root)
+
+
+def download(url, media_root, **params):
+    for i in range(0, 10):  # Try at least ten times before raise
+        try:
+            r = requests.get(url, params=params, stream=True)
+        except Exception as e:
+            error = e
+            continue
+        else:
+            break
+    else:
+        raise error
+    r.raise_for_status()
+
+    filename = \
+        os.path.join(create_dir(media_root), urlparse(url).path.split('/')[-1])
+
+    # TODO(@m431m) -> https://github.com/django/django/blob/3c447b108ac70757001171f7a4791f493880bf5b/docs/topics/files.txt#L120
+
+    with open(filename, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:
+                f.write(chunk)
+
+    return filename, r.headers['Content-Type']

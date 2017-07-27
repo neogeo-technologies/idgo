@@ -95,6 +95,7 @@ class DatasetManager(View):
                 try:
                     form.handle_me(request, id=id)
                 except Exception as e:
+                    print(0, type(e))
                     success = False
                     text = ("L'erreur suivante est survenue : "
                             '<strong>{0}</strong>.').format(str(e))
@@ -109,6 +110,7 @@ class DatasetManager(View):
                 try:
                     instance = form.handle_me(request, id=id)
                 except Exception as e:
+                    print(1, type(e))
                     print('Exception:', e)
                     success = False
                     text = ("L'erreur suivante est survenue : "

@@ -16,6 +16,8 @@ def exceptions_handler(f):
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
+        except CkanError.CKANAPIError:
+            pass
         except CkanError.NotAuthorized as e:
             print('CkanError', e.__str__())
             raise PermissionError('CkanError.NotAuthorized', e.__str__())
@@ -46,6 +48,11 @@ class CkanManagerHandler(metaclass=Singleton):
     def _del_package(self, id):
         return self.remote.action.dataset_purge(id=id)
 
+    def get_all_users(self):
+        return [(user['name'], user['display_name'])
+                for user in self.remote.action.user_list()
+                if user['state'] == 'active']
+
     def get_user(self, username):
         try:
             return self.remote.action.user_show(id=username)
@@ -62,25 +69,8 @@ class CkanManagerHandler(metaclass=Singleton):
                   'name': user.username,
                   'password': password,
                   'state': 'deleted'}
-        try:
-            user = self.remote.action.user_create(**params)
-        except Exception as e:
-            raise Exception(e)
 
-        # r = requests.post('{0}/ldap_login_handler'.format(settings.CKAN_URL),
-        #                   data={'login': user.username, 'password': password})
-        #
-        # if r.status_code == 200:
-        #     pass
-        # elif r.status_code == 500:
-        #     raise SystemError('CKAN returns an internal error.')
-        # else:
-        #     raise Exception(
-        #         'CKAN returns a {0} code error.'.format(r.status_code))
-        #
-        # self.remote.action.user_update(
-        #     id=user.username, name=user.username, email=user.email,
-        #     fullname=user.get_full_name(), state='deleted')
+        user = self.remote.action.user_create(**params)
 
     def del_user(self, username):
 
@@ -88,28 +78,24 @@ class CkanManagerHandler(metaclass=Singleton):
         self.del_user_from_organizations(username)
         self.remote.action.user_delete(id=username)
 
-    def update_user(self, user, profile=None):
-
+    def update_user(self, user):
         if not self.is_user_exists:
-            raise IntegrityError()
-
-        # if profile:
-        #     self.del_user_from_organizations(user.username)
-        #     if profile.organisation:
-        #         self.add_user_to_organization(
-        #             user.username, profile.organisation.ckan_slug)
+            raise IntegrityError(
+                'User {0} does not exists'.format(user.username))
 
         ckan_user = self.get_user(user.username)
-
         ckan_user.update({'email': user.email,
                           'fullname': user.get_full_name()})
-
         self.remote.action.user_update(**ckan_user)
 
     def activate_user(self, username):
         ckan_user = self.get_user(username)
         ckan_user.update({'state': 'active'})
         self.remote.action.user_update(**ckan_user)
+
+    def get_all_organizations(self):
+        return [organization
+                for organization in self.remote.action.organization_list()]
 
     def get_organization(self, organization_name):
         try:
@@ -180,6 +166,7 @@ class CkanManagerHandler(metaclass=Singleton):
     def purge_dataset(self, id):
         self._del_package(id)
 
+    @exceptions_handler
     def get_tags(self, query=None):
         return self.remote.action.tag_list(query=query)
 
@@ -187,7 +174,6 @@ class CkanManagerHandler(metaclass=Singleton):
 class CkanUserHandler(object):
 
     def __init__(self, api_key):
-
         self.remote = RemoteCKAN(CKAN_URL, apikey=api_key)
 
     def close(self):
@@ -217,6 +203,7 @@ class CkanUserHandler(object):
 
     @exceptions_handler
     def _push_resource(self, package, **kwargs):
+        print(0, kwargs)
         kwargs['package_id'] = package['id']
         kwargs['created'] = datetime.now().isoformat()
         for resource in package['resources']:
@@ -224,7 +211,9 @@ class CkanUserHandler(object):
                 kwargs['last_modified'] = kwargs['created']
                 del kwargs['created']
                 resource.update(kwargs)
+                print(1, kwargs)
                 return self.remote.action.resource_update(**resource)
+        print(2, kwargs)
         return self.remote.action.resource_create(**kwargs)
 
     @exceptions_handler
@@ -244,12 +233,11 @@ class CkanUserHandler(object):
             if view['view_type'] == kwargs['view_type']:
                 return self.remote.action.resource_view_update(id=view['id'],
                                                                **kwargs)
-        print('Create view ->', kwargs)
         return self.remote.action.resource_view_create(**kwargs)
 
     def publish_dataset(self, name, id=None, resources=None, **kwargs):
         kwargs['name'] = name
-
+        print(kwargs)
         if id and self._is_package_exists(id):
             package = self._update_package(
                 **{**self._get_package(id), **kwargs})

@@ -62,9 +62,9 @@ def home(request):
     user = request.user
     datasets = [(o.pk,
                  o.name,
-                 o.description,
                  o.date_creation.isoformat() if o.date_creation else None,
                  o.date_modification.isoformat() if o.date_modification else None,
+                 o.date_publication.isoformat() if o.date_modification else None,
                  Organisation.objects.get(id=o.organisation_id).name,
                  o.published) for o in Dataset.objects.filter(editor=user)]
     profile = Profile.objects.get(user=user)

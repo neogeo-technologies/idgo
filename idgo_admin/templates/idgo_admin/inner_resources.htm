@@ -152,6 +152,11 @@ resourcesGrid.initializeGrid = function() {
 				cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
 			}
 		}));
+		setCellRenderer('restrictions', new CellRenderer({
+			render: function(cell, value) {
+				cell.innerHTML = value ? value : '-';
+			}
+		}));
 	};
 };
 

@@ -1,17 +1,19 @@
-# from django.conf import settings
+from django.conf import settings
+from django.core.files import File
 from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Resource
-# import os
-# from urllib.request import urlretrieve
+from idgo_admin.utils import download
 from uuid import uuid4
 
 
+class CustomClearableFileInput(forms.ClearableFileInput):
+    template_name = 'idgo_admin/clearable_file_input.html'
+
+
 class ResourceForm(forms.ModelForm):
-    # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
-    # geo_restriction, created_on, last_update dataset, type, fichier
 
     name = forms.CharField(
         label='Titre',
@@ -28,11 +30,9 @@ class ResourceForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={'placeholder': 'CSV, XML, JSON, XLS... '}))
 
-    class CustomClearableFileInput(forms.ClearableFileInput):
-        template_name = 'idgo_admin/clearable_file_input.html'
-
     up_file = forms.FileField(
         label='Téléversement',
+        required=False,
         widget=CustomClearableFileInput())
 
     class Meta(object):
@@ -60,6 +60,8 @@ class ResourceForm(forms.ModelForm):
                   'up_file': data['up_file'],
                   'dataset': dataset}
 
+        restricted_level = data['access']
+
         if id:  # Màj
             resource = Resource.objects.get(pk=id)
             for key, value in params.items():
@@ -67,6 +69,7 @@ class ResourceForm(forms.ModelForm):
         else:  # Créer
             resource = Resource.objects.create(**params)
             resource.ckan_id = uuid4()
+            resource.save()
 
         dataset = resource.dataset
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
@@ -75,29 +78,34 @@ class ResourceForm(forms.ModelForm):
                   'description': resource.description,
                   'format': resource.data_format,
                   'id': str(resource.ckan_id),
-                  'lang': resource.lang}
+                  'lang': resource.lang,
+                  'url': ''}
+
+        if restricted_level == '2':  # Registered users
+            params['restricted'] = {
+                'allowed_users': '',  # TODO(@m431m)
+                'level': 'registered'}
+
+        if restricted_level == '4':  # Any organization
+            params['restricted'] = {
+                'allowed_users': '',  # TODO(@m431m)
+                'level': 'any_organization'}
 
         if resource.referenced_url:
             params['url'] = resource.referenced_url
-            params['resource_type'] = '{0}.{1}'.format(resource.name,
-                                                       resource.data_format)
+            params['resource_type'] = \
+                '{0}.{1}'.format(resource.name, resource.data_format)
 
-        if resource.dl_url:  # TODO(@m431m)
-            pass
-            # filename = os.path.join(settings.MEDIA_ROOT,
-            #                         resource.dl_url.split('/')[-1])
-            # retreive_url = urlretrieve(resource.dl_url, filename=filename)
-            # headers = retreive_url[1]
-            # f = open(filename, 'wb')
-            # params['upload'] = f
-            # params['size'] = os.stat(f).st_size
-            # params['mimetype'] = headers["Content-Type"]
-            # params['resource_type'] = filename
-            # ckan_user.publish_resource(dataset.ckan_id, **params)
-            # f.close()
+        if resource.dl_url:
+            filename, content_type = \
+                download(resource.dl_url, settings.MEDIA_ROOT)
+            downloaded_file = File(open(filename, 'rb'))
+            params['upload'] = downloaded_file
+            params['size'] = downloaded_file.size
+            params['mimetype'] = content_type
+            params['resource_type'] = filename
 
         if uploaded_file:
-            params['url'] = ''  # empty character string
             params['upload'] = uploaded_file
             params['size'] = uploaded_file.size
             params['mimetype'] = uploaded_file.content_type

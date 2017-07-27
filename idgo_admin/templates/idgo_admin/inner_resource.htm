@@ -8,75 +8,267 @@
 
 <form method="post" action="" enctype="multipart/form-data">
 	{% csrf_token %}
-	<div class="form-group">
-		<div name="data-selector" class="btn-group btn-group-justified" data-toggle="buttons">
-			<label class="btn btn-default active">
-				<input type="radio" name="options" value="up_file" autocomplete="off" checked> Téléverser un fichier
-			</label>
-			<label class="btn btn-default">
-				<input type="radio" name="options" value="url1" autocomplete="off"> Télécharger depuis une URL
-			</label>
-			<label class="btn btn-default">
-				<input type="radio" name="options" value="url2" autocomplete="off"> Référencer une URL
-			</label>
-		</div>
-		<div class="well" name="data-selector-panel">
-			<div name="up_file" class="form-group">
-				<p>Veuillez séléctionner un ou plusieurs fichiers... (TODO: texte explicatif)</p>
-				{% bootstrap_field form.up_file %}
+	<div class="row">
+		<div class="col-xs-12">
+			{% if mode %}
+				<div class="well">
+				{% if mode == 'up_file' %}
+					{% bootstrap_field form.up_file %}
+				{% elif mode == 'dl_url' %}
+					{% bootstrap_field form.dl_url %}
+				{% elif mode == 'referenced_url' %}
+					{% bootstrap_field form.referenced_url %}
+				{% endif %}
+				</div>
+			{% else %}
+			<ul class="nav nav-tabs" name="data-selector" role="tablist">
+				<li role="presentation">
+					<a name="up_file" href="#up_file" aria-controls="up_file" role="tab" data-toggle="tab">Téléverser un fichier</a>
+				</li>
+				<li role="presentation">
+					<a name="dl_url" href="#dl_url" aria-controls="dl_url" role="tab" data-toggle="tab">Télécharger depuis une URL</a>
+				</li>
+				<li role="presentation">
+					<a name="referenced_url" href="#referenced_url" aria-controls="referenced_url" role="tab" data-toggle="tab">Référencer une URL</a>
+				</li>
+			</ul>
+			<div class="well tab-content" name="data-selector-panel">
+				<div role="tabpanel" class="tab-pane" id="up_file">
+					<p>Veuillez sélectionner un fichier sur votre disque local.</p>
+					{% bootstrap_field form.up_file show_label=False %}
+				</div>
+				<div role="tabpanel" class="tab-pane" id="dl_url">
+					<p>Veuillez indiquer l'URL d'un fichier à télécharger.</p>
+					{% bootstrap_field form.dl_url show_label=False %}
+				</div>
+				<div role="tabpanel" class="tab-pane" id="referenced_url">
+					<p>Veuillez indiquer l'URL d'un jeu de données à référencer.</p>
+					{% bootstrap_field form.referenced_url show_label=False %}
+				</div>
 			</div>
-			<div name="url1" class="form-group" style="display: none;">
-				<p>Veuillez indiquer l'URL d'un jeu de données à télécharger... (TODO: texte explicatif)</p>
-				{% for widget in form.dl_url %}
-				<input id="{{ widget.attrs.id }}" name="{{ widget.name }}" type="text" class="form-control"></input>
-				{% endfor %}
-			</div>
-			<div name="url2" class="form-group" style="display: none;">
-				<p>Veuillez indiquer l'URL d'un jeu de données à référencer (TODO: texte explicatif)</p>
-				{% for widget in rform.referenced_url %}
-				<input id="{{ widget.attrs.id }}" name="{{ widget.name }}" type="text" class="form-control"></input>
-				{% endfor %}
-			</div>
+			{% endif %}
 		</div>
 	</div>
-	{% bootstrap_field form.name %}
-	{% bootstrap_field form.description %}
-	{% bootstrap_field form.lang %}
-	{% bootstrap_field form.data_format %}
-	{% bootstrap_field form.restricted_level %}
+	<div class="row">
+		<div class="col-xs-4">
+			{% bootstrap_field form.name %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12">
+			{% bootstrap_field form.description %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-4">
+			{% bootstrap_field form.lang %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-4">
+			{% bootstrap_field form.data_format %}
+		</div>
+	</div>
+	<hr />
+	<div class="row">
+		<div class="col-xs-8">
+			{% bootstrap_field form.access %}
+			{# {% bootstrap_field form.restricted_level %} #}
+		</div>
+	</div>
+	<div class="collapse" id="permitted-users">
+		<div class="well">
+			<input type="text" class="form-control typeahead" placeholder="Liste d'utilisateurs séparés par la virgule..."></input>
+			{# {% bootstrap_field form.allowed_users %} #}
+		</div>
+	</div>
+	<div class="collapse" id="permitted-organizations">
+		<div class="well">
+			<input type="text" class="form-control typeahead" placeholder="Liste d'organisations séparées par la virgule..."></input>
+			{# {% bootstrap_field form.allowed_organisations %} #}
+		</div>
+	</div>
+	<script>
+function extractor(query) {
+	var result = /([^,]+)$/.exec(query);
+	if (result && result[1]) {
+		return result[1].trim();
+	};
+	return '';
+};
+
+function updater(item) {
+	return this.$element.val().replace(/[^,]*$/,'') + item + ',';
+};
+
+function matcher(item) {
+	var query = extractor(this.query);
+	if (!query) {
+		return false;
+	};
+	if (~item['id'].toLowerCase().indexOf(query.toLowerCase())) {
+		console.log('id: ' + ~item['id'])
+	};
+	if (~item['name'].toLowerCase().indexOf(query.toLowerCase())) {
+		console.log('name: ' + ~item['name'])
+	};
+	return ~item['id'].toLowerCase().indexOf(query.toLowerCase())
+};
+
+function highlighter(item) {
+	var query = extractor(this.query).replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&')
+	return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+		return '<strong>' + match + '</strong>';
+	});
+};
+
+$('#permitted-users .typeahead').tagsinput({
+	typeahead: {
+		source: {{ users | safe }}
+	},
+	//freeInput: true
+});
+
+
+$('#permitted-organizations .typeahead').typeahead({
+	source: {{ organizations | safe }},
+	updater: updater,
+	matcher: matcher,
+	highlighter: highlighter
+});
+
+	</script>
 	<div class="buttons-on-the-right-side">
 		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
 		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">Annuler</a>
 	</div>
 </form>
 <script>
-$(function() {
-	$('div[name="data-selector"] input[type=radio]').on('change', function() {
-		$('.well>div').each(function(){
-			$(this).hide();
-			$('input[type="file"]').val('');
-			$('input[type="text"]').val('');
+$('a[role="tab"]').click(function(e) {
+	if ($(this).hasClass('disabled')) {
+		e.stopPropagation();
+	};
+});
+
+$('ul[name="data-selector"] a').click(function(e) {
+	e.preventDefault();
+	$(this).tab('show');
+});
+
+var $permittedUsers = $('#permitted-users')
+	.collapse({
+		toggle: false
+	})
+	.on('hidden.bs.collapse', function() {
+		$('#collapse-restriction input').each(function(i) {
+			$(this).val('');
 		});
-		$('.well>div[name="' + this.value + '"]').show();
 	});
-	$(document).on('change', ':file', function() {
-		var $this = $(this);
-		var $files = $this.get(0).files;
-		var count = $files ? $files.length : 1;
-		var fileName = [];
-		for (var i = 0; i < $files.length; i ++) {
-			fileName.push($files[i].name);
-		};
-		$this.trigger('fileselect', [count, fileName.join(', ')]);
+
+var $permittedOrganizations = $('#permitted-organizations')
+	.collapse({
+		toggle: false
+	})
+	.on('hidden.bs.collapse', function() {
+		$('#collapse-restriction input').each(function(i) {
+			$(this).val('');
+		});
 	});
-	$(document).ready(function() {
-		$(':file').on('fileselect', function(e, count, label) {
+
+function getAccessSelectedOption($this) {
+	var value = $this.find('option:selected').val();
+	if (value === '2') {
+		$permittedOrganizations.collapse('hide');
+		$permittedUsers.collapse('show');
+	}
+	else if (value === '4') {
+		$permittedUsers.collapse('hide');
+		$permittedOrganizations.collapse('show');
+	}
+	else {
+		$permittedUsers.collapse('hide');
+		$permittedOrganizations.collapse('hide');
+	};
+};
+
+$selectAccess = $('select[name="access"]')
+	.change(function() {
+		getAccessSelectedOption($(this));
+	});
+
+$('div[name="data-selector"] input[type=radio]').on('change', function() {
+	$('.well>div').each(function(){
+		$(this).hide();
+		$('div[name="data-selector-panel"] input').val('');
+	});
+	$('.well>div[name="' + this.value + '"]').show();
+});
+
+$(document).on('change', ':file', function() {
+	var $this = $(this);
+	var $files = $this.get(0).files;
+	var count = $files ? $files.length : 1;
+	var fileName = [];
+	for (var i = 0; i < $files.length; i ++) {
+		fileName.push($files[i].name);
+	};
+	$this.trigger('fileselect', [count, fileName.join(', ')]);
+});
+
+// function foobar($that) {
+// 	if ($that.val().length > 0) {
+// 		$('div[name="data-selector-panel"] input').each(function() {
+// 			var $this = $(this);
+// 			if (!($that[0] === $this[0])) {
+// 				$('ul[name="data-selector"]>li>a').each(function() {
+// 					var $tab = $(this);
+// 					if ($tab[0].name != $this[0].name) {
+// 						$tab.parent().addClass('disabled')
+// 						$tab.addClass('disabled');
+// 						$tab.prop('disabled', true);
+// 					};
+// 				});
+// 			};
+// 		});
+// 	};
+// };
+
+// $('div[name="data-selector-panel"] input').each(function() {
+// 	var $this = $(this);
+// 	$this
+// 		.focusout(function() {
+// 			foobar($this);
+// 		})
+// 		.change(function() {
+// 			foobar($this);
+// 		});
+// });
+
+var $input = $('input[type="file"]').change(function(e) {
+	if ($input.val().length > 0) {
+		// TODO
+	};
+});
+
+$(document).ready(function() {
+	var mode = '{{ mode }}';
+	if (mode) {
+		$('ul[name="data-selector"] a[href="#' + mode + '"]').tab('show');
+		$('ul[name="data-selector"] a:not(a[href="#' + mode + '"])').each(function() {
 			var $this = $(this);
-			var $input = $this.parents('.input-group').find(':text');
-			console.log('label')
-			console.log(label)
-			$input.val((count > 1) ? count + ' fichiers : ' + label : label);
+			$this.prop('disabled', true);
+			$this.addClass('disabled');
+			$this.parent().addClass('disabled');
 		});
+	} else {
+		$('ul[name="data-selector"] a:first').tab('show');
+	};
+
+	$(':file').on('fileselect', function(e, count, label) {
+		var $this = $(this);
+		var $input = $this.parents('.input-group').find(':text');
+		$input.val((count > 1) ? count + ' fichiers : ' + label : label);
 	});
+	getAccessSelectedOption($('select[name="access"]'));
 });
 </script>

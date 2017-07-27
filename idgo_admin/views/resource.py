@@ -13,6 +13,7 @@ from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import Mail
 from idgo_admin.models import Resource
+import json
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -34,21 +35,38 @@ def render_an_critical_error(request):
 @method_decorator(decorators, name='dispatch')
 class ResourceManager(View):
 
+    all_users = [m[1] for m in ckan.get_all_users()]
+    all_organizations = ckan.get_all_organizations()
+
+    def mode(self, instance):
+        if instance.up_file:
+            return 'up_file'
+        if instance.dl_url:
+            return 'dl_url'
+        if instance.referenced_url:
+            return 'referenced_url'
+
     def get(self, request, dataset_id):
         user = request.user
         id = request.GET.get('id') or None
         dataset = get_object_or_404(Dataset, id=dataset_id)
+
         if id:
             instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
             return render(request, 'idgo_admin/resource.html', context={
+                'users': json.dumps(self.all_users),
+                'organizations': json.dumps(self.all_organizations),
                 'first_name': user.first_name,
                 'last_name': user.last_name,
                 'dataset_name': dataset.name,
                 'dataset_id': dataset.id,
                 'resource_name': instance.name,
+                'mode': self.mode(instance),
                 'form': Form(instance=instance)})
 
         return render(request, 'idgo_admin/resource.html', context={
+            'users': json.dumps(self.all_users),
+            'organizations': json.dumps(self.all_organizations),
             'first_name': user.first_name,
             'last_name': user.last_name,
             'dataset_name': dataset.name,  # TODO
@@ -69,6 +87,7 @@ class ResourceManager(View):
         if id:
             instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
             resource_name = instance.name
+            mode = self.mode(instance)
 
             form = Form(request.POST, request.FILES, instance=instance)
             if form.is_valid() and user.is_authenticated:
@@ -85,6 +104,7 @@ class ResourceManager(View):
 
         else:
             resource_name = 'Nouveau'
+            mode = None
             form = Form(request.POST, request.FILES)
             if form.is_valid() and user.is_authenticated:
                 try:
@@ -103,12 +123,15 @@ class ResourceManager(View):
                     resource_name = instance.name
 
         return render(request, 'idgo_admin/resource.html', context={
+            'users': json.dumps(self.all_users),
+            'organizations': json.dumps(self.all_organizations),
             'first_name': user.first_name,
             'last_name': user.last_name,
             'dataset_name': dataset.name,  # TODO
             'dataset_id': dataset.id,  # TODO
             'resource_name': resource_name,
             'form': form,
+            'mode': mode,
             'message': {
                 'status': success and 'success' or 'failure',
                 'text': text}})

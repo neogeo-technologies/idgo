@@ -165,11 +165,10 @@ class DatasetForm(forms.ModelForm):
             'author': user.username,
             'author_email': user.email,
             'dataset_creation_date': str(
-                dataset.date_creation.date()
-                if dataset.date_creation else ''),
+                dataset.date_creation if dataset.date_creation else ''),
             'dataset_publication_date': str(
-                dataset.date_publication.date()
-                if dataset.date_publication else ''),
+                dataset.date_publication if dataset.date_publication else ''),
+            # TODO -> Last modification
             'groups': [],  # Cf. plus bas..
             'geocover': dataset.geocover,
             'license_id': dataset.licences.title,
