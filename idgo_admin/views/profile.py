@@ -186,22 +186,22 @@ def sign_up(request):
 
             # Demande de creation nouvelle organisation
             if data['is_new_orga']:
-                new_organisation_action = AccountActions.objects.create(
+                AccountActions.objects.create(
                         profile=profile, action="confirm_new_organisation")
-                try:
-                    Mail.confirm_new_organisation(request, new_organisation_action)
-                except Exception as e:
-                    print('SendingMailError', e)
-                    raise e
+                # try:
+                #     Mail.confirm_new_organisation(request, new_organisation_action)
+                # except Exception as e:
+                #     print('SendingMailError', e)
+                #     raise e
 
             # Demande de rattachement Profile-Organsaition
-            rattachement_action = AccountActions.objects.create(
+            AccountActions.objects.create(
                     profile=profile, action="confirm_rattachement")
-            try:
-                Mail.confirm_rattachement(request, rattachement_action)
-            except Exception as e:
-                print('SendingMailError', e)
-                raise e
+            # try:
+            #     Mail.confirm_rattachement(request, rattachement_action)
+            # except Exception as e:
+            #     print('SendingMailError', e)
+            #     raise e
 
             # Demande de role de referent
             if data['referent_requested']:
@@ -321,7 +321,7 @@ def forgotten_password(request):
 
     # TODO(cbenhabib): Registration -> AccountActions
     # Get or create: cas ou la table Registration a été vidé (CRON à 48h)
-    reg, created = Registration.objects.get_or_create(user=user)
+    # reg, created = Registration.objects.get_or_create(user=user)
     # reg, created = AccountActions.objects.get_or_create(user=user, action='reset_password')
     # if created is False:
     #     message = ('Un e-mail de réinitialisation à déjà été envoyé '
@@ -361,7 +361,7 @@ def reset_password(request, key):
                       {'form': form})
 
     # TODO(cbenhabib): Registration -> AccountActions
-    reg = get_object_or_404(Registration, reset_password_key=key)
+    # reg = get_object_or_404(Registration, reset_password_key=key)
     user = get_object_or_404(User, username=reg.user.username)
     # reset_action = get_object_or_404(AccountActions, key=key, action="reset_password")
     # user = reset_action.user
@@ -428,7 +428,7 @@ def confirmation_mail(request, key):
     if organisation:
         # Demande de creation nouvelle organisation
         if organisation.is_active is False:
-            new_organisation_action = AccountActions.objects.create(
+            new_organisation_action = AccountActions.objects.get(
                     profile=profile, action="confirm_new_organisation")
             try:
                 Mail.confirm_new_organisation(request, new_organisation_action)
@@ -437,7 +437,7 @@ def confirmation_mail(request, key):
                 raise e
 
         # Demande de rattachement Profile-Organsaition
-        rattachement_action = AccountActions.objects.create(
+        rattachement_action = AccountActions.objects.get(
                 profile=profile, action="confirm_rattachement")
         try:
             Mail.confirm_rattachement(request, rattachement_action)
