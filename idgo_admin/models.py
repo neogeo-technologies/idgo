@@ -162,7 +162,7 @@ class Organisation(models.Model):
 
     name = models.CharField('Nom', max_length=150, unique=True, db_index=True)
     organisation_type = models.ForeignKey(
-        OrganisationType, verbose_name="Type d'organisme", default='1')
+        OrganisationType, verbose_name="Type d'organisme", default='1', blank=True, null=True)
     code_insee = models.CharField(
         'Code INSEE', max_length=20, unique=False, db_index=True)
     parent = models.ForeignKey(
@@ -180,7 +180,7 @@ class Organisation(models.Model):
     ckan_slug = models.SlugField(
         'CKAN ID', max_length=150, unique=True, db_index=True)
     website = models.URLField('Site web', blank=True)
-    email = models.EmailField(verbose_name="Adresse mail de l'organisation")
+    email = models.EmailField(verbose_name="Adresse mail de l'organisation", blank=True, null=True)
     id_url_unique = models.URLField('URL unique', blank=True, null=True)
     titre = models.CharField('Titre', max_length=100, blank=True, null=True)  # Todo: unique=True
     description = models.CharField('Description', max_length=1024, blank=True,
@@ -772,14 +772,12 @@ def update_externals(sender, instance, **kwargs):
 @receiver(pre_save, sender=Organisation)
 def orga_ckan_presave(sender, instance, **kwargs):
 
-    if instance.is_active:
-        instance.sync_in_ckan = ckan.is_organization_exists(instance.ckan_slug)
-        instance.ckan_slug = slugify(instance.name)
-        try:
-            ckan.add_organization(instance)
-        except Exception:
-            instance.sync_in_ckan = False
-        else:
-            instance.sync_in_ckan = True
-    else:
+
+    instance.sync_in_ckan = ckan.is_organization_exists(instance.ckan_slug)
+    instance.ckan_slug = slugify(instance.name)
+    try:
+        ckan.add_organization(instance)
+    except Exception:
         instance.sync_in_ckan = False
+    else:
+        instance.sync_in_ckan = True

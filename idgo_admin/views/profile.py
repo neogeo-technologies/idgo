@@ -1,3 +1,4 @@
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
@@ -139,37 +140,49 @@ def sign_up(request):
 
     def handle_new_profile(data):
 
-        user = User.objects.create_user(
-            username=data['username'], password=data['password'],
-            email=data['email'], first_name=data['first_name'],
-            last_name=data['last_name'],
-            is_staff=False, is_superuser=False, is_active=False)
-        if data['organisation']:
-            params_ids = ['parent', 'organisation_type', 'financeur',
-                          'status', 'license']
-            res = {}
-            for p in params_ids:
-                res[p] = data[p] if p in data and data[p] is not None else None
-            organisation, created = Organisation.objects.get_or_create(
-                    name=data['organisation'], defaults={
-                        'website': data['website'],
-                        'parent': res['parent'],
-                        'organisation_type': res['organisation_type'],
-                        'code_insee': data['code_insee'],
-                        'description': data['description'],
-                        'adresse': data['adresse'],
-                        'code_postal': data['code_postal'],
-                        'ville': data['ville'],
-                        'org_phone': data['org_phone'],
-                        'financeur': res['financeur'],
-                        'status': res['status'],
-                        'license': res['license'],
-                        'is_active': False})
+        try:
+            user = User.objects.create_user(
+                username=data['username'], password=data['password'],
+                email=data['email'], first_name=data['first_name'],
+                last_name=data['last_name'],
+                is_staff=False, is_superuser=False, is_active=False)
+        except Exception as e:
+            print('CreatingUserError', e)
+            raise e
 
-            profile = Profile.objects.create(user=user, role=data['role'],
-                                             phone=data['phone'],
-                                             organisation=organisation,
-                                             is_active=False)
+        if data['organisation']:
+            # params = ['adresse', 'code_insee', 'code_postal', 'description',
+            #           'financeur', 'license', 'organisation_type', 'org_phone'
+            #           'parent', 'phone', 'role', 'status', 'ville', 'website']
+            # res = {}
+            # for p in params:
+            #     res[p] = data[p] if p in data and data[p] is not None else None
+            try:
+                organisation, created = Organisation.objects.get_or_create(
+                        name=data['organisation'], defaults={
+                            'adresse': data['adresse'],
+                            'code_insee': data['code_insee'],
+                            'code_postal': data['code_postal'],
+                            'description': data['description'],
+                            'financeur': data['financeur'],
+                            'license': data['license'],
+                            'organisation_type': data['organisation_type'],
+                            'parent': data['parent'],
+                            'status': data['status'],
+                            'ville': data['ville'],
+                            'website': data['website'],
+                            'is_active': False})
+            except Exception as e:
+                print('CreatingOrganisationError', e)
+                raise e
+            try:
+                profile = Profile.objects.create(user=user, role=data['role'],
+                                                 phone=data['phone'],
+                                                 organisation=organisation,
+                                                 is_active=False)
+            except Exception as e:
+                print('CreatingProfileError', e)
+                raise e
 
             # Demande de creation nouvelle organisation
             if data['is_new_orga']:
@@ -275,8 +288,8 @@ def sign_up(request):
     try:
         handle_new_profile(data)
     except IntegrityError:
-        uform.add_error('username',
-                        'Cet identifiant de connexion est réservé.')
+        # uform.add_error('username',
+        #                 'Cet identifiant de connexion est réservé.')
         return render_on_error()
     except Exception as e:
         print('ExceptionSignup', e)
