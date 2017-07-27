@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Category
@@ -154,7 +155,8 @@ class DatasetForm(forms.ModelForm):
             dataset.keywords.clear()
             for tag in data['keywords']:
                 dataset.keywords.add(tag)
-
+        if not data['date_creation']:
+            dataset.date_creation = timezone.now()
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
 
         params = {
