@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core import validators
 from django import forms
+from idgo_admin.models import Liaisons_Contributeurs
+from idgo_admin.models import Liaisons_Referents
 from idgo_admin.models import Financeur
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
@@ -221,12 +223,35 @@ class UserProfileForm(forms.Form):
             label="Licence par défault pour les jeu de donnée",
             queryset=License.objects.all())
 
+    referent_requested = forms.BooleanField(
+        initial=True,
+        label='Demander le status de référent pour cette organisation',
+        required=False)
+
+    contribution_requested = forms.BooleanField(
+        initial=True,
+        label="Demander le status de contributeur pour cette organisation",
+        required=False)
+
     class Meta(object):
         model = Profile
+        fields = ('phone', 'role', 'organisation', 'name', 'organisation_type',
+                  'code_insee', 'parent', 'website', 'email', 'description',
+                  'logo', 'adresse', 'code_postal', 'ville', 'org_phone',
+                  'communes', 'license', 'financeur', 'status',
+                  'referent_requested', 'contribution_requested')
 
     def clean(self):
 
+        params = ['website', 'parent', 'code_insee', 'organisation_type',
+                  'description', 'adresse', 'ville', 'code_postal', 'communes'
+                  'org_phone', 'status', 'financeur', 'license', 'new_orga']
+
         organisation = self.cleaned_data.get('organisation')
+        if self.cleaned_data.get('referent_requested'):
+            self.cleaned_data['referent_requested'] = True
+        if self.cleaned_data.get('contribution_requested'):
+            self.cleaned_data['contribution_requested'] = True
         if organisation is None:
             # Retourne le nom d'une nouvelle organisation lors d'une
             # nouvelle demande de création
@@ -236,9 +261,6 @@ class UserProfileForm(forms.Form):
                 self.cleaned_data.get('new_website')
             self.cleaned_data['is_new_orga'] = True
 
-            params = ['parent', 'code_insee', 'organisation_type',
-                      'description', 'adresse', 'ville', 'code_postal',
-                      'org_phone', 'financeur', 'license', 'status']
             for p in params:
                 self.cleaned_data[p] = self.cleaned_data.get(p)
 
@@ -246,9 +268,7 @@ class UserProfileForm(forms.Form):
             # Vider les champs pour nouvelle orga dans le cas
             # ou l'utilisateur ne crée pas de nouvelle orga
             # mais laisse des champs remplis
-            params = ['website', 'parent', 'code_insee', 'organisation_type',
-                      'description', 'adresse', 'ville', 'code_postal',
-                      'org_phone', 'status', 'financeur', 'license', 'new_orga']
+
             for p in params:
                 self.cleaned_data[p] = ''
             self.cleaned_data['is_new_orga'] = False
@@ -264,10 +284,16 @@ class UserProfileForm(forms.Form):
 class ProfileUpdateForm(forms.ModelForm):
 
     organisation = forms.ModelChoiceField(required=False,
-                                          label='Organisme',
+                                          label="Organisme d'attachement",
                                           queryset=Organisation.objects.all())
-    publish_for = forms.ModelChoiceField(required=False,
-                                         label='Organismes associés',
+
+    referents = forms.ModelChoiceField(required=False,
+                                         label='Référent pour ces organismes',
+                                         widget=forms.RadioSelect(),
+                                         queryset=Organisation.objects.all())
+
+    contributions = forms.ModelChoiceField(required=False,
+                                         label='Organismes de contribution',
                                          widget=forms.RadioSelect(),
                                          queryset=Organisation.objects.all())
     phone = forms.CharField(
@@ -284,16 +310,26 @@ class ProfileUpdateForm(forms.ModelForm):
 
     class Meta(object):
         model = Profile
-        fields = ('organisation', 'phone', 'role', 'publish_for')
+        fields = ('organisation', 'phone', 'role', 'contributions', 'referents')
 
     def __init__(self, *args, **kwargs):
         exclude_args = kwargs.pop('exclude', {})
         super(ProfileUpdateForm, self).__init__(*args, **kwargs)
-        ppf = Profile.publish_for.through
-        set = ppf.objects.filter(profile__user=exclude_args['user'])
-        black_l = [e.organisation_id for e in set]
-        self.fields['publish_for'].queryset = \
-            Organisation.objects.exclude(pk__in=black_l)
+        # On exclu de la liste de choix toutes les organisations pour
+        # lesquelles l'user est contributeur ou en attente de validation
+        contribs_available = Liaisons_Contributeurs.objects.filter(
+                profile__user=exclude_args['user'])
+        con_org_bl = [e.organisation.pk for e in contribs_available]
+        self.fields['contributions'].queryset = \
+            Organisation.objects.exclude(pk__in=con_org_bl)
+
+        # On exclu de la liste de choix toutes les organisations pour
+        # lesquelles l'user est contributeur ou en attente de validation
+        referents_available = Liaisons_Referents.objects.filter(
+                profile__user=exclude_args['user'])
+        ref_org_bl = [e.organisation.pk for e in referents_available]
+        self.fields['referents'].queryset = \
+            Organisation.objects.exclude(pk__in=ref_org_bl)
 
     def save_f(self, commit=True):
         profile = super(ProfileUpdateForm, self).save(commit=False)
@@ -327,21 +363,27 @@ class UserDeleteForm(AuthenticationForm):
         fields = ('username', 'password')
 
 
-class PublishDeleteForm(forms.ModelForm):
-    publish_for = forms.ModelChoiceField(required=False,
-                                         label='Organismes associés',
+class BondingDeleteForm(forms.ModelForm):
+
+    referents = forms.ModelChoiceField(required=False,
+                                         label='Référent pour ces organismes',
+                                         widget=forms.RadioSelect(),
+                                         queryset=Organisation.objects.all())
+
+    contributions = forms.ModelChoiceField(required=False,
+                                         label='Organismes de contribution',
                                          widget=forms.RadioSelect(),
                                          queryset=Organisation.objects.all())
 
     def __init__(self, *args, **kwargs):
         include_args = kwargs.pop('include', {})
-        super(PublishDeleteForm, self).__init__(*args, **kwargs)
-        ppf = Profile.publish_for.through
-        set = ppf.objects.filter(profile__user=include_args['user'])
-        org_contrib = [e.organisation_id for e in set]
+        super(BondingDeleteForm, self).__init__(*args, **kwargs)
+        contribs_available = Liaisons_Contributeurs.objects.filter(
+                profile__user=include_args['user'], validated_on__isnull=False)
+        org_ids = [e.organisation.pk for e in contribs_available]
         self.fields['publish_for'].queryset = \
-            Organisation.objects.filter(pk__in=org_contrib)
+            Organisation.objects.filter(pk__in=org_ids)
 
     class Meta(object):
         model = Profile
-        fields = ('publish_for', )
+        fields = ('referents', 'contributions')

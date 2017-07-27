@@ -108,6 +108,15 @@
 	<hr />
 	<div class="row">
 		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			{% bootstrap_field pform.referent_requested show_label=False %}
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			{% bootstrap_field pform.contribution_requested show_label=False %}
+		</div>
+	</div>
+	<hr />
+	<div class="row">
+		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 			{% bootstrap_field pform.role show_label=False %}
 		</div>
 		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">

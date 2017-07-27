@@ -41,7 +41,7 @@ class ResourceForm(forms.ModelForm):
                   'description',
                   'lang',
                   'data_format',
-                  'access',
+                  'restricted_level',
                   'dl_url',
                   'referenced_url',
                   'up_file')
@@ -56,7 +56,7 @@ class ResourceForm(forms.ModelForm):
                   'referenced_url': data['referenced_url'],
                   'lang': data['lang'],
                   'data_format': data['data_format'],
-                  'access': data['access'],
+                  'restricted_level': data['restricted_level'],
                   'up_file': data['up_file'],
                   'dataset': dataset}
 

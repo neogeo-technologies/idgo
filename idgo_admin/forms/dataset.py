@@ -2,6 +2,7 @@ from django import forms
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Category
+from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import Dataset
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
@@ -115,12 +116,14 @@ class DatasetForm(forms.ModelForm):
 
         super(DatasetForm, self).__init__(*args, **kwargs)
 
-        ppf = Profile.publish_for.through
-        set = ppf.objects.filter(profile__user=include_args['user'])
-        my_pub_l = [e.organisation_id for e in set]
-
+        # ppf = Profile.publish_for.through
+        # set = ppf.objects.filter(profile__user=include_args['user'])
+        # my_pub_l = [e.organisation_id for e in set]
+        profile = Profile.objects.get(user=include_args['user'])
         self.fields['organisation'].queryset = \
-            Organisation.objects.filter(pk__in=my_pub_l)
+            Organisation.objects.filter(
+                pk__in=[o.pk for o in Liaisons_Contributeurs.get_contribs(
+                    profile=profile)])
 
     def handle_me(self, request, id=None):
         user = request.user

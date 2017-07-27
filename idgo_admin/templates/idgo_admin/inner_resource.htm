@@ -43,7 +43,7 @@
 	{% bootstrap_field form.description %}
 	{% bootstrap_field form.lang %}
 	{% bootstrap_field form.data_format %}
-	{% bootstrap_field form.access %}
+	{% bootstrap_field form.restricted_level %}
 	<div class="buttons-on-the-right-side">
 		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
 		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">Annuler</a>

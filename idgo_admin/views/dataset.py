@@ -54,7 +54,7 @@ class DatasetManager(View):
                 o.data_format,
                 o.created_on.isoformat() if o.created_on else None,
                 o.last_update.isoformat() if o.last_update else None,
-                o.access) for o in Resource.objects.filter(dataset=instance)]
+                o.restricted_level) for o in Resource.objects.filter(dataset=instance)]
 
         context = {'form': form,
                    'first_name': user.first_name,
@@ -70,7 +70,10 @@ class DatasetManager(View):
     def post(self, request):
 
         user = request.user
-
+        dataset_id = None
+        resources = []
+        success = False
+        text = "Erreur lors de l'opération de modification de la base Dataset"
         id = request.POST.get('id', request.GET.get('id')) or None
         if id:
             instance = get_object_or_404(Dataset, id=id, editor=user)
@@ -86,7 +89,7 @@ class DatasetManager(View):
                 o.data_format,
                 o.created_on.isoformat() if o.created_on else None,
                 o.last_update.isoformat() if o.last_update else None,
-                o.access) for o in Resource.objects.filter(dataset=instance)]
+                o.restricted_level) for o in Resource.objects.filter(dataset=instance)]
 
             if form.is_valid() or request.user.is_authenticated:
                 try:
@@ -104,7 +107,7 @@ class DatasetManager(View):
             form = Form(data=request.POST, include={'user': user})
             if form.is_valid() and request.user.is_authenticated:
                 try:
-                    instance = form.handle_me(request, id=request.GET.get('id'))
+                    instance = form.handle_me(request, id=id)
                 except Exception as e:
                     print('Exception:', e)
                     success = False
@@ -116,6 +119,7 @@ class DatasetManager(View):
 
                     form = Form(request.POST, request.FILES, instance=instance)
                     dataset_name = instance.name
+                    dataset_id = instance.id
 
         context = {
             'form': form,

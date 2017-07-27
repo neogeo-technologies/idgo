@@ -10,7 +10,6 @@ from .models import Mail
 from .models import Organisation
 from .models import OrganisationType
 from .models import Profile
-from .models import Registration
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
@@ -24,7 +23,6 @@ geo_admin.GeoModelAdmin.default_zoom = 14
 
 admin.site.register(OrganisationType)
 admin.site.unregister(User)
-admin.site.register(Registration)
 admin.site.register(Profile)
 
 admin.site.register(Category)
@@ -49,13 +47,6 @@ class DatasetAdmin(admin.ModelAdmin):
 admin.site.register(Dataset, DatasetAdmin)
 
 
-class UserRegistrationInline(admin.StackedInline):
-    model = Registration
-    max_num = 1
-    can_delete = False
-    readonly_fields = ('activation_key', 'affiliate_orga_key', 'reset_password_key')
-
-
 class UserProfileInline(admin.StackedInline):
     model = Profile
     max_num = 1
@@ -64,7 +55,7 @@ class UserProfileInline(admin.StackedInline):
 
 
 class UserAdmin(AuthUserAdmin):
-    inlines = [UserRegistrationInline, UserProfileInline]
+    inlines = [UserProfileInline]
 
 
 admin.site.register(User, UserAdmin)

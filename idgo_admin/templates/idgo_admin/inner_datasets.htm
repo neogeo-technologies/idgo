@@ -11,7 +11,7 @@
 </div>
 <script>
 var DATASET_URL = '{% url "idgo_admin:dataset" %}';
-var CONTRIBUTE_URL = '{% url "idgo_admin:publish_request" %}';
+var CONTRIBUTE_URL = '{% url "idgo_admin:contribution_request" %}';
 var DATASETS = {{ datasets | safe }};
 var IS_CONTRIBUTOR = {{ is_contributor | safe }};
 var DATASETS_CONTAINER = 'table-datasets';

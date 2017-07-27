@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 # from django.db import models
 from django.contrib.gis.db import models  # TODO(@m431m)
-from django.contrib.postgres.fields import JSONField
 from django.core.mail import send_mail
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
@@ -18,6 +17,96 @@ import uuid
 
 def deltatime_2_days():
     return timezone.now() + timezone.timedelta(days=2)
+
+
+class Resource(models.Model):
+
+    # PENSER A SYNCHRONISER CETTE LISTE DES LANGUES
+    # AVEC LE STRUCTURE DECRITE DANS CKAN
+    # cf. /usr/lib/ckan/default/lib/python2.7/site-packages/ckanext/scheming/ckan_dataset.json
+
+    LANG_CHOICES = (
+        ('french', 'Français'),
+        ('english', 'Anglais'),
+        ('italian', 'Italien'),
+        ('german', 'Allemand'),
+        ('other', 'Autre'))
+
+    TYPE_CHOICES = (
+        ('data', 'Données'),
+        ('resource', 'Resources'))
+
+    LEVEL_CHOICES = (
+        ('O', 'Tous les utilisateurs'),
+        ('1', 'Utilisateurs authentifiés'),
+        ('2', 'Utilisateurs authentifiés avec droits spécifiques'))
+
+    # Une fiche dataset correspond à n fiches Resource
+
+    name = models.CharField('Nom', max_length=150)
+
+    ckan_id = models.UUIDField(
+        'Ckan UUID', unique=True, db_index=True, blank=True, null=True)
+
+    description = models.TextField('Description', blank=True, null=True)
+
+    referenced_url = models.URLField(
+        'Référencer une URL', blank=True, null=True)
+
+    dl_url = models.URLField(
+        'Télécharger depuis une URL', blank=True, null=True)
+
+    up_file = models.FileField(
+        'Téléverser un ou plusieurs fichiers', blank=True, null=True)
+
+    lang = models.CharField(
+        'Langue', choices=LANG_CHOICES, default='french', max_length=10)
+
+    data_format = models.CharField(
+        'Format', max_length=20, blank=True)
+
+    projection = models.ForeignKey(
+        'Projection', blank=True, null=True)
+
+    resolution = models.ForeignKey(
+        'Resolution', blank=True, null=True)
+
+    restricted_level = models.CharField(
+        "Restriction d'accès", choices=LEVEL_CHOICES,
+        default="0", max_length=20, blank=True, null=True)
+
+    allowed_users = models.ManyToManyField(
+        'Profile', verbose_name="Utilisateurs autorisés")
+
+    allowed_organisations = models.ManyToManyField(
+        'Organisation', verbose_name="Organisations autorisées")
+
+    dataset = models.ForeignKey(
+        'Dataset', on_delete=models.CASCADE, blank=True, null=True)
+
+    bbox = models.PolygonField(
+        'Rectangle englobant', blank=True, null=True)
+
+    # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
+    geo_restriction = models.BooleanField(
+        "Restriction géographique", default=False)
+
+    created_on = models.DateTimeField(
+        verbose_name="Date de creation de la resource",
+        blank=True, null=True, default=timezone.now)
+
+    last_update = models.DateTimeField(
+        verbose_name="Date de dernière modification de la resource",
+        blank=True, null=True)
+
+    data_type = models.CharField(verbose_name='type de resources',
+                                 choices=TYPE_CHOICES, max_length=10)
+
+    def __str__(self):
+        return self.name
+
+    class Meta(object):
+        verbose_name = "Ressource"
 
 
 class Commune(models.Model):
@@ -110,8 +199,8 @@ class Organisation(models.Model):
                                   on_delete=models.CASCADE)
     status = models.ForeignKey(Status, blank=True, null=True,
                                on_delete=models.CASCADE)
-    # is_active = models.BooleanField("Si l'organisation créée par un administrateur",
-    #                                 default=False)
+    is_active = models.BooleanField("Création validée par un administrateur",
+                                    default=False)
 
     def __str__(self):
         return self.name
@@ -134,49 +223,75 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     organisation = models.ForeignKey(Organisation, blank=True, null=True,
                                      verbose_name="Organisme d'appartenance")
-    publish_for = models.ManyToManyField(
-        Organisation, related_name='pub_org', verbose_name='Organisme associé',
-        help_text='Liste des organismes pour lesquels '
-                  "l'utilisateur publie des jeux de données.")
+    referents = models.ManyToManyField(
+        Organisation, through='Liaisons_Referents',
+        verbose_name="Organismes dont l'utiliateur est réferent",
+        related_name='profile_referents')
+
+    contributions = models.ManyToManyField(
+        Organisation, through='Liaisons_Contributeurs',
+        verbose_name="Organismes dont l'utiliateur est contributeur",
+        related_name='profile_contributions')
+
+    resources = models.ManyToManyField(
+        Resource, through='Liaisons_Resources',
+        verbose_name="Resources publiées par l'utilisateur",
+        related_name='profile_resources')
+
     phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
     role = models.CharField('Fonction', max_length=150, blank=True, null=True)
+    is_active = models.BooleanField("Validation suite à confirmation mail par utilisateur",
+                                    default=False)
 
     def __str__(self):
         return self.user.username
 
 
 # TODO(cbenhabib):
+# Le rattachement est conservé sur FK: Profile-Organisation
+class Liaisons_Referents(models.Model):
 
-class PublishRequest(models.Model):  # Demande de contribution
-
-    user = models.ForeignKey(User, verbose_name='Utilisateur')
-    organisation = models.ForeignKey(
-        Organisation, verbose_name='Organisme',
-        help_text='Organisme pour lequel le '
-        'statut de contributeur est demandé')
-
-    date_demande = models.DateField(verbose_name='Date de la demande',
-                                    auto_now_add=timezone.now())
-    date_acceptation = models.DateField(verbose_name='Date acceptation',
-                                        blank=True, null=True)
-    pub_req_key = models.UUIDField(default=uuid.uuid4, editable=False)
-
-
-class Registration(models.Model):
-    # Todo: action_list
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    # User validation email
-    activation_key = models.UUIDField(default=uuid.uuid4, editable=False)
-    # Admin validation profile
-    affiliate_orga_key = models.UUIDField(default=uuid.uuid4, editable=False)
-    # User resetting password key
-    reset_password_key = models.UUIDField(default=uuid.uuid4, editable=False)
-    profile_fields = JSONField('Champs profile', blank=True, null=True)
-    date_validation_user = models.DateField(
-        verbose_name="Date validation par l'utilisateur",
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    created_on = models.DateField(auto_now_add=True)
+    validated_on = models.DateField(
+        verbose_name="Date de validation de l'action",
         blank=True, null=True)
-    date_affiliate_admin = models.DateField(
-        verbose_name="Date activation par un administrateur",
+
+    class Meta:
+        unique_together = (('profile', 'organisation'),)
+
+    @classmethod
+    def get_subordonates(cls, profile):
+        return [e.organisation for e in Liaisons_Contributeurs.objects.filter(
+                    profile=profile)]
+
+
+class Liaisons_Contributeurs(models.Model):
+
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    created_on = models.DateField(auto_now_add=True)
+    validated_on = models.DateField(
+        verbose_name="Date de validation de l'action",
+        blank=True, null=True)
+
+    class Meta:
+        unique_together = (('profile', 'organisation'),)
+
+    @classmethod
+    def get_contribs(cls, profile):
+        return [e.organisation for e in Liaisons_Contributeurs.objects.filter(
+                    profile=profile)]
+
+
+class Liaisons_Resources(models.Model):
+
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE)
+    created_on = models.DateField(auto_now_add=True)
+    validated_on = models.DateField(
+        verbose_name="Date de validation de l'action",
         blank=True, null=True)
 
 
@@ -184,14 +299,22 @@ class Registration(models.Model):
 class AccountActions(models.Model):
     ACTION_CHOICES = (
         ("confirm_mail", "Confirmation de l'email par l'utilisateur"),
-        ("confirm_rattachmnt", "Rattachement d'un utilisateur à une organsiation par un administrateur"),
+        ("confirm_new_organisation", ("Confirmation par un administrateur"
+                                      "de la création d'une orga par l'utilisateur")),
+        ("confirm_rattachement", "Rattachement d'un utilisateur à une organsiation par un administrateur"),
         ("confirm_referent", ("Confirmation du rôle de réferent d'une organisation"
                               "pour un utilisatur par un administrateur")),
-        ("confirm_contrib", ("Confirmation du rôle de contributeur d'une organisation"
-                             "pour un utilisatur par un administrateur")),
+        ("confirm_contribution", ("Confirmation du rôle de contributeur d'une organisation"
+                                  "pour un utilisatur par un administrateur")),
         ("reset_password", "Réinitialisation du mot de passe")
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                blank=True, null=True)
+
+    # Pour pouvoir reutiliser AccountActions pour demandes post-inscription
+    org_extras = models.ForeignKey(Organisation, on_delete=models.CASCADE,
+                                   blank=True, null=True)
+
     key = models.UUIDField(default=uuid.uuid4, editable=False)
     action = models.CharField(
         'Action de gestion de profile', blank=True, null=True,
@@ -201,58 +324,6 @@ class AccountActions(models.Model):
         verbose_name="Date de validation de l'action",
         blank=True, null=True)
 
-    class Meta:
-        unique_together = (("user", "action"), )
-
-
-# TODO: en remplacement du champs ManyToMany: Profile-publish_request
-# et ajout de la notion de référent.
-# Le rattachement est conservé sur FK: Profile-Organisation
-# TODO(cbenhabib): ADD is_actif Boolean field à organisation
-class Liaisons_Referents(models.Model):
-
-    id = models.UUIDField(default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    created_on = models.DateField(auto_now_add=True)
-    validated_on = models.DateField(
-        verbose_name="Date de validation de l'action",
-        blank=True, null=True)
-
-
-class Liaisons_Contributeurs(models.Model):
-
-    id = models.UUIDField(default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    created_on = models.DateField(auto_now_add=True)
-    validated_on = models.DateField(
-        verbose_name="Date de validation de l'action",
-        blank=True, null=True)
-
-
-# TODO: en remplacement de class Registraion
-# class Status_User_Orga(models.Model):
-#
-#     TYPE_LIAISON = (
-#         ("rattachement", "Utilisateur rattaché"),
-#         ("referent", "utiliateur référent"),
-#         ("contribution", "utiliateur est référent"),
-#     )
-#     Status = (
-#         ("en cours", ""),
-#         ("validé", "utiliateur est référent"),
-#         ("refusé", "utiliateur est référent"), # Si refu de creation suppression de la ligne orga
-#     )
-#
-#     id = models.UUIDField(default=uuid.uuid4, editable=False)
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-#     created = models.DateField(auto_now_add=True)
-#     closed = models.DateField(
-#         verbose_name="Date de validation de l'action",
-#         blank=True, null=True)
-#     is_confirmed = models.BooleanField("", default=False)
 
 class Mail(models.Model):
 
@@ -268,7 +339,8 @@ class Mail(models.Model):
         return self.template_name
 
     @classmethod
-    def validation_user_mail(cls, request, reg):
+    def validation_user_mail(cls, request, action):
+        user = action.profile.user
         try:
             mail_template = Mail.objects.get(template_name="validation_user_mail")
         except Mail.DoesNotExist as e:
@@ -277,21 +349,23 @@ class Mail(models.Model):
         subject = mail_template.subject
 
         message = mail_template.message.format(
-            first_name=reg.user.first_name,
-            last_name=reg.user.last_name,
-            username=reg.user.username,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            username=user.username,
             url=request.build_absolute_uri(
                 reverse('idgo_admin:confirmation_mail',
-                        kwargs={'key': reg.activation_key})))
+                        kwargs={'key': action.key})))
         try:
             send_mail(subject=subject, message=message,
-                      from_email=from_email, recipient_list=[reg.user.email])
+                      from_email=from_email, recipient_list=[user.email])
         except Exception as e:
             raise e
 
     @classmethod
     def confirmation_user_mail(cls, user):
-
+        """Mail confirmant la creation d'un nouvelle organsation
+        suite à une inscription.
+        """
         mail_template = Mail.objects.get(template_name="confirmation_user_mail")
 
         message = mail_template.message.format(
@@ -302,30 +376,81 @@ class Mail(models.Model):
                   from_email=mail_template.from_email, recipient_list=[user.email])
 
     @classmethod
-    def affiliate_request_to_administrators(cls, request, reg):
+    def confirm_new_organisation(cls, request, action):
+        """Mail permettant de valider la creation d'un nouvelle organsation
+        suite à une inscription.
+        """
+        user = action.profile.user
+        mail_template = Mail.objects.get(template_name="confirm_new_organisation")
+        message = mail_template.message.format(
+                    username=user.username,
+                    user_mail=user.email,
+                    organisation_name=action.profile.organisation.name,
+                    website=action.profile.organisation.website,
+                    url=request.build_absolute_uri(
+                        reverse('idgo_admin:confirm_new_orga',
+                                kwargs={'key': action.key})))
 
-        if reg.profile_fields['is_new_orga']:
-            mail_template = Mail.objects.get(
-                    template_name="affiliate_request_to_administrators_with_new_org")
-            message = mail_template.message.format(
-                        username=reg.user.username,
-                        user_mail=reg.user.email,
-                        organisation_name=reg.profile_fields['organisation'],
-                        website=reg.profile_fields['website'],
-                        url=request.build_absolute_uri(
-                            reverse('idgo_admin:activation_admin',
-                                    kwargs={'key': reg.affiliate_orga_key})))
+        send_mail(subject=mail_template.subject, message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=[usr.email for usr in User.objects.filter(
+                        is_staff=True, is_active=True)])
 
-        else:
-            mail_template = Mail.objects.get(
-                    template_name="affiliate_request_to_administrators_with_old_org")
-            message = mail_template.message.format(
-                        username=reg.user.username,
-                        user_mail=reg.user.email,
-                        organisation_name=reg.profile_fields['organisation'],
-                        url=request.build_absolute_uri(
-                            reverse('idgo_admin:activation_admin',
-                                    kwargs={'key': reg.affiliate_orga_key})))
+    @classmethod
+    def confirm_rattachement(cls, request, action):
+        user = action.profile.user
+        mail_template = Mail.objects.get(
+                template_name="confirm_rattachement")
+        message = mail_template.message.format(
+                    username=user.username,
+                    user_mail=user.email,
+                    organisation_name=action.profile.organisation.name,
+                    website=action.profile.organisation.website,
+                    url=request.build_absolute_uri(
+                        reverse('idgo_admin:confirm_rattachement',
+                                kwargs={'key': action.key})))
+
+        send_mail(
+            subject=mail_template.subject, message=message,
+            from_email=mail_template.from_email,
+            recipient_list=[usr.email for usr
+                            in User.objects.filter(is_staff=True, is_active=True)])
+
+    @classmethod
+    def confirm_referent(cls, request, action):
+        user = action.profile.user
+        organisation = action.org_extras
+        mail_template = Mail.objects.get(
+                template_name="confirm_referent")
+        message = mail_template.message.format(
+                    username=user.username,
+                    user_mail=user.email,
+                    organisation_name=organisation.name,
+                    website=action.profile.organisation.website,
+                    url=request.build_absolute_uri(
+                        reverse('idgo_admin:confirm_referent',
+                                kwargs={'key': action.key})))
+
+        send_mail(
+            subject=mail_template.subject, message=message,
+            from_email=mail_template.from_email,
+            recipient_list=[usr.email for usr
+                            in User.objects.filter(is_staff=True, is_active=True)])
+
+    @classmethod
+    def confirm_contribution(cls, request, action):
+        user = action.profile.user
+        organisation = action.org_extras
+        mail_template = Mail.objects.get(
+                template_name="confirm_referent")
+        message = mail_template.message.format(
+                    username=user.username,
+                    user_mail=user.email,
+                    organisation_name=organisation.name,
+                    website=organisation.website,
+                    url=request.build_absolute_uri(
+                        reverse('idgo_admin:confirm_contribution',
+                                kwargs={'key': action.key})))
 
         send_mail(
             subject=mail_template.subject, message=message,
@@ -340,41 +465,25 @@ class Mail(models.Model):
                 template_name="affiliate_confirmation_to_user")
 
         message = mail_template.message.format(
-                organisation=profile.organisation.name)
+                organisation_name=profile.organisation.name)
 
         send_mail(subject=mail_template.subject, message=message,
                   from_email=mail_template.from_email,
                   recipient_list=[profile.user.email])
 
     @classmethod
-    def publish_request_to_administrators(cls, request, publish_request):
+    def confirm_contrib_to_user(cls, action):
+        """Message confirmant le role de contributeur à un utilisateur"""
+        organisation = action.org_extras
+        user = action.profile.user
 
         mail_template = Mail.objects.get(
-                template_name="publish_request_to_administrators")
-
+                template_name="confirm_contrib_to_user")
         message = mail_template.message.format(
-                username=publish_request.user.username,
-                mail=publish_request.user.email,
-                organisation=publish_request.organisation.name,
-                url=request.build_absolute_uri(
-                    reverse('idgo_admin:publish_request_confirme',
-                            kwargs={'key': publish_request.pub_req_key})))
-
+                organisation=organisation.name)
         send_mail(subject=mail_template.subject, message=message,
                   from_email=mail_template.from_email,
-                  recipient_list=[usr.email for usr
-                            in User.objects.filter(is_staff=True, is_active=True)])
-
-    @classmethod
-    def publish_confirmation_to_user(cls, publish_request):
-
-        mail_template = Mail.objects.get(
-                template_name="publish_confirmation_to_user")
-        message = mail_template.message.format(
-                organisation=publish_request.organisation.name)
-        send_mail(subject=mail_template.subject, message=message,
-                  from_email=mail_template.from_email,
-                  recipient_list=[publish_request.user.email])
+                  recipient_list=[user.email])
 
     @classmethod
     def conf_deleting_dataset_res_by_user(cls, user, dataset=None, resource=None):
@@ -559,17 +668,17 @@ class Dataset(models.Model):
 
     keywords = TaggableManager(blank=True)
 
-    date_creation = models.DateTimeField(
+    date_creation = models.DateField(
         verbose_name="Date de création du jeu de donnée",
         # auto_now_add=timezone.now()
         )
 
-    date_publication = models.DateTimeField(
+    date_publication = models.DateField(
         verbose_name="Date de publication du jeu de donnée",
         # default=timezone.now
         )
 
-    date_modification = models.DateTimeField(
+    date_modification = models.DateField(
         verbose_name="Date de dernière modification du jeu de donnée",
         # default=timezone.now
         )
@@ -603,90 +712,6 @@ class Dataset(models.Model):
         verbose_name_plural = "Jeux de données"
 
 
-class Resource(models.Model):
-
-    # PENSER A SYNCHRONISER CETTE LISTE DES LANGUES
-    # AVEC LE STRUCTURE DECRITE DANS CKAN
-    # cf. /usr/lib/ckan/default/lib/python2.7/site-packages/ckanext/scheming/ckan_dataset.json
-
-    LANG_CHOICES = (
-        ('french', 'Français'),
-        ('english', 'Anglais'),
-        ('italian', 'Italien'),
-        ('german', 'Allemand'),
-        ('other', 'Autre'))
-
-    TYPE_CHOICES = (
-        ('data', 'Données'),
-        ('resource', 'Resources'))
-
-    LEVEL_CHOICES = (
-        ('O', 'Tous les utilisateurs'),
-        ('1', 'Utilisateurs authentifiés'),
-        ('2', 'Utilisateurs authentifiés avec droits spécifiques'))
-
-    # Une fiche dataset correspond à n fiches Resource
-
-    name = models.CharField('Nom', max_length=150)
-
-    ckan_id = models.UUIDField(
-        'Ckan UUID', unique=True, db_index=True, blank=True, null=True)
-
-    description = models.TextField('Description', blank=True, null=True)
-
-    referenced_url = models.URLField(
-        'Référencer une URL', blank=True, null=True)
-
-    dl_url = models.URLField(
-        'Télécharger depuis une URL', blank=True, null=True)
-
-    up_file = models.FileField(
-        'Téléverser un ou plusieurs fichiers', blank=True, null=True)
-
-    lang = models.CharField(
-        'Langue', choices=LANG_CHOICES, default='french', max_length=10)
-
-    data_format = models.CharField(
-        'Format', max_length=20, blank=True)
-
-    projection = models.ForeignKey(
-        Projection, blank=True, null=True)
-
-    resolution = models.ForeignKey(
-        Resolution, blank=True, null=True)
-
-    access = models.CharField(
-        "Restriction d'accès", choices=LEVEL_CHOICES,
-        default="0", max_length=20, blank=True, null=True)
-
-    dataset = models.ForeignKey(
-        Dataset, on_delete=models.CASCADE, blank=True, null=True)
-
-    bbox = models.PolygonField(
-        'Rectangle englobant', blank=True, null=True)
-
-    # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
-    geo_restriction = models.BooleanField(
-        "Restriction géographique", default=False)
-
-    created_on = models.DateTimeField(
-        verbose_name="Date de creation de la resource",
-        blank=True, null=True, default=timezone.now)
-
-    last_update = models.DateTimeField(
-        verbose_name="Date de dernière modification de la resource",
-        blank=True, null=True)
-
-    data_type = models.CharField(verbose_name='type de resources',
-                                 choices=TYPE_CHOICES, max_length=10)
-
-    def __str__(self):
-        return self.name
-
-    class Meta(object):
-        verbose_name = "Ressource"
-
-
 # Triggers
 
 
@@ -714,7 +739,9 @@ def delete_user_in_externals(sender, instance, **kwargs):
 def update_externals(sender, instance, **kwargs):
 
     user = instance.user
-    through = Profile.publish_for.through
+    # through = Profile.publish_for.through
+    contributions = Liaisons_Contributeurs.objects.filter(
+                    profile=instance, validated_on__isnull=False)
 
     def remove(name):
         if name in ckan.get_organizations_which_user_belongs(user.username):
@@ -724,8 +751,10 @@ def update_externals(sender, instance, **kwargs):
         ckan.add_user_to_organization(user.username, name)
 
     def iter_organization(profile, callback):
-        for e in through.objects.filter(profile=profile):
-            callback(Organisation.objects.get(id=e.organisation_id).ckan_slug)
+        # for e in through.objects.filter(profile=profile):
+        #     callback(Organisation.objects.get(id=e.organisation_id).ckan_slug)
+        for e in contributions:
+            callback(e.organisation.ckan_slug)
     try:
         old = Profile.objects.get(pk=instance.id)
     except Profile.DoesNotExist:
@@ -738,21 +767,19 @@ def update_externals(sender, instance, **kwargs):
         iter_organization(instance, add)
 
 
+# TODO(cbenhabib): Orga inactive a la creation!
+# Sync uniquement lors de l'activation
 @receiver(pre_save, sender=Organisation)
 def orga_ckan_presave(sender, instance, **kwargs):
 
-    instance.sync_in_ckan = ckan.is_organization_exists(instance.ckan_slug)
-    instance.ckan_slug = slugify(instance.name)
-    try:
-        ckan.add_organization(instance)
-    except Exception:
-        instance.sync_in_ckan = False
+    if instance.is_active:
+        instance.sync_in_ckan = ckan.is_organization_exists(instance.ckan_slug)
+        instance.ckan_slug = slugify(instance.name)
+        try:
+            ckan.add_organization(instance)
+        except Exception:
+            instance.sync_in_ckan = False
+        else:
+            instance.sync_in_ckan = True
     else:
-        instance.sync_in_ckan = True
-
-
-# @receiver(post_save, sender=Organisation)
-# def orga_ldap_postsave(sender, instance, **kwargs):
-#     instance.sync_in_ldap = ldap.sync_object(
-#         'organisations', instance.name,
-#         instance.id + settings.LDAP_ORGANISATION_ID_INCREMENT, 'add_or_update')
+        instance.sync_in_ckan = False
