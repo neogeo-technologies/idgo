@@ -363,7 +363,7 @@ class UserDeleteForm(AuthenticationForm):
         fields = ('username', 'password')
 
 
-class BondingDeleteForm(forms.ModelForm):
+class LiaisonsDeleteForm(forms.ModelForm):
 
     referents = forms.ModelChoiceField(required=False,
                                          label='Référent pour ces organismes',

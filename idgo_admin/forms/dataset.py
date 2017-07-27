@@ -129,8 +129,10 @@ class DatasetForm(forms.ModelForm):
     def handle_me(self, request, id=None):
         user = request.user
         data = self.cleaned_data
-
-        params = {'description': data['description'],
+        params = {'date_creation': data['date_creation'],
+                  'date_modification': data['date_modification'],
+                  'date_publication': data['date_publication'],
+                  'description': data['description'],
                   'editor': user,
                   'geocover': data['geocover'],
                   'licences': data['licences'],

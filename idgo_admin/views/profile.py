@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.forms.profile import LiaisonsDeleteForm
 from idgo_admin.forms.profile import ProfileUpdateForm
 from idgo_admin.forms.profile import UserDeleteForm
 from idgo_admin.forms.profile import UserForgetPassword
@@ -799,38 +800,90 @@ def referent_request(request):
 #                   context={'message': message}, status=200)
 
 
-decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
-
-
-@method_decorator(decorators, name='dispatch')
+@method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
 class Contributions(View):
 
     def get(self, request):
             user = request.user
             profile = get_object_or_404(Profile, user=user)
             my_contributions = Liaisons_Contributeurs.get_contribs(profile=profile)
+            my_subordinates = Liaisons_Referents.get_contribs(profile=profile)
             contrib_tup = [(c.id, c.name) for c in my_contributions]
+            referents_tup = [(c.id, c.name) for c in my_subordinates]
 
             return render(
                 request, 'idgo_admin/contributions.html',
                 context={'first_name': user.first_name,
                          'last_name': user.last_name,
+                         'contributions': json.dumps(contrib_tup),
+                         'subordinates': json.dumps(referents_tup),
                          'organizations': json.dumps(contrib_tup)})
 
     def delete(self, request):
 
         organization_id = request.POST.get('id', request.GET.get('id')) or None
+
         if not organization_id:
-            return render_an_critical_error(request)
+                message = ("Une erreur critique s'est produite lors"
+                           "de la suppression du status de contributeur"
+                           "Merci de contacter l'administrateur du site")
+
+                return render(request, 'idgo_admin/response.htm',
+                              {'message': message}, status=400)
 
         organization = Organisation.objects.get(id=organization_id)
         profile = get_object_or_404(Profile, user=request.user)
-        set = Profile.publish_for.through.objects.get(
-            profile_id=profile.id, organisation_id=organization_id)
-        set.delete()
+
+        my_contribution = Liaisons_Contributeurs.objects.get(
+            profile=profile, organisation__id=organization_id)
+        my_contribution.delete()
+        # TODO(cbenhabib): send confirmation mail to user?
 
         context = {
             'action': reverse('idgo_admin:contributions'),
+            'message': ("Vous n'êtes plus contributeur pour l'organisation "
+                        "<strong>{0}</strong>").format(organization.name)}
+
+        return render(
+            request, 'idgo_admin/response.htm', context=context, status=200)
+
+
+@method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
+class Referents(View):
+
+    def get(self, request):
+            user = request.user
+            profile = get_object_or_404(Profile, user=user)
+            my_subordinates = Liaisons_Referents.get_contribs(profile=profile)
+            referents_tup = [(c.id, c.name) for c in my_subordinates]
+
+            return render(
+                request, 'idgo_admin/referents.html',
+                context={'first_name': user.first_name,
+                         'last_name': user.last_name,
+                         'referents': json.dumps(referents_tup)})
+
+    def delete(self, request):
+
+        organization_id = request.POST.get('id', request.GET.get('id')) or None
+
+        if not organization_id:
+                message = ("Une erreur critique s'est produite lors"
+                           "de la suppression du rôle de référent"
+                           "Merci de contacter l'administrateur du site")
+
+                return render(request, 'idgo_admin/response.htm',
+                              {'message': message}, status=400)
+
+        organization = Organisation.objects.get(id=organization_id)
+        profile = get_object_or_404(Profile, user=request.user)
+
+        my_subordinates = Liaisons_Referents.objects.get(
+            profile=profile, organisation__id=organization_id)
+        my_subordinates.delete()
+
+        context = {
+            'action': reverse('idgo_admin:referents'),
             'message': ("Vous n'êtes plus contributeur pour l'organisation "
                         "<strong>{0}</strong>").format(organization.name)}
 
