@@ -283,19 +283,23 @@ class UserProfileForm(forms.Form):
 
 class ProfileUpdateForm(forms.ModelForm):
 
-    organisation = forms.ModelChoiceField(required=False,
-                                          label="Organisme d'attachement",
-                                          queryset=Organisation.objects.all())
+    organisation = forms.ModelChoiceField(
+        required=False,
+        label="Organisation d'attachement",
+        queryset=Organisation.objects.all())
 
-    referents = forms.ModelChoiceField(required=False,
-                                         label='Référent pour ces organismes',
-                                         widget=forms.RadioSelect(),
-                                         queryset=Organisation.objects.all())
+    referents = forms.ModelChoiceField(
+        required=False,
+        label='Référent pour ces organismes',
+        widget=forms.RadioSelect(),
+        queryset=Organisation.objects.all())
 
-    contributions = forms.ModelChoiceField(required=False,
-                                         label='Organismes de contribution',
-                                         widget=forms.RadioSelect(),
-                                         queryset=Organisation.objects.all())
+    contributions = forms.ModelChoiceField(
+        required=False,
+        label='Organisation de contribution',
+        widget=forms.RadioSelect(),
+        queryset=Organisation.objects.all())
+
     phone = forms.CharField(
         error_messages={'invalid': 'Le numéro est invalide.'},
         required=False, label='Téléphone',
@@ -315,18 +319,32 @@ class ProfileUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         exclude_args = kwargs.pop('exclude', {})
         super(ProfileUpdateForm, self).__init__(*args, **kwargs)
-        # On exclu de la liste de choix toutes les organisations pour
+
+        # On exclut de la liste de choix toutes les organisations pour
         # lesquelles l'user est contributeur ou en attente de validation
         contribs_available = Liaisons_Contributeurs.objects.filter(
-                profile__user=exclude_args['user'])
+            profile__user=exclude_args['user'])
         con_org_bl = [e.organisation.pk for e in contribs_available]
+
         self.fields['contributions'].queryset = \
             Organisation.objects.exclude(pk__in=con_org_bl)
 
-        # On exclu de la liste de choix toutes les organisations pour
+        profile = Profile.objects.get(user=exclude_args['user'])
+        organisation = profile.organisation
+        if not organisation.is_active:
+            self.fields['organisation'].queryset = \
+                Organisation.objects.filter(pk__isnull=True)
+        else:
+            self.fields['organisation'].initial = organisation.pk
+            self.fields['organisation'].queryset = Organisation.objects.all()
+
+        #     self.fields['organisation'].queryset = \
+        #         Organisation.objects.exclude(pk=my_orga.pk)
+
+        # On exclut de la liste de choix toutes les organisations pour
         # lesquelles l'user est contributeur ou en attente de validation
         referents_available = Liaisons_Referents.objects.filter(
-                profile__user=exclude_args['user'])
+            profile__user=exclude_args['user'])
         ref_org_bl = [e.organisation.pk for e in referents_available]
         self.fields['referents'].queryset = \
             Organisation.objects.exclude(pk__in=ref_org_bl)

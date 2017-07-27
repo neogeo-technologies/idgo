@@ -262,7 +262,7 @@ class Liaisons_Referents(models.Model):
         unique_together = (('profile', 'organisation'),)
 
     @classmethod
-    def get_subordonates(cls, profile):
+    def get_subordinates(cls, profile):
         return [e.organisation for e in Liaisons_Contributeurs.objects.filter(
                     profile=profile)]
 

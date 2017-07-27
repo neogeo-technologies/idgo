@@ -685,8 +685,10 @@ def contribution_request(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
-    # Liste des organisations our lesquelles l'user est contributeur:
+    # Liste des organisations pour lesquelles l'user est contributeur:
     contribs = Liaisons_Contributeurs.get_contribs(profile=profile)
+
+    print(contribs)
 
     if request.method == 'GET':
         return render(
@@ -820,7 +822,7 @@ class Contributions(View):
             user = request.user
             profile = get_object_or_404(Profile, user=user)
             my_contributions = Liaisons_Contributeurs.get_contribs(profile=profile)
-            my_subordinates = Liaisons_Referents.get_contribs(profile=profile)
+            my_subordinates = Liaisons_Referents.get_subordinates(profile=profile)
             contrib_tup = [(c.id, c.name) for c in my_contributions]
             referents_tup = [(c.id, c.name) for c in my_subordinates]
 
