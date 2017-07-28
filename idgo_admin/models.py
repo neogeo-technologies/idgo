@@ -12,11 +12,20 @@ from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from taggit.managers import TaggableManager
+from taggit.models import TaggedItemBase
 import uuid
 
 
 def deltatime_2_days():
     return timezone.now() + timezone.timedelta(days=2)
+
+
+class UserTagged(TaggedItemBase):
+    user_tagged = models.ForeignKey(User, related_name='user_tagged')
+
+
+class OrganisationTagged(TaggedItemBase):
+    organisation_tagged = models.ForeignKey('Organisation', related_name='organisation_tagged')
 
 
 class Resource(models.Model):
@@ -77,11 +86,13 @@ class Resource(models.Model):
         "Restriction d'accès", choices=LEVEL_CHOICES,
         default='0', max_length=20, blank=True, null=True)
 
-    allowed_users = models.ManyToManyField(
-        'Profile', verbose_name='Utilisateurs autorisés')
+    users_allowed = TaggableManager(
+        verbose_name='Utilisateurs autorisés',
+        through='UserTagged', related_name="to_users")
 
-    allowed_organisations = models.ManyToManyField(
-        'Organisation', verbose_name='Organisations autorisées')
+    organisations_allowed = TaggableManager(
+        verbose_name='Organisations autorisées',
+        through='OrganisationTagged', related_name="to_organsiations")
 
     dataset = models.ForeignKey(
         'Dataset', on_delete=models.CASCADE, blank=True, null=True)

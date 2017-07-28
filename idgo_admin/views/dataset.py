@@ -174,3 +174,23 @@ class DatasetManager(View):
 
         return render(
             request, 'idgo_admin/response.htm', context=context, status=status)
+
+
+@method_decorator(decorators, name='dispatch')
+class DisplayLicenses(View):
+
+    def get(self, request):
+        data = [{
+"domain_content": o.domain_content,
+"domain_data": false,
+"domain_software": false,
+"family": "",
+"id": "notspecified",
+"is_generic": true,
+"maintainer": "",
+"od_conformance": "not reviewed",
+"osd_conformance": "not reviewed",
+"status": "active",
+"title": "License Not Specified",
+"url": ""}]
+        return JsonResponse(request, 'idgo_admin/dataset.html', context=context)
