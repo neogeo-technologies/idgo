@@ -197,3 +197,4 @@ class DatasetForm(forms.ModelForm):
 
         ckan_user.close()
         dataset.save()
+        return dataset

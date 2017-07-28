@@ -119,7 +119,8 @@ class DatasetManager(View):
                     success = True
                     text = 'Le jeu de données a été créé avec succès.'
 
-                    form = Form(request.POST, request.FILES, instance=instance)
+                    form = Form(request.POST, request.FILES, instance=instance,
+                                include={'user': user})
                     dataset_name = instance.name
                     dataset_id = instance.id
 
