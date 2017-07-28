@@ -145,9 +145,7 @@ class DatasetForm(forms.ModelForm):
             for key, value in params.items():
                 setattr(dataset, key, value)
         else:  # Création d'un nouveau dataset
-            print("PARAMS", params)
             dataset = Dataset.objects.create(**params)
-            print("CKAN ID ", dataset.ckan_id)
 
         if data['categories']:
             dataset.categories = data['categories']
@@ -170,6 +168,7 @@ class DatasetForm(forms.ModelForm):
             # TODO -> Last modification
             'groups': [],  # Cf. plus bas..
             'geocover': dataset.geocover,
+            'id': str(dataset.ckan_id),
             'license_id': dataset.licences.title,
             'maintainer': user.username,
             'maintainer_email': user.email,
@@ -188,14 +187,12 @@ class DatasetForm(forms.ModelForm):
             params['groups'].append({'name': category.ckan_slug})
 
         try:
-            ckan_dataset = ckan_user.publish_dataset(
-                dataset.ckan_slug, id=str(dataset.ckan_id), **params)
-        except Exception as err:
+            ckan_user.publish_dataset(dataset.ckan_slug, **params)
+        except Exception as e:
             dataset.sync_in_ckan = False
             dataset.delete()
-            raise err
+            raise e
         else:
-            dataset.ckan_id = ckan_dataset['id']
             dataset.sync_in_ckan = True
 
         ckan_user.close()
