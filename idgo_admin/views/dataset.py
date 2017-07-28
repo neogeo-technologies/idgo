@@ -95,7 +95,6 @@ class DatasetManager(View):
                 try:
                     form.handle_me(request, id=id)
                 except Exception as e:
-                    print(0, type(e))
                     success = False
                     text = ("L'erreur suivante est survenue : "
                             '<strong>{0}</strong>.').format(str(e))
@@ -108,9 +107,8 @@ class DatasetManager(View):
             form = Form(data=request.POST, include={'user': user})
             if form.is_valid() and request.user.is_authenticated:
                 try:
-                    instance = form.handle_me(request, id=id)
+                    instance = form.handle_me(request)
                 except Exception as e:
-                    print(1, type(e))
                     print('Exception:', e)
                     success = False
                     text = ("L'erreur suivante est survenue : "
@@ -118,8 +116,7 @@ class DatasetManager(View):
                 else:
                     success = True
                     text = 'Le jeu de données a été créé avec succès.'
-                    form = Form(request.POST, request.FILES, instance=instance,
-                                include={'user': user})
+                    form = Form(instance=instance, include={'user': user})
                     dataset_name = instance.name
                     dataset_id = instance.id
 

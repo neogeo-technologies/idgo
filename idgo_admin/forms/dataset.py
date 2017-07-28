@@ -125,9 +125,8 @@ class DatasetForm(forms.ModelForm):
                     profile=profile)])
 
     def clean(self):
-
         if not self.cleaned_data.get('date_creation'):
-            self.cleaned_data['date_creation'] = timezone.now()
+            self.cleaned_data['date_creation'] = timezone.now().date()
 
     def handle_me(self, request, id=None):
         user = request.user
@@ -160,17 +159,22 @@ class DatasetForm(forms.ModelForm):
             dataset.keywords.clear()
             for tag in data['keywords']:
                 dataset.keywords.add(tag)
-        if not data['date_creation']:
-            dataset.date_creation = timezone.now()
-        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+
+        create_date = \
+            str(dataset.date_creation) if dataset.date_creation else ''
+
+        modify_date = \
+            str(dataset.date_modification) if dataset.date_modification else ''
+
+        publish_date = \
+            str(dataset.date_publication) if dataset.date_publication else ''
 
         params = {
             'author': user.username,
             'author_email': user.email,
-            'dataset_creation_date': str(
-                dataset.date_creation if dataset.date_creation else ''),
-            'dataset_publication_date': str(
-                dataset.date_publication if dataset.date_publication else ''),
+            'dataset_creation_date': create_date,
+            'dataset_modification_date': modify_date,
+            'dataset_publication_date': publish_date,
             # TODO -> Last modification
             'groups': [],  # Cf. plus bas..
             'geocover': dataset.geocover,
@@ -191,11 +195,14 @@ class DatasetForm(forms.ModelForm):
             ckan.add_user_to_group(user.username, category.ckan_slug)
             params['groups'].append({'name': category.ckan_slug})
 
+        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+
         try:
             ckan_dataset = ckan_user.publish_dataset(
                 dataset.ckan_slug, id=str(dataset.ckan_id), **params)
-        except Exception:
-            Dataset.delete()
+        except Exception as e:
+            print('error', e)
+            dataset.delete()
             raise IntegrityError('Une erreur est survenue lors de la '
                                  'création du jeu de données dans CKAN.')
         else:

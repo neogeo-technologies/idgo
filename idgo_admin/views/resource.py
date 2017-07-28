@@ -62,7 +62,7 @@ class ResourceManager(View):
                 'dataset_id': dataset.id,
                 'resource_name': instance.name,
                 'mode': self.mode(instance),
-                'form': Form(instance=instance)})
+                'form': Form(instance=instance, include={'user': user})})
 
         return render(request, 'idgo_admin/resource.html', context={
             'users': json.dumps(self.all_users),
@@ -72,7 +72,7 @@ class ResourceManager(View):
             'dataset_name': dataset.name,  # TODO
             'dataset_id': dataset.id,  # TODO
             'resource_name': 'Nouveau',
-            'form': Form()})
+            'form': Form(include={'user': user})})
 
     def post(self, request, dataset_id):
 
@@ -89,7 +89,8 @@ class ResourceManager(View):
             resource_name = instance.name
             mode = self.mode(instance)
 
-            form = Form(request.POST, request.FILES, instance=instance)
+            form = Form(request.POST, request.FILES,
+                        instance=instance, include={'user': user})
             if form.is_valid() and user.is_authenticated:
                 try:
                     form.handle_me(request, dataset, id=id,
@@ -105,7 +106,7 @@ class ResourceManager(View):
         else:
             resource_name = 'Nouveau'
             mode = None
-            form = Form(request.POST, request.FILES)
+            form = Form(request.POST, request.FILES, include={'user': user})
             if form.is_valid() and user.is_authenticated:
                 try:
                     instance = form.handle_me(
@@ -119,7 +120,7 @@ class ResourceManager(View):
                     success = True
                     text = 'La ressource a été créée avec succès.'
 
-                    form = Form(request.POST, request.FILES, instance=instance)
+                    form = Form(instance=instance, include={'user': user})
                     resource_name = instance.name
 
         return render(request, 'idgo_admin/resource.html', context={

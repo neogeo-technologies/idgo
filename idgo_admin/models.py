@@ -671,17 +671,17 @@ class Dataset(models.Model):
     keywords = TaggableManager(blank=True)
 
     date_creation = models.DateField(
-        verbose_name="Date de création du jeu de donnée",
+        verbose_name='Date de création du jeu de données',
         blank=True, null=True,
         )
 
     date_publication = models.DateField(
-        verbose_name="Date de publication du jeu de donnée",
+        verbose_name='Date de publication du jeu de données',
         blank=True, null=True,
         )
 
     date_modification = models.DateField(
-        verbose_name="Date de dernière modification du jeu de donnée",
+        verbose_name='Date de dernière modification du jeu de données',
         blank=True, null=True,
         )
 
@@ -701,7 +701,7 @@ class Dataset(models.Model):
         max_length=30, choices=FREQUENCY_CHOICES)
 
     owner_email = models.EmailField(
-        'Email du producteur de la donnée', blank=True, null=True)
+        'E-mail du producteur de la donnée', blank=True, null=True)
 
     published = models.BooleanField(
         'Etat du jeu de donnée', default=False)
@@ -743,7 +743,7 @@ def update_externals(sender, instance, **kwargs):
     user = instance.user
     # through = Profile.publish_for.through
     contributions = Liaisons_Contributeurs.objects.filter(
-                    profile=instance, validated_on__isnull=False)
+        profile=instance, validated_on__isnull=False)
 
     def remove(name):
         if name in ckan.get_organizations_which_user_belongs(user.username):
@@ -773,7 +773,6 @@ def update_externals(sender, instance, **kwargs):
 # Sync uniquement lors de l'activation
 @receiver(pre_save, sender=Organisation)
 def orga_ckan_presave(sender, instance, **kwargs):
-
 
     instance.sync_in_ckan = ckan.is_organization_exists(instance.ckan_slug)
     instance.ckan_slug = slugify(instance.name)

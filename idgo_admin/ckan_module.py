@@ -192,11 +192,11 @@ class CkanUserHandler(object):
     def _is_package_name_already_used(self, name):
         return self._get_package(name) and True or False
 
-    @exceptions_handler
+    # @exceptions_handler
     def _add_package(self, **kwargs):
         return self.remote.action.package_create(**kwargs)
 
-    @exceptions_handler
+    # @exceptions_handler
     def _update_package(self, **kwargs):
         return self.remote.action.package_update(**kwargs)
 
@@ -229,23 +229,25 @@ class CkanUserHandler(object):
 
         views = self.remote.action.resource_view_list(id=kwargs['resource_id'])
         for view in views:
-            print('Update view ->', view)
             if view['view_type'] == kwargs['view_type']:
                 return self.remote.action.resource_view_update(id=view['id'],
                                                                **kwargs)
         return self.remote.action.resource_view_create(**kwargs)
 
+    def check_dataset_integrity(self, name):
+        if self._is_package_name_already_used(name):
+            raise Exception('Dataset already exists')
+
     def publish_dataset(self, name, id=None, resources=None, **kwargs):
-        if not id and self._is_package_name_already_used(name):
-            raise Exception()  # TODO -> Sprint3: Gérer les erreurs (TOUTES les erreurs)
+        # self.check_dataset_integrity(name)
 
         kwargs['name'] = name
-        kwargs['id'] = id
         if id and self._is_package_exists(id):
             package = self._update_package(
                 **{**self._get_package(id), **kwargs})
         else:
             package = self._add_package(**kwargs)
+            print('package:', package)
 
         return package
 
