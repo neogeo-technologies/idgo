@@ -6,9 +6,9 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core import validators
 from django import forms
+from idgo_admin.models import Financeur
 from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import Liaisons_Referents
-from idgo_admin.models import Financeur
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
@@ -41,10 +41,10 @@ class UserUpdateForm(forms.ModelForm):
         widget=forms.PasswordInput(
             attrs={'placeholder': 'Nouveau mot de passe'}))
     password2 = forms.CharField(
-        label='Confirmer le nouveau mot de passe',
+        label='Confirmez le nouveau mot de passe',
         min_length=6, max_length=150, required=False,
         widget=forms.PasswordInput(
-            attrs={'placeholder': 'Confirmer le nouveau mot de passe'}))
+            attrs={'placeholder': 'Confirmez le nouveau mot de passe'}))
 
     class Meta(object):
         model = User
@@ -54,16 +54,16 @@ class UserUpdateForm(forms.ModelForm):
         user = User.objects.get(username=self.cleaned_data['username'])
 
         if self.cleaned_data['password1'] != self.cleaned_data['password2']:
-            self.add_error('password1', 'Vérifiez les champs mot de passe')
+            self.add_error('password1', 'Vérifiez les mots de passe')
             self.add_error('password2', '')
             raise ValidationError('Les mots de passe ne sont pas identiques.')
 
-        if "email" in self.cleaned_data and self.cleaned_data['email']:
+        if 'email' in self.cleaned_data and self.cleaned_data['email']:
             email = self.cleaned_data['email']
             if email != user.email and User.objects.filter(
                     email=email).count() > 0:
-                raise forms.ValidationError('Cette adresse e-mail \
-                                             est réservée.')
+                raise forms.ValidationError(
+                    'Cette adresse e-mail est réservée.')
 
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
@@ -98,10 +98,10 @@ class UserResetPassword(forms.Form):
         widget=forms.PasswordInput(
             attrs={'placeholder': 'Nouveau mot de passe'}))
     password2 = forms.CharField(
-        label='Confirmer le nouveau mot de passe',
+        label='Confirmez le nouveau mot de passe',
         min_length=6, max_length=150, required=False,
         widget=forms.PasswordInput(
-            attrs={'placeholder': 'Confirmer le nouveau mot de passe'}))
+            attrs={'placeholder': 'Confirmez le nouveau mot de passe'}))
 
     class Meta(object):
         model = User
@@ -109,7 +109,7 @@ class UserResetPassword(forms.Form):
 
     def clean(self):
         if self.cleaned_data['password1'] != self.cleaned_data['password2']:
-            self.add_error('password1', 'Vérifiez les champs mot de passe')
+            self.add_error('password1', 'Vérifiez les mots de passe')
             self.add_error('password2', '')
             raise ValidationError('Les mots de passe ne sont pas identiques.')
 
@@ -133,14 +133,14 @@ class UserProfileForm(forms.Form):
 
     # Champs Organisation
     organisation = forms.ModelChoiceField(
-            required=False,
-            label='Organisme',
-            queryset=Organisation.objects.all())
+        required=False,
+        label='Organisme',
+        queryset=Organisation.objects.all())
 
     parent = forms.ModelChoiceField(
-            required=False,
-            label='Organisme parent',
-            queryset=Organisation.objects.all())
+        required=False,
+        label='Organisme parent',
+        queryset=Organisation.objects.all())
 
     new_orga = forms.CharField(
         error_messages={"Nom de l'organisme invalide": 'invalid'},
@@ -204,33 +204,33 @@ class UserProfileForm(forms.Form):
             attrs={'placeholder': "Téléphone de l'organisation"}))
 
     organisation_type = forms.ModelChoiceField(
-            required=False,
-            label="Type d'organisation",
-            queryset=OrganisationType.objects.all())
+        required=False,
+        label="Type d'organisation",
+        queryset=OrganisationType.objects.all())
 
     financeur = forms.ModelChoiceField(
-            required=False,
-            label="Financeur de l'organisation",
-            queryset=Financeur.objects.all())
+        required=False,
+        label='Financeur',
+        queryset=Financeur.objects.all())
 
     status = forms.ModelChoiceField(
-            required=False,
-            label="Status de l'organisation",
-            queryset=Status.objects.all())
+        required=False,
+        label='Statut',
+        queryset=Status.objects.all())
 
     license = forms.ModelChoiceField(
-            required=False,
-            label="Licence par défault pour les jeu de donnée",
-            queryset=License.objects.all())
+        required=False,
+        label='Licence par défaut pour tout nouveau jeu de données',
+        queryset=License.objects.all())
 
     referent_requested = forms.BooleanField(
         initial=True,
-        label='Demander le status de référent pour cette organisation',
+        label='Demander le statut de référent pour cette organisation',
         required=False)
 
     contribution_requested = forms.BooleanField(
         initial=True,
-        label="Demander le status de contributeur pour cette organisation",
+        label='Demander le statut de contributeur pour cette organisation',
         required=False)
 
     class Meta(object):
@@ -314,7 +314,8 @@ class ProfileUpdateForm(forms.ModelForm):
 
     class Meta(object):
         model = Profile
-        fields = ('organisation', 'phone', 'role', 'contributions', 'referents')
+        fields = (
+            'organisation', 'phone', 'role', 'contributions', 'referents')
 
     def __init__(self, *args, **kwargs):
         exclude_args = kwargs.pop('exclude', {})
@@ -383,21 +384,25 @@ class UserDeleteForm(AuthenticationForm):
 
 class LiaisonsDeleteForm(forms.ModelForm):
 
-    referents = forms.ModelChoiceField(required=False,
-                                         label='Référent pour ces organismes',
-                                         widget=forms.RadioSelect(),
-                                         queryset=Organisation.objects.all())
+    referents = forms.ModelChoiceField(
+        required=False,
+        label='Référent pour ces organismes',
+        widget=forms.RadioSelect(),
+        queryset=Organisation.objects.all())
 
-    contributions = forms.ModelChoiceField(required=False,
-                                         label='Organismes de contribution',
-                                         widget=forms.RadioSelect(),
-                                         queryset=Organisation.objects.all())
+    contributions = forms.ModelChoiceField(
+        required=False,
+        label='Organismes de contribution',
+        widget=forms.RadioSelect(),
+        queryset=Organisation.objects.all())
 
     def __init__(self, *args, **kwargs):
         include_args = kwargs.pop('include', {})
-        super(BondingDeleteForm, self).__init__(*args, **kwargs)
+        super(LiaisonsDeleteForm, self).__init__(*args, **kwargs)
+
         contribs_available = Liaisons_Contributeurs.objects.filter(
-                profile__user=include_args['user'], validated_on__isnull=False)
+            profile__user=include_args['user'], validated_on__isnull=False)
+
         org_ids = [e.organisation.pk for e in contribs_available]
         self.fields['publish_for'].queryset = \
             Organisation.objects.filter(pk__in=org_ids)
