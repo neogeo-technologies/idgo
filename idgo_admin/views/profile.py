@@ -306,11 +306,9 @@ def forgotten_password(request):
         return render(request, 'idgo_admin/forgottenpassword.html',
                       {'form': form})
 
-    user = get_object_or_404(User, email=form.cleaned_data["email"])
+    # user = get_object_or_404(User, email=form.cleaned_data["email"])
 
     # TODO(cbenhabib): Registration -> AccountActions
-    # Get or create: cas ou la table Registration a été vidé (CRON à 48h)
-    # reg, created = Registration.objects.get_or_create(user=user)
     # reg, created = AccountActions.objects.get_or_create(user=user, action='reset_password')
     # if created is False:
     #     message = ('Un e-mail de réinitialisation à déjà été envoyé '

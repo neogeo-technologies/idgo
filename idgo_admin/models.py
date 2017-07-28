@@ -656,7 +656,7 @@ class Dataset(models.Model):
         db_index=True, blank=True, null=True)
 
     ckan_id = models.UUIDField(
-        'Ckan UUID', default=uuid.uuid4, editable=False)
+        'Ckan UUID', unique=True, db_index=True, blank=True, null=True)
 
     sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
 
