@@ -243,9 +243,9 @@ class UserProfileForm(forms.Form):
 
     def clean(self):
 
-        params = ['website', 'parent', 'code_insee', 'organisation_type',
-                  'description', 'adresse', 'ville', 'code_postal', 'communes'
-                  'org_phone', 'status', 'financeur', 'license', 'new_orga']
+        params = ['adresse', 'code_insee', 'code_postal', 'description',
+                  'financeur', 'license', 'organisation_type', 'org_phone'
+                  'parent', 'status', 'ville', 'website']
 
         organisation = self.cleaned_data.get('organisation')
         if self.cleaned_data.get('referent_requested'):
@@ -320,35 +320,32 @@ class ProfileUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         exclude_args = kwargs.pop('exclude', {})
         super(ProfileUpdateForm, self).__init__(*args, **kwargs)
+        profile = Profile.objects.get(user=exclude_args['user'])
 
         # On exclut de la liste de choix toutes les organisations pour
         # lesquelles l'user est contributeur ou en attente de validation
         contribs_available = Liaisons_Contributeurs.objects.filter(
-            profile__user=exclude_args['user'])
+            profile=profile)
         con_org_bl = [e.organisation.pk for e in contribs_available]
-
         self.fields['contributions'].queryset = \
             Organisation.objects.exclude(pk__in=con_org_bl)
 
-        profile = Profile.objects.get(user=exclude_args['user'])
+        # On exclut de la liste de choix toutes les organisations pour
+        # lesquelles l'user est contributeur ou en attente de validation
+        referents_available = Liaisons_Referents.objects.filter(
+            profile=profile)
+        ref_org_bl = [e.organisation.pk for e in referents_available]
+        self.fields['referents'].queryset = \
+            Organisation.objects.exclude(pk__in=ref_org_bl)
+
         organisation = profile.organisation
-        if not organisation.is_active:
+
+        if organisation.is_active is False:
             self.fields['organisation'].queryset = \
                 Organisation.objects.filter(pk__isnull=True)
         else:
             self.fields['organisation'].initial = organisation.pk
             self.fields['organisation'].queryset = Organisation.objects.all()
-
-        #     self.fields['organisation'].queryset = \
-        #         Organisation.objects.exclude(pk=my_orga.pk)
-
-        # On exclut de la liste de choix toutes les organisations pour
-        # lesquelles l'user est contributeur ou en attente de validation
-        referents_available = Liaisons_Referents.objects.filter(
-            profile__user=exclude_args['user'])
-        ref_org_bl = [e.organisation.pk for e in referents_available]
-        self.fields['referents'].queryset = \
-            Organisation.objects.exclude(pk__in=ref_org_bl)
 
     def save_f(self, commit=True):
         profile = super(ProfileUpdateForm, self).save(commit=False)

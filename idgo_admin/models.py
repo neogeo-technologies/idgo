@@ -654,7 +654,7 @@ class Dataset(models.Model):
         db_index=True, blank=True, null=True)
 
     ckan_id = models.UUIDField(
-        'Ckan UUID', unique=True, db_index=True, blank=True, null=True)
+        'Ckan UUID', default=uuid.uuid4, editable=False)
 
     sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
 
@@ -670,17 +670,17 @@ class Dataset(models.Model):
 
     date_creation = models.DateField(
         verbose_name="Date de création du jeu de donnée",
-        # auto_now_add=timezone.now()
+        blank=True, null=True,
         )
 
     date_publication = models.DateField(
         verbose_name="Date de publication du jeu de donnée",
-        # default=timezone.now
+        blank=True, null=True,
         )
 
     date_modification = models.DateField(
         verbose_name="Date de dernière modification du jeu de donnée",
-        # default=timezone.now
+        blank=True, null=True,
         )
 
     editor = models.ForeignKey(User)

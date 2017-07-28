@@ -45,7 +45,7 @@ class DatasetForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple())
 
     organisation = forms.ModelChoiceField(
-        label='Organisame de publication',
+        label='Organisme de publication',
         queryset=Organisation.objects.all(),
         required=True)
 
@@ -117,9 +117,6 @@ class DatasetForm(forms.ModelForm):
 
         super(DatasetForm, self).__init__(*args, **kwargs)
 
-        # ppf = Profile.publish_for.through
-        # set = ppf.objects.filter(profile__user=include_args['user'])
-        # my_pub_l = [e.organisation_id for e in set]
         profile = Profile.objects.get(user=include_args['user'])
         self.fields['organisation'].queryset = \
             Organisation.objects.filter(
@@ -148,7 +145,9 @@ class DatasetForm(forms.ModelForm):
             for key, value in params.items():
                 setattr(dataset, key, value)
         else:  # Création d'un nouveau dataset
+            print("PARAMS", params)
             dataset = Dataset.objects.create(**params)
+            print("CKAN ID ", dataset.ckan_id)
 
         if data['categories']:
             dataset.categories = data['categories']

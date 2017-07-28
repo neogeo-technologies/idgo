@@ -154,12 +154,6 @@ def sign_up(request):
             raise e
 
         if data['organisation']:
-            # params = ['adresse', 'code_insee', 'code_postal', 'description',
-            #           'financeur', 'license', 'organisation_type', 'org_phone'
-            #           'parent', 'phone', 'role', 'status', 'ville', 'website']
-            # res = {}
-            # for p in params:
-            #     res[p] = data[p] if p in data and data[p] is not None else None
             try:
                 organisation, created = Organisation.objects.get_or_create(
                     name=data['organisation'],
@@ -192,20 +186,10 @@ def sign_up(request):
             if data['is_new_orga']:
                 AccountActions.objects.create(
                     profile=profile, action="confirm_new_organisation")
-                # try:
-                #     Mail.confirm_new_organisation(request, new_organisation_action)
-                # except Exception as e:
-                #     print('SendingMailError', e)
-                #     raise e
 
             # Demande de rattachement Profile-Organsaition
             AccountActions.objects.create(
                 profile=profile, action="confirm_rattachement")
-            # try:
-            #     Mail.confirm_rattachement(request, rattachement_action)
-            # except Exception as e:
-            #     print('SendingMailError', e)
-            #     raise e
 
             # Demande de role de referent
             if data['referent_requested']:
@@ -529,7 +513,7 @@ def confirm_rattachement(request, key):
         AccountActions, key=key, action='confirm_rattachement')
 
     if action.closed:
-        name = action.organisation.name
+        name = action.profile.organisation.name
         user = action.profile.user
         message = (
             "Le rattachement de {first_name} {last_name} ({username}) "
@@ -540,7 +524,9 @@ def confirm_rattachement(request, key):
                      organization_name=name)
     else:
         action.profile.is_active = True
+        name = action.profile.organisation.name
         action.closed = timezone.now()
+        user = action.profile.user
         action.save()
 
     message = (
@@ -713,7 +699,7 @@ def contribution_request(request):
             {'first_name': user.first_name,
              'last_name': user.last_name,
              'pform': ProfileUpdateForm(exclude={'user': user}),
-             'pub_liste': contribs})
+             'contribs': contribs})
 
     pform = ProfileUpdateForm(
         instance=profile, data=request.POST or None, exclude={'user': user})
