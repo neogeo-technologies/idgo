@@ -23,8 +23,8 @@ def deltatime_2_days():
 # class UserTagged(TaggedItemBase):
 #     content_object = models.ForeignKey(
 #         User, related_name='user_tagged')
-
-
+#
+#
 # class OrganisationTagged(TaggedItemBase):
 #     content_object = models.ForeignKey(
 #         'Organisation', related_name='organisation_tagged')

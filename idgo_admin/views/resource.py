@@ -48,31 +48,31 @@ class ResourceManager(View):
 
     def get(self, request, dataset_id):
         user = request.user
-        dataset = get_object_or_404(Dataset, id=dataset_id)
-        form = Form(include={'user': user})
-        resource_name = 'Nouveau'
-        mode = None
-
         id = request.GET.get('id') or None
+        dataset = get_object_or_404(Dataset, id=dataset_id)
+
         if id:
             instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
-            form = Form(instance=instance, include={'user': user})
-            resource_name = instance.name
-            mode = self.mode(instance)
+            return render(request, 'idgo_admin/resource.html', context={
+                'users': json.dumps(self.all_users),
+                'organizations': json.dumps(self.all_organizations),
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'dataset_name': dataset.name,
+                'dataset_id': dataset.id,
+                'resource_name': instance.name,
+                'mode': self.mode(instance),
+                'form': Form(instance=instance, include={'user': user})})
 
-        context = {
+        return render(request, 'idgo_admin/resource.html', context={
             'users': json.dumps(self.all_users),
             'organizations': json.dumps(self.all_organizations),
             'first_name': user.first_name,
             'last_name': user.last_name,
-            'dataset_name': dataset.name,
-            'dataset_id': dataset.id,
-            'resource_name': resource_name,
-            'mode': mode,
-            'form': form}
-
-        return render(
-            request, 'idgo_admin/resource.html', context=context)
+            'dataset_name': dataset.name,  # TODO
+            'dataset_id': dataset.id,  # TODO
+            'resource_name': 'Nouveau',
+            'form': Form(include={'user': user})})
 
     def post(self, request, dataset_id):
 
@@ -82,17 +82,16 @@ class ResourceManager(View):
 
         user = request.user
         dataset = get_object_or_404(Dataset, id=dataset_id)
-
+        success = False
+        text = "Erreur lors de l'opération de modification de la base Resource"
         id = request.POST.get('id', request.GET.get('id')) or None
         if id:
             instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
             resource_name = instance.name
             mode = self.mode(instance)
 
-            form = Form(
-                request.POST, request.FILES,
-                instance=instance, include={'user': user})
-
+            form = Form(request.POST, request.FILES,
+                        instance=instance, include={'user': user})
             if form.is_valid() and user.is_authenticated:
                 try:
                     form.handle_me(request, dataset, id=id,
@@ -108,9 +107,7 @@ class ResourceManager(View):
         else:
             resource_name = 'Nouveau'
             mode = None
-
             form = Form(request.POST, request.FILES, include={'user': user})
-
             if form.is_valid() and user.is_authenticated:
                 try:
                     instance = form.handle_me(

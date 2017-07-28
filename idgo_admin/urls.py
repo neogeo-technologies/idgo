@@ -1,5 +1,6 @@
 from django.conf.urls import url
 from idgo_admin.views.dataset import DatasetManager
+from idgo_admin.views.dataset import DisplayLicenses
 # from idgo_admin.views.profile import activation_admin
 from idgo_admin.views.profile import confirmation_mail
 from idgo_admin.views.profile import confirm_new_orga
@@ -49,4 +50,5 @@ urlpatterns = [
         contribution_request, name='contribution_request'),
     url('^contribution_request/?$', contribution_request, name='contribution_request'),
     url('^contributions/?$', Contributions.as_view(), name='contributions'),
+    url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
     url('^deleteaccount/?$', delete_account, name='deleteAccount')]
