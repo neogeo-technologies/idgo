@@ -41,11 +41,12 @@
 </form>
 <script>
 var $submit = $('form button[type="submit"]');
-var $radioInputs = $('form input:radio[name="publish_for"]')
+var $radioInputs = $('form input:radio[name="contributions"]')
 	.change(function() {
+		console.log(0)
 		if ($('div.btn-radio').hasClass('active')) {
 			$submit.removeClass('disabled').prop('disabled', false);
-			$typeahead.val($('form input:radio[name="publish_for"]:checked').parent().text())
+			$typeahead.val($('form input:radio[name="contributions"]:checked').parent().text())
 		} else {
 			$submit.addClass('disabled').prop('disabled', true)
 		};
@@ -66,17 +67,15 @@ function highlight() {
 };
 
 $('div[name="organization"] button[type="button"]').click(highlight);
-
 var $typeahead = $('div[name="organization"] .typeahead')
-	.typeahead({source: organizations})
+	.typeahead({
+		source: organizations,
+		afterSelect: highlight,
+	})
 	.keypress(function(e) {
 		if (e.which == 13) {
 			highlight();
 			return false;
 		};
 	});
-
-
-
-$radioInputs
 </script>

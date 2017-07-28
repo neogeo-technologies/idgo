@@ -30,8 +30,8 @@ from idgo_admin.forms.profile import UserUpdateForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
 from idgo_admin.models import Financeur
-from idgo_admin.models import Liaisons_Referents
 from idgo_admin.models import Liaisons_Contributeurs
+from idgo_admin.models import Liaisons_Referents
 from idgo_admin.models import License
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
