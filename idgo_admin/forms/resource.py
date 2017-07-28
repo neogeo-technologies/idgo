@@ -9,6 +9,10 @@ from idgo_admin.utils import download
 from uuid import uuid4
 
 
+def get_all_users_for_organizations(id):
+    yield []
+
+
 class CustomClearableFileInput(forms.ClearableFileInput):
     template_name = 'idgo_admin/clearable_file_input.html'
 
@@ -55,17 +59,16 @@ class ResourceForm(forms.ModelForm):
         user = request.user
         data = self.cleaned_data
 
+        restricted_level = data['restricted_level']
         params = {'name': data['name'],
                   'description': data['description'],
                   'dl_url': data['dl_url'],
                   'referenced_url': data['referenced_url'],
                   'lang': data['lang'],
                   'data_format': data['data_format'],
-                  'restricted_level': data['restricted_level'],
+                  'restricted_level': restricted_level,
                   'up_file': data['up_file'],
                   'dataset': dataset}
-
-        restricted_level = data['access']
 
         if id:  # Màj
             resource = Resource.objects.get(pk=id)
@@ -87,14 +90,17 @@ class ResourceForm(forms.ModelForm):
                   'url': ''}
 
         if restricted_level == '2':  # Registered users
-            params['restricted'] = {
-                'allowed_users': '',  # TODO(@m431m)
-                'level': 'registered'}
+            allowed_users = ''
 
         if restricted_level == '4':  # Any organization
-            params['restricted'] = {
-                'allowed_users': '',  # TODO(@m431m)
-                'level': 'any_organization'}
+            allowed_users = get_all_users_for_organizations()
+
+            # params['restricted'] = {
+            #     'allowed_users': '',
+            #     'level': 'any_organization'}
+
+        params['restricted'] = {
+            'allowed_users': allowed_users, 'level': 'registered'}
 
         if resource.referenced_url:
             params['url'] = resource.referenced_url

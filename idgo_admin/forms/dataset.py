@@ -27,7 +27,7 @@ class DatasetForm(forms.ModelForm):
         widget=TagWidget(
             attrs={'autocomplete': 'off',
                    'class': 'typeahead',
-                   'placeholder': 'Utilisez la virgule pour séparer les valeurs.'}))
+                   'placeholder': ''}))
 
     geocover = forms.ChoiceField(
         choices=Dataset.GEOCOVER_CHOICES,
