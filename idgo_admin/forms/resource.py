@@ -60,6 +60,7 @@ class ResourceForm(forms.ModelForm):
         data = self.cleaned_data
 
         restricted_level = data['restricted_level']
+
         params = {'name': data['name'],
                   'description': data['description'],
                   'dl_url': data['dl_url'],

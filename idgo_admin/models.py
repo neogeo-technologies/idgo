@@ -37,7 +37,7 @@ class Resource(models.Model):
         ('resource', 'Resources'))
 
     LEVEL_CHOICES = (
-        ('O', 'Tous les utilisateurs'),
+        ('0', 'Tous les utilisateurs'),
         ('1', 'Utilisateurs authentifiés'),
         ('2', 'Utilisateurs authentifiés avec droits spécifiques'),
         ('3', 'Utilisateurs de cette organisations uniquements'),

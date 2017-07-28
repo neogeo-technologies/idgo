@@ -82,7 +82,8 @@ class ResourceManager(View):
 
         user = request.user
         dataset = get_object_or_404(Dataset, id=dataset_id)
-
+        success = False
+        text = "Erreur lors de l'opération de modification de la base Resource"
         id = request.POST.get('id', request.GET.get('id')) or None
         if id:
             instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
