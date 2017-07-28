@@ -39,7 +39,9 @@ class Resource(models.Model):
     LEVEL_CHOICES = (
         ('O', 'Tous les utilisateurs'),
         ('1', 'Utilisateurs authentifiés'),
-        ('2', 'Utilisateurs authentifiés avec droits spécifiques'))
+        ('2', 'Utilisateurs authentifiés avec droits spécifiques'),
+        ('3', 'Utilisateurs de cette organisations uniquements'),
+        ('4', 'Organisations spécifiées'))
 
     # Une fiche dataset correspond à n fiches Resource
 
@@ -73,13 +75,13 @@ class Resource(models.Model):
 
     restricted_level = models.CharField(
         "Restriction d'accès", choices=LEVEL_CHOICES,
-        default="0", max_length=20, blank=True, null=True)
+        default='0', max_length=20, blank=True, null=True)
 
     allowed_users = models.ManyToManyField(
-        'Profile', verbose_name="Utilisateurs autorisés")
+        'Profile', verbose_name='Utilisateurs autorisés')
 
     allowed_organisations = models.ManyToManyField(
-        'Organisation', verbose_name="Organisations autorisées")
+        'Organisation', verbose_name='Organisations autorisées')
 
     dataset = models.ForeignKey(
         'Dataset', on_delete=models.CASCADE, blank=True, null=True)
@@ -89,14 +91,14 @@ class Resource(models.Model):
 
     # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
     geo_restriction = models.BooleanField(
-        "Restriction géographique", default=False)
+        'Restriction géographique', default=False)
 
     created_on = models.DateTimeField(
-        verbose_name="Date de creation de la resource",
+        verbose_name='Date de création de la resource',
         blank=True, null=True, default=timezone.now)
 
     last_update = models.DateTimeField(
-        verbose_name="Date de dernière modification de la resource",
+        verbose_name='Date de dernière modification de la resource',
         blank=True, null=True)
 
     data_type = models.CharField(verbose_name='type de resources',
@@ -106,7 +108,7 @@ class Resource(models.Model):
         return self.name
 
     class Meta(object):
-        verbose_name = "Ressource"
+        verbose_name = 'Ressource'
 
 
 class Commune(models.Model):

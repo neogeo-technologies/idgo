@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
@@ -173,7 +174,6 @@ class DatasetForm(forms.ModelForm):
             # TODO -> Last modification
             'groups': [],  # Cf. plus bas..
             'geocover': dataset.geocover,
-            'id': str(dataset.ckan_id),
             'license_id': dataset.licences.title,
             'maintainer': user.username,
             'maintainer_email': user.email,
@@ -192,13 +192,14 @@ class DatasetForm(forms.ModelForm):
             params['groups'].append({'name': category.ckan_slug})
 
         try:
-            ckan_user.publish_dataset(dataset.ckan_slug, **params)
-        except Exception as e:
-            dataset.sync_in_ckan = False
-            dataset.delete()
-            raise e
+            ckan_dataset = ckan_user.publish_dataset(
+                dataset.ckan_slug, id=str(dataset.ckan_id), **params)
+        except Exception:
+            Dataset.delete()
+            raise IntegrityError('Une erreur est survenue lors de la '
+                                 'création du jeu de données dans CKAN.')
         else:
-            dataset.sync_in_ckan = True
+            dataset.ckan_id = ckan_dataset['id']
 
         ckan_user.close()
         dataset.save()

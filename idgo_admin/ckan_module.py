@@ -189,6 +189,9 @@ class CkanUserHandler(object):
     def _is_package_exists(self, id):
         return self._get_package(id) and True or False
 
+    def _is_package_name_already_used(self, name):
+        return self._get_package(name) and True or False
+
     @exceptions_handler
     def _add_package(self, **kwargs):
         return self.remote.action.package_create(**kwargs)
@@ -203,7 +206,6 @@ class CkanUserHandler(object):
 
     @exceptions_handler
     def _push_resource(self, package, **kwargs):
-        print(0, kwargs)
         kwargs['package_id'] = package['id']
         kwargs['created'] = datetime.now().isoformat()
         for resource in package['resources']:
@@ -211,9 +213,7 @@ class CkanUserHandler(object):
                 kwargs['last_modified'] = kwargs['created']
                 del kwargs['created']
                 resource.update(kwargs)
-                print(1, kwargs)
                 return self.remote.action.resource_update(**resource)
-        print(2, kwargs)
         return self.remote.action.resource_create(**kwargs)
 
     @exceptions_handler
@@ -236,8 +236,11 @@ class CkanUserHandler(object):
         return self.remote.action.resource_view_create(**kwargs)
 
     def publish_dataset(self, name, id=None, resources=None, **kwargs):
+        if not id and self._is_package_name_already_used(name):
+            raise Exception()  # TODO -> Sprint3: Gérer les erreurs (TOUTES les erreurs)
+
         kwargs['name'] = name
-        print(kwargs)
+        kwargs['id'] = id
         if id and self._is_package_exists(id):
             package = self._update_package(
                 **{**self._get_package(id), **kwargs})
