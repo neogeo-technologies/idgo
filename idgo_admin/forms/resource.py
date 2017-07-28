@@ -6,6 +6,8 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Resource
 from idgo_admin.utils import download
+from taggit.forms import TagField
+from taggit.forms import TagWidget
 from uuid import uuid4
 
 
@@ -39,6 +41,22 @@ class ResourceForm(forms.ModelForm):
         required=False,
         widget=CustomClearableFileInput())
 
+    allowed_users = TagField(
+        label="Liste d'utilisateurs",
+        required=False,
+        widget=TagWidget(
+            attrs={'autocomplete': 'off',
+                   'class': 'typeahead',
+                   'placeholder': ''}))
+
+    organisations_allowed = TagField(
+        label="Liste d'organisations",
+        required=False,
+        widget=TagWidget(
+            attrs={'autocomplete': 'off',
+                   'class': 'typeahead',
+                   'placeholder': ''}))
+
     class Meta(object):
         model = Resource
         fields = ('name',
@@ -48,7 +66,9 @@ class ResourceForm(forms.ModelForm):
                   'restricted_level',
                   'dl_url',
                   'referenced_url',
-                  'up_file')
+                  'up_file',
+                  'allowed_users',
+                  'organisations_allowed')
 
     def __init__(self, *args, **kwargs):
         include_args = kwargs.pop('include', {})

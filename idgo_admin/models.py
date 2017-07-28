@@ -92,7 +92,7 @@ class Resource(models.Model):
 
     organisations_allowed = TaggableManager(
         verbose_name='Organisations autorisées',
-        through='OrganisationTagged', related_name="to_organsiations")
+        through='OrganisationTagged', related_name="to_organisations")
 
     dataset = models.ForeignKey(
         'Dataset', on_delete=models.CASCADE, blank=True, null=True)

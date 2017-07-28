@@ -77,13 +77,13 @@
 	</div>
 	<div class="collapse" id="permitted-users">
 		<div class="well">
-			<input type="text" class="form-control typeahead" placeholder="Liste d'utilisateurs séparés par la virgule..."></input>
+			<!-- <input type="text" class="typeahead" placeholder="Liste d'utilisateurs séparés par la virgule..."></input> -->
 			{% bootstrap_field form.users_allowed %}
 		</div>
 	</div>
 	<div class="collapse" id="permitted-organizations">
 		<div class="well">
-			<input type="text" class="form-control typeahead" placeholder="Liste d'organisations séparées par la virgule..."></input>
+			<!-- <div type="text" class="typeahead" placeholder="Liste d'organisations séparées par la virgule..."></input> -->
 			{% bootstrap_field form.organisations_allowed %}
 		</div>
 	</div>
@@ -105,13 +105,7 @@ function matcher(item) {
 	if (!query) {
 		return false;
 	};
-	if (~item['id'].toLowerCase().indexOf(query.toLowerCase())) {
-		console.log('id: ' + ~item['id'])
-	};
-	if (~item['name'].toLowerCase().indexOf(query.toLowerCase())) {
-		console.log('name: ' + ~item['name'])
-	};
-	return ~item['id'].toLowerCase().indexOf(query.toLowerCase())
+	return ~item.toLowerCase().indexOf(query.toLowerCase())
 };
 
 function highlighter(item) {
@@ -123,37 +117,32 @@ function highlighter(item) {
 
 $('#permitted-users .typeahead').tagsinput({
 	typeahead: {
-		source: {{ users | safe }}
+		source: {{ users | safe }},
+		updater: updater,
+		matcher: matcher,
+		highlighter: highlighter
 	},
-	//freeInput: true
+	freeInput: false
 });
 
-
-$('#permitted-organizations .typeahead').typeahead({
-	source: {{ organizations | safe }},
-	updater: updater,
-	matcher: matcher,
-	highlighter: highlighter
+$('#permitted-organizations .typeahead').tagsinput({
+	typeahead: {
+		source: {{ organizations | safe }},
+		updater: updater,
+		matcher: matcher,
+		highlighter: highlighter
+	},
+	freeInput: false
 });
-
 	</script>
 	<div class="buttons-on-the-right-side">
 		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
 		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">Annuler</a>
 	</div>
 </form>
+
+
 <script>
-$('a[role="tab"]').click(function(e) {
-	if ($(this).hasClass('disabled')) {
-		e.stopPropagation();
-	};
-});
-
-$('ul[name="data-selector"] a').click(function(e) {
-	e.preventDefault();
-	$(this).tab('show');
-});
-
 var $permittedUsers = $('#permitted-users')
 	.collapse({
 		toggle: false
@@ -163,7 +152,6 @@ var $permittedUsers = $('#permitted-users')
 			$(this).val('');
 		});
 	});
-
 var $permittedOrganizations = $('#permitted-organizations')
 	.collapse({
 		toggle: false
@@ -173,7 +161,6 @@ var $permittedOrganizations = $('#permitted-organizations')
 			$(this).val('');
 		});
 	});
-
 function getAccessSelectedOption($this) {
 	var value = $this.find('option:selected').val();
 	if (value === '2') {
@@ -189,19 +176,10 @@ function getAccessSelectedOption($this) {
 		$permittedOrganizations.collapse('hide');
 	};
 };
-
 $selectAccess = $('select[name="restricted_level"]')
 	.change(function() {
 		getAccessSelectedOption($(this));
 	});
-
-$('div[name="data-selector"] input[type=radio]').on('change', function() {
-	$('.well>div').each(function(){
-		$(this).hide();
-		$('div[name="data-selector-panel"] input').val('');
-	});
-	$('.well>div[name="' + this.value + '"]').show();
-});
 
 $(document).on('change', ':file', function() {
 	var $this = $(this);
@@ -214,35 +192,6 @@ $(document).on('change', ':file', function() {
 	$this.trigger('fileselect', [count, fileName.join(', ')]);
 });
 
-// function foobar($that) {
-// 	if ($that.val().length > 0) {
-// 		$('div[name="data-selector-panel"] input').each(function() {
-// 			var $this = $(this);
-// 			if (!($that[0] === $this[0])) {
-// 				$('ul[name="data-selector"]>li>a').each(function() {
-// 					var $tab = $(this);
-// 					if ($tab[0].name != $this[0].name) {
-// 						$tab.parent().addClass('disabled')
-// 						$tab.addClass('disabled');
-// 						$tab.prop('disabled', true);
-// 					};
-// 				});
-// 			};
-// 		});
-// 	};
-// };
-
-// $('div[name="data-selector-panel"] input').each(function() {
-// 	var $this = $(this);
-// 	$this
-// 		.focusout(function() {
-// 			foobar($this);
-// 		})
-// 		.change(function() {
-// 			foobar($this);
-// 		});
-// });
-
 var $input = $('input[type="file"]').change(function(e) {
 	if ($input.val().length > 0) {
 		// TODO
@@ -250,19 +199,6 @@ var $input = $('input[type="file"]').change(function(e) {
 });
 
 $(document).ready(function() {
-	var mode = '{{ mode }}';
-	if (mode) {
-		$('ul[name="data-selector"] a[href="#' + mode + '"]').tab('show');
-		$('ul[name="data-selector"] a:not(a[href="#' + mode + '"])').each(function() {
-			var $this = $(this);
-			$this.prop('disabled', true);
-			$this.addClass('disabled');
-			$this.parent().addClass('disabled');
-		});
-	} else {
-		$('ul[name="data-selector"] a:first').tab('show');
-	};
-
 	$(':file').on('fileselect', function(e, count, label) {
 		var $this = $(this);
 		var $input = $this.parents('.input-group').find(':text');
