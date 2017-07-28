@@ -11,6 +11,7 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Dataset
+from idgo_admin.models import License
 from idgo_admin.models import Mail
 from idgo_admin.models import Resource
 import json
@@ -181,16 +182,16 @@ class DisplayLicenses(View):
 
     def get(self, request):
         data = [{
-"domain_content": o.domain_content,
-"domain_data": false,
-"domain_software": false,
-"family": "",
-"id": "notspecified",
-"is_generic": true,
-"maintainer": "",
-"od_conformance": "not reviewed",
-"osd_conformance": "not reviewed",
-"status": "active",
-"title": "License Not Specified",
-"url": ""}]
-        return JsonResponse(request, 'idgo_admin/dataset.html', context=context)
+            "domain_content": o.domain_content,
+            "domain_data": o.domain_data,
+            "domain_software": o.domain_software,
+            "family": o.family,
+            "id": o.id,
+            "is_generic": o.is_generic,
+            "maintainer": o.maintainer,
+            "od_conformance": o.od_conformance,
+            "osd_conformance": o.osd_conformance,
+            "status": o.status,
+            "title": o.title,
+            "url": o.url} for o in License.objects.all()]
+        return JsonResponse(data, safe=False)

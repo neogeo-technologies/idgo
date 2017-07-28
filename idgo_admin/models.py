@@ -21,11 +21,11 @@ def deltatime_2_days():
 
 
 class UserTagged(TaggedItemBase):
-    user_tagged = models.ForeignKey(User, related_name='user_tagged')
+    content_object = models.ForeignKey(User, related_name='user_tagged')
 
 
 class OrganisationTagged(TaggedItemBase):
-    organisation_tagged = models.ForeignKey('Organisation', related_name='organisation_tagged')
+    content_object = models.ForeignKey('Organisation', related_name='organisation_tagged')
 
 
 class Resource(models.Model):
