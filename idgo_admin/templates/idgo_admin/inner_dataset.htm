@@ -88,40 +88,40 @@ $('form[name="dataset"] input[checked=""], form[name="dataset"] input[checked="c
 	$('label[for="' + this.id + '"]').addClass('active');
 });
 
-// function extractor(query) {
-// 	var result = /([^,]+)$/.exec(query);
-// 	if (result && result[1]) {
-// 		return result[1].trim();
-// 	};
-// 	return '';
-// };
+function extractor(query) {
+	var result = /([^,]+)$/.exec(query);
+	if (result && result[1]) {
+		return result[1].trim();
+	};
+	return '';
+};
 
-// $('#dataset .typeahead').typeahead({
-// 	source: {{ tags | safe }},
-// 	updater: function(item) {
-// 		return this.$element.val().replace(/[^,]*$/,'') + item + ',';
-// 	},
-// 	matcher: function (item) {
-// 		var query = extractor(this.query);
-// 		if (!query) {
-// 			return false;
-// 		};
-// 		return ~item.toLowerCase().indexOf(query.toLowerCase())
-// 	},
-// 	highlighter: function (item) {
-// 		var query = extractor(this.query).replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&')
-// 		return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-// 			return '<strong>' + match + '</strong>';
-// 		});
-// 	}
-// });
-$('#dataset .typeahead').tagsinput({
-	typeahead: {
-		source: {{ tags | safe }}
+$('#dataset .typeahead').typeahead({
+	source: {{ tags | safe }},
+	updater: function(item) {
+		return this.$element.val().replace(/[^,\s]*$/, '') + item + ', ';
 	},
-	freeInput: true,
-	tagClass: 'badge'
+	matcher: function (item) {
+		var query = extractor(this.query);
+		if (!query) {
+			return false;
+		};
+		return ~item.toLowerCase().indexOf(query.toLowerCase())
+	},
+	highlighter: function (item) {
+		var query = extractor(this.query).replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&')
+		return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+			return '<strong>' + match + '</strong>';
+		});
+	}
 });
-$('.bootstrap-tagsinput').addClass('form-control');
+
+// $('#dataset .typeahead').tagsinput({
+// 	typeahead: {
+// 		source: {{ tags | safe }}
+// 	},
+// 	freeInput: true,
+// 	tagClass: 'badge'
+// });
 
 </script>

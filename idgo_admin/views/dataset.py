@@ -49,7 +49,6 @@ class DatasetManager(View):
             form = Form(instance=instance, include={'user': user})
             dataset_name = instance.name
             dataset_id = instance.id
-            print([e.restricted_level for e in Resource.objects.filter(dataset=instance)])
             resources = [(
                 o.pk,
                 o.name,
