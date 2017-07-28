@@ -90,17 +90,14 @@ class ResourceForm(forms.ModelForm):
                   'url': ''}
 
         if restricted_level == '2':  # Registered users
-            allowed_users = ''
+            params['restricted'] = {
+                'allowed_users': '',
+                'level': 'registered'}
 
         if restricted_level == '4':  # Any organization
-            allowed_users = get_all_users_for_organizations()
-
-            # params['restricted'] = {
-            #     'allowed_users': '',
-            #     'level': 'any_organization'}
-
-        params['restricted'] = {
-            'allowed_users': allowed_users, 'level': 'registered'}
+            params['restricted'] = {
+                'allowed_users': get_all_users_for_organizations(),
+                'level': 'registered'}  # any_organization
 
         if resource.referenced_url:
             params['url'] = resource.referenced_url
