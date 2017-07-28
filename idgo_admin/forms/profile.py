@@ -118,6 +118,7 @@ class UserResetPassword(forms.Form):
         if password:
             user.set_password(password)
             user.save()
+            # ckan.update_user(user, password)  # TODO(mael): recuperer password
             logout(request)
             login(request, user,
                   backend='django.contrib.auth.backends.ModelBackend')

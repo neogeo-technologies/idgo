@@ -519,9 +519,9 @@ class Mail(models.Model):
             raise e
 
     @classmethod
-    def send_reset_password_link_to_user(cls, request, reg):
+    def send_reset_password_link_to_user(cls, request, action):
         mail_template = Mail.objects.get(template_name="send_reset_password_link_to_user")
-        user = reg.user
+        user = action.profile.user
 
         message = mail_template.message.format(
             first_name=user.first_name,
@@ -529,12 +529,13 @@ class Mail(models.Model):
             username=user.username,
             url=request.build_absolute_uri(
                 reverse('idgo_admin:resetPassword',
-                        kwargs={'key': reg.reset_password_key})))
-
-        send_mail(subject=mail_template.subject, message=message,
-                  from_email=mail_template.from_email,
-                  recipient_list=[user.email])
-
+                        kwargs={'key': action.key})))
+        try:
+            send_mail(subject=mail_template.subject, message=message,
+                      from_email=mail_template.from_email,
+                      recipient_list=[user.email])
+        except Exception as e:
+            raise e
 
 class Category(models.Model):
 
