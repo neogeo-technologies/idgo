@@ -305,20 +305,23 @@ def forgotten_password(request):
     if not form.is_valid():
         return render(request, 'idgo_admin/forgottenpassword.html',
                       {'form': form})
+    try:
+        profile = Profile.objects.get(
+            user__email=form.cleaned_data["email"], is_active=True)
+    except:
+        message = "Cette adresse n'est pas liée a un compte IDGO actif "
+        return render(request, 'idgo_admin/message.html',
+                      {'message': message}, status=200)
 
-    # user = get_object_or_404(User, email=form.cleaned_data["email"])
-
-    # TODO(cbenhabib): Registration -> AccountActions
-    # reg, created = AccountActions.objects.get_or_create(user=user, action='reset_password')
-    # if created is False:
-    #     message = ('Un e-mail de réinitialisation à déjà été envoyé '
-    #                '"'Veuillez vérifier votre messagerie')
-    #     status = 200
-    #     return render(request, 'idgo_admin/message.html',
-    #                   {'message': message}, status=status)
+    action, created = AccountActions.objects.get_or_create(profile=profile, action='reset_password')
+    if created is False:
+        message = ('Un e-mail de réinitialisation à déjà été envoyé '
+                   "Veuillez vérifier votre messagerie")
+        return render(request, 'idgo_admin/message.html',
+                      {'message': message}, status=200)
 
     try:
-        Mail.send_reset_password_link_to_user(request, reg)
+        Mail.send_reset_password_link_to_user(request, action)
     except Exception as e:
         message = ("Une erreur s'est produite lors de l'envoi du mail "
                    "de réinitialisation: {error}".format(error=e))
@@ -348,19 +351,17 @@ def reset_password(request, key):
         return render(request, 'idgo_admin/resetpassword.html',
                       {'form': form})
 
-    # TODO(cbenhabib): Registration -> AccountActions
-    # reg = get_object_or_404(Registration, reset_password_key=key)
-    user = get_object_or_404(User, username=reg.user.username)
-    # reset_action = get_object_or_404(AccountActions, key=key, action="reset_password")
-    # user = reset_action.user
+    reset_action = get_object_or_404(
+        AccountActions, key=key, action="reset_password")
+    user = reset_action.profile.user
 
-    # MAJ MDP: TODO() a voir en fonction du SSO
     error = False
     try:
         with transaction.atomic():
-            raise Exception('TODO!!!')  # TODO(@cbenhabib) <-------------------
-        #     user = form.save(request, user)
-        #     ckan.update_user(user)
+            # TODO(@cbenhabib) MAJ MDP: a voir en fonction du SSO
+            # CF save de UserResetPassword
+            # user = form.save(request, user)
+            pass
     except ValidationError as e:
         print('ValidationError', e)
         return render(request, 'idgo_admin/resetpassword.html',
