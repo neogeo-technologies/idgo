@@ -41,21 +41,21 @@ class ResourceForm(forms.ModelForm):
         required=False,
         widget=CustomClearableFileInput())
 
-    allowed_users = TagField(
-        label="Liste d'utilisateurs",
-        required=False,
-        widget=TagWidget(
-            attrs={'autocomplete': 'off',
-                   'class': 'typeahead',
-                   'placeholder': ''}))
+    # allowed_users = TagField(
+    #     label="Liste d'utilisateurs",
+    #     required=False,
+    #     widget=TagWidget(
+    #         attrs={'autocomplete': 'off',
+    #                'class': 'typeahead',
+    #                'placeholder': ''}))
 
-    organisations_allowed = TagField(
-        label="Liste d'organisations",
-        required=False,
-        widget=TagWidget(
-            attrs={'autocomplete': 'off',
-                   'class': 'typeahead',
-                   'placeholder': ''}))
+    # organisations_allowed = TagField(
+    #     label="Liste d'organisations",
+    #     required=False,
+    #     widget=TagWidget(
+    #         attrs={'autocomplete': 'off',
+    #                'class': 'typeahead',
+    #                'placeholder': ''}))
 
     class Meta(object):
         model = Resource
@@ -67,8 +67,9 @@ class ResourceForm(forms.ModelForm):
                   'dl_url',
                   'referenced_url',
                   'up_file',
-                  'allowed_users',
-                  'organisations_allowed')
+                  # 'allowed_users',
+                  # 'organisations_allowed'
+                  )
 
     def __init__(self, *args, **kwargs):
         include_args = kwargs.pop('include', {})
