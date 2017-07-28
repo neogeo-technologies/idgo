@@ -123,6 +123,11 @@ class DatasetForm(forms.ModelForm):
                 pk__in=[o.pk for o in Liaisons_Contributeurs.get_contribs(
                     profile=profile)])
 
+    def clean(self):
+
+        if not self.cleaned_data.get('date_creation'):
+            self.cleaned_data['date_creation'] = timezone.now()
+
     def handle_me(self, request, id=None):
         user = request.user
         data = self.cleaned_data

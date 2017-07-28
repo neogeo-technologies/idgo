@@ -277,7 +277,7 @@ class UserProfileForm(forms.Form):
             # # existante car pas d'id pour new_orga...
             self.cleaned_data['organisation'] = \
                 self.cleaned_data['organisation'].name
-        print(self.cleaned_data)
+
         return self.cleaned_data
 
 
