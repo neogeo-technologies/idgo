@@ -957,9 +957,9 @@ class Contributions(View):
                 request, 'idgo_admin/contributions.html',
                 context={'first_name': user.first_name,
                          'last_name': user.last_name,
+                         'my_organization': profile.organisation.name,
                          'contributions': json.dumps(contrib_tup),
-                         'subordinates': json.dumps(referents_tup),
-                         'organizations': json.dumps(contrib_tup)})
+                         'subordinates': json.dumps(referents_tup)})
 
     def delete(self, request):
 

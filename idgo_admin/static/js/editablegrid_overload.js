@@ -175,12 +175,14 @@ EditableGrid.prototype.editCell = function(rowIndex, columnIndex) {
 EditableGrid.prototype.updatePaginator = function(grid) {
 
 	var paginator = $('#' + this.currentContainerid + '-paginator').empty();
+	var navigator = paginator.parent().hide();
 	var pageCount = this.getPageCount();
 
 	var interval = this.getSlidingPageInterval(9);
 	if (interval == null) {
 		return;
 	};
+	navigator.show();
 
 	var pages = this.getPagesInInterval(interval, function(pageIndex, isCurrent) {
 		var pageLink = $('<li>').html('<a href="#">' + (pageIndex + 1) + '</a>');

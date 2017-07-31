@@ -25,6 +25,13 @@ br {
     line-height: 300%;
 }
 
+.well {
+    background-color: #fcfcfc;
+    border: 1px solid #eeeeee;
+    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+            box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+}
+
 .checkbox, .radio {
     position: relative;
     display: block;
@@ -188,7 +195,7 @@ table>thead a:focus {
     color: inherit;
 }
 
-table>tbody>tr {
+table.table-hover>tbody>tr {
     cursor: pointer;
 }
 
@@ -482,14 +489,14 @@ div#categories.btn-group>label.btn.active:focus>span.badge {
 }
 
 .nav[name="data-selector"] {
-    border-bottom: 1px solid rgb(221, 221, 221);
+    border-bottom: 1px solid #dddddd;
 }
 
 .nav[name="data-selector"] li[role="presentation"] a {
     color: inherit;
-    border: 1px solid rgb(221, 221, 221);
+    border: 1px solid #dddddd;
     border-bottom: none;
-    /*border: 1px solid rgb(221, 221, 221);*/
+    /*border: 1px solid #dddddd;*/
 }
 
 .nav[name="data-selector"] li[role="presentation"]:hover:not(.active) a {
@@ -515,7 +522,7 @@ div#categories.btn-group>label.btn.active:focus>span.badge {
     margin-top: 0px;
     margin-bottom: 20px;
     background-color: #fcfcfc;
-    border: 1px solid rgb(221, 221, 221);
+    border: 1px solid #dddddd;
     -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
             box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
     border-top: 0px;
