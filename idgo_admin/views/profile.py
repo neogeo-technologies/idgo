@@ -636,6 +636,94 @@ def confirm_contribution(request, key):
 @csrf_exempt
 def modify_account(request):
 
+    def handle_new_orga(profile, data):
+
+        print('data', data)
+
+        if data['role']:
+            profile.role = data['role']
+
+        if data['phone']:
+            profile.role = data['phone']
+
+        if data['is_new_orga']:
+            print(1, data['new_orga'] or data['organisation'])
+            try:
+                organisation, created = Organisation.objects.get_or_create(
+                    name=data['new_orga'] or data['organisation'],
+                    defaults={
+                        'adresse': data['adresse'],
+                        'code_insee': data['code_insee'],
+                        'code_postal': data['code_postal'],
+                        'description': data['description'],
+                        'financeur': data['financeur'],
+                        'license': data['license'],
+                        'organisation_type': data['organisation_type'],
+                        'parent': data['parent'],
+                        'status': data['status'],
+                        'ville': data['ville'],
+                        'website': data['website'],
+                        'is_active': False})
+                print(organisation, created)
+            except Exception as e:
+                print('CreatingOrganisationError', e)
+                raise e
+            profile.organisation = organisation
+            # Demande de creation nouvelle organisation
+            if data['is_new_orga']:
+                new_organisation_action = AccountActions.objects.create(
+                    profile=profile, action="confirm_new_organisation")
+                try:
+                    Mail.confirm_new_organisation(request, new_organisation_action)
+                except Exception as e:
+                    print('SendingMailError', e)
+                    raise e
+
+            # Demande de rattachement Profile-Organisation
+            rattachement_action = AccountActions.objects.create(
+                profile=profile, action="confirm_rattachement")
+            try:
+                Mail.confirm_rattachement(request, rattachement_action)
+            except Exception as e:
+                print('SendingMailError', e)
+                raise e
+
+            # Demande de role de referent
+            if data['referent_requested']:
+                Liaisons_Referents.objects.create(
+                    profile=profile, organisation=organisation)
+
+                referent_action = AccountActions.objects.create(
+                    profile=profile, action='confirm_referent',
+                    org_extras=organisation)
+                try:
+                    Mail.confirm_referent(request, referent_action)
+                except Exception as e:
+                    print('SendingMailError', e)
+                    raise e
+
+            # Demande de role de contributeur
+            if data['contribution_requested']:
+                Liaisons_Contributeurs.objects.create(
+                    profile=profile, organisation=organisation)
+
+                contribution_action = AccountActions.objects.create(
+                    profile=profile, action="confirm_contribution",
+                    org_extras=organisation)
+                try:
+                    Mail.confirm_contribution(request, contribution_action)
+                except Exception as e:
+                    print('SendingMailError', e)
+                    raise e
+
+        # Redaction mail de confirmation de demande de modification
+        # try:
+        #     Mail.confirmation_user_modification(user)
+        # except Exception:
+        #     pass
+        profile.save()
+        return profile
+
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
@@ -644,17 +732,44 @@ def modify_account(request):
         instance=profile, data=request.POST or None, exclude={'user': user})
 
     if not uform.is_valid() or not pform.is_valid():
+
         return render(request, 'idgo_admin/modifyaccount.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
                        'uform': uform, 'pform': pform})
 
+    data = {
+        'username': uform.cleaned_data['username'],
+        'email': uform.cleaned_data['email'],
+        'password': uform.cleaned_data['password1'],
+        'first_name': uform.cleaned_data['first_name'],
+        'last_name': uform.cleaned_data['last_name'],
+        'role': pform.cleaned_data['role'],
+        'phone': pform.cleaned_data['phone'],
+        'organisation': pform.cleaned_data['organisation'],
+        'new_orga': pform.cleaned_data['new_orga'],
+        'parent': pform.cleaned_data['parent'],
+        'organisation_type': pform.cleaned_data['organisation_type'],
+        'code_insee': pform.cleaned_data['code_insee'],
+        'description': pform.cleaned_data['description'],
+        'adresse': pform.cleaned_data['adresse'],
+        'code_postal': pform.cleaned_data['code_postal'],
+        'ville': pform.cleaned_data['ville'],
+        'org_phone': pform.cleaned_data['org_phone'],
+        'financeur': pform.cleaned_data['financeur'],
+        'status': pform.cleaned_data['status'],
+        'license': pform.cleaned_data['license'],
+        'website': pform.cleaned_data['website'],
+        'referent_requested': pform.cleaned_data['referent_requested'],
+        'contribution_requested': pform.cleaned_data['contribution_requested'],
+        'is_new_orga': pform.cleaned_data['is_new_orga']}
+
     error = False
     try:
         with transaction.atomic():
             uform.save_f(request)
-            pform.save_f()
-            ckan.update_user(user, profile=profile)
+            profile = handle_new_orga(profile, data)
+            # ckan.update_user(user)
     except ValidationError as e:
         print('ValidationError', e)
         return render(request, 'idgo_admin/modifyaccount.html',
@@ -677,6 +792,11 @@ def modify_account(request):
             pass
         render_an_critical_error(request)
 
+    message = ("Les informations de votre profil sont à jour. "
+               'Toute demande de rattachement, contribution, '
+               'ou rôle de référent pour une organisation, '
+               "ne sera effective qu'après validation par un administrateur.")
+
     return render(
         request, 'idgo_admin/modifyaccount.html',
         {'first_name': user.first_name,
@@ -685,7 +805,7 @@ def modify_account(request):
          'pform': pform,
          'message': {
              'status': 'success',
-             'text': 'Les informations de votre profil sont à jour.'}})
+             'text': message}})
 
 
 @login_required(login_url=settings.LOGIN_URL)

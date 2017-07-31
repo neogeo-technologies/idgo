@@ -44,6 +44,9 @@
 			<p>Une demande de création d'organisme est soumise à l'administrateur du site pour validation. </p>
 			<div class="row">
 				<div class="col-xs-12 col-sm-8">
+					{% bootstrap_field pform.logo show_label=False %}
+				</div>
+				<div class="col-xs-12 col-sm-8">
 					{% bootstrap_field pform.new_orga show_label=False %}
 				</div>
 				<div class="col-xs-12 col-sm-4">

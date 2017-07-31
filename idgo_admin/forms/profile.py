@@ -234,19 +234,21 @@ class UserProfileForm(forms.Form):
         label='Demander le statut de contributeur pour cette organisation',
         required=False)
 
+    logo = forms.ImageField(required=False, label='Logo de votre organisation')
+
     class Meta(object):
         model = Profile
         fields = ('phone', 'role', 'organisation', 'name', 'organisation_type',
                   'code_insee', 'parent', 'website', 'email', 'description',
                   'logo', 'adresse', 'code_postal', 'ville', 'org_phone',
                   'communes', 'license', 'financeur', 'status',
-                  'referent_requested', 'contribution_requested')
+                  'referent_requested', 'contribution_requested', 'logo')
 
     def clean(self):
 
         params = ['adresse', 'code_insee', 'code_postal', 'description',
                   'financeur', 'license', 'organisation_type', 'org_phone'
-                  'parent', 'status', 'ville', 'website']
+                  'parent', 'status', 'ville', 'website', 'logo']
 
         organisation = self.cleaned_data.get('organisation')
         if self.cleaned_data.get('referent_requested'):
@@ -284,10 +286,119 @@ class UserProfileForm(forms.Form):
 
 class ProfileUpdateForm(forms.ModelForm):
 
+    phone = forms.CharField(
+        error_messages={'invalid': 'Le numéro est invalide.'},
+        required=False, label='Téléphone',
+        min_length=3, max_length=150,
+        validators=[validators.RegexValidator(regex='^0\d{9}$')],
+        widget=forms.TextInput(attrs={'placeholder': 'Téléphone'}))
+
+    role = forms.CharField(
+        required=False, label='Rôle',
+        min_length=3, max_length=150,
+        widget=forms.TextInput(attrs={'placeholder': 'Rôle'}))
+
+    # Champs Organisation
     organisation = forms.ModelChoiceField(
         required=False,
-        label="Organisation d'attachement",
+        label="Organisme d'attachement",
         queryset=Organisation.objects.all())
+
+    parent = forms.ModelChoiceField(
+        required=False,
+        label='Organisme parent',
+        queryset=Organisation.objects.all())
+
+    new_orga = forms.CharField(
+        error_messages={"Nom de l'organisme invalide": 'invalid'},
+        label="Nom de l'organisme",
+        max_length=255,
+        min_length=3,
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisme"}))
+
+    new_website = forms.URLField(
+        error_messages={'invalid': "L'adresse URL est érronée. "},
+        label="URL du site internet de l'organisme", required=False)
+
+    is_new_orga = forms.BooleanField(widget=forms.HiddenInput(),
+                                     required=False, initial=False)
+
+    code_insee = forms.CharField(
+        required=False,
+        label="Code INSEE",
+        max_length=10,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Code INSEE"}))
+
+    description = forms.CharField(
+        required=False,
+        label="Description",
+        max_length=1024,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Description"}))
+
+    adresse = forms.CharField(
+        required=False,
+        label="Adresse",
+        max_length=1024,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Adresse"}))
+
+    code_postal = forms.CharField(
+        required=False,
+        label="Code postal",
+        max_length=10,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Code postal"}))
+
+    ville = forms.CharField(
+        required=False,
+        label="Ville",
+        max_length=150,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Ville de d'organisation"}))
+
+    org_phone = forms.CharField(
+        error_messages={'invalid': 'Le numéro est invalide.'},
+        required=False,
+        label='Téléphone',
+        max_length=150,
+        min_length=2,
+        # '^(0|\+33|\+33\s*\(0\)\s*)(\d\s*){9}$'
+        validators=[validators.RegexValidator(regex='^0\d{9}$')],
+        widget=forms.TextInput(
+            attrs={'placeholder': "Téléphone de l'organisation"}))
+
+    organisation_type = forms.ModelChoiceField(
+        required=False,
+        label="Type d'organisation",
+        queryset=OrganisationType.objects.all())
+
+    financeur = forms.ModelChoiceField(
+        required=False,
+        label='Financeur',
+        queryset=Financeur.objects.all())
+
+    status = forms.ModelChoiceField(
+        required=False,
+        label='Statut',
+        queryset=Status.objects.all())
+
+    license = forms.ModelChoiceField(
+        required=False,
+        label='Licence par défaut pour tout nouveau jeu de données',
+        queryset=License.objects.all())
+
+    referent_requested = forms.BooleanField(
+        initial=True,
+        label='Demander le statut de référent pour cette organisation',
+        required=False)
+
+    contribution_requested = forms.BooleanField(
+        initial=True,
+        label='Demander le statut de contributeur pour cette organisation',
+        required=False)
 
     referents = forms.ModelChoiceField(
         required=False,
@@ -301,22 +412,11 @@ class ProfileUpdateForm(forms.ModelForm):
         widget=forms.RadioSelect(),
         queryset=Organisation.objects.all())
 
-    phone = forms.CharField(
-        error_messages={'invalid': 'Le numéro est invalide.'},
-        required=False, label='Téléphone',
-        min_length=3, max_length=150,
-        validators=[validators.RegexValidator(regex='^0\d{9}$')],
-        widget=forms.TextInput(attrs={'placeholder': 'Téléphone'}))
-
-    role = forms.CharField(
-        required=False, label='Rôle',
-        min_length=3, max_length=150,
-        widget=forms.TextInput(attrs={'placeholder': 'Rôle'}))
+    logo = forms.ImageField(required=False, label='Logo de votre organisation')
 
     class Meta(object):
         model = Profile
-        fields = (
-            'organisation', 'phone', 'role', 'contributions', 'referents')
+        fields = ('phone', 'role', 'organisation')
 
     def __init__(self, *args, **kwargs):
         exclude_args = kwargs.pop('exclude', {})
@@ -341,6 +441,9 @@ class ProfileUpdateForm(forms.ModelForm):
 
         organisation = profile.organisation
 
+        if not organisation:
+            return
+
         if organisation.is_active is False:
             self.fields['organisation'].queryset = \
                 Organisation.objects.filter(pk__isnull=True)
@@ -348,16 +451,41 @@ class ProfileUpdateForm(forms.ModelForm):
             self.fields['organisation'].initial = organisation.pk
             self.fields['organisation'].queryset = Organisation.objects.all()
 
-    def save_f(self, commit=True):
-        profile = super(ProfileUpdateForm, self).save(commit=False)
-        org = self.cleaned_data['organisation']
-        if org:
-            profile.organisation = org
+    def clean(self):
+        params = ['adresse', 'code_insee', 'code_postal', 'description',
+                  'financeur', 'license', 'organisation_type', 'org_phone'
+                  'parent', 'status', 'ville', 'website', 'logo', 'new_orga']
 
-        if commit:
-            profile.save()
+        organisation = self.cleaned_data.get('organisation')
 
-        return profile
+        if self.cleaned_data.get('referent_requested'):
+            self.cleaned_data['referent_requested'] = True
+        if self.cleaned_data.get('contribution_requested'):
+            self.cleaned_data['contribution_requested'] = True
+        if organisation is None:
+            # Retourne le nom d'une nouvelle organisation lors d'une
+            # nouvelle demande de création
+            self.cleaned_data['website'] = \
+                self.cleaned_data.get('new_website')
+            self.cleaned_data['is_new_orga'] = True
+
+            for p in params:
+                self.cleaned_data[p] = self.cleaned_data.get(p)
+
+        else:
+            # Vider les champs pour nouvelle orga dans le cas
+            # ou l'utilisateur ne crée pas de nouvelle orga
+            # mais laisse des champs remplis
+            for p in params:
+                self.cleaned_data[p] = ''
+            self.cleaned_data['is_new_orga'] = False
+
+            # # Pour ne manipuler que l'identifiant de l'organisation meme si
+            # # existante car pas d'id pour new_orga...
+            self.cleaned_data['organisation'] = \
+                self.cleaned_data['organisation'].name
+        print(self.cleaned_data)
+        return self.cleaned_data
 
 
 class UserLoginForm(AuthenticationForm):
