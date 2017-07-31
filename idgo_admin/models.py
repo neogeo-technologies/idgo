@@ -12,7 +12,7 @@ from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from taggit.managers import TaggableManager
-# from taggit.models import TaggedItemBase
+from taggit.models import TaggedItemBase
 import uuid
 
 
@@ -20,14 +20,12 @@ def deltatime_2_days():
     return timezone.now() + timezone.timedelta(days=2)
 
 
-# class UserTagged(TaggedItemBase):
-#     content_object = models.ForeignKey(
-#         User, related_name='user_tagged')
-#
-#
-# class OrganisationTagged(TaggedItemBase):
-#     content_object = models.ForeignKey(
-#         'Organisation', related_name='organisation_tagged')
+class TaggedProfile(TaggedItemBase):
+    content_object = models.ForeignKey('Profile')
+
+
+class TaggedOrganisation(TaggedItemBase):
+    content_object = models.ForeignKey('Organisation')
 
 
 class Resource(models.Model):
@@ -91,16 +89,18 @@ class Resource(models.Model):
     users_allowed = models.ManyToManyField(
         User, verbose_name='Utilisateurs autorisés', blank=True)
 
+    # users_allowed = TaggableManager(
+    #     blank=True,
+    #     through='TaggedProfile',
+    #     verbose_name='Utilisateurs autorisés')
+
     organisations_allowed = models.ManyToManyField(
         'Organisation', verbose_name='Utilisateurs autorisés', blank=True)
 
-    # users_allowed = TaggableManager(
-    #     verbose_name='Utilisateurs autorisés',
-    #     through='UserTagged', related_name="to_users")
-    #
     # organisations_allowed = TaggableManager(
-    #     verbose_name='Organisations autorisées',
-    #     through='OrganisationTagged', related_name="to_organisations")
+    #     blank=True
+    #     through='TaggedOrganisation',
+    #     verbose_name='Organisations autorisées')
 
     dataset = models.ForeignKey(
         'Dataset', on_delete=models.CASCADE, blank=True, null=True)

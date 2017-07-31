@@ -74,13 +74,12 @@ class ResourceForm(forms.ModelForm):
                   'referenced_url',
                   'up_file',
                   'users_allowed',
-                  'organisations_allowed'
-                  )
+                  'organisations_allowed')
 
-    def __init__(self, *args, **kwargs):
-        include_args = kwargs.pop('include', {})
-        super(ResourceForm, self).__init__(*args, **kwargs)
-        user = include_args['user']
+    # def __init__(self, *args, **kwargs):
+    #     include_args = kwargs.pop('include', {})
+    #     super(ResourceForm, self).__init__(*args, **kwargs)
+    #     user = include_args['user']
 
     def handle_me(self, request, dataset, id=None, uploaded_file=None):
         user = request.user
