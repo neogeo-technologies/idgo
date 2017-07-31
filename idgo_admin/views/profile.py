@@ -961,6 +961,10 @@ class Contributions(View):
                 profile=profile)
             referents_tup = [(c.id, c.name) for c in my_subordinates]
 
+            awaiting_referent = Liaisons_Referents.get_pending(
+                profile=profile)
+            aw_ref = [c.name for c in awaiting_referent]
+
             return render(
                 request, 'idgo_admin/contributions.html',
                 context={'first_name': user.first_name,
@@ -968,7 +972,8 @@ class Contributions(View):
                          'my_organization': profile.organisation.name,
                          'contributions': json.dumps(contrib_tup),
                          'awaiting_contributions': aw_ct,
-                         'subordinates': json.dumps(referents_tup)})
+                         'subordinates': json.dumps(referents_tup),
+                         'awaiting_subordinates': aw_ref})
 
     def delete(self, request):
 

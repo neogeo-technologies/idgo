@@ -284,8 +284,13 @@ class Liaisons_Referents(models.Model):
 
     @classmethod
     def get_subordinates(cls, profile):
-        return [e.organisation for e in Liaisons_Contributeurs.objects.filter(
+        return [e.organisation for e in Liaisons_Referents.objects.filter(
                     profile=profile)]
+
+    @classmethod
+    def get_pending(cls, profile):
+        return [e.organisation for e in Liaisons_Referents.objects.filter(
+                    profile=profile, validated_on=None)]
 
 
 class Liaisons_Contributeurs(models.Model):
