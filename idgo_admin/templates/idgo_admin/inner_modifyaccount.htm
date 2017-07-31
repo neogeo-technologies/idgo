@@ -23,7 +23,84 @@
 			{% bootstrap_field uform.password2 show_label=False %}
 		</div>
 	</div>
-	{% bootstrap_field pform.organisation %}
+	<hr />
+	<div id="collapse-one" class="collapse in">
+		<p>Sélectionnez dans la liste ci-dessous l'organisme auquel vous êtes rattaché</p>
+		{% bootstrap_field pform.organisation show_label=False %}
+		{% bootstrap_field pform.is_new_orga %}
+		<p>Si celui-ci n'est pas dans la liste, vous pouvez <a id="add-organization" type="button">indiquer un nouvel organisme</a>. </p>
+	</div>
+	<div id="collapse-two" class="collapse">
+		<div class="well">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</button>
+			<p>Veuillez indiquer ci-dessous le nom et l'URL du site internet de l'organisme auquel vous êtes rattaché. </p>
+			<p>Une demande de création d'organisme est soumise à l'administrateur du site pour validation. </p>
+			<div class="row">
+				<div class="col-xs-12 col-sm-8">
+					{% bootstrap_field pform.new_orga show_label=False %}
+				</div>
+				<div class="col-xs-12 col-sm-4">
+					{% bootstrap_field pform.code_insee show_label=False %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					{% bootstrap_field pform.adresse show_label=False %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12 col-sm-3">
+					{% bootstrap_field pform.code_postal show_label=False %}
+				</div>
+				<div class="col-xs-12 col-sm-9">
+					{% bootstrap_field pform.ville show_label=False %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					{% bootstrap_field pform.org_phone show_label=False %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					{% bootstrap_field pform.new_website show_label=False %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					{% bootstrap_field pform.description show_label=False %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					{% bootstrap_field pform.parent %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					{% bootstrap_field pform.organisation_type %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					{% bootstrap_field pform.financeur %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					{% bootstrap_field pform.status %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					{% bootstrap_field pform.license %}
+				</div>
+			</div>
+		</div>
+	</div>
+	<hr />
 	{% bootstrap_field pform.role %}
 	{% bootstrap_field pform.phone %}
 	<div class="buttons-on-the-right-side">
@@ -31,3 +108,36 @@
 		<button type="submit" class="btn btn-default">Valider les changements</button>
 	</div>
 </form>
+<script>
+var $collapseOne = $('#collapse-one')
+	.collapse({
+		toggle: false
+	})
+	.on('hidden.bs.collapse', function() {
+		$('#collapse-one select').each(function(i) {
+			$(this)[0].selectedIndex = 0;
+		});
+	});
+
+var $collapseTwo = $('#collapse-two')
+	.collapse({
+		toggle: false
+	})
+	.on('hidden.bs.collapse', function() {
+		$('#collapse-two input').each(function(i) {
+			$(this).val('');
+		});
+	});
+
+function tggl() {
+	$collapseOne.collapse('toggle');
+	$collapseTwo.collapse('toggle');
+};
+
+$('#add-organization').click(tggl);
+$('#collapse-two .close').click(tggl);
+
+window.onload = function(e) {
+	{% if pform.new_website.value or pform.new_orga.value %} tggl(); {% endif %}
+};
+</script>
