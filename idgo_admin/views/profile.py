@@ -949,8 +949,10 @@ class Contributions(View):
             user = request.user
             profile = get_object_or_404(Profile, user=user)
             my_contributions = Liaisons_Contributeurs.get_contribs(profile=profile)
+            awaiting_contributions = Liaisons_Contributeurs.get_contribs(profile=profile, validated_on__isnull=True)
             my_subordinates = Liaisons_Referents.get_subordinates(profile=profile)
             contrib_tup = [(c.id, c.name) for c in my_contributions]
+            aw_ct_tup = [(c.id, c.name) for c in awaiting_contributions]
             referents_tup = [(c.id, c.name) for c in my_subordinates]
 
             return render(
@@ -959,6 +961,7 @@ class Contributions(View):
                          'last_name': user.last_name,
                          'my_organization': profile.organisation.name,
                          'contributions': json.dumps(contrib_tup),
+                         'awaiting_contributions': json.dumps(aw_ct_tup),
                          'subordinates': json.dumps(referents_tup)})
 
     def delete(self, request):
