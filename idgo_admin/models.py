@@ -305,6 +305,11 @@ class Liaisons_Contributeurs(models.Model):
         return [e.organisation for e in Liaisons_Contributeurs.objects.filter(
                     profile=profile, validated_on__isnull=False)]
 
+    @classmethod
+    def get_pending(cls, profile):
+        return [e.organisation for e in Liaisons_Contributeurs.objects.filter(
+                    profile=profile, validated_on=None)]
+
 
 class Liaisons_Resources(models.Model):
 

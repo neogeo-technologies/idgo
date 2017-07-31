@@ -953,8 +953,8 @@ class Contributions(View):
                 profile=profile)
             contrib_tup = [(c.id, c.name) for c in my_contributions]
 
-            awaiting_contributions = Liaisons_Contributeurs.get_contribs(
-                profile=profile, validated_on__isnull=True)
+            awaiting_contributions = Liaisons_Contributeurs.get_pending(
+                profile=profile)
             aw_ct_tup = [(c.id, c.name) for c in awaiting_contributions]
 
             my_subordinates = Liaisons_Referents.get_subordinates(
