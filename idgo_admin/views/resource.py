@@ -174,4 +174,4 @@ class ResourceManager(View):
             'action': '{0}{1}'.format(reverse('idgo_admin:dataset'),
                                       '?id={0}#resources'.format(dataset_id))}
         return render(
-            request, 'idgo_admin/response.htm', context=context, status=status)
+            request, 'idgo_admin/response.html', context=context, status=status)
