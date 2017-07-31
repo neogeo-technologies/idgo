@@ -258,8 +258,6 @@ class UserProfileForm(forms.Form):
         if organisation is None:
             # Retourne le nom d'une nouvelle organisation lors d'une
             # nouvelle demande de création
-            self.cleaned_data['organisation'] = \
-                self.cleaned_data.get('new_orga')
             self.cleaned_data['website'] = \
                 self.cleaned_data.get('new_website')
             self.cleaned_data['is_new_orga'] = True
@@ -275,11 +273,6 @@ class UserProfileForm(forms.Form):
             for p in params:
                 self.cleaned_data[p] = ''
             self.cleaned_data['is_new_orga'] = False
-
-            # # Pour ne manipuler que l'identifiant de l'organisation meme si
-            # # existante car pas d'id pour new_orga...
-            self.cleaned_data['organisation'] = \
-                self.cleaned_data['organisation'].name
 
         return self.cleaned_data
 
@@ -480,11 +473,6 @@ class ProfileUpdateForm(forms.ModelForm):
                 self.cleaned_data[p] = ''
             self.cleaned_data['is_new_orga'] = False
 
-            # # Pour ne manipuler que l'identifiant de l'organisation meme si
-            # # existante car pas d'id pour new_orga...
-            self.cleaned_data['organisation'] = \
-                self.cleaned_data['organisation'].name
-        print(self.cleaned_data)
         return self.cleaned_data
 
 
