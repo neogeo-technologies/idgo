@@ -731,6 +731,12 @@ def modify_account(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
+    if request.method == 'GET':
+        return render(request, 'idgo_admin/modifyaccount.html',
+                      {'uform': UserUpdateForm(instance=user),
+                       'pform': ProfileUpdateForm(instance=profile,
+                                                  exclude={'user': user})})
+
     uform = UserUpdateForm(instance=user, data=request.POST or None)
     pform = ProfileUpdateForm(
         request.POST or None, request.FILES, instance=profile, exclude={'user': user})

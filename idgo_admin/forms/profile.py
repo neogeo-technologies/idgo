@@ -434,10 +434,7 @@ class ProfileUpdateForm(forms.ModelForm):
 
         organisation = profile.organisation
 
-        if not organisation:
-            return
-
-        if organisation.is_active is False:
+        if organisation and organisation.is_active is False:
             self.fields['organisation'].queryset = \
                 Organisation.objects.filter(pk__isnull=True)
         else:
@@ -445,7 +442,7 @@ class ProfileUpdateForm(forms.ModelForm):
             self.fields['organisation'].queryset = Organisation.objects.all()
 
     def clean(self):
-        params = ['adresse', 'code_insee', 'code_postal', 'description',
+        params = ['organisation', 'adresse', 'code_insee', 'code_postal', 'description',
                   'financeur', 'license', 'organisation_type', 'org_phone'
                   'parent', 'status', 'ville', 'website', 'logo', 'new_orga']
 
