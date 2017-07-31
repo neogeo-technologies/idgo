@@ -50,7 +50,7 @@ def render_an_critical_error(request, error=None):
                "votre compte. Merci de contacter l'administrateur du site: {error} ").format(
                         error=error)
 
-    return render(request, 'idgo_admin/response.htm',
+    return render(request, 'idgo_admin/response.html',
                   {'message': message}, status=400)
 
 
@@ -970,7 +970,7 @@ class Contributions(View):
                            "de la suppression du status de contributeur"
                            "Merci de contacter l'administrateur du site")
 
-                return render(request, 'idgo_admin/response.htm',
+                return render(request, 'idgo_admin/response.html',
                               {'message': message}, status=400)
 
         organization = Organisation.objects.get(id=organization_id)
@@ -987,7 +987,7 @@ class Contributions(View):
                         "<strong>{0}</strong>").format(organization.name)}
 
         return render(
-            request, 'idgo_admin/response.htm', context=context, status=200)
+            request, 'idgo_admin/response.html', context=context, status=200)
 
 
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
@@ -1014,7 +1014,7 @@ class Referents(View):
                            "de la suppression du rôle de référent"
                            "Merci de contacter l'administrateur du site")
 
-                return render(request, 'idgo_admin/response.htm',
+                return render(request, 'idgo_admin/response.html',
                               {'message': message}, status=400)
 
         organization = Organisation.objects.get(id=organization_id)
@@ -1030,7 +1030,7 @@ class Referents(View):
                         "<strong>{0}</strong>").format(organization.name)}
 
         return render(
-            request, 'idgo_admin/response.htm', context=context, status=200)
+            request, 'idgo_admin/response.html', context=context, status=200)
 
 
 @login_required(login_url=settings.LOGIN_URL)

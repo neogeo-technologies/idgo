@@ -173,7 +173,7 @@ class DatasetManager(View):
             'action': '{0}#datasets'.format(reverse('idgo_admin:home'))}
 
         return render(
-            request, 'idgo_admin/response.htm', context=context, status=status)
+            request, 'idgo_admin/response.html', context=context, status=status)
 
 
 @method_decorator(decorators, name='dispatch')

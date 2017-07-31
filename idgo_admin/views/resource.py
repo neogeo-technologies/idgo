@@ -108,7 +108,7 @@ class ResourceManager(View):
             resource_name = 'Nouveau'
             mode = None
             form = Form(request.POST, request.FILES, include={'user': user})
-            
+
             if form.is_valid() and user.is_authenticated:
                 try:
                     instance = form.handle_me(
@@ -174,4 +174,4 @@ class ResourceManager(View):
             'action': '{0}{1}'.format(reverse('idgo_admin:dataset'),
                                       '?id={0}#resources'.format(dataset_id))}
         return render(
-            request, 'idgo_admin/response.htm', context=context, status=status)
+            request, 'idgo_admin/response.html', context=context, status=status)
