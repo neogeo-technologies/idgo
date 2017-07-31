@@ -4,15 +4,21 @@ from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.utils import download
+import json
+from pathlib import Path
 # from taggit.forms import TagField
 # from taggit.forms import TagWidget
 from uuid import uuid4
 
 
-def get_all_users_for_organizations(id):
-    yield []
+def get_all_users_for_organizations(list_id):
+    return [
+        profile.user.username
+        for profile in Profile.objects.filter(
+            organisation__in=list_id, organisation__is_active=True)]
 
 
 class CustomClearableFileInput(forms.ClearableFileInput):
@@ -78,10 +84,10 @@ class ResourceForm(forms.ModelForm):
 
     def handle_me(self, request, dataset, id=None, uploaded_file=None):
         user = request.user
-        print(self.data)
         data = self.cleaned_data
-
         restricted_level = data['restricted_level']
+        users_allowed = data['users_allowed']
+        organizations_allowed = data['organisations_allowed']
 
         params = {'name': data['name'],
                   'description': data['description'],
@@ -101,16 +107,9 @@ class ResourceForm(forms.ModelForm):
             resource = Resource.objects.create(**params)
             resource.ckan_id = uuid4()
             resource.save()
-        print(data['users_allowed'])
-        if data['users_allowed']:
-            dataset.users_allowed = data['users_allowed']
-
-        if data['organisations_allowed']:
-            dataset.organsaitions_allowed = data['organisations_allowed']
 
         dataset = resource.dataset
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
-
         params = {'name': resource.name,
                   'description': resource.description,
                   'format': resource.data_format,
@@ -119,14 +118,19 @@ class ResourceForm(forms.ModelForm):
                   'url': ''}
 
         if restricted_level == '2':  # Registered users
-            params['restricted'] = {
-                'allowed_users': '',
-                'level': 'registered'}
+            resource.users_allowed = users_allowed
+            params['restricted'] = json.dumps({
+                'allowed_users': ','.join([
+                    u.username for u in users_allowed]),
+                'level': 'registered'})
 
         if restricted_level == '4':  # Any organization
-            params['restricted'] = {
-                'allowed_users': get_all_users_for_organizations(),
-                'level': 'registered'}  # any_organization
+            resource.organisations_allowed = organizations_allowed
+            params['restricted'] = json.dumps({
+                'allowed_users': ','.join(
+                    get_all_users_for_organizations(
+                        data['organisations_allowed'])),
+                'level': 'registered'})  # any_organization
 
         if resource.referenced_url:
             params['url'] = resource.referenced_url
@@ -140,7 +144,7 @@ class ResourceForm(forms.ModelForm):
             params['upload'] = downloaded_file
             params['size'] = downloaded_file.size
             params['mimetype'] = content_type
-            params['resource_type'] = filename
+            params['resource_type'] = Path(filename).name
 
         if uploaded_file:
             params['upload'] = uploaded_file
@@ -151,6 +155,7 @@ class ResourceForm(forms.ModelForm):
         try:
             ckan_user.publish_resource(str(dataset.ckan_id), **params)
         except Exception as e:
+            print('Error', e)
             # resource.delete()  # TODO(@m431m)
             raise Exception(e)
         else:

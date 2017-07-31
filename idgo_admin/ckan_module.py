@@ -213,6 +213,7 @@ class CkanUserHandler(object):
                 kwargs['last_modified'] = kwargs['created']
                 del kwargs['created']
                 resource.update(kwargs)
+                del resource['tracking_summary']  # ugly..
                 return self.remote.action.resource_update(**resource)
         return self.remote.action.resource_create(**kwargs)
 
@@ -247,7 +248,6 @@ class CkanUserHandler(object):
                 **{**self._get_package(id), **kwargs})
         else:
             package = self._add_package(**kwargs)
-            print('package:', package)
 
         return package
 
@@ -260,7 +260,7 @@ class CkanUserHandler(object):
                 'json': 'text_view',
                 'wms': 'geo_view',
                 'xls': 'recline_view',
-                'xml': 'text_view'
+                'xml': 'text_view',
                 }.get(kwargs['format'], 'text_view')}
         self._push_resource_view(**params)
 
