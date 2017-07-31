@@ -948,11 +948,17 @@ class Contributions(View):
     def get(self, request):
             user = request.user
             profile = get_object_or_404(Profile, user=user)
-            my_contributions = Liaisons_Contributeurs.get_contribs(profile=profile)
-            awaiting_contributions = Liaisons_Contributeurs.get_contribs(profile=profile, validated_on__isnull=True)
-            my_subordinates = Liaisons_Referents.get_subordinates(profile=profile)
+
+            my_contributions = Liaisons_Contributeurs.get_contribs(
+                profile=profile)
             contrib_tup = [(c.id, c.name) for c in my_contributions]
+
+            awaiting_contributions = Liaisons_Contributeurs.get_contribs(
+                profile=profile, validated_on__isnull=True)
             aw_ct_tup = [(c.id, c.name) for c in awaiting_contributions]
+
+            my_subordinates = Liaisons_Referents.get_subordinates(
+                profile=profile)
             referents_tup = [(c.id, c.name) for c in my_subordinates]
 
             return render(
