@@ -20,12 +20,12 @@ def deltatime_2_days():
     return timezone.now() + timezone.timedelta(days=2)
 
 
-class TaggedProfile(TaggedItemBase):
-    content_object = models.ForeignKey('Profile')
-
-
-class TaggedOrganisation(TaggedItemBase):
-    content_object = models.ForeignKey('Organisation')
+# class TaggedProfile(TaggedItemBase):
+#     content_object = models.ForeignKey('Profile')
+#
+#
+# class TaggedOrganisation(TaggedItemBase):
+#     content_object = models.ForeignKey('Organisation')
 
 
 class Resource(models.Model):

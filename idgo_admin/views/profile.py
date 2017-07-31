@@ -454,11 +454,11 @@ def confirmation_mail(request, key):
             referent_action = AccountActions.objects.create(
                 profile=profile, action='confirm_referent',
                 org_extras=organisation)
-        try:
-            Mail.confirm_referent(request, referent_action)
-        except Exception as e:
-            print('SendingMailError', e)
-            raise e
+            try:
+                Mail.confirm_referent(request, referent_action)
+            except Exception as e:
+                print('SendingMailError', e)
+                raise e
 
         # Demande de role de contributeur
         try:
@@ -470,11 +470,11 @@ def confirmation_mail(request, key):
             contribution_action = AccountActions.objects.create(
                 profile=profile, action="confirm_contribution",
                 org_extras=organisation)
-        try:
-            Mail.confirm_contribution(request, contribution_action)
-        except Exception as e:
-            print('SendingMailError', e)
-            raise e
+            try:
+                Mail.confirm_contribution(request, contribution_action)
+            except Exception as e:
+                print('SendingMailError', e)
+                raise e
 
     try:
         Mail.confirmation_user_mail(user)
