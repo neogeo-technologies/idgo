@@ -392,12 +392,12 @@ class ProfileUpdateForm(forms.ModelForm):
 
     referent_requested = forms.BooleanField(
         initial=True,
-        label='Demander le statut de référent pour cette organisation',
+        label='Je suis référent de cette organisation',
         required=False)
 
     contribution_requested = forms.BooleanField(
         initial=True,
-        label='Demander le statut de contributeur pour cette organisation',
+        label='Je souhaite être contributeur',
         required=False)
 
     referents = forms.ModelChoiceField(
