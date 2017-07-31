@@ -41,7 +41,7 @@ class ResourceForm(forms.ModelForm):
         required=False,
         widget=CustomClearableFileInput())
 
-    # allowed_users = TagField(
+    # users_allowed = TagField(
     #     label="Liste d'utilisateurs",
     #     required=False,
     #     widget=TagWidget(
@@ -67,8 +67,8 @@ class ResourceForm(forms.ModelForm):
                   'dl_url',
                   'referenced_url',
                   'up_file',
-                  # 'allowed_users',
-                  # 'organisations_allowed'
+                  'users_allowed',
+                  'organisations_allowed'
                   )
 
     def __init__(self, *args, **kwargs):
@@ -78,6 +78,7 @@ class ResourceForm(forms.ModelForm):
 
     def handle_me(self, request, dataset, id=None, uploaded_file=None):
         user = request.user
+        print(self.data)
         data = self.cleaned_data
 
         restricted_level = data['restricted_level']
