@@ -34,6 +34,7 @@ class ResourceForm(forms.ModelForm):
 
     description = forms.CharField(
         label='Description',
+        required=False,
         widget=forms.Textarea(
             attrs={'placeholder': 'Vous pouvez utiliser le langage Markdown ici'}))
 
