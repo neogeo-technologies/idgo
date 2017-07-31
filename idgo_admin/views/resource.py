@@ -108,6 +108,7 @@ class ResourceManager(View):
             resource_name = 'Nouveau'
             mode = None
             form = Form(request.POST, request.FILES, include={'user': user})
+            
             if form.is_valid() and user.is_authenticated:
                 try:
                     instance = form.handle_me(

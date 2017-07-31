@@ -6,8 +6,8 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Resource
 from idgo_admin.utils import download
-from taggit.forms import TagField
-from taggit.forms import TagWidget
+# from taggit.forms import TagField
+# from taggit.forms import TagWidget
 from uuid import uuid4
 
 
@@ -101,6 +101,12 @@ class ResourceForm(forms.ModelForm):
             resource = Resource.objects.create(**params)
             resource.ckan_id = uuid4()
             resource.save()
+        print(data['users_allowed'])
+        if data['users_allowed']:
+            dataset.users_allowed = data['users_allowed']
+
+        if data['organisations_allowed']:
+            dataset.organsaitions_allowed = data['organisations_allowed']
 
         dataset = resource.dataset
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])

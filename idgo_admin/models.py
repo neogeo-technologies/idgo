@@ -89,10 +89,10 @@ class Resource(models.Model):
         default='0', max_length=20, blank=True, null=True)
 
     users_allowed = models.ManyToManyField(
-        User, verbose_name='Utilisateurs autorisés')
+        User, verbose_name='Utilisateurs autorisés', blank=True)
 
     organisations_allowed = models.ManyToManyField(
-        'Organisation', verbose_name='Utilisateurs autorisés')
+        'Organisation', verbose_name='Utilisateurs autorisés', blank=True)
 
     # users_allowed = TaggableManager(
     #     verbose_name='Utilisateurs autorisés',

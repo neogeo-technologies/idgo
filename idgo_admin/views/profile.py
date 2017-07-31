@@ -69,7 +69,13 @@ def home(request):
         Organisation.objects.get(id=o.organisation_id).name,
         o.published) for o in Dataset.objects.filter(editor=user)]
 
-    profile = Profile.objects.get(user=user)
+    # Cas ou l'user existe mais pas le profile
+    try:
+        profile = Profile.objects.get(user=user)
+    except:
+        logout(request)
+        return redirect('idgo_admin:signIn')
+
     my_contributions = Liaisons_Contributeurs.get_contribs(profile=profile)
     is_contributor = len(my_contributions) > 0
 
