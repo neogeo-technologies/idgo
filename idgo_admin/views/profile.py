@@ -848,7 +848,7 @@ def contribution_request(request):
         {'first_name': user.first_name,
          'last_name': user.last_name,
          'pform': ProfileUpdateForm(exclude={'user': user}),
-         'pub_liste': contribs.organisation,
+         'pub_liste': contribs,
          'message': {
              'status': 'success',
              'text': (
@@ -955,7 +955,7 @@ class Contributions(View):
 
             awaiting_contributions = Liaisons_Contributeurs.get_pending(
                 profile=profile)
-            aw_ct_tup = [c.name for c in awaiting_contributions]
+            aw_ct = [c.name for c in awaiting_contributions]
 
             my_subordinates = Liaisons_Referents.get_subordinates(
                 profile=profile)
@@ -967,7 +967,7 @@ class Contributions(View):
                          'last_name': user.last_name,
                          'my_organization': profile.organisation.name,
                          'contributions': json.dumps(contrib_tup),
-                         'awaiting_contributions': json.dumps(aw_ct_tup),
+                         'awaiting_contributions': aw_ct,
                          'subordinates': json.dumps(referents_tup)})
 
     def delete(self, request):

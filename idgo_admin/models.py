@@ -482,7 +482,7 @@ class Mail(models.Model):
         organisation = action.org_extras
         website = organisation.website or "(adresse url manquante)"
         mail_template = Mail.objects.get(
-                template_name="confirm_referent")
+                template_name="confirm_contribution")
         message = mail_template.message.format(
                     username=user.username,
                     user_mail=user.email,
