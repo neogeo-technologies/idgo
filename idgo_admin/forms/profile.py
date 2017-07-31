@@ -226,12 +226,12 @@ class UserProfileForm(forms.Form):
 
     referent_requested = forms.BooleanField(
         initial=True,
-        label='Demander le statut de référent pour cette organisation',
+        label='Je suis référent',
         required=False)
 
     contribution_requested = forms.BooleanField(
         initial=True,
-        label='Demander le statut de contributeur pour cette organisation',
+        label='Je souhaite être contributeur',
         required=False)
 
     logo = forms.ImageField(required=False, label='Logo de votre organisation')

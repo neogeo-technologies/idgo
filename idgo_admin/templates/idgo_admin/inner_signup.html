@@ -1,20 +1,25 @@
 {% load bootstrap3 %}
 
-{% if message and message.status == 'success' %}
-<div class="alert alert-success" role="alert">{{ message.text }}</div>
-{% elif message and message.status == 'failure' %}
-<div class="alert alert-danger" role="alert">{{ message.text }}</div>
-{% endif %}
-
-<h2 class="modal-title">Mes informations personnelles</h2>
-<br/>
+<h1>Création d'un compte</h1>
+<br />
 <form method="post" action="" enctype="multipart/form-data">
 	{% csrf_token %}
-	{% bootstrap_field uform.username %}
-	{% bootstrap_field uform.first_name %}
-	{% bootstrap_field uform.last_name %}
-	{% bootstrap_field uform.email %}
-	<p>Entrez un nouveau mot de passe ci-dessous si vous souhaitez le modifier. <br />Sinon, laissez les champs vides.</p>
+	<div class="row">
+		<div class="col-xs-12 col-sm-6">
+			{% bootstrap_field uform.first_name show_label=False %}
+		</div>
+		<div class="col-xs-12 col-sm-6">
+			{% bootstrap_field uform.last_name show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12 col-sm-4">
+			{% bootstrap_field uform.username show_label=False %}
+		</div>
+		<div class="col-xs-12 col-sm-8">
+			{% bootstrap_field uform.email show_label=False %}
+		</div>
+	</div>
 	<div class="row">
 		<div class="col-xs-12 col-sm-6">
 			{% bootstrap_field uform.password1 show_label=False %}
@@ -101,26 +106,34 @@
 					{% bootstrap_field pform.license %}
 				</div>
 			</div>
+			{# {% bootstrap_field pform.referent_requested show_label=False %} #}
 		</div>
 	</div>
+	{% bootstrap_field pform.contribution_requested show_label=False %}
 	<hr />
 	<div class="row">
-		<!-- <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-			{# {% bootstrap_field pform.referent_requested show_label=False %} #}
-		</div> -->
-		<div class="col-xs-12">
-			{% bootstrap_field pform.contribution_requested show_label=False %}
+		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			{% bootstrap_field pform.role show_label=False %}
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			{% bootstrap_field pform.phone show_label=False %}
 		</div>
 	</div>
-	<hr />
-	{% bootstrap_field pform.role %}
-	{% bootstrap_field pform.phone %}
 	<div class="buttons-on-the-right-side">
-		<a class="btn btn-default" href="{% url "idgo_admin:home" %}">Annuler</a>
-		<button type="submit" class="btn btn-default">Valider les changements</button>
+		<a class="btn btn-default" href="{% url "idgo_admin:signIn" %}">Revenir</a>
+		<button type="submit" class="btn btn-primary">Valider</button>
 	</div>
 </form>
 <script>
+var $contributionRequested = $('input[name="contribution_requested"]').parent();
+$('select[name="organisation"]').change(function() {
+	if (this.value) {
+		$contributionRequested.show();
+	} else {
+		$contributionRequested.hide();
+	};
+});
+
 var $collapseOne = $('#collapse-one')
 	.collapse({
 		toggle: false
@@ -128,9 +141,9 @@ var $collapseOne = $('#collapse-one')
 	.on('hidden.bs.collapse', function() {
 		$('#collapse-one select').each(function(i) {
 			$(this)[0].selectedIndex = 0;
+			$contributionRequested.show();
 		});
 	});
-
 var $collapseTwo = $('#collapse-two')
 	.collapse({
 		toggle: false
@@ -138,6 +151,7 @@ var $collapseTwo = $('#collapse-two')
 	.on('hidden.bs.collapse', function() {
 		$('#collapse-two input').each(function(i) {
 			$(this).val('');
+			$contributionRequested.hide();
 		});
 	});
 
@@ -149,7 +163,7 @@ function tggl() {
 $('#add-organization').click(tggl);
 $('#collapse-two .close').click(tggl);
 
-window.onload = function(e) {
-	{% if pform.new_website.value or pform.new_orga.value %} tggl(); {% endif %}
-};
+$contributionRequested.hide();
+{% if pform.new_orga.value %} tggl(); {% endif %}
+
 </script>
