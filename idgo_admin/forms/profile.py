@@ -437,7 +437,7 @@ class ProfileUpdateForm(forms.ModelForm):
         if organisation and organisation.is_active is False:
             self.fields['organisation'].queryset = \
                 Organisation.objects.filter(pk__isnull=True)
-        else:
+        elif organisation:
             self.fields['organisation'].initial = organisation.pk
             self.fields['organisation'].queryset = Organisation.objects.all()
 
