@@ -413,11 +413,7 @@ def confirmation_mail(request, key):
         return render_an_critical_error(request)
     user.save()
     action.profile.save()
-    print("0000", user)
-    print("0000", profile)
-    print("0000", type(organisation))
     if organisation:
-        print("111", organisation.pk)
         # Demande de creation nouvelle organisation
         if organisation.is_active is False:
             new_organisation_action = AccountActions.objects.get(

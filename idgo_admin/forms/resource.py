@@ -4,6 +4,7 @@ from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.models import Liaisons_Resources
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.utils import download
@@ -107,6 +108,13 @@ class ResourceForm(forms.ModelForm):
             resource = Resource.objects.create(**params)
             resource.ckan_id = uuid4()
             resource.save()
+
+        # TODO(cbenhabib) Lien ressource / user
+        # profile = Profile.objects.get(user=user)
+        # bonding = Liaisons_Resources.objects.create(
+        #     profile=profile, resource=resource)
+        # bonding.validated_on = timezone.now()
+        # bonding.save()
 
         dataset = resource.dataset
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
