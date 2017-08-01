@@ -687,8 +687,7 @@ def modify_account(request):
                 profile=profile, action="confirm_rattachement", org_extras=organisation)
 
             try:
-                # Todo (cbenhabib) confirm new_rattachemnt pour prendre en compte org_extras ds les data mail
-                Mail.confirm_rattachement(request, rattachement_action)
+                Mail.confirm_updating_rattachement(request, rattachement_action)
             except Exception as e:
                 print('SendingMailError', e)
                 raise e
