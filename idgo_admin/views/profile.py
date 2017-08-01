@@ -396,10 +396,10 @@ def confirmation_mail(request, key):
 
     # confirmation de l'email par l'utilisateur
     action = get_object_or_404(AccountActions, key=key, action='confirm_mail')
-    # if action.closed:
-    #     message = "Vous avez déjà validé votre adresse e-mail."
-    #     return render(request, 'idgo_admin/message.html',
-    #                   {'message': message}, status=200)
+    if action.closed:
+        message = "Vous avez déjà validé votre adresse e-mail."
+        return render(request, 'idgo_admin/message.html',
+                      {'message': message}, status=200)
 
     user = action.profile.user
     profile = action.profile
@@ -409,7 +409,8 @@ def confirmation_mail(request, key):
     action.profile.is_active = True
     try:
         ckan.activate_user(user.username)
-    except Exception:
+    except Exception as e:
+        print('Exception', str(e))
         return render_an_critical_error(request)
     user.save()
     action.profile.save()
