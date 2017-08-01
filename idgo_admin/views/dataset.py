@@ -44,8 +44,15 @@ class DatasetManager(View):
         resources = []
 
         id = request.GET.get('id') or None
-        if id:
-            instance = get_object_or_404(Dataset, id=id, editor=user)
+        ckan_slug = request.GET.get('ckan_slug') or None
+        if id or ckan_slug:
+            params = {'editor': user}
+            if id:
+                params['id'] = id
+            if ckan_slug:
+                params['ckan_slug'] = ckan_slug
+
+            instance = get_object_or_404(Dataset, **params)
             form = Form(instance=instance, include={'user': user})
             dataset_name = instance.name
             dataset_id = instance.id
