@@ -44,7 +44,7 @@ from mama_cas.models import ServiceTicket
 from mama_cas.utils import to_bool
 from mama_cas.views import LoginView
 from mama_cas.views import LogoutView
-
+from mama_cas.utils import redirect as mama_redirect
 
 def render_an_critical_error(request, error=None):
     # TODO(@m431m)
@@ -92,6 +92,7 @@ class SignIn(LoginView):
     template_name = 'idgo_admin/signin.html'
 
     def form_valid(self, form):
+#        super().form_valid(form)
         login(self.request, form.user)
 
         if form.cleaned_data.get('warn'):
@@ -101,7 +102,7 @@ class SignIn(LoginView):
         if service:
             st = ServiceTicket.objects.create_ticket(
                 service=service, user=self.request.user, primary=True)
-            return redirect(service, params={'ticket': st.ticket})
+            return mama_redirect(service, params={'ticket': st.ticket})
         return redirect('idgo_admin:home')
 
 
