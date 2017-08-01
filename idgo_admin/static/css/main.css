@@ -25,6 +25,14 @@ br {
     line-height: 300%;
 }
 
+.comma-separated-list:not(:last-child)::after {
+    content: ', '
+}
+
+.comma-separated-list:last-child::after {
+    content: '. '
+}
+
 .well {
     background-color: #fcfcfc;
     border: 1px solid #eeeeee;

@@ -13,6 +13,9 @@
 	</nav>
 </form>
 <form name="organization" class="well">
+	{% if awaiting_contributions %}
+	<div class="alert alert-warning">Demande de contribution en attente de validation : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization }}</strong>{% endfor %}</div>
+	{% endif %}
 	<p>Organisations pour lesquelles vous avez le droit de publier des jeux de données : </p>
 	<div id="table-organizations" class="table-responsive"></div>
 	<nav aria-label="Page navigation" style="text-align: center;">
@@ -20,7 +23,7 @@
 	</nav>
 	<div class="buttons-on-the-right-side">
 		<button name="unsubscribe" class="btn btn-sm btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus contribuer</span></button>
-		<a class="btn btn-sm btn-default" href="{% url "idgo_admin:contribution_request" %}">Demande de contribution</a>
+		<a class="btn btn-sm btn-default" href="{% url "idgo_admin:contribution_request" %}">Nouvelle Demande de contribution</a>
 	</div>
 </form>
 <br/>
