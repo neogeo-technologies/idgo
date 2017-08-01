@@ -39,12 +39,14 @@ from idgo_admin.models import Profile
 from idgo_admin.models import Status
 import json
 from mama_cas.cas import logout_user
-from mama_cas.compat import is_authenticated
+# from mama_cas.compat import is_authenticated
 from mama_cas.models import ServiceTicket
-from mama_cas.utils import to_bool
+# from mama_cas.utils import to_bool
+from mama_cas.utils import redirect as mama_redirect
 from mama_cas.views import LoginView
 from mama_cas.views import LogoutView
-from mama_cas.utils import redirect as mama_redirect
+
+
 
 def render_an_critical_error(request, error=None):
     # TODO(@m431m)
@@ -92,7 +94,6 @@ class SignIn(LoginView):
     template_name = 'idgo_admin/signin.html'
 
     def form_valid(self, form):
-#        super().form_valid(form)
         login(self.request, form.user)
 
         if form.cleaned_data.get('warn'):
