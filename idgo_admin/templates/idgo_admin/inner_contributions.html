@@ -5,9 +5,12 @@
 
 <div class="well">
 	{% if my_organization %}
-	<p>Vous êtes rattaché à l'organisation suivante : <strong>{{ my_organization | safe }}</strong>. </p>
+	<p>Vous êtes actuellement rattaché à l'organisation suivante : <strong>{{ my_organization | safe }}</strong>. </p>
 	{% else %}
-	<p>Vous n'êtes rattaché à aucune organisation. </p>
+	<div class="alert alert-warning">Vous n'êtes rattaché à aucune organisation. </div>
+	{% endif %}
+	{% if change_my_organization %}
+	<div class="alert alert-warning">En attente de rattachement à l'organisation suivante : <strong>{{ change_my_organization }}</strong>. </div>
 	{% endif %}
 </div>
 <form name="subordinates" class="well">

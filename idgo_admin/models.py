@@ -400,8 +400,8 @@ class Mail(models.Model):
         mail_template = Mail.objects.get(template_name="confirmation_user_mail")
 
         message = mail_template.message.format(
-                first_name=user.first_name, last_name=user.last_name,
-                username=user.username)
+            first_name=user.first_name, last_name=user.last_name,
+            username=user.username)
         try:
             send_mail(subject=mail_template.subject, message=message,
                       from_email=mail_template.from_email, recipient_list=[user.email])
@@ -418,18 +418,19 @@ class Mail(models.Model):
         website = organisation.website or "- adresse url manquante -"
         mail_template = Mail.objects.get(template_name="confirm_new_organisation")
         message = mail_template.message.format(
-                    username=user.username,
-                    user_mail=user.email,
-                    organisation_name=organisation.name,
-                    website=website,
-                    url=request.build_absolute_uri(
-                        reverse('idgo_admin:confirm_new_orga',
-                                kwargs={'key': action.key})))
+            username=user.username,
+            user_mail=user.email,
+            organisation_name=organisation.name,
+            website=website,
+            url=request.build_absolute_uri(
+                reverse('idgo_admin:confirm_new_orga',
+                        kwargs={'key': action.key})))
         try:
             send_mail(subject=mail_template.subject, message=message,
                       from_email=mail_template.from_email,
-                      recipient_list=[usr.email for usr in User.objects.filter(
-                            is_staff=True, is_active=True)])
+                      recipient_list=[
+                          usr.email for usr in User.objects.filter(
+                              is_staff=True, is_active=True)])
         except Exception as e:
             raise e
 
@@ -438,22 +439,47 @@ class Mail(models.Model):
         user = action.profile.user
         organisation = action.profile.organisation
         website = organisation.website or "- adresse url manquante -"
-        mail_template = Mail.objects.get(
-                template_name="confirm_rattachement")
+        mail_template = Mail.objects.get(template_name="confirm_rattachement")
         message = mail_template.message.format(
-                    username=user.username,
-                    user_mail=user.email,
-                    organisation_name=organisation.name,
-                    website=website,
-                    url=request.build_absolute_uri(
-                        reverse('idgo_admin:confirm_rattachement',
-                                kwargs={'key': action.key})))
+            username=user.username,
+            user_mail=user.email,
+            organisation_name=organisation.name,
+            website=website,
+            url=request.build_absolute_uri(
+                reverse('idgo_admin:confirm_rattachement',
+                        kwargs={'key': action.key})))
         try:
             send_mail(
                 subject=mail_template.subject, message=message,
                 from_email=mail_template.from_email,
-                recipient_list=[usr.email for usr
-                                in User.objects.filter(is_staff=True, is_active=True)])
+                recipient_list=[
+                    usr.email for usr
+                    in User.objects.filter(is_staff=True, is_active=True)])
+        except Exception as e:
+            raise e
+
+    @classmethod
+    def confirm_updating_rattachement(cls, request, action):
+        user = action.profile.user
+        organisation = action.org_extras
+        website = organisation.website or "- adresse url manquante -"
+        mail_template = Mail.objects.get(
+            template_name="confirm_updating_rattachement")
+        message = mail_template.message.format(
+            username=user.username,
+            user_mail=user.email,
+            organisation_name=organisation.name,
+            website=website,
+            url=request.build_absolute_uri(
+                reverse('idgo_admin:confirm_rattachement',
+                        kwargs={'key': action.key})))
+        try:
+            send_mail(
+                subject=mail_template.subject, message=message,
+                from_email=mail_template.from_email,
+                recipient_list=[
+                    usr.email for usr
+                    in User.objects.filter(is_staff=True, is_active=True)])
         except Exception as e:
             raise e
 

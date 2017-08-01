@@ -638,13 +638,15 @@ def modify_account(request):
 
         if data['phone']:
             profile.role = data['phone']
+
         # Rattachement organisation
         name = None
         if data['is_new_orga']:
             name = data['new_orga']
+
         elif data['is_new_orga'] is False and data['organisation']:
             name = data['organisation'].name
-            print(name)
+
         if name:
             try:
                 organisation, created = Organisation.objects.get_or_create(
@@ -669,6 +671,7 @@ def modify_account(request):
             # profile.organisation = organisation
             # profile.save()
             if created:
+                print(3)
                 new_organisation_action = AccountActions.objects.create(
                     profile=profile, action="confirm_new_organisation")
                 try:
@@ -680,6 +683,7 @@ def modify_account(request):
             # Demande de rattachement Profile-Organisation
             rattachement_action = AccountActions.objects.create(
                 profile=profile, action="confirm_rattachement", org_extras=organisation)
+
             try:
                 # Todo (cbenhabib) confirm new_rattachemnt pour prendre en compte org_extras ds les data mail
                 Mail.confirm_rattachement(request, rattachement_action)
@@ -691,7 +695,6 @@ def modify_account(request):
             if data['referent_requested']:
                 Liaisons_Referents.objects.create(
                     profile=profile, organisation=organisation)
-
                 referent_action = AccountActions.objects.create(
                     profile=profile, action='confirm_referent',
                     org_extras=organisation)
@@ -701,11 +704,10 @@ def modify_account(request):
                     print('SendingMailError', e)
                     raise e
 
-            # Demande de role de contributeur
+            # Demande de rôle de contributeur
             if data['contribution_requested']:
                 Liaisons_Contributeurs.objects.create(
                     profile=profile, organisation=organisation)
-
                 contribution_action = AccountActions.objects.create(
                     profile=profile, action="confirm_contribution",
                     org_extras=organisation)
@@ -726,6 +728,9 @@ def modify_account(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
+    # TODO: REDO
+    organization_back = profile.organisation
+
     if request.method == 'GET':
         return render(request, 'idgo_admin/modifyaccount.html',
                       {'uform': UserUpdateForm(instance=user),
@@ -741,6 +746,10 @@ def modify_account(request):
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
                        'uform': uform, 'pform': pform})
+
+    # TODO: REDO
+    profile.organisation = organization_back
+    profile.save()
 
     data = {
         'username': uform.cleaned_data['username'],
@@ -968,16 +977,23 @@ class Contributions(View):
 
             org_name = profile.organisation.name if profile.organisation else None
 
-            ratt = AccountActions.objects.get(
-                profile=profile, action="confirm_rattachement", closed__isnull=True)
-            new_ratt = rattachement.org_extras.name if ratt.org_extras else None
-            print(new_ratt)
+            new_ratt = None
+            try:
+                ratt = AccountActions.objects.get(
+                    profile=profile,
+                    action="confirm_rattachement",
+                    closed__isnull=True)
+            except Exception:
+                pass
+            else:
+                new_ratt = ratt.org_extras.name if ratt.org_extras else None
 
             return render(
                 request, 'idgo_admin/contributions.html',
                 context={'first_name': user.first_name,
                          'last_name': user.last_name,
                          'my_organization': org_name,
+                         'change_my_organization': new_ratt,
                          'contributions': json.dumps(contrib_tup),
                          'awaiting_contributions': aw_ct,
                          'subordinates': json.dumps(referents_tup),

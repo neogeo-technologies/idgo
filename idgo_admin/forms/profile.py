@@ -411,7 +411,11 @@ class ProfileUpdateForm(forms.ModelForm):
         model = Profile
         fields = ('phone', 'role', 'organisation')
 
+    # def is_valid(self):
+    #     return self.is_bound and not self.errors
+
     def __init__(self, *args, **kwargs):
+
         exclude_args = kwargs.pop('exclude', {})
         super(ProfileUpdateForm, self).__init__(*args, **kwargs)
         profile = Profile.objects.get(user=exclude_args['user'])
@@ -433,12 +437,25 @@ class ProfileUpdateForm(forms.ModelForm):
             Organisation.objects.exclude(pk__in=ref_org_bl)
 
         organisation = profile.organisation
-        if organisation and organisation.is_active is False:
-            self.fields['organisation'].queryset = \
-                Organisation.objects.filter(pk__isnull=True)
-        elif organisation and organisation.is_active is False:
+        if organisation and not organisation.is_active:
+            # self.fields['organisation'].queryset = \
+            #     Organisation.objects.filter(pk__isnull=True)
+            self.fields['organisation'].widget = forms.HiddenInput()
+
+        elif organisation and organisation.is_active:
             self.fields['organisation'].initial = organisation.pk
             self.fields['organisation'].queryset = Organisation.objects.all()
+
+        from idgo_admin.models import AccountActions
+        try:
+            AccountActions.objects.get(
+                profile=profile,
+                action="confirm_rattachement",
+                closed__isnull=True)
+        except Exception:
+            pass
+        else:
+            self.fields['organisation'].widget = forms.HiddenInput()
 
     def clean(self):
         params = ['adresse', 'code_insee', 'code_postal', 'description',

@@ -43,6 +43,7 @@
 		</div>
 	</div>
 	<hr />
+	{% if pform.organisation.field.widget.is_hidden == False %}
 	<div id="collapse-one" class="collapse in">
 		<p>Sélectionnez dans la liste ci-dessous l'organisme auquel vous êtes rattaché</p>
 		<div class="row">
@@ -127,6 +128,9 @@
 		</div>
 	</div>
 	{% bootstrap_field pform.contribution_requested show_label=False %}
+	{% else %}
+	<div class="alert alert-warning">En attente de rattachement. </div>
+	{% endif %}
 	<hr />
 	<div class="row">
 		<div class="col-xs-9">
