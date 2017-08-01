@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -43,16 +44,18 @@ class DatasetManager(View):
         dataset_id = None
         resources = []
 
-        id = request.GET.get('id') or None
+        # Ugly
         ckan_slug = request.GET.get('ckan_slug') or None
-        if id or ckan_slug:
-            params = {'editor': user}
-            if id:
-                params['id'] = id
-            if ckan_slug:
-                params['ckan_slug'] = ckan_slug
+        if ckan_slug:
+            instance = get_object_or_404(
+                Dataset, ckan_slug=ckan_slug, editor=user)
+            return redirect('{0}{1}'.format(reverse('idgo_admin:dataset'),
+                            '?id={0}'.format(instance.pk)))
 
-            instance = get_object_or_404(Dataset, **params)
+        id = request.GET.get('id') or None
+        if id:
+            instance = get_object_or_404(Dataset, id=id, editor=user)
+
             form = Form(instance=instance, include={'user': user})
             dataset_name = instance.name
             dataset_id = instance.id
