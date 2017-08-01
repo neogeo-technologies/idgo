@@ -18,7 +18,8 @@ from idgo_admin.views.profile import modify_account
 from idgo_admin.views.profile import reset_password
 # from idgo_admin.views.profile import sign_in
 from idgo_admin.views.profile import SignIn
-from idgo_admin.views.profile import sign_out
+from idgo_admin.views.profile import SignOut
+# from idgo_admin.views.profile import sign_out
 from idgo_admin.views.profile import sign_up
 from idgo_admin.views.resource import ResourceManager
 
@@ -29,7 +30,7 @@ urlpatterns = [
         name='resource'),
     url('^$', home, name='home'),
     url('^signin/?$', SignIn.as_view(), name='signIn'),
-    url('^signout/?$', sign_out, name='signOut'),
+    url('^signout/?$', SignOut.as_view(), name='signOut'),
     url('^signup/?$', sign_up, name='signUp'),
     url('^forgotten_password/?$', forgotten_password, name='forgottenPassword'),
     url('^reset_password/(?P<key>.+)/?$', reset_password, name='resetPassword'),

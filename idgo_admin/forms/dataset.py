@@ -201,10 +201,10 @@ class DatasetForm(forms.ModelForm):
             ckan_dataset = ckan_user.publish_dataset(
                 dataset.ckan_slug, id=str(dataset.ckan_id), **params)
         except Exception as e:
-            print('error', e)
+            print('Ckan Error', e)
             dataset.delete()
-            raise IntegrityError('Une erreur est survenue lors de la '
-                                 'création du jeu de données dans CKAN.')
+            raise IntegrityError('Une erreur est survenue lors de la création '
+                                 'du jeu de données dans CKAN ({0})'.format(e))
         else:
             dataset.ckan_id = ckan_dataset['id']
 

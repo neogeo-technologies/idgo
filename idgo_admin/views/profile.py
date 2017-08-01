@@ -38,10 +38,12 @@ from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
 from idgo_admin.models import Status
 import json
+from mama_cas.cas import logout_user
 from mama_cas.compat import is_authenticated
 from mama_cas.models import ServiceTicket
 from mama_cas.utils import to_bool
 from mama_cas.views import LoginView
+from mama_cas.views import LogoutView
 
 
 def render_an_critical_error(request, error=None):
@@ -71,7 +73,7 @@ def home(request):
     # Cas ou l'user existe mais pas le profile
     try:
         profile = Profile.objects.get(user=user)
-    except:
+    except Exception:
         logout(request)
         return redirect('idgo_admin:signIn')
 
@@ -89,54 +91,69 @@ class SignIn(LoginView):
 
     template_name = 'idgo_admin/signin.html'
 
+    # def get(self, request, *args, **kwargs):
+    #
+    #     service = request.GET.get('service')
+    #     gateway = to_bool(request.GET.get('gateway'))
+    #
+    #     if gateway and service:
+    #         if is_authenticated(request.user):
+    #             st = ServiceTicket.objects.create_ticket(
+    #                 service=service, user=request.user)
+    #             if self.warn_user():
+    #                 return redirect('cas_warn', params={'service': service,
+    #                                                     'ticket': st.ticket})
+    #             return redirect(service, params={'ticket': st.ticket})
+    #         else:
+    #             return redirect(service)
+    #
+    #     elif is_authenticated(request.user):
+    #         if service:
+    #             st = ServiceTicket.objects.create_ticket(
+    #                 service=service, user=request.user)
+    #             if self.warn_user():
+    #                 return redirect('cas_warn', params={'service': service,
+    #                                                     'ticket': st.ticket})
+    #             return redirect(service, params={'ticket': st.ticket})
+    #         else:
+    #             return redirect('idgo_admin:home')
+    #
+    #     return super(LoginView, self).get(request, *args, **kwargs)
+    #
+    # def form_valid(self, form):
+    #
+    #     login(self.request, form.user)
+    #
+    #     if form.cleaned_data.get('warn'):
+    #         self.request.session['warn'] = True
+    #
+    #     service = self.request.GET.get('service')
+    #     if service:
+    #         st = ServiceTicket.objects.create_ticket(
+    #             service=service, user=self.request.user, primary=True)
+    #         return redirect(service, params={'ticket': st.ticket})
+    #     return redirect('idgo_admin:home')
+
+
+class SignOut(LogoutView):
+
     def get(self, request, *args, **kwargs):
 
         service = request.GET.get('service')
-        gateway = to_bool(request.GET.get('gateway'))
-
-        if gateway and service:
-            if is_authenticated(request.user):
-                st = ServiceTicket.objects.create_ticket(
-                    service=service, user=request.user)
-                if self.warn_user():
-                    return redirect('cas_warn', params={'service': service,
-                                                        'ticket': st.ticket})
-                return redirect(service, params={'ticket': st.ticket})
-            else:
-                return redirect(service)
-
-        elif is_authenticated(request.user):
-            if service:
-                st = ServiceTicket.objects.create_ticket(
-                    service=service, user=request.user)
-                if self.warn_user():
-                    return redirect('cas_warn', params={'service': service,
-                                                        'ticket': st.ticket})
-                return redirect(service, params={'ticket': st.ticket})
-            else:
-                return redirect('idgo_admin:home')
-
-        return super().get(request, *args, **kwargs)
-
-    def form_valid(self, form):
-
-        login(self.request, form.user)
-
-        if form.cleaned_data.get('warn'):
-            self.request.session['warn'] = True
-
-        service = self.request.GET.get('service')
-        if service:
-            st = ServiceTicket.objects.create_ticket(
-                service=service, user=self.request.user, primary=True)
-            return redirect(service, params={'ticket': st.ticket})
-        return redirect('idgo_admin:home')
+        if not service:
+            service = request.GET.get('url')
+        follow_url = getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', True)
+        logout_user(request)
+        if service and follow_url:
+            return redirect(service)
+        # return redirect('cas_login')
+        return redirect('idgo_admin:signIn')
 
 
-@csrf_exempt
-def sign_out(request):
-    logout(request)
-    return redirect('idgo_admin:signIn')
+# @csrf_exempt
+# def sign_out(request):
+#     logout(request)
+#     return redirect('idgo_admin:signIn')
 
 
 @csrf_exempt
