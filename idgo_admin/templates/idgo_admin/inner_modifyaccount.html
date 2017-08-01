@@ -129,7 +129,7 @@
 	</div>
 	{% bootstrap_field pform.contribution_requested show_label=False %}
 	{% else %}
-	<div class="alert alert-warning">En attente de rattachement. </div>
+	<div class="alert alert-info"><a href="{% url "idgo_admin:contributions" %}">En attente de rattachement</a></div>
 	{% endif %}
 	<hr />
 	<div class="row">
