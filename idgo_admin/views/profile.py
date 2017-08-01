@@ -167,10 +167,16 @@ def sign_up(request):
             raise e
 
         # Si rattachement à nouvelle organisation requis
+        name = None
         if data['is_new_orga']:
+            name = data['new_orga']
+        elif data['is_new_orga'] is False and data['organisation']:
+            name = data['organisation'].name
+
+        if name:
             try:
                 organisation, created = Organisation.objects.get_or_create(
-                    name=data['new_orga'],
+                    name=name,
                     defaults={
                         'adresse': data['adresse'],
                         'code_insee': data['code_insee'],
@@ -192,15 +198,11 @@ def sign_up(request):
             profile.organisation = organisation
             profile.save()
             # Demande de creation nouvelle organisation
-            AccountActions.objects.create(
-                profile=profile, action="confirm_new_organisation")
+            if created:
+                AccountActions.objects.create(
+                    profile=profile, action="confirm_new_organisation")
 
-        # Si rattachement à orga existante
-        if not data['is_new_orga'] and data['organisation']:
-            profile.organisation = data['organisation']
-            profile.save()
-
-        if data['is_new_orga'] or data['organisation']:
+        if name:
             # Demande de rattachement Profile-Organisation
             AccountActions.objects.create(
                 profile=profile, action="confirm_rattachement")
@@ -225,6 +227,7 @@ def sign_up(request):
 
         try:
             ckan.add_user(user, data['password'])
+            pass
         except Exception as e:
             # delete_user(user.username)  # TODO
             print('ExceptionCkan', e)
@@ -406,10 +409,10 @@ def confirmation_mail(request, key):
 
     # confirmation de l'email par l'utilisateur
     action = get_object_or_404(AccountActions, key=key, action='confirm_mail')
-    if action.closed:
-        message = "Vous avez déjà validé votre adresse e-mail."
-        return render(request, 'idgo_admin/message.html',
-                      {'message': message}, status=200)
+    # if action.closed:
+    #     message = "Vous avez déjà validé votre adresse e-mail."
+    #     return render(request, 'idgo_admin/message.html',
+    #                   {'message': message}, status=200)
 
     user = action.profile.user
     profile = action.profile
@@ -423,8 +426,11 @@ def confirmation_mail(request, key):
         return render_an_critical_error(request)
     user.save()
     action.profile.save()
-
+    print("0000", user)
+    print("0000", profile)
+    print("0000", type(organisation))
     if organisation:
+        print("111", organisation.pk)
         # Demande de creation nouvelle organisation
         if organisation.is_active is False:
             new_organisation_action = AccountActions.objects.get(
