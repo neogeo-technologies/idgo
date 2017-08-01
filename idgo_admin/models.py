@@ -57,7 +57,7 @@ class Resource(models.Model):
     name = models.CharField('Nom', max_length=150)
 
     ckan_id = models.UUIDField(
-        'Ckan UUID', unique=True, db_index=True, blank=True, null=True)
+        'Ckan UUID', default=uuid.uuid4, editable=False)
 
     description = models.TextField('Description', blank=True, null=True)
 

@@ -106,8 +106,8 @@ class ResourceForm(forms.ModelForm):
                 setattr(resource, key, value)
         else:  # Créer
             resource = Resource.objects.create(**params)
-            resource.ckan_id = uuid4()
-            resource.save()
+            # resource.ckan_id = uuid4()
+            # resource.save()
 
         # TODO(cbenhabib) Lien ressource / user
         # profile = Profile.objects.get(user=user)
