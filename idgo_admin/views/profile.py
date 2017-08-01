@@ -961,11 +961,13 @@ class Contributions(View):
                 profile=profile)
             aw_ref = [c.name for c in awaiting_referent]
 
+            org_name = profile.organisation.name if profile.organisation else None
+
             return render(
                 request, 'idgo_admin/contributions.html',
                 context={'first_name': user.first_name,
                          'last_name': user.last_name,
-                         'my_organization': profile.organisation.name,
+                         'my_organization': org_name,
                          'contributions': json.dumps(contrib_tup),
                          'awaiting_contributions': aw_ct,
                          'subordinates': json.dumps(referents_tup),

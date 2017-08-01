@@ -2,8 +2,13 @@
 
 <h2 class="modal-title">Mes organisations</h2>
 <br />
+
 <div class="well">
+	{% if my_organization %}
 	<p>Vous êtes rattaché à l'organisation suivante : <strong>{{ my_organization | safe }}</strong>. </p>
+	{% else %}
+	<p>Vous n'êtes rattaché à aucune organisation. </p>
+	{% endif %}
 </div>
 <form name="subordinates" class="well">
 	<p>Organisations pour lesquelles vous êtes référents : </p>
