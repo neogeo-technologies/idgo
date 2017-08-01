@@ -433,16 +433,15 @@ class ProfileUpdateForm(forms.ModelForm):
             Organisation.objects.exclude(pk__in=ref_org_bl)
 
         organisation = profile.organisation
-
         if organisation and organisation.is_active is False:
             self.fields['organisation'].queryset = \
                 Organisation.objects.filter(pk__isnull=True)
-        elif organisation:
+        elif organisation and organisation.is_active is False:
             self.fields['organisation'].initial = organisation.pk
             self.fields['organisation'].queryset = Organisation.objects.all()
 
     def clean(self):
-        params = ['organisation', 'adresse', 'code_insee', 'code_postal', 'description',
+        params = ['adresse', 'code_insee', 'code_postal', 'description',
                   'financeur', 'license', 'organisation_type', 'org_phone'
                   'parent', 'status', 'ville', 'website', 'logo', 'new_orga']
 

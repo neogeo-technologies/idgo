@@ -820,12 +820,10 @@ def update_externals(sender, instance, **kwargs):
 # Sync uniquement lors de l'activation
 @receiver(pre_save, sender=Organisation)
 def orga_ckan_presave(sender, instance, **kwargs):
+    print(0, instance.ckan_slug)
+    if ckan.is_organization_exists(instance.ckan_slug):
+        raise Exception("'{0}' already exists".format(instance.ckan_slug))
 
-    instance.sync_in_ckan = ckan.is_organization_exists(instance.ckan_slug)
     instance.ckan_slug = slugify(instance.name)
-    try:
-        ckan.add_organization(instance)
-    except Exception:
-        instance.sync_in_ckan = False
-    else:
-        instance.sync_in_ckan = True
+    print(1, instance.ckan_slug)
+    ckan.add_organization(instance)
