@@ -119,20 +119,21 @@ class SignIn(LoginView):
     #             return redirect('idgo_admin:home')
     #
     #     return super(LoginView, self).get(request, *args, **kwargs)
-    #
-    # def form_valid(self, form):
-    #
-    #     login(self.request, form.user)
-    #
-    #     if form.cleaned_data.get('warn'):
-    #         self.request.session['warn'] = True
-    #
-    #     service = self.request.GET.get('service')
-    #     if service:
-    #         st = ServiceTicket.objects.create_ticket(
-    #             service=service, user=self.request.user, primary=True)
-    #         return redirect(service, params={'ticket': st.ticket})
-    #     return redirect('idgo_admin:home')
+
+    def form_valid(self, form):
+        login(self.request, form.user)
+        # logger.info("Single sign-on session started for %s" % form.user)
+
+        if form.cleaned_data.get('warn'):
+            self.request.session['warn'] = True
+
+        service = self.request.GET.get('service')
+        if service:
+            st = ServiceTicket.objects.create_ticket(
+                service=service, user=self.request.user, primary=True)
+            return redirect(service, params={'ticket': st.ticket})
+        return redirect('idgo_admin:home')
+
 
 
 class SignOut(LogoutView):
