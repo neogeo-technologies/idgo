@@ -91,38 +91,8 @@ class SignIn(LoginView):
 
     template_name = 'idgo_admin/signin.html'
 
-    # def get(self, request, *args, **kwargs):
-    #
-    #     service = request.GET.get('service')
-    #     gateway = to_bool(request.GET.get('gateway'))
-    #
-    #     if gateway and service:
-    #         if is_authenticated(request.user):
-    #             st = ServiceTicket.objects.create_ticket(
-    #                 service=service, user=request.user)
-    #             if self.warn_user():
-    #                 return redirect('cas_warn', params={'service': service,
-    #                                                     'ticket': st.ticket})
-    #             return redirect(service, params={'ticket': st.ticket})
-    #         else:
-    #             return redirect(service)
-    #
-    #     elif is_authenticated(request.user):
-    #         if service:
-    #             st = ServiceTicket.objects.create_ticket(
-    #                 service=service, user=request.user)
-    #             if self.warn_user():
-    #                 return redirect('cas_warn', params={'service': service,
-    #                                                     'ticket': st.ticket})
-    #             return redirect(service, params={'ticket': st.ticket})
-    #         else:
-    #             return redirect('idgo_admin:home')
-    #
-    #     return super(LoginView, self).get(request, *args, **kwargs)
-
     def form_valid(self, form):
         login(self.request, form.user)
-        # logger.info("Single sign-on session started for %s" % form.user)
 
         if form.cleaned_data.get('warn'):
             self.request.session['warn'] = True
@@ -133,7 +103,6 @@ class SignIn(LoginView):
                 service=service, user=self.request.user, primary=True)
             return redirect(service, params={'ticket': st.ticket})
         return redirect('idgo_admin:home')
-
 
 
 class SignOut(LogoutView):
