@@ -437,7 +437,7 @@ class Mail(models.Model):
                       from_email=mail_template.from_email,
                       recipient_list=[
                           usr.email for usr in User.objects.filter(
-                              is_staff=True, is_active=True)])
+                              is_superuser=True, is_active=True)])
         except Exception as e:
             raise e
 
@@ -461,7 +461,7 @@ class Mail(models.Model):
                 from_email=mail_template.from_email,
                 recipient_list=[
                     usr.email for usr
-                    in User.objects.filter(is_staff=True, is_active=True)])
+                    in User.objects.filter(is_superuser=True, is_active=True)])
         except Exception as e:
             raise e
 
@@ -486,7 +486,7 @@ class Mail(models.Model):
                 from_email=mail_template.from_email,
                 recipient_list=[
                     usr.email for usr
-                    in User.objects.filter(is_staff=True, is_active=True)])
+                    in User.objects.filter(is_superuser=True, is_active=True)])
         except Exception as e:
             raise e
 
@@ -510,7 +510,7 @@ class Mail(models.Model):
                 subject=mail_template.subject, message=message,
                 from_email=mail_template.from_email,
                 recipient_list=[usr.email for usr
-                                in User.objects.filter(is_staff=True, is_active=True)])
+                                in User.objects.filter(is_superuser=True, is_active=True)])
         except Exception as e:
             raise e
 
@@ -534,7 +534,7 @@ class Mail(models.Model):
                 subject=mail_template.subject, message=message,
                 from_email=mail_template.from_email,
                 recipient_list=[usr.email for usr
-                                in User.objects.filter(is_staff=True, is_active=True)])
+                                in User.objects.filter(is_superuser=True, is_active=True)])
         except Exception as e:
             raise e
 
