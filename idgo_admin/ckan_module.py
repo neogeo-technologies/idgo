@@ -14,28 +14,38 @@ CKAN_API_KEY = settings.CKAN_API_KEY
 def exceptions_handler(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
+
         try:
             return f(*args, **kwargs)
-        except CkanError.CKANAPIError:
-            pass
+
+        except CkanError.CKANAPIError as e:
+            print('CkanError.CKANAPIError', e.__str__())
+            raise Exception('CkanError', ' ; '.join(e.error_dict['name']))
+
         except CkanError.NotAuthorized as e:
-            print('CkanError', e.__str__())
-            raise PermissionError('CkanError.NotAuthorized', e.__str__())
+            print('CkanError.NotAuthorized', e.__str__())
+            raise PermissionError('CkanError', e.__str__())
+
         except CkanError.ValidationError as e:
-            print('CkanError', e.__str__())
-            raise Exception('CkanError.ValidationError', e.__str__())
+            print('CkanError.ValidationError', e.__str__())
+            raise Exception('CkanError', e.__str__())
+
         except CkanError.NotFound as e:
-            print('CkanError', e.__str__())
-            raise Exception('CkanError.NotFound', e.__str__())
+            print('CkanError.NotFound', e.__str__())
+            raise Exception('CkanError', e.__str__())
+
         except CkanError.SearchQueryError as e:
-            print('CkanError', e.__str__())
-            raise Exception('CkanError.SearchQueryError', e.__str__())
+            print('CkanError.SearchQueryError', e.__str__())
+            raise Exception('CkanError', e.__str__())
+
         except CkanError.SearchError as e:
-            print('CkanError', e.__str__())
-            raise Exception('CkanError.SearchError', e.__str__())
+            print('CkanError.SearchError', e.__str__())
+            raise Exception('CkanError', e.__str__())
+
         except CkanError.SearchIndexError as e:
-            print('CkanError', e.__str__())
-            raise Exception('CkanError.SearchIndexError', e.__str__())
+            print('CkanError.SearchIndexError', e.__str__())
+            raise Exception('CkanError', e.__str__())
+
     return wrapper
 
 
@@ -47,6 +57,15 @@ class CkanManagerHandler(metaclass=Singleton):
     @exceptions_handler
     def _del_package(self, id):
         return self.remote.action.dataset_purge(id=id)
+
+    @exceptions_handler
+    def _create_organization(self, **organization):
+        print(0)
+        return self.remote.action.organization_create(**organization)
+
+    @exceptions_handler
+    def _update_organization(self, **organization):
+        return self.remote.action.organization_update(**organization)
 
     def get_all_users(self):
         return [(user['name'], user['display_name'])
@@ -63,17 +82,14 @@ class CkanManagerHandler(metaclass=Singleton):
         return self.get_user(username) and True or False
 
     def add_user(self, user, password):
-
         params = {'email': user.email,
                   'fullname': user.get_full_name(),
                   'name': user.username,
                   'password': password,
                   'state': 'deleted'}
-
         user = self.remote.action.user_create(**params)
 
     def del_user(self, username):
-
         # self.del_user_from_groups(username)
         self.del_user_from_organizations(username)
         self.remote.action.user_delete(id=username)
@@ -97,21 +113,30 @@ class CkanManagerHandler(metaclass=Singleton):
         return [organization
                 for organization in self.remote.action.organization_list()]
 
-    def get_organization(self, organization_name):
+    def get_organization(self, id):
         try:
-            self.remote.action.organization_show(id=organization_name)
+            self.remote.action.organization_show(id=id)
         except CkanError.NotFound:
             return None
 
-    def is_organization_exists(self, organization_name):
-        return self.get_organization(organization_name) and True or False
+    def is_organization_exists(self, organization_id):
+        return self.get_organization(organization_id) and True or False
 
     def add_organization(self, organization):
-        self.remote.action.organization_create(name=organization.ckan_slug,
-                                               title=organization.name)
+        self._create_organization(
+            id=str(organization.ckan_id), name=organization.ckan_slug,
+            title=organization.name, state='deleted')
 
-    def del_organization(self, organization_name):
-        self.remote.action.organization_purge(id=organization_name)
+    def activate_organization(self, id):
+        self._update_organization(
+            **self.get_organization(id).update({'state': 'active'}))
+
+    def deactivate_organization(self, id):
+        self._update_organization(
+            **self.get_organization(id).update({'state': 'deleted'}))
+
+    def del_organization(self, id):
+        self.remote.action.organization_purge(id=id)
 
     def get_organizations_which_user_belongs(
             self, username, permission='manage_group'):
