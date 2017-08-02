@@ -186,7 +186,7 @@ class DatasetManager(View):
             request, 'idgo_admin/response.html', context=context, status=status)
 
 
-@method_decorator([csrf_exempt], name='dispatch')
+@method_decorator([csrf_exempt, ], name='dispatch')
 class DisplayLicenses(View):
 
     def get(self, request):
