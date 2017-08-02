@@ -53,7 +53,7 @@ class CkanManagerHandler(metaclass=Singleton):
     def _create_organization(self, **organization):
         return self.remote.action.organization_create(**organization)
 
-    @exceptions_handler
+    # @exceptions_handler
     def _update_organization(self, **organization):
         return self.remote.action.organization_update(**organization)
 
@@ -115,13 +115,13 @@ class CkanManagerHandler(metaclass=Singleton):
     def add_organization(self, organization):
         self._create_organization(
             id=str(organization.ckan_id), name=organization.ckan_slug,
-            title=organization.name, state='deleted')
+            title=organization.name, state='active')
 
-    def activate_organization(self, id):
-        self._update_organization(id=str(id), state='active')
-
-    def deactivate_organization(self, id):
-        self._update_organization(id=str(id), state='deleted')
+    # def activate_organization(self, id):
+    #     self._update_organization(id=str(id), state='active')
+    #
+    # def deactivate_organization(self, id):
+    #     self._update_organization(id=str(id), state='deleted')
 
     def del_organization(self, id):
         self.remote.action.organization_purge(id=id)

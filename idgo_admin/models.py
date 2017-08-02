@@ -849,19 +849,16 @@ def delete_user_in_externals(sender, instance, **kwargs):
 def pre_save_contribution(sender, instance, **kwargs):
     if not instance.validated_on:
         return
-
     user = instance.profile.user
     organisation = instance.organisation
-    if organisation.ckan_slug not in ckan.get_organizations_which_user_belongs(user.username):
-        ckan.add_user_to_organization(user.username, organisation.ckan_slug)
+    ckan.add_user_to_organization(user.username, organisation.ckan_slug)
 
 
 @receiver(pre_delete, sender=Liaisons_Contributeurs)
 def pre_delete_contribution(sender, instance, **kwargs):
     user = instance.profile.user
     organisation = instance.organisation
-    if organisation.ckan_slug in ckan.get_organizations_which_user_belongs(user.username):
-        ckan.del_user_from_organization(user.username, organisation.ckan_slug)
+    ckan.del_user_from_organization(user.username, organisation.ckan_slug)
 
 
 @receiver(pre_save, sender=Organisation)

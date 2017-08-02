@@ -195,7 +195,7 @@ class DatasetForm(forms.ModelForm):
             ckan.add_user_to_group(user.username, category.ckan_slug)
             params['groups'].append({'name': category.ckan_slug})
 
-        ckan.activate_organization(dataset.organisation.ckan_id)
+        # ckan.activate_organization(dataset.organisation.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
             ckan_dataset = ckan_user.publish_dataset(
