@@ -608,8 +608,6 @@ def confirm_contribution(request, key):
 
         else:
             user = action.profile.user
-            ckan.add_user_to_organization(
-                user.username, organisation.ckan_slug, role='editor')
             contrib_liaison.validated_on = timezone.now()
             contrib_liaison.save()
             action.closed = timezone.now()
@@ -918,41 +916,6 @@ def referent_request(request):
                  '<strong>{0}</strong> est en cours de traitement. Celle-ci '
                  "ne sera effective qu'après validation par un administrateur."
                  ).format(organisation.name)}})
-
-
-# @csrf_exempt
-# def publish_request_confirme(request, key):
-#
-#     pub_req = get_object_or_404(PublishRequest, pub_req_key=key)
-#     profile = get_object_or_404(Profile, user=pub_req.user)
-#     user = profile.user
-#     organization = pub_req.organisation
-#
-#     if pub_req.date_acceptation:
-#         message = ('La confirmation de la demande de '
-#                    'contribution a déjà été faite.')
-#         return render(request, 'idgo_admin/message.html',
-#                       context={'message': message}, status=200)
-#
-#     if pub_req.organisation:
-#         profile.publish_for.add(pub_req.organisation)
-#         # ldap.add_user_to_organization(
-#         #     user.username, organization.ckan_slug)
-#         ckan.add_user_to_organization(
-#             user.username, organization.ckan_slug, role='editor')
-#         profile.save()
-#
-#     try:
-#         Mail.publish_confirmation_to_user(publish_request)
-#         pub_req.date_acceptation = timezone.now()
-#         pub_req.save()
-#     except Exception:
-#         pass
-#
-#     message = ('La confirmation de la demande de contribution '
-#                'a bien été prise en compte.')
-#     return render(request, 'idgo_admin/message.html',
-#                   context={'message': message}, status=200)
 
 
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
