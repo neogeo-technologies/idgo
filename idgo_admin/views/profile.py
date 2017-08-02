@@ -159,6 +159,7 @@ def sign_up(request):
         # Si rattachement à nouvelle organisation requis
         name = data['new_orga']
         created = False
+        organisation = None
         if data['is_new_orga'] and name:
             organisation, created = Organisation.objects.get_or_create(
                 name=name,
