@@ -864,7 +864,6 @@ def pre_delete_contribution(sender, instance, **kwargs):
         ckan.del_user_from_organization(user.username, organisation.ckan_slug)
 
 
-# @receiver(pre_save, sender=Organisation)
-# def pre_save_organization(sender, instance, **kwargs):
-#     instance.ckan_slug = slugify(instance.name)
-#     ckan.add_organization(instance)
+@receiver(pre_save, sender=Organisation)
+def pre_save_organization(sender, instance, **kwargs):
+    instance.ckan_slug = slugify(instance.name)

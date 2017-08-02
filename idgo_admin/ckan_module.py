@@ -135,7 +135,7 @@ class CkanManagerHandler(metaclass=Singleton):
         return [d['name'] for d in res if d['is_organization']]
 
     def add_user_to_organization(
-            self, username, organization_id, role='admin'):
+            self, username, organization_id, role='editor'):
 
         # role=member|editor|admin
         self.remote.action.organization_member_create(
