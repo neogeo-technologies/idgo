@@ -15,6 +15,7 @@ from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
 from idgo_admin.models import Status
 
+from django.utils.text import slugify
 
 class UserForm(forms.Form):
 
@@ -481,13 +482,23 @@ class ProfileUpdateForm(forms.ModelForm):
             self.cleaned_data['referent_requested'] = True
         if self.cleaned_data.get('contribution_requested'):
             self.cleaned_data['contribution_requested'] = True
+
+        if self.cleaned_data['new_orga']:
+            self.cleaned_data['organisation'] = None
+
+            if Organisation.objects.filter(
+                    ckan_slug=slugify(self.cleaned_data['new_orga'])).exists():
+                msg = ('Une organsiation avec ce nom existe déja. '
+                       'Il se peut que son activation soit en attente '
+                       'de validation par un Administrateur')
+                self.add_error('new_orga', msg)
+                raise ValidationError('OrganisationExist')
         if organisation is None:
             # Retourne le nom d'une nouvelle organisation lors d'une
             # nouvelle demande de création
             self.cleaned_data['website'] = \
                 self.cleaned_data.get('new_website')
             self.cleaned_data['is_new_orga'] = True
-
             for p in params:
                 self.cleaned_data[p] = self.cleaned_data.get(p)
 

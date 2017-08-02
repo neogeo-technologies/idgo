@@ -776,17 +776,16 @@ def modify_account(request):
         'contribution_requested': pform.cleaned_data['contribution_requested'],
         'is_new_orga': pform.cleaned_data['is_new_orga']}
 
-    print(data['new_orga'])
-    if Organisation.objects.filter(name=data['new_orga']).exists():
-        pform.add_error('new_orga',
-                        'Une organsiation avec ce nom existe déja. '
-                        'Il se peut que son activation soit en attente '
-                        'de validation par un Administrateur')
-        print(pform.errors)
-        return render(request, 'idgo_admin/modifyaccount.html',
-                      {'first_name': user.first_name,
-                       'last_name': user.last_name,
-                       'uform': uform, 'pform': pform})
+    # print(data['new_orga'])
+    # if Organisation.objects.filter(name=data['new_orga']).exists():
+    #     pform.add_error('new_orga',
+    #                     'Une organsiation avec ce nom existe déja. '
+    #                     'Il se peut que son activation soit en attente '
+    #                     'de validation par un Administrateur')
+    #     return render(request, 'idgo_admin/modifyaccount.html',
+    #                   {'first_name': user.first_name,
+    #                    'last_name': user.last_name,
+    #                    'uform': uform, 'pform': pform})
 
     error = False
     try:
