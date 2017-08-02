@@ -698,7 +698,7 @@ def modify_account(request):
 
         # Demande de role de referent
         if data['referent_requested']:
-            Liaisons_Referents.objects.create(
+            Liaisons_Referents.objects.get_or_create(
                 profile=profile, organisation=organisation)
             referent_action = AccountActions.objects.create(
                 profile=profile, action='confirm_referent',
@@ -711,7 +711,7 @@ def modify_account(request):
 
         # Demande de rôle de contributeur
         if data['contribution_requested']:
-            Liaisons_Contributeurs.objects.create(
+            Liaisons_Contributeurs.objects.get_or_create(
                 profile=profile, organisation=organisation)
             contribution_action = AccountActions.objects.create(
                 profile=profile, action="confirm_contribution",
