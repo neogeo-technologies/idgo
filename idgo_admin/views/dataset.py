@@ -100,7 +100,7 @@ class DatasetManager(View):
                 o.data_format,
                 o.created_on.isoformat() if o.created_on else None,
                 o.last_update.isoformat() if o.last_update else None,
-                o.restricted_level) for o in Resource.objects.filter(dataset=instance)]
+                o.get_restricted_level_display()) for o in Resource.objects.filter(dataset=instance)]
 
             if form.is_valid() or request.user.is_authenticated:
                 try:
