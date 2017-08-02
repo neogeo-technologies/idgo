@@ -252,6 +252,16 @@ class UserProfileForm(forms.Form):
                   'parent', 'status', 'ville', 'website', 'logo']
 
         organisation = self.cleaned_data.get('organisation')
+
+        # Modifié le 2/08:
+        if self.cleaned_data['new_orga']:
+            self.cleaned_data['organisation'] = None
+
+            if Organisation.objects.filter(
+                    ckan_slug=slugify(self.cleaned_data['new_orga'])).exists():
+                self.add_error('new_orga', "L'organisation existe déjà.")
+                raise ValidationError('OrganisationExist')
+
         if self.cleaned_data.get('referent_requested'):
             self.cleaned_data['referent_requested'] = True
         if self.cleaned_data.get('contribution_requested'):
@@ -465,7 +475,6 @@ class ProfileUpdateForm(forms.ModelForm):
             if Organisation.objects.filter(
                     ckan_slug=slugify(self.cleaned_data['new_orga'])).exists():
                 self.add_error('new_orga', "L'organisation existe déjà.")
-
                 raise ValidationError('OrganisationExist')
 
         organisation = self.cleaned_data.get('organisation')

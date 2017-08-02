@@ -157,45 +157,38 @@ def sign_up(request):
             raise e
 
         # Si rattachement à nouvelle organisation requis
-        name = None
-        if data['is_new_orga']:
-            if Organisation.objects.filter(name=data['new_orga']):
-                raise IntegrityError
-            else:
-                name = data['new_orga']
+        name = data['new_orga']
+        created = False
+        if data['is_new_orga'] and name:
+            organisation, created = Organisation.objects.get_or_create(
+                name=name,
+                defaults={
+                    'adresse': data['adresse'],
+                    'code_insee': data['code_insee'],
+                    'code_postal': data['code_postal'],
+                    'description': data['description'],
+                    'financeur': data['financeur'],
+                    'license': data['license'],
+                    'logo': data['logo'],
+                    'organisation_type': data['organisation_type'],
+                    # 'parent': data['parent'],
+                    'status': data['status'],
+                    'ville': data['ville'],
+                    'website': data['website'],
+                    'is_active': False})
+
         elif data['is_new_orga'] is False and data['organisation']:
-            name = data['organisation'].name
+            organisation = data['organisation']
 
-        if name:
-            try:
-                organisation, created = Organisation.objects.get_or_create(
-                    name=name,
-                    defaults={
-                        'adresse': data['adresse'],
-                        'code_insee': data['code_insee'],
-                        'code_postal': data['code_postal'],
-                        'description': data['description'],
-                        'financeur': data['financeur'],
-                        'license': data['license'],
-                        'logo': data['logo'],
-                        'organisation_type': data['organisation_type'],
-                        # 'parent': data['parent'],
-                        'status': data['status'],
-                        'ville': data['ville'],
-                        'website': data['website'],
-                        'is_active': False})
-            except Exception as e:
-                print('CreatingOrganisationError', e)
-                raise e
-            # rattachement nouvelle organisation
-            profile.organisation = organisation
-            profile.save()
-            # Demande de creation nouvelle organisation
-            if created:
-                AccountActions.objects.create(
-                    profile=profile, action="confirm_new_organisation")
+        profile.organisation = organisation
+        profile.rattachement_active = False
+        profile.save()
+        # Demande de creation nouvelle organisation
+        if created:
+            AccountActions.objects.create(
+                profile=profile, action="confirm_new_organisation")
 
-        if name:
+        if organisation:
             # Demande de rattachement Profile-Organisation
             AccountActions.objects.create(
                 profile=profile, action="confirm_rattachement")
@@ -669,7 +662,6 @@ def modify_account(request):
                     'ville': data['ville'],
                     'website': data['website'],
                     'is_active': False})
-            name = data['new_orga']
 
         elif data['is_new_orga'] is False and data['organisation']:
             organisation = data['organisation']
