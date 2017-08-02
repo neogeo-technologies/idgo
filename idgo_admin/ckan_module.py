@@ -18,7 +18,7 @@ def exceptions_handler(f):
             return f(*args, **kwargs)
         except CkanError.CKANAPIError as e:
             print('CkanError.CKANAPIError', e.__str__())
-            raise Exception('CkanError', ' ; '.join(e.error_dict['name']))
+            raise Exception('CkanError', e.__str__())
         except CkanError.NotAuthorized as e:
             print('CkanError.NotAuthorized', e.__str__())
             raise PermissionError('CkanError', e.__str__())
@@ -105,12 +105,12 @@ class CkanManagerHandler(metaclass=Singleton):
 
     def get_organization(self, id):
         try:
-            self.remote.action.organization_show(id=id)
+            self.remote.action.organization_show(id=str(id))
         except CkanError.NotFound:
             return None
 
     def is_organization_exists(self, organization_id):
-        return self.get_organization(organization_id) and True or False
+        return self.get_organization(str(organization_id)) and True or False
 
     def add_organization(self, organization):
         self._create_organization(
@@ -118,12 +118,10 @@ class CkanManagerHandler(metaclass=Singleton):
             title=organization.name, state='deleted')
 
     def activate_organization(self, id):
-        self._update_organization(
-            **self.get_organization(id).update({'state': 'active'}))
+        self._update_organization(id=str(id), state='active')
 
     def deactivate_organization(self, id):
-        self._update_organization(
-            **self.get_organization(id).update({'state': 'deleted'}))
+        self._update_organization(id=str(id), state='deleted')
 
     def del_organization(self, id):
         self.remote.action.organization_purge(id=id)
@@ -137,15 +135,15 @@ class CkanManagerHandler(metaclass=Singleton):
         return [d['name'] for d in res if d['is_organization']]
 
     def add_user_to_organization(
-            self, username, organization_name, role='editor'):
+            self, username, organization_id, role='editor'):
 
         # role=member|editor|admin
         self.remote.action.organization_member_create(
-            id=organization_name, username=username, role=role)
+            id=str(organization_id), username=username, role=role)
 
-    def del_user_from_organization(self, username, organization_name):
+    def del_user_from_organization(self, username, organization_id):
         self.remote.action.organization_member_delete(
-            id=organization_name, username=username)
+            id=str(organization_id), username=username)
 
     def del_user_from_organizations(self, username):
         organizations = self.get_organizations_which_user_belongs(username)

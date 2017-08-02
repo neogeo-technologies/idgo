@@ -817,36 +817,55 @@ def delete_user_in_externals(sender, instance, **kwargs):
         pass
 
 
-@receiver(pre_save, sender=Profile)
-def update_externals(sender, instance, **kwargs):
+# @receiver(pre_save, sender=Profile)
+# def update_externals(sender, instance, **kwargs):
+#
+#     user = instance.user
+#     # through = Profile.publish_for.through
+#     contributions = Liaisons_Contributeurs.objects.filter(
+#         profile=instance, validated_on__isnull=False)
+#
+#     def remove(name):
+#         if name in ckan.get_organizations_which_user_belongs(user.username):
+#             ckan.del_user_from_organization(user.username, name)
+#
+#     def add(name):
+#         ckan.add_user_to_organization(user.username, name)
+#
+#     def iter_organization(profile, callback):
+#         # for e in through.objects.filter(profile=profile):
+#         #     callback(Organisation.objects.get(id=e.organisation_id).ckan_slug)
+#         for e in contributions:
+#             callback(e.organisation.ckan_slug)
+#     try:
+#         old = Profile.objects.get(pk=instance.id)
+#     except Profile.DoesNotExist:
+#         pass
+#     except Exception as e:
+#         print('Error:', e)
+#         pass
+#     else:
+#         iter_organization(old, remove)
+#         iter_organization(instance, add)
 
-    user = instance.user
-    # through = Profile.publish_for.through
-    contributions = Liaisons_Contributeurs.objects.filter(
-        profile=instance, validated_on__isnull=False)
 
-    def remove(name):
-        if name in ckan.get_organizations_which_user_belongs(user.username):
-            ckan.del_user_from_organization(user.username, name)
+@receiver(pre_save, sender=Liaisons_Contributeurs)
+def pre_save_contribution(sender, instance, **kwargs):
+    if not instance.validated_on:
+        return
 
-    def add(name):
-        ckan.add_user_to_organization(user.username, name)
+    user = instance.profile.user
+    organisation = instance.organisation
+    if organisation.ckan_slug not in ckan.get_organizations_which_user_belongs(user.username):
+        ckan.add_user_to_organization(user.username, organisation.ckan_slug)
 
-    def iter_organization(profile, callback):
-        # for e in through.objects.filter(profile=profile):
-        #     callback(Organisation.objects.get(id=e.organisation_id).ckan_slug)
-        for e in contributions:
-            callback(e.organisation.ckan_slug)
-    try:
-        old = Profile.objects.get(pk=instance.id)
-    except Profile.DoesNotExist:
-        pass
-    except Exception as e:
-        print('Error:', e)
-        pass
-    else:
-        iter_organization(old, remove)
-        iter_organization(instance, add)
+
+@receiver(pre_delete, sender=Liaisons_Contributeurs)
+def pre_delete_contribution(sender, instance, **kwargs):
+    user = instance.profile.user
+    organisation = instance.organisation
+    if organisation.ckan_slug in ckan.get_organizations_which_user_belongs(user.username):
+        ckan.del_user_from_organization(user.username, organisation.ckan_slug)
 
 
 # @receiver(pre_save, sender=Organisation)
