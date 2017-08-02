@@ -33,7 +33,7 @@ def render_an_critical_error(request):
     return JsonResponse(data={'message': message}, status=400)
 
 
-@method_decorator([csrf_exempt], name='dispatch')
+@method_decorator(decorators, name='dispatch')
 class DatasetManager(View):
 
     def get(self, request):
@@ -186,7 +186,7 @@ class DatasetManager(View):
             request, 'idgo_admin/response.html', context=context, status=status)
 
 
-@method_decorator(decorators, name='dispatch')
+@method_decorator([csrf_exempt], name='dispatch')
 class DisplayLicenses(View):
 
     def get(self, request):
