@@ -161,7 +161,7 @@ class ResourceForm(forms.ModelForm):
             params['resource_type'] = uploaded_file.name
 
         try:
-            ckan_user.publish_resource(dataset.ckan_id, **params)
+            ckan_user.publish_resource(str(dataset.ckan_id), **params)
         except Exception as e:
             print('Error', e)
             # resource.delete()  # TODO(@m431m)
