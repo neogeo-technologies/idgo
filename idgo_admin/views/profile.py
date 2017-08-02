@@ -502,7 +502,7 @@ def confirm_new_orga(request, key):
     else:
         action.profile.organisation.is_active = True
         action.profile.organisation.save()
-        ckan.add_organization(action.profile.organisation.ckan_slug)  # TODO: A la création du premier dataset
+        ckan.add_organization(action.profile.organisation)  # TODO: A la création du premier dataset
         action.closed = timezone.now()
         action.save()
         message = ("L'organisation {0} a bien été créee. "
@@ -979,10 +979,20 @@ class Contributions(View):
                     action='confirm_rattachement',
                     profile=profile, closed__isnull=True)
             except Exception:
-                awaiting_organization = None
+                awaiting_rattachement = None
             else:
-                awaiting_organization = \
+                awaiting_rattachement = \
                     action.org_extras.name if action.org_extras else None
+
+            # try:
+            #     action = AccountActions.objects.get(
+            #         action='confirm_new_organisation',
+            #         profile=profile, closed__isnull=True)
+            # except Exception:
+            #     new_org_inactive = None
+            # else:
+            #     new_org_inactive = \
+            #         action.org_extras.name if action.org_extras else None
 
             contributions = \
                 [(c.id, c.name) for c
@@ -1005,7 +1015,7 @@ class Contributions(View):
                 context={'first_name': user.first_name,
                          'last_name': user.last_name,
                          'organization': organization,
-                         'awaiting_organization': awaiting_organization,
+                         'awaiting_organization': awaiting_rattachement,
                          'contributions': json.dumps(contributions),
                          'awaiting_contributions': awaiting_contributions,
                          'subordinates': json.dumps(subordinates),
