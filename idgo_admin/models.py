@@ -231,7 +231,7 @@ class Organisation(models.Model):
         return self.name
 
     def delete(self, *args, **kwargs):
-        ckan.del_organization(self.ckan_slug)
+        ckan.del_organization(self.ckan_id)
         super().delete()
 
     # def delete(self, *args, **kwargs):
@@ -849,14 +849,7 @@ def update_externals(sender, instance, **kwargs):
         iter_organization(instance, add)
 
 
-# TODO(cbenhabib): Orga inactive a la creation!
-# Sync uniquement lors de l'activation
 @receiver(pre_save, sender=Organisation)
-def orga_ckan_presave(sender, instance, **kwargs):
-    print(0, instance.ckan_slug)
-    if ckan.is_organization_exists(instance.ckan_slug):
-        raise Exception("'{0}' already exists".format(instance.ckan_slug))
-
+def pre_save_organization(sender, instance, **kwargs):
     instance.ckan_slug = slugify(instance.name)
-    print(1, instance.ckan_slug)
-    ckan.add_organization(instance)
+    # ckan.add_organization(instance)

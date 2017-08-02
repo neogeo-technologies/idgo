@@ -412,9 +412,6 @@ class ProfileUpdateForm(forms.ModelForm):
         model = Profile
         fields = ('phone', 'role', 'organisation')
 
-    # def is_valid(self):
-    #     return self.is_bound and not self.errors
-
     def __init__(self, *args, **kwargs):
 
         exclude_args = kwargs.pop('exclude', {})
@@ -451,32 +448,11 @@ class ProfileUpdateForm(forms.ModelForm):
         else:
             self.fields['organisation'].queryset = Organisation.objects.all()
 
-        # if organisation and not organisation.is_active:
-        #     # self.fields['organisation'].queryset = \
-        #     #     Organisation.objects.filter(pk__isnull=True)
-        #     self.fields['organisation'].widget = forms.HiddenInput()
-        #
-        # elif organisation and organisation.is_active:
-        #     self.fields['organisation'].initial = organisation.pk
-        #     self.fields['organisation'].queryset = Organisation.objects.all()
-
-        # from idgo_admin.models import AccountActions
-        # try:
-        #     AccountActions.objects.get(
-        #         profile=profile,
-        #         action="confirm_rattachement",
-        #         closed__isnull=True)
-        # except Exception:
-        #     pass
-        # else:
-        #     self.fields['organisation'].widget = forms.HiddenInput()
-
     def clean(self):
+
         params = ['adresse', 'code_insee', 'code_postal', 'description',
                   'financeur', 'license', 'organisation_type', 'org_phone'
                   'parent', 'status', 'ville', 'website', 'logo', 'new_orga']
-
-        organisation = self.cleaned_data.get('organisation')
 
         if self.cleaned_data.get('referent_requested'):
             self.cleaned_data['referent_requested'] = True
@@ -488,20 +464,18 @@ class ProfileUpdateForm(forms.ModelForm):
 
             if Organisation.objects.filter(
                     ckan_slug=slugify(self.cleaned_data['new_orga'])).exists():
-                msg = ('Une organsiation avec ce nom existe déja. '
-                       'Il se peut que son activation soit en attente '
-                       'de validation par un Administrateur')
-                self.add_error('new_orga', msg)
+                self.add_error('new_orga', "L'organisation existe déjà.")
+
                 raise ValidationError('OrganisationExist')
+
+        organisation = self.cleaned_data.get('organisation')
         if organisation is None:
             # Retourne le nom d'une nouvelle organisation lors d'une
             # nouvelle demande de création
-            self.cleaned_data['website'] = \
-                self.cleaned_data.get('new_website')
+            self.cleaned_data['website'] = self.cleaned_data.get('new_website')
             self.cleaned_data['is_new_orga'] = True
             for p in params:
                 self.cleaned_data[p] = self.cleaned_data.get(p)
-
         else:
             # Vider les champs pour nouvelle orga dans le cas
             # ou l'utilisateur ne crée pas de nouvelle orga

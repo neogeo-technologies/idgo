@@ -649,9 +649,9 @@ def modify_account(request):
             profile.role = data['phone']
 
         # Rattachement organisation
-        name = None
+        name = data['new_orga']
         created = False
-        if data['is_new_orga']:
+        if data['is_new_orga'] and name:
             organisation, created = Organisation.objects.get_or_create(
                 name=name,
                 defaults={
@@ -663,7 +663,7 @@ def modify_account(request):
                     'license': data['license'],
                     'logo': data['logo'],
                     'organisation_type': data['organisation_type'],
-                    'parValidationErrorent': data['parent'],
+                    # 'parent': data['parent'],
                     'status': data['status'],
                     'ville': data['ville'],
                     'website': data['website'],
@@ -968,45 +968,47 @@ class Contributions(View):
             user = request.user
             profile = get_object_or_404(Profile, user=user)
 
-            my_contributions = Liaisons_Contributeurs.get_contribs(
-                profile=profile)
-            contrib_tup = [(c.id, c.name) for c in my_contributions]
-
-            awaiting_contributions = Liaisons_Contributeurs.get_pending(
-                profile=profile)
-            aw_ct = [c.name for c in awaiting_contributions]
-
-            my_subordinates = Liaisons_Referents.get_subordinates(
-                profile=profile)
-            referents_tup = [(c.id, c.name) for c in my_subordinates]
-
-            awaiting_referent = Liaisons_Referents.get_pending(
-                profile=profile)
-            aw_ref = [c.name for c in awaiting_referent]
-
-            org_name = profile.organisation.name if profile.organisation else None
-
-            new_ratt = None
-            try:
-                ratt = AccountActions.objects.get(
-                    profile=profile,
-                    action="confirm_rattachement",
-                    closed__isnull=True)
-            except Exception:
-                pass
+            if profile.organisation and profile.rattachement_active:
+                organization = profile.organisation.name
             else:
-                new_ratt = ratt.org_extras.name if ratt.org_extras else None
+                organization = None
+
+            try:
+                action = AccountActions.objects.get(
+                    action='confirm_rattachement',
+                    profile=profile, closed__isnull=True)
+            except Exception:
+                awaiting_organization = None
+            else:
+                awaiting_organization = \
+                    action.org_extras.name if action.org_extras else None
+
+            contributions = \
+                [(c.id, c.name) for c
+                    in Liaisons_Contributeurs.get_contribs(profile=profile)]
+
+            awaiting_contributions = \
+                [c.name for c
+                    in Liaisons_Contributeurs.get_pending(profile=profile)]
+
+            subordinates = \
+                [(c.id, c.name) for c
+                    in Liaisons_Referents.get_subordinates(profile=profile)]
+
+            awaiting_subordinates = \
+                [c.name for c
+                    in Liaisons_Referents.get_pending(profile=profile)]
 
             return render(
                 request, 'idgo_admin/contributions.html',
                 context={'first_name': user.first_name,
                          'last_name': user.last_name,
-                         'my_organization': org_name,
-                         'change_my_organization': new_ratt,
-                         'contributions': json.dumps(contrib_tup),
-                         'awaiting_contributions': aw_ct,
-                         'subordinates': json.dumps(referents_tup),
-                         'awaiting_subordinates': aw_ref})
+                         'organization': organization,
+                         'awaiting_organization': awaiting_organization,
+                         'contributions': json.dumps(contributions),
+                         'awaiting_contributions': awaiting_contributions,
+                         'subordinates': json.dumps(subordinates),
+                         'awaiting_subordinates': awaiting_subordinates})
 
     def delete(self, request):
 

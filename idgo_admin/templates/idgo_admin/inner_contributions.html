@@ -4,15 +4,15 @@
 <br />
 
 <div class="well">
-	{% if my_organization %}
-	<p>Vous êtes actuellement rattaché à l'organisation suivante : <strong>{{ my_organization | safe }}</strong>. </p>
+	{% if organization %}
+	<p>Vous êtes actuellement rattaché à l'organisation suivante : <strong>{{ organization }}</strong>. </p>
+	{% elif awaiting_organization %}
+	<div class="alert alert-info">Demande de rattachement en attente de validation pour : <strong>{{ awaiting_organization }}</strong>. </div>
 	{% else %}
 	<div class="alert alert-warning">Vous n'êtes rattaché à aucune organisation. </div>
 	{% endif %}
-	{% if change_my_organization %}
-	<div class="alert alert-warning">En attente de rattachement à l'organisation suivante : <strong>{{ change_my_organization }}</strong>. </div>
-	{% endif %}
 </div>
+<!--
 <form name="subordinates" class="well">
 	<p>Organisations pour lesquelles vous êtes référents : </p>
 	<div id="table-subordinates" class="table-responsive"></div>
@@ -20,9 +20,10 @@
 		<ul id="table-subordinates-paginator" class="pagination pagination-sm"></ul>
 	</nav>
 </form>
+-->
 <form name="organization" class="well">
 	{% if awaiting_contributions %}
-	<div class="alert alert-warning">Demande de contribution en attente de validation : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization }}</strong>{% endfor %}</div>
+	<div class="alert alert-info">Demande(s) de contribution en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization }}</strong>{% endfor %}</div>
 	{% endif %}
 	<p>Organisations pour lesquelles vous avez le droit de publier des jeux de données : </p>
 	<div id="table-organizations" class="table-responsive"></div>

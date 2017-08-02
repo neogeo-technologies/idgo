@@ -4,8 +4,8 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Category
-from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import Dataset
+from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
