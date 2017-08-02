@@ -849,7 +849,7 @@ def update_externals(sender, instance, **kwargs):
         iter_organization(instance, add)
 
 
-@receiver(pre_save, sender=Organisation)
-def pre_save_organization(sender, instance, **kwargs):
-    instance.ckan_slug = slugify(instance.name)
-    # ckan.add_organization(instance)
+# @receiver(pre_save, sender=Organisation)
+# def pre_save_organization(sender, instance, **kwargs):
+#     instance.ckan_slug = slugify(instance.name)
+#     ckan.add_organization(instance)
