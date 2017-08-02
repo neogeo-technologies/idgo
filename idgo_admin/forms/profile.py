@@ -437,25 +437,38 @@ class ProfileUpdateForm(forms.ModelForm):
             Organisation.objects.exclude(pk__in=ref_org_bl)
 
         organisation = profile.organisation
-        if organisation and not organisation.is_active:
-            # self.fields['organisation'].queryset = \
-            #     Organisation.objects.filter(pk__isnull=True)
-            self.fields['organisation'].widget = forms.HiddenInput()
-
-        elif organisation and organisation.is_active:
-            self.fields['organisation'].initial = organisation.pk
+        # Modifier le 2/08
+        if organisation:
+            if not organisation.is_active:
+                self.fields['organisation'].widget = forms.HiddenInput()
+            if organisation.is_active:
+                if not profile.rattachement_active:
+                    self.fields['organisation'].widget = forms.HiddenInput()
+                else:
+                    self.fields['organisation'].initial = organisation.pk
+                    self.fields['organisation'].queryset = Organisation.objects.all()
+        else:
             self.fields['organisation'].queryset = Organisation.objects.all()
 
-        from idgo_admin.models import AccountActions
-        try:
-            AccountActions.objects.get(
-                profile=profile,
-                action="confirm_rattachement",
-                closed__isnull=True)
-        except Exception:
-            pass
-        else:
-            self.fields['organisation'].widget = forms.HiddenInput()
+        # if organisation and not organisation.is_active:
+        #     # self.fields['organisation'].queryset = \
+        #     #     Organisation.objects.filter(pk__isnull=True)
+        #     self.fields['organisation'].widget = forms.HiddenInput()
+        #
+        # elif organisation and organisation.is_active:
+        #     self.fields['organisation'].initial = organisation.pk
+        #     self.fields['organisation'].queryset = Organisation.objects.all()
+
+        # from idgo_admin.models import AccountActions
+        # try:
+        #     AccountActions.objects.get(
+        #         profile=profile,
+        #         action="confirm_rattachement",
+        #         closed__isnull=True)
+        # except Exception:
+        #     pass
+        # else:
+        #     self.fields['organisation'].widget = forms.HiddenInput()
 
     def clean(self):
         params = ['adresse', 'code_insee', 'code_postal', 'description',

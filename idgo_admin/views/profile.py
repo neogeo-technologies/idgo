@@ -150,7 +150,7 @@ def sign_up(request):
         try:
             profile = Profile.objects.create(user=user, role=data['role'],
                                              phone=data['phone'],
-                                             # rattachement_active=False,
+                                             rattachement_active=False,
                                              is_active=False)
         except Exception as e:
             print('CreatingProfileError', e)
@@ -159,7 +159,10 @@ def sign_up(request):
         # Si rattachement à nouvelle organisation requis
         name = None
         if data['is_new_orga']:
-            name = data['new_orga']
+            if Organisation.objects.filter(name=data['new_orga']):
+                raise IntegrityError
+            else:
+                name = data['new_orga']
         elif data['is_new_orga'] is False and data['organisation']:
             name = data['organisation'].name
 
@@ -413,7 +416,7 @@ def confirmation_mail(request, key):
     try:
         ckan.activate_user(user.username)
     except Exception as e:
-        print('Exception', str(e))
+        print('Exception', e.__str__)
         return render_an_critical_error(request)
     user.save()
     action.profile.save()
@@ -425,7 +428,7 @@ def confirmation_mail(request, key):
             try:
                 Mail.confirm_new_organisation(request, new_organisation_action)
             except Exception as e:
-                print('SendingMailError', e)
+                print('SendingMailError', e.__str__)
                 raise e
 
         # Demande de rattachement Profile-Organsaition
@@ -434,7 +437,7 @@ def confirmation_mail(request, key):
         try:
             Mail.confirm_rattachement(request, rattachement_action)
         except Exception as e:
-            print('SendingMailError', e)
+            print('SendingMailError', e.__str__)
             raise e
 
         # Demande de role de referent
@@ -450,7 +453,7 @@ def confirmation_mail(request, key):
             try:
                 Mail.confirm_referent(request, referent_action)
             except Exception as e:
-                print('SendingMailError', e)
+                print('SendingMailError', e.__str__)
                 raise e
 
         # Demande de role de contributeur
@@ -466,7 +469,7 @@ def confirmation_mail(request, key):
             try:
                 Mail.confirm_contribution(request, contribution_action)
             except Exception as e:
-                print('SendingMailError', e)
+                print('SendingMailError', e.__str__)
                 raise e
 
     try:
@@ -516,7 +519,9 @@ def confirm_rattachement(request, key):
         AccountActions, key=key, action='confirm_rattachement')
 
     if action.closed:
-        name = action.profile.organisation.name
+        action.profile.rattachement_active = True
+        action.profile.save()
+        name = action.org_extras.name
         user = action.profile.user
         message = (
             "Le rattachement de {first_name} {last_name} ({username}) "
@@ -526,19 +531,20 @@ def confirm_rattachement(request, key):
                      username=user.username,
                      organization_name=name)
     else:
-        action.profile.is_active = True
-        name = action.profile.organisation.name
+        action.profile.rattachement_active = True
+        name = action.org_extras.name
         action.closed = timezone.now()
         user = action.profile.user
+        action.profile.save()
         action.save()
 
-    message = (
-        "Le rattachement de {first_name} {last_name} ({username}) "
-        "à l'organisation {organization_name} a bien été confirmée."
-        ).format(first_name=user.first_name,
-                 last_name=user.last_name,
-                 username=user.username,
-                 organization_name=name)
+        message = (
+            "Le rattachement de {first_name} {last_name} ({username}) "
+            "à l'organisation {organization_name} a bien été confirmée."
+            ).format(first_name=user.first_name,
+                     last_name=user.last_name,
+                     username=user.username,
+                     organization_name=name)
 
     return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=200)
@@ -644,80 +650,77 @@ def modify_account(request):
 
         # Rattachement organisation
         name = None
+        created = False
         if data['is_new_orga']:
+            organisation, created = Organisation.objects.get_or_create(
+                name=name,
+                defaults={
+                    'adresse': data['adresse'],
+                    'code_insee': data['code_insee'],
+                    'code_postal': data['code_postal'],
+                    'description': data['description'],
+                    'financeur': data['financeur'],
+                    'license': data['license'],
+                    'logo': data['logo'],
+                    'organisation_type': data['organisation_type'],
+                    'parValidationErrorent': data['parent'],
+                    'status': data['status'],
+                    'ville': data['ville'],
+                    'website': data['website'],
+                    'is_active': False})
             name = data['new_orga']
 
         elif data['is_new_orga'] is False and data['organisation']:
-            name = data['organisation'].name
+            organisation = data['organisation']
 
-        if name:
+        profile.organisation = organisation
+        profile.rattachement_active = False
+        profile.save()
+        if created:
+
+            new_organisation_action = AccountActions.objects.create(
+                profile=profile, action="confirm_new_organisation")
             try:
-                organisation, created = Organisation.objects.get_or_create(
-                    name=name,
-                    defaults={
-                        'adresse': data['adresse'],
-                        'code_insee': data['code_insee'],
-                        'code_postal': data['code_postal'],
-                        'description': data['description'],
-                        'financeur': data['financeur'],
-                        'license': data['license'],
-                        'logo': data['logo'],
-                        'organisation_type': data['organisation_type'],
-                        'parent': data['parent'],
-                        'status': data['status'],
-                        'ville': data['ville'],
-                        'website': data['website'],
-                        'is_active': False})
-            except Exception as e:
-                print('CreatingOrganisationError', e)
-                raise e
-            # profile.organisation = organisation
-            # profile.save()
-            if created:
-                print(3)
-                new_organisation_action = AccountActions.objects.create(
-                    profile=profile, action="confirm_new_organisation")
-                try:
-                    Mail.confirm_new_organisation(request, new_organisation_action)
-                except Exception as e:
-                    print('SendingMailError', e)
-                    raise e
-
-            # Demande de rattachement Profile-Organisation
-            rattachement_action = AccountActions.objects.create(
-                profile=profile, action="confirm_rattachement", org_extras=organisation)
-
-            try:
-                Mail.confirm_updating_rattachement(request, rattachement_action)
+                Mail.confirm_new_organisation(request, new_organisation_action)
             except Exception as e:
                 print('SendingMailError', e)
                 raise e
 
-            # Demande de role de referent
-            if data['referent_requested']:
-                Liaisons_Referents.objects.create(
-                    profile=profile, organisation=organisation)
-                referent_action = AccountActions.objects.create(
-                    profile=profile, action='confirm_referent',
-                    org_extras=organisation)
-                try:
-                    Mail.confirm_referent(request, referent_action)
-                except Exception as e:
-                    print('SendingMailError', e)
-                    raise e
+        # Demande de rattachement Profile-Organisation
+        rattachement_action = AccountActions.objects.create(
+            profile=profile, action="confirm_rattachement", org_extras=organisation)
 
-            # Demande de rôle de contributeur
-            if data['contribution_requested']:
-                Liaisons_Contributeurs.objects.create(
-                    profile=profile, organisation=organisation)
-                contribution_action = AccountActions.objects.create(
-                    profile=profile, action="confirm_contribution",
-                    org_extras=organisation)
-                try:
-                    Mail.confirm_contribution(request, contribution_action)
-                except Exception as e:
-                    print('SendingMailError', e)
-                    raise e
+        try:
+            Mail.confirm_updating_rattachement(request, rattachement_action)
+        except Exception as e:
+            print('SendingMailError', e)
+            raise e
+
+        # Demande de role de referent
+        if data['referent_requested']:
+            Liaisons_Referents.objects.create(
+                profile=profile, organisation=organisation)
+            referent_action = AccountActions.objects.create(
+                profile=profile, action='confirm_referent',
+                org_extras=organisation)
+            try:
+                Mail.confirm_referent(request, referent_action)
+            except Exception as e:
+                print('SendingMailError', e)
+                raise e
+
+        # Demande de rôle de contributeur
+        if data['contribution_requested']:
+            Liaisons_Contributeurs.objects.create(
+                profile=profile, organisation=organisation)
+            contribution_action = AccountActions.objects.create(
+                profile=profile, action="confirm_contribution",
+                org_extras=organisation)
+            try:
+                Mail.confirm_contribution(request, contribution_action)
+            except Exception as e:
+                print('SendingMailError', e)
+                raise e
 
         # Redaction mail de confirmation de demande de modification
         # try:
@@ -729,9 +732,6 @@ def modify_account(request):
 
     user = request.user
     profile = get_object_or_404(Profile, user=user)
-
-    # TODO: REDO
-    organization_back = profile.organisation
 
     if request.method == 'GET':
         return render(request, 'idgo_admin/modifyaccount.html',
@@ -748,10 +748,6 @@ def modify_account(request):
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
                        'uform': uform, 'pform': pform})
-
-    # TODO: REDO
-    profile.organisation = organization_back
-    profile.save()
 
     data = {
         'username': uform.cleaned_data['username'],
@@ -779,6 +775,18 @@ def modify_account(request):
         'referent_requested': pform.cleaned_data['referent_requested'],
         'contribution_requested': pform.cleaned_data['contribution_requested'],
         'is_new_orga': pform.cleaned_data['is_new_orga']}
+
+    print(data['new_orga'])
+    if Organisation.objects.filter(name=data['new_orga']).exists():
+        pform.add_error('new_orga',
+                        'Une organsiation avec ce nom existe déja. '
+                        'Il se peut que son activation soit en attente '
+                        'de validation par un Administrateur')
+        print(pform.errors)
+        return render(request, 'idgo_admin/modifyaccount.html',
+                      {'first_name': user.first_name,
+                       'last_name': user.last_name,
+                       'uform': uform, 'pform': pform})
 
     error = False
     try:
