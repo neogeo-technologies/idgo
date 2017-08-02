@@ -200,6 +200,10 @@ class Organisation(models.Model):
         'Synchronisé dans CKAN', default=False)
     ckan_slug = models.SlugField(
         'CKAN ID', max_length=150, unique=True, db_index=True)
+
+    ckan_id = models.UUIDField(
+        'Ckan UUID', default=uuid.uuid4, editable=False)
+
     website = models.URLField('Site web', blank=True)
     email = models.EmailField(verbose_name="Adresse mail de l'organisation", blank=True, null=True)
     id_url_unique = models.URLField('URL unique', blank=True, null=True)
@@ -263,6 +267,9 @@ class Profile(models.Model):
     role = models.CharField('Fonction', max_length=150, blank=True, null=True)
     is_active = models.BooleanField("Validation suite à confirmation mail par utilisateur",
                                     default=False)
+    rattachement_active = models.BooleanField(
+        verbose_name="Rattachement profile-organisation d'appartenance validé",
+        default=False)
 
     def __str__(self):
         return self.user.username

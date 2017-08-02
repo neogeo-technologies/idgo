@@ -150,6 +150,7 @@ def sign_up(request):
         try:
             profile = Profile.objects.create(user=user, role=data['role'],
                                              phone=data['phone'],
+                                             # rattachement_active=False,
                                              is_active=False)
         except Exception as e:
             print('CreatingProfileError', e)
