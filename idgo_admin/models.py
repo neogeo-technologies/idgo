@@ -364,6 +364,10 @@ class AccountActions(models.Model):
 
 
 class Mail(models.Model):
+    @staticmethod
+    def superuser_mails():
+        return [usr.mail for usr in User.objects.filter(is_superuser=True,
+                                                        is_active=True)]
 
     template_name = models.CharField("Nom du model du message",
                                      primary_key=True, max_length=255)
@@ -435,9 +439,7 @@ class Mail(models.Model):
         try:
             send_mail(subject=mail_template.subject, message=message,
                       from_email=mail_template.from_email,
-                      recipient_list=[
-                          usr.email for usr in User.objects.filter(
-                              is_superuser=True, is_active=True)])
+                      recipient_list=cls.superuser_mails())
         except Exception as e:
             raise e
 
@@ -459,9 +461,7 @@ class Mail(models.Model):
             send_mail(
                 subject=mail_template.subject, message=message,
                 from_email=mail_template.from_email,
-                recipient_list=[
-                    usr.email for usr
-                    in User.objects.filter(is_superuser=True, is_active=True)])
+                recipient_list=cls.superuser_mails())
         except Exception as e:
             raise e
 
@@ -484,9 +484,7 @@ class Mail(models.Model):
             send_mail(
                 subject=mail_template.subject, message=message,
                 from_email=mail_template.from_email,
-                recipient_list=[
-                    usr.email for usr
-                    in User.objects.filter(is_superuser=True, is_active=True)])
+                recipient_list=cls.superuser_mails())
         except Exception as e:
             raise e
 
@@ -509,8 +507,7 @@ class Mail(models.Model):
             send_mail(
                 subject=mail_template.subject, message=message,
                 from_email=mail_template.from_email,
-                recipient_list=[usr.email for usr
-                                in User.objects.filter(is_superuser=True, is_active=True)])
+                recipient_list=cls.superuser_mails())
         except Exception as e:
             raise e
 
@@ -533,8 +530,7 @@ class Mail(models.Model):
             send_mail(
                 subject=mail_template.subject, message=message,
                 from_email=mail_template.from_email,
-                recipient_list=[usr.email for usr
-                                in User.objects.filter(is_superuser=True, is_active=True)])
+                recipient_list=cls.superuser_mails())
         except Exception as e:
             raise e
 
@@ -853,15 +849,22 @@ def delete_user_in_externals(sender, instance, **kwargs):
 def pre_save_contribution(sender, instance, **kwargs):
     if not instance.validated_on:
         return
+
     user = instance.profile.user
     organisation = instance.organisation
-    # if organisation.ckan_slug not in ckan.get_organizations_which_user_belongs(user.username):
-    ckan.add_user_to_organization(user.username, organisation.ckan_id)
+    if organisation.ckan_slug not in ckan.get_organizations_which_user_belongs(user.username):
+        ckan.add_user_to_organization(user.username, organisation.ckan_slug)
 
 
 @receiver(pre_delete, sender=Liaisons_Contributeurs)
 def pre_delete_contribution(sender, instance, **kwargs):
     user = instance.profile.user
     organisation = instance.organisation
-    # if organisation.ckan_slug in ckan.get_organizations_which_user_belongs(user.username):
-    ckan.del_user_from_organization(user.username, organisation.ckan_id)
+    if organisation.ckan_slug in ckan.get_organizations_which_user_belongs(user.username):
+        ckan.del_user_from_organization(user.username, organisation.ckan_slug)
+
+
+# @receiver(pre_save, sender=Organisation)
+# def pre_save_organization(sender, instance, **kwargs):
+#     instance.ckan_slug = slugify(instance.name)
+#     ckan.add_organization(instance)
