@@ -366,8 +366,8 @@ class AccountActions(models.Model):
 class Mail(models.Model):
     @staticmethod
     def superuser_mails():
-        return [usr.mail for usr in User.objects.filter(is_superuser=True,
-                                                        is_active=True)]
+        return [usr.email for usr in User.objects.filter(is_superuser=True,
+                                                         is_active=True)]
 
     template_name = models.CharField("Nom du model du message",
                                      primary_key=True, max_length=255)
