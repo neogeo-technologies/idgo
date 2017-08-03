@@ -146,7 +146,7 @@ class ResourceForm(forms.ModelForm):
             ckan_user.publish_resource(str(dataset.ckan_id), **params)
         except Exception as e:
             print('Error', e)
-            resource.delete()  # TODO(@m431m)
+            # resource.delete()  # TODO(@m431m)
             raise Exception(e)
         else:
             resource.last_update = timezone.now()
