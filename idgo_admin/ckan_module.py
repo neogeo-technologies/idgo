@@ -9,7 +9,7 @@ from urllib.parse import urljoin
 
 
 CKAN_URL = settings.CKAN_URL
-DOMAIN_NAME = settings.DOMAIN_NAME
+# DOMAIN_NAME = settings.DOMAIN_NAME
 CKAN_API_KEY = settings.CKAN_API_KEY
 
 
@@ -119,7 +119,7 @@ class CkanManagerHandler(metaclass=Singleton):
             id=str(organization.ckan_id),
             name=organization.ckan_slug,
             title=organization.name,
-            image_url=urljoin(DOMAIN_NAME, organization.logo.url),
+            # image_url=urljoin(DOMAIN_NAME, organization.logo.url),
             state='active')
 
     # def activate_organization(self, id):
