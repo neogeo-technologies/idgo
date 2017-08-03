@@ -121,7 +121,8 @@ class CkanManagerHandler(metaclass=Singleton):
             'state': 'active'}
         try:
             params['image_url'] = \
-                urljoin(settings.DOMAIN_NAME, organization.logo.url)
+                urljoin(
+                    urljoin(settings.DOMAIN_NAME, 'media'), organization.logo)
         except Exception:
             pass
         self._create_organization(**params)
