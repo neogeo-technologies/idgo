@@ -237,7 +237,9 @@ class UserProfileForm(forms.Form):
         label='Je souhaite être contributeur',
         required=False)
 
-    logo = forms.ImageField(required=False, label='Logo de votre organisation')
+    logo = forms.ImageField(
+        label="Logo de l'organisation",
+        required=False)
 
     class Meta(object):
         model = Profile
