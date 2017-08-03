@@ -226,9 +226,8 @@ class CkanUserHandler(object):
                 kwargs['last_modified'] = kwargs['created']
                 del kwargs['created']
                 resource.update(kwargs)
-                print('update resource', resource)
+                del resource['tracking_summary']
                 return self.remote.action.resource_update(**resource)
-        print('create resource', kwargs)
         return self.remote.action.resource_create(**kwargs)
 
     @exceptions_handler
