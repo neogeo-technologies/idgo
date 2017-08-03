@@ -226,6 +226,7 @@ class CkanUserHandler(object):
                 kwargs['last_modified'] = kwargs['created']
                 del kwargs['created']
                 resource.update(kwargs)
+                print(resource)
                 return self.remote.action.resource_update(**resource)
         return self.remote.action.resource_create(**kwargs)
 
@@ -270,7 +271,9 @@ class CkanUserHandler(object):
                 'wms': 'geo_view',
                 'xls': 'recline_view',
                 'xml': 'text_view',
-                }.get(kwargs['format'], 'text_view')}
+                'pdf': 'pdf_view',
+                }.get(kwargs['format'].lower(), 'text_view')}
+        print('-> publish_resource', params)
         self._push_resource_view(**params)
 
     def delete_resource(self, id):
