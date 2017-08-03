@@ -138,8 +138,8 @@ class DatasetManager(View):
                     success = True
                     text = 'Le jeu de données a été créé avec succès.'
                     form = Form(instance=instance, include={'user': user})
-
                     dataset_id = instance.id
+
             return self.redirect_url_with_querystring(
                     request, text, reverse("idgo_admin:dataset"),
                     successfull=success, id=dataset_id)

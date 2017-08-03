@@ -1,5 +1,7 @@
+from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
@@ -14,7 +16,7 @@ from idgo_admin.models import Dataset
 from idgo_admin.models import Mail
 from idgo_admin.models import Resource
 import json
-
+import urllib
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
@@ -45,6 +47,15 @@ class ResourceManager(View):
             return 'dl_url'
         if instance.referenced_url:
             return 'referenced_url'
+
+    def redirect_url_with_querystring(
+            self, request, text, path, successfull=True, **kwargs):
+        if successfull:
+            messages.success(request, text)
+        else:
+            messages.error(request, text)
+        return HttpResponseRedirect(
+                    path + '?' + urllib.parse.urlencode(kwargs))
 
     def get(self, request, dataset_id):
         user = request.user
@@ -87,12 +98,14 @@ class ResourceManager(View):
         id = request.POST.get('id', request.GET.get('id')) or None
         if id:
             instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
-            resource_name = instance.name
-            mode = self.mode(instance)
-
             form = Form(request.POST, request.FILES,
                         instance=instance, include={'user': user})
-            if form.is_valid() and user.is_authenticated:
+
+            if not form.is_valid():
+                return render(request, 'idgo_admin/resource.html',
+                              {'form': form})
+
+            if user.is_authenticated:
                 try:
                     form.handle_me(request, dataset, id=id,
                                    uploaded_file=get_uploaded_file(form))
@@ -103,41 +116,41 @@ class ResourceManager(View):
                 else:
                     success = True
                     text = 'La ressource a été mise à jour avec succès.'
+                return self.redirect_url_with_querystring(
+                        request, text,
+                        reverse("idgo_admin:resource",
+                                kwargs={'dataset_id': dataset_id}),
+                        successfull=success, id=instance.id)
 
         else:
-            resource_name = 'Nouveau'
-            mode = None
+
             form = Form(request.POST, request.FILES, include={'user': user})
 
-            if form.is_valid() and user.is_authenticated:
+            if not form.is_valid():
+                return render(request, 'idgo_admin/resource.html',
+                              {'form': form})
+            if user.is_authenticated:
                 try:
                     instance = form.handle_me(
                         request, dataset, uploaded_file=get_uploaded_file(form))
                 except Exception as e:
                     print('Exception:', e)
-                    success = False
                     text = ("L'erreur suivante est survenue : "
                             '<strong>{0}</strong>.').format(str(e))
+                    messages.error(request, text)
+                    return render(request, 'idgo_admin/resource.html',
+                                  {'form': form})
                 else:
                     success = True
                     text = 'La ressource a été créée avec succès.'
 
                     form = Form(instance=instance, include={'user': user})
-                    resource_name = instance.name
+                return self.redirect_url_with_querystring(
+                        request, text,
+                        reverse("idgo_admin:resource",
+                                kwargs={'dataset_id': dataset_id}),
+                        successfull=success, id=instance.id)
 
-        return render(request, 'idgo_admin/resource.html', context={
-            'users': json.dumps(self.all_users),
-            'organizations': json.dumps(self.all_organizations),
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'dataset_name': dataset.name,  # TODO
-            'dataset_id': dataset.id,  # TODO
-            'resource_name': resource_name,
-            'form': form,
-            'mode': mode,
-            'message': {
-                'status': success and 'success' or 'failure',
-                'text': text}})
 
     def delete(self, request, dataset_id):
 
