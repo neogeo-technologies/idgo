@@ -1,10 +1,24 @@
 {% load bootstrap3 %}
 
-{% if message and message.status == 'success' %}
-<div class="alert alert-success" role="alert">{{ message.text | safe }}</div>
-{% elif message and message.status == 'failure' %}
-<div class="alert alert-danger" role="alert">{{ message.text | safe }}</div>
+{# {% bootstrap_messages %} #}
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            <div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+        {% elif message.tags == 'error' %}
+            <div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+        {% endif %}
+    {% endfor %}
 {% endif %}
+
+<!--
+{# {% if message and message.status == 'success' %}#}
+<div class="alert alert-success" role="alert">{{ message.text | safe }}</div>
+{# {% elif message and message.status == 'failure' %}#}
+<div class="alert alert-danger" role="alert">{{ message.text | safe }}</div>
+{# {% endif %}#}
+-->
 
 <form name="dataset" method="post" action="">
 	{% csrf_token %}

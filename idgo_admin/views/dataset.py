@@ -117,6 +117,12 @@ class DatasetManager(View):
                     success = True
                     text = 'Le jeu de données a été mis à jour avec succès.'
 
+                def redirect_url_with_querystring(request, path, **kwargs):
+                    messages.success(request, text)
+                    return HttpResponseRedirect(path + '?' + urllib.parse.urlencode(kwargs))
+
+                return redirect_url_with_querystring(request, reverse("idgo_admin:dataset"), id=dataset_id)
+
         else:
             dataset_name = 'Nouveau'
             form = Form(data=request.POST, include={'user': user})
@@ -135,26 +141,20 @@ class DatasetManager(View):
                     dataset_name = instance.name
                     dataset_id = instance.id
 
-        # context = {
-        #     'form': form,
-        #     'first_name': user.first_name,
-        #     'last_name': user.last_name,
-        #     'dataset_name': dataset_name,
-        #     'dataset_id': dataset_id,
-        #     'resources': json.dumps(resources),
-        #     'tags': json.dumps(ckan.get_tags()),
-        #     'message': {
-        #         'status': success and 'success' or 'failure',
-        #         'text': text}}
+        context = {
+            'form': form,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'dataset_name': dataset_name,
+            'dataset_id': dataset_id,
+            'resources': json.dumps(resources),
+            'tags': json.dumps(ckan.get_tags()),
+            'message': {
+                'status': success and 'success' or 'failure',
+                'text': text}}
 
-        def redirect_url_with_querystring(request, path, **kwargs):
-            messages.success(request, text)
-            print(request)
-            return HttpResponseRedirect(path + '?' + urllib.parse.urlencode(kwargs))
-
-        return redirect_url_with_querystring(request, reverse("idgo_admin:dataset"), id=dataset_id)
-        # return render(
-        #     request, 'idgo_admin/dataset.html', context=context)
+        return render(
+            request, 'idgo_admin/dataset.html', context=context)
 
     def delete(self, request):
 
