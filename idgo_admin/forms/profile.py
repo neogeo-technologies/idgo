@@ -420,7 +420,9 @@ class ProfileUpdateForm(forms.ModelForm):
         widget=forms.RadioSelect(),
         queryset=Organisation.objects.all())
 
-    logo = forms.ImageField(required=False, label='Logo de votre organisation')
+    logo = forms.ImageField(
+        label="Logo de l'organisation",
+        required=False)
 
     class Meta(object):
         model = Profile
