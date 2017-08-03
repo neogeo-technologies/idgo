@@ -99,7 +99,6 @@ class ResourceForm(forms.ModelForm):
 
         dataset = resource.dataset
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
-        print("UUID", str(resource.ckan_id), resource.ckan_id)
         params = {'name': resource.name,
                   'description': resource.description,
                   'format': resource.data_format,
