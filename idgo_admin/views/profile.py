@@ -3,11 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
-# from django.contrib import messages
+from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db import transaction
-# from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
@@ -28,15 +28,11 @@ from idgo_admin.forms.profile import UserResetPassword
 from idgo_admin.forms.profile import UserUpdateForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
-# from idgo_admin.models import Financeur
 from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import Liaisons_Referents
-# from idgo_admin.models import License
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
-# from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
-# from idgo_admin.models import Status
 import json
 from mama_cas.cas import logout_user
 from mama_cas.models import ServiceTicket
@@ -767,17 +763,6 @@ def modify_account(request):
         'contribution_requested': pform.cleaned_data['contribution_requested'],
         'is_new_orga': pform.cleaned_data['is_new_orga']}
 
-    # print(data['new_orga'])
-    # if Organisation.objects.filter(name=data['new_orga']).exists():
-    #     pform.add_error('new_orga',
-    #                     'Une organsiation avec ce nom existe déja. '
-    #                     'Il se peut que son activation soit en attente '
-    #                     'de validation par un Administrateur')
-    #     return render(request, 'idgo_admin/modifyaccount.html',
-    #                   {'first_name': user.first_name,
-    #                    'last_name': user.last_name,
-    #                    'uform': uform, 'pform': pform})
-
     error = False
     try:
         with transaction.atomic():
@@ -805,16 +790,9 @@ def modify_account(request):
         except Exception:
             pass
         render_an_critical_error(request)
-
-    return render(
-        request, 'idgo_admin/modifyaccount.html',
-        {'first_name': user.first_name,
-         'last_name': user.last_name,
-         'uform': uform,
-         'pform': pform,
-         'message': {
-             'status': 'success',
-             'text': 'Les informations de votre profil sont à jour.'}})
+    text = 'Les informations de votre profil sont à jour.'
+    messages.success(request, text)
+    return HttpResponseRedirect(reverse("idgo_admin:modifyAccount"))
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -852,20 +830,12 @@ def contribution_request(request):
         Mail.confirm_contribution(request, contribution_action)
     except Exception:
         render_an_critical_error(request)
-
-    return render(
-        request, 'idgo_admin/publish.html',
-        {'first_name': user.first_name,
-         'last_name': user.last_name,
-         'pform': ProfileUpdateForm(exclude={'user': user}),
-         'pub_liste': contribs,
-         'message': {
-             'status': 'success',
-             'text': (
-                 "Votre demande de contribution à l'organisation "
-                 '<strong>{0}</strong> est en cours de traitement. Celle-ci '
-                 "ne sera effective qu'après validation par un administrateur."
-                 ).format(organisation.name)}})
+    text = ("Votre demande de contribution à l'organisation "
+            '<strong>{0}</strong> est en cours de traitement. Celle-ci '
+            "ne sera effective qu'après validation par un administrateur."
+            ).format(organisation.name)
+    messages.success(request, text)
+    return HttpResponseRedirect(reverse('idgo_admin:contribution_request'))
 
 
 @login_required(login_url=settings.LOGIN_URL)

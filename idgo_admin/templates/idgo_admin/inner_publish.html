@@ -1,12 +1,16 @@
 {% load bootstrap3 %}
 
 <script>var organizations = [];</script>
-
-{% if message and message.status == 'success' %}
-<div class="alert alert-success" role="alert">{{ message.text | safe }}</div>
-{% elif message and message.status == 'failure' %}
-<div class="alert alert-danger" role="alert">{{ message.text | safe }}</div>
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            <div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+        {% elif message.tags == 'error' %}
+            <div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+        {% endif %}
+    {% endfor %}
 {% endif %}
+
 
 <h2 class="modal-title">Nouvelle demande de contribution</h2>
 <p>Toute demande de rattachement à un organisme est soumise à validation de l'administrateur du site.</p>

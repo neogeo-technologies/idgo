@@ -12,14 +12,6 @@
     {% endfor %}
 {% endif %}
 
-<!--
-{# {% if message and message.status == 'success' %}#}
-<div class="alert alert-success" role="alert">{{ message.text | safe }}</div>
-{# {% elif message and message.status == 'failure' %}#}
-<div class="alert alert-danger" role="alert">{{ message.text | safe }}</div>
-{# {% endif %}#}
--->
-
 <form name="dataset" method="post" action="">
 	{% csrf_token %}
 

@@ -263,7 +263,10 @@ class UserProfileForm(forms.Form):
 
             if Organisation.objects.filter(
                     ckan_slug=slugify(self.cleaned_data['new_orga'])).exists():
-                self.add_error('new_orga', "L'organisation existe déjà.")
+                self.add_error('new_orga',
+                               'Une organsiation avec ce nom existe déja. '
+                               'Il se peut que son activation soit en attente '
+                               'de validation par un Administrateur')
                 raise ValidationError('OrganisationExist')
 
         if self.cleaned_data.get('referent_requested'):
@@ -432,12 +435,12 @@ class ProfileUpdateForm(forms.ModelForm):
 
         exclude_args = kwargs.pop('exclude', {})
         super(ProfileUpdateForm, self).__init__(*args, **kwargs)
-        profile = Profile.objects.get(user=exclude_args['user'])
+        self.profile = Profile.objects.get(user=exclude_args['user'])
 
         # On exclut de la liste de choix toutes les organisations pour
         # lesquelles l'user est contributeur ou en attente de validation
         contribs_available = Liaisons_Contributeurs.objects.filter(
-            profile=profile)
+            profile=self.profile)
         con_org_bl = [e.organisation.pk for e in contribs_available]
         self.fields['contributions'].queryset = \
             Organisation.objects.exclude(pk__in=con_org_bl)
@@ -445,18 +448,18 @@ class ProfileUpdateForm(forms.ModelForm):
         # On exclut de la liste de choix toutes les organisations pour
         # lesquelles l'user est contributeur ou en attente de validation
         referents_available = Liaisons_Referents.objects.filter(
-            profile=profile)
+            profile=self.profile)
         ref_org_bl = [e.organisation.pk for e in referents_available]
         self.fields['referents'].queryset = \
             Organisation.objects.exclude(pk__in=ref_org_bl)
 
-        organisation = profile.organisation
+        organisation = self.profile.organisation
         # Modifier le 2/08
         if organisation:
             if not organisation.is_active:
                 self.fields['organisation'].widget = forms.HiddenInput()
             if organisation.is_active:
-                if not profile.rattachement_active:
+                if not self.profile.rattachement_active:
                     self.fields['organisation'].widget = forms.HiddenInput()
                 else:
                     self.fields['organisation'].initial = organisation.pk
@@ -495,10 +498,13 @@ class ProfileUpdateForm(forms.ModelForm):
             # Vider les champs pour nouvelle orga dans le cas
             # ou l'utilisateur ne crée pas de nouvelle orga
             # mais laisse des champs remplis
+            if self.profile.organisation == organisation:
+                # Vider le champs organsiation si meme orga
+                # que orga de rattachement courrante
+                self.cleaned_data['organisation'] = None
             for p in params:
                 self.cleaned_data[p] = ''
             self.cleaned_data['is_new_orga'] = False
-
         return self.cleaned_data
 
 
