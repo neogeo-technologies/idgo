@@ -11,6 +11,7 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from taggit.forms import TagField
 from taggit.forms import TagWidget
+from django.core.exceptions import ValidationError
 
 
 class DatasetForm(forms.ModelForm):
@@ -114,11 +115,11 @@ class DatasetForm(forms.ModelForm):
                   'update_freq')
 
     def __init__(self, *args, **kwargs):
-        include_args = kwargs.pop('include', {})
+        self.include_args = kwargs.pop('include', {})
 
         super(DatasetForm, self).__init__(*args, **kwargs)
 
-        profile = Profile.objects.get(user=include_args['user'])
+        profile = Profile.objects.get(user=self.include_args['user'])
         self.fields['organisation'].queryset = \
             Organisation.objects.filter(
                 pk__in=[o.pk for o in Liaisons_Contributeurs.get_contribs(
@@ -127,6 +128,10 @@ class DatasetForm(forms.ModelForm):
     def clean(self):
         if not self.cleaned_data.get('date_creation'):
             self.cleaned_data['date_creation'] = timezone.now().date()
+        if self.include_args['identification'] is False:
+            if Dataset.objects.filter(name=self.cleaned_data.get('name')).exists():
+                self.add_error('name', 'Ce nom est reservé par un autre jeu de donnée')
+                raise ValidationError('DatasetExists')
 
     def handle_me(self, request, id=None):
         user = request.user
@@ -196,18 +201,18 @@ class DatasetForm(forms.ModelForm):
             params['groups'].append({'name': category.ckan_slug})
 
         # ckan.activate_organization(dataset.organisation.ckan_id)
-        # ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
-        # try:
-        #     ckan_dataset = ckan_user.publish_dataset(
-        #         dataset.ckan_slug, id=str(dataset.ckan_id), **params)
-        # except Exception as e:
-        #     print('Ckan Error', e)
-        #     dataset.delete()
-        #     raise IntegrityError('Une erreur est survenue lors de la création '
-        #                          'du jeu de données dans CKAN ({0})'.format(e))
-        # else:
-        #     dataset.ckan_id = ckan_dataset['id']
-        #
-        # ckan_user.close()
+        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+        try:
+            ckan_dataset = ckan_user.publish_dataset(
+                dataset.ckan_slug, id=str(dataset.ckan_id), **params)
+        except Exception as e:
+            print('Ckan Error', e)
+            dataset.delete()
+            raise IntegrityError('Une erreur est survenue lors de la création '
+                                 'du jeu de données dans CKAN ({0})'.format(e))
+        else:
+            dataset.ckan_id = ckan_dataset['id']
+
+        ckan_user.close()
         dataset.save()
         return dataset

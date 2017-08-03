@@ -39,11 +39,19 @@ def render_an_critical_error(request):
 @method_decorator(decorators, name='dispatch')
 class DatasetManager(View):
 
-    def get(self, request, **kwargs):
+    def redirect_url_with_querystring(
+            self, request, text, path, successfull=True, **kwargs):
+        if successfull:
+            messages.success(request, text)
+        else:
+            messages.error(request, text)
+        return HttpResponseRedirect(
+                    path + '?' + urllib.parse.urlencode(kwargs))
 
-        print(kwargs)
+    def get(self, request):
+
         user = request.user
-        form = Form(include={'user': user})
+        form = Form(include={'user': user, 'identification':False})
         dataset_name = 'Nouveau'
         dataset_id = None
         resources = []
@@ -60,7 +68,8 @@ class DatasetManager(View):
         if id:
             instance = get_object_or_404(Dataset, id=id, editor=user)
 
-            form = Form(instance=instance, include={'user': user})
+            form = Form(instance=instance, include={'user': user,
+                                                    'identification':True})
             dataset_name = instance.name
             dataset_id = instance.id
             resources = [(
@@ -86,27 +95,18 @@ class DatasetManager(View):
 
         user = request.user
         dataset_id = None
-        resources = []
         success = False
         text = "Erreur lors de l'opération de modification de la base Dataset"
         id = request.POST.get('id', request.GET.get('id')) or None
         if id:
             instance = get_object_or_404(Dataset, id=id, editor=user)
-
             form = Form(
-                data=request.POST, instance=instance, include={'user': user})
-
-            dataset_name = instance.name
+                data=request.POST, instance=instance, include={'user': user, 'identification':True})
             dataset_id = instance.id
-            resources = [(
-                o.pk,
-                o.name,
-                o.data_format,
-                o.created_on.isoformat() if o.created_on else None,
-                o.last_update.isoformat() if o.last_update else None,
-                o.get_restricted_level_display()) for o in Resource.objects.filter(dataset=instance)]
-
-            if form.is_valid() or request.user.is_authenticated:
+            if not form.is_valid():
+                return render(request, 'idgo_admin/dataset.html',
+                              {'form': form})
+            if request.user.is_authenticated:
                 try:
                     form.handle_me(request, id=id)
                 except Exception as e:
@@ -116,45 +116,34 @@ class DatasetManager(View):
                 else:
                     success = True
                     text = 'Le jeu de données a été mis à jour avec succès.'
-
-                def redirect_url_with_querystring(request, path, **kwargs):
-                    messages.success(request, text)
-                    return HttpResponseRedirect(path + '?' + urllib.parse.urlencode(kwargs))
-
-                return redirect_url_with_querystring(request, reverse("idgo_admin:dataset"), id=dataset_id)
+                return self.redirect_url_with_querystring(
+                        request, text, reverse("idgo_admin:dataset"),
+                        successfull=success, id=dataset_id)
 
         else:
-            dataset_name = 'Nouveau'
-            form = Form(data=request.POST, include={'user': user})
-            if form.is_valid() and request.user.is_authenticated:
+            form = Form(data=request.POST, include={'user': user, 'identification':False})
+            if not form.is_valid():
+                return render(request, 'idgo_admin/dataset.html',
+                              {'form': form})
+            if request.user.is_authenticated:
                 try:
                     instance = form.handle_me(request)
                 except Exception as e:
                     print('Exception:', e)
-                    success = False
-                    text = ("L'erreur suivante est survenue : "
-                            '<strong>{0}</strong>.').format(str(e))
+                    messages.error = ("L'erreur suivante est survenue : "
+                                      '<strong>{0}</strong>.').format(str(e))
+                    return render(request, 'idgo_admin/dataset.html',
+                                  {'form': form})
                 else:
                     success = True
                     text = 'Le jeu de données a été créé avec succès.'
                     form = Form(instance=instance, include={'user': user})
-                    dataset_name = instance.name
+
                     dataset_id = instance.id
+            return self.redirect_url_with_querystring(
+                    request, text, reverse("idgo_admin:dataset"),
+                    successfull=success, id=dataset_id)
 
-        context = {
-            'form': form,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'dataset_name': dataset_name,
-            'dataset_id': dataset_id,
-            'resources': json.dumps(resources),
-            'tags': json.dumps(ckan.get_tags()),
-            'message': {
-                'status': success and 'success' or 'failure',
-                'text': text}}
-
-        return render(
-            request, 'idgo_admin/dataset.html', context=context)
 
     def delete(self, request):
 
