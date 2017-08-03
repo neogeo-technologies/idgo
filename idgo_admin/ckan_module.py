@@ -9,7 +9,6 @@ from urllib.parse import urljoin
 
 
 CKAN_URL = settings.CKAN_URL
-# DOMAIN_NAME = settings.DOMAIN_NAME
 CKAN_API_KEY = settings.CKAN_API_KEY
 
 
@@ -115,12 +114,17 @@ class CkanManagerHandler(metaclass=Singleton):
         return self.get_organization(str(organization_id)) and True or False
 
     def add_organization(self, organization):
-        self._create_organization(
-            id=str(organization.ckan_id),
-            name=organization.ckan_slug,
-            title=organization.name,
-            # image_url=urljoin(DOMAIN_NAME, organization.logo.url),
-            state='active')
+        params = {
+            'id': str(organization.ckan_id),
+            'name': organization.ckan_slug,
+            'title': organization.name,
+            'state': 'active'}
+        try:
+            params['image_url'] = \
+                urljoin(settings.DOMAIN_NAME, organization.logo.url)
+        except Exception:
+            pass
+        self._create_organization(**params)
 
     # def activate_organization(self, id):
     #     self._update_organization(id=str(id), state='active')
