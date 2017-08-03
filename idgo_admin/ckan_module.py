@@ -226,8 +226,9 @@ class CkanUserHandler(object):
                 kwargs['last_modified'] = kwargs['created']
                 del kwargs['created']
                 resource.update(kwargs)
-                print(resource)
+                print('update resource', resource)
                 return self.remote.action.resource_update(**resource)
+        print('create resource', kwargs)
         return self.remote.action.resource_create(**kwargs)
 
     @exceptions_handler
@@ -273,7 +274,6 @@ class CkanUserHandler(object):
                 'xml': 'text_view',
                 'pdf': 'pdf_view',
                 }.get(kwargs['format'].lower(), 'text_view')}
-        print('-> publish_resource', params)
         self._push_resource_view(**params)
 
     def delete_resource(self, id):
