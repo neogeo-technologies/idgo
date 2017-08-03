@@ -190,7 +190,7 @@ def sign_up(request):
         if organisation:
             # Demande de rattachement Profile-Organisation
             AccountActions.objects.create(
-                profile=profile, action="confirm_rattachement")
+                profile=profile, action="confirm_rattachement", org_extras=organisation)
 
             # Demande de role de referent
             if data['referent_requested']:

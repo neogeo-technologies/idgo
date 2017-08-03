@@ -196,18 +196,18 @@ class DatasetForm(forms.ModelForm):
             params['groups'].append({'name': category.ckan_slug})
 
         # ckan.activate_organization(dataset.organisation.ckan_id)
-        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
-        try:
-            ckan_dataset = ckan_user.publish_dataset(
-                dataset.ckan_slug, id=str(dataset.ckan_id), **params)
-        except Exception as e:
-            print('Ckan Error', e)
-            dataset.delete()
-            raise IntegrityError('Une erreur est survenue lors de la création '
-                                 'du jeu de données dans CKAN ({0})'.format(e))
-        else:
-            dataset.ckan_id = ckan_dataset['id']
-
-        ckan_user.close()
+        # ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+        # try:
+        #     ckan_dataset = ckan_user.publish_dataset(
+        #         dataset.ckan_slug, id=str(dataset.ckan_id), **params)
+        # except Exception as e:
+        #     print('Ckan Error', e)
+        #     dataset.delete()
+        #     raise IntegrityError('Une erreur est survenue lors de la création '
+        #                          'du jeu de données dans CKAN ({0})'.format(e))
+        # else:
+        #     dataset.ckan_id = ckan_dataset['id']
+        #
+        # ckan_user.close()
         dataset.save()
         return dataset

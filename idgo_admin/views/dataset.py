@@ -1,5 +1,7 @@
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
@@ -16,6 +18,7 @@ from idgo_admin.models import License
 from idgo_admin.models import Mail
 from idgo_admin.models import Resource
 import json
+import urllib
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -36,8 +39,9 @@ def render_an_critical_error(request):
 @method_decorator(decorators, name='dispatch')
 class DatasetManager(View):
 
-    def get(self, request):
+    def get(self, request, **kwargs):
 
+        print(kwargs)
         user = request.user
         form = Form(include={'user': user})
         dataset_name = 'Nouveau'
@@ -131,20 +135,26 @@ class DatasetManager(View):
                     dataset_name = instance.name
                     dataset_id = instance.id
 
-        context = {
-            'form': form,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'dataset_name': dataset_name,
-            'dataset_id': dataset_id,
-            'resources': json.dumps(resources),
-            'tags': json.dumps(ckan.get_tags()),
-            'message': {
-                'status': success and 'success' or 'failure',
-                'text': text}}
+        # context = {
+        #     'form': form,
+        #     'first_name': user.first_name,
+        #     'last_name': user.last_name,
+        #     'dataset_name': dataset_name,
+        #     'dataset_id': dataset_id,
+        #     'resources': json.dumps(resources),
+        #     'tags': json.dumps(ckan.get_tags()),
+        #     'message': {
+        #         'status': success and 'success' or 'failure',
+        #         'text': text}}
 
-        return render(
-            request, 'idgo_admin/dataset.html', context=context)
+        def redirect_url_with_querystring(request, path, **kwargs):
+            messages.success(request, text)
+            print(request)
+            return HttpResponseRedirect(path + '?' + urllib.parse.urlencode(kwargs))
+
+        return redirect_url_with_querystring(request, reverse("idgo_admin:dataset"), id=dataset_id)
+        # return render(
+        #     request, 'idgo_admin/dataset.html', context=context)
 
     def delete(self, request):
 
