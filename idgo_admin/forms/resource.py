@@ -4,15 +4,11 @@ from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.models import Liaisons_Resources
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.utils import download
 import json
 from pathlib import Path
-# from taggit.forms import TagField
-# from taggit.forms import TagWidget
-from uuid import uuid4
 
 
 def get_all_users_for_organizations(list_id):
@@ -49,22 +45,6 @@ class ResourceForm(forms.ModelForm):
         required=False,
         widget=CustomClearableFileInput())
 
-    # users_allowed = TagField(
-    #     label="Liste d'utilisateurs",
-    #     required=False,
-    #     widget=TagWidget(
-    #         attrs={'autocomplete': 'off',
-    #                'class': 'typeahead',
-    #                'placeholder': ''}))
-
-    # organisations_allowed = TagField(
-    #     label="Liste d'organisations",
-    #     required=False,
-    #     widget=TagWidget(
-    #         attrs={'autocomplete': 'off',
-    #                'class': 'typeahead',
-    #                'placeholder': ''}))
-
     class Meta(object):
         model = Resource
         fields = ('name',
@@ -84,6 +64,7 @@ class ResourceForm(forms.ModelForm):
         user = include_args['user']
 
     def handle_me(self, request, dataset, id=None, uploaded_file=None):
+
         user = request.user
         data = self.cleaned_data
         restricted_level = data['restricted_level']
@@ -107,7 +88,7 @@ class ResourceForm(forms.ModelForm):
         else:  # Créer
             resource = Resource.objects.create(**params)
             # resource.ckan_id = uuid4()
-            # resource.save()
+            resource.save()
 
         # TODO(cbenhabib) Lien ressource / user
         # profile = Profile.objects.get(user=user)
@@ -156,7 +137,7 @@ class ResourceForm(forms.ModelForm):
             params['resource_type'] = Path(filename).name
 
         if uploaded_file:
-            params['upload'] = uploaded_file
+            params['upload'] = resource.up_file.file
             params['size'] = uploaded_file.size
             params['mimetype'] = uploaded_file.content_type
             params['resource_type'] = uploaded_file.name
@@ -165,7 +146,7 @@ class ResourceForm(forms.ModelForm):
             ckan_user.publish_resource(str(dataset.ckan_id), **params)
         except Exception as e:
             print('Error', e)
-            # resource.delete()  # TODO(@m431m)
+            resource.delete()  # TODO(@m431m)
             raise Exception(e)
         else:
             resource.last_update = timezone.now()

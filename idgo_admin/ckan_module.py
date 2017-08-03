@@ -8,6 +8,8 @@ from idgo_admin.utils import Singleton
 
 
 CKAN_URL = settings.CKAN_URL
+# DOMAINE_NAME = settings.DOMAINE_NAME
+MEDIA_URL = settings.MEDIA_URL
 CKAN_API_KEY = settings.CKAN_API_KEY
 
 
@@ -53,7 +55,7 @@ class CkanManagerHandler(metaclass=Singleton):
     def _create_organization(self, **organization):
         return self.remote.action.organization_create(**organization)
 
-    # @exceptions_handler
+    @exceptions_handler
     def _update_organization(self, **organization):
         return self.remote.action.organization_update(**organization)
 
@@ -113,13 +115,14 @@ class CkanManagerHandler(metaclass=Singleton):
         return self.get_organization(str(organization_id)) and True or False
 
     def add_organization(self, organization):
+
         self._create_organization(
             id=str(organization.ckan_id), name=organization.ckan_slug,
             title=organization.name, state='active')
 
     # def activate_organization(self, id):
     #     self._update_organization(id=str(id), state='active')
-    #
+
     # def deactivate_organization(self, id):
     #     self._update_organization(id=str(id), state='deleted')
 
