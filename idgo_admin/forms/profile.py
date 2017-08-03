@@ -1,4 +1,5 @@
 from . import common_fields
+from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
 from django.contrib.auth import logout
@@ -6,6 +7,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core import validators
 from django import forms
+from django.utils.text import slugify
 from idgo_admin.models import Financeur
 from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import Liaisons_Referents
@@ -14,8 +16,8 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
 from idgo_admin.models import Status
+from mama_cas.forms import LoginForm as MamaLoginForm
 
-from django.utils.text import slugify
 
 class UserForm(forms.Form):
 
@@ -496,14 +498,32 @@ class ProfileUpdateForm(forms.ModelForm):
         return self.cleaned_data
 
 
-class UserLoginForm(AuthenticationForm):
+class SignInForm(MamaLoginForm):
 
     username = common_fields.USERNAME
     password = common_fields.PASSWORD1
 
-    class Meta(object):
-        model = User
-        fields = ('username', 'password')
+    def clean(self):
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+
+        if username and password:
+            try:
+                self.user = authenticate(
+                    request=self.request, username=username, password=password)
+            except Exception:
+                raise ValidationError("Erreur interne d'authentification")
+
+            if self.user is None:
+                self.add_error('username', "Vérifiez votre nom d'utilisateur")
+                self.add_error('password', "Vérifiez votre mot de passe")
+                raise ValidationError('error')
+            else:
+                if not self.user.is_active:
+                    self.add_error('username', "Ce compte n'est pas activé")
+                    raise ValidationError('error')
+
+        return self.cleaned_data
 
 
 class UserDeleteForm(AuthenticationForm):

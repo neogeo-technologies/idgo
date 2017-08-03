@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
-from django.contrib import messages
+# from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db import transaction
@@ -17,35 +17,32 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.forms.profile import LiaisonsDeleteForm
+# from idgo_admin.forms.profile import LiaisonsDeleteForm
 from idgo_admin.forms.profile import ProfileUpdateForm
+from idgo_admin.forms.profile import SignInForm
 from idgo_admin.forms.profile import UserDeleteForm
 from idgo_admin.forms.profile import UserForgetPassword
 from idgo_admin.forms.profile import UserForm
-# from idgo_admin.forms.profile import UserLoginForm
 from idgo_admin.forms.profile import UserProfileForm
 from idgo_admin.forms.profile import UserResetPassword
 from idgo_admin.forms.profile import UserUpdateForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
-from idgo_admin.models import Financeur
+# from idgo_admin.models import Financeur
 from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import Liaisons_Referents
-from idgo_admin.models import License
+# from idgo_admin.models import License
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
-from idgo_admin.models import OrganisationType
+# from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
-from idgo_admin.models import Status
+# from idgo_admin.models import Status
 import json
 from mama_cas.cas import logout_user
-# from mama_cas.compat import is_authenticated
 from mama_cas.models import ServiceTicket
-# from mama_cas.utils import to_bool
 from mama_cas.utils import redirect as mama_redirect
-from mama_cas.views import LoginView
-from mama_cas.views import LogoutView
-
+from mama_cas.views import LoginView as MamaLoginView
+from mama_cas.views import LogoutView as MamaLogoutView
 
 
 def render_an_critical_error(request, error=None):
@@ -89,9 +86,10 @@ def home(request):
                    'is_contributor': json.dumps(is_contributor)}, status=200)
 
 
-class SignIn(LoginView):
+class SignIn(MamaLoginView):
 
     template_name = 'idgo_admin/signin.html'
+    form_class = SignInForm
 
     def form_valid(self, form):
         login(self.request, form.user)
@@ -107,7 +105,7 @@ class SignIn(LoginView):
         return redirect('idgo_admin:home')
 
 
-class SignOut(LogoutView):
+class SignOut(MamaLogoutView):
 
     def get(self, request, *args, **kwargs):
 
@@ -496,6 +494,7 @@ def confirm_new_orga(request, key):
     else:
         action.profile.organisation.is_active = True
         action.profile.organisation.save()
+        print(action.profile.organisation, action.profile.organisation.ckan_slug)
         ckan.add_organization(action.profile.organisation)  # TODO: A la création du premier dataset
         action.closed = timezone.now()
         action.save()
