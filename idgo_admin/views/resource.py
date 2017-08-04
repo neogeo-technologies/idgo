@@ -151,7 +151,6 @@ class ResourceManager(View):
                                 kwargs={'dataset_id': dataset_id}),
                         successfull=success, id=instance.id)
 
-
     def delete(self, request, dataset_id):
 
         id = request.POST.get('id', request.GET.get('id')) or None
