@@ -1,7 +1,5 @@
 {% load bootstrap3 %}
 
-{# {% bootstrap_messages %} #}
-
 {% if messages %}
     {% for message in messages %}
         {% if message.tags == 'success' %}
@@ -32,11 +30,15 @@
 			{% endfor %}
 		</div>
 	</div>
-	{% bootstrap_field form.is_inspire %}
 	<hr />
 	<div class="row">
 		<div class="col-xs-4">
-			{% bootstrap_field form.update_freq %}
+			{% bootstrap_field form.date_creation %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-4">
+			{% bootstrap_field form.date_modification %}
 		</div>
 	</div>
 	<div class="row">
@@ -44,15 +46,12 @@
 			{% bootstrap_field form.date_publication %}
 		</div>
 	</div>
+	<hr />
 	<div class="row">
 		<div class="col-xs-4">
-			{% bootstrap_field form.date_creation %}
-		</div>
-		<div class="col-xs-4">
-			{% bootstrap_field form.date_modification %}
+			{% bootstrap_field form.update_freq %}
 		</div>
 	</div>
-	<hr />
 	<div class="row">
 		<div class="col-xs-4">
 			{% bootstrap_field form.geocover %}
@@ -79,10 +78,12 @@
 			{% bootstrap_field form.published %}
 		</div>
 	</div>
+	<div class="row">
+		<div class="col-xs-12">
+			{% bootstrap_field form.is_inspire %}
+		</div>
+	</div>
 	<div class="buttons-on-the-right-side">
-		{# {% if not dataset_id %} #}
-		<!-- <button type="submit" name="next" class="btn btn-default">Enregistrer et continuer</button> -->
-		{# {% endif %} #}
 		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
 		<a class="btn btn-default" href="{% url "idgo_admin:home" %}">Annuler</a>
 	</div>

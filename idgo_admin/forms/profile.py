@@ -180,7 +180,7 @@ class UserProfileForm(forms.Form):
         label="Adresse",
         max_length=1024,
         widget=forms.TextInput(
-            attrs={'placeholder': "Adresse"}))
+            attrs={'placeholder': "Numéro de voirie et rue"}))
 
     code_postal = forms.CharField(
         required=False,
@@ -194,7 +194,7 @@ class UserProfileForm(forms.Form):
         label="Ville",
         max_length=150,
         widget=forms.TextInput(
-            attrs={'placeholder': "Ville de d'organisation"}))
+            attrs={'placeholder': "Ville"}))
 
     org_phone = forms.CharField(
         error_messages={'invalid': 'Le numéro est invalide.'},
@@ -205,7 +205,7 @@ class UserProfileForm(forms.Form):
         # '^(0|\+33|\+33\s*\(0\)\s*)(\d\s*){9}$'
         validators=[validators.RegexValidator(regex='^0\d{9}$')],
         widget=forms.TextInput(
-            attrs={'placeholder': "Téléphone de l'organisation"}))
+            attrs={'placeholder': "Téléphone"}))
 
     organisation_type = forms.ModelChoiceField(
         required=False,
@@ -234,7 +234,7 @@ class UserProfileForm(forms.Form):
 
     contribution_requested = forms.BooleanField(
         initial=True,
-        label='Je souhaite être contributeur',
+        label="Je souhaite être contributeur pour l'organisation",
         required=False)
 
     logo = forms.ImageField(
@@ -356,7 +356,7 @@ class ProfileUpdateForm(forms.ModelForm):
         label="Adresse",
         max_length=1024,
         widget=forms.TextInput(
-            attrs={'placeholder': "Adresse"}))
+            attrs={'placeholder': "Numéro de voirie et rue"}))
 
     code_postal = forms.CharField(
         required=False,
@@ -370,7 +370,7 @@ class ProfileUpdateForm(forms.ModelForm):
         label="Ville",
         max_length=150,
         widget=forms.TextInput(
-            attrs={'placeholder': "Ville de d'organisation"}))
+            attrs={'placeholder': "Ville"}))
 
     org_phone = forms.CharField(
         error_messages={'invalid': 'Le numéro est invalide.'},
@@ -381,7 +381,7 @@ class ProfileUpdateForm(forms.ModelForm):
         # '^(0|\+33|\+33\s*\(0\)\s*)(\d\s*){9}$'
         validators=[validators.RegexValidator(regex='^0\d{9}$')],
         widget=forms.TextInput(
-            attrs={'placeholder': "Téléphone de l'organisation"}))
+            attrs={'placeholder': "Téléphone"}))
 
     organisation_type = forms.ModelChoiceField(
         required=False,
@@ -410,7 +410,7 @@ class ProfileUpdateForm(forms.ModelForm):
 
     contribution_requested = forms.BooleanField(
         initial=True,
-        label='Je souhaite être contributeur',
+        label="Je souhaite être contributeur pour l'organisation",
         required=False)
 
     referents = forms.ModelChoiceField(

@@ -23,7 +23,7 @@ class DatasetForm(forms.ModelForm):
     # description
 
     keywords = TagField(
-        label='Liste de mots-clés',
+        label='Liste de mots-clés (utilisez la virgule comme séparateur)',
         required=False,
         widget=TagWidget(
             attrs={'autocomplete': 'off',
@@ -47,7 +47,7 @@ class DatasetForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple())
 
     organisation = forms.ModelChoiceField(
-        label='Organisme de publication',
+        label='Organisation à laquelle est rattaché ce jeu de données',
         queryset=Organisation.objects.all(),
         required=True)
 
@@ -66,20 +66,34 @@ class DatasetForm(forms.ModelForm):
         label='Le jeu de données est soumis à la règlementation INSPIRE',
         required=False)
 
+    today = timezone.now().date().strftime('%d/%m/%Y')
+
     date_creation = forms.DateField(
         label='Date de création',
         required=False,
-        widget=forms.TextInput(attrs={'class': 'datepicker'}))
+        widget=forms.TextInput(
+            attrs={
+                'autocomplete': 'off',
+                'class': 'datepicker',
+                'placeholder': '{0} (valeur appliquée par défaut)'.format(today)}))
 
     date_modification = forms.DateField(
-        label='Dernière modification',
+        label='Date de dernière modification',
         required=False,
-        widget=forms.TextInput(attrs={'class': 'datepicker'}))
+        widget=forms.TextInput(
+            attrs={
+                'autocomplete': 'off',
+                'class': 'datepicker',
+                'placeholder': today}))
 
     date_publication = forms.DateField(
         label='Date de publication',
         required=False,
-        widget=forms.TextInput(attrs={'class': 'datepicker'}))
+        widget=forms.TextInput(
+            attrs={
+                'autocomplete': 'off',
+                'class': 'datepicker',
+                'placeholder': today}))
 
     # Champs cachés :
 

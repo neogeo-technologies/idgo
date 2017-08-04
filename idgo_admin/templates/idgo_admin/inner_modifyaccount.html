@@ -28,119 +28,41 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-xs-6">
+		<div class="col-xs-5">
 			{% bootstrap_field uform.email %}
 		</div>
 		<div class="col-xs-2">
 			{% bootstrap_field pform.phone %}
 		</div>
 	</div>
-	<p>Entrez un nouveau mot de passe ci-dessous si vous souhaitez le modifier. <br />Sinon, laissez les champs vides.</p>
-	<div class="row">
-		<div class="col-xs-4 col-sm-4">
-			{% bootstrap_field uform.password1 show_label=False %}
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-4 col-sm-4">
-			{% bootstrap_field uform.password2 show_label=False %}
-		</div>
-	</div>
-	<hr />
-	{% if pform.organisation.field.widget.is_hidden == False %}
-	<div id="collapse-one" class="collapse in">
-		<p>Sélectionnez dans la liste ci-dessous l'organisme auquel vous êtes rattaché</p>
-		<div class="row">
-			<div class="col-xs-9">
-				{% bootstrap_field pform.organisation show_label=False %}
-			</div>
-		</div>
-		{% bootstrap_field pform.is_new_orga %}
-		<p>Si celui-ci n'est pas dans la liste, vous pouvez <a id="add-organization" type="button">indiquer un nouvel organisme</a>. </p>
-	</div>
-	<div id="collapse-two" class="collapse">
-		<div class="well">
-			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-				<span aria-hidden="true">&times;</span>
-			</button>
-			<p>Veuillez indiquer ci-dessous le nom et l'URL du site internet de l'organisme auquel vous êtes rattaché. </p>
-			<p>Une demande de création d'organisme est soumise à l'administrateur du site pour validation. </p>
-			<div class="row">
-				<div class="col-xs-12 col-sm-8">
-					{% bootstrap_field pform.logo %}
-				</div>
-				<div class="col-xs-12 col-sm-8">
-					{% bootstrap_field pform.new_orga show_label=False %}
-				</div>
-				<div class="col-xs-12 col-sm-4">
-					{% bootstrap_field pform.code_insee show_label=False %}
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-12">
-					{% bootstrap_field pform.adresse show_label=False %}
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-12 col-sm-3">
-					{% bootstrap_field pform.code_postal show_label=False %}
-				</div>
-				<div class="col-xs-12 col-sm-9">
-					{% bootstrap_field pform.ville show_label=False %}
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-12">
-					{% bootstrap_field pform.org_phone show_label=False %}
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-12">
-					{% bootstrap_field pform.new_website show_label=False %}
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-12">
-					{% bootstrap_field pform.description show_label=False %}
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-12">
-					{% bootstrap_field pform.organisation_type %}
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-12">
-					{% bootstrap_field pform.financeur %}
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-12">
-					{% bootstrap_field pform.status %}
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-12">
-					{% bootstrap_field pform.license %}
-				</div>
-			</div>
-			<!-- <div class="row">#}
-				<div class="col-xs-12">
-					{# {% bootstrap_field pform.referent_requested show_label=False %} #}
-				</div>
-			</div> -->
-		</div>
-	</div>
-	{% bootstrap_field pform.contribution_requested show_label=False %}
-	{% else %}
-	<div class="alert alert-info"><a href="{% url "idgo_admin:contributions" %}">En attente de rattachement</a></div>
-	{% endif %}
-	<hr />
 	<div class="row">
 		<div class="col-xs-9">
 			{% bootstrap_field pform.role %}
 		</div>
 	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="well">
+				<p>Entrez votre nouveau mot de passe ci-dessous si vous souhaitez le modifier. </p>
+				<div class="row">
+					<div class="col-xs-8">
+						{% bootstrap_field uform.password1 show_label=False %}
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-8">
+						{% bootstrap_field uform.password2 show_label=False %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<hr />
+	{% if pform.organisation.field.widget.is_hidden == False %}
+		{% include "idgo_admin/inner_manageorganization.html" %}
+	{% else %}
+	<div class="alert alert-info"><a href="{% url "idgo_admin:contributions" %}">En attente de rattachement</a></div>
+	{% endif %}
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:home" %}">Annuler</a>
 		<button type="submit" class="btn btn-default">Valider les changements</button>

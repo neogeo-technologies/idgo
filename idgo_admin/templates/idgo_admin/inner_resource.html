@@ -1,7 +1,5 @@
 {% load bootstrap3 %}
 
-{# {% bootstrap_messages %} #}
-
 {% if messages %}
     {% for message in messages %}
         {% if message.tags == 'success' %}
@@ -11,14 +9,6 @@
         {% endif %}
     {% endfor %}
 {% endif %}
-
-<!--
-{# {% if message and message.status == 'success' %}#}
-<div class="alert alert-success" role="alert">{{ message.text | safe }}</div>
-{# {% elif message and message.status == 'failure' %}#}
-<div class="alert alert-danger" role="alert">{{ message.text | safe }}</div>
-{# {% endif %}#}
--->
 
 <form method="post" action="" enctype="multipart/form-data">
 	{% csrf_token %}
@@ -48,15 +38,15 @@
 			</ul>
 			<div class="well tab-content" name="data-selector-panel">
 				<div role="tabpanel" class="tab-pane" id="up_file">
-					<p>Veuillez sélectionner un fichier sur votre disque local.</p>
+					<p>Veuillez sélectionner un fichier sur votre disque local : </p>
 					{% bootstrap_field form.up_file show_label=False %}
 				</div>
 				<div role="tabpanel" class="tab-pane" id="dl_url">
-					<p>Veuillez indiquer l'URL d'un fichier à télécharger.</p>
+					<p>Veuillez indiquer l'URL d'un fichier à télécharger : </p>
 					{% bootstrap_field form.dl_url show_label=False %}
 				</div>
 				<div role="tabpanel" class="tab-pane" id="referenced_url">
-					<p>Veuillez indiquer l'URL d'un jeu de données à référencer.</p>
+					<p>Veuillez indiquer l'URL d'un jeu de données à référencer : </p>
 					{% bootstrap_field form.referenced_url show_label=False %}
 				</div>
 			</div>

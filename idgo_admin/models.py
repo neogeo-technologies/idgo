@@ -183,7 +183,7 @@ class Organisation(models.Model):
 
     name = models.CharField('Nom', max_length=150, unique=True, db_index=True)
     organisation_type = models.ForeignKey(
-        OrganisationType, verbose_name="Type d'organisme", default='1', blank=True, null=True)
+        OrganisationType, verbose_name="Type d'organisation", default='1', blank=True, null=True)
     code_insee = models.CharField(
         'Code INSEE', max_length=20, unique=False, db_index=True)
     parent = models.ForeignKey(
@@ -247,15 +247,15 @@ class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     organisation = models.ForeignKey(Organisation, blank=True, null=True,
-                                     verbose_name="Organisme d'appartenance")
+                                     verbose_name="Organisation d'appartenance")
     referents = models.ManyToManyField(
         Organisation, through='Liaisons_Referents',
-        verbose_name="Organismes dont l'utiliateur est réferent",
+        verbose_name="Organisations dont l'utiliateur est réferent",
         related_name='profile_referents')
 
     contributions = models.ManyToManyField(
         Organisation, through='Liaisons_Contributeurs',
-        verbose_name="Organismes dont l'utiliateur est contributeur",
+        verbose_name="Organisations dont l'utiliateur est contributeur",
         related_name='profile_contributions')
 
     resources = models.ManyToManyField(
@@ -765,7 +765,7 @@ class Dataset(models.Model):
 
     organisation = models.ForeignKey(
         Organisation, blank=True, null=True,
-        verbose_name="Organisme d'appartenance")
+        verbose_name="Organisation d'appartenance")
 
     licences = models.ForeignKey(License, verbose_name="Licence d'utilisation")
 

@@ -32,7 +32,7 @@
 	</nav>
 	<div class="buttons-on-the-right-side">
 		<button name="unsubscribe" class="btn btn-sm btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus contribuer</span></button>
-		<a class="btn btn-sm btn-default" href="{% url "idgo_admin:contribution_request" %}">Nouvelle Demande de contribution</a>
+		<a class="btn btn-sm btn-default" href="{% url "idgo_admin:contribution_request" %}">Nouvelle demande de contribution</a>
 	</div>
 </form>
 <br/>
@@ -72,8 +72,8 @@ var SUBORDINATES_METADATA = [
 	}
 ];
 
-var organizationsGrid = new EditableGrid('Organizations', {pageSize: 10});
-var subordinatesGrid = new EditableGrid('subordinates', {pageSize: 10});
+var organizationsGrid = new EditableGrid('Organizations', {pageSize: 5});
+var subordinatesGrid = new EditableGrid('subordinates', {pageSize: 5});
 
 var $button = $('form[name="organization"] button[name="unsubscribe"]')
 	.on('click', function(e) {
@@ -192,7 +192,7 @@ function updateOrganizationsGrid(grid, containerId, metadata, data) {
 	};
 
 	if (data.length == 0) {
-		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucun organisme. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:contribution_request" %}">ajouter un organisme auquel contribuer</a>.</p><div/>');
+		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:contribution_request" %}">ajouter une organisation à laquelle contribuer</a>.</p><div/>');
 	};
 };
 
@@ -214,7 +214,7 @@ function updateSubordinatesGrid(grid, containerId, metadata, data) {
 	};
 
 	if (data.length == 0) {
-		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes référent d\'aucun organisme.<div/>');
+		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes référent d\'aucune organisation.<div/>');
 	};
 };
 
