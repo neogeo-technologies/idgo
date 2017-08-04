@@ -480,7 +480,7 @@ def confirmation_mail(request, key):
 def confirm_new_orga(request, key):
 
     action = get_object_or_404(
-        AccountActions, key=key, action='confirm_new_organisation')
+        AccountActions, key=str(key), action='confirm_new_organisation')
 
     name = action.profile.organisation.name
     if action.closed:
@@ -506,7 +506,7 @@ def confirm_new_orga(request, key):
 def confirm_rattachement(request, key):
 
     action = get_object_or_404(
-        AccountActions, key=key, action='confirm_rattachement')
+        AccountActions, key=str(key), action='confirm_rattachement')
 
     if action.closed:
         action.profile.rattachement_active = True
@@ -544,7 +544,7 @@ def confirm_rattachement(request, key):
 def confirm_referent(request, key):
 
     action = get_object_or_404(
-        AccountActions, key=key, action='confirm_referent')
+        AccountActions, key=str(key), action='confirm_referent')
 
     organisation = action.org_extras
     if action.closed:
@@ -582,7 +582,7 @@ def confirm_referent(request, key):
 def confirm_contribution(request, key):
 
     action = get_object_or_404(
-        AccountActions, key=key, action='confirm_contribution')
+        AccountActions, key=str(key), action='confirm_contribution')
     organisation = action.org_extras
 
     if action.closed:
@@ -590,7 +590,7 @@ def confirm_contribution(request, key):
             "Le rôle de contributeur pour l'organisation {organization_name} "
             "a déjà été confirmée pour <strong>{username}</strong>."
             ).format(organization_name=organisation.name,
-                     username=action.profile.username)
+                     username=action.profile.user.username)
         status = 200
 
     else:
