@@ -183,6 +183,7 @@ class ResourceManager(View):
 
         context = {
             'message': message,
+            'method': 'get',
             'action': '{0}{1}'.format(reverse('idgo_admin:dataset'),
                                       '?id={0}#resources'.format(dataset_id))}
         return render(

@@ -2,13 +2,13 @@
 
 <script>var organizations = [];</script>
 {% if messages %}
-    {% for message in messages %}
-        {% if message.tags == 'success' %}
-            <div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
-        {% elif message.tags == 'error' %}
-            <div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
-        {% endif %}
-    {% endfor %}
+	{% for message in messages %}
+		{% if message.tags == 'success' %}
+			<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+		{% elif message.tags == 'error' %}
+			<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+		{% endif %}
+	{% endfor %}
 {% endif %}
 
 
@@ -47,7 +47,6 @@
 var $submit = $('form button[type="submit"]');
 var $radioInputs = $('form input:radio[name="contributions"]')
 	.change(function() {
-		console.log(0)
 		if ($('div.btn-radio').hasClass('active')) {
 			$submit.removeClass('disabled').prop('disabled', false);
 			$typeahead.val($('form input:radio[name="contributions"]:checked').parent().text())

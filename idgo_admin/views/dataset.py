@@ -49,7 +49,6 @@ class DatasetManager(View):
                     path + '?' + urllib.parse.urlencode(kwargs))
 
     def get(self, request):
-
         user = request.user
         form = Form(include={'user': user, 'identification':False})
         dataset_name = 'Nouveau'
@@ -92,7 +91,6 @@ class DatasetManager(View):
             request, 'idgo_admin/dataset.html', context=context)
 
     def post(self, request):
-
         user = request.user
         dataset_id = None
         success = False
