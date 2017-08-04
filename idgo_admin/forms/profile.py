@@ -138,25 +138,26 @@ class UserProfileForm(forms.Form):
     # Champs Organisation
     organisation = forms.ModelChoiceField(
         required=False,
-        label='Organisme',
+        label='Organisation',
         queryset=Organisation.objects.all())
 
     parent = forms.ModelChoiceField(
         required=False,
-        label='Organisme parent',
+        label='Organisation parent',
         queryset=Organisation.objects.all())
 
     new_orga = forms.CharField(
-        error_messages={"Nom de l'organisme invalide": 'invalid'},
-        label="Nom de l'organisme",
+        error_messages={"Nom de l'organisation invalide": 'invalid'},
+        label="Nom de l'organisation",
         max_length=255,
         min_length=3,
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisme"}))
+        widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisation"}))
 
     new_website = forms.URLField(
-        error_messages={'invalid': "L'adresse URL est érronée. "},
-        label="URL du site internet de l'organisme", required=False)
+        error_messages={'invalid': "L'adresse URL est erronée. "},
+        label="URL du site internet de l'organisation", required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Site internet'}))
 
     is_new_orga = forms.BooleanField(widget=forms.HiddenInput(),
                                      required=False, initial=False)
@@ -172,7 +173,7 @@ class UserProfileForm(forms.Form):
         required=False,
         label="Description",
         max_length=1024,
-        widget=forms.TextInput(
+        widget=forms.Textarea(
             attrs={'placeholder': "Description"}))
 
     adresse = forms.CharField(
@@ -312,25 +313,27 @@ class ProfileUpdateForm(forms.ModelForm):
     # Champs Organisation
     organisation = forms.ModelChoiceField(
         required=False,
-        label="Organisme d'attachement",
+        label="Organisation d'attachement",
         queryset=Organisation.objects.all())
 
     parent = forms.ModelChoiceField(
         required=False,
-        label='Organisme parent',
+        label='Organisation parente',
         queryset=Organisation.objects.all())
 
     new_orga = forms.CharField(
-        error_messages={"Nom de l'organisme invalide": 'invalid'},
-        label="Nom de l'organisme",
+        error_messages={"Nom de l'organisation invalide": 'invalid'},
+        label="Nom de l'organisation",
         max_length=255,
         min_length=3,
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisme"}))
+        widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisation"}))
 
     new_website = forms.URLField(
-        error_messages={'invalid': "L'adresse URL est érronée. "},
-        label="URL du site internet de l'organisme", required=False)
+        error_messages={'invalid': "L'adresse URL est erronée. "},
+        label="URL du site internet de l'organisation",
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Site internet'}))
 
     is_new_orga = forms.BooleanField(widget=forms.HiddenInput(),
                                      required=False, initial=False)
@@ -346,7 +349,7 @@ class ProfileUpdateForm(forms.ModelForm):
         required=False,
         label="Description",
         max_length=1024,
-        widget=forms.TextInput(
+        widget=forms.Textarea(
             attrs={'placeholder': "Description"}))
 
     adresse = forms.CharField(
@@ -413,7 +416,7 @@ class ProfileUpdateForm(forms.ModelForm):
 
     referents = forms.ModelChoiceField(
         required=False,
-        label='Référent pour ces organismes',
+        label='Référent pour ces organisations',
         widget=forms.RadioSelect(),
         queryset=Organisation.objects.all())
 
@@ -435,31 +438,24 @@ class ProfileUpdateForm(forms.ModelForm):
 
         exclude_args = kwargs.pop('exclude', {})
         super(ProfileUpdateForm, self).__init__(*args, **kwargs)
-        self.profile = Profile.objects.get(user=exclude_args['user'])
+        self._profile = Profile.objects.get(user=exclude_args['user'])
 
         # On exclut de la liste de choix toutes les organisations pour
         # lesquelles l'user est contributeur ou en attente de validation
-        contribs_available = Liaisons_Contributeurs.objects.filter(
-            profile=self.profile)
-        con_org_bl = [e.organisation.pk for e in contribs_available]
-        self.fields['contributions'].queryset = \
-            Organisation.objects.exclude(pk__in=con_org_bl)
+        con_org_bl = [e.organisation.pk for e in Liaisons_Contributeurs.objects.filter(profile=self._profile)]
+        self.fields['contributions'].queryset = Organisation.objects.exclude(pk__in=con_org_bl)
 
-        # On exclut de la liste de choix toutes les organisations pour
-        # lesquelles l'user est contributeur ou en attente de validation
-        referents_available = Liaisons_Referents.objects.filter(
-            profile=self.profile)
-        ref_org_bl = [e.organisation.pk for e in referents_available]
-        self.fields['referents'].queryset = \
-            Organisation.objects.exclude(pk__in=ref_org_bl)
+        # Idem "Référent"
+        ref_org_bl = [e.organisation.pk for e in Liaisons_Referents.objects.filter(profile=self._profile)]
+        self.fields['referents'].queryset = Organisation.objects.exclude(pk__in=ref_org_bl)
 
-        organisation = self.profile.organisation
-        # Modifier le 2/08
+        organisation = self._profile.organisation
+
         if organisation:
-            if not organisation.is_active:
+            if not organisation.is_active:  # L'organisation est en attente de validation par l'administrateur
                 self.fields['organisation'].widget = forms.HiddenInput()
-            if organisation.is_active:
-                if not self.profile.rattachement_active:
+            else:
+                if not self._profile.rattachement_active:  # Si l'utilisateur est en attente de rattachement
                     self.fields['organisation'].widget = forms.HiddenInput()
                 else:
                     self.fields['organisation'].initial = organisation.pk
@@ -475,36 +471,42 @@ class ProfileUpdateForm(forms.ModelForm):
 
         if self.cleaned_data.get('referent_requested'):
             self.cleaned_data['referent_requested'] = True
+
         if self.cleaned_data.get('contribution_requested'):
             self.cleaned_data['contribution_requested'] = True
 
         if self.cleaned_data['new_orga']:
             self.cleaned_data['organisation'] = None
 
+            # On vérifie si l'organisation n'existe pas déjà auquel cas on retourne une erreur.
             if Organisation.objects.filter(
                     ckan_slug=slugify(self.cleaned_data['new_orga'])).exists():
                 self.add_error('new_orga', "L'organisation existe déjà.")
                 raise ValidationError('OrganisationExist')
 
-        organisation = self.cleaned_data.get('organisation')
-        if organisation is None:
-            # Retourne le nom d'une nouvelle organisation lors d'une
-            # nouvelle demande de création
-            self.cleaned_data['website'] = self.cleaned_data.get('new_website')
+            self.cleaned_data['mode'] = 'require_new_organization'
             self.cleaned_data['is_new_orga'] = True
+            self.cleaned_data['website'] = self.cleaned_data.get('new_website')  # TODO(@chakib) -> à dégager
             for p in params:
                 self.cleaned_data[p] = self.cleaned_data.get(p)
-        else:
-            # Vider les champs pour nouvelle orga dans le cas
-            # ou l'utilisateur ne crée pas de nouvelle orga
-            # mais laisse des champs remplis
-            if self.profile.organisation == organisation:
-                # Vider le champs organsiation si meme orga
-                # que orga de rattachement courrante
-                self.cleaned_data['organisation'] = None
-            for p in params:
-                self.cleaned_data[p] = ''
-            self.cleaned_data['is_new_orga'] = False
+            return self.cleaned_data
+
+        # On vide les valeurs d'une nouvelle organisation par sécurité
+        self.cleaned_data['is_new_orga'] = False
+        for p in params:
+            self.cleaned_data[p] = ''
+
+        organisation = self.cleaned_data.get('organisation')
+
+        if not organisation: # TODO
+            self.cleaned_data['mode'] = 'no_organization_please'
+            return self.cleaned_data
+
+        if organisation != self._profile.organisation:
+            self.cleaned_data['mode'] = 'change_organization'
+            return self.cleaned_data
+
+        self.cleaned_data['mode'] = 'nothing_to_do'
         return self.cleaned_data
 
 
@@ -550,13 +552,13 @@ class LiaisonsDeleteForm(forms.ModelForm):
 
     referents = forms.ModelChoiceField(
         required=False,
-        label='Référent pour ces organismes',
+        label='Référent pour ces organisations',
         widget=forms.RadioSelect(),
         queryset=Organisation.objects.all())
 
     contributions = forms.ModelChoiceField(
         required=False,
-        label='Organismes de contribution',
+        label='Organisations de contribution',
         widget=forms.RadioSelect(),
         queryset=Organisation.objects.all())
 

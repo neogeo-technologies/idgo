@@ -632,48 +632,55 @@ def modify_account(request):
 
         if data['role']:
             profile.role = data['role']
-
         if data['phone']:
-            profile.role = data['phone']
+            profile.phone = data['phone']
 
-        # Rattachement organisation
-        name = data['new_orga']
-        created = False
-        if data['is_new_orga'] and name:
-            organisation, created = Organisation.objects.get_or_create(
-                name=name,
-                defaults={
-                    'adresse': data['adresse'],
-                    'code_insee': data['code_insee'],
-                    'code_postal': data['code_postal'],
-                    'description': data['description'],
-                    'financeur': data['financeur'],
-                    'license': data['license'],
-                    'logo': data['logo'],
-                    'organisation_type': data['organisation_type'],
-                    # 'parent': data['parent'],
-                    'status': data['status'],
-                    'ville': data['ville'],
-                    'website': data['website'],
-                    'is_active': False})
+        if data['mode'] == 'nothing_to_do':
+            profile.save()
+            return profile
 
-        elif data['is_new_orga'] is False and data['organisation']:
+        if data['mode'] == 'no_organization_please':  # TODO?
+            profile.save()
+            return profile
+
+        if data['mode'] == 'change_organization':
             organisation = data['organisation']
+            created = False
+
+        if data['mode'] == 'require_new_organization':
+            organisation, created = \
+                Organisation.objects.get_or_create(
+                    name=data['new_orga'],
+                    defaults={
+                        'adresse': data['adresse'],
+                        'code_insee': data['code_insee'],
+                        'code_postal': data['code_postal'],
+                        'description': data['description'],
+                        'financeur': data['financeur'],
+                        'license': data['license'],
+                        'logo': data['logo'],
+                        'organisation_type': data['organisation_type'],
+                        # 'parent': data['parent'],
+                        'status': data['status'],
+                        'ville': data['ville'],
+                        'website': data['website'],
+                        'is_active': False})
 
         profile.organisation = organisation
         profile.rattachement_active = False
         profile.save()
-        if created:
 
+        if created:
+            # Ajout d'une clé de création de l'organisation
             new_organisation_action = AccountActions.objects.create(
-                profile=profile, action="confirm_new_organisation")
+                profile=profile, action='confirm_new_organisation')
             try:
                 Mail.confirm_new_organisation(request, new_organisation_action)
             except Exception as e:
                 print('SendingMailError', e)
                 raise e
 
-        # Demande de rattachement Profile-Organisation
+        # Demande de rattachement à l'organisation
         rattachement_action = AccountActions.objects.create(
             profile=profile, action="confirm_rattachement", org_extras=organisation)
 
@@ -683,7 +690,7 @@ def modify_account(request):
             print('SendingMailError', e)
             raise e
 
-        # Demande de role de referent
+        # Demande de rôle de référent
         if data['referent_requested']:
             Liaisons_Referents.objects.get_or_create(
                 profile=profile, organisation=organisation)
@@ -709,13 +716,10 @@ def modify_account(request):
                 print('SendingMailError', e)
                 raise e
 
-        # Redaction mail de confirmation de demande de modification
-        # try:
-        #     Mail.confirmation_user_modification(user)
-        # except Exception:
-        #     pass
         profile.save()
         return profile
+
+    ## End Hande Me
 
     user = request.user
     profile = get_object_or_404(Profile, user=user)
@@ -737,6 +741,7 @@ def modify_account(request):
                        'uform': uform, 'pform': pform})
 
     data = {
+        'mode': pform.cleaned_data['mode'],
         'username': uform.cleaned_data['username'],
         'email': uform.cleaned_data['email'],
         'password': uform.cleaned_data['password1'],
