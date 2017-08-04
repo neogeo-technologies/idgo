@@ -353,8 +353,6 @@ def reset_password(request, key):
     error = False
     try:
         with transaction.atomic():
-            # TODO(@cbenhabib) MAJ MDP: a voir en fonction du SSO
-            # CF save de UserResetPassword
             user = form.save(request, user)
             pass
     except ValidationError as e:
