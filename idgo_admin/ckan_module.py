@@ -272,17 +272,18 @@ class CkanUserHandler(object):
 
     def publish_resource(self, dataset_id, **kwargs):
         resource = self._push_resource(self._get_package(dataset_id), **kwargs)
-        params = {
-            'resource_id': resource['id'],
-            'view_type': {
-                'csv': 'recline_view',
-                'json': 'text_view',
-                'wms': 'geo_view',
-                'xls': 'recline_view',
-                'xml': 'text_view',
-                'pdf': 'pdf_view',
-                }.get(kwargs['format'].lower(), 'text_view')}
-        self._push_resource_view(**params)
+        resource_format = kwargs['format'].lower()
+        supported_view = {'csv': 'recline_view',
+                          'json': 'text_view',
+                          'wms': 'geo_view',
+                          'xls': 'recline_view',
+                          'xml': 'text_view',
+                          'pdf': 'pdf_view'}
+        if resource_format not in [k for k, v in supported_view.items()]:
+            return
+        self._push_resource_view(
+            resource_id=resource['id'],
+            view_type=supported_view.get(resource_format))
 
     def delete_resource(self, id):
         self._del_resource(id)
