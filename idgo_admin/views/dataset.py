@@ -117,11 +117,12 @@ class DatasetManager(View):
                     success = True
                     text = 'Le jeu de données a été mis à jour avec succès.'
                 return self.redirect_url_with_querystring(
-                        request, text, reverse("idgo_admin:dataset"),
-                        successfull=success, id=dataset_id)
+                    request, text, reverse("idgo_admin:dataset"),
+                    successfull=success, id=dataset_id)
 
         else:
-            form = Form(data=request.POST, include={'user': user, 'identification':False})
+            form = Form(data=request.POST,
+                        include={'user': user, 'identification': False})
             if not form.is_valid():
                 return render(request, 'idgo_admin/dataset.html',
                               {'form': form})
@@ -132,23 +133,23 @@ class DatasetManager(View):
                     print('Exception:', e)
                     messages.error = ("L'erreur suivante est survenue : "
                                       '<strong>{0}</strong>.').format(str(e))
-                    return render(request, 'idgo_admin/dataset.html',
-                                  {'form': form})
+                    return render(
+                        request, 'idgo_admin/dataset.html', {'form': form})
                 else:
                     success = True
-                    text = 'Le jeu de données a été créé avec succès.'
+                    text = (
+                        'Le jeu de données a été créé avec succès. '
+                        'Souhaitez-vous <a href="{0}">créer un nouveau jeu de données ?</a>'
+                        ).format(reverse('idgo_admin:dataset'))
                     form = Form(instance=instance, include={'user': user})
                     dataset_id = instance.id
 
             return self.redirect_url_with_querystring(
-                    request, text, reverse("idgo_admin:dataset"),
-                    successfull=success, id=dataset_id)
-
+                request, text, reverse("idgo_admin:dataset"),
+                successfull=success, id=dataset_id)
 
     def delete(self, request):
-
         user = request.user
-
         id = request.POST.get('id', request.GET.get('id')) or None
         if not id:
             return render_an_critical_error(request)
