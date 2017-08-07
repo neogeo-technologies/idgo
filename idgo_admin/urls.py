@@ -1,26 +1,28 @@
 from django.conf.urls import url
+
+from idgo_admin.views.account import delete_account
+from idgo_admin.views.account import forgotten_password
+from idgo_admin.views.account import modify_account
+from idgo_admin.views.account import reset_password
+from idgo_admin.views.account import SignIn
+from idgo_admin.views.account import SignOut
+from idgo_admin.views.account import sign_up
+
 from idgo_admin.views.dataset import DatasetManager
 from idgo_admin.views.dataset import DisplayLicenses
-# from idgo_admin.views.profile import activation_admin
-from idgo_admin.views.profile import confirmation_mail
-from idgo_admin.views.profile import confirm_new_orga
-from idgo_admin.views.profile import confirm_rattachement
-from idgo_admin.views.profile import confirm_referent
-from idgo_admin.views.profile import confirm_contribution
-from idgo_admin.views.profile import contribution_request
-from idgo_admin.views.profile import Contributions
-from idgo_admin.views.profile import delete_account
-from idgo_admin.views.profile import forgotten_password
+
+from idgo_admin.views.mailer import confirm_contribution
+from idgo_admin.views.mailer import confirmation_mail
+from idgo_admin.views.mailer import confirm_new_orga
+from idgo_admin.views.mailer import confirm_rattachement
+from idgo_admin.views.mailer import confirm_referent
+
+from idgo_admin.views.organization_handler import contribution_request
+from idgo_admin.views.organization_handler import Contributions
+# from idgo_admin.views.organization_handler import Referents
+
 from idgo_admin.views.profile import home
-from idgo_admin.views.profile import modify_account
-# from idgo_admin.views.profile import publish_request
-# from idgo_admin.views.profile import publish_request_confirme
-from idgo_admin.views.profile import reset_password
-# from idgo_admin.views.profile import sign_in
-from idgo_admin.views.profile import SignIn
-from idgo_admin.views.profile import SignOut
-# from idgo_admin.views.profile import sign_out
-from idgo_admin.views.profile import sign_up
+
 from idgo_admin.views.resource import ResourceManager
 
 
