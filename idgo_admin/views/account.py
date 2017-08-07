@@ -29,7 +29,6 @@ from idgo_admin.models import Liaisons_Referents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
-
 from mama_cas.cas import logout_user
 from mama_cas.models import ServiceTicket
 from mama_cas.utils import redirect as mama_redirect
@@ -50,6 +49,8 @@ class SignIn(MamaLoginView):
 
     template_name = 'idgo_admin/signin.html'
     form_class = SignInForm
+
+    # TODO: Vérifier si Profile pour l'utilisateur
 
     def form_valid(self, form):
         login(self.request, form.user)
@@ -262,7 +263,7 @@ def forgotten_password(request):
     try:
         profile = Profile.objects.get(
             user__email=form.cleaned_data["email"], is_active=True)
-    except:
+    except Exception:
         message = "Cette adresse n'est pas liée a un compte IDGO actif "
         return render(request, 'idgo_admin/message.html',
                       {'message': message}, status=200)
