@@ -167,20 +167,13 @@ def datasets(request):
         Organisation.objects.get(id=o.organisation_id).name,
         o.published) for o in Dataset.objects.filter(editor=user)]
 
-    # TODO Déplacer dans SignIn ###############################################
-    try:
-        profile = Profile.objects.get(user=user)
-    except Exception:
-        logout(request)
-        return redirect('idgo_admin:signIn')
-    ###########################################################################
-
-    my_contributions = Liaisons_Contributeurs.get_contribs(profile=profile)
-    is_contributor = len(my_contributions) > 0
+    my_contributions = \
+        Liaisons_Contributeurs.get_contribs(
+            profile=Profile.objects.get(user=user))
 
     return render(request, 'idgo_admin/home.html',
                   {'first_name': user.first_name,
                    'last_name': user.last_name,
                    'datasets': json.dumps(datasets),
-                   'is_contributor': json.dumps(is_contributor)},
+                   'is_contributor': json.dumps(len(my_contributions) > 0)},
                   status=200)

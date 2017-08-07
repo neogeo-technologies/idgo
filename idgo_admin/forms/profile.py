@@ -497,7 +497,7 @@ class ProfileUpdateForm(forms.ModelForm):
 
         organisation = self.cleaned_data.get('organisation')
 
-        if not organisation: # TODO
+        if not organisation:  # TODO
             self.cleaned_data['mode'] = 'no_organization_please'
             return self.cleaned_data
 
