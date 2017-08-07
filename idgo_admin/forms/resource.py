@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.files import File
+from django.db import IntegrityError
 from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
@@ -11,6 +12,9 @@ import json
 from pathlib import Path
 
 
+_today = timezone.now().date()
+
+
 def get_all_users_for_organizations(list_id):
     return [
         profile.user.username
@@ -18,11 +22,19 @@ def get_all_users_for_organizations(list_id):
             organisation__in=list_id, organisation__is_active=True)]
 
 
-class CustomClearableFileInput(forms.ClearableFileInput):
-    template_name = 'idgo_admin/clearable_file_input.html'
-
-
 class ResourceForm(forms.ModelForm):
+
+    class CustomClearableFileInput(forms.ClearableFileInput):
+        template_name = 'idgo_admin/clearable_file_input.html'
+
+    up_file = forms.FileField(
+        label='Téléversement',
+        required=False,
+        widget=CustomClearableFileInput())
+
+    # dl_url
+
+    # referenced_url
 
     name = forms.CharField(
         label='Titre',
@@ -35,33 +47,31 @@ class ResourceForm(forms.ModelForm):
         widget=forms.Textarea(
             attrs={'placeholder': 'Vous pouvez utiliser le langage Markdown ici'}))
 
+    # lang
+
     data_format = forms.CharField(
         label='Format',
         widget=forms.TextInput(
             attrs={'placeholder': 'CSV, XML, JSON, XLS... '}))
 
-    up_file = forms.FileField(
-        label='Téléversement',
-        required=False,
-        widget=CustomClearableFileInput())
+    # restricted_level
+
+    # users_allowed
+
+    # organisations_allowed
 
     class Meta(object):
         model = Resource
-        fields = ('name',
+        fields = ('up_file',
+                  'dl_url',
+                  'referenced_url',
+                  'name',
                   'description',
                   'lang',
                   'data_format',
                   'restricted_level',
-                  'dl_url',
-                  'referenced_url',
-                  'up_file',
                   'users_allowed',
                   'organisations_allowed')
-
-    def __init__(self, *args, **kwargs):
-        include_args = kwargs.pop('include', {})
-        super(ResourceForm, self).__init__(*args, **kwargs)
-        user = include_args['user']
 
     def handle_me(self, request, dataset, id=None, uploaded_file=None):
 
@@ -81,14 +91,12 @@ class ResourceForm(forms.ModelForm):
                   'up_file': data['up_file'],
                   'dataset': dataset}
 
-        if id:  # Màj
+        if id:  # Mise à jour de la ressource
             resource = Resource.objects.get(pk=id)
             for key, value in params.items():
                 setattr(resource, key, value)
-        else:  # Créer
+        else:  # Création d'une nouvelle ressource
             resource = Resource.objects.create(**params)
-            # resource.ckan_id = uuid4()
-            resource.save()
 
         # TODO(cbenhabib) Lien ressource / user
         # profile = Profile.objects.get(user=user)
@@ -97,60 +105,60 @@ class ResourceForm(forms.ModelForm):
         # bonding.validated_on = timezone.now()
         # bonding.save()
 
-        dataset = resource.dataset
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
-        params = {'name': resource.name,
-                  'description': resource.description,
-                  'format': resource.data_format,
-                  'id': str(resource.ckan_id),
-                  'lang': resource.lang,
-                  'url': ''}
+
+        ckan_params = {
+            'name': resource.name,
+            'description': resource.description,
+            'format': resource.data_format,
+            'id': str(resource.ckan_id),
+            'lang': resource.lang,
+            'url': ''}
 
         if restricted_level == '2':  # Registered users
             resource.users_allowed = users_allowed
-            params['restricted'] = json.dumps({
-                'allowed_users': ','.join([
-                    u.username for u in users_allowed]),
+            ckan_params['restricted'] = json.dumps({
+                'allowed_users': ','.join([u.username for u in users_allowed]),
                 'level': 'registered'})
 
         if restricted_level == '4':  # Any organization
             resource.organisations_allowed = organizations_allowed
-            params['restricted'] = json.dumps({
+            ckan_params['restricted'] = json.dumps({
                 'allowed_users': ','.join(
-                    get_all_users_for_organizations(
-                        data['organisations_allowed'])),
-                'level': 'registered'})  # any_organization
+                    get_all_users_for_organizations(data['organisations_allowed'])),
+                'level': 'registered'})
 
         if resource.referenced_url:
-            params['url'] = resource.referenced_url
-            params['resource_type'] = \
+            ckan_params['url'] = resource.referenced_url
+            ckan_params['resource_type'] = \
                 '{0}.{1}'.format(resource.name, resource.data_format)
 
         if resource.dl_url:
             filename, content_type = \
                 download(resource.dl_url, settings.MEDIA_ROOT)
             downloaded_file = File(open(filename, 'rb'))
-            params['upload'] = downloaded_file
-            params['size'] = downloaded_file.size
-            params['mimetype'] = content_type
-            params['resource_type'] = Path(filename).name
+            ckan_params['upload'] = downloaded_file
+            ckan_params['size'] = downloaded_file.size
+            ckan_params['mimetype'] = content_type
+            ckan_params['resource_type'] = Path(filename).name
 
         if uploaded_file:
-            params['upload'] = resource.up_file.file
-            params['size'] = uploaded_file.size
-            params['mimetype'] = uploaded_file.content_type
-            params['resource_type'] = uploaded_file.name
+            ckan_params['upload'] = resource.up_file.file
+            ckan_params['size'] = uploaded_file.size
+            ckan_params['mimetype'] = uploaded_file.content_type
+            ckan_params['resource_type'] = uploaded_file.name
 
         try:
-            ckan_user.publish_resource(str(dataset.ckan_id), **params)
+            ckan_user.publish_resource(str(dataset.ckan_id), **ckan_params)
         except Exception as e:
-            print('Error', e)
-            # resource.delete()  # TODO(@m431m)
-            raise Exception(e)
+            # resource.sync_in_ckan = False
+            # TODO Gérer correctement les erreurs
+            raise IntegrityError('Une erreur est survenue lors de la création '
+                                 'de la ressource dans CKAN : {0}'.format(e))
         else:
-            resource.last_update = timezone.now()
-            resource.save()
-        finally:
-            ckan_user.close()
+            # resource.sync_in_ckan = True
+            resource.last_update = _today
+        ckan_user.close()
 
+        resource.save()
         return resource

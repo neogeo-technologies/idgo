@@ -21,7 +21,6 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 import json
-import urllib
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -30,13 +29,8 @@ decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 @method_decorator(decorators, name='dispatch')
 class DatasetManager(View):
 
-    def redirect_url_with_querystring(self, request, text, path,
-                                      successfull=True, **kwargs):
-        if successfull:
-            messages.success(request, text)
-        else:
-            messages.error(request, text)
-        return HttpResponseRedirect(path + '?' + urllib.parse.urlencode(kwargs))
+    template = 'idgo_admin/dataset.html'
+    namespace = 'idgo_admin:dataset'
 
     def get(self, request):
 
@@ -47,14 +41,13 @@ class DatasetManager(View):
         resources = []
 
         # Ugly
-        ckan_slug = request.GET.get('ckan_slug') or None
+        ckan_slug = request.GET.get('ckan_slug')
         if ckan_slug:
             instance = get_object_or_404(
                 Dataset, ckan_slug=ckan_slug, editor=user)
-            return redirect('{0}{1}'.format(reverse('idgo_admin:dataset'),
-                            '?id={0}'.format(instance.pk)))
+            return redirect(reverse(self.namespace + '?id={0}'.format(instance.pk)))
 
-        id = request.GET.get('id') or None
+        id = request.GET.get('id')
         if id:
             instance = get_object_or_404(Dataset, id=id, editor=user)
             form = Form(instance=instance,
@@ -78,73 +71,56 @@ class DatasetManager(View):
                    'resources': json.dumps(resources),
                    'tags': json.dumps(ckan.get_tags())}
 
-        return render(request, 'idgo_admin/dataset.html', context=context)
+        return render(request, self.template, context=context)
 
     def post(self, request):
 
-        user = request.user
-        dataset_id = None
-        success = False
-        text = "Erreur lors de l'opération de modification de la base Dataset"
+        def http_redirect(dataset_id):
+            return HttpResponseRedirect(
+                reverse(self.namespace) + '?id={0}'.format(dataset_id))
 
-        id = request.POST.get('id', request.GET.get('id')) or None
+        user = request.user
+
+        id = request.POST.get('id', request.GET.get('id'))
         if id:
             instance = get_object_or_404(Dataset, id=id, editor=user)
-            form = Form(
-                data=request.POST, instance=instance,
-                include={'user': user, 'identification': True})
-            dataset_id = instance.id
+            form = Form(data=request.POST, instance=instance,
+                        include={'user': user, 'identification': True})
 
             if not form.is_valid():
-                return render(request, 'idgo_admin/dataset.html',
-                              {'form': form})
+                return render(request, self.template, {'form': form})
+            # else
+            try:
+                form.handle_me(request, id=id)
+            except Exception:
+                messages.error(request, 'Une erreur est survenue.')
+            else:
+                messages.success(request, 'Le jeu de données a été mis à jour avec succès.')
+            finally:
+                return http_redirect(instance.id)
 
-            if request.user.is_authenticated:
-                try:
-                    form.handle_me(request, id=id)
-                except Exception as e:
-                    success = False
-                    text = ("L'erreur suivante est survenue : "
-                            '<strong>{0}</strong>.').format(str(e))
-                else:
-                    success = True
-                    text = 'Le jeu de données a été mis à jour avec succès.'
+        form = Form(data=request.POST,
+                    include={'user': user, 'identification': False})
 
-                return self.redirect_url_with_querystring(
-                    request, text, reverse('idgo_admin:dataset'),
-                    successfull=success, id=dataset_id)
+        if not form.is_valid():
+            return render(request, self.template, {'form': form})
 
+        try:
+            instance = form.handle_me(request)
+        except Exception:
+            messages.error(request, 'Une erreur est survenue.')
+            return render(request, self.template, {'form': form})
         else:
-            form = Form(data=request.POST,
-                        include={'user': user, 'identification': False})
-            if not form.is_valid():
-                return render(request, 'idgo_admin/dataset.html', {'form': form})
-
-            if request.user.is_authenticated:
-                try:
-                    instance = form.handle_me(request)
-                except Exception as e:
-                    messages.error = ("L'erreur suivante est survenue : "
-                                      '<strong>{0}</strong>.').format(str(e))
-                    return render(
-                        request, 'idgo_admin/dataset.html', {'form': form})
-                else:
-                    success = True
-                    text = (
-                        'Le jeu de données a été créé avec succès. '
-                        'Souhaitez-vous <a href="{0}">créer un nouveau jeu de données ?</a>'
-                        ).format(reverse('idgo_admin:dataset'))
-                    form = Form(instance=instance, include={'user': user})
-                    dataset_id = instance.id
-
-            return self.redirect_url_with_querystring(
-                request, text, reverse('idgo_admin:dataset'),
-                successfull=success, id=dataset_id)
+            messages.success(request, (
+                'Le jeu de données a été créé avec succès. '
+                'Souhaitez-vous <a href="{0}">créer un nouveau jeu de '
+                'données ?</a>').format(reverse(self.namespace)))
+            return http_redirect(instance.id)
 
     def delete(self, request):
 
         user = request.user
-        id = request.POST.get('id', request.GET.get('id')) or None
+        id = request.POST.get('id', request.GET.get('id'))
         if not id:
             return Http404()
         dataset = get_object_or_404(Dataset, id=id, editor=user)
@@ -155,12 +131,11 @@ class DatasetManager(View):
             ckan.purge_dataset(str(dataset.ckan_id))
         except Exception:
             # TODO Gérer les erreurs correctement
-            message = "Le jeu de données <strong>{0}</strong> ne peut pas être "\
-                      "supprimé de CKAN. Merci de contacter l'administrateur du site.".format(dataset.name)
+            message = "Le jeu de données ne peut pas être supprimé. Veuillez contacter l'administrateur du site."
             status = 400
         else:
             dataset.delete()
-            message = 'Le jeu de données <strong>{0}</strong> a été supprimé avec succès.'.format(dataset.name)
+            message = 'Le jeu de données a été supprimé avec succès.'
             status = 200
         ckan_user.close()
 
@@ -170,8 +145,9 @@ class DatasetManager(View):
             # TODO Que faire en cas d'erreur à ce niveau ?
             pass
 
+        # TODO Revoir le 'render' complètement
         context = {'message': message,
-                   'action': '{0}#datasets'.format(reverse('idgo_admin:home'))}
+                   'action': reverse('idgo_admin:home') + '#datasets'}
 
         return render(
             request, 'idgo_admin/response.html', context=context, status=status)
