@@ -239,12 +239,6 @@ def forgotten_password(request):
     action, created = AccountActions.objects.get_or_create(
         profile=profile, action='reset_password', closed=None)
 
-    if not created:
-        message = ('Un e-mail de réinitialisation à déjà été envoyé '
-                   "Veuillez vérifier votre messagerie")
-        return render(request, 'idgo_admin/message.html',
-                      {'message': message}, status=200)
-
     try:
         Mail.send_reset_password_link_to_user(request, action)
     except Exception as e:
