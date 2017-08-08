@@ -14,15 +14,14 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from idgo_admin.ckan_module import CkanHandler as ckan
-# from idgo_admin.forms.profile import LiaisonsDeleteForm
-from idgo_admin.forms.profile import ProfileUpdateForm
-from idgo_admin.forms.profile import SignInForm
-from idgo_admin.forms.profile import UserDeleteForm
-from idgo_admin.forms.profile import UserForgetPassword
-from idgo_admin.forms.profile import UserForm
-from idgo_admin.forms.profile import UserProfileForm
-from idgo_admin.forms.profile import UserResetPassword
-from idgo_admin.forms.profile import UserUpdateForm
+from idgo_admin.forms.account import ProfileUpdateForm
+from idgo_admin.forms.account import SignInForm
+from idgo_admin.forms.account import UserDeleteForm
+from idgo_admin.forms.account import UserForgetPassword
+from idgo_admin.forms.account import UserForm
+from idgo_admin.forms.account import UserProfileForm
+from idgo_admin.forms.account import UserResetPassword
+from idgo_admin.forms.account import UserUpdateForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import Liaisons_Referents

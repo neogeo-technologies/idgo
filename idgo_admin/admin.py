@@ -81,22 +81,22 @@ class MailAdmin(admin.ModelAdmin):
     model = Mail
 
     # Vue dev:
-    list_display = ('template_name', 'subject', )
-    fieldsets = (
-        ('Personnalisation des messages automatiques',
-         {'fields': ('template_name', 'subject', 'message', 'from_email')}),)
-
-    # Vue client:
-    # list_display = ('subject', )
+    # list_display = ('template_name', 'subject', )
     # fieldsets = (
     #     ('Personnalisation des messages automatiques',
-    #      {'fields': ('subject', 'message', )}),)
-    #
-    # def has_delete_permission(self, request, obj=None):
-    #     return False
-    #
-    # def has_add_permission(self, request, obj=None):
-    #     return False
+    #      {'fields': ('template_name', 'subject', 'message', 'from_email')}),)
+
+    # Vue client:
+    list_display = ('subject', )
+    fieldsets = (
+        ('Personnalisation des messages automatiques',
+         {'fields': ('subject', 'message', )}),)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request, obj=None):
+        return False
     # Fin Vue client
 
 

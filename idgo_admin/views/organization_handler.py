@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from idgo_admin.forms.profile import ProfileUpdateForm
+from idgo_admin.forms.account import ProfileUpdateForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import Liaisons_Referents
