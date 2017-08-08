@@ -1,4 +1,5 @@
 function redirect(path) {
+	console.log(path)
 	window.location.replace(window.location.origin + path);
 };
 

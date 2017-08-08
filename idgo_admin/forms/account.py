@@ -527,7 +527,7 @@ class SignInForm(MamaLoginForm):
 
             if self.user is None:
                 self.add_error('username', "Vérifiez votre nom d'utilisateur")
-                self.add_error('password', "Vérifiez votre mot de passe")
+                self.add_error('password', 'Vérifiez votre mot de passe')
                 raise ValidationError('error')
             else:
                 if not self.user.is_active:

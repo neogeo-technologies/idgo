@@ -61,14 +61,14 @@ class ResourceManager(View):
 
             # TODO Les trois champs sont exclusifs et il faudrait s'en assurer
             if instance.up_file:
-                data_field = instance.up_file
+                mode = 'up_file'
             if instance.dl_url:
-                data_field = instance.dl_url
+                mode = 'dl_url'
             if instance.referenced_url:
-                data_field = instance.referenced_url
+                mode = 'referenced_url'
 
             context.update({'resource_name': instance.name,
-                            'mode': data_field.__dict__.get('field').name,
+                            'mode': mode,
                             'form': Form(instance=instance)})
 
         return render(request, self.template, context)
