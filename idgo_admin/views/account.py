@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
@@ -283,6 +284,8 @@ def reset_password(request, key):
     try:
         with transaction.atomic():
             user = form.save(request, user)
+            reset_action.closed = datetime.now()
+            reset_action.save()
     except ValidationError:
         return render(request, 'idgo_admin/resetpassword.html', {'form': form})
     except IntegrityError:
