@@ -22,8 +22,8 @@ def render_an_critical_error(request, operation):
     # TODO(@m431m)
     message = ("Une erreur critique s'est produite lors de la validation "
                "de l'opération: {operation} "
-               "Merci de contacter l'administrateur du site. ").format(
-                    operation=operation)
+               "Merci de contacter l'administrateur du site. "
+               ).format(operation=operation)
 
     return render(request, 'idgo_admin/response.html',
                   {'message': message}, status=400)
@@ -41,7 +41,7 @@ def contribution_request(request):
 
     if request.method == 'GET':
         return render(
-            request, 'idgo_admin/publish.html',
+            request, 'idgo_admin/contribute.html',
             {'first_name': user.first_name,
              'last_name': user.last_name,
              'pform': ProfileUpdateForm(exclude={'user': user}),
@@ -51,7 +51,7 @@ def contribution_request(request):
         instance=profile, data=request.POST or None, exclude={'user': user})
 
     if not pform.is_valid():
-        return render(request, 'idgo_admin/publish.html', {'pform': pform})
+        return render(request, 'idgo_admin/contribute.html', {'pform': pform})
 
     organisation = pform.cleaned_data['contributions']
     Liaisons_Contributeurs.objects.create(
@@ -69,7 +69,7 @@ def contribution_request(request):
             "ne sera effective qu'après validation par un administrateur."
             ).format(organisation.name)
     messages.success(request, text)
-    return HttpResponseRedirect(reverse('idgo_admin:contribution_request'))
+    return HttpResponseRedirect(reverse('idgo_admin:contribute'))
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -84,7 +84,7 @@ def referent_request(request):
 
     if request.method == 'GET':
         return render(
-            request, 'idgo_admin/publish.html',
+            request, 'idgo_admin/contribute.html',
             {'first_name': user.first_name,
              'last_name': user.last_name,
              'pform': ProfileUpdateForm(exclude={'user': user}),
@@ -94,7 +94,7 @@ def referent_request(request):
         instance=profile, data=request.POST or None, exclude={'user': user})
 
     if not pform.is_valid():
-        return render(request, 'idgo_admin/publish.html', {'pform': pform})
+        return render(request, 'idgo_admin/contribute.html', {'pform': pform})
 
     organisation = pform.cleaned_data['referents']
     Liaisons_Referents.objects.create(
@@ -107,7 +107,7 @@ def referent_request(request):
         render_an_critical_error(request, "Demande de status référent")
 
     return render(
-        request, 'idgo_admin/publish.html',
+        request, 'idgo_admin/contribute.html',
         {'first_name': user.first_name,
          'last_name': user.last_name,
          'pform': ProfileUpdateForm(exclude={'user': user}),
@@ -160,7 +160,7 @@ class Contributions(View):
                     in Liaisons_Referents.get_pending(profile=profile)]
 
             return render(
-                request, 'idgo_admin/contributions.html',
+                request, 'idgo_admin/organizations.html',
                 context={'first_name': user.first_name,
                          'last_name': user.last_name,
                          'organization': organization,
@@ -191,7 +191,7 @@ class Contributions(View):
         # TODO(cbenhabib): send confirmation mail to user?
 
         context = {
-            'action': reverse('idgo_admin:contributions'),
+            'action': reverse('idgo_admin:organizations'),
             'message': ("Vous n'êtes plus contributeur pour l'organisation "
                         "<strong>{0}</strong>").format(organization.name)}
 

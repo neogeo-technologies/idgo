@@ -99,7 +99,8 @@ class ResourceManager(View):
             except Exception:
                 messages.error(request, 'Une erreur est survenue.')
             else:
-                messages.success(request, 'La ressource a été mise à jour avec succès.')
+                messages.success(
+                    request, 'La ressource a été mise à jour avec succès.')
             finally:
                 return http_redirect(instance.id)
 
@@ -114,7 +115,8 @@ class ResourceManager(View):
             messages.error(request, 'Une erreur est survenue.')
             return render(request, self.template, {'form': form})
         else:
-            messages.success(request, 'La ressource a été créée avec succès.')
+            messages.success(
+                request, 'La ressource a été créée avec succès.')
             return http_redirect(instance.id)
 
     def delete(self, request, dataset_id):

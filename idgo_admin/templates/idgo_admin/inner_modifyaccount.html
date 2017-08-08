@@ -61,7 +61,7 @@
 	{% if pform.organisation.field.widget.is_hidden == False %}
 		{% include "idgo_admin/inner_manageorganization.html" %}
 	{% else %}
-	<div class="alert alert-info"><a href="{% url "idgo_admin:contributions" %}">En attente de rattachement</a></div>
+	<div class="alert alert-info"><a href="{% url "idgo_admin:organizations" %}">En attente de rattachement</a></div>
 	{% endif %}
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:home" %}">Annuler</a>

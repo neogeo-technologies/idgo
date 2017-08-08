@@ -32,7 +32,7 @@
 	</nav>
 	<div class="buttons-on-the-right-side">
 		<button name="unsubscribe" class="btn btn-sm btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus contribuer</span></button>
-		<a class="btn btn-sm btn-default" href="{% url "idgo_admin:contribution_request" %}">Nouvelle demande de contribution</a>
+		<a class="btn btn-sm btn-default" href="{% url "idgo_admin:contribute" %}">Nouvelle demande de contribution</a>
 	</div>
 </form>
 <br/>
@@ -90,7 +90,7 @@ var $button = $('form[name="organization"] button[name="unsubscribe"]')
 				$.ajax({
 					type: 'DELETE',
 					// success: function() {},
-					url: '{% url "idgo_admin:contributions" %}' + '?id=' + organizationsGrid.getRowValues(organizationsGrid.lastSelectedRowIndex)['id']
+					url: '{% url "idgo_admin:organizations" %}' + '?id=' + organizationsGrid.getRowValues(organizationsGrid.lastSelectedRowIndex)['id']
 				})
 				.done(function(response, textStatus, jqXHR) {
 					// $modal.find('.close').remove();
@@ -192,7 +192,7 @@ function updateOrganizationsGrid(grid, containerId, metadata, data) {
 	};
 
 	if (data.length == 0) {
-		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:contribution_request" %}">ajouter une organisation à laquelle contribuer</a>.</p><div/>');
+		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:contribute" %}">ajouter une organisation à laquelle contribuer</a>.</p><div/>');
 	};
 };
 

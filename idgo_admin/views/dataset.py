@@ -45,7 +45,8 @@ class DatasetManager(View):
         if ckan_slug:
             instance = get_object_or_404(
                 Dataset, ckan_slug=ckan_slug, editor=user)
-            return redirect(reverse(self.namespace + '?id={0}'.format(instance.pk)))
+            return redirect(
+                reverse(self.namespace + '?id={0}'.format(instance.pk)))
 
         id = request.GET.get('id')
         if id:
@@ -95,7 +96,8 @@ class DatasetManager(View):
             except Exception:
                 messages.error(request, 'Une erreur est survenue.')
             else:
-                messages.success(request, 'Le jeu de données a été mis à jour avec succès.')
+                messages.success(
+                    request, 'Le jeu de données a été mis à jour avec succès.')
             finally:
                 return http_redirect(instance.id)
 
@@ -131,7 +133,8 @@ class DatasetManager(View):
             ckan.purge_dataset(str(dataset.ckan_id))
         except Exception:
             # TODO Gérer les erreurs correctement
-            message = "Le jeu de données ne peut pas être supprimé. Veuillez contacter l'administrateur du site."
+            message = 'Le jeu de données ne peut pas être supprimé. ' \
+                      "Veuillez contacter l'administrateur du site."
             status = 400
         else:
             dataset.delete()
@@ -149,8 +152,8 @@ class DatasetManager(View):
         context = {'message': message,
                    'action': reverse('idgo_admin:home') + '#datasets'}
 
-        return render(
-            request, 'idgo_admin/response.html', context=context, status=status)
+        return render(request, 'idgo_admin/response.html',
+                      context=context, status=status)
 
 
 @login_required(login_url=settings.LOGIN_URL)

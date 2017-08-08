@@ -36,22 +36,11 @@ from mama_cas.views import LoginView as MamaLoginView
 from mama_cas.views import LogoutView as MamaLogoutView
 
 
-def render_an_critical_error(request):
-    # TODO(@m431m)
-    message = ("Une erreur critique s'est produite lors de la création de "
-               "votre compte. Merci de contacter l'administrateur du site. ")
-
-    return render(request, 'idgo_admin/response.html',
-                  {'message': message}, status=400)
-
-
 @method_decorator([csrf_exempt], name='dispatch')
 class SignIn(MamaLoginView):
 
     template_name = 'idgo_admin/signin.html'
     form_class = SignInForm
-
-    # TODO: Vérifier si Profile pour l'utilisateur
 
     def form_valid(self, form):
         login(self.request, form.user)
@@ -95,24 +84,15 @@ def sign_up(request):
 
     def handle_new_profile(data):
 
-        try:
-            user = User.objects.create_user(
-                username=data['username'], password=data['password'],
-                email=data['email'], first_name=data['first_name'],
-                last_name=data['last_name'],
-                is_staff=False, is_superuser=False, is_active=False)
-        except Exception as e:
-            print('CreatingUserError', e)
-            raise e
+        user = User.objects.create_user(
+            username=data['username'], password=data['password'],
+            email=data['email'], first_name=data['first_name'],
+            last_name=data['last_name'],
+            is_staff=False, is_superuser=False, is_active=False)
 
-        try:
-            profile = Profile.objects.create(user=user, role=data['role'],
-                                             phone=data['phone'],
-                                             rattachement_active=False,
-                                             is_active=False)
-        except Exception as e:
-            print('CreatingProfileError', e)
-            raise e
+        profile = Profile.objects.create(
+            user=user, role=data['role'], phone=data['phone'],
+            rattachement_active=False, is_active=False)
 
         # Si rattachement à nouvelle organisation requis
         name = data['new_orga']
@@ -135,49 +115,39 @@ def sign_up(request):
                     'ville': data['ville'],
                     'website': data['website'],
                     'is_active': False})
-
         elif data['is_new_orga'] is False and data['organisation']:
             organisation = data['organisation']
 
         profile.organisation = organisation
         profile.rattachement_active = False
         profile.save()
-        # Demande de creation nouvelle organisation
+
+        # Demande de création d'une nouvelle organisation
         if created:
             AccountActions.objects.create(
                 profile=profile, action="confirm_new_organisation")
 
+        # Demande de rattachement (Profile-Organisation)
         if organisation:
-            # Demande de rattachement Profile-Organisation
             AccountActions.objects.create(
                 profile=profile, action="confirm_rattachement",
                 org_extras=organisation)
 
-            # Demande de role de referent
+            # Demande de rôle de referent
             if data['referent_requested']:
                 Liaisons_Referents.objects.create(
                     profile=profile, organisation=organisation)
 
-            # Demande de role de contributeur
+            # Demande de rôle de contributeur
             if data['contribution_requested']:
                 Liaisons_Contributeurs.objects.create(
                     profile=profile, organisation=organisation)
 
         signup_action = AccountActions.objects.create(profile=profile,
                                                       action="confirm_mail")
-        try:
-            Mail.validation_user_mail(request, signup_action)
-        except Exception as e:
-            print('SendingMailError', e)
-            raise e
 
-        try:
-            ckan.add_user(user, data['password'])
-            pass
-        except Exception as e:
-            # delete_user(user.username)  # TODO
-            print('ExceptionCkan', e)
-            raise e
+        Mail.validation_user_mail(request, signup_action)
+        ckan.add_user(user, data['password'])
 
     def delete_user(username):
         User.objects.get(username=username).delete()
@@ -234,15 +204,7 @@ def sign_up(request):
                         'Cet identifiant de connexion est réservé.')
         return render_on_error()
 
-    try:
-        handle_new_profile(data)
-    except IntegrityError:
-        # uform.add_error('username',
-        #                 'Cet identifiant de connexion est réservé.')
-        return render_on_error()
-    except Exception as e:
-        print('ExceptionSignup', e)
-        return render_an_critical_error(request)
+    handle_new_profile(data)
 
     message = ('Votre compte a bien été créé. Vous recevrez un e-mail '
                "de confirmation d'ici quelques minutes. Pour activer "
@@ -303,57 +265,45 @@ def forgotten_password(request):
 @transaction.atomic
 @csrf_exempt
 def reset_password(request, key):
+
     if request.method == 'GET':
         return render(request, 'idgo_admin/resetpassword.html',
                       {'form': UserResetPassword()})
 
     form = UserResetPassword(data=request.POST)
     if not form.is_valid():
-        return render(request, 'idgo_admin/resetpassword.html',
-                      {'form': form})
+        return render(request, 'idgo_admin/resetpassword.html', {'form': form})
 
-    reset_action = get_object_or_404(
-        AccountActions, key=key, action="reset_password")
+    reset_action = \
+        get_object_or_404(AccountActions, key=key, action="reset_password")
+
     user = reset_action.profile.user
 
-    error = False
     try:
         with transaction.atomic():
             user = form.save(request, user)
-            pass
-    except ValidationError as e:
-        print('ValidationError', e)
-        return render(request, 'idgo_admin/resetpassword.html',
-                      {'form': form})
-    except IntegrityError as e:
-        print('IntegrityError', e)
+    except ValidationError:
+        return render(request, 'idgo_admin/resetpassword.html', {'form': form})
+    except IntegrityError:
         logout(request)
-        error = True
-    except Exception as e:
-        print('Exception1', e)
-        error = True
-    if error:
-        user = User.objects.get(username=user.username)
-        try:
-            ckan.update_user(user)
-        except Exception as e:
-            print('Exception', e)
-        message = ('Erreur critique lors de la réinitialisation du '
-                   'mot de passe. ')
+    except Exception:
+        status = 400
+        message = 'Une erreur est survenue lors de la modification de votre mot de passe.'
 
-        return render(request, 'idgo_admin/message.html',
-                      {'message': message}, status=400)
-    else:
-        message = 'Votre mot de passe a été réinitialisé. '
+    status = 200
+    message = 'Votre mot de passe a été réinitialisé.'
 
-        return render(request, 'idgo_admin/message.html',
-                      {'message': message}, status=200)
+    return render(request, 'idgo_admin/message.html',
+                  {'message': message}, status=status)
 
 
 @transaction.atomic
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def modify_account(request):
+
+    def rewind_ckan():
+        ckan.update_user(User.objects.get(username=user.username))
 
     def handle_update_profile(profile, data):
 
@@ -409,14 +359,10 @@ def modify_account(request):
 
         # Demande de rattachement à l'organisation
         rattachement_action = AccountActions.objects.create(
-            profile=profile, action="confirm_rattachement",
+            profile=profile, action='confirm_rattachement',
             org_extras=organisation)
 
-        try:
-            Mail.confirm_updating_rattachement(request, rattachement_action)
-        except Exception as e:
-            print('SendingMailError', e)
-            raise e
+        Mail.confirm_updating_rattachement(request, rattachement_action)
 
         # Demande de rôle de référent
         if data['referent_requested']:
@@ -436,7 +382,7 @@ def modify_account(request):
             Liaisons_Contributeurs.objects.get_or_create(
                 profile=profile, organisation=organisation)
             contribution_action = AccountActions.objects.create(
-                profile=profile, action="confirm_contribution",
+                profile=profile, action='confirm_contribution',
                 org_extras=organisation)
             try:
                 Mail.confirm_contribution(request, contribution_action)
@@ -459,15 +405,15 @@ def modify_account(request):
                                                   exclude={'user': user})})
 
     uform = UserUpdateForm(instance=user, data=request.POST or None)
-    pform = ProfileUpdateForm(
-        request.POST or None, request.FILES, instance=profile,
-        exclude={'user': user})
+    pform = ProfileUpdateForm(request.POST or None, request.FILES,
+                              instance=profile, exclude={'user': user})
 
     if not uform.is_valid() or not pform.is_valid():
         return render(request, 'idgo_admin/modifyaccount.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
-                       'uform': uform, 'pform': pform})
+                       'uform': uform,
+                       'pform': pform})
 
     data = {
         'mode': pform.cleaned_data['mode'],
@@ -497,41 +443,33 @@ def modify_account(request):
         'contribution_requested': pform.cleaned_data['contribution_requested'],
         'is_new_orga': pform.cleaned_data['is_new_orga']}
 
-    error = False
     try:
         with transaction.atomic():
             uform.save_f(request)
             profile = handle_update_profile(profile, data)
-            # ckan.update_user(user, profile=profile)
-    except ValidationError as e:
-        print('ValidationError', e)
+            ckan.update_user(user)
+    except ValidationError:
+        rewind_ckan()
         return render(request, 'idgo_admin/modifyaccount.html',
                       {'first_name': user.first_name,
                        'last_name': user.last_name,
                        'uform': uform,
                        'pform': pform})
-    except IntegrityError as e:
-        print('IntegrityError', e)
-        logout(request)
-        error = True
-    except Exception as e:
-        print('Exception', e)
+    except Exception:
+        rewind_ckan()
+        messages.error(
+            request, 'Une erreur est survenue lors de la modification de votre compte.')
+    else:
+        messages.success(
+            request, 'Les informations de votre profil sont à jour.')
 
-    if error:
-        user = User.objects.get(username=user.username)
-        try:
-            ckan.update_user(user)
-        except Exception:
-            pass
-        render_an_critical_error(request)
-    text = 'Les informations de votre profil sont à jour.'
-    messages.success(request, text)
-    return HttpResponseRedirect(reverse("idgo_admin:modifyAccount"))
+    return HttpResponseRedirect(reverse('idgo_admin:modifyAccount'))
 
 
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def delete_account(request):
+
     user = request.user
     if request.method == 'GET':
         return render(request, 'idgo_admin/deleteaccount.html',
@@ -547,17 +485,14 @@ def delete_account(request):
                        'last_name': user.last_name,
                        'uform': uform})
 
-    user_data_copy = {"last_name": user.last_name,
-                      "first_name": user.first_name,
-                      "username": user.username,
-                      "email": user.email}
-    user.delete()
+    user_data_copy = {'last_name': user.last_name,
+                      'first_name': user.first_name,
+                      'username': user.username,
+                      'email': user.email}
     logout(request)
-    try:
-        Mail.conf_deleting_profile_to_user(user_data_copy)
-    except Exception as e:
-        print('Error', e)
-        pass
+    user.delete()
+
+    Mail.conf_deleting_profile_to_user(user_data_copy)
 
     return render(request, 'idgo_admin/message.html',
                   context={'message': 'Votre compte a été supprimé.'},
