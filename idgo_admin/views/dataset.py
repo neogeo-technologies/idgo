@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import logout
 from django.contrib import messages
 from django.http import Http404
 from django.http import HttpResponseRedirect

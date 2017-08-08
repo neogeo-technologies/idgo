@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
@@ -157,24 +158,18 @@ class Contributions(View):
 
     def delete(self, request):
 
-        organization_id = request.POST.get('id', request.GET.get('id')) or None
+        id = request.POST.get('id', request.GET.get('id')) or None
+        if not id:
+            return Http404()
 
-        if not organization_id:
-                message = ("Une erreur critique s'est produite lors"
-                           "de la suppression du status de contributeur"
-                           "Merci de contacter l'administrateur du site")
-
-                return render(request, 'idgo_admin/response.html',
-                              {'message': message}, status=400)
-
-        organization = Organisation.objects.get(id=organization_id)
+        organization = Organisation.objects.get(id=id)
         profile = get_object_or_404(Profile, user=request.user)
 
         my_contribution = Liaisons_Contributeurs.objects.get(
-            profile=profile, organisation__id=organization_id)
+            profile=profile, organisation__id=id)
         my_contribution.delete()
-        # TODO(cbenhabib): send confirmation mail to user?
 
+        # Revoir le render
         context = {
             'action': reverse('idgo_admin:organizations'),
             'message': ("Vous n'êtes plus contributeur pour l'organisation "
@@ -201,23 +196,18 @@ class Referents(View):
 
     def delete(self, request):
 
-        organization_id = request.POST.get('id', request.GET.get('id')) or None
+        id = request.POST.get('id', request.GET.get('id')) or None
+        if not id:
+            return Http404()
 
-        if not organization_id:
-                message = ("Une erreur critique s'est produite lors"
-                           "de la suppression du rôle de référent"
-                           "Merci de contacter l'administrateur du site")
-
-                return render(request, 'idgo_admin/response.html',
-                              {'message': message}, status=400)
-
-        organization = Organisation.objects.get(id=organization_id)
+        organization = Organisation.objects.get(id=id)
         profile = get_object_or_404(Profile, user=request.user)
 
         my_subordinates = Liaisons_Referents.objects.get(
-            profile=profile, organisation__id=organization_id)
+            profile=profile, organisation__id=id)
         my_subordinates.delete()
 
+        # Revoir le render
         context = {
             'action': reverse('idgo_admin:referents'),
             'message': ("Vous n'êtes plus contributeur pour l'organisation "
