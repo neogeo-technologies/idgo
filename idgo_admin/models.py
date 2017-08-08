@@ -1,3 +1,4 @@
+
 from django.conf import settings
 from django.contrib.auth.models import User
 # from django.db import models
@@ -14,6 +15,8 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 from taggit.managers import TaggableManager
 from taggit.models import TaggedItemBase
 import uuid
+
+from idgo_admin.utils import PartialFormatter
 
 
 def deltatime_2_days():
@@ -364,6 +367,7 @@ class AccountActions(models.Model):
 
 
 class Mail(models.Model):
+
     @staticmethod
     def superuser_mails():
         return [usr.email for usr in User.objects.filter(is_superuser=True,
@@ -390,13 +394,23 @@ class Mail(models.Model):
         from_email = mail_template.from_email
         subject = mail_template.subject
 
-        message = mail_template.message.format(
-            first_name=user.first_name,
-            last_name=user.last_name,
-            username=user.username,
-            url=request.build_absolute_uri(
-                reverse('idgo_admin:confirmation_mail',
-                        kwargs={'key': action.key})))
+        # message = mail_template.message.format(
+        #     first_name=user.first_name,
+        #     last_name=user.last_name,
+        #     username=user.username,
+        #     url=request.build_absolute_uri(
+        #         reverse('idgo_admin:confirmation_mail',
+        #                 kwargs={'key': action.key})))
+
+        fmt = PartialFormatter()
+        data = {'first_name': user.first_name,
+                'last_name': user.last_name,
+                'username': user.username,
+                'url': request.build_absolute_uri(
+                        reverse('idgo_admin:confirmation_mail',
+                                kwargs={'key': action.key}))}
+        message = fmt.format(mail_template.message, **data)
+
         try:
             send_mail(subject=subject, message=message,
                       from_email=from_email, recipient_list=[user.email])
@@ -410,12 +424,20 @@ class Mail(models.Model):
         """
         mail_template = Mail.objects.get(template_name="confirmation_user_mail")
 
-        message = mail_template.message.format(
-            first_name=user.first_name, last_name=user.last_name,
-            username=user.username)
+        # message = mail_template.message.format(
+        #     first_name=user.first_name, last_name=user.last_name,
+        #     username=user.username)
+
+        fmt = PartialFormatter()
+        data = {'first_name': user.first_name,
+                'last_name': user.last_name,
+                'username': user.username}
+        message = fmt.format(mail_template.message, **data)
+
         try:
             send_mail(subject=mail_template.subject, message=message,
-                      from_email=mail_template.from_email, recipient_list=[user.email])
+                      from_email=mail_template.from_email,
+                      recipient_list=[user.email])
         except Exception as e:
             raise e
 
@@ -428,14 +450,26 @@ class Mail(models.Model):
         organisation = action.profile.organisation
         website = organisation.website or "- adresse url manquante -"
         mail_template = Mail.objects.get(template_name="confirm_new_organisation")
-        message = mail_template.message.format(
-            username=user.username,
-            user_mail=user.email,
-            organisation_name=organisation.name,
-            website=website,
-            url=request.build_absolute_uri(
-                reverse('idgo_admin:confirm_new_orga',
-                        kwargs={'key': action.key})))
+        # message = mail_template.message.format(
+        #     username=user.username,
+        #     user_mail=user.email,
+        #     organisation_name=organisation.name,
+        #     website=website,
+        #     url=request.build_absolute_uri(
+        #         reverse('idgo_admin:confirm_new_orga',
+        #                 kwargs={'key': action.key})))
+
+        fmt = PartialFormatter()
+        data = {'first_name': user.first_name,
+                'last_name': user.last_name,
+                'username': user.username,
+                'user_mail': user.email,
+                'organisation_name': organisation.name,
+                'website': website,
+                'url': request.build_absolute_uri(
+                        reverse('idgo_admin:confirm_new_orga',
+                                kwargs={'key': action.key}))}
+        message = fmt.format(mail_template.message, **data)
         try:
             send_mail(subject=mail_template.subject, message=message,
                       from_email=mail_template.from_email,
@@ -449,14 +483,28 @@ class Mail(models.Model):
         organisation = action.profile.organisation
         website = organisation.website or "- adresse url manquante -"
         mail_template = Mail.objects.get(template_name="confirm_rattachement")
-        message = mail_template.message.format(
-            username=user.username,
-            user_mail=user.email,
-            organisation_name=organisation.name,
-            website=website,
-            url=request.build_absolute_uri(
-                reverse('idgo_admin:confirm_rattachement',
-                        kwargs={'key': action.key})))
+
+        # message = mail_template.message.format(
+        #     username=user.username,
+        #     user_mail=user.email,
+        #     organisation_name=organisation.name,
+        #     website=website,
+        #     url=request.build_absolute_uri(
+        #         reverse('idgo_admin:confirm_rattachement',
+        #                 kwargs={'key': action.key})))
+
+        fmt = PartialFormatter()
+        data = {'first_name': user.first_name,
+                'last_name': user.last_name,
+                'username': user.username,
+                'user_mail': user.email,
+                'organisation_name': organisation.name,
+                'website': website,
+                'url': request.build_absolute_uri(
+                        reverse('idgo_admin:confirm_rattachement',
+                                kwargs={'key': action.key}))}
+        message = fmt.format(mail_template.message, **data)
+
         try:
             send_mail(
                 subject=mail_template.subject, message=message,
@@ -472,14 +520,27 @@ class Mail(models.Model):
         website = organisation.website or "- adresse url manquante -"
         mail_template = Mail.objects.get(
             template_name="confirm_updating_rattachement")
-        message = mail_template.message.format(
-            username=user.username,
-            user_mail=user.email,
-            organisation_name=organisation.name,
-            website=website,
-            url=request.build_absolute_uri(
-                reverse('idgo_admin:confirm_rattachement',
-                        kwargs={'key': action.key})))
+        # message = mail_template.message.format(
+        #     username=user.username,
+        #     user_mail=user.email,
+        #     organisation_name=organisation.name,
+        #     website=website,
+        #     url=request.build_absolute_uri(
+        #         reverse('idgo_admin:confirm_rattachement',
+        #                 kwargs={'key': action.key})))
+
+        fmt = PartialFormatter()
+        data = {'first_name': user.first_name,
+                'last_name': user.last_name,
+                'username': user.username,
+                'user_mail': user.email,
+                'organisation_name': organisation.name,
+                'website': website,
+                'url': request.build_absolute_uri(
+                        reverse('idgo_admin:confirm_rattachement',
+                                kwargs={'key': action.key}))}
+        message = fmt.format(mail_template.message, **data)
+
         try:
             send_mail(
                 subject=mail_template.subject, message=message,
@@ -495,14 +556,27 @@ class Mail(models.Model):
         website = organisation.website or "(adresse url manquante)"
         mail_template = Mail.objects.get(
                 template_name="confirm_referent")
-        message = mail_template.message.format(
-                    username=user.username,
-                    user_mail=user.email,
-                    organisation_name=organisation.name,
-                    website=website,
-                    url=request.build_absolute_uri(
+        # message = mail_template.message.format(
+        #             username=user.username,
+        #             user_mail=user.email,
+        #             organisation_name=organisation.name,
+        #             website=website,
+        #             url=request.build_absolute_uri(
+        #                 reverse('idgo_admin:confirm_referent',
+        #                         kwargs={'key': action.key})))
+
+        fmt = PartialFormatter()
+        data = {'first_name': user.first_name,
+                'last_name': user.last_name,
+                'username': user.username,
+                'user_mail': user.email,
+                'organisation_name': organisation.name,
+                'website': website,
+                'url': request.build_absolute_uri(
                         reverse('idgo_admin:confirm_referent',
-                                kwargs={'key': action.key})))
+                                kwargs={'key': action.key}))}
+        message = fmt.format(mail_template.message, **data)
+
         try:
             send_mail(
                 subject=mail_template.subject, message=message,
@@ -518,14 +592,26 @@ class Mail(models.Model):
         website = organisation.website or "(adresse url manquante)"
         mail_template = Mail.objects.get(
                 template_name="confirm_contribution")
-        message = mail_template.message.format(
-                    username=user.username,
-                    user_mail=user.email,
-                    organisation_name=organisation.name,
-                    website=website,
-                    url=request.build_absolute_uri(
-                        reverse('idgo_admin:confirm_contribution',
-                                kwargs={'key': action.key})))
+
+        # message = mail_template.message.format(
+        #             username=user.username,
+        #             user_mail=user.email,
+        #             organisation_name=organisation.name,
+        #             website=website,
+        #             url=request.build_absolute_uri(
+        #                 reverse('idgo_admin:confirm_contribution',
+        #                         kwargs={'key': action.key})))
+
+        fmt = PartialFormatter()
+        data = {'username': user.username,
+                'user_mail': user.email,
+                'organisation_name': organisation.name,
+                'website': website,
+                'url': request.build_absolute_uri(
+                    reverse('idgo_admin:confirm_contribution',
+                            kwargs={'key': action.key}))}
+        message = fmt.format(mail_template.message, **data)
+
         try:
             send_mail(
                 subject=mail_template.subject, message=message,
@@ -540,8 +626,12 @@ class Mail(models.Model):
         mail_template = Mail.objects.get(
                 template_name="affiliate_confirmation_to_user")
 
-        message = mail_template.message.format(
-                organisation_name=profile.organisation.name)
+        # message = mail_template.message.format(
+        #         organisation_name=profile.organisation.name)
+
+        fmt = PartialFormatter()
+        data = {'organisation_name': profile.organisation.name}
+        message = fmt.format(mail_template.message, **data)
 
         send_mail(subject=mail_template.subject, message=message,
                   from_email=mail_template.from_email,
@@ -555,24 +645,35 @@ class Mail(models.Model):
 
         mail_template = Mail.objects.get(
                 template_name="confirm_contrib_to_user")
-        message = mail_template.message.format(
-                organisation=organisation.name)
+        # message = mail_template.message.format(
+        #         organisation=organisation.name)
+
+        fmt = PartialFormatter()
+        data = {'organisation_name': organisation.name}
+        message = fmt.format(mail_template.message, **data)
+
         send_mail(subject=mail_template.subject, message=message,
                   from_email=mail_template.from_email,
                   recipient_list=[user.email])
 
     @classmethod
     def conf_deleting_dataset_res_by_user(cls, user, dataset=None, resource=None):
-
+        fmt = PartialFormatter()
         if dataset:
             mail_template = Mail.objects.get(template_name="conf_deleting_dataset_by_user")
-            message = mail_template.message.format(dataset_name=dataset.name)
+            # message = mail_template.message.format(dataset_name=dataset.name)
+            data = {'dataset_name': dataset.name}
+
         elif resource:
             mail_template = Mail.objects.get(template_name="conf_deleting_res_by_user")
-            message = mail_template.message.format(
-                    dataset_name=resource.dataset.name,
-                    resource_name=resource.name)
+            # message = mail_template.message.format(
+            #         dataset_name=resource.dataset.name,
+            #         resource_name=resource.name)
 
+            data = {'dataset_name': dataset.name,
+                    'resource_name': resource.name}
+
+        message = fmt.format(mail_template.message, **data)
         send_mail(subject=mail_template.subject, message=message,
                   from_email=mail_template.from_email,
                   recipient_list=[user.email])
@@ -581,10 +682,17 @@ class Mail(models.Model):
     def conf_deleting_profile_to_user(cls, user_copy):
         mail_template = Mail.objects.get(template_name="conf_deleting_profile_to_user")
 
-        message = mail_template.message.format(
-                first_name=user_copy["first_name"],
-                last_name=user_copy["last_name"],
-                username=user_copy["username"])
+        # message = mail_template.message.format(
+        #         first_name=user_copy["first_name"],
+        #         last_name=user_copy["last_name"],
+        #         username=user_copy["username"])
+
+        fmt = PartialFormatter()
+        data = {'first_name': user_copy["first_name"],
+                'last_name': user_copy["last_name"],
+                'username': user_copy["username"]}
+        message = fmt.format(mail_template.message, **data)
+
         try:
             send_mail(subject=mail_template.subject, message=message,
                       from_email=mail_template.from_email,
@@ -597,13 +705,23 @@ class Mail(models.Model):
         mail_template = Mail.objects.get(template_name="send_reset_password_link_to_user")
         user = action.profile.user
 
-        message = mail_template.message.format(
-            first_name=user.first_name,
-            last_name=user.last_name,
-            username=user.username,
-            url=request.build_absolute_uri(
-                reverse('idgo_admin:resetPassword',
-                        kwargs={'key': action.key})))
+        # message = mail_template.message.format(
+        #     first_name=user.first_name,
+        #     last_name=user.last_name,
+        #     username=user.username,
+        #     url=request.build_absolute_uri(
+        #         reverse('idgo_admin:resetPassword',
+        #                 kwargs={'key': action.key})))
+
+        fmt = PartialFormatter()
+        data = {'first_name': user.first_name,
+                'last_name': user.last_name,
+                'username': user.username,
+                'url': request.build_absolute_uri(
+                        reverse('idgo_admin:resetPassword',
+                                kwargs={'key': action.key}))}
+        message = fmt.format(mail_template.message, **data)
+
         try:
             send_mail(subject=mail_template.subject, message=message,
                       from_email=mail_template.from_email,

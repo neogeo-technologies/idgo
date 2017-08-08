@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.forms.account import ProfileUpdateForm
@@ -44,6 +45,7 @@ def render_an_critical_error(request):
                   {'message': message}, status=400)
 
 
+@method_decorator([csrf_exempt], name='dispatch')
 class SignIn(MamaLoginView):
 
     template_name = 'idgo_admin/signin.html'
@@ -62,6 +64,11 @@ class SignIn(MamaLoginView):
             st = ServiceTicket.objects.create_ticket(
                 service=service, user=self.request.user, primary=True)
             return mama_redirect(service, params={'ticket': st.ticket})
+
+        nxt_pth = self.request.GET.get('next', None)
+        if nxt_pth:
+            return HttpResponseRedirect(nxt_pth)
+
         return redirect('idgo_admin:home')
 
 
