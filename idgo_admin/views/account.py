@@ -263,10 +263,6 @@ def forgotten_password(request):
                       {'message': message}, status=status)
 
 
-
-
-
-
 @transaction.atomic
 @csrf_exempt
 def reset_password(request, key):
@@ -292,14 +288,13 @@ def reset_password(request, key):
     except IntegrityError:
         logout(request)
     except Exception:
-        status = 400
-        message = 'Une erreur est survenue lors de la modification de votre mot de passe.'
+        messages.error(
+            request, 'Une erreur est survenue lors de la modification de votre compte.')
+    else:
+        messages.success(
+            request, 'Votre mot de passe a été réinitialisé.')
 
-    status = 200
-    message = 'Votre mot de passe a été réinitialisé.'
-
-    return render(request, 'idgo_admin/message.html',
-                  {'message': message}, status=status)
+    return HttpResponseRedirect(reverse('idgo_admin:modifyAccount'))
 
 
 @transaction.atomic

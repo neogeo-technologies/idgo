@@ -18,17 +18,6 @@ from idgo_admin.models import Profile
 import json
 
 
-def render_an_critical_error(request, operation):
-    # TODO(@m431m)
-    message = ("Une erreur critique s'est produite lors de la validation "
-               "de l'opération: {operation} "
-               "Merci de contacter l'administrateur du site. "
-               ).format(operation=operation)
-
-    return render(request, 'idgo_admin/response.html',
-                  {'message': message}, status=400)
-
-
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def contribution_request(request):
@@ -36,7 +25,6 @@ def contribution_request(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
-    # Liste des organisations pour lesquelles l'user est contributeur:
     contribs = Liaisons_Contributeurs.get_contribs(profile=profile)
 
     if request.method == 'GET':
@@ -54,21 +42,21 @@ def contribution_request(request):
         return render(request, 'idgo_admin/contribute.html', {'pform': pform})
 
     organisation = pform.cleaned_data['contributions']
+
     Liaisons_Contributeurs.objects.create(
         profile=profile, organisation=organisation)
 
     contribution_action = AccountActions.objects.create(
         profile=profile, action='confirm_contribution', org_extras=organisation)
 
-    try:
-        Mail.confirm_contribution(request, contribution_action)
-    except Exception:
-        render_an_critical_error(request, "Demande de contribution")
-    text = ("Votre demande de contribution à l'organisation "
-            '<strong>{0}</strong> est en cours de traitement. Celle-ci '
-            "ne sera effective qu'après validation par un administrateur."
-            ).format(organisation.name)
-    messages.success(request, text)
+    Mail.confirm_contribution(request, contribution_action)
+
+    message = ("Votre demande de contribution à l'organisation "
+               '<strong>{0}</strong> est en cours de traitement. Celle-ci '
+               "ne sera effective qu'après validation par un administrateur."
+               ).format(organisation.name)
+    messages.success(request, message)
+
     return HttpResponseRedirect(reverse('idgo_admin:contribute'))
 
 
@@ -79,7 +67,6 @@ def referent_request(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
-    # Liste des organisations our lesquelles l'user est contributeur:
     subordonates = Liaisons_Referents.get_subordonates(profile=profile)
 
     if request.method == 'GET':
@@ -101,10 +88,8 @@ def referent_request(request):
         profile=profile, organisation=organisation)
     request_action = AccountActions.objects.create(
         profile=profile, action='confirm_referent', org_extras=organisation)
-    try:
-        Mail.confirm_referent(request, request_action)
-    except Exception:
-        render_an_critical_error(request, "Demande de status référent")
+
+    Mail.confirm_referent(request, request_action)
 
     return render(
         request, 'idgo_admin/contribute.html',
