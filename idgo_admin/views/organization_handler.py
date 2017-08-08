@@ -169,14 +169,11 @@ class Contributions(View):
             profile=profile, organisation__id=id)
         my_contribution.delete()
 
-        # Revoir le render
-        context = {
-            'action': reverse('idgo_admin:organizations'),
-            'message': ("Vous n'êtes plus contributeur pour l'organisation "
-                        "<strong>{0}</strong>").format(organization.name)}
+        message = ("Vous n'êtes plus contributeur pour l'organisation "
+                   "<strong>{0}</strong>").format(organization.name)
 
-        return render(
-            request, 'idgo_admin/response.html', context=context, status=200)
+        return render(request, 'idgo_admin/response.html',
+                      context={'message': message}, status=200)
 
 
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
@@ -207,11 +204,8 @@ class Referents(View):
             profile=profile, organisation__id=id)
         my_subordinates.delete()
 
-        # Revoir le render
-        context = {
-            'action': reverse('idgo_admin:referents'),
-            'message': ("Vous n'êtes plus contributeur pour l'organisation "
-                        "<strong>{0}</strong>").format(organization.name)}
+        message = ("Vous n'êtes plus référent pour l'organisation "
+                   "<strong>{0}</strong>").format(organization.name)
 
-        return render(
-            request, 'idgo_admin/response.html', context=context, status=200)
+        return render(request, 'idgo_admin/response.html',
+                      context={'message': message}, status=200)

@@ -147,12 +147,8 @@ class DatasetManager(View):
             # TODO Que faire en cas d'erreur à ce niveau ?
             pass
 
-        # TODO Revoir le 'render' complètement
-        context = {'message': message,
-                   'action': reverse('idgo_admin:home') + '#datasets'}
-
         return render(request, 'idgo_admin/response.html',
-                      context=context, status=status)
+                      context={'message': message}, status=status)
 
 
 @login_required(login_url=settings.LOGIN_URL)

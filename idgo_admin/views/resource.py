@@ -87,7 +87,9 @@ class ResourceManager(View):
 
         id = request.POST.get('id', request.GET.get('id'))
         if id:
-            instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+            instance = \
+                get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+
             form = Form(request.POST, request.FILES, instance=instance)
             if not form.is_valid():
                 return render(request, self.template, {'form': form})
@@ -132,7 +134,8 @@ class ResourceManager(View):
             ckan_user.delete_resource(str(instance.ckan_id))
         except Exception:
             # TODO Gérer les erreurs correctement
-            message = "La ressource ne peut pas être supprimée. Veuillez contacter l'administrateur du site."
+            message = 'La ressource ne peut pas être supprimée. ' \
+                      "Veuillez contacter l'administrateur du site."
             status = 400
         else:
             instance.delete()
@@ -140,17 +143,7 @@ class ResourceManager(View):
             status = 200
         ckan_user.close()
 
-        try:
-            Mail.conf_deleting_dataset_res_by_user(user, resource=instance)
-        except Exception:
-            # TODO Que faire en cas d'erreur à ce niveau ?
-            pass
+        Mail.conf_deleting_dataset_res_by_user(user, resource=instance)
 
-        # TODO Revoir le 'render' complètement
-        context = {
-            'message': message,
-            'method': 'get',
-            'action': reverse('idgo_admin:dataset') + '?id={0}'.format(dataset_id)}
-
-        return render(
-            request, 'idgo_admin/response.html', context=context, status=status)
+        return render(request, 'idgo_admin/response.html',
+                      context={'message': message}, status=status)
