@@ -236,8 +236,9 @@ def forgotten_password(request):
                       {'message': message}, status=200)
 
     action, created = AccountActions.objects.get_or_create(
-        profile=profile, action='reset_password')
-    if created is False:
+        profile=profile, action='reset_password', closed=None)
+
+    if not created:
         message = ('Un e-mail de réinitialisation à déjà été envoyé '
                    "Veuillez vérifier votre messagerie")
         return render(request, 'idgo_admin/message.html',
@@ -260,6 +261,10 @@ def forgotten_password(request):
     finally:
         return render(request, 'idgo_admin/message.html',
                       {'message': message}, status=status)
+
+
+
+
 
 
 @transaction.atomic
