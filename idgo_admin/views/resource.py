@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import Mail
@@ -37,10 +38,11 @@ class ResourceManager(View):
     template = 'idgo_admin/resource.html'
     namespace = 'idgo_admin:resource'
 
+    @ExceptionsHandler(ignore=[Http404])
     def get(self, request, dataset_id):
 
         user = request.user
-        dataset = get_object_or_404(Dataset, id=dataset_id)
+        dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
 
         all_users = get_all_users()
         all_organizations = get_all_organizations()
@@ -56,8 +58,8 @@ class ResourceManager(View):
 
         id = request.GET.get('id')
         if id:
-            instance = \
-                get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+            instance = get_object_or_404(
+                Resource, id=id, dataset_id=dataset_id, editor=user)
 
             # TODO Les trois champs sont exclusifs et il faudrait s'en assurer
             if instance.up_file:
@@ -73,6 +75,7 @@ class ResourceManager(View):
 
         return render(request, self.template, context)
 
+    @ExceptionsHandler(ignore=[Http404])
     def post(self, request, dataset_id):
 
         def get_uploaded_file(form):
@@ -83,12 +86,13 @@ class ResourceManager(View):
                 reverse(self.namespace, kwargs={'dataset_id': dataset_id}
                         ) + '?id={0}'.format(resource_id))
 
-        dataset = get_object_or_404(Dataset, id=dataset_id)
+        user = request.user
+        dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
 
         id = request.POST.get('id', request.GET.get('id'))
         if id:
-            instance = \
-                get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+            instance = get_object_or_404(
+                Resource, id=id, dataset_id=dataset_id, editor=user)
 
             form = Form(request.POST, request.FILES, instance=instance)
             if not form.is_valid():
@@ -121,13 +125,15 @@ class ResourceManager(View):
                 request, 'La ressource a été créée avec succès.')
             return http_redirect(instance.id)
 
+    @ExceptionsHandler(ignore=[Http404])
     def delete(self, request, dataset_id):
 
         user = request.user
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
             return Http404()
-        instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+        instance = get_object_or_404(
+            Resource, id=id, dataset_id=dataset_id, editor=user)
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:

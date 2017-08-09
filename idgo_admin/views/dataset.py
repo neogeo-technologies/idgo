@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import Liaisons_Contributeurs
@@ -31,6 +32,7 @@ class DatasetManager(View):
     template = 'idgo_admin/dataset.html'
     namespace = 'idgo_admin:dataset'
 
+    @ExceptionsHandler(ignore=[Http404])
     def get(self, request):
 
         user = request.user
@@ -73,6 +75,7 @@ class DatasetManager(View):
 
         return render(request, self.template, context=context)
 
+    @ExceptionsHandler(ignore=[Http404])
     def post(self, request):
 
         def http_redirect(dataset_id):
@@ -118,6 +121,7 @@ class DatasetManager(View):
                 'données ?</a>').format(reverse(self.namespace)))
             return http_redirect(instance.id)
 
+    @ExceptionsHandler(ignore=[Http404])
     def delete(self, request):
 
         user = request.user
@@ -151,6 +155,7 @@ class DatasetManager(View):
                       context={'message': message}, status=status)
 
 
+@ExceptionsHandler(ignore=[Http404])
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def datasets(request):

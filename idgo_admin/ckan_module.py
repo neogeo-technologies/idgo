@@ -13,31 +13,40 @@ CKAN_API_KEY = settings.CKAN_API_KEY
 
 
 def exceptions_handler(f):
+
     @wraps(f)
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
+
         except CkanError.CKANAPIError as e:
             print('CkanError.CKANAPIError', e.__str__())
             raise Exception('CkanError', e.__str__())
+
         except CkanError.NotAuthorized as e:
             print('CkanError.NotAuthorized', e.__str__())
             raise PermissionError('CkanError', e.__str__())
+
         except CkanError.ValidationError as e:
             print('CkanError.ValidationError', e.__str__())
             raise Exception('CkanError', e.__str__())
+
         except CkanError.NotFound as e:
             print('CkanError.NotFound', e.__str__())
             raise Exception('CkanError', e.__str__())
+
         except CkanError.SearchQueryError as e:
             print('CkanError.SearchQueryError', e.__str__())
             raise Exception('CkanError', e.__str__())
+
         except CkanError.SearchError as e:
             print('CkanError.SearchError', e.__str__())
             raise Exception('CkanError', e.__str__())
+
         except CkanError.SearchIndexError as e:
             print('CkanError.SearchIndexError', e.__str__())
             raise Exception('CkanError', e.__str__())
+
     return wrapper
 
 

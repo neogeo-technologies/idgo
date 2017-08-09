@@ -7,12 +7,14 @@ from idgo_admin.models import AccountActions
 from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import Liaisons_Referents
 from idgo_admin.models import Mail
+from uuid import UUID
 
 
 @csrf_exempt
 def confirmation_mail(request, key):
 
-    action = get_object_or_404(AccountActions, key=key, action='confirm_mail')
+    action = get_object_or_404(
+        AccountActions, key=UUID(key), action='confirm_mail')
     if action.closed:
         message = 'Vous avez déjà validé votre adresse e-mail.'
         return render(
@@ -87,7 +89,7 @@ def confirmation_mail(request, key):
 def confirm_new_orga(request, key):
 
     action = get_object_or_404(
-        AccountActions, key=str(key), action='confirm_new_organisation')
+        AccountActions, key=UUID(key), action='confirm_new_organisation')
 
     name = action.profile.organisation.name
     if action.closed:
@@ -112,7 +114,7 @@ def confirm_new_orga(request, key):
 def confirm_rattachement(request, key):
 
     action = get_object_or_404(
-        AccountActions, key=str(key), action='confirm_rattachement')
+        AccountActions, key=UUID(key), action='confirm_rattachement')
 
     if action.closed:
         action.profile.rattachement_active = True
@@ -150,7 +152,7 @@ def confirm_rattachement(request, key):
 def confirm_referent(request, key):
 
     action = get_object_or_404(
-        AccountActions, key=str(key), action='confirm_referent')
+        AccountActions, key=UUID(key), action='confirm_referent')
 
     organisation = action.org_extras
     if action.closed:
@@ -188,7 +190,7 @@ def confirm_referent(request, key):
 def confirm_contribution(request, key):
 
     action = get_object_or_404(
-        AccountActions, key=str(key), action='confirm_contribution')
+        AccountActions, key=UUID(key), action='confirm_contribution')
     organisation = action.org_extras
 
     if action.closed:
