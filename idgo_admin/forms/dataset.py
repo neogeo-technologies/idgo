@@ -1,10 +1,10 @@
 from django.core.exceptions import ValidationError
 # from django.core import validators
-from django.db import IntegrityError
 from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.exceptions import CKANSyncingError
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import Liaisons_Contributeurs
@@ -215,16 +215,14 @@ class DatasetForm(forms.ModelForm):
         try:
             ckan_dataset = ckan_user.publish_dataset(
                 dataset.ckan_slug, id=str(dataset.ckan_id), **ckan_params)
-        except Exception as e:
+        except Exception:
             dataset.sync_in_ckan = False
-            # TODO Gérer correctement les erreurs
-            raise IntegrityError('Une erreur est survenue lors de la création '
-                                 'du jeu de données dans CKAN : {0}'.format(e))
+            raise CKANSyncingError()
         else:
             dataset.ckan_id = UUID(ckan_dataset['id'])
             dataset.sync_in_ckan = True
-
-        ckan_user.close()
-        dataset.save()
+            dataset.save()
+        finally:
+            ckan_user.close()
 
         return dataset

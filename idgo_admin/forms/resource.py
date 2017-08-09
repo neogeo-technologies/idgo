@@ -1,10 +1,10 @@
 from django.conf import settings
 from django.core.files import File
-from django.db import IntegrityError
 from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.exceptions import CKANSyncingError
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.utils import download
@@ -150,16 +150,14 @@ class ResourceForm(forms.ModelForm):
 
         try:
             ckan_user.publish_resource(str(dataset.ckan_id), **ckan_params)
-        except Exception as e:
+        except Exception:
             # resource.sync_in_ckan = False
-            # TODO Gérer correctement les erreurs
-            raise IntegrityError('Une erreur est survenue lors de la création '
-                                 'de la ressource dans CKAN : {0}'.format(e))
+            raise CKANSyncingError()
         else:
             # resource.sync_in_ckan = True
             resource.last_update = _today
+            resource.save()
+        finally:
+            ckan_user.close()
 
-        ckan_user.close()
-        resource.save()
-        
         return resource

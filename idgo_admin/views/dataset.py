@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.exceptions import CKANSyncingError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Dataset
@@ -128,28 +129,21 @@ class DatasetManager(View):
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
             return Http404()
-        dataset = get_object_or_404(Dataset, id=id, editor=user)
+        instance = get_object_or_404(Dataset, id=id, editor=user)
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
-            ckan_user.delete_dataset(str(dataset.ckan_id))
-            ckan.purge_dataset(str(dataset.ckan_id))
+            ckan_user.delete_dataset(str(instance.ckan_id))
+            ckan.purge_dataset(str(instance.ckan_id))
         except Exception:
-            # TODO Gérer les erreurs correctement
-            message = 'Le jeu de données ne peut pas être supprimé. ' \
-                      "Veuillez contacter l'administrateur du site."
-            status = 400
-        else:
-            dataset.delete()
-            message = 'Le jeu de données a été supprimé avec succès.'
+            raise CKANSyncingError()
+        finally:
+            ckan_user.close()
+            instance.delete()
+            message = 'La ressource a été supprimée avec succès.'
             status = 200
-        ckan_user.close()
 
-        try:
-            Mail.conf_deleting_dataset_res_by_user(user, dataset=dataset)
-        except Exception:
-            # TODO Que faire en cas d'erreur à ce niveau ?
-            pass
+        Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
 
         return render(request, 'idgo_admin/response.html',
                       context={'message': message}, status=status)

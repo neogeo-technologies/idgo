@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.exceptions import CKANSyncingError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
@@ -139,15 +140,12 @@ class ResourceManager(View):
         try:
             ckan_user.delete_resource(str(instance.ckan_id))
         except Exception:
-            # TODO Gérer les erreurs correctement
-            message = 'La ressource ne peut pas être supprimée. ' \
-                      "Veuillez contacter l'administrateur du site."
-            status = 400
-        else:
+            raise CKANSyncingError()
+        finally:
+            ckan_user.close()
             instance.delete()
             message = 'La ressource a été supprimée avec succès.'
             status = 200
-        ckan_user.close()
 
         Mail.conf_deleting_dataset_res_by_user(user, resource=instance)
 
