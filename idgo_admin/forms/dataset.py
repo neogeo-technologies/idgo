@@ -13,6 +13,7 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from taggit.forms import TagField
 from taggit.forms import TagWidget
+from uuid import UUID
 
 
 _today = timezone.now().date()
@@ -220,9 +221,10 @@ class DatasetForm(forms.ModelForm):
             raise IntegrityError('Une erreur est survenue lors de la création '
                                  'du jeu de données dans CKAN : {0}'.format(e))
         else:
-            dataset.ckan_id = ckan_dataset['id']
+            dataset.ckan_id = UUID(ckan_dataset['id'])
             dataset.sync_in_ckan = True
-        ckan_user.close()
 
+        ckan_user.close()
         dataset.save()
+
         return dataset

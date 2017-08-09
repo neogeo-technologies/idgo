@@ -158,7 +158,8 @@ class ResourceForm(forms.ModelForm):
         else:
             # resource.sync_in_ckan = True
             resource.last_update = _today
-        ckan_user.close()
 
+        ckan_user.close()
         resource.save()
+        
         return resource
