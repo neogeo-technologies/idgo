@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from idgo_admin.forms.account import ProfileUpdateForm
+from idgo_admin.forms.account import ProfileForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import Liaisons_Referents
@@ -25,7 +25,7 @@ def contribution_request(request):
 
     user = request.user
     profile = get_object_or_404(Profile, user=user)
-
+    process = 'update'
     contribs = Liaisons_Contributeurs.get_contribs(profile=profile)
 
     if request.method == 'GET':
@@ -33,11 +33,12 @@ def contribution_request(request):
             request, 'idgo_admin/contribute.html',
             {'first_name': user.first_name,
              'last_name': user.last_name,
-             'pform': ProfileUpdateForm(exclude={'user': user}),
+             'pform': ProfileForm(include={'user': user, 'action': process}),
              'contribs': contribs})
 
-    pform = ProfileUpdateForm(
-        instance=profile, data=request.POST or None, exclude={'user': user})
+    pform = ProfileForm(
+        instance=profile, data=request.POST or None,
+        include={'user': user, 'action': process})
 
     if not pform.is_valid():
         return render(request, 'idgo_admin/contribute.html', {'pform': pform})
@@ -67,7 +68,7 @@ def referent_request(request):
 
     user = request.user
     profile = get_object_or_404(Profile, user=user)
-
+    process = 'update'
     subordonates = Liaisons_Referents.get_subordonates(profile=profile)
 
     if request.method == 'GET':
@@ -75,11 +76,12 @@ def referent_request(request):
             request, 'idgo_admin/contribute.html',
             {'first_name': user.first_name,
              'last_name': user.last_name,
-             'pform': ProfileUpdateForm(exclude={'user': user}),
+             'pform': ProfileForm(include={'user': user, 'action': process}),
              'pub_liste': subordonates})
 
-    pform = ProfileUpdateForm(
-        instance=profile, data=request.POST or None, exclude={'user': user})
+    pform = ProfileForm(
+        instance=profile, data=request.POST or None,
+        include={'user': user, 'action': process})
 
     if not pform.is_valid():
         return render(request, 'idgo_admin/contribute.html', {'pform': pform})
@@ -96,7 +98,7 @@ def referent_request(request):
         request, 'idgo_admin/contribute.html',
         {'first_name': user.first_name,
          'last_name': user.last_name,
-         'pform': ProfileUpdateForm(exclude={'user': user}),
+         'pform': ProfileForm(include={'user': user, 'action': process}),
          'pub_liste': subordonates,
          'message': {
              'status': 'success',

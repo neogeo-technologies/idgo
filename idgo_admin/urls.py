@@ -1,9 +1,10 @@
 from django.conf.urls import url
+from idgo_admin.views.account import AccountManager
 from idgo_admin.views.account import delete_account
 from idgo_admin.views.account import forgotten_password
-from idgo_admin.views.account import modify_account
+# from idgo_admin.views.account import modify_account
 from idgo_admin.views.account import reset_password
-from idgo_admin.views.account import sign_up
+# from idgo_admin.views.account import sign_up
 from idgo_admin.views.account import SignIn
 from idgo_admin.views.account import SignOut
 from idgo_admin.views.dataset import DatasetManager
@@ -26,7 +27,8 @@ urlpatterns = [
     url('^$', datasets, name='home'),
     url('^signin/?$', SignIn.as_view(), name='signIn'),
     url('^signout/?$', SignOut.as_view(), name='signOut'),
-    url('^signup/?$', sign_up, name='signUp'),
+    # url('^signup/?$', sign_up, name='signUp'),
+    url('^account/(?P<process>(create|update))/?$', AccountManager.as_view(), name='account_manager'),
     url('^forgottenpassword/?$', forgotten_password, name='forgottenPassword'),
     url('^resetpassword/(?P<key>.+)/?$', reset_password, name='resetPassword'),
     url('^confirmation/email/(?P<key>.+)/?$', confirmation_mail, name='confirmation_mail'),
@@ -34,7 +36,7 @@ urlpatterns = [
     url('^confirmation/rattachment/(?P<key>.+)/?$', confirm_rattachement, name='confirm_rattachement'),
     url('^confirmation/referent/(?P<key>.+)/?$', confirm_referent, name='confirm_referent'),
     url('^confirmation/contribute/(?P<key>.+)/?$', confirm_contribution, name='confirm_contribution'),
-    url('^modifyaccount/?$', modify_account, name='modifyAccount'),
+    # url('^modifyaccount/?$', modify_account, name='modifyAccount'),
     # url('^activation_admin/(?P<key>.+)/?$', activation_admin, name='activation_admin'),
     url('^organizations/contribute/(?P<key>.+)/?$', contribution_request, name='contribute'),
     url('^organizations/contribute/?$', contribution_request, name='contribute'),
