@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.files import File
 from django import forms
 from django.utils import timezone
@@ -97,13 +98,6 @@ class ResourceForm(forms.ModelForm):
         else:  # Création d'une nouvelle ressource
             resource = Resource.objects.create(**params)
 
-        # TODO(cbenhabib) Lien ressource / user
-        # profile = Profile.objects.get(user=user)
-        # bonding = Liaisons_Resources.objects.create(
-        #     profile=profile, resource=resource)
-        # bonding.validated_on = timezone.now()
-        # bonding.save()
-
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
 
         ckan_params = {
@@ -160,3 +154,20 @@ class ResourceForm(forms.ModelForm):
             ckan_user.close()
 
         return resource
+
+    def clean(self):
+
+        up_file = self.cleaned_data.get('up_file', None)
+        dl_url = self.cleaned_data.get('dl_url', None)
+        referenced_url = self.cleaned_data.get('referenced_url', None)
+        res_l = [up_file, dl_url, referenced_url]
+        if all(v is None for v in res_l):
+            self.add_error('up_file', "Veuillez indiquer un type de ressource.")
+            self.add_error('dl_url', "Veuillez indiquer un type de ressource.")
+            self.add_error('referenced_url', "Veuillez indiquer un type de ressource.")
+            raise ValidationError('ResourceType')
+        if sum(v is not None for v in res_l) > 1:
+            self.add_error('up_file', "Un seul type de ressource n'est autorisé.")
+            self.add_error('dl_url', "Un seul type de ressource n'est autorisé.")
+            self.add_error('referenced_url', "Un seul type de ressource n'est autorisé.")
+            raise ValidationError('ResourceType')
