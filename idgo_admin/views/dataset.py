@@ -131,7 +131,6 @@ class DatasetManager(View):
             return Http404()
         instance = get_object_or_404(Dataset, id=id, editor=user)
         ckan_id = str(instance.ckan_id)
-
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
             ckan_user.delete_dataset(ckan_id)

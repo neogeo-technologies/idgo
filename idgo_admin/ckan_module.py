@@ -4,6 +4,7 @@ from datetime import datetime
 from django.conf import settings
 from django.db import IntegrityError
 from functools import wraps
+from idgo_admin.exceptions import ConflictError
 from idgo_admin.exceptions import FakeError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.utils import Singleton
@@ -30,9 +31,12 @@ class CkanExceptionsHandler(object):
             try:
                 return f(*args, **kwargs)
             except Exception as e:
+                name = e.__class__.__qualname__
+                message = e.__str__()
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
-                raise CkanSyncingError(name=e.__class__.__qualname__)
+                print('[~ Ckan Error ~]', name, message)
+                raise CkanSyncingError(name=name, message=message)
         return wrapper
 
     def is_ignored(self, exception):
@@ -65,6 +69,7 @@ class CkanUserHandler(object):
     def push_resource(self, package, **kwargs):
         kwargs['package_id'] = package['id']
         kwargs['created'] = datetime.now().isoformat()
+
         for resource in package['resources']:
             if resource['id'] == kwargs['id']:
                 kwargs['last_modified'] = kwargs['created']
@@ -90,7 +95,7 @@ class CkanUserHandler(object):
 
     def check_dataset_integrity(self, name):
         if self.is_package_name_already_used(name):
-            raise FakeError('Dataset already exists')
+            raise ConflictError('Dataset already exists')
 
     @CkanExceptionsHandler()
     def publish_dataset(self, name, id=None, resources=None, **kwargs):
@@ -106,19 +111,20 @@ class CkanUserHandler(object):
         resource = self.push_resource(self.get_package(dataset_id), **kwargs)
         resource_format = kwargs['format'].lower()
         supported_view = {'csv': 'recline_view',
+                          'geojson': 'text_view',
                           'json': 'text_view',
                           'wms': 'geo_view',
                           'xls': 'recline_view',
+                          'xlsc': 'recline_view',
                           'xml': 'text_view',
                           'pdf': 'pdf_view'}
-        if resource_format not in [k for k, v in supported_view.items()]:
-            return
-        self.push_resource_view(resource_id=resource['id'],
-                                view_type=supported_view.get(resource_format))
+        if resource_format in [k for k, v in supported_view.items()]:
+            self.push_resource_view(
+                resource_id=resource['id'],
+                view_type=supported_view.get(resource_format))
 
     @CkanExceptionsHandler()
     def delete_resource(self, id):
-        raise FakeError()
         return self.remote.action.resource_delete(id=id)
 
     @CkanExceptionsHandler()

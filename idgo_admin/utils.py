@@ -1,6 +1,3 @@
-from django.shortcuts import render
-from django.urls import reverse
-from functools import wraps
 import os
 import requests
 import string

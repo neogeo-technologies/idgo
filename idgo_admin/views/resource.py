@@ -15,7 +15,6 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
-from idgo_admin.models import Mail
 from idgo_admin.models import Resource
 import json
 
@@ -62,7 +61,7 @@ class ResourceManager(View):
             instance = \
                 get_object_or_404(Resource, id=id, dataset_id=dataset_id)
 
-            # TODO Les trois champs sont exclusifs et il faudrait s'en assurer
+            mode = None
             if instance.up_file:
                 mode = 'up_file'
             if instance.dl_url:
@@ -70,9 +69,9 @@ class ResourceManager(View):
             if instance.referenced_url:
                 mode = 'referenced_url'
 
-            context.update({'resource_name': instance.name,
-                            'mode': mode,
-                            'form': Form(instance=instance)})
+            context.update({
+                'resource_name': instance.name, 'mode': mode,
+                'form': Form(instance=instance)})
 
         return render(request, self.template, context)
 
@@ -103,8 +102,9 @@ class ResourceManager(View):
                 form.handle_me(
                     request, dataset, id=id,
                     uploaded_file=get_uploaded_file(form))
-            except Exception:
-                messages.error(request, 'Une erreur est survenue.')
+            except CkanSyncingError:
+                messages.error(
+                    request, 'Impossible de mettre à jour la ressource Ckan.')
             else:
                 messages.success(
                     request, 'La ressource a été mise à jour avec succès.')
@@ -118,8 +118,9 @@ class ResourceManager(View):
         try:
             instance = form.handle_me(
                 request, dataset, uploaded_file=get_uploaded_file(form))
-        except Exception:
-            messages.error(request, 'Une erreur est survenue.')
+        except CkanSyncingError:
+            messages.error(
+                request, 'Impossible de mettre à jour la ressource Ckan.')
             return render(request, self.template, {'form': form})
         else:
             messages.success(

@@ -18,6 +18,11 @@ class CriticalException(GenericException):
         super().__init__(*args, **kwargs)
 
 
+class ConflictError(GenericException):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
 class FakeError(GenericException):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,7 +49,9 @@ class ExceptionsHandler(object):
             except Exception as e:
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
+
                 print('[Server Error]', e.__str__())
+
                 if request:
                     return render(
                         request, self.template_html_500, status=500)

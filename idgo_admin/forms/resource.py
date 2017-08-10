@@ -143,9 +143,9 @@ class ResourceForm(forms.ModelForm):
 
         try:
             ckan_user.publish_resource(str(dataset.ckan_id), **ckan_params)
-        except Exception:
+        except Exception as e:
             # resource.sync_in_ckan = False
-            raise Exception()
+            raise e
         else:
             # resource.sync_in_ckan = True
             resource.last_update = _today
