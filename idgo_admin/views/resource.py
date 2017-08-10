@@ -126,7 +126,8 @@ class ResourceManager(View):
             messages.success(request, (
                 'La ressource a été créée avec succès. '
                 'Souhaitez-vous <a href="{0}">ajouter une nouvelle '
-                'ressource ?</a>').format(reverse(self.namespace)))
+                'ressource ?</a>').format(
+                    reverse(self.namespace, kwargs={'dataset_id': dataset_id})))
             return http_redirect(instance.id)
 
     @ExceptionsHandler(ignore=[Http404])
