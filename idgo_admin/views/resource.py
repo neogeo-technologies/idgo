@@ -123,8 +123,10 @@ class ResourceManager(View):
                 request, 'Impossible de mettre à jour la ressource Ckan.')
             return render(request, self.template, {'form': form})
         else:
-            messages.success(
-                request, 'La ressource a été créée avec succès.')
+            messages.success(request, (
+                'La ressource a été créée avec succès. '
+                'Souhaitez-vous <a href="{0}">ajouter une nouvelle '
+                'ressource ?</a>').format(reverse(self.namespace)))
             return http_redirect(instance.id)
 
     @ExceptionsHandler(ignore=[Http404])
