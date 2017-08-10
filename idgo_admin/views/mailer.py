@@ -94,7 +94,7 @@ def confirm_new_orga(request, key):
     name = action.profile.organisation.name
     if action.closed:
         message = \
-            "La création de l'organisation {0} a déjà été confirmée.".format(name)
+            "La création de l'organisation <strong>{0}</strong> a déjà été confirmée.".format(name)
 
     else:
         action.profile.organisation.is_active = True
@@ -102,9 +102,9 @@ def confirm_new_orga(request, key):
         ckan.add_organization(action.profile.organisation)  # TODO À la création du premier dataset
         action.closed = timezone.now()
         action.save()
-        message = ("L'organisation {0} a bien été créée. "
+        message = ("L'organisation <strong>{0}</strong> a bien été créée. "
                    "Des utilisateurs peuvent désormais y être rattachés, "
-                   "demander à en etre contributeur ou référent ").format(name)
+                   "demander à en être contributeur ou référent. ").format(name)
 
     return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=200)
@@ -122,8 +122,8 @@ def confirm_rattachement(request, key):
         name = action.org_extras.name
         user = action.profile.user
         message = (
-            "Le rattachement de {first_name} {last_name} ({username}) "
-            "à l'organisation {organization_name} a déjà été confirmée."
+            "Le rattachement de <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) "
+            "à l'organisation <strong>{organization_name}</strong> a déjà été confirmée."
             ).format(first_name=user.first_name,
                      last_name=user.last_name,
                      username=user.username,
@@ -137,8 +137,8 @@ def confirm_rattachement(request, key):
         action.save()
 
         message = (
-            "Le rattachement de {first_name} {last_name} ({username}) "
-            "à l'organisation {organization_name} a bien été confirmée."
+            "Le rattachement de <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) "
+            "à l'organisation <strong>{organization_name}</strong> a bien été confirmée."
             ).format(first_name=user.first_name,
                      last_name=user.last_name,
                      username=user.username,
@@ -158,7 +158,7 @@ def confirm_referent(request, key):
     if action.closed:
         status = 200
         message = (
-            "Le rôle de référent de l'organisation {organization_name} "
+            "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
             "a déjà été confirmée pour <strong>{username}</strong>."
             ).format(organization_name=organisation.name,
                      username=action.profile.username)
@@ -177,7 +177,7 @@ def confirm_referent(request, key):
 
             status = 200
             message = (
-                "Le rôle de référent de l'organisation {organization_name} "
+                "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
                 "a bien été confirmée pour <strong>{username}</strong>."
                 ).format(organization_name=organisation.name,
                          username=action.profile.username)
@@ -195,7 +195,7 @@ def confirm_contribution(request, key):
 
     if action.closed:
         message = (
-            "Le rôle de contributeur pour l'organisation {organization_name} "
+            "Le rôle de contributeur pour l'organisation <strong>{organization_name}</strong> "
             "a déjà été confirmée pour <strong>{username}</strong>."
             ).format(organization_name=organisation.name,
                      username=action.profile.user.username)
@@ -218,7 +218,7 @@ def confirm_contribution(request, key):
 
             status = 200
             message = (
-                "Le rôle de contributeur pour l'organisation {organization_name} "
+                "Le rôle de contributeur pour l'organisation <strong>{organization_name}</strong> "
                 "a bien été confirmée pour <strong>{username}</strong>."
                 ).format(organization_name=organisation.name,
                          username=user.username)
