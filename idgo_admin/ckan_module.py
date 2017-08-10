@@ -5,7 +5,6 @@ from django.conf import settings
 from django.db import IntegrityError
 from functools import wraps
 from idgo_admin.exceptions import ConflictError
-from idgo_admin.exceptions import FakeError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.utils import Singleton
 from urllib.parse import urljoin
@@ -200,7 +199,7 @@ class CkanManagerHandler(metaclass=Singleton):
     def is_organization_exists(self, organization_id):
         return self.get_organization(str(organization_id)) and True or False
 
-    @CkanExceptionsHandler(ignore=[FakeError])
+    @CkanExceptionsHandler(ignore=[ValueError])
     def add_organization(self, organization):
         params = {
             'id': str(organization.ckan_id),
@@ -210,7 +209,7 @@ class CkanManagerHandler(metaclass=Singleton):
         try:
             params['image_url'] = \
                 urljoin(settings.DOMAIN_NAME, organization.logo.url)
-        except FakeError:
+        except ValueError:
             pass
         self.remote.action.organization_create(**params)
 

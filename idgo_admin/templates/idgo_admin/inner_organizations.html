@@ -3,6 +3,16 @@
 <h2 class="modal-title">Mes organisations</h2>
 <br />
 
+{% if messages %}
+	{% for message in messages %}
+		{% if message.tags == 'success' %}
+			<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+		{% elif message.tags == 'error' %}
+			<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+		{% endif %}
+	{% endfor %}
+{% endif %}
+
 <div class="well">
 	{% if organization %}
 	<p>Vous êtes actuellement rattaché à l'organisation suivante : <strong>{{ organization }}</strong>. </p>

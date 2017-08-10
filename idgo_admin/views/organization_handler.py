@@ -59,7 +59,7 @@ def contribution_request(request):
                ).format(organisation.name)
     messages.success(request, message)
 
-    return HttpResponseRedirect(reverse('idgo_admin:contribute'))
+    return HttpResponseRedirect(reverse('idgo_admin:organizations'))
 
 
 @login_required(login_url=settings.LOGIN_URL)
