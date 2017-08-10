@@ -14,8 +14,8 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.forms.account import ProfileForm
 from idgo_admin.forms.account import SignInForm
@@ -103,8 +103,8 @@ class SignOut(MamaLogoutView):
         follow_url = getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', True)
         logout_user(request)
         if service and follow_url:
-            return redirect(service)
-        return redirect('idgo_admin:signIn')
+            return mama_redirect(service)
+        return mama_redirect('idgo_admin:signIn')
 
 
 @method_decorator([csrf_exempt, ], name='dispatch')
@@ -413,7 +413,8 @@ def reset_password(request, key):
         messages.success(
             request, 'Votre mot de passe a été réinitialisé.')
 
-    return HttpResponseRedirect(reverse('idgo_admin:account_manager', kwargs={'process':'update'}))
+    return HttpResponseRedirect(
+        reverse('idgo_admin:account_manager', kwargs={'process': 'update'}))
 
 
 @login_required(login_url=settings.LOGIN_URL)
