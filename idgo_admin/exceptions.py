@@ -5,21 +5,22 @@ from functools import wraps
 
 
 class GenericException(Exception):
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         self.args = args
+        self.name = kwargs.get('name')
 
     def __str__(self):
         return str(self.args)
 
 
 class CriticalException(GenericException):
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
-class CKANSyncingError(GenericException):
-    def __init__(self, *args):
-        super().__init__(*args)
+class FakeError(GenericException):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class ExceptionsHandler(object):
@@ -43,10 +44,10 @@ class ExceptionsHandler(object):
             except Exception as e:
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
-                print('[Server Error] ->', e.__str__())
+                print('[Server Error]', e.__str__())
                 if request:
                     return render(
-                        self.request, self.template_html_500, status=500)
+                        request, self.template_html_500, status=500)
                 return HttpResponseServerError()
 
         return wrapper

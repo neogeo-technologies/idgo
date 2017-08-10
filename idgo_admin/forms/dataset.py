@@ -4,7 +4,6 @@ from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.exceptions import CKANSyncingError
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import Liaisons_Contributeurs
@@ -217,7 +216,7 @@ class DatasetForm(forms.ModelForm):
                 dataset.ckan_slug, id=str(dataset.ckan_id), **ckan_params)
         except Exception:
             dataset.sync_in_ckan = False
-            raise CKANSyncingError()
+            raise Exception()
         else:
             dataset.ckan_id = UUID(ckan_dataset['id'])
             dataset.sync_in_ckan = True

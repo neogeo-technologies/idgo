@@ -11,8 +11,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanSyncingError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.exceptions import CKANSyncingError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Dataset
@@ -122,7 +122,7 @@ class DatasetManager(View):
                 'données ?</a>').format(reverse(self.namespace)))
             return http_redirect(instance.id)
 
-    @ExceptionsHandler(ignore=[Http404])
+    @ExceptionsHandler(ignore=[Http404, CkanSyncingError])
     def delete(self, request):
 
         user = request.user
@@ -130,23 +130,29 @@ class DatasetManager(View):
         if not id:
             return Http404()
         instance = get_object_or_404(Dataset, id=id, editor=user)
+        ckan_id = str(instance.ckan_id)
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
-            ckan_user.delete_dataset(str(instance.ckan_id))
-            ckan.purge_dataset(str(instance.ckan_id))
-        except Exception:
-            raise CKANSyncingError()
+            ckan_user.delete_dataset(ckan_id)
+            ckan.purge_dataset(ckan_id)
+        except CkanSyncingError as e:
+            if e.name == 'NotFound':
+                instance.delete()
+            status = 500
+            message = 'Impossible de supprimer le jeu de données Ckan.'
+        else:
+            instance.delete()
+            status = 200
+            message = 'Le jeu de données a été supprimé avec succès.'
         finally:
             ckan_user.close()
-            instance.delete()
-            message = 'La ressource a été supprimée avec succès.'
-            status = 200
 
         Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
 
-        return render(request, 'idgo_admin/response.html',
-                      context={'message': message}, status=status)
+        return render(
+            request, 'idgo_admin/response.html',
+            context={'message': message}, status=status)
 
 
 @ExceptionsHandler(ignore=[Http404])

@@ -4,7 +4,6 @@ from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.exceptions import CKANSyncingError
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.utils import download
@@ -152,7 +151,7 @@ class ResourceForm(forms.ModelForm):
             ckan_user.publish_resource(str(dataset.ckan_id), **ckan_params)
         except Exception:
             # resource.sync_in_ckan = False
-            raise CKANSyncingError()
+            raise Exception()
         else:
             # resource.sync_in_ckan = True
             resource.last_update = _today

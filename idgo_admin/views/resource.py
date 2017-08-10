@@ -10,8 +10,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanSyncingError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.exceptions import CKANSyncingError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
@@ -59,8 +59,8 @@ class ResourceManager(View):
 
         id = request.GET.get('id')
         if id:
-            instance = get_object_or_404(
-                Resource, id=id, dataset_id=dataset_id, editor=user)
+            instance = \
+                get_object_or_404(Resource, id=id, dataset_id=dataset_id)
 
             # TODO Les trois champs sont exclusifs et il faudrait s'en assurer
             if instance.up_file:
@@ -92,8 +92,8 @@ class ResourceManager(View):
 
         id = request.POST.get('id', request.GET.get('id'))
         if id:
-            instance = get_object_or_404(
-                Resource, id=id, dataset_id=dataset_id, editor=user)
+            instance = \
+                get_object_or_404(Resource, id=id, dataset_id=dataset_id)
 
             form = Form(request.POST, request.FILES, instance=instance)
             if not form.is_valid():
@@ -133,21 +133,24 @@ class ResourceManager(View):
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
             return Http404()
-        instance = get_object_or_404(
-            Resource, id=id, dataset_id=dataset_id, editor=user)
+        instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+        ckan_id = str(instance.ckan_id)
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
-            ckan_user.delete_resource(str(instance.ckan_id))
-        except Exception:
-            raise CKANSyncingError()
+            ckan_user.delete_resource(ckan_id)
+        except CkanSyncingError as e:
+            if e.name == 'NotFound':
+                instance.delete()
+            status = 500
+            message = 'Impossible de supprimer la ressource Ckan.'
+        else:
+            instance.delete()
+            status = 200
+            message = 'La ressource a été supprimée avec succès.'
         finally:
             ckan_user.close()
-            instance.delete()
-            message = 'La ressource a été supprimée avec succès.'
-            status = 200
 
-        Mail.conf_deleting_dataset_res_by_user(user, resource=instance)
-
-        return render(request, 'idgo_admin/response.html',
-                      context={'message': message}, status=status)
+        return render(
+            request, 'idgo_admin/response.html',
+            context={'message': message}, status=status)
