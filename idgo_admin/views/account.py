@@ -185,34 +185,38 @@ class AccountManager(View):
                                                       action="confirm_mail")
         Mail.validation_user_mail(request, signup_action)
 
-    def new_org_process(self, request, profile):
+    def new_org_process(self, request, profile, process):
         # Ajout clé uuid et envoi mail aux admin pour confirmations de création
         new_organisation_action = AccountActions.objects.create(
             profile=profile, action='confirm_new_organisation')
-        Mail.confirm_new_organisation(request, new_organisation_action)
+        if process == "update":
+            Mail.confirm_new_organisation(request, new_organisation_action)
 
-    def rattachement_process(self, request, profile, organisation):
+    def rattachement_process(self, request, profile, organisation, process):
         # Demande de rattachement à l'organisation
         rattachement_action = AccountActions.objects.create(
             profile=profile, action='confirm_rattachement',
             org_extras=organisation)
-        Mail.confirm_updating_rattachement(request, rattachement_action)
+        if process == "update":
+            Mail.confirm_updating_rattachement(request, rattachement_action)
 
-    def referent_process(self, request, profile, organisation):
+    def referent_process(self, request, profile, organisation, process):
         Liaisons_Referents.objects.get_or_create(
             profile=profile, organisation=organisation)
         referent_action = AccountActions.objects.create(
             profile=profile, action='confirm_referent',
             org_extras=organisation)
-        Mail.confirm_referent(request, referent_action)
+        if process == "update":
+            Mail.confirm_referent(request, referent_action)
 
-    def contributor_process(self, request, profile, organisation):
+    def contributor_process(self, request, profile, organisation, process):
         Liaisons_Contributeurs.objects.get_or_create(
             profile=profile, organisation=organisation)
         contribution_action = AccountActions.objects.create(
             profile=profile, action='confirm_contribution',
             org_extras=organisation)
-        Mail.confirm_contribution(request, contribution_action)
+        if process == "update":
+            Mail.confirm_contribution(request, contribution_action)
 
     def good_response(self, request, process):
         if process == "create":
@@ -321,13 +325,13 @@ class AccountManager(View):
                 raise e
         else:
             if org_created:
-                self.new_org_process(request, profile)
+                self.new_org_process(request, profile, process)
             if pform.cleaned_data['mode'] in ['change_organization', 'require_new_organization']:
-                self.rattachement_process(request, profile, organisation)
+                self.rattachement_process(request, profile, organisation, process)
                 if pform.cleaned_data['referent_requested']:
-                    self.referent_process(request, profile, organisation)
+                    self.referent_process(request, profile, organisation, process)
                 if pform.cleaned_data['contribution_requested']:
-                    self.contributor_process(request, profile, organisation)
+                    self.contributor_process(request, profile, organisation, process)
             if process == "create":
                 self.signup_process(request, profile)
                 ckan.add_user(user, uform.cleaned_data['password1'])

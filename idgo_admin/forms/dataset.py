@@ -140,6 +140,10 @@ class DatasetForm(forms.ModelForm):
     def clean(self):
 
         name = self.cleaned_data.get('name')
+        # organisation = self.cleand_data.get('organisation', None)
+        # if organisation:
+        #     self.fields['licence'].initial = organisation.license
+        #     self.fields['licence'].queryset = License.objects.all()
         if not self.include_args['identification'] \
                 and Dataset.objects.filter(name=name).exists():
             self.add_error('name', 'Le jeu de données "{0}" existe déjà'.format(name))
@@ -147,6 +151,8 @@ class DatasetForm(forms.ModelForm):
 
         if not self.cleaned_data.get('date_creation'):
             self.cleaned_data['date_creation'] = _today
+
+        return self.cleaned_data
 
     def handle_me(self, request, id=None):
 
