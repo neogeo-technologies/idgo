@@ -14,9 +14,14 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from taggit.managers import TaggableManager
 from taggit.models import TaggedItemBase
+
+import psycopg2
 import uuid
 
 from idgo_admin.utils import PartialFormatter
+
+
+psycopg2.extras.register_uuid()
 
 
 def deltatime_2_days():
@@ -211,7 +216,7 @@ class Organisation(models.Model):
     email = models.EmailField(verbose_name="Adresse mail de l'organisation", blank=True, null=True)
     id_url_unique = models.URLField('URL unique', blank=True, null=True)
     titre = models.CharField('Titre', max_length=100, blank=True, null=True)  # Todo: unique=True
-    description = models.CharField('Description', max_length=1024, blank=True,
+    description = models.TextField('Description', blank=True,
                                    null=True)  # Description CKAN
     logo = models.ImageField('Logo', upload_to="logos/", blank=True, null=True)
     adresse = models.CharField('Adresse', max_length=100, blank=True, null=True)
@@ -843,7 +848,7 @@ class Dataset(models.Model):
     name = models.CharField('Nom', max_length=100, unique=True)  # Titre CKAN
 
     description = models.TextField(
-        'Description', max_length=1024, blank=True, null=True)
+        'Description', blank=True, null=True)
 
     ckan_slug = models.SlugField(
         'Ckan_ID', max_length=100, unique=True,
