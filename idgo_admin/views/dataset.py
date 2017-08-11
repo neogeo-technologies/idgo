@@ -37,6 +37,7 @@ class DatasetManager(View):
     def get(self, request):
 
         user = request.user
+        profile = get_object_or_404(Profile, user=user)
         form = Form(include={'user': user, 'identification': False})
         dataset_name = 'Nouveau'
         dataset_id = None
@@ -71,6 +72,7 @@ class DatasetManager(View):
                    'last_name': user.last_name,
                    'dataset_name': dataset_name,
                    'dataset_id': dataset_id,
+                   'licenses': dict((o.pk, o.license.pk) for o in Liaisons_Contributeurs.get_contribs(profile=profile)),
                    'resources': json.dumps(resources),
                    'tags': json.dumps(ckan.get_tags())}
 

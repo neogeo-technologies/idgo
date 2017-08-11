@@ -83,6 +83,10 @@ br {
     color: #000;
 }
 
+.message {
+    font-size: 1.23em;
+}
+
 div.page-header {
     padding-top: 0;
     padding-bottom: 0;

@@ -196,7 +196,7 @@ function updateDatasetsGrid(grid, containerId, metadata, data) {
 	};
 
 	if (AWAITING_CONTRIBUTIONS.length > 0) {
-		$containerId.after('<div class="alert alert-info">Demande(s) de contribution en attente de validation pour : <strong class="comma-separated-list">' + AWAITING_CONTRIBUTIONS.join(', ') + '</strong></div>');
+		$containerId.before('<div class="alert alert-info">Demande(s) de contribution en attente de validation pour : <strong class="comma-separated-list">' + AWAITING_CONTRIBUTIONS.join(', ') + '</strong></div>');
 	};
 
 	if (IS_CONTRIBUTOR == false && data.length == 0) {

@@ -1,7 +1,6 @@
 
 from django.conf import settings
 from django.contrib.auth.models import User
-# from django.db import models
 from django.contrib.gis.db import models  # TODO(@m431m)
 from django.core.mail import send_mail
 from django.db.models.signals import post_save
@@ -12,28 +11,9 @@ from django.urls import reverse
 from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
-from taggit.managers import TaggableManager
-from taggit.models import TaggedItemBase
-
-import psycopg2
-import uuid
-
 from idgo_admin.utils import PartialFormatter
-
-
-psycopg2.extras.register_uuid()
-
-
-def deltatime_2_days():
-    return timezone.now() + timezone.timedelta(days=2)
-
-
-# class TaggedProfile(TaggedItemBase):
-#     content_object = models.ForeignKey('Profile')
-#
-#
-# class TaggedOrganisation(TaggedItemBase):
-#     content_object = models.ForeignKey('Organisation')
+from taggit.managers import TaggableManager
+import uuid
 
 
 class Resource(models.Model):
@@ -97,18 +77,8 @@ class Resource(models.Model):
     users_allowed = models.ManyToManyField(
         User, verbose_name='Utilisateurs autorisés', blank=True)
 
-    # users_allowed = TaggableManager(
-    #     blank=True,
-    #     through='TaggedProfile',
-    #     verbose_name='Utilisateurs autorisés')
-
     organisations_allowed = models.ManyToManyField(
         'Organisation', verbose_name='Utilisateurs autorisés', blank=True)
-
-    # organisations_allowed = TaggableManager(
-    #     blank=True
-    #     through='TaggedOrganisation',
-    #     verbose_name='Organisations autorisées')
 
     dataset = models.ForeignKey(
         'Dataset', on_delete=models.CASCADE, blank=True, null=True)
@@ -190,10 +160,14 @@ class OrganisationType(models.Model):
 class Organisation(models.Model):
 
     name = models.CharField('Nom', max_length=150, unique=True, db_index=True)
+
     organisation_type = models.ForeignKey(
-        OrganisationType, verbose_name="Type d'organisation", default='1', blank=True, null=True)
+        OrganisationType, verbose_name="Type d'organisation",
+        default='1', blank=True, null=True)
+
     code_insee = models.CharField(
         'Code INSEE', max_length=20, unique=False, db_index=True)
+
     parent = models.ForeignKey(
         'self', on_delete=models.CASCADE, blank=True,
         null=True, verbose_name="Organisation parente")
@@ -206,6 +180,7 @@ class Organisation(models.Model):
     # Champs à integrer:
     sync_in_ckan = models.BooleanField(
         'Synchronisé dans CKAN', default=False)
+
     ckan_slug = models.SlugField(
         'CKAN ID', max_length=150, unique=True, db_index=True)
 
@@ -213,49 +188,62 @@ class Organisation(models.Model):
         'Ckan UUID', default=uuid.uuid4, editable=False)
 
     website = models.URLField('Site web', blank=True)
-    email = models.EmailField(verbose_name="Adresse mail de l'organisation", blank=True, null=True)
+
+    email = models.EmailField(
+        verbose_name="Adresse mail de l'organisation", blank=True, null=True)
+
     id_url_unique = models.URLField('URL unique', blank=True, null=True)
-    titre = models.CharField('Titre', max_length=100, blank=True, null=True)  # Todo: unique=True
-    description = models.TextField('Description', blank=True,
-                                   null=True)  # Description CKAN
-    logo = models.ImageField('Logo', upload_to="logos/", blank=True, null=True)
-    adresse = models.CharField('Adresse', max_length=100, blank=True, null=True)
-    code_postal = models.CharField('Code postal', max_length=100, blank=True,
-                                   null=True)
+
+    titre = models.CharField(  # ???
+        'Titre', max_length=100, blank=True, null=True)
+
+    description = models.TextField(
+        'Description', blank=True, null=True)  # Description CKAN
+
+    logo = models.ImageField(
+        'Logo', upload_to="logos/", blank=True, null=True)
+
+    adresse = models.CharField(
+        'Adresse', max_length=100, blank=True, null=True)
+
+    code_postal = models.CharField(
+        'Code postal', max_length=100, blank=True, null=True)
+
     ville = models.CharField('Ville', max_length=100, blank=True, null=True)
-    org_phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
+
+    org_phone = models.CharField(
+        'Téléphone', max_length=10, blank=True, null=True)
+
     communes = models.ManyToManyField(Commune)  # Territoires de compétence
-    license = models.ForeignKey('License', on_delete=models.CASCADE,
-                                blank=True, null=True)
-    financeur = models.ForeignKey(Financeur,
-                                  blank=True, null=True,
-                                  on_delete=models.CASCADE)
-    status = models.ForeignKey(Status, blank=True, null=True,
-                               on_delete=models.CASCADE)
-    is_active = models.BooleanField("Création validée par un administrateur",
-                                    default=False)
+
+    license = models.ForeignKey(
+        'License', on_delete=models.CASCADE, blank=True, null=True)
+
+    financeur = models.ForeignKey(
+        Financeur, blank=True, null=True, on_delete=models.CASCADE)
+
+    status = models.ForeignKey(
+        Status, blank=True, null=True, on_delete=models.CASCADE)
+
+    is_active = models.BooleanField(
+        "Création validée par un administrateur", default=False)
 
     def __str__(self):
         return self.name
 
-    def delete(self, *args, **kwargs):
-        ckan.del_organization(self.ckan_id)
-        super().delete()
-
     # def delete(self, *args, **kwargs):
-    #     res = ldap.sync_object(
-    #         'organisations', self.name,
-    #         self.id + settings.LDAP_ORGANISATION_ID_INCREMENT, 'delete')
-    #     res_ckan = ckan.del_organization(self.ckan_slug)
-    #     if res and res_ckan:
-    #         super().delete()
+    #     ckan.del_organization(self.ckan_id)
+    #     super().delete()
 
 
 class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    organisation = models.ForeignKey(Organisation, blank=True, null=True,
-                                     verbose_name="Organisation d'appartenance")
+
+    organisation = models.ForeignKey(
+        Organisation, blank=True, null=True,
+        verbose_name="Organisation d'appartenance")
+
     referents = models.ManyToManyField(
         Organisation, through='Liaisons_Referents',
         verbose_name="Organisations dont l'utiliateur est réferent",
@@ -272,9 +260,12 @@ class Profile(models.Model):
         related_name='profile_resources')
 
     phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
+
     role = models.CharField('Fonction', max_length=150, blank=True, null=True)
-    is_active = models.BooleanField("Validation suite à confirmation mail par utilisateur",
-                                    default=False)
+
+    is_active = models.BooleanField(
+        'Validation suite à confirmation mail par utilisateur', default=False)
+
     rattachement_active = models.BooleanField(
         verbose_name="Rattachement profile-organisation d'appartenance validé",
         default=False)
@@ -291,20 +282,20 @@ class Liaisons_Referents(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     validated_on = models.DateField(
-        verbose_name="Date de validation de l'action",
-        blank=True, null=True)
+        verbose_name="Date de validation de l'action", blank=True, null=True)
 
-    class Meta:
+    class Meta(object):
         unique_together = (('profile', 'organisation'),)
 
     @classmethod
     def get_subordinates(cls, profile):
-        return [e.organisation for e in Liaisons_Referents.objects.filter(
-                    profile=profile)]
+        return [e.organisation for e
+                in Liaisons_Referents.objects.filter(profile=profile)]
 
     @classmethod
     def get_pending(cls, profile):
-        return [e.organisation for e in Liaisons_Referents.objects.filter(
+        return [e.organisation for e
+                in Liaisons_Referents.objects.filter(
                     profile=profile, validated_on=None)]
 
 
@@ -314,20 +305,21 @@ class Liaisons_Contributeurs(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     validated_on = models.DateField(
-        verbose_name="Date de validation de l'action",
-        blank=True, null=True)
+        verbose_name="Date de validation de l'action", blank=True, null=True)
 
-    class Meta:
+    class Meta(object):
         unique_together = (('profile', 'organisation'),)
 
     @classmethod
     def get_contribs(cls, profile):
-        return [e.organisation for e in Liaisons_Contributeurs.objects.filter(
+        return [e.organisation for e
+                in Liaisons_Contributeurs.objects.filter(
                     profile=profile, validated_on__isnull=False)]
 
     @classmethod
     def get_pending(cls, profile):
-        return [e.organisation for e in Liaisons_Contributeurs.objects.filter(
+        return [e.organisation for e
+                in Liaisons_Contributeurs.objects.filter(
                     profile=profile, validated_on=None)]
 
 
@@ -337,35 +329,35 @@ class Liaisons_Resources(models.Model):
     resource = models.ForeignKey(Resource, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     validated_on = models.DateField(
-        verbose_name="Date de validation de l'action",
-        blank=True, null=True)
+        verbose_name="Date de validation de l'action", blank=True, null=True)
 
 
 # TODO: en remplacement de class Registraion
 class AccountActions(models.Model):
+
     ACTION_CHOICES = (
-        ("confirm_mail", "Confirmation de l'email par l'utilisateur"),
-        ("confirm_new_organisation", ("Confirmation par un administrateur"
-                                      "de la création d'une orga par l'utilisateur")),
-        ("confirm_rattachement", "Rattachement d'un utilisateur à une organsiation par un administrateur"),
-        ("confirm_referent", ("Confirmation du rôle de réferent d'une organisation"
-                              "pour un utilisatur par un administrateur")),
-        ("confirm_contribution", ("Confirmation du rôle de contributeur d'une organisation"
-                                  "pour un utilisatur par un administrateur")),
-        ("reset_password", "Réinitialisation du mot de passe")
-    )
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
-                                blank=True, null=True)
+        ('confirm_mail', "Confirmation de l'email par l'utilisateur"),
+        ('confirm_new_organisation', "Confirmation par un administrateur de la création d'une organisation par l'utilisateur"),
+        ('confirm_rattachement', "Rattachement d'un utilisateur à une organsiation par un administrateur"),
+        ('confirm_referent', "Confirmation du rôle de réferent d'une organisation pour un utilisatur par un administrateur"),
+        ('confirm_contribution', "Confirmation du rôle de contributeur d'une organisation pour un utilisatur par un administrateur"),
+        ('reset_password', "Réinitialisation du mot de passe"))
+
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, blank=True, null=True)
 
     # Pour pouvoir reutiliser AccountActions pour demandes post-inscription
-    org_extras = models.ForeignKey(Organisation, on_delete=models.CASCADE,
-                                   blank=True, null=True)
+    org_extras = models.ForeignKey(
+        Organisation, on_delete=models.CASCADE, blank=True, null=True)
 
     key = models.UUIDField(default=uuid.uuid4, editable=False)
+
     action = models.CharField(
         'Action de gestion de profile', blank=True, null=True,
         default='confirm_mail', max_length=250, choices=ACTION_CHOICES)
+
     created = models.DateField(auto_now_add=True)
+
     closed = models.DateField(
         verbose_name="Date de validation de l'action",
         blank=True, null=True)
@@ -375,94 +367,74 @@ class Mail(models.Model):
 
     @staticmethod
     def superuser_mails():
-        return [usr.email for usr in User.objects.filter(is_superuser=True,
-                                                         is_active=True)]
+        return [usr.email for usr
+                in User.objects.filter(is_superuser=True, is_active=True)]
 
-    template_name = models.CharField("Nom du model du message",
-                                     primary_key=True, max_length=255)
+    template_name = models.CharField(
+        'Nom du model du message', primary_key=True, max_length=255)
 
-    subject = models.CharField("Objet", max_length=255, blank=True, null=True)
-    message = models.TextField("Corps du message", blank=True, null=True)
-    from_email = models.EmailField("Adresse expediteur",
-                                   default=settings.DEFAULT_FROM_EMAIL)
+    subject = models.CharField(
+        'Objet', max_length=255, blank=True, null=True)
+
+    message = models.TextField(
+        'Corps du message', blank=True, null=True)
+
+    from_email = models.EmailField(
+        'Adresse expediteur', default=settings.DEFAULT_FROM_EMAIL)
 
     def __str__(self):
         return self.template_name
 
     @classmethod
     def validation_user_mail(cls, request, action):
+
         user = action.profile.user
-        try:
-            mail_template = Mail.objects.get(template_name="validation_user_mail")
-        except Mail.DoesNotExist as e:
-            raise e
+        mail_template = Mail.objects.get(template_name='validation_user_mail')
         from_email = mail_template.from_email
         subject = mail_template.subject
-
-        # message = mail_template.message.format(
-        #     first_name=user.first_name,
-        #     last_name=user.last_name,
-        #     username=user.username,
-        #     url=request.build_absolute_uri(
-        #         reverse('idgo_admin:confirmation_mail',
-        #                 kwargs={'key': action.key})))
 
         fmt = PartialFormatter()
         data = {'first_name': user.first_name,
                 'last_name': user.last_name,
                 'username': user.username,
                 'url': request.build_absolute_uri(
-                        reverse('idgo_admin:confirmation_mail',
-                                kwargs={'key': action.key}))}
-        message = fmt.format(mail_template.message, **data)
+                    reverse('idgo_admin:confirmation_mail',
+                            kwargs={'key': action.key}))}
 
-        try:
-            send_mail(subject=subject, message=message,
-                      from_email=from_email, recipient_list=[user.email])
-        except Exception as e:
-            raise e
+        message = fmt.format(mail_template.message, **data)
+        send_mail(subject=subject, message=message,
+                  from_email=from_email, recipient_list=[user.email])
 
     @classmethod
     def confirmation_user_mail(cls, user):
         """Mail confirmant la creation d'un nouvelle organisation
         suite à une inscription.
         """
-        mail_template = Mail.objects.get(template_name="confirmation_user_mail")
 
-        # message = mail_template.message.format(
-        #     first_name=user.first_name, last_name=user.last_name,
-        #     username=user.username)
+        mail_template = Mail.objects.get(template_name='confirmation_user_mail')
 
         fmt = PartialFormatter()
         data = {'first_name': user.first_name,
                 'last_name': user.last_name,
                 'username': user.username}
-        message = fmt.format(mail_template.message, **data)
 
-        try:
-            send_mail(subject=mail_template.subject, message=message,
-                      from_email=mail_template.from_email,
-                      recipient_list=[user.email])
-        except Exception as e:
-            raise e
+        message = fmt.format(mail_template.message, **data)
+        send_mail(subject=mail_template.subject,
+                  message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=[user.email])
 
     @classmethod
     def confirm_new_organisation(cls, request, action):
         """Mail permettant de valider la creation d'un nouvelle organsation
         suite à une inscription.
         """
+
         user = action.profile.user
         organisation = action.profile.organisation
-        website = organisation.website or "- adresse url manquante -"
-        mail_template = Mail.objects.get(template_name="confirm_new_organisation")
-        # message = mail_template.message.format(
-        #     username=user.username,
-        #     user_mail=user.email,
-        #     organisation_name=organisation.name,
-        #     website=website,
-        #     url=request.build_absolute_uri(
-        #         reverse('idgo_admin:confirm_new_orga',
-        #                 kwargs={'key': action.key})))
+        website = organisation.website or '- adresse url manquante -'
+        mail_template = \
+            Mail.objects.get(template_name='confirm_new_organisation')
 
         fmt = PartialFormatter()
         data = {'first_name': user.first_name,
@@ -472,31 +444,22 @@ class Mail(models.Model):
                 'organisation_name': organisation.name,
                 'website': website,
                 'url': request.build_absolute_uri(
-                        reverse('idgo_admin:confirm_new_orga',
-                                kwargs={'key': action.key}))}
+                    reverse('idgo_admin:confirm_new_orga',
+                            kwargs={'key': action.key}))}
+
         message = fmt.format(mail_template.message, **data)
-        try:
-            send_mail(subject=mail_template.subject, message=message,
-                      from_email=mail_template.from_email,
-                      recipient_list=cls.superuser_mails())
-        except Exception as e:
-            raise e
+        send_mail(subject=mail_template.subject,
+                  message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=cls.superuser_mails())
 
     @classmethod
     def confirm_rattachement(cls, request, action):
+
         user = action.profile.user
         organisation = action.profile.organisation
-        website = organisation.website or "- adresse url manquante -"
-        mail_template = Mail.objects.get(template_name="confirm_rattachement")
-
-        # message = mail_template.message.format(
-        #     username=user.username,
-        #     user_mail=user.email,
-        #     organisation_name=organisation.name,
-        #     website=website,
-        #     url=request.build_absolute_uri(
-        #         reverse('idgo_admin:confirm_rattachement',
-        #                 kwargs={'key': action.key})))
+        website = organisation.website or '- adresse url manquante -'
+        mail_template = Mail.objects.get(template_name='confirm_rattachement')
 
         fmt = PartialFormatter()
         data = {'first_name': user.first_name,
@@ -506,33 +469,23 @@ class Mail(models.Model):
                 'organisation_name': organisation.name,
                 'website': website,
                 'url': request.build_absolute_uri(
-                        reverse('idgo_admin:confirm_rattachement',
-                                kwargs={'key': action.key}))}
-        message = fmt.format(mail_template.message, **data)
+                    reverse('idgo_admin:confirm_rattachement',
+                            kwargs={'key': action.key}))}
 
-        try:
-            send_mail(
-                subject=mail_template.subject, message=message,
-                from_email=mail_template.from_email,
-                recipient_list=cls.superuser_mails())
-        except Exception as e:
-            raise e
+        message = fmt.format(mail_template.message, **data)
+        send_mail(subject=mail_template.subject,
+                  message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=cls.superuser_mails())
 
     @classmethod
     def confirm_updating_rattachement(cls, request, action):
+
         user = action.profile.user
         organisation = action.org_extras
-        website = organisation.website or "- adresse url manquante -"
-        mail_template = Mail.objects.get(
-            template_name="confirm_updating_rattachement")
-        # message = mail_template.message.format(
-        #     username=user.username,
-        #     user_mail=user.email,
-        #     organisation_name=organisation.name,
-        #     website=website,
-        #     url=request.build_absolute_uri(
-        #         reverse('idgo_admin:confirm_rattachement',
-        #                 kwargs={'key': action.key})))
+        website = organisation.website or '- adresse url manquante -'
+        mail_template = \
+            Mail.objects.get(template_name="confirm_updating_rattachement")
 
         fmt = PartialFormatter()
         data = {'first_name': user.first_name,
@@ -542,33 +495,22 @@ class Mail(models.Model):
                 'organisation_name': organisation.name,
                 'website': website,
                 'url': request.build_absolute_uri(
-                        reverse('idgo_admin:confirm_rattachement',
-                                kwargs={'key': action.key}))}
-        message = fmt.format(mail_template.message, **data)
+                    reverse('idgo_admin:confirm_rattachement',
+                            kwargs={'key': action.key}))}
 
-        try:
-            send_mail(
-                subject=mail_template.subject, message=message,
-                from_email=mail_template.from_email,
-                recipient_list=cls.superuser_mails())
-        except Exception as e:
-            raise e
+        message = fmt.format(mail_template.message, **data)
+        send_mail(subject=mail_template.subject,
+                  message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=cls.superuser_mails())
 
     @classmethod
     def confirm_referent(cls, request, action):
         user = action.profile.user
         organisation = action.org_extras
-        website = organisation.website or "(adresse url manquante)"
-        mail_template = Mail.objects.get(
-                template_name="confirm_referent")
-        # message = mail_template.message.format(
-        #             username=user.username,
-        #             user_mail=user.email,
-        #             organisation_name=organisation.name,
-        #             website=website,
-        #             url=request.build_absolute_uri(
-        #                 reverse('idgo_admin:confirm_referent',
-        #                         kwargs={'key': action.key})))
+        website = organisation.website or '- adresse url manquante -'
+        mail_template = \
+            Mail.objects.get(template_name="confirm_referent")
 
         fmt = PartialFormatter()
         data = {'first_name': user.first_name,
@@ -578,34 +520,23 @@ class Mail(models.Model):
                 'organisation_name': organisation.name,
                 'website': website,
                 'url': request.build_absolute_uri(
-                        reverse('idgo_admin:confirm_referent',
-                                kwargs={'key': action.key}))}
-        message = fmt.format(mail_template.message, **data)
+                    reverse('idgo_admin:confirm_referent',
+                            kwargs={'key': action.key}))}
 
-        try:
-            send_mail(
-                subject=mail_template.subject, message=message,
-                from_email=mail_template.from_email,
-                recipient_list=cls.superuser_mails())
-        except Exception as e:
-            raise e
+        message = fmt.format(mail_template.message, **data)
+        send_mail(subject=mail_template.subject,
+                  message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=cls.superuser_mails())
 
     @classmethod
     def confirm_contribution(cls, request, action):
+
         user = action.profile.user
         organisation = action.org_extras
-        website = organisation.website or "(adresse url manquante)"
-        mail_template = Mail.objects.get(
-                template_name="confirm_contribution")
-
-        # message = mail_template.message.format(
-        #             username=user.username,
-        #             user_mail=user.email,
-        #             organisation_name=organisation.name,
-        #             website=website,
-        #             url=request.build_absolute_uri(
-        #                 reverse('idgo_admin:confirm_contribution',
-        #                         kwargs={'key': action.key})))
+        website = organisation.website or '- adresse url manquante -'
+        mail_template = \
+            Mail.objects.get(template_name="confirm_contribution")
 
         fmt = PartialFormatter()
         data = {'username': user.username,
@@ -615,139 +546,122 @@ class Mail(models.Model):
                 'url': request.build_absolute_uri(
                     reverse('idgo_admin:confirm_contribution',
                             kwargs={'key': action.key}))}
-        message = fmt.format(mail_template.message, **data)
 
-        try:
-            send_mail(
-                subject=mail_template.subject, message=message,
-                from_email=mail_template.from_email,
-                recipient_list=cls.superuser_mails())
-        except Exception as e:
-            raise e
+        message = fmt.format(mail_template.message, **data)
+        send_mail(subject=mail_template.subject,
+                  message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=cls.superuser_mails())
 
     @classmethod
     def affiliate_confirmation_to_user(cls, profile):
 
-        mail_template = Mail.objects.get(
-                template_name="affiliate_confirmation_to_user")
-
-        # message = mail_template.message.format(
-        #         organisation_name=profile.organisation.name)
+        mail_template = \
+            Mail.objects.get(template_name="affiliate_confirmation_to_user")
 
         fmt = PartialFormatter()
         data = {'organisation_name': profile.organisation.name}
-        message = fmt.format(mail_template.message, **data)
 
-        send_mail(subject=mail_template.subject, message=message,
+        message = fmt.format(mail_template.message, **data)
+        send_mail(subject=mail_template.subject,
+                  message=message,
                   from_email=mail_template.from_email,
                   recipient_list=[profile.user.email])
 
     @classmethod
     def confirm_contrib_to_user(cls, action):
         """Message confirmant le role de contributeur à un utilisateur"""
+
         organisation = action.org_extras
         user = action.profile.user
 
-        mail_template = Mail.objects.get(
-                template_name="confirm_contrib_to_user")
-        # message = mail_template.message.format(
-        #         organisation=organisation.name)
+        mail_template = \
+            Mail.objects.get(template_name="confirm_contrib_to_user")
 
         fmt = PartialFormatter()
         data = {'organisation_name': organisation.name}
-        message = fmt.format(mail_template.message, **data)
 
-        send_mail(subject=mail_template.subject, message=message,
+        message = fmt.format(mail_template.message, **data)
+        send_mail(subject=mail_template.subject,
+                  message=message,
                   from_email=mail_template.from_email,
                   recipient_list=[user.email])
 
     @classmethod
     def conf_deleting_dataset_res_by_user(cls, user, dataset=None, resource=None):
+
         fmt = PartialFormatter()
         if dataset:
-            mail_template = Mail.objects.get(template_name="conf_deleting_dataset_by_user")
-            # message = mail_template.message.format(dataset_name=dataset.name)
+            mail_template = \
+                Mail.objects.get(template_name="conf_deleting_dataset_by_user")
+
             data = {'dataset_name': dataset.name}
 
         elif resource:
-            mail_template = Mail.objects.get(template_name="conf_deleting_res_by_user")
-            # message = mail_template.message.format(
-            #         dataset_name=resource.dataset.name,
-            #         resource_name=resource.name)
+            mail_template = \
+                Mail.objects.get(template_name="conf_deleting_res_by_user")
 
             data = {'dataset_name': dataset.name,
                     'resource_name': resource.name}
 
         message = fmt.format(mail_template.message, **data)
-        send_mail(subject=mail_template.subject, message=message,
+        send_mail(subject=mail_template.subject,
+                  message=message,
                   from_email=mail_template.from_email,
                   recipient_list=[user.email])
 
     @classmethod
     def conf_deleting_profile_to_user(cls, user_copy):
-        mail_template = Mail.objects.get(template_name="conf_deleting_profile_to_user")
 
-        # message = mail_template.message.format(
-        #         first_name=user_copy["first_name"],
-        #         last_name=user_copy["last_name"],
-        #         username=user_copy["username"])
+        mail_template = \
+            Mail.objects.get(template_name="conf_deleting_profile_to_user")
 
         fmt = PartialFormatter()
         data = {'first_name': user_copy["first_name"],
                 'last_name': user_copy["last_name"],
                 'username': user_copy["username"]}
-        message = fmt.format(mail_template.message, **data)
 
-        try:
-            send_mail(subject=mail_template.subject, message=message,
-                      from_email=mail_template.from_email,
-                      recipient_list=[user_copy["email"]])
-        except Exception as e:
-            raise e
+        message = fmt.format(mail_template.message, **data)
+        send_mail(subject=mail_template.subject,
+                  message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=[user_copy["email"]])
 
     @classmethod
     def send_reset_password_link_to_user(cls, request, action):
-        mail_template = Mail.objects.get(template_name="send_reset_password_link_to_user")
-        user = action.profile.user
 
-        # message = mail_template.message.format(
-        #     first_name=user.first_name,
-        #     last_name=user.last_name,
-        #     username=user.username,
-        #     url=request.build_absolute_uri(
-        #         reverse('idgo_admin:resetPassword',
-        #                 kwargs={'key': action.key})))
+        mail_template = \
+            Mail.objects.get(template_name="send_reset_password_link_to_user")
+        user = action.profile.user
 
         fmt = PartialFormatter()
         data = {'first_name': user.first_name,
                 'last_name': user.last_name,
                 'username': user.username,
                 'url': request.build_absolute_uri(
-                        reverse('idgo_admin:resetPassword',
-                                kwargs={'key': action.key}))}
-        message = fmt.format(mail_template.message, **data)
+                    reverse('idgo_admin:resetPassword',
+                            kwargs={'key': action.key}))}
 
-        try:
-            send_mail(subject=mail_template.subject, message=message,
-                      from_email=mail_template.from_email,
-                      recipient_list=[user.email])
-        except Exception as e:
-            raise e
+        message = fmt.format(mail_template.message, **data)
+        send_mail(subject=mail_template.subject,
+                  message=message,
+                  from_email=mail_template.from_email,
+                  recipient_list=[user.email])
 
 
 class Category(models.Model):
 
     name = models.CharField('Nom', max_length=100)
     description = models.CharField('Description', max_length=1024)
-    ckan_slug = models.SlugField('Ckan_ID', max_length=100, unique=True,
-                                 db_index=True, blank=True)
+    ckan_slug = models.SlugField(
+        'Ckan_ID', max_length=100, unique=True, db_index=True, blank=True)
     sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
 
     def __str__(self):
         return self.name
 
     class Meta(object):
-        verbose_name = "Catégorie"
+        verbose_name = 'Catégorie'
 
     def save(self, *args, **kwargs):
         if self.id:
@@ -757,9 +671,9 @@ class Category(models.Model):
             self.sync_in_ckan = ckan.add_group(self)
         super(Category, self).save(*args, **kwargs)
 
-    def delete(self):
-        if ckan.del_group(self.ckan_slug):
-            super(Category, self).delete()
+    # def delete(self):
+    #     if ckan.del_group(self.ckan_slug):
+    #         super(Category, self).delete()
 
 
 class License(models.Model):
@@ -772,12 +686,12 @@ class License(models.Model):
     domain_content = models.BooleanField(default=False)
     domain_data = models.BooleanField(default=False)
     domain_software = models.BooleanField(default=False)
-    status = models.CharField('Statut', max_length=30, default="active")
+    status = models.CharField('Statut', max_length=30, default='active')
     maintainer = models.CharField('Maintainer', max_length=50, blank=True)
-    od_conformance = models.CharField('od_conformance', max_length=30,
-                                      blank=True, default="approved")
-    osd_conformance = models.CharField('osd_conformance', max_length=30,
-                                       blank=True, default="not reviewed")
+    od_conformance = models.CharField(
+        'od_conformance', max_length=30, blank=True, default='approved')
+    osd_conformance = models.CharField(
+        'osd_conformance', max_length=30, blank=True, default='not reviewed')
     title = models.CharField('Nom', max_length=100)
     url = models.URLField('url', blank=True)
 
@@ -789,6 +703,7 @@ class License(models.Model):
 
 
 class Projection(models.Model):
+
     name = models.CharField('Nom', max_length=50)
     code = models.IntegerField('Code EPSG', primary_key=True)
 
@@ -800,6 +715,7 @@ class Projection(models.Model):
 
 
 class Resolution(models.Model):
+
     value = models.CharField('Valeur', max_length=50)
 
     def __str__(self):
@@ -814,8 +730,8 @@ class Territory(models.Model):
     code = models.CharField('Code INSEE', max_length=10)
     name = models.CharField('Nom', max_length=100)
     communes = models.ManyToManyField(Commune)
-    geom = models.MultiPolygonField(
-        'Geometrie', srid=2154, blank=True, null=True)
+    geom = \
+        models.MultiPolygonField('Geometrie', srid=2154, blank=True, null=True)
     objects = models.GeoManager()
 
     def __str__(self):
@@ -845,10 +761,9 @@ class Dataset(models.Model):
         ('continue', 'Continue'),
         ('realtime', 'Temps réel'))
 
-    name = models.CharField('Nom', max_length=100, unique=True)  # Titre CKAN
+    name = models.CharField('Nom', max_length=100, unique=True)
 
-    description = models.TextField(
-        'Description', blank=True, null=True)
+    description = models.TextField('Description', blank=True, null=True)
 
     ckan_slug = models.SlugField(
         'Ckan_ID', max_length=100, unique=True,
@@ -871,18 +786,15 @@ class Dataset(models.Model):
 
     date_creation = models.DateField(
         verbose_name='Date de création du jeu de données',
-        blank=True, null=True,
-        )
+        blank=True, null=True)
 
     date_publication = models.DateField(
         verbose_name='Date de publication du jeu de données',
-        blank=True, null=True,
-        )
+        blank=True, null=True)
 
     date_modification = models.DateField(
         verbose_name='Date de dernière modification du jeu de données',
-        blank=True, null=True,
-        )
+        blank=True, null=True)
 
     editor = models.ForeignKey(User)
 
@@ -934,38 +846,6 @@ def delete_user_in_externals(sender, instance, **kwargs):
         ckan.del_user(instance.username)  # ->state='deleted'
     except Exception:
         pass
-
-
-# @receiver(pre_save, sender=Profile)
-# def update_externals(sender, instance, **kwargs):
-#
-#     user = instance.user
-#     # through = Profile.publish_for.through
-#     contributions = Liaisons_Contributeurs.objects.filter(
-#         profile=instance, validated_on__isnull=False)
-#
-#     def remove(name):
-#         if name in ckan.get_organizations_which_user_belongs(user.username):
-#             ckan.del_user_from_organization(user.username, name)
-#
-#     def add(name):
-#         ckan.add_user_to_organization(user.username, name)
-#
-#     def iter_organization(profile, callback):
-#         # for e in through.objects.filter(profile=profile):
-#         #     callback(Organisation.objects.get(id=e.organisation_id).ckan_slug)
-#         for e in contributions:
-#             callback(e.organisation.ckan_slug)
-#     try:
-#         old = Profile.objects.get(pk=instance.id)
-#     except Profile.DoesNotExist:
-#         pass
-#     except Exception as e:
-#         print('Error:', e)
-#         pass
-#     else:
-#         iter_organization(old, remove)
-#         iter_organization(instance, add)
 
 
 @receiver(pre_save, sender=Liaisons_Contributeurs)
