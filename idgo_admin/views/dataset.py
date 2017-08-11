@@ -49,7 +49,7 @@ class DatasetManager(View):
             instance = get_object_or_404(
                 Dataset, ckan_slug=ckan_slug, editor=user)
             return redirect(
-                reverse(self.namespace + '?id={0}'.format(instance.pk)))
+                reverse(self.namespace) + '?id={0}'.format(instance.pk))
 
         id = request.GET.get('id')
         if id:
