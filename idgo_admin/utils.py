@@ -87,3 +87,7 @@ class PartialFormatter(string.Formatter):
                 return self.bad_fmt
             else:
                 raise
+
+
+def three_suspension_points(val, max_len=19):
+    return (len(val)) > max_len and val[0:max_len - 3] + '...' or val

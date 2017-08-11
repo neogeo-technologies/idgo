@@ -16,6 +16,7 @@ from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
+from idgo_admin.utils import three_suspension_points
 import json
 
 
@@ -51,7 +52,7 @@ class ResourceManager(View):
                    'organizations': json.dumps(all_organizations),
                    'first_name': user.first_name,
                    'last_name': user.last_name,
-                   'dataset_name': dataset.name,
+                   'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
                    'resource_name': 'Nouveau',
                    'form': Form()}
@@ -70,7 +71,8 @@ class ResourceManager(View):
                 mode = 'referenced_url'
 
             context.update({
-                'resource_name': instance.name, 'mode': mode,
+                'resource_name': three_suspension_points(instance.name),
+                'mode': mode,
                 'form': Form(instance=instance)})
 
         return render(request, self.template, context)

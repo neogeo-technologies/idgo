@@ -21,6 +21,7 @@ from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
+from idgo_admin.utils import three_suspension_points
 import json
 
 
@@ -70,9 +71,11 @@ class DatasetManager(View):
         context = {'form': form,
                    'first_name': user.first_name,
                    'last_name': user.last_name,
-                   'dataset_name': dataset_name,
+                   'dataset_name': three_suspension_points(dataset_name),
                    'dataset_id': dataset_id,
-                   'licenses': dict((o.pk, o.license.pk) for o in Liaisons_Contributeurs.get_contribs(profile=profile)),
+                   'licenses': dict(
+                       (o.pk, o.license.pk) for o
+                       in Liaisons_Contributeurs.get_contribs(profile=profile)),
                    'resources': json.dumps(resources),
                    'tags': json.dumps(ckan.get_tags())}
 
