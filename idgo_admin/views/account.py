@@ -253,7 +253,9 @@ class AccountManager(View):
                 return HttpResponseRedirect(reverse('idgo_admin:signIn'))
             profile = get_object_or_404(Profile, user=user)
             return render(request, 'idgo_admin/modifyaccount.html',
-                          {'uform': UserForm(instance=user,
+                          {'first_name': user.first_name,
+                           'last_name': user.last_name,
+                           'uform': UserForm(instance=user,
                                              include={'action': process}),
                            'pform': ProfileForm(instance=profile,
                                                 include={'user': user,

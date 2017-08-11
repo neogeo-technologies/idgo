@@ -63,12 +63,10 @@ class CommonFields(metaclass=StaticClass):
         error_messages={'invalid': 'Le numéro est invalide.'},
         required=False,
         label='Téléphone',
-        max_length=150,
-        min_length=3,
-        # '^(0|\+33|\+33\s*\(0\)\s*)(\d\s*){9}$'
-        validators=[validators.RegexValidator(regex='^0\d{9}$')],
+        max_length=30,
+        min_length=10,
         widget=forms.TextInput(
-            attrs={'placeholder': 'Téléphone'}))
+            attrs={'placeholder': 'Téléphone', 'class': 'phone'}))
 
 
 common_fields = CommonFields

@@ -160,6 +160,8 @@ class DatasetManager(View):
 def datasets(request):
 
     user = request.user
+    profile = get_object_or_404(Profile, user=user)
+
     datasets = [(
         o.pk,
         o.name,
@@ -170,12 +172,15 @@ def datasets(request):
         o.published) for o in Dataset.objects.filter(editor=user)]
 
     my_contributions = \
-        Liaisons_Contributeurs.get_contribs(
-            profile=Profile.objects.get(user=user))
+        Liaisons_Contributeurs.get_contribs(profile=profile)
+
+    awaiting_contributions = \
+        [c.name for c in Liaisons_Contributeurs.get_pending(profile=profile)]
 
     return render(request, 'idgo_admin/home.html',
                   {'first_name': user.first_name,
                    'last_name': user.last_name,
                    'datasets': json.dumps(datasets),
-                   'is_contributor': json.dumps(len(my_contributions) > 0)},
+                   'is_contributor': json.dumps(len(my_contributions) > 0),
+                   'awaiting_contributions': awaiting_contributions},
                   status=200)

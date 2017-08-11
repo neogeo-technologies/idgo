@@ -138,5 +138,10 @@ $('form').each(function() {
 	});
 	// $(this).find('input[type=submit]').hide();
 });
+
+$('.phone').change(function() {
+	var str = $(this).val();
+	$(this).val(str.replace(/\s/g, ''));
+});
 	</script>
 </html>

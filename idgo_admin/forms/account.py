@@ -21,9 +21,10 @@ from mama_cas.forms import LoginForm as MamaLoginForm
 
 class UserForm(forms.ModelForm):
 
-    username = common_fields.USERNAME
     first_name = common_fields.FIRST_NAME
     last_name = common_fields.LAST_NAME
+    username = common_fields.USERNAME
+    email = common_fields.E_MAIL
     password1 = common_fields.PASSWORD1
     password2 = common_fields.PASSWORD2
 
@@ -177,16 +178,7 @@ class ProfileForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={'placeholder': "Ville"}))
 
-    org_phone = forms.CharField(
-        error_messages={'invalid': 'Le numéro est invalide.'},
-        required=False,
-        label='Téléphone',
-        max_length=150,
-        min_length=2,
-        # '^(0|\+33|\+33\s*\(0\)\s*)(\d\s*){9}$'
-        validators=[validators.RegexValidator(regex='^0\d{9}$')],
-        widget=forms.TextInput(
-            attrs={'placeholder': "Téléphone"}))
+    org_phone = common_fields.PHONE
 
     organisation_type = forms.ModelChoiceField(
         required=False,
