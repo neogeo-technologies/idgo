@@ -7,6 +7,7 @@ from functools import wraps
 from idgo_admin.exceptions import ConflictError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.utils import Singleton
+from timeout_decorator import timeout
 from urllib.parse import urljoin
 
 
@@ -65,6 +66,7 @@ class CkanUserHandler(object):
         return self.get_package(name) and True or False
 
     @CkanExceptionsHandler()
+    @timeout(10, use_signals=False)
     def push_resource(self, package, **kwargs):
         kwargs['package_id'] = package['id']
         kwargs['created'] = datetime.now().isoformat()
