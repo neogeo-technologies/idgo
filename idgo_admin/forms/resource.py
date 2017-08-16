@@ -92,10 +92,12 @@ class ResourceForm(forms.ModelForm):
                   'dataset': dataset}
 
         if id:  # Mise à jour de la ressource
+            created = False
             resource = Resource.objects.get(pk=id)
             for key, value in params.items():
                 setattr(resource, key, value)
         else:  # Création d'une nouvelle ressource
+            created = True
             resource = Resource.objects.create(**params)
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
@@ -145,6 +147,8 @@ class ResourceForm(forms.ModelForm):
             ckan_user.publish_resource(str(dataset.ckan_id), **ckan_params)
         except Exception as e:
             # resource.sync_in_ckan = False
+            if created:
+                resource.delete()
             raise e
         else:
             # resource.sync_in_ckan = True

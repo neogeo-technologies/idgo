@@ -144,8 +144,7 @@ class DatasetForm(forms.ModelForm):
         # if organisation:
         #     self.fields['licence'].initial = organisation.license
         #     self.fields['licence'].queryset = License.objects.all()
-        if not self.include_args['identification'] \
-                and Dataset.objects.filter(name=name).exists():
+        if Dataset.objects.filter(name=name).exists():
             self.add_error('name', 'Le jeu de données "{0}" existe déjà'.format(name))
             raise ValidationError("Dataset '{0}' already exists".format(name))
 
@@ -173,12 +172,16 @@ class DatasetForm(forms.ModelForm):
             'published': data['published']}
 
         if id:  # Mise à jour du jeu de données
+            created = False
             params.pop('editor', None)
             dataset = Dataset.objects.get(pk=id)
             for key, value in params.items():
                 setattr(dataset, key, value)
+
         else:  # Création d'un nouveau jeu de données
+            created = True
             dataset = Dataset.objects.create(**params)
+
 
         if data.get('categories'):
             dataset.categories = data['categories']
@@ -220,12 +223,14 @@ class DatasetForm(forms.ModelForm):
         try:
             ckan_dataset = ckan_user.publish_dataset(
                 dataset.ckan_slug, id=str(dataset.ckan_id), **ckan_params)
-        except Exception:
-            dataset.sync_in_ckan = False
-            raise Exception()
+        except Exception as e:
+            # dataset.sync_in_ckan = False
+            if created:
+                dataset.delete()
+            raise e
         else:
             dataset.ckan_id = UUID(ckan_dataset['id'])
-            dataset.sync_in_ckan = True
+            # dataset.sync_in_ckan = True
             dataset.save()
         finally:
             ckan_user.close()

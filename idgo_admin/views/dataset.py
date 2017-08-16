@@ -89,6 +89,19 @@ class DatasetManager(View):
                 reverse(self.namespace) + '?id={0}'.format(dataset_id))
 
         user = request.user
+        profile = get_object_or_404(Profile, user=user)
+
+        context = {
+            'form': None,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'dataset_name': 'Nouveau',
+            'dataset_id': None,
+            'licenses': dict(
+                (o.pk, o.license.pk) for o
+                in Liaisons_Contributeurs.get_contribs(profile=profile)),
+            'resources': [],
+            'tags': json.dumps(ckan.get_tags())}
 
         id = request.POST.get('id', request.GET.get('id'))
         if id:
@@ -97,35 +110,39 @@ class DatasetManager(View):
                         include={'user': user, 'identification': True})
 
             if not form.is_valid():
-                return render(request, self.template, {'form': form})
-            # else
-            try:
-                form.handle_me(request, id=id)
-            except Exception:
-                messages.error(request, 'Une erreur est survenue.')
-            else:
-                messages.success(
-                    request, 'Le jeu de données a été mis à jour avec succès.')
-            finally:
-                return http_redirect(instance.id)
+                context.update({
+                    'form': form,
+                    'dataset_name': three_suspension_points(instance.name),
+                    'dataset_id': instance.id,
+                    'resources': json.dumps([(
+                        o.pk,
+                        o.name,
+                        o.data_format,
+                        o.created_on.isoformat() if o.created_on else None,
+                        o.last_update.isoformat() if o.last_update else None,
+                        o.get_restricted_level_display()
+                        ) for o in Resource.objects.filter(dataset=instance)])})
+                return render(request, self.template, context)
+
+            form.handle_me(request, id=id)
+            messages.success(
+                request, 'Le jeu de données a été mis à jour avec succès.')
+
+            return http_redirect(instance.id)
 
         form = Form(data=request.POST,
                     include={'user': user, 'identification': False})
 
         if not form.is_valid():
-            return render(request, self.template, {'form': form})
+            context.update({'form': form})
+            return render(request, self.template, context)
 
-        try:
-            instance = form.handle_me(request)
-        except Exception:
-            messages.error(request, 'Une erreur est survenue.')
-            return render(request, self.template, {'form': form})
-        else:
-            messages.success(request, (
-                'Le jeu de données a été créé avec succès. '
-                'Souhaitez-vous <a href="{0}">créer un nouveau jeu de '
-                'données ?</a>').format(reverse(self.namespace)))
-            return http_redirect(instance.id)
+        instance = form.handle_me(request)
+        messages.success(request, (
+            'Le jeu de données a été créé avec succès. '
+            'Souhaitez-vous <a href="{0}">créer un nouveau jeu de '
+            'données ?</a>').format(reverse(self.namespace)))
+        return http_redirect(instance.id)
 
     @ExceptionsHandler(ignore=[Http404, CkanSyncingError])
     def delete(self, request):

@@ -6,7 +6,11 @@
 <div class="outer">
 	<div class="v-middle">
 		<div class="h-middle" style="width: 606px">
-			<p>Oups, une erreur critique s'est produite, merci de réessayer plus tard ou de contacter l'administrateur du site.</p>
+			{% if message %}
+			<p>{{ message }}</p>
+			{% else %}
+			<p>Une erreur critique s'est produite ; veuillez réessayer plus tard ou contacter l'administrateur du site.</p>
+			{% endif %}
 		</div>
 	</div>
 </div>

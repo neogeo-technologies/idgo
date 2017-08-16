@@ -83,13 +83,25 @@ class ResourceManager(View):
         def get_uploaded_file(form):
             return form.is_multipart() and request.FILES.get('up_file')
 
-        def http_redirect(resource_id):
+        def http_redirect(dataset_id, resource_id):
             return HttpResponseRedirect(
                 reverse(self.namespace, kwargs={'dataset_id': dataset_id}
                         ) + '?id={0}'.format(resource_id))
 
         user = request.user
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+
+        all_users = get_all_users()
+        all_organizations = get_all_organizations()
+
+        context = {'users': json.dumps(all_users),
+                   'organizations': json.dumps(all_organizations),
+                   'first_name': user.first_name,
+                   'last_name': user.last_name,
+                   'dataset_name': three_suspension_points(dataset.name),
+                   'dataset_id': dataset.id,
+                   'mode': None,
+                   'resource_name': 'Nouveau'}
 
         id = request.POST.get('id', request.GET.get('id'))
         if id:
@@ -98,39 +110,34 @@ class ResourceManager(View):
 
             form = Form(request.POST, request.FILES, instance=instance)
             if not form.is_valid():
-                return render(request, self.template, {'form': form})
-            # else
-            try:
-                form.handle_me(
-                    request, dataset, id=id,
-                    uploaded_file=get_uploaded_file(form))
-            except CkanSyncingError:
-                messages.error(
-                    request, 'Impossible de mettre à jour la ressource Ckan.')
-            else:
-                messages.success(
-                    request, 'La ressource a été mise à jour avec succès.')
-            finally:
-                return http_redirect(instance.id)
+                context.update({
+                    'resource_name': three_suspension_points(instance.name),
+                    'form': form})
+                return render(request, self.template, context)
+
+            form.handle_me(
+                request, dataset, id=id, uploaded_file=get_uploaded_file(form))
+
+            messages.success(
+                request, 'La ressource a été mise à jour avec succès.')
+
+            return http_redirect(dataset_id, instance.id)
 
         form = Form(request.POST, request.FILES)
         if not form.is_valid():
-            return render(request, self.template, {'form': form})
-        # else
-        try:
-            instance = form.handle_me(
-                request, dataset, uploaded_file=get_uploaded_file(form))
-        except CkanSyncingError:
-            messages.error(
-                request, 'Impossible de mettre à jour la ressource Ckan.')
-            return render(request, self.template, {'form': form})
-        else:
-            messages.success(request, (
-                'La ressource a été créée avec succès. '
-                'Souhaitez-vous <a href="{0}">ajouter une nouvelle '
-                'ressource ?</a>').format(
-                    reverse(self.namespace, kwargs={'dataset_id': dataset_id})))
-            return http_redirect(instance.id)
+            context.update({'form': form})
+            return render(request, self.template, context)
+
+        instance = form.handle_me(
+            request, dataset, uploaded_file=get_uploaded_file(form))
+
+        messages.success(request, (
+            'La ressource a été créée avec succès. '
+            'Souhaitez-vous <a href="{0}">ajouter une nouvelle '
+            'ressource ?</a>').format(
+                reverse(self.namespace, kwargs={'dataset_id': dataset_id})))
+
+        return http_redirect(dataset_id, instance.id)
 
     @ExceptionsHandler(ignore=[Http404])
     def delete(self, request, dataset_id):
