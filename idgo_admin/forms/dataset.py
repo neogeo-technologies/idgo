@@ -224,13 +224,14 @@ class DatasetForm(forms.ModelForm):
             ckan_dataset = ckan_user.publish_dataset(
                 dataset.ckan_slug, id=str(dataset.ckan_id), **ckan_params)
         except Exception as e:
-            # dataset.sync_in_ckan = False
             if created:
                 dataset.delete()
+            else:
+                dataset.sync_in_ckan = False
             raise e
         else:
             dataset.ckan_id = UUID(ckan_dataset['id'])
-            # dataset.sync_in_ckan = True
+            dataset.sync_in_ckan = True
             dataset.save()
         finally:
             ckan_user.close()

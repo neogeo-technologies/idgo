@@ -18,6 +18,7 @@
 (idgo_venv) ~/idgo_venv> pip install django-taggit
 (idgo_venv) ~/idgo_venv> pip install django-bootstrap3
 (idgo_venv) ~/idgo_venv> pip install django-mama-cas
+(idgo_venv) ~/idgo_venv> pip install timeout-decorator
 ```
 
 ## Lancement projet dans dossier courant
@@ -52,8 +53,6 @@ DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 DOMAIN_NAME = '127.0.0.1:8000'
-
-AUTHENTICATION_BACKENDS = (django.contrib.auth.backends.ModelBackend',)
 
 CKAN_URL = 'http://hostname'
 CKAN_API_KEY = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
@@ -112,6 +111,20 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'}]
+
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
+
+MAMA_CAS_SERVICES = [
+    {
+        'SERVICE': '',
+        'CALLBACKS': [
+            'mama_cas.callbacks.user_name_attributes',
+            'mama_cas.callbacks.user_model_attributes'
+        ],
+        'LOGOUT_ALLOW': True,
+        'LOGOUT_URL': ''
+    },
+]
 
 LANGUAGE_CODE = 'FR-fr'
 
