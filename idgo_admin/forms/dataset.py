@@ -144,7 +144,9 @@ class DatasetForm(forms.ModelForm):
         # if organisation:
         #     self.fields['licence'].initial = organisation.license
         #     self.fields['licence'].queryset = License.objects.all()
-        if Dataset.objects.filter(name=name).exists():
+
+        if not self.include_args['identification'] \
+                and Dataset.objects.filter(name=name).exists():
             self.add_error('name', 'Le jeu de données "{0}" existe déjà'.format(name))
             raise ValidationError("Dataset '{0}' already exists".format(name))
 
@@ -181,7 +183,6 @@ class DatasetForm(forms.ModelForm):
         else:  # Création d'un nouveau jeu de données
             created = True
             dataset = Dataset.objects.create(**params)
-
 
         if data.get('categories'):
             dataset.categories = data['categories']
