@@ -1,0 +1,95 @@
+{% load static %}
+
+<div ng-app="mdEdit">
+
+	<script>var config = {{ config | safe }};</script>
+	<div class="main-container" ng-controller="mdEditCtrl as vm">
+
+		<div class="container ng-scope">
+			<div class="row">
+				<div class="col-md-offset-1 col-md-10">
+					<div ng-hide="vm.data.pageLoaded" id="alert" class="" role="alert">
+						<uib-progressbar class="progress-striped active" value="100" type="info">Chargement...</uib-progressbar>
+					</div>
+					<div class="row">
+						<div id="content" ng-include="vm.data.template_url"></div>
+					</div>
+					<div class="buttons-on-the-right-side">
+						<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}">Revenir</a>
+						<button type="button" class="btn btn-primary">Valider</button>
+					</div>
+				</div>
+			</div>
+
+			<script src="{% static "libs/mdedit/lib/showdown/showdown.min.js" %}"></script>
+			<script src="{% static "libs/mdedit/lib/jquery/jquery-2.2.4.min.js" %}"></script>
+			<script src="{% static "libs/mdedit/lib/angular/angular-1.5.3.min.js" %}"></script>
+			<!-- <script src="{% static "libs/mdedit/lib/angular/1.5.3/i18n/angular-locale_fr-fr.js" %}"></script> -->
+			<script src="{% static "libs/mdedit/lib/ui-bootstrap/ui-bootstrap-tpls-1.3.0.min.js" %}"></script>
+			<script src="{% static "libs/mdedit/lib/moment/moment-with-locales.min.js" %}"></script>
+			<script src="{% static "libs/mdedit/lib/vkbeautify/vkbeautify.js" %}"></script>
+			<script src="{% static "libs/mdedit/lib/mdjs/mdjs.js" %}"></script>
+
+			<!-- mdEdit App -->
+			<script src="{% static "libs/mdedit/app/mdEdit.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.controllers.js" %}"></script>
+
+			<!-- mdEdit Services -->
+			<!-- <script src="{% static "libs/mdedit/app/mdEdit.services/helper.js" %}"></script> -->
+			<script src="{% static "libs/mdedit/app/mdEdit.services/mdjs.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.services/empty-json.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.services/config.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.services/appData.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.services/broadcast.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.services/xml.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.services/jsonConverter.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.services/locales.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.services/models.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.services/views.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.services/extents.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.services/checkValues.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.services/permalink.js" %}"></script>
+			<!-- <script src="{% static "libs/mdedit/app/mdEdit.services/modal.js" %}"></script> -->
+
+			<!-- mdEdit filters -->
+			<script src="{% static "libs/mdedit/app/mdEdit.filters/array2string.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.filters/string2array.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.filters/nl2br.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.filters/translateCode.js" %}"></script>
+
+			<!-- mdEdit directives -->
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editAccordionHeader.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editInput.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editTextarea.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editSelect.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editMultiSelect.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editMultiTextarea.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDate.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editContacts.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataIdentifiers.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataBrowsegraphics.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataTemporalExtents.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataGeographicExtents.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataLinkages.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataReferenceSystems.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataDistributionFormats.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataKeywords.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/mdEdit.directives/changeLocales/changeLocales.js" %}"></script>
+			<!-- <script src="{% static "libs/mdedit/app/directives/edit/editDataTitle.js" %}"></script> -->
+
+			<!-- modalDoc module -->
+			<script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.controllers.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.services.js" %}"></script>
+
+			<!-- modalGetXml module -->
+			<script src="{% static "libs/mdedit/app/modalGetXml.module/modalGetXml.controllers.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/modalGetXml.module/modalGetXml.services.js" %}"></script>
+
+			<!-- modalSetXml module -->
+			<script src="{% static "libs/mdedit/app/modalSetXml.module/modalSetXml.controllers.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/modalSetXml.module/modalSetXml.services.js" %}"></script>
+			<script src="{% static "libs/mdedit/app/modalSetXml.module/directives/uploadFile.js" %}"></script>
+
+		</div>
+	</div>
+</div>

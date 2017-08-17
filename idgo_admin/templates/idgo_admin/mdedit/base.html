@@ -1,0 +1,14 @@
+{% extends "idgo_admin/base.html" %}
+
+{% block nav_content %}
+<base href="."></base>
+<ol class="breadcrumb">
+	<li><a href="{% url "idgo_admin:home" %}#datasets">Mes jeux de données</a></li>
+	<li class="active">{{ dataset_name }}</li>
+	<li class="active">Edition de la Fiche INSPIRE</li>
+</ol>
+{% endblock nav_content %}
+
+{% block main %}
+{% include "idgo_admin/mdedit/inner_base.html" %}
+{% endblock main %}
