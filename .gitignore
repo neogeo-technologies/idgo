@@ -93,4 +93,4 @@ ENV/
 .idea
 
 # mdedit
-static/libs/mdedit
+*/static/libs/mdedit
