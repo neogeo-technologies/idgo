@@ -91,3 +91,6 @@ ENV/
 
 # pycharm stuff:
 .idea
+
+# mdedit
+static/libs/mdedit
