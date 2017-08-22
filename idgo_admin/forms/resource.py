@@ -146,7 +146,7 @@ class ResourceForm(forms.ModelForm):
         try:
             ckan_user.publish_resource(str(dataset.ckan_id), **ckan_params)
         except Exception as e:
-
+            # TODO: vérifier si la ressource est créé dans ckan puis la supprimer par sécurité
             if created:
                 resource.delete()
             # else:

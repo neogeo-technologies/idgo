@@ -7,15 +7,31 @@
 		<div class="container ng-scope">
 			<div class="row">
 				<div class="col-md-offset-1 col-md-10">
+					<div class="buttons-on-the-right-side">
+						<span ng-show="vm.data.view == 1" ng-hide="vm.data.view == 3">
+							<a href="#" role="button" class="btn btn-default" ng-init="vm.showAllFields=False" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="!vm.showAllFields" uib-tooltip="Permuter vers l'affichage complet" tooltip-trigger="mouseenter" tooltip-placement="left">
+								<span class="glyphicon glyphicon-th"></span>
+							</a>
+							<a href="#" role="button" class="btn btn-default" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="vm.showAllFields" uib-tooltip="Revenir à l'affichage simple" tooltip-trigger="mouseenter" tooltip-placement="left">
+								<span class="glyphicon glyphicon-th-large"></span>
+							</a>
+						</span>
+						<a href="#" role="button" class="btn btn-default" ng-click="vm.changeView(1)" uib-tooltip="Revenir au mode d'édition" tooltip-trigger="mouseenter" tooltip-placement="left" ng-hide="vm.data.view == 1">
+							<span class="glyphicon glyphicon-pencil"></span>
+						</a>
+						<a href="#" role="button" class="btn btn-default" ng-click="vm.changeView(2)" uib-tooltip="Permuter vers le mode de visualisation" tooltip-trigger="mouseenter" tooltip-placement="left" ng-hide="vm.data.view != 1">
+							<span class="glyphicon glyphicon-eye-open"></span>
+						</a>
+					</div>
 					<div ng-hide="vm.data.pageLoaded" id="alert" class="" role="alert">
 						<uib-progressbar class="progress-striped active" value="100" type="info">Chargement...</uib-progressbar>
 					</div>
-					<div class="row">
-						<div id="content" ng-include="vm.data.template_url"></div>
+					<div id="content" ng-include="vm.data.template_url">
+						<!-- Content -->
 					</div>
 					<div class="buttons-on-the-right-side">
 						<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}">Revenir</a>
-						<button type="button" class="btn btn-primary">Valider</button>
+						<button type="button" class="btn btn-primary" ng-click="vm.openModalGetXml()">Valider</button>
 					</div>
 				</div>
 			</div>

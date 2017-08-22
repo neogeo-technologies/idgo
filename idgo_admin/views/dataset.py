@@ -68,6 +68,7 @@ class DatasetManager(View):
                 o.get_restricted_level_display()
                 ) for o in Resource.objects.filter(dataset=instance)]
 
+
         context = {'form': form,
                    'first_name': user.first_name,
                    'last_name': user.last_name,
@@ -75,7 +76,7 @@ class DatasetManager(View):
                    'dataset_id': dataset_id,
                    'licenses': dict(
                        (o.pk, o.license.pk) for o
-                       in Liaisons_Contributeurs.get_contribs(profile=profile)),
+                       in Liaisons_Contributeurs.get_contribs(profile=profile) if o.license),
                    'resources': json.dumps(resources),
                    'tags': json.dumps(ckan.get_tags())}
 
@@ -99,7 +100,7 @@ class DatasetManager(View):
             'dataset_id': None,
             'licenses': dict(
                 (o.pk, o.license.pk) for o
-                in Liaisons_Contributeurs.get_contribs(profile=profile)),
+                in Liaisons_Contributeurs.get_contribs(profile=profile) if o.license),
             'resources': [],
             'tags': json.dumps(ckan.get_tags())}
 
@@ -191,7 +192,8 @@ def datasets(request):
         o.date_modification.isoformat() if o.date_modification else None,
         o.date_publication.isoformat() if o.date_publication else None,
         Organisation.objects.get(id=o.organisation_id).name,
-        o.published) for o in Dataset.objects.filter(editor=user)]
+        o.published,
+        o.is_inspire) for o in Dataset.objects.filter(editor=user)]
 
     my_contributions = \
         Liaisons_Contributeurs.get_contribs(profile=profile)

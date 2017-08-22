@@ -132,9 +132,8 @@ class ResourceManager(View):
             request, dataset, uploaded_file=get_uploaded_file(form))
 
         messages.success(request, (
-            'La ressource a été créée avec succès. '
-            'Souhaitez-vous <a href="{0}">ajouter une nouvelle '
-            'ressource ?</a>').format(
+            'La ressource a été créée avec succès. Souhaitez-vous '
+            '<a href="{0}">ajouter une nouvelle ressource ?</a>').format(
                 reverse(self.namespace, kwargs={'dataset_id': dataset_id})))
 
         return http_redirect(dataset_id, instance.id)

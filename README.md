@@ -3,8 +3,7 @@
 ## Mise en place de l'environnement
 
 ```shell
-~> sudo apt-get install binutils libproj-dev gdal-bin python-gdal build-essential autoconf libtool
-~> sudo apt-get install libsasl2-dev python-dev libldap2-dev libssl-dev python3-dev python3-venv
+~> sudo apt-get install binutils libproj-dev gdal-bin python-gdal build-essential autoconf libtool libsasl2-dev python-dev libldap2-dev libssl-dev python3-dev python3-venv git
 ~> mkdir idgo_venv
 ~> cd idgo_venv
 ~/idgo_venv> virtualenv -p python3.5 .
@@ -21,12 +20,25 @@
 (idgo_venv) ~/idgo_venv> pip install timeout-decorator
 ```
 
-## Lancement projet dans dossier courant
+## Installation de IDGO
+
+TODO
+
+#### Récupération du code depuis GitHub
 
 ```shell
-(idgo_venv) idgo_venv> django-admin startproject idgo_project
-(idgo_venv) idgo_venv> cd idgo_project/p
+~> git clone https://github.com/neogeo-technologies/idgo
 ```
+
+#### Installation de mdedit depuis GitHub
+
+MDedit doit être installé dans le répertoire `static/libs/` du projet IDGO.
+
+```shell
+~> git clone https://github.com/neogeo-technologies/mdedit
+```
+
+## Configuration
 
 ### `settings.py`
 

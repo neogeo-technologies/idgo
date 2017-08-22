@@ -171,7 +171,8 @@ class DatasetForm(forms.ModelForm):
             'organisation': data['organisation'],
             # 'owner_email': data['owner_email'],
             'update_freq': data['update_freq'],
-            'published': data['published']}
+            'published': data['published'],
+            'is_inspire': data['is_inspire']}
 
         if id:  # Mise à jour du jeu de données
             created = False

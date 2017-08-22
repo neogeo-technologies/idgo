@@ -5,7 +5,6 @@ from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core import validators
 from django import forms
 from django.utils.text import slugify
 from idgo_admin.models import Financeur

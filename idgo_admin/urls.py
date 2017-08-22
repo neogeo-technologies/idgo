@@ -14,6 +14,12 @@ from idgo_admin.views.mailer import confirm_new_orga
 from idgo_admin.views.mailer import confirm_rattachement
 from idgo_admin.views.mailer import confirm_referent
 from idgo_admin.views.mailer import confirmation_mail
+from idgo_admin.views.mdedit import get_list_xml
+from idgo_admin.views.mdedit import get_url
+from idgo_admin.views.mdedit import get_xml
+from idgo_admin.views.mdedit import MDEdit
+from idgo_admin.views.mdedit import MDEditTplEdit
+from idgo_admin.views.mdedit import send_xml
 from idgo_admin.views.organization_handler import contribution_request
 from idgo_admin.views.organization_handler import Contributions
 # from idgo_admin.views.organization_handler import Referents
@@ -23,7 +29,13 @@ from idgo_admin.views.stuffs import DisplayLicenses
 
 urlpatterns = [
     url('^dataset/?$', DatasetManager.as_view(), name='dataset'),
-    url('^(?P<dataset_id>(\d+))/resources/?$', ResourceManager.as_view(), name='resource'),
+    url('^dataset/(?P<dataset_id>(\d+))/resources/?$', ResourceManager.as_view(), name='resource'),
+    url('^dataset/(?P<dataset_id>(\d+))/mdedit/?$', MDEdit.as_view(), name='mdedit'),
+    url('^dataset/(?P<dataset_id>(\d+))/mdedit/geturl/?$', get_url, name='mdedit_get_url'),
+    url('^dataset/(?P<dataset_id>(\d+))/mdedit/getxml/?$', get_xml, name='mdedit_get_xml'),
+    url('^dataset/(?P<dataset_id>(\d+))/mdedit/sendxml/?$', send_xml, name='mdedit_send_xml'),
+    url('^dataset/(?P<dataset_id>(\d+))/mdedit/getlistxml/?$', get_list_xml, name='mdedit_get_list_xml'),
+    url('^dataset/(?P<dataset_id>(\d+))/mdedit/edit/?$', MDEditTplEdit.as_view(), name='mdedit_tpl_edit'),
     url('^$', datasets, name='home'),
     url('^signin/?$', SignIn.as_view(), name='signIn'),
     url('^signout/?$', SignOut.as_view(), name='signOut'),

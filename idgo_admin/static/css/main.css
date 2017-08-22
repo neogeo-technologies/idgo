@@ -345,6 +345,7 @@ a:focus {
 
 .buttons-on-the-right-side {
     text-align: right;
+    margin-bottom: 20px;
 }
 
 .buttons-on-the-right-side>.btn {
@@ -542,4 +543,13 @@ div#categories.btn-group>label.btn.active:focus>span.badge {
 
 .well[name="data-selector-panel"] .form-control[readonly] {
     background-color: #fcfcfc;
+}
+
+.panel-default {
+    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+            box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+}
+
+.panel-default .panel-heading {
+    background-color: #ffffff;
 }
