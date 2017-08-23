@@ -57,6 +57,11 @@ class UserForm(forms.ModelForm):
             raise ValidationError('Les mots de passe ne sont pas identiques.')
 
         email = self.cleaned_data.get('email', None)
+        if email and self.include_args['action'] == 'create':
+            if User.objects.filter(email=email).count() > 0:
+                self.add_error('email', 'Cette adresse e-mail est réservée.')
+                raise ValidationError(
+                    'Cette adresse e-mail est réservée.')
         if email and self.include_args['action'] == 'update':
             user = User.objects.get(username=self.cleaned_data['username'])
             if email != user.email and User.objects.filter(
