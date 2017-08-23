@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from idgo_admin.ckan_module import CkanHandler as ckan
@@ -75,14 +76,19 @@ def confirmation_mail(request, key):
 
     action.closed = timezone.now()
     action.save()
-    message = ("Merci d'avoir confirmer votre adresse e-mail. "
+    message = ("Merci d'avoir confirmé votre adresse e-mail. "
                'Toute demande de rattachement, contribution, '
                'ou rôle de référent pour une organisation, '
                "ne sera effective qu'après validation "
                'par un administrateur.')
 
-    return render(request, 'idgo_admin/message.html',
-                  {'message': message}, status=200)
+    context = {
+        'message': message,
+        'button': {
+            'href': reverse('idgo_admin:signIn'),
+            'label': 'Se connecter'}}
+
+    return render(request, 'idgo_admin/message.html', context, status=200)
 
 
 @csrf_exempt
