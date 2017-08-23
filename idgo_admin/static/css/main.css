@@ -221,8 +221,8 @@ table tr.selected:focus td {
     background: #0571cf;
 }
 
-.table-transparent > tbody > tr > td,
-.table-transparent > tbody > tr > th {
+.table-transparent>tbody>tr>td,
+.table-transparent>tbody>tr>th {
     border-top: none;
 }
 

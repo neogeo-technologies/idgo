@@ -23,7 +23,7 @@ _today_str = _today.strftime('%d/%m/%Y')
 class DatasetForm(forms.ModelForm):
 
     name = forms.CharField(
-        label='Titre',
+        label='Titre*',
         required=True)
 
     description = forms.CharField(
@@ -84,12 +84,12 @@ class DatasetForm(forms.ModelForm):
         required=False)
 
     organisation = forms.ModelChoiceField(
-        label='Organisation à laquelle est rattaché ce jeu de données',
+        label='Organisation à laquelle est rattaché ce jeu de données*',
         queryset=Organisation.objects.all(),
         required=True)
 
     licences = forms.ModelChoiceField(
-        label='Licence',
+        label='Licence*',
         queryset=License.objects.all(),
         required=True)
 
