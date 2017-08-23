@@ -149,10 +149,10 @@ class ProfileForm(forms.ModelForm):
 
     code_insee = forms.CharField(
         required=False,
-        label="Code INSEE",
+        label='Territoire de compétence',
         max_length=10,
         widget=forms.TextInput(
-            attrs={'placeholder': "Code INSEE"}))
+            attrs={'placeholder': 'Territoire de compétence'}))
 
     description = forms.CharField(
         required=False,
