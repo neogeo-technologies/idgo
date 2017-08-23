@@ -62,7 +62,7 @@ class SignIn(MamaLoginView):
                 if self.warn_user():
                     return mama_redirect('cas_warn', params={'service': service, 'ticket': st.ticket})
                 return mama_redirect(service, params={'ticket': st.ticket})
-        return super().get(request, *args, **kwargs)
+        return super(MamaLoginView, self).get(request, *args, **kwargs)
 
     def form_valid(self, form):
         login(self.request, form.user)
