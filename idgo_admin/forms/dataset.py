@@ -1,5 +1,4 @@
 from django.core.exceptions import ValidationError
-# from django.core import validators
 from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
@@ -146,8 +145,9 @@ class DatasetForm(forms.ModelForm):
         #     self.fields['licence'].initial = organisation.license
         #     self.fields['licence'].queryset = License.objects.all()
 
-        if not self.include_args['identification'] \
-                and Dataset.objects.filter(name=name).exists():
+        # if not self.include_args['identification'] \
+        #         and Dataset.objects.filter(name=name).exists():
+        if Dataset.objects.filter(name=name).exists():
             self.add_error('name', 'Le jeu de données "{0}" existe déjà'.format(name))
             raise ValidationError("Dataset '{0}' already exists".format(name))
 
@@ -181,6 +181,7 @@ class DatasetForm(forms.ModelForm):
             dataset = Dataset.objects.get(pk=id)
             for key, value in params.items():
                 setattr(dataset, key, value)
+            dataset.save()
         else:  # Création d'un nouveau jeu de données
             created = True
             dataset = Dataset.objects.create(**params)
@@ -207,6 +208,8 @@ class DatasetForm(forms.ModelForm):
                 str(dataset.date_publication) if dataset.date_publication else '',
             'groups': [],
             'geocover': dataset.geocover,
+            'last_modified':
+                str(dataset.date_modification) if dataset.date_modification else '',
             'license_id': dataset.licences.title,
             'maintainer': user.username,
             'maintainer_email': user.email,
