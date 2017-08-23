@@ -263,6 +263,10 @@ class ProfileForm(forms.ModelForm):
             else:
                 self.fields['organisation'].queryset = Organisation.objects.all()
 
+        if self.include_args['action'] == 'create':
+            self.fields['organisation'].queryset = \
+                Organisation.objects.exclude(is_active=False)
+
     def clean(self):
         params = ['adresse', 'code_insee', 'code_postal', 'description',
                   'financeur', 'license', 'organisation_type', 'org_phone'
