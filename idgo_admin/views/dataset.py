@@ -68,7 +68,6 @@ class DatasetManager(View):
                 o.get_restricted_level_display()
                 ) for o in Resource.objects.filter(dataset=instance)]
 
-
         context = {'form': form,
                    'first_name': user.first_name,
                    'last_name': user.last_name,

@@ -221,6 +221,11 @@ table tr.selected:focus td {
     background: #0571cf;
 }
 
+.table-transparent > tbody > tr > td,
+.table-transparent > tbody > tr > th {
+    border-top: none;
+}
+
 .dropdown-menu  {
     top: calc(100% + 2px);
     border: none;

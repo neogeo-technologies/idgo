@@ -99,7 +99,7 @@ def confirm_new_orga(request, key):
     else:
         action.profile.organisation.is_active = True
         action.profile.organisation.save()
-        ckan.add_organization(action.profile.organisation)  # TODO À la création du premier dataset
+        # ckan.add_organization(action.profile.organisation)  # TODO À la création du premier dataset
         action.closed = timezone.now()
         action.save()
         message = ("L'organisation <strong>{0}</strong> a bien été créée. "

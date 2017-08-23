@@ -316,6 +316,12 @@ class Liaisons_Contributeurs(models.Model):
                     profile=profile, validated_on__isnull=False)]
 
     @classmethod
+    def get_contributors(cls, organization):
+        return [e.profile for e
+                in Liaisons_Contributeurs.objects.filter(
+                    organisation=organization, validated_on__isnull=False)]
+
+    @classmethod
     def get_pending(cls, profile):
         return [e.organisation for e
                 in Liaisons_Contributeurs.objects.filter(
@@ -853,7 +859,8 @@ def pre_save_contribution(sender, instance, **kwargs):
         return
     user = instance.profile.user
     organisation = instance.organisation
-    ckan.add_user_to_organization(user.username, organisation.ckan_slug)
+    if ckan.get_organization(organisation.ckan_slug):
+        ckan.add_user_to_organization(user.username, organisation.ckan_slug)
 
 
 @receiver(pre_delete, sender=Liaisons_Contributeurs)
@@ -866,3 +873,10 @@ def pre_delete_contribution(sender, instance, **kwargs):
 @receiver(pre_save, sender=Organisation)
 def pre_save_organization(sender, instance, **kwargs):
     instance.ckan_slug = slugify(instance.name)
+
+
+def create_organization_in_ckan(organization):
+    ckan.add_organization(organization)
+    for profile in Liaisons_Contributeurs.get_contributors(organization):
+        user = profile.user
+        ckan.add_user_to_organization(user.username, organization.ckan_slug)

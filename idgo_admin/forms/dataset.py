@@ -5,6 +5,7 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Category
+from idgo_admin.models import create_organization_in_ckan
 from idgo_admin.models import Dataset
 from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import License
@@ -180,10 +181,12 @@ class DatasetForm(forms.ModelForm):
             dataset = Dataset.objects.get(pk=id)
             for key, value in params.items():
                 setattr(dataset, key, value)
-
         else:  # Création d'un nouveau jeu de données
             created = True
             dataset = Dataset.objects.create(**params)
+
+        if not ckan.get_organization(dataset.organisation.ckan_slug):
+            create_organization_in_ckan(dataset.organisation)
 
         if data.get('categories'):
             dataset.categories = data['categories']

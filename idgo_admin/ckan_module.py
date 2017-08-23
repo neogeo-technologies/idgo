@@ -74,7 +74,6 @@ class CkanUserHandler(object):
 
     @timeout
     def call_action(self, action, **kwargs):
-        print(kwargs)
         return self.remote.call_action(action, kwargs)
 
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
@@ -96,7 +95,6 @@ class CkanUserHandler(object):
     def push_resource(self, package, **kwargs):
         kwargs['package_id'] = package['id']
         kwargs['created'] = datetime.now().isoformat()
-
         for resource in package['resources']:
             if resource['id'] == kwargs['id']:
                 kwargs['last_modified'] = kwargs['created']
