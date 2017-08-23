@@ -21,6 +21,14 @@
 		</div>
 	</div>
 	<div class="row">
+		<!-- <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			{# {% bootstrap_field pform.role show_label=False %} #}
+		</div> -->
+		<div class="col-xs-3">
+			{% bootstrap_field pform.phone show_label=False %}
+		</div>
+	</div>
+	<div class="row">
 		<div class="col-xs-12 col-sm-6">
 			{% bootstrap_field uform.password1 show_label=False %}
 		</div>
@@ -31,14 +39,6 @@
 	<hr />
 	{% include "idgo_admin/inner_manageorganization.html" %}
 	<hr />
-	<div class="row">
-		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-			{% bootstrap_field pform.role show_label=False %}
-		</div>
-		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-			{% bootstrap_field pform.phone show_label=False %}
-		</div>
-	</div>
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:signIn" %}">Revenir</a>
 		<button type="submit" class="btn btn-primary">Valider</button>
