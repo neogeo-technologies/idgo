@@ -28,9 +28,9 @@ def confirmation_mail(request, key):
     profile = action.profile
     organisation = action.profile.organisation
 
+    ckan.activate_user(user.username)
     user.is_active = True
     action.profile.is_active = True
-    ckan.activate_user(user.username)
 
     user.save()
     action.profile.save()
