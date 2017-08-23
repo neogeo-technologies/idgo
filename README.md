@@ -68,6 +68,7 @@ DOMAIN_NAME = '127.0.0.1:8000'
 
 CKAN_URL = 'http://hostname'
 CKAN_API_KEY = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+CKAN_TIMEOUT = 10
 
 GEONETWORK_URL = ''
 GEONETWORK_LOGIN = ''

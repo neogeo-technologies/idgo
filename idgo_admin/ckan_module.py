@@ -13,10 +13,11 @@ from urllib.parse import urljoin
 
 CKAN_URL = settings.CKAN_URL
 CKAN_API_KEY = settings.CKAN_API_KEY
+CKAN_TIMEOUT = settings.CKAN_TIMEOUT
 
 
 def timeout(fun):
-    t = 5  # in seconds
+    t = CKAN_TIMEOUT  # in seconds
 
     @timeout_decorator.timeout(t, use_signals=False)
     def return_with_timeout(fun, args=tuple(), kwargs=dict()):
