@@ -53,12 +53,9 @@ class CkanExceptionsHandler(object):
             except Exception as e:
                 if isinstance(e, timeout_decorator.TimeoutError):
                     raise CkanTimeoutError
-                name = e.__class__.__qualname__
-                message = e.__str__()
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
-                print('[~ Ckan Error ~]', name, message)
-                raise CkanSyncingError(name=name, message=message)
+                raise CkanSyncingError(e.__str__())
         return wrapper
 
     def is_ignored(self, exception):
