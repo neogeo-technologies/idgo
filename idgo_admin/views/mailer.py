@@ -1,9 +1,11 @@
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Liaisons_Contributeurs
 from idgo_admin.models import Liaisons_Referents
@@ -11,6 +13,7 @@ from idgo_admin.models import Mail
 from uuid import UUID
 
 
+@ExceptionsHandler(ignore=[Http404])
 @csrf_exempt
 def confirmation_mail(request, key):
 
@@ -27,12 +30,7 @@ def confirmation_mail(request, key):
 
     user.is_active = True
     action.profile.is_active = True
-    try:
-        ckan.activate_user(user.username)
-    except Exception:
-        message = ("Une erreur s'est produite lors de l'activation de votre compte")
-        return render(
-            request, 'idgo_admin/message.html', {'message': message}, status=400)
+    ckan.activate_user(user.username)
 
     user.save()
     action.profile.save()
@@ -91,6 +89,7 @@ def confirmation_mail(request, key):
     return render(request, 'idgo_admin/message.html', context, status=200)
 
 
+@ExceptionsHandler(ignore=[Http404])
 @csrf_exempt
 def confirm_new_orga(request, key):
 
@@ -116,6 +115,7 @@ def confirm_new_orga(request, key):
                   {'message': message}, status=200)
 
 
+@ExceptionsHandler(ignore=[Http404])
 @csrf_exempt
 def confirm_rattachement(request, key):
 
@@ -154,6 +154,7 @@ def confirm_rattachement(request, key):
                   {'message': message}, status=200)
 
 
+@ExceptionsHandler(ignore=[Http404])
 @csrf_exempt
 def confirm_referent(request, key):
 
@@ -192,6 +193,7 @@ def confirm_referent(request, key):
                   {'message': message}, status=status)
 
 
+@ExceptionsHandler(ignore=[Http404])
 @csrf_exempt
 def confirm_contribution(request, key):
 
