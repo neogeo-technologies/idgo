@@ -39,7 +39,7 @@ class DatasetManager(View):
 
         user = request.user
         profile = get_object_or_404(Profile, user=user)
-        form = Form(include={'user': user, 'identification': False})
+        form = Form(include={'user': user, 'identification': False, 'id': None})
         dataset_name = 'Nouveau'
         dataset_id = None
         resources = []
@@ -56,7 +56,7 @@ class DatasetManager(View):
         if id:
             instance = get_object_or_404(Dataset, id=id, editor=user)
             form = Form(instance=instance,
-                        include={'user': user, 'identification': True})
+                        include={'user': user, 'identification': True, 'id': id})
             dataset_name = instance.name
             dataset_id = instance.id
             resources = [(
@@ -107,7 +107,7 @@ class DatasetManager(View):
         if id:
             instance = get_object_or_404(Dataset, id=id, editor=user)
             form = Form(data=request.POST, instance=instance,
-                        include={'user': user, 'identification': True})
+                        include={'user': user, 'identification': True, 'id': id})
 
             if not form.is_valid():
                 context.update({
@@ -131,7 +131,7 @@ class DatasetManager(View):
             return http_redirect(instance.id)
 
         form = Form(data=request.POST,
-                    include={'user': user, 'identification': False})
+                    include={'user': user, 'identification': False, 'id': None})
 
         if not form.is_valid():
             context.update({'form': form})

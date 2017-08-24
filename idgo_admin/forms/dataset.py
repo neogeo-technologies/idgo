@@ -145,9 +145,14 @@ class DatasetForm(forms.ModelForm):
         #     self.fields['licence'].initial = organisation.license
         #     self.fields['licence'].queryset = License.objects.all()
 
-        # if not self.include_args['identification'] \
-        #         and Dataset.objects.filter(name=name).exists():
-        if Dataset.objects.filter(name=name).exists():
+        if self.include_args['identification']:
+            dataset = Dataset.objects.get(id=self.include_args['id'])
+            if name != dataset.name and Dataset.objects.filter(name=name).exists():
+                self.add_error('name', 'Ce nom est réservé.')
+                raise ValidationError('NameError')
+
+        if not self.include_args['identification'] \
+                and Dataset.objects.filter(name=name).exists():
             self.add_error('name', 'Le jeu de données "{0}" existe déjà'.format(name))
             raise ValidationError("Dataset '{0}' already exists".format(name))
 
