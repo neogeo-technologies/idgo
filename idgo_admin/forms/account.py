@@ -244,11 +244,11 @@ class ProfileForm(forms.ModelForm):
             # On exclut de la liste de choix toutes les organisations pour
             # lesquelles l'user est contributeur ou en attente de validation
             con_org_bl = [e.organisation.pk for e in Liaisons_Contributeurs.objects.filter(profile=self._profile)]
-            self.fields['contributions'].queryset = Organisation.objects.exclude(pk__in=con_org_bl)
+            self.fields['contributions'].queryset = Organisation.objects.exclude(pk__in=con_org_bl).exclude(is_active=False)
 
             # Idem "Référent"
             ref_org_bl = [e.organisation.pk for e in Liaisons_Referents.objects.filter(profile=self._profile)]
-            self.fields['referents'].queryset = Organisation.objects.exclude(pk__in=ref_org_bl)
+            self.fields['referents'].queryset = Organisation.objects.exclude(pk__in=ref_org_bl).exclude(is_active=False)
 
             organisation = self._profile.organisation
             if organisation:
@@ -259,9 +259,13 @@ class ProfileForm(forms.ModelForm):
                         self.fields['organisation'].widget = forms.HiddenInput()
                     else:
                         self.fields['organisation'].initial = organisation.pk
-                        self.fields['organisation'].queryset = Organisation.objects.all()
+                        self.fields['organisation'].queryset = Organisation.objects.exclude(is_active=False)
             else:
-                self.fields['organisation'].queryset = Organisation.objects.all()
+                self.fields['organisation'].queryset = Organisation.objects.exclude(is_active=False)
+
+        if self.include_args['action'] == 'create':
+            self.fields['organisation'].queryset = \
+                Organisation.objects.exclude(is_active=False)
 
     def clean(self):
         params = ['adresse', 'code_insee', 'code_postal', 'description',
