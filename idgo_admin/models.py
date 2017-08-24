@@ -867,7 +867,8 @@ def pre_save_contribution(sender, instance, **kwargs):
 def pre_delete_contribution(sender, instance, **kwargs):
     user = instance.profile.user
     organisation = instance.organisation
-    ckan.del_user_from_organization(user.username, organisation.ckan_slug)
+    if ckan.get_organization(organisation.ckan_slug):
+        ckan.del_user_from_organization(user.username, organisation.ckan_slug)
 
 
 @receiver(pre_save, sender=Organisation)
