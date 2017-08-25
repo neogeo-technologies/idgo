@@ -12,6 +12,8 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from taggit.forms import TagField
 from taggit.forms import TagWidget
+
+import re
 from uuid import UUID
 
 
@@ -158,7 +160,17 @@ class DatasetForm(forms.ModelForm):
 
         if not self.cleaned_data.get('date_creation'):
             self.cleaned_data['date_creation'] = _today
+        kwords = self.cleaned_data.get('keywords')
 
+        if kwords:
+            for w in kwords:
+                if len(w) < 2:
+                    self.add_error('keywords', "La taille minimum pour un mot clé est de 2 caractères. ")
+                    raise ValidationError("KeywordsError")
+                regex = '^[a-zA-Z0-9áàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ\._\-\s]*$'
+                if not re.match(regex, w):
+                    self.add_error('keywords', "Les mots-clés ne peuvent pas contenir de caractères spéciaux. ")
+                    raise ValidationError("KeywordsError")
         return self.cleaned_data
 
     def handle_me(self, request, id=None):
