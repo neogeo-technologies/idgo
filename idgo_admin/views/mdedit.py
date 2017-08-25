@@ -1,14 +1,22 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import IntegrityError
+from django.http import Http404
+from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.models import Dataset
 from idgo_admin.utils import three_suspension_points
 from urllib.parse import urljoin
+from uuid import UUID
+import xml.etree.ElementTree as ET
 
 
 STATIC_URL = settings.STATIC_URL
@@ -17,21 +25,20 @@ GEONETWORK_URL = settings.GEONETWORK_URL
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
-def get_list_xml():
-    pass
+def get_list_xml(*args, **kwargs):
+    raise Http404
 
 
-def get_url():
-
-    pass
-
-
-def get_xml():
-    pass
+def get_url(*args, **kwargs):
+    raise Http404
 
 
-def send_xml():
-    pass
+def get_xml(*args, **kwargs):
+    raise Http404
+
+
+def send_xml(*args, **kwargs):
+    raise Http404
 
 
 @method_decorator(decorators, name='dispatch')
@@ -73,6 +80,7 @@ class MDEditTplEdit(View):
 class MDEdit(View):
 
     template = 'idgo_admin/mdedit.html'
+    namespace = 'idgo_admin:mdedit'
 
     def get(self, request, dataset_id):
 
@@ -85,6 +93,10 @@ class MDEdit(View):
         def server_url(namespace):
             return reverse(
                 'idgo_admin:{0}'.format(namespace), kwargs={'dataset_id': dataset.id})
+
+        if dataset.geonet_id:
+            record = geonet.get_record(str(dataset.geonet_id))
+            print(record)
 
         views = {
             'description': 'List of views',
@@ -149,3 +161,33 @@ class MDEdit(View):
             'config': config}
 
         return render(request, self.template, context=context)
+
+    def post(self, request, dataset_id):
+
+        user = request.user
+        dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+
+        def http_redirect(dataset_id):
+            return HttpResponseRedirect(
+                reverse(self.namespace, kwargs={'dataset_id': dataset_id}))
+
+        if not request.is_ajax():
+            return http_redirect(dataset_id)
+
+        root = ET.fromstring(request.body)
+        ns = {'gmd': 'http://www.isotc211.org/2005/gmd',
+              'gco': 'http://www.isotc211.org/2005/gco'}
+        id = root.find('gmd:fileIdentifier/gco:CharacterString', ns).text
+
+        record = ET.tostring(
+            root, encoding='utf-8', method='xml', short_empty_elements=True)
+
+        if not geonet.get_record(id):
+            geonet.create_record(id, record)
+            dataset.geonet_id = UUID(id)
+            dataset.save()
+
+        messages.success(
+            request, 'La fiche de metadonnées a été créé avec succès.')
+
+        return HttpResponse()

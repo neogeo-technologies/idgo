@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -82,6 +83,7 @@ class DatasetManager(View):
         return render(request, self.template, context=context)
 
     @ExceptionsHandler(ignore=[Http404])
+    @transaction.atomic
     def post(self, request):
 
         def http_redirect(dataset_id):
@@ -124,7 +126,9 @@ class DatasetManager(View):
                         ) for o in Resource.objects.filter(dataset=instance)])})
                 return render(request, self.template, context)
 
-            form.handle_me(request, id=id)
+            with transaction.atomic():
+                form.handle_me(request, id=id)
+
             messages.success(
                 request, 'Le jeu de données a été mis à jour avec succès.')
 
@@ -137,7 +141,9 @@ class DatasetManager(View):
             context.update({'form': form})
             return render(request, self.template, context)
 
-        instance = form.handle_me(request)
+        with transaction.atomic():
+            instance = form.handle_me(request)
+
         messages.success(request, (
             'Le jeu de données a été créé avec succès. '
             'Souhaitez-vous <a href="{0}">créer un nouveau jeu de '

@@ -18,6 +18,7 @@
 (idgo_venv) ~/idgo_venv> pip install django-bootstrap3
 (idgo_venv) ~/idgo_venv> pip install django-mama-cas
 (idgo_venv) ~/idgo_venv> pip install timeout-decorator
+(idgo_venv) ~/idgo_venv> pip install owslib
 ```
 
 ## Installation de IDGO

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -78,6 +79,7 @@ class ResourceManager(View):
         return render(request, self.template, context)
 
     @ExceptionsHandler(ignore=[Http404])
+    @transaction.atomic
     def post(self, request, dataset_id):
 
         def get_uploaded_file(form):
@@ -108,6 +110,16 @@ class ResourceManager(View):
             instance = \
                 get_object_or_404(Resource, id=id, dataset_id=dataset_id)
 
+            mode = None
+            if instance.up_file:
+                mode = 'up_file'
+            if instance.dl_url:
+                mode = 'dl_url'
+            if instance.referenced_url:
+                mode = 'referenced_url'
+
+            context.update({'mode': mode})
+
             form = Form(request.POST, request.FILES, instance=instance)
             if not form.is_valid():
                 context.update({
@@ -115,8 +127,9 @@ class ResourceManager(View):
                     'form': form})
                 return render(request, self.template, context)
 
-            form.handle_me(
-                request, dataset, id=id, uploaded_file=get_uploaded_file(form))
+            with transaction.atomic():
+                form.handle_me(
+                    request, dataset, id=id, uploaded_file=get_uploaded_file(form))
 
             messages.success(
                 request, 'La ressource a été mise à jour avec succès.')
@@ -128,8 +141,9 @@ class ResourceManager(View):
             context.update({'form': form})
             return render(request, self.template, context)
 
-        instance = form.handle_me(
-            request, dataset, uploaded_file=get_uploaded_file(form))
+        with transaction.atomic():
+            instance = form.handle_me(
+                request, dataset, uploaded_file=get_uploaded_file(form))
 
         messages.success(request, (
             'La ressource a été créée avec succès. Souhaitez-vous '

@@ -125,7 +125,6 @@ class CkanUserHandler(object):
     def publish_dataset(self, name, id=None, resources=None, **kwargs):
         kwargs['name'] = name
         if id and self.is_package_exists(id):
-            print(self.get_package(id))
             package = \
                 self.call_action(
                     'package_update', **{**self.get_package(id), **kwargs})

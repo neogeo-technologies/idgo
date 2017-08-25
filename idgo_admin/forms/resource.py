@@ -73,7 +73,8 @@ class ResourceForm(forms.ModelForm):
                   'users_allowed',
                   'organisations_allowed')
 
-    def handle_me(self, request, dataset, id=None, uploaded_file=None):
+    def handle_me(
+            self, request, dataset, id=None, uploaded_file=None):
 
         user = request.user
         data = self.cleaned_data
