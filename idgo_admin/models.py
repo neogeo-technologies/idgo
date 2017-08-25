@@ -273,8 +273,6 @@ class Profile(models.Model):
         return self.user.username
 
 
-# TODO(cbenhabib):
-# Le rattachement est conservé sur FK: Profile-Organisation
 class Liaisons_Referents(models.Model):
 
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
@@ -821,6 +819,10 @@ class Dataset(models.Model):
 
     published = models.BooleanField(
         'Etat du jeu de donnée', default=False)
+
+    geonet_id = models.UUIDField(
+        'Metadonnées UUID', unique=True, db_index=True,
+        blank=True, null=True)
 
     def __str__(self):
         return self.name
