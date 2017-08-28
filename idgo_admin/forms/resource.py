@@ -115,14 +115,14 @@ class ResourceForm(forms.ModelForm):
             resource.users_allowed = users_allowed
             ckan_params['restricted'] = json.dumps({
                 'allowed_users': ','.join([u.username for u in users_allowed]),
-                'level': 'registered'})
+                'level': 'only_allowed_users'})
 
         if restricted_level == '4':  # Any organization
             resource.organisations_allowed = organizations_allowed
             ckan_params['restricted'] = json.dumps({
                 'allowed_users': ','.join(
                     get_all_users_for_organizations(data['organisations_allowed'])),
-                'level': 'registered'})
+                'level': 'only_allowed_users'})
 
         if resource.referenced_url:
             ckan_params['url'] = resource.referenced_url

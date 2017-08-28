@@ -100,6 +100,7 @@ class CkanUserHandler(object):
                 del kwargs['url']
                 resource.update(kwargs)
                 del resource['tracking_summary']
+                del resource['datastore_active']
                 return self.remote.action.resource_update(**resource)
         return self.remote.action.resource_create(**kwargs)
 
