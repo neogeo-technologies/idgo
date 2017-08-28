@@ -14,6 +14,7 @@ from django.views import View
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.models import Dataset
 from idgo_admin.utils import three_suspension_points
+import re
 from urllib.parse import urljoin
 from uuid import UUID
 import xml.etree.ElementTree as ET
@@ -53,6 +54,7 @@ class MDEditTplEdit(View):
 
         user = request.user
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+        del dataset
 
         context = {
             'template': {
@@ -93,10 +95,6 @@ class MDEdit(View):
         def server_url(namespace):
             return reverse(
                 'idgo_admin:{0}'.format(namespace), kwargs={'dataset_id': dataset.id})
-
-        if dataset.geonet_id:
-            record = geonet.get_record(str(dataset.geonet_id))
-            print(record)
 
         views = {
             'description': 'List of views',
@@ -160,6 +158,13 @@ class MDEdit(View):
             'dataset_id': dataset.id,
             'config': config}
 
+        if dataset.geonet_id:
+            record = geonet.get_record(str(dataset.geonet_id))
+            xml = record.xml.decode(encoding='utf-8')
+            context['record'] = re.sub('\n', '', xml).replace("'", "\\'")
+        else:
+            pass
+
         return render(request, self.template, context=context)
 
     def post(self, request, dataset_id):
@@ -186,6 +191,10 @@ class MDEdit(View):
             geonet.create_record(id, record)
             dataset.geonet_id = UUID(id)
             dataset.save()
+        else:
+            geonet.update_record(id, record)
+
+        geonet.publish(id)  # Toujours publier la fiche
 
         messages.success(
             request, 'La fiche de metadonnées a été créé avec succès.')
