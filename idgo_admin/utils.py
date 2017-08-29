@@ -101,8 +101,9 @@ def three_suspension_points(val, max_len=19):
 
 def open_json_staticfile(filename):
     def open_json(root):
-        with open(os.path.join(root, filename)) as f:
+        with open(os.path.join(root, filename), encoding='utf-8') as f:
             return json.load(f)
+
     if STATIC_ROOT:
         return open_json(STATIC_ROOT)
     if STATICFILES_DIRS:
@@ -117,4 +118,6 @@ def clean_my_obj(obj):
         return type(obj)(
             (clean_my_obj(k), clean_my_obj(v)) for k, v in obj.items() if k and v)
     else:
+        import unicodedata
+        obj = unicodedata.normalize('NFKD', obj).encode('ascii', 'ignore')
         return obj
