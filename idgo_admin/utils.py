@@ -1,8 +1,13 @@
+from django.conf import settings
+import json
 import os
 import requests
 import string
 from urllib.parse import urlparse
 from uuid import uuid4
+
+
+STATICFILES_DIRS = settings.STATICFILES_DIRS
 
 
 # Metaclasses:
@@ -91,3 +96,19 @@ class PartialFormatter(string.Formatter):
 
 def three_suspension_points(val, max_len=19):
     return (len(val)) > max_len and val[0:max_len - 3] + '...' or val
+
+
+def open_json_staticfile(filename):
+    for staticfiles_dir in STATICFILES_DIRS:
+        with open(os.path.join(staticfiles_dir, filename)) as f:
+            return json.load(f)
+
+
+def clean_my_obj(obj):
+    if obj and isinstance(obj, (list, tuple, set)):
+        return type(obj)(clean_my_obj(x) for x in obj if x)
+    elif obj and isinstance(obj, dict):
+        return type(obj)(
+            (clean_my_obj(k), clean_my_obj(v)) for k, v in obj.items() if k and v)
+    else:
+        return obj

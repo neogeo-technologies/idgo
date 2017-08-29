@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db import IntegrityError
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -13,7 +12,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.models import Dataset
+from idgo_admin.models import Resource
+from idgo_admin.utils import clean_my_obj
+from idgo_admin.utils import open_json_staticfile
 from idgo_admin.utils import three_suspension_points
+import os
 import re
 from urllib.parse import urljoin
 from uuid import UUID
@@ -22,6 +25,9 @@ import xml.etree.ElementTree as ET
 
 STATIC_URL = settings.STATIC_URL
 GEONETWORK_URL = settings.GEONETWORK_URL
+STATICFILES_DIRS = settings.STATICFILES_DIRS
+DOMAIN_NAME = settings.DOMAIN_NAME
+
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
@@ -40,6 +46,58 @@ def get_xml(*args, **kwargs):
 
 def send_xml(*args, **kwargs):
     raise Http404
+
+
+def pre_fill_model(model, dataset):
+    data = model.copy()
+
+    editor = dataset.editor
+    organization = dataset.organisation
+
+    data['mdContacts'][0].update({
+        'individualName': editor.get_full_name(),
+        'organisationName': organization.name,
+        'email': organization.email,
+        'deliveryPoint': organization.adresse,
+        'postalCode': organization.code_postal,
+        'city': dataset.organisation.ville})
+
+    try:
+        data['mdContacts'][0].update({
+            'logoUrl': urljoin(DOMAIN_NAME, organization.logo.url)})
+    except Exception:
+        pass
+
+    data['dataTitle'] = dataset.name
+    data['dataAbstract'] = dataset.description
+
+    if dataset.date_creation:
+        data['dataDates'].insert(0, {
+            'date': dataset.date_creation.isoformat(),
+            'dateType': 'creation'})
+    if dataset.date_publication:
+        data['dataDates'].insert(1, {
+            'date': dataset.date_publication.isoformat(),
+            'dateType': 'publication'})
+    if dataset.date_modification:
+        data['dataDates'].insert(2, {
+            'date': dataset.date_modification.isoformat(),
+            'dateType': 'revision'})
+
+    data['dataMaintenanceFrequency'] = dataset.update_freq or 'unknown'
+
+    if dataset.keywords:
+        data['dataKeywords'].insert(0, {
+            'keywords': [kw for kw in dataset.keywords.names()],
+            'keywordType': 'theme'})
+
+    resources = Resource.objects.filter(dataset=dataset)
+    for resource in resources:
+        data['dataLinkages'].insert(0, {
+            'name': resource.name,
+            'description': resource.description})
+
+    return clean_my_obj(data)
 
 
 @method_decorator(decorators, name='dispatch')
@@ -83,13 +141,17 @@ class MDEdit(View):
 
     template = 'idgo_admin/mdedit.html'
     namespace = 'idgo_admin:mdedit'
+    config_path = 'libs/mdedit/config/'
+
+    # filenames
+    model_json = 'models/model-empty.json'
 
     def get(self, request, dataset_id):
 
         user = request.user
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
 
-        def join_url(filename, path='libs/mdedit/config/'):
+        def join_url(filename, path=self.config_path):
             return urljoin(urljoin(STATIC_URL, path), filename)
 
         def server_url(namespace):
@@ -122,7 +184,7 @@ class MDEdit(View):
             'description': 'List of default models',
             'list': [
                 {
-                    'path': join_url('models/model-empty.json'),
+                    'path': join_url(self.model_json),
                     'value': 'Modèle de fiche vierge'},
                 {
                     'path': join_url('models/model-cigal-opendata.json'),
@@ -161,9 +223,10 @@ class MDEdit(View):
         if dataset.geonet_id:
             record = geonet.get_record(str(dataset.geonet_id))
             xml = record.xml.decode(encoding='utf-8')
-            context['record'] = re.sub('\n', '', xml).replace("'", "\\'")
+            context['record_xml'] = re.sub('\n', '', xml).replace("'", "\\'")  # C'est moche
         else:
-            pass
+            context['record_json'] = prefill_model(open_json_staticfile(
+                os.path.join(self.config_path, self.model_json)), dataset)
 
         return render(request, self.template, context=context)
 

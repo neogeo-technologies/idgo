@@ -35,14 +35,13 @@
 					<div ng-hide="vm.data.pageLoaded" id="alert" class="" role="alert">
 						<uib-progressbar class="progress-striped active" value="100" type="info">Chargement...</uib-progressbar>
 					</div>
-					<form name="mdedit" method="post" action="">
+					<form name="mdedit">
 						<div id="content" ng-include="vm.data.template_url">
 							<!-- Content -->
 						</div>
 						<div class="buttons-on-the-right-side">
 							<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}">Revenir</a>
 							<button id="validate" type="button" class="btn btn-primary">Valider</button>
-							<button id="load" type="button" class="btn btn-primary">Charger</button>
 						</div>
 					</form>
 				</div>
@@ -62,7 +61,6 @@
 			<script src="{% static "libs/mdedit/app/mdEdit.controllers.js" %}"></script>
 
 			<!-- mdEdit Services -->
-			<!-- <script src="{% static "libs/mdedit/app/mdEdit.services/helper.js" %}"></script> -->
 			<script src="{% static "libs/mdedit/app/mdEdit.services/mdjs.js" %}"></script>
 			<script src="{% static "libs/mdedit/app/mdEdit.services/empty-json.js" %}"></script>
 			<script src="{% static "libs/mdedit/app/mdEdit.services/config.js" %}"></script>
@@ -76,7 +74,6 @@
 			<script src="{% static "libs/mdedit/app/mdEdit.services/extents.js" %}"></script>
 			<script src="{% static "libs/mdedit/app/mdEdit.services/checkValues.js" %}"></script>
 			<script src="{% static "libs/mdedit/app/mdEdit.services/permalink.js" %}"></script>
-			<!-- <script src="{% static "libs/mdedit/app/mdEdit.services/modal.js" %}"></script> -->
 
 			<!-- mdEdit filters -->
 			<script src="{% static "libs/mdedit/app/mdEdit.filters/array2string.js" %}"></script>
@@ -102,7 +99,6 @@
 			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataDistributionFormats.js" %}"></script>
 			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataKeywords.js" %}"></script>
 			<script src="{% static "libs/mdedit/app/mdEdit.directives/changeLocales/changeLocales.js" %}"></script>
-			<!-- <script src="{% static "libs/mdedit/app/directives/edit/editDataTitle.js" %}"></script> -->
 
 			<!-- modalDoc module -->
 			<script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.controllers.js" %}"></script>
@@ -115,13 +111,15 @@
 			<!-- modalSetXml module -->
 			<script src="{% static "libs/mdedit/app/modalSetXml.module/modalSetXml.controllers.js" %}"></script>
 			<script src="{% static "libs/mdedit/app/modalSetXml.module/modalSetXml.services.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/modalSetXml.module/directives/uploadFile.js" %}"></script>
+			<!-- <script src="{% static "libs/mdedit/app/modalSetXml.module/directives/uploadFile.js" %}"></script> -->
 
 			<script>
 $(document).ready(function(){
 	var $scope = angular.element('div[ng-controller="mdEditCtrl as vm"]').scope();
-	{% if record %}
-	$scope.vm.xml = '{{ record | safe }}';
+	{% if record_xml %}
+	$scope.vm.record = '{{ record_xml | safe }}';
+	{% elif record_json %}
+		$scope.vm.record = {{ record_json | safe }};
 	{% endif %}
 	$('#validate').click(function(e) {
 		e.preventDefault();
