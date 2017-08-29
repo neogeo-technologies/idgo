@@ -6,9 +6,9 @@
 {% if messages %}
 	{% for message in messages %}
 		{% if message.tags == 'success' %}
-			<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+		<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
 		{% elif message.tags == 'error' %}
-			<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+		<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
 		{% endif %}
 	{% endfor %}
 {% endif %}
@@ -103,24 +103,14 @@ var $button = $('form[name="organization"] button[name="unsubscribe"]')
 					url: '{% url "idgo_admin:organizations" %}' + '?id=' + organizationsGrid.getRowValues(organizationsGrid.lastSelectedRowIndex)['id']
 				})
 				.done(function(response, textStatus, jqXHR) {
-					console.log('done');
-					// $modal.find('.close').remove();
 					$modal.find('.modal-title').text('Information');
-					console.log(0);
 					$modal.find('.modal-body').append(jqXHR.responseText);
-					console.log(1);
 					$modal.modal('show');
-					console.log(2);
 				})
 				.fail(function(jqXHR, textStatus, errorThrown) {
-					console.log('fail');
-					// $modal.find('.close').remove();
 					$modal.find('.modal-title').text("L'opération a échouée");
-					console.log(3);
 					$modal.find('.modal-body').append(jqXHR.responseText);
-					console.log(4);
 					$modal.modal('show');
-					console.log(5);
 				});
 				e.stopPropagation();
 			});

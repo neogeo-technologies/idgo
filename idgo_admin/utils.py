@@ -118,6 +118,4 @@ def clean_my_obj(obj):
         return type(obj)(
             (clean_my_obj(k), clean_my_obj(v)) for k, v in obj.items() if k and v)
     else:
-        import unicodedata
-        obj = unicodedata.normalize('NFKD', obj).encode('ascii', 'ignore')
         return obj

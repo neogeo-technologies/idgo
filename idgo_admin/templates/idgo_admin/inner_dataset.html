@@ -1,13 +1,13 @@
 {% load bootstrap3 %}
 
 {% if messages %}
-    {% for message in messages %}
-        {% if message.tags == 'success' %}
-            <div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
-        {% elif message.tags == 'error' %}
-            <div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
-        {% endif %}
-    {% endfor %}
+	{% for message in messages %}
+		{% if message.tags == 'success' %}
+		<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+		{% elif message.tags == 'error' %}
+		<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+		{% endif %}
+		{% endfor %}
 {% endif %}
 
 <form name="dataset" method="post" action="">
@@ -100,8 +100,8 @@
 		</div>
 	</div>
 	<div class="buttons-on-the-right-side">
-		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
-		<a class="btn btn-default" href="{% url "idgo_admin:home" %}">Annuler</a>
+		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
+		<a class="btn btn-default" href="{% url "idgo_admin:home" %}">Revenir</a>
 	</div>
 </form>
 <script>

@@ -104,22 +104,13 @@
 			<script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.controllers.js" %}"></script>
 			<script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.services.js" %}"></script>
 
-			<!-- modalGetXml module -->
-			<script src="{% static "libs/mdedit/app/modalGetXml.module/modalGetXml.controllers.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/modalGetXml.module/modalGetXml.services.js" %}"></script>
-
-			<!-- modalSetXml module -->
-			<script src="{% static "libs/mdedit/app/modalSetXml.module/modalSetXml.controllers.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/modalSetXml.module/modalSetXml.services.js" %}"></script>
-			<!-- <script src="{% static "libs/mdedit/app/modalSetXml.module/directives/uploadFile.js" %}"></script> -->
-
 			<script>
 $(document).ready(function(){
 	var $scope = angular.element('div[ng-controller="mdEditCtrl as vm"]').scope();
 	{% if record_xml %}
 	$scope.vm.record = '{{ record_xml | safe }}';
-	{% elif record_json %}
-		$scope.vm.record = {{ record_json | safe }};
+	{% elif record_obj %}
+	$scope.vm.record = {{ record_obj | safe }};
 	{% endif %}
 	$('#validate').click(function(e) {
 		e.preventDefault();

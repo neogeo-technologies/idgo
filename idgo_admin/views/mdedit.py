@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -29,22 +28,6 @@ DOMAIN_NAME = settings.DOMAIN_NAME
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
-
-
-def get_list_xml(*args, **kwargs):
-    raise Http404
-
-
-def get_url(*args, **kwargs):
-    raise Http404
-
-
-def get_xml(*args, **kwargs):
-    raise Http404
-
-
-def send_xml(*args, **kwargs):
-    raise Http404
 
 
 def prefill_model(model, dataset):
@@ -198,10 +181,6 @@ class MDEdit(View):
             'app_version': '0.14.9~hacked',
             'app_copyrights': '(c) CIGAL 2016',
             'defaultLanguage': 'fr',
-            'server_url_getxml': server_url('mdedit_get_xml'),
-            'server_url_geturl': server_url('mdedit_get_url'),
-            'server_url_sendxml': server_url('mdedit_send_xml'),
-            'server_url_getlistxml': server_url('mdedit_get_list_xml'),
             'server_url_md': GEONETWORK_URL,
             'views_file': views,
             'models_file': models,
@@ -224,8 +203,9 @@ class MDEdit(View):
             xml = record.xml.decode(encoding='utf-8')
             context['record_xml'] = re.sub('\n', '', xml).replace("'", "\\'")  # C'est moche
         else:
-            context['record_json'] = prefill_model(open_json_staticfile(
-                os.path.join(self.config_path, self.model_json)), dataset)
+            context['record_obj'] = \
+                prefill_model(open_json_staticfile(
+                    os.path.join(self.config_path, self.model_json)), dataset)
 
         return render(request, self.template, context=context)
 
