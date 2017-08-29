@@ -48,7 +48,7 @@ def send_xml(*args, **kwargs):
     raise Http404
 
 
-def pre_fill_model(model, dataset):
+def prefill_model(model, dataset):
     data = model.copy()
 
     editor = dataset.editor
