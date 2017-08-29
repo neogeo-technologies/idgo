@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 
+STATIC_ROOT = settings.STATIC_ROOT
 STATICFILES_DIRS = settings.STATICFILES_DIRS
 
 
@@ -99,9 +100,14 @@ def three_suspension_points(val, max_len=19):
 
 
 def open_json_staticfile(filename):
-    for staticfiles_dir in STATICFILES_DIRS:
-        with open(os.path.join(staticfiles_dir, filename)) as f:
+    def open_json(root):
+        with open(os.path.join(root, filename)) as f:
             return json.load(f)
+    if STATIC_ROOT:
+        return open_json(STATIC_ROOT)
+    if STATICFILES_DIRS:
+        for staticfiles_dir in STATICFILES_DIRS:
+            return open_json(staticfiles_dir)
 
 
 def clean_my_obj(obj):

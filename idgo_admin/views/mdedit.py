@@ -25,7 +25,6 @@ import xml.etree.ElementTree as ET
 
 STATIC_URL = settings.STATIC_URL
 GEONETWORK_URL = settings.GEONETWORK_URL
-STATICFILES_DIRS = settings.STATICFILES_DIRS
 DOMAIN_NAME = settings.DOMAIN_NAME
 
 
