@@ -286,9 +286,15 @@ class CkanManagerHandler(metaclass=Singleton):
         for organization_name in organizations:
             self.del_user_from_organization(username, organization_name)
 
-    @CkanExceptionsHandler()
-    def get_group(self, group_name):
-        return self.call_action('group_show', id=group_name)
+    @CkanExceptionsHandler(ignore=[CkanError.NotFound])
+    def get_group(self, id):
+        try:
+            self.call_action('group_show', id=str(id))
+        except CkanError.NotFound:
+            return None
+
+    def is_group_exists(self, id):
+        return self.get_group(str(id)) and True or False
 
     @CkanExceptionsHandler()
     def add_group(self, group):
