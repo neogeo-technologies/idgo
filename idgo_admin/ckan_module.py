@@ -289,7 +289,7 @@ class CkanManagerHandler(metaclass=Singleton):
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
     def get_group(self, id):
         try:
-            self.call_action('group_show', id=str(id))
+            return self.call_action('group_show', id=str(id))
         except CkanError.NotFound:
             return None
 
