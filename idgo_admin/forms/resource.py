@@ -111,17 +111,32 @@ class ResourceForm(forms.ModelForm):
             'lang': resource.lang,
             'url': ''}
 
-        if restricted_level == '2':  # Registered users
+        if restricted_level == '0':  # Public
+            resource.users_allowed = users_allowed
+            ckan_params['restricted'] = json.dumps({'level': 'public'})
+
+        if restricted_level == '1':  # Registered users
+            resource.users_allowed = users_allowed
+            ckan_params['restricted'] = json.dumps({'level': 'registered'})
+
+        if restricted_level == '2':  # Only allowed users
             resource.users_allowed = users_allowed
             ckan_params['restricted'] = json.dumps({
                 'allowed_users': ','.join([u.username for u in users_allowed]),
+                'level': 'only_allowed_users'})
+
+        if restricted_level == '3':  # This organization
+            resource.organisations_allowed = [dataset.organisation]
+            ckan_params['restricted'] = json.dumps({
+                'allowed_users': ','.join(
+                    get_all_users_for_organizations([dataset.organisation])),
                 'level': 'only_allowed_users'})
 
         if restricted_level == '4':  # Any organization
             resource.organisations_allowed = organizations_allowed
             ckan_params['restricted'] = json.dumps({
                 'allowed_users': ','.join(
-                    get_all_users_for_organizations(data['organisations_allowed'])),
+                    get_all_users_for_organizations(organizations_allowed)),
                 'level': 'only_allowed_users'})
 
         if resource.referenced_url:

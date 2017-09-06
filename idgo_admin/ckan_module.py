@@ -39,6 +39,7 @@ class CkanTimeoutError(CkanSyncingError):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+
 class CkanExceptionsHandler(object):
 
     def __init__(self, ignore=None):
@@ -288,7 +289,7 @@ class CkanManagerHandler(metaclass=Singleton):
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
     def get_group(self, id):
         try:
-            self.call_action('group_show', id=str(id))
+            return self.call_action('group_show', id=str(id))
         except CkanError.NotFound:
             return None
 
