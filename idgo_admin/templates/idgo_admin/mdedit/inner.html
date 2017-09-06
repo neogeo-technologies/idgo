@@ -1,133 +1,43 @@
-{% load static %}
-
-<div ng-app="mdEdit">
-
-	<script>var config = {{ config | safe }};</script>
-	<div class="main-container" ng-controller="mdEditCtrl as vm">
-		<div class="container ng-scope">
-			<div class="row">
-				<div class="col-md-offset-1 col-md-10">
-					{% if messages %}
-						{% for message in messages %}
-							{% if message.tags == 'success' %}
-							<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
-							{% elif message.tags == 'error' %}
-							<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
-							{% endif %}
-						{% endfor %}
+<div class="container ng-scope">
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			{% if messages %}
+				{% for message in messages %}
+					{% if message.tags == 'success' %}
+					<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+					{% elif message.tags == 'error' %}
+					<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
 					{% endif %}
-					<div class="buttons-on-the-right-side">
-						<span ng-show="vm.data.view == 1" ng-hide="vm.data.view == 3">
-							<a href="#" role="button" class="btn btn-default" ng-init="vm.showAllFields=False" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="!vm.showAllFields" uib-tooltip="Permuter vers l'affichage complet" tooltip-trigger="mouseenter" tooltip-placement="left">
-								<span class="glyphicon glyphicon-th"></span>
-							</a>
-							<a href="#" role="button" class="btn btn-default" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="vm.showAllFields" uib-tooltip="Revenir à l'affichage simple" tooltip-trigger="mouseenter" tooltip-placement="left">
-								<span class="glyphicon glyphicon-th-large"></span>
-							</a>
-						</span>
-						<a href="#" role="button" class="btn btn-default" ng-click="vm.changeView(1)" uib-tooltip="Revenir au mode d'édition" tooltip-trigger="mouseenter" tooltip-placement="left" ng-hide="vm.data.view == 1">
-							<span class="glyphicon glyphicon-pencil"></span>
-						</a>
-						<a href="#" role="button" class="btn btn-default" ng-click="vm.changeView(2)" uib-tooltip="Permuter vers le mode de visualisation" tooltip-trigger="mouseenter" tooltip-placement="left" ng-hide="vm.data.view != 1">
-							<span class="glyphicon glyphicon-eye-open"></span>
-						</a>
-					</div>
-					<div ng-hide="vm.data.pageLoaded" id="alert" class="" role="alert">
-						<uib-progressbar class="progress-striped active" value="100" type="info">Chargement...</uib-progressbar>
-					</div>
-					<form name="mdedit">
-						<div id="content" ng-include="vm.data.template_url">
-							<!-- Content -->
-						</div>
-						<div class="buttons-on-the-right-side">
-							<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}">Revenir</a>
-							<button id="validate" type="button" class="btn btn-primary">Valider</button>
-						</div>
-					</form>
-				</div>
+				{% endfor %}
+			{% endif %}
+			<div class="buttons-on-the-right-side">
+				<span ng-show="vm.data.view == 1" ng-hide="vm.data.view == 3">
+					<a href="#" role="button" class="btn btn-default" ng-init="vm.showAllFields=False" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="!vm.showAllFields" uib-tooltip="Permuter vers l'affichage complet" tooltip-trigger="mouseenter" tooltip-placement="left">
+						<span class="glyphicon glyphicon-th"></span>
+					</a>
+					<a href="#" role="button" class="btn btn-default" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="vm.showAllFields" uib-tooltip="Revenir à l'affichage simple" tooltip-trigger="mouseenter" tooltip-placement="left">
+						<span class="glyphicon glyphicon-th-large"></span>
+					</a>
+				</span>
+				<a href="#" role="button" class="btn btn-default" ng-click="vm.changeView(1)" uib-tooltip="Revenir au mode d'édition" tooltip-trigger="mouseenter" tooltip-placement="left" ng-hide="vm.data.view == 1">
+					<span class="glyphicon glyphicon-pencil"></span>
+				</a>
+				<a href="#" role="button" class="btn btn-default" ng-click="vm.changeView(2)" uib-tooltip="Permuter vers le mode de visualisation" tooltip-trigger="mouseenter" tooltip-placement="left" ng-hide="vm.data.view != 1">
+					<span class="glyphicon glyphicon-eye-open"></span>
+				</a>
 			</div>
-
-			<script src="{% static "libs/mdedit/lib/showdown/showdown.min.js" %}"></script>
-			<script src="{% static "libs/mdedit/lib/jquery/jquery-2.2.4.min.js" %}"></script>
-			<script src="{% static "libs/mdedit/lib/angular/angular-1.5.3.min.js" %}"></script>
-			<!-- <script src="{% static "libs/mdedit/lib/angular/1.5.3/i18n/angular-locale_fr-fr.js" %}"></script> -->
-			<script src="{% static "libs/mdedit/lib/ui-bootstrap/ui-bootstrap-tpls-1.3.0.min.js" %}"></script>
-			<script src="{% static "libs/mdedit/lib/moment/moment-with-locales.min.js" %}"></script>
-			<script src="{% static "libs/mdedit/lib/vkbeautify/vkbeautify.js" %}"></script>
-			<script src="{% static "libs/mdedit/lib/mdjs/mdjs.js" %}"></script>
-
-			<!-- mdEdit App -->
-			<script src="{% static "libs/mdedit/app/mdEdit.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.controllers.js" %}"></script>
-
-			<!-- mdEdit Services -->
-			<script src="{% static "libs/mdedit/app/mdEdit.services/mdjs.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.services/empty-json.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.services/config.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.services/appData.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.services/broadcast.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.services/xml.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.services/jsonConverter.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.services/locales.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.services/models.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.services/views.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.services/extents.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.services/checkValues.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.services/permalink.js" %}"></script>
-
-			<!-- mdEdit filters -->
-			<script src="{% static "libs/mdedit/app/mdEdit.filters/array2string.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.filters/string2array.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.filters/nl2br.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.filters/translateCode.js" %}"></script>
-
-			<!-- mdEdit directives -->
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editAccordionHeader.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editInput.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editTextarea.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editSelect.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editMultiSelect.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editMultiTextarea.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDate.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editContacts.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataIdentifiers.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataBrowsegraphics.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataTemporalExtents.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataGeographicExtents.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataLinkages.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataReferenceSystems.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataDistributionFormats.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataKeywords.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/mdEdit.directives/changeLocales/changeLocales.js" %}"></script>
-
-			<!-- modalDoc module -->
-			<script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.controllers.js" %}"></script>
-			<script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.services.js" %}"></script>
-
-			<script>
-$(document).ready(function(){
-	var $scope = angular.element('div[ng-controller="mdEditCtrl as vm"]').scope();
-	{% if record_xml %}
-	$scope.vm.record = '{{ record_xml | safe }}';
-	{% elif record_obj %}
-	$scope.vm.record = {{ record_obj | safe }};
-	{% endif %}
-	$('#validate').click(function(e) {
-		e.preventDefault();
-		$.ajax({
-			type: 'POST',
-			data: $scope.vm.getXml(),
-			contentType: 'text/xml',
-			dataType: 'xml',
-			success: function(response) {
-				location.reload();
-			},
-			url: '{% url "idgo_admin:mdedit" dataset_id=dataset_id %}'
-		})
-		e.stopPropagation();
-	});
-});
-			</script>
+			<div ng-hide="vm.data.pageLoaded" id="alert" class="" role="alert">
+				<uib-progressbar class="progress-striped active" value="100" type="info">Chargement...</uib-progressbar>
+			</div>
+			<form name="mdedit">
+				<div id="content" ng-include="vm.data.template_url">
+					<!-- Content -->
+				</div>
+				<div class="buttons-on-the-right-side">
+					<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}">Revenir</a>
+					<button id="validate" type="button" class="btn btn-primary">Valider</button>
+				</div>
+			</form>
 		</div>
 	</div>
 </div>

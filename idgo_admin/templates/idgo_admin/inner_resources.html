@@ -11,199 +11,201 @@
 </div>
 
 <script>
-var RESOURCE_URL = '{% url "idgo_admin:resource" dataset_id=dataset_id %}';
-var RESOURCES = {{ resources | safe }};
-var RESOURCES_CONTAINER = 'table-resources';
-var RESOURCES_METADATA = [
-	{
-		name: 'title',
-		label: 'Titre',
-		editable: false,
-		datatype: 'string'
-	}, {
-		name: 'format',
-		label: 'Format',
-		editable: false,
-		datatype: 'string'
-	}, {
-		name: 'date_creation',
-		label: 'Date de création',
-		editable: false,
-		datatype: 'string'
-	}, {
-		name: 'last_modification',
-		label: 'Dernière modification',
-		editable: false,
-		datatype: 'string'
-	}, {
-		name: 'restrictions',
-		label: "Restrictions d'accès",
-		editable: false,
-		datatype: 'string'
-	}, {
-		name: 'id',
-		label: '_HIDDEN',  //->https://github.com/webismymind/editablegrid/issues/153
-		editable: false,
-		datatype: 'integer'
-	}
-];
+$(function() {
 
-var resourcesGrid = new EditableGrid('Resources', {pageSize: 10});
+	var RESOURCE_URL = '{% url "idgo_admin:resource" dataset_id=dataset_id %}';
+	var RESOURCES = {{ resources | safe }};
+	var RESOURCES_CONTAINER = 'table-resources';
+	var RESOURCES_METADATA = [
+		{
+			name: 'title',
+			label: 'Titre',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'format',
+			label: 'Format',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'date_creation',
+			label: 'Date de création',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'last_modification',
+			label: 'Dernière modification',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'restrictions',
+			label: "Restrictions d'accès",
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'id',
+			label: '_HIDDEN',  //->https://github.com/webismymind/editablegrid/issues/153
+			editable: false,
+			datatype: 'integer'
+		}
+	];
 
-$('#resources button[name="delete-resource"]')
-	.on('click', function(e) {
-		e.preventDefault();
+	var resourcesGrid = new EditableGrid('Resources', {pageSize: 10});
 
-		var $button = $('<button/>')
-			.prop('type', 'button')
-			.prop('class', 'btn btn-danger disabled')
-			.prop('disabled', true)
-			.text('Oui, supprimer définitivement cette ressource')
-			.on('click', function(e) {
-				e.preventDefault();
-				closeAllModalDialog();
-				$.ajax({
-					type: 'DELETE',
-					// success: function() {},
-					url: RESOURCE_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']
-				})
-				.done(function(response, textStatus, jqXHR) {
-					// $modal.find('.close').remove();
-					$modal.find('.modal-title').text('Information');
-					$modal.find('.modal-body').append(jqXHR.responseText);
-					$modal.modal('show');
-				})
-				.fail(function(jqXHR, textStatus, errorThrown) {
-					// $modal.find('.close').remove();
-					$modal.find('.modal-title').text("L'opération a échouée");
-					$modal.find('.modal-body').append(jqXHR.responseText);
-					$modal.modal('show');
+	$('#resources button[name="delete-resource"]')
+		.on('click', function(e) {
+			e.preventDefault();
+
+			var $button = $('<button/>')
+				.prop('type', 'button')
+				.prop('class', 'btn btn-danger disabled')
+				.prop('disabled', true)
+				.text('Oui, supprimer définitivement cette ressource')
+				.on('click', function(e) {
+					e.preventDefault();
+					closeAllModalDialog();
+					$.ajax({
+						type: 'DELETE',
+						// success: function() {},
+						url: RESOURCE_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']
+					})
+					.done(function(response, textStatus, jqXHR) {
+						// $modal.find('.close').remove();
+						$modal.find('.modal-title').text('Information');
+						$modal.find('.modal-body').append(jqXHR.responseText);
+						$modal.modal('show');
+					})
+					.fail(function(jqXHR, textStatus, errorThrown) {
+						// $modal.find('.close').remove();
+						$modal.find('.modal-title').text("L'opération a échouée");
+						$modal.find('.modal-body').append(jqXHR.responseText);
+						$modal.modal('show');
+					});
+					e.stopPropagation();
 				});
-				e.stopPropagation();
-			});
 
-		var $input = $('<input/>')
-			.prop('type', 'text')
-			.prop('class', 'form-control')
-			.prop('placeholder', 'Nom de la ressource à supprimer')
-			.on('input', function(e) {
-				if ($(this).val() === resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['title']) {
-					$button.removeClass('disabled').prop('disabled', false);
-				} else {
-					$button.addClass('disabled').prop('disabled', true);
-				};
-			});
+			var $input = $('<input/>')
+				.prop('type', 'text')
+				.prop('class', 'form-control')
+				.prop('placeholder', 'Nom de la ressource à supprimer')
+				.on('input', function(e) {
+					if ($(this).val() === resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['title']) {
+						$button.removeClass('disabled').prop('disabled', false);
+					} else {
+						$button.addClass('disabled').prop('disabled', true);
+					};
+				});
 
-		$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
+			$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
 
-		$modal.find('.modal-body')
-			.append('<p>Cette action est irreversible et supprimera <strong>définitivement</strong> la ressource.</p>')
-			.append(
-				$('<form/>')
-					.append(
-						$('<div/>').prop('class', 'form-group')
-							.append('<p>Pour confirmer, veuillez réécrire le nom de la ressource à supprimer.</p>')
-							.append($input))
-					.append(
-						$('<div class="buttons-on-the-right-side">')
-							.append($button)
-							.append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
+			$modal.find('.modal-body')
+				.append('<p>Cette action est irreversible et supprimera <strong>définitivement</strong> la ressource.</p>')
+				.append(
+					$('<form/>')
+						.append(
+							$('<div/>').prop('class', 'form-group')
+								.append('<p>Pour confirmer, veuillez réécrire le nom de la ressource à supprimer.</p>')
+								.append($input))
+						.append(
+							$('<div class="buttons-on-the-right-side">')
+								.append($button)
+								.append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
 
-		$modal.modal('show');
+			$modal.modal('show');
 
-		e.stopPropagation();
-	});
+			e.stopPropagation();
+		});
 
-$('#resources button[name="edit-resource"]')
-	.on('click', function(e) {
-		e.preventDefault();
-		redirect(RESOURCE_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']);
-		e.stopPropagation();
-	});
+	$('#resources button[name="edit-resource"]')
+		.on('click', function(e) {
+			e.preventDefault();
+			redirect(RESOURCE_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']);
+			e.stopPropagation();
+		});
 
-resourcesGrid.initializeGrid = function() {
-	var grid = resourcesGrid;
-	var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
+	resourcesGrid.initializeGrid = function() {
+		var grid = resourcesGrid;
+		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
 
-	with (this) {
-		tableRendered = function() {
-			this.updatePaginator(grid);
-		};
-		rowSelected = function(pRowIdx, nRowIdx) {
-			$(grid.getRow(pRowIdx)).removeClass('selected');
-			$buttons.each(function() {
-				deactivateButton($(this));
-			});
-			if (pRowIdx != nRowIdx) {
-				$(grid.getRow(nRowIdx)).addClass('selected');
+		with (this) {
+			tableRendered = function() {
+				this.updatePaginator(grid);
+			};
+			rowSelected = function(pRowIdx, nRowIdx) {
+				$(grid.getRow(pRowIdx)).removeClass('selected');
 				$buttons.each(function() {
-					activateButton($(this));
+					deactivateButton($(this));
+				});
+				if (pRowIdx != nRowIdx) {
+					$(grid.getRow(nRowIdx)).addClass('selected');
+					$buttons.each(function() {
+						activateButton($(this));
+					});
+				};
+			};
+			var DATE_FORMAT = 'dddd Do MMMM YYYY';
+			setCellRenderer('date_creation', new CellRenderer({
+				render: function(cell, value) {
+					cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
+				}
+			}));
+			setCellRenderer('last_modification', new CellRenderer({
+				render: function(cell, value) {
+					cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
+				}
+			}));
+			setCellRenderer('restrictions', new CellRenderer({
+				render: function(cell, value) {
+					cell.innerHTML = value ? value : '-';
+				}
+			}));
+		};
+	};
+
+	function updateResourcesGrid(grid, containerId, metadata, data) {
+		var $containerId = $('#' + containerId);
+		var $parent = $($containerId.parent().get(0));
+		$parent.find('div[role="alert"]').remove();
+		$parent.find('button').each(function() {
+			deactivateButton($(this));
+		});
+		if (data.length > 0) {
+			grid.load({'metadata': metadata, 'data': data});
+			grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
+			grid.initializeGrid();
+			grid.refreshGrid();
+			$containerId.show();
+		} else {
+			$containerId.hide();
+		};
+
+		if (data.length == 0) {
+			$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'avez encore jamais ajouté de ressource. Cliquez sur le bouton <strong>[ ' + $parent.find('a[name="add-resource"]').get(0).text + ' ]</strong> pour commencer.</p><div/>');
+		};
+
+	};
+
+	updateResourcesGrid(
+		resourcesGrid,
+		RESOURCES_CONTAINER,
+		RESOURCES_METADATA,
+		(function(data) {
+			var m = [];
+			for (var i = 0; i < data.length; i ++) {
+				m.push({
+					id: i,
+					values: [
+						data[i][1],  // title
+						data[i][2],  // format
+						data[i][3],  // date_creation
+						data[i][4],  // last_modification
+						data[i][5],  // restrictions
+						data[i][0]   // id
+					]
 				});
 			};
-		};
-		var DATE_FORMAT = 'dddd Do MMMM YYYY';
-		setCellRenderer('date_creation', new CellRenderer({
-			render: function(cell, value) {
-				cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
-			}
-		}));
-		setCellRenderer('last_modification', new CellRenderer({
-			render: function(cell, value) {
-				cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
-			}
-		}));
-		setCellRenderer('restrictions', new CellRenderer({
-			render: function(cell, value) {
-				cell.innerHTML = value ? value : '-';
-			}
-		}));
-	};
-};
-
-function updateResourcesGrid(grid, containerId, metadata, data) {
-	var $containerId = $('#' + containerId);
-	var $parent = $($containerId.parent().get(0));
-	$parent.find('div[role="alert"]').remove();
-	$parent.find('button').each(function() {
-		deactivateButton($(this));
-	});
-	if (data.length > 0) {
-		grid.load({'metadata': metadata, 'data': data});
-		grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
-		grid.initializeGrid();
-		grid.refreshGrid();
-		$containerId.show();
-	} else {
-		$containerId.hide();
-	};
-
-	if (data.length == 0) {
-		$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'avez encore jamais ajouté de ressource. Cliquez sur le bouton <strong>[ ' + $parent.find('a[name="add-resource"]').get(0).text + ' ]</strong> pour commencer.</p><div/>');
-	};
-
-};
-
-updateResourcesGrid(
-	resourcesGrid,
-	RESOURCES_CONTAINER,
-	RESOURCES_METADATA,
-	(function(data) {
-		var m = [];
-		for (var i = 0; i < data.length; i ++) {
-			m.push({
-				id: i,
-				values: [
-					data[i][1],  // title
-					data[i][2],  // format
-					data[i][3],  // date_creation
-					data[i][4],  // last_modification
-					data[i][5],  // restrictions
-					data[i][0]   // id
-				]
-			});
-		};
-		return m;
-	})(RESOURCES)
-);
-
+			return m;
+		})(RESOURCES)
+	);
+});
 </script>

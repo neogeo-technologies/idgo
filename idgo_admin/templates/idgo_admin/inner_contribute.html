@@ -44,41 +44,43 @@
 	</div>
 </form>
 <script>
-var $submit = $('form button[type="submit"]');
-var $radioInputs = $('form input:radio[name="contributions"]')
-	.change(function() {
-		if ($('div.btn-radio').hasClass('active')) {
-			$submit.removeClass('disabled').prop('disabled', false);
-			$typeahead.val($('form input:radio[name="contributions"]:checked').parent().text())
-		} else {
-			$submit.addClass('disabled').prop('disabled', true)
-		};
-	});
+$(function() {
+	var $submit = $('form button[type="submit"]');
+	var $radioInputs = $('form input:radio[name="contributions"]')
+		.change(function() {
+			if ($('div.btn-radio').hasClass('active')) {
+				$submit.removeClass('disabled').prop('disabled', false);
+				$typeahead.val($('form input:radio[name="contributions"]:checked').parent().text())
+			} else {
+				$submit.addClass('disabled').prop('disabled', true)
+			};
+		});
 
-function highlight() {
-	$radioInputs.each(function(value) {
-		var $this = $(this);
-		var $entry = $(this).parent();
-		var $container = $('div.scrolling-box');
-		if ($entry.text().trim().toLowerCase().startsWith($('div[name="organization"] input[type="text"]').val().trim().toLowerCase())) {
-			$container.animate({
-				scrollTop: $entry.offset().top - $container.offset().top + $container.scrollTop() - 7
-			}, 606);
-			$this.click();
-		};
-	});
-};
+	function highlight() {
+		$radioInputs.each(function(value) {
+			var $this = $(this);
+			var $entry = $(this).parent();
+			var $container = $('div.scrolling-box');
+			if ($entry.text().trim().toLowerCase().startsWith($('div[name="organization"] input[type="text"]').val().trim().toLowerCase())) {
+				$container.animate({
+					scrollTop: $entry.offset().top - $container.offset().top + $container.scrollTop() - 7
+				}, 606);
+				$this.click();
+			};
+		});
+	};
 
-$('div[name="organization"] button[type="button"]').click(highlight);
-var $typeahead = $('div[name="organization"] .typeahead')
-	.typeahead({
-		source: organizations,
-		afterSelect: highlight,
-	})
-	.keypress(function(e) {
-		if (e.which == 13) {
-			highlight();
-			return false;
-		};
-	});
+	$('div[name="organization"] button[type="button"]').click(highlight);
+	var $typeahead = $('div[name="organization"] .typeahead')
+		.typeahead({
+			source: organizations,
+			afterSelect: highlight,
+		})
+		.keypress(function(e) {
+			if (e.which == 13) {
+				highlight();
+				return false;
+			};
+		});
+});
 </script>

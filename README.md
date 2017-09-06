@@ -1,79 +1,74 @@
 # Procédure d'installation
 
-## Mise en place de l'environnement
+#### Installer les dépendances
 
 ```shell
-~> sudo apt-get install binutils libproj-dev gdal-bin python-gdal build-essential autoconf libtool libsasl2-dev python-dev libldap2-dev libssl-dev python3-dev python3-venv git
-~> mkdir idgo_venv
-~> cd idgo_venv
-~/idgo_venv> virtualenv -p python3.5 .
-~/idgo_venv> source bin/activate
-(idgo_venv) ~/idgo_venv> pip install captcha
-(idgo_venv) ~/idgo_venv> pip install passlib
-(idgo_venv) ~/idgo_venv> pip install ckanapi
-(idgo_venv) ~/idgo_venv> pip install requests
-(idgo_venv) ~/idgo_venv> pip install psycopg2
-(idgo_venv) ~/idgo_venv> pip install django==1.11
-(idgo_venv) ~/idgo_venv> pip install django-taggit
-(idgo_venv) ~/idgo_venv> pip install django-bootstrap3
-(idgo_venv) ~/idgo_venv> pip install django-mama-cas
-(idgo_venv) ~/idgo_venv> pip install timeout-decorator
-(idgo_venv) ~/idgo_venv> pip install owslib
+> apt-get install python3.5-dev python3.5-venv
+> apt-get install binutils libproj-dev gdal-bin
+> apt-get install git
 ```
 
-## Installation de IDGO
-
-TODO
-
-#### Récupération du code depuis GitHub
+#### Mettre en place l'environnement virtuel Python 3.5
 
 ```shell
-~> git clone https://github.com/neogeo-technologies/idgo
+> cd /
+/> mkdir idgo_venv
+/> cd idgo_venv
+/idgo_venv> pyvenv-3.5 ./
+/idgo_venv> source bin/activate
+(idgo_venv) /idgo_venv> pip install --upgrade pip
+(idgo_venv) /idgo_venv> pip install --upgrade setuptools
+(idgo_venv) /idgo_venv> pip install psycopg2
+(idgo_venv) /idgo_venv> pip install django==1.11
+(idgo_venv) /idgo_venv> pip install django-taggit
+(idgo_venv) /idgo_venv> pip install django-bootstrap3
+(idgo_venv) /idgo_venv> pip install django-mama-cas
+(idgo_venv) /idgo_venv> pip install pillow
+(idgo_venv) /idgo_venv> pip install timeout-decorator
+(idgo_venv) /idgo_venv> pip install requests
+(idgo_venv) /idgo_venv> pip install ckanapi
+(idgo_venv) /idgo_venv> pip install owslib
 ```
 
-#### Installation de mdedit depuis GitHub
+#### Récupérer les codes sources
+
+```shell
+> cd /
+/> mkdir apps
+/> cd apps
+/apps> git clone https://github.com/neogeo-technologies/idgo idgo
+/apps> git clone https://github.com/neogeo-technologies/mdedit mdedit
+```
+IDGO doit être installé à la racine de l'environnement virtuel.
 
 MDedit doit être installé dans le répertoire `static/libs/` du projet IDGO.
 
 ```shell
-~> git clone https://github.com/neogeo-technologies/mdedit
+> ln -s /apps/idgo/idgo_admin /idgo_venv/
+> ln -s /apps/mdedit /apps/idgo/idgo_admin/static/libs/
 ```
 
-## Configuration
+#### Éditer les fichiers de configuration Django
 
-### `settings.py`
+D'abord :
 
-``` python
-"""
-Modèle du fichier `setting.py` pour le projet IDGO.
+```shell
+> vim /idgo_venv/config/settings.py
+```
 
-"""
-
-
-import logging
+```python
 import os
 
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'abcdefghijklmnopqrstuvwxyz0123456789'
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
-DOMAIN_NAME = '127.0.0.1:8000'
-
-CKAN_URL = 'http://hostname'
-CKAN_API_KEY = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
-CKAN_TIMEOUT = 10
-
-GEONETWORK_URL = ''
-GEONETWORK_LOGIN = ''
-GEONETWORK_PASSWORD = ''
+DOMAIN_NAME = 'http://localhost'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -83,9 +78,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    'mama_cas',
     'taggit',
     'bootstrap3',
+    'mama_cas',
     'idgo_admin']
 
 MIDDLEWARE = [
@@ -97,7 +92,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware']
 
-ROOT_URLCONF = 'idgo_project.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -110,15 +105,16 @@ TEMPLATES = [{
             'django.contrib.auth.context_processors.auth',
             'django.contrib.messages.context_processors.messages']}}]
 
-WSGI_APPLICATION = 'idgo_project.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'idgo_admin',
-        'USER': '',
-        'HOST': '',
-        'PORT': '5432'}}
+        'NAME': 'dbname',
+        'USER': 'username',
+        'PASSWORD': 'password',
+        'HOST':'hostname',
+        'PORT':'5432'}}
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -126,25 +122,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'}]
 
-AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
-
-MAMA_CAS_SERVICES = [
-    {
-        'SERVICE': '',
-        'CALLBACKS': [
-            'mama_cas.callbacks.user_name_attributes',
-            'mama_cas.callbacks.user_model_attributes'
-        ],
-        'LOGOUT_ALLOW': True,
-        'LOGOUT_URL': ''
-    },
-]
-
 LANGUAGE_CODE = 'FR-fr'
-
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
-SESSION_COOKIE_AGE = 3600
 
 TIME_ZONE = 'Europe/Paris'
 
@@ -155,27 +133,44 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = '/var/www/html/static/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+MEDIA_ROOT = '/var/www/html/media/'
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = ''
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
+CKAN_URL = 'http://ckan'
+CKAN_API_KEY = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+CKAN_TIMEOUT = 36000
+
+GEONETWORK_URL = 'http://geonetwork'
+GEONETWORK_LOGIN = 'admin'
+GEONETWORK_PASSWORD = 'admin'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp-domaine.abc'
+EMAIL_HOST_USER = 'username@your-domaine.abc'
+EMAIL_HOST_PASSWORD = 'password'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = ''
-
-ADMIN_EMAIL = ''
+DEFAULT_FROM_EMAIL = 'username@your-domaine.abc'
 
 LOGIN_URL = 'idgo_admin:signIn'
 
+MAMA_CAS_SERVICES = [{
+    'SERVICE': '^http://ckan',
+    'CALLBACKS': [
+        'mama_cas.callbacks.user_name_attributes',
+        'mama_cas.callbacks.user_model_attributes'],
+    'LOGOUT_ALLOW': True,
+    'LOGOUT_URL': 'http://localhost/signout'}]
+
 ```
 
-### `urls.py`
+Puis :
+
+```shell
+> vim /idgo_venv/config/urls.py
+```
 
 ``` python
 from django.conf.urls import include
@@ -186,17 +181,73 @@ from django.contrib import admin
 urlpatterns = [
     url('^', include('idgo_admin.urls', namespace='idgo_admin')),
     url('^admin/', admin.site.urls),
-    url(r'', include('mama_cas.urls'))]
+]
 
 ```
 
-## Création du super utilisateur CKAN
+#### Créer les répertoires `static`, `media` et `logos`
+
+```shell
+> cd /var/www/html
+/var/www/html> mkdir static
+/var/www/html> mkdir media
+/var/www/html> cd media
+/var/www/html/media> mkdir logos
+```
+
+Apache doit pouvoir écrire dans les sous répertoires de `media`.
 
 
-## Charger les lexiques de données en base
+#### Vérifier l'installation
 
-``` shell
-~> cd idgo_venv
-~/idgo_venv> source bin/activate
-(idgo_venv) ~/idgo_venv> python manage.py loaddata data.json
+```shell
+> cd /idgo_venv
+/idgo_venv> source bin/activate
+(idgo_venv) /idgo_venv> python manage.py check
+```
+
+#### Déployer les bases de données
+
+```shell
+> cd /idgo_venv
+/idgo_venv> source bin/activate
+(idgo_venv) /idgo_venv> python manage.py migrate
+```
+
+#### Créer le super utilisateur Django
+
+```shell
+> cd /idgo_venv
+/idgo_venv> source bin/activate
+(idgo_venv) /idgo_venv> python manage.py createsuperuser
+```
+
+#### Déployer les fichiers `static`
+
+```shell
+> cd /idgo_venv
+/idgo_venv> source bin/activate
+(idgo_venv) /idgo_venv> python manage.py collectstatic
+```
+
+#### Charger les lexiques de données en base
+
+```shell
+> cd /idgo_venv
+/idgo_venv> source bin/activate
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/category.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/license.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/organisation_type.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/commune.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/mail.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/projection.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/financeur.json
+```
+
+#### Synchroniser les catégories avec CKAN
+
+```shell
+cd /idgo_venv
+/idgo_venv> source bin/activate
+(idgo_venv) /idgo_venv> python manage.py sync_ckan_categories
 ```

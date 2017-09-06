@@ -91,133 +91,134 @@
 			{% bootstrap_field form.organisations_allowed %}
 		</div>
 	</div>
-	<script>
-function extractor(query) {
-	var result = /([^,]+)$/.exec(query);
-	if (result && result[1]) {
-		return result[1].trim();
-	};
-	return '';
-};
-
-function updater(item) {
-	return this.$element.val().replace(/[^,]*$/,'') + item + ',';
-};
-
-function matcher(item) {
-	var query = extractor(this.query);
-	if (!query) {
-		return false;
-	};
-	return ~item.toLowerCase().indexOf(query.toLowerCase())
-};
-
-function highlighter(item) {
-	var query = extractor(this.query).replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&')
-	return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-		return '<strong>' + match + '</strong>';
-	});
-};
-
-$('#permitted-users .typeahead').tagsinput({
-	typeahead: {
-		source: {{ users | safe }},
-		// updater: updater,
-		// matcher: matcher,
-		// highlighter: highlighter
-	},
-	freeInput: false
-});
-
-$('#permitted-organizations .typeahead').tagsinput({
-	typeahead: {
-		source: {{ organizations | safe }},
-		// updater: updater,
-		// matcher: matcher,
-		// highlighter: highlighter
-	},
-	freeInput: false
-});
-
-$('#permitted-organizations .typeahead').tagsinput({
-	typeahead: {
-		source: {{ organizations | safe }},
-		updater: updater,
-		matcher: matcher,
-		highlighter: highlighter
-	},
-	freeInput: false
-});
-	</script>
 	<div class="buttons-on-the-right-side">
 		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
 		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">Annuler</a>
 	</div>
 </form>
 
-
 <script>
-var $permittedUsers = $('#permitted-users')
-	.collapse({
-		toggle: false
-	})
-	.on('hidden.bs.collapse', function() {
-		$('#collapse-restriction input').each(function(i) {
-			$(this).val('');
+
+// function extractor(query) {
+// 	var result = /([^,]+)$/.exec(query);
+// 	if (result && result[1]) {
+// 		return result[1].trim();
+// 	};
+// 	return '';
+// };
+//
+// function updater(item) {
+// 	return this.$element.val().replace(/[^,]*$/,'') + item + ',';
+// };
+//
+// function matcher(item) {
+// 	var query = extractor(this.query);
+// 	if (!query) {
+// 		return false;
+// 	};
+// 	return ~item.toLowerCase().indexOf(query.toLowerCase())
+// };
+//
+// function highlighter(item) {
+// 	var query = extractor(this.query).replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&')
+// 	return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+// 		return '<strong>' + match + '</strong>';
+// 	});
+// };
+//
+// $('#permitted-users .typeahead').tagsinput({
+// 	typeahead: {
+// 		source: {{ users | safe }},
+// 		// updater: updater,
+// 		// matcher: matcher,
+// 		// highlighter: highlighter
+// 	},
+// 	freeInput: false
+// });
+//
+// $('#permitted-organizations .typeahead').tagsinput({
+// 	typeahead: {
+// 		source: {{ organizations | safe }},
+// 		// updater: updater,
+// 		// matcher: matcher,
+// 		// highlighter: highlighter
+// 	},
+// 	freeInput: false
+// });
+//
+// $('#permitted-organizations .typeahead').tagsinput({
+// 	typeahead: {
+// 		source: {{ organizations | safe }},
+// 		updater: updater,
+// 		matcher: matcher,
+// 		highlighter: highlighter
+// 	},
+// 	freeInput: false
+// });
+
+$(function() {
+	var $permittedUsers = $('#permitted-users')
+		.collapse({
+			toggle: false
+		})
+		.on('hidden.bs.collapse', function() {
+			$('#collapse-restriction input').each(function(i) {
+				$(this).val('');
+			});
 		});
-	});
-var $permittedOrganizations = $('#permitted-organizations')
-	.collapse({
-		toggle: false
-	})
-	.on('hidden.bs.collapse', function() {
-		$('#collapse-restriction input').each(function(i) {
-			$(this).val('');
+	var $permittedOrganizations = $('#permitted-organizations')
+		.collapse({
+			toggle: false
+		})
+		.on('hidden.bs.collapse', function() {
+			$('#collapse-restriction input').each(function(i) {
+				$(this).val('');
+			});
 		});
-	});
-function getAccessSelectedOption($this) {
-	var value = $this.find('option:selected').val();
-	if (value === '2') {
-		$permittedOrganizations.collapse('hide');
-		$permittedUsers.collapse('show');
-	}
-	else if (value === '4') {
-		$permittedUsers.collapse('hide');
-		$permittedOrganizations.collapse('show');
-	}
-	else {
-		$permittedUsers.collapse('hide');
-		$permittedOrganizations.collapse('hide');
+	function getAccessSelectedOption($this) {
+		var value = $this.find('option:selected').val();
+		if (value === '2') {
+			$permittedOrganizations.collapse('hide');
+			$permittedUsers.collapse('show');
+		}
+		else if (value === '4') {
+			$permittedUsers.collapse('hide');
+			$permittedOrganizations.collapse('show');
+		}
+		else {
+			$permittedUsers.collapse('hide');
+			$permittedOrganizations.collapse('hide');
+		};
 	};
-};
-$selectAccess = $('select[name="restricted_level"]')
-	.change(function() {
-		getAccessSelectedOption($(this));
-	});
+	$selectAccess = $('select[name="restricted_level"]')
+		.change(function() {
+			getAccessSelectedOption($(this));
+		});
 
-$(document).on('change', ':file', function() {
-	var $this = $(this);
-	var $files = $this.get(0).files;
-	var count = $files ? $files.length : 1;
-	var fileName = [];
-	for (var i = 0; i < $files.length; i ++) {
-		fileName.push($files[i].name);
-	};
-	$this.trigger('fileselect', [count, fileName.join(', ')]);
-});
-
-var $input = $('input[type="file"]').change(function(e) {
-	if ($input.val().length > 0) {
-		// TODO
-	};
-});
-
-$(document).ready(function() {
-	$(':file').on('fileselect', function(e, count, label) {
+	$(document).on('change', ':file', function() {
 		var $this = $(this);
-		var $input = $this.parents('.input-group').find(':text');
-		$input.val((count > 1) ? count + ' fichiers : ' + label : label);
+		var $files = $this.get(0).files;
+		var count = $files ? $files.length : 1;
+		var fileName = [];
+		for (var i = 0; i < $files.length; i ++) {
+			fileName.push($files[i].name);
+		};
+		$this.trigger('fileselect', [count, fileName.join(', ')]);
 	});
-	getAccessSelectedOption($('select[name="restricted_level"]'));
+
+	var $input = $('input[type="file"]').change(function(e) {
+		if ($input.val().length > 0) {
+			// TODO
+		};
+	});
+
+	$(document).ready(function() {
+		$(':file').on('fileselect', function(e, count, label) {
+			var $this = $(this);
+			var $input = $this.parents('.input-group').find(':text');
+			$input.val((count > 1) ? count + ' fichiers : ' + label : label);
+		});
+		getAccessSelectedOption($('select[name="restricted_level"]'));
+	});
 });
 </script>

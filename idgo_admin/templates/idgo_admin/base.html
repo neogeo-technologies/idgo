@@ -22,7 +22,17 @@
 		<script src="{% static "libs/bootstrap/js/bootstrap.min.js" %}"></script>
 		<script>;moment.locale('fr');</script>
 		<script src="{% static "js/editablegrid_overload.js" %}"></script>
-		<script src="{% static "js/utils.js" %}"></script>
+		<script>
+var redirect = function(path) {
+	window.location.replace(window.location.origin + path);
+};
+var activateButton = function($btn) {
+	$btn.removeClass('disabled').prop('disabled', false);
+};
+var deactivateButton = function($btn) {
+	$btn.addClass('disabled').prop('disabled', true);
+};
+		</script>
 
 		<link rel="stylesheet" href="{% static "libs/bootstrap/css/bootstrap.min.css" %}"/>
 		<link rel="stylesheet" href="{% static "libs/bootstrap-tagsinput/bootstrap-tagsinput.css" %}"/>
@@ -84,6 +94,43 @@
 		{% endblock main %}
 	</body>
 	<script>
+var $popover = $('[data-toggle="popover"]')
+	.popover({
+		delay: {'show': 10, 'hide': 10},
+		trigger: 'hover'
+	});
+
+var closeAllModalDialog = function() {
+	$modal.modal('hide');
+};
+
+var $modal = $('.modal[role="dialog"]')
+	.modal({
+		'backdrop': 'static',
+		'show': false  // Important!
+	})
+	.on('show.bs.modal', function(e) {
+		closeAllModalDialog();
+	})
+	.on('hidden.bs.modal', function(e) {
+		$(this).find('.modal-body').empty();
+		$(this).find('.modal-title').val('');
+	});
+
+$('.phone').change(function() {
+	var str = $(this).val();
+	$(this).val(str.replace(/\s/g, ''));
+});
+
+$('form').each(function() {
+	$(this).find('input').keypress(function(e) {
+		if (e.which == 10 || e.which == 13) {
+			return false;
+		};
+		return;
+	});
+});
+
 var HASH_MENU = [];
 
 $('a[data-toggle="tab"]')
@@ -113,35 +160,5 @@ window.onload = function(e) {
 	$('a[href="' + ((HASH_MENU.indexOf(hash) === -1) ? HASH_MENU[0] : hash) + '"]').tab('show');
 	e.preventDefault();
 };
-
-var $popover = $('[data-toggle="popover"]')
-	.popover({
-		delay: {'show': 10, 'hide': 10},
-		trigger: 'hover'
-	});
-
-var $modal = $('.modal[role="dialog"]')
-	.modal({'backdrop': 'static', 'show': false})  // Important!
-	.on('show.bs.modal', function(e) {
-		closeAllModalDialog();
-	})
-	.on('hidden.bs.modal', function(e) {
-		$(this).find('.modal-body').empty();
-		$(this).find('.modal-title').val('');
-	});
-
-$('form').each(function() {
-	$(this).find('input').keypress(function(e) {
-		if(e.which == 10 || e.which == 13) {
-			return false;
-		};
-	});
-	// $(this).find('input[type=submit]').hide();
-});
-
-$('.phone').change(function() {
-	var str = $(this).val();
-	$(this).val(str.replace(/\s/g, ''));
-});
 	</script>
 </html>

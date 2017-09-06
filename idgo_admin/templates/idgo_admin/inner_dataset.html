@@ -42,17 +42,17 @@
 	</div>
 	<hr />
 	<div class="row">
-		<div class="col-xs-3">
+		<div class="col-xs-4">
 			{% bootstrap_field form.date_creation %}
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-xs-3">
+		<div class="col-xs-4">
 			{% bootstrap_field form.date_modification %}
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-xs-3">
+		<div class="col-xs-4">
 			{% bootstrap_field form.date_publication %}
 		</div>
 	</div>
@@ -105,53 +105,54 @@
 	</div>
 </form>
 <script>
+$(function() {
+	var LICENSES = {{ licenses }};
 
-var LICENSES = {{ licenses }};
-// TODO récupérer les 'id' dynamiquements..
-$('#id_organisation').change(function() {
-	$('#id_licences').val(LICENSES[$(this).val()]);
-});
+	// TODO récupérer les 'id' dynamiquements..
+	$('#id_organisation').change(function() {
+		$('#id_licences').val(LICENSES[$(this).val()]);
+	});
 
-$('.datepicker').datepicker();
+	$('.datepicker').datepicker();
 
-$('form[name="dataset"] input[checked=""], form[name="dataset"] input[checked="checked"]').each(function() {
-	$('label[for="' + this.id + '"]').addClass('active');
-});
+	$('form[name="dataset"] input[checked=""], form[name="dataset"] input[checked="checked"]').each(function() {
+		$('label[for="' + this.id + '"]').addClass('active');
+	});
 
-function extractor(query) {
-	var result = /([^,]+)$/.exec(query);
-	if (result && result[1]) {
-		return result[1].trim();
-	};
-	return '';
-};
-
-$('#dataset .typeahead').typeahead({
-	source: {{ tags | safe }},
-	updater: function(item) {
-		return this.$element.val().replace(/[^,\s]*$/, '') + item + ', ';
-	},
-	matcher: function (item) {
-		var query = extractor(this.query);
-		if (!query) {
-			return false;
+	function extractor(query) {
+		var result = /([^,]+)$/.exec(query);
+		if (result && result[1]) {
+			return result[1].trim();
 		};
-		return ~item.toLowerCase().indexOf(query.toLowerCase())
-	},
-	highlighter: function (item) {
-		var query = extractor(this.query).replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&')
-		return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-			return '<strong>' + match + '</strong>';
-		});
-	}
+		return '';
+	};
+
+	$('#dataset .typeahead').typeahead({
+		source: {{ tags | safe }},
+		updater: function(item) {
+			return this.$element.val().replace(/[^,\s]*$/, '') + item + ', ';
+		},
+		matcher: function (item) {
+			var query = extractor(this.query);
+			if (!query) {
+				return false;
+			};
+			return ~item.toLowerCase().indexOf(query.toLowerCase())
+		},
+		highlighter: function (item) {
+			var query = extractor(this.query).replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&')
+			return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+				return '<strong>' + match + '</strong>';
+			});
+		}
+	});
+
+	// $('#dataset .typeahead').tagsinput({
+	// 	typeahead: {
+	// 		source: {{ tags | safe }}
+	// 	},
+	// 	freeInput: true,
+	// 	tagClass: 'badge'
+	// });
 });
-
-// $('#dataset .typeahead').tagsinput({
-// 	typeahead: {
-// 		source: {{ tags | safe }}
-// 	},
-// 	freeInput: true,
-// 	tagClass: 'badge'
-// });
-
 </script>

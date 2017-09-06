@@ -10,5 +10,83 @@
 {% endblock nav_content %}
 
 {% block main %}
-{% include "idgo_admin/mdedit/inner.html" %}
+<div ng-app="mdEdit">
+	<script>var config = {{ config | safe }};</script>
+	<div class="main-container" ng-controller="mdEditCtrl as vm">
+		{% include "idgo_admin/mdedit/inner.html" %}
+	</div>
+</div>
+
+{% load static %}
+<script src="{% static "libs/mdedit/lib/showdown/showdown.min.js" %}"></script>
+<script src="{% static "libs/mdedit/lib/jquery/jquery-2.2.4.min.js" %}"></script>
+<script src="{% static "libs/mdedit/lib/angular/angular-1.5.3.min.js" %}"></script>
+<script src="{% static "libs/mdedit/lib/ui-bootstrap/ui-bootstrap-tpls-1.3.0.min.js" %}"></script>
+<script src="{% static "libs/mdedit/lib/moment/moment-with-locales.min.js" %}"></script>
+<script src="{% static "libs/mdedit/lib/vkbeautify/vkbeautify.js" %}"></script>
+<script src="{% static "libs/mdedit/lib/mdjs/mdjs.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.controllers.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/mdjs.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/empty-json.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/config.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/appData.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/broadcast.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/xml.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/jsonConverter.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/locales.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/models.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/views.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/extents.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/checkValues.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.services/permalink.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.filters/array2string.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.filters/string2array.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.filters/nl2br.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.filters/translateCode.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editAccordionHeader.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editInput.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editTextarea.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editSelect.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editMultiSelect.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editMultiTextarea.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDate.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editContacts.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataIdentifiers.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataBrowsegraphics.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataTemporalExtents.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataGeographicExtents.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataLinkages.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataReferenceSystems.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataDistributionFormats.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/edit/editDataKeywords.js" %}"></script>
+<script src="{% static "libs/mdedit/app/mdEdit.directives/changeLocales/changeLocales.js" %}"></script>
+<script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.controllers.js" %}"></script>
+<script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.services.js" %}"></script>
+<script>
+$(function() {
+	var $scope = angular.element('div[ng-controller="mdEditCtrl as vm"]').scope();
+
+	{% if record_xml %}
+	$scope.vm.record = '{{ record_xml | safe }}';
+	{% elif record_obj %}
+	$scope.vm.record = {{ record_obj | safe }};
+	{% endif %}
+
+	$('#validate').click(function(e) {
+		e.preventDefault();
+		$.ajax({
+			type: 'POST',
+			data: $scope.vm.getXml(),
+			contentType: 'text/xml',
+			dataType: 'xml',
+			success: function(response) {
+				location.reload();
+			},
+			url: '{% url "idgo_admin:mdedit" dataset_id=dataset_id %}'
+		})
+		e.stopPropagation();
+	});
+});
+</script>
 {% endblock main %}

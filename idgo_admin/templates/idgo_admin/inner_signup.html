@@ -45,45 +45,46 @@
 	</div>
 </form>
 <script>
-var $contributionRequested = $('input[name="contribution_requested"]').parent();
-$('select[name="organisation"]').change(function() {
-	if (this.value) {
-		$contributionRequested.show();
-	} else {
-		$contributionRequested.hide();
-	};
-});
-
-var $collapseOne = $('#collapse-one')
-	.collapse({
-		toggle: false
-	})
-	.on('hidden.bs.collapse', function() {
-		$('#collapse-one select').each(function(i) {
-			$(this)[0].selectedIndex = 0;
+$(function() {
+	var $contributionRequested = $('input[name="contribution_requested"]').parent();
+	$('select[name="organisation"]').change(function() {
+		if (this.value) {
 			$contributionRequested.show();
-		});
-	});
-var $collapseTwo = $('#collapse-two')
-	.collapse({
-		toggle: false
-	})
-	.on('hidden.bs.collapse', function() {
-		$('#collapse-two input').each(function(i) {
-			$(this).val('');
+		} else {
 			$contributionRequested.hide();
-		});
+		};
 	});
 
-function tggl() {
-	$collapseOne.collapse('toggle');
-	$collapseTwo.collapse('toggle');
-};
+	var $collapseOne = $('#collapse-one')
+		.collapse({
+			toggle: false
+		})
+		.on('hidden.bs.collapse', function() {
+			$('#collapse-one select').each(function(i) {
+				$(this)[0].selectedIndex = 0;
+				$contributionRequested.show();
+			});
+		});
+	var $collapseTwo = $('#collapse-two')
+		.collapse({
+			toggle: false
+		})
+		.on('hidden.bs.collapse', function() {
+			$('#collapse-two input').each(function(i) {
+				$(this).val('');
+				$contributionRequested.hide();
+			});
+		});
 
-$('#add-organization').click(tggl);
-$('#collapse-two .close').click(tggl);
+	function tggl() {
+		$collapseOne.collapse('toggle');
+		$collapseTwo.collapse('toggle');
+	};
 
-$contributionRequested.hide();
-{% if pform.new_orga.value %} tggl(); {% endif %}
+	$('#add-organization').click(tggl);
+	$('#collapse-two .close').click(tggl);
 
+	$contributionRequested.hide();
+	{% if pform.new_orga.value %} tggl(); {% endif %}
+});
 </script>

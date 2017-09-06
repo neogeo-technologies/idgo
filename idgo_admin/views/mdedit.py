@@ -96,26 +96,7 @@ class MDEditTplEdit(View):
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
         del dataset
 
-        context = {
-            'template': {
-                'edit_accordion_header': join_url('editAccordionHeader.html'),
-                'edit_contacts': join_url('editContacts.html'),
-                'edit_data_browsegraphics': join_url('editDataBrowsegraphics.html'),
-                'edit_data_distribution_formats': join_url('editDataDistributionFormats.html'),
-                'edit_data_geographic_extents': join_url('editDataGeographicExtents.html'),
-                'edit_data_identifiers': join_url('editDataIdentifiers.html'),
-                'edit_data_keywords': join_url('editDataKeywords.html'),
-                'edit_data_linkages': join_url('editDataLinkages.html'),
-                'edit_data_reference_systems': join_url('editDataReferenceSystems.html'),
-                'edit_data_temporal_extents': join_url('editDataTemporalExtents.html'),
-                'edit_date': join_url('editDate.html'),
-                'edit_input': join_url('editInput.html'),
-                'edit_multi_select': join_url('editMultiSelect.html'),
-                'edit_multi_textarea': join_url('editMultiTextarea.html'),
-                'edit_select': join_url('editSelect.html'),
-                'edit_textarea': join_url('editTextarea.html')}}
-
-        return render(request, self.template, context=context)
+        return render(request, self.template)
 
 
 @method_decorator(decorators, name='dispatch')
@@ -141,7 +122,6 @@ class MDEdit(View):
                 'idgo_admin:{0}'.format(namespace), kwargs={'dataset_id': dataset.id})
 
         views = {
-            'description': 'List of views',
             'list': [
                 {
                     'path': 'mdedit/edit/',
@@ -163,7 +143,6 @@ class MDEdit(View):
                         'fr': join_url('views/listXml/tpl-listxml_fr.json')}}]}
 
         models = {
-            'description': 'List of default models',
             'list': [
                 {
                     'path': join_url(self.model_json),
@@ -178,7 +157,7 @@ class MDEdit(View):
         config = {
             'app_name': 'mdEdit',
             'app_title': 'mdEdit',
-            'app_version': '0.14.9~hacked',
+            'app_version': '0.14.9~hacked by m431m@neogeo',
             'app_copyrights': '(c) CIGAL 2016',
             'defaultLanguage': 'fr',
             'server_url_md': GEONETWORK_URL,
@@ -187,9 +166,9 @@ class MDEdit(View):
             'locales_path': join_url('locales/'),
             'geographicextents_list': join_url('list_geographicextents.json'),
             'referencesystems_list': join_url('list_referencesystems.json'),
-            'static_url': STATIC_URL,
+            'static_root': join_url('libs/mdedit/', path=STATIC_URL),
             'modal_template': {
-                'download': join_url('modal-download.html', path='html/mdedit/')}}
+                'help': join_url('modal-help.html', path='html/mdedit/')}}
 
         context = {
             'first_name': user.first_name,

@@ -6,7 +6,7 @@
 		<h4>Connexion</h4>
 	</div>
 	<div class="panel-body">
-		<form method="post" action="">
+		<form id="signin" method="post" action="">
 			{% csrf_token %}
 			{% bootstrap_field form.username show_label=False %}
 			{% bootstrap_field form.password show_label=False %}
@@ -28,6 +28,7 @@
 		</form>
 	</div>
 </div>
+{% block scripts %}
 <script>
 $(function() {
 	$rememberMe = $('input[name="remember-me"]');
@@ -42,7 +43,7 @@ $(function() {
 		$userName.val('');
 		$password.val('');
 	};
-	$('form').on('submit', function() {
+	$('form#signin').on('submit', function() {
 		if ($rememberMe.is(':checked')) {
 			localStorage.userName = $userName.val();
 			localStorage.password = $password.val();
@@ -53,5 +54,13 @@ $(function() {
 			localStorage.checkBoxValidation = '';
 		};
 	});
+	$('form').find('input').keypress(function(e) {
+		if (e.which == 10 || e.which == 13) {
+			$('form').submit();
+			return false;
+		};
+		return;
+	});
 });
 </script>
+{% endblock scripts %}
