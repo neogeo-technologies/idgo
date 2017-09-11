@@ -334,8 +334,8 @@ class AccountManager(View):
                 if pform.cleaned_data['contribution_requested']:
                     self.contributor_process(request, profile, organisation, process)
             if process == "create":
-                self.signup_process(request, profile)
                 ckan.add_user(user, uform.cleaned_data['password1'])
+                self.signup_process(request, profile)
             return self.good_response(request, process)
 
 
