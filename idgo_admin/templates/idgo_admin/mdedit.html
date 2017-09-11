@@ -4,8 +4,8 @@
 <base href="."></base>
 <ol class="breadcrumb">
 	<li><a href="{% url "idgo_admin:home" %}#datasets">Mes jeux de données</a></li>
-	<li class="active">{{ dataset_name }}</li>
-	<li class="active">Edition de la fiche de métadonnées INSPIRE</li>
+	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">{{ dataset_name }}</a></li>
+	<li class="active">Édition de la fiche de métadonnées INSPIRE</li>
 </ol>
 {% endblock nav_content %}
 
@@ -19,10 +19,8 @@
 
 {% load static %}
 <script src="{% static "libs/mdedit/lib/showdown/showdown.min.js" %}"></script>
-<script src="{% static "libs/mdedit/lib/jquery/jquery-2.2.4.min.js" %}"></script>
 <script src="{% static "libs/mdedit/lib/angular/angular-1.5.3.min.js" %}"></script>
 <script src="{% static "libs/mdedit/lib/ui-bootstrap/ui-bootstrap-tpls-1.3.0.min.js" %}"></script>
-<script src="{% static "libs/mdedit/lib/moment/moment-with-locales.min.js" %}"></script>
 <script src="{% static "libs/mdedit/lib/vkbeautify/vkbeautify.js" %}"></script>
 <script src="{% static "libs/mdedit/lib/mdjs/mdjs.js" %}"></script>
 <script src="{% static "libs/mdedit/app/mdEdit.js" %}"></script>

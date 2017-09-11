@@ -46,9 +46,7 @@
 					<ul>
 						<div ng-if="vm.data.metadata.dataLanguages">
 							<div ng-repeat="dataLanguage in vm.data.metadata.dataLanguages track by $index">
-								<li class="">
-									~{dataLanguage | translateCode:'MD_LanguageCode'}~
-								</li>
+								<li class="">~{dataLanguage | translateCode:'MD_LanguageCode'}~</li>
 							</div>
 						</div>
 						<div ng-if="!vm.data.metadata.dataLanguages">
@@ -79,9 +77,7 @@
 					<p><strong>Qualité des données:</strong></p>
 					<div class="pre">
 						<div ng-if="vm.data.metadata.dataLiStatement" ng-bind-html="vm.data.metadata.dataLiStatement | nl2br:true"></div>
-						<div ng-if="!vm.data.metadata.dataLiStatement">
-							Non précisé
-						</div>
+						<div ng-if="!vm.data.metadata.dataLiStatement">Non précisé</div>
 					</div>
 				</div>
 				<hr />
@@ -90,9 +86,7 @@
 					<ul>
 						<div ng-if="vm.data.metadata.dataUseLimitations">
 							<div ng-repeat="dataUseLimitation in vm.data.metadata.dataUseLimitations track by $index">
-								<li class="pre">
-									~{dataUseLimitation}~
-								</li>
+								<li class="pre">~{dataUseLimitation}~</li>
 							</div>
 						</div>
 						<div ng-if="!vm.data.metadata.dataUseLimitations">
@@ -112,9 +106,7 @@
 					<ul>
 						<div ng-if="vm.data.metadata.dataLegalAccessInspireConstraints">
 							<div ng-repeat="dataLegalAccessInspireConstraint in vm.data.metadata.dataLegalAccessInspireConstraints track by $index">
-								<li class="pre">
-									~{dataLegalAccessInspireConstraint | translateCode:'MD_InspireRestrictionCode'}~
-								</li>
+								<li class="pre">~{dataLegalAccessInspireConstraint | translateCode:'MD_InspireRestrictionCode'}~</li>
 							</div>
 						</div>
 						<div ng-if="!vm.data.metadata.dataLegalAccessInspireConstraints">
@@ -126,16 +118,12 @@
 					<ul>
 						<div ng-if="vm.data.metadata.dataLegalAccessConstraints">
 							<div ng-repeat="dataLegalAccessConstraint in vm.data.metadata.dataLegalAccessConstraints track by $index">
-								<li class="pre">
-									~{dataLegalAccessConstraint | translateCode:'MD_RestrictionCode'}~
-								</li>
+								<li class="pre">~{dataLegalAccessConstraint | translateCode:'MD_RestrictionCode'}~</li>
 							</div>
 						</div>
 						<div ng-if="vm.data.metadata.dataLegalAccessOtherConstraints">
 							<div ng-repeat="dataLegalAccessOtherConstraint in vm.data.metadata.dataLegalAccessOtherConstraints track by $index">
-								<li class="pre" ng-if="dataLegalAccessOtherConstraint">
-									~{dataLegalAccessOtherConstraint}~
-								</li>
+								<li class="pre" ng-if="dataLegalAccessOtherConstraint">~{dataLegalAccessOtherConstraint}~</li>
 							</div>
 						</div>
 						<div ng-if="!vm.data.metadata.dataLegalAccessConstraints && !vm.data.metadata.dataLegalAccessOtherConstraints">
@@ -147,16 +135,12 @@
 					<ul>
 						<div ng-if="vm.data.metadata.dataLegalUseConstraints">
 							<div ng-repeat="dataLegalUseConstraint in vm.data.metadata.dataLegalUseConstraints track by $index">
-								<li class="pre">
-									~{dataLegalUseConstraint | translateCode:'MD_RestrictionCode'}~
-								</li>
+								<li class="pre">~{dataLegalUseConstraint | translateCode:'MD_RestrictionCode'}~</li>
 							</div>
 						</div>
 						<div ng-if="vm.data.metadata.dataLegalUseLimitations">
 							<div ng-repeat="dataLegalUseLimitation in vm.data.metadata.dataLegalUseLimitations track by $index">
-								<li class="pre">
-									~{dataLegalUseLimitation}~
-								</li>
+								<li class="pre">~{dataLegalUseLimitation}~</li>
 							</div>
 						</div>
 						<div ng-if="!vm.data.metadata.dataLegalUseLimitations && !vm.data.metadata.dataLegalUseConstraints">
@@ -199,14 +183,13 @@
 										<div>
 											<span ng-bind-html="dataPointOfContact.deliveryPoint | nl2br:true"></span>
 											</br>
-											~{dataPointOfContact.postalCode}~ ~{dataPointOfContact.city}~
+											<span>~{dataPointOfContact.postalCode}~ ~{dataPointOfContact.city}~</span>
 										</div>
 									</div>
 									<div ng-if="dataPointOfContact.phoneVoice">
 										<!-- <div>Tél.: ~{dataPointOfContact.phoneVoices}~</div> -->
 										<!-- TODO: spliter les tél. dans une directive -->
-										<div>Tél.:
-											<span ng-bind-html="dataPointOfContact.phoneVoice | nl2br:true"></span></div>
+										<div>Tél.: <span ng-bind-html="dataPointOfContact.phoneVoice | nl2br:true"></span></div>
 									</div>
 									<div ng-if="dataPointOfContact.email">
 										<div>
@@ -215,10 +198,10 @@
 										</div>
 									</div>
 									<!--
-								<div ng-if="dataPointOfContact.role">
-								<div>Rôle: ~{dataPointOfContact.role}~</div>
-								</div>
-								-->
+									<div ng-if="dataPointOfContact.role">
+										<div>Rôle: ~{dataPointOfContact.role}~</div>
+									</div>
+									-->
 								</div>
 							</address>
 						</div>
@@ -257,14 +240,13 @@
 										<div>
 											<span ng-bind-html="mdContact.deliveryPoint | nl2br:true"></span>
 											</br>
-											~{mdContact.postalCode}~ ~{mdContact.city}~
+											<span>~{mdContact.postalCode}~ ~{mdContact.city}~</span>
 										</div>
 									</div>
 									<div ng-if="mdContact.phoneVoice">
 										<!-- <div>Tél.: ~{mdContact.phoneVoices}~</div> -->
 										<!-- TODO: spliter les tél. dans une directive -->
-										<div>Tél.:
-											<span ng-bind-html="mdContact.phoneVoice | nl2br:true"></span></div>
+										<div>Tél.:<span ng-bind-html="mdContact.phoneVoice | nl2br:true"></span></div>
 									</div>
 									<div ng-if="mdContact.email">
 										<div>
@@ -306,12 +288,8 @@
 								<i class="glyphicon glyphicon-screenshot" title="Couverture territoriale"> </i>
 							</a>
 							<span class="" title="S:~{dataGeographicExtent.dataGeographicExtentSouthBound}~, N:~{dataGeographicExtent.dataGeographicExtentNorthBound}~, W:{~dataGeographicExtent.dataGeographicExtentWestBound}~, E:~{dataGeographicExtent.dataGeographicExtentEastBound}~">
-								<span ng-if="dataGeographicExtent.dataExtentName">
-									~{dataGeographicExtent.dataExtentName}~ (S:~{dataGeographicExtent.dataGeographicExtentSouthBound}~, N:~{dataGeographicExtent.dataGeographicExtentNorthBound}~, W:~{dataGeographicExtent.dataGeographicExtentWestBound}~, E:~{dataGeographicExtent.dataGeographicExtentEastBound}~),
-								</span>
-								<span ng-if="!dataGeographicExtent.dataExtentName">
-									Nom inconnu (S:~{dataGeographicExtent.dataGeographicExtentSouthBound}~, N:~{dataGeographicExtent.dataGeographicExtentNorthBound}~, W:~{dataGeographicExtent.dataGeographicExtentWestBound}~, E:~{dataGeographicExtent.dataGeographicExtentEastBound}~)
-								</span>
+								<span ng-if="dataGeographicExtent.dataExtentName">~{dataGeographicExtent.dataExtentName}~ (S:~{dataGeographicExtent.dataGeographicExtentSouthBound}~, N:~{dataGeographicExtent.dataGeographicExtentNorthBound}~, W:~{dataGeographicExtent.dataGeographicExtentWestBound}~, E:~{dataGeographicExtent.dataGeographicExtentEastBound}~),</span>
+								<span ng-if="!dataGeographicExtent.dataExtentName">Nom inconnu (S:~{dataGeographicExtent.dataGeographicExtentSouthBound}~, N:~{dataGeographicExtent.dataGeographicExtentNorthBound}~, W:~{dataGeographicExtent.dataGeographicExtentWestBound}~, E:~{dataGeographicExtent.dataGeographicExtentEastBound}~)</span>
 							</span>
 							<br />
 						</span>
@@ -321,7 +299,7 @@
 							<i class="glyphicon glyphicon-screenshot" title="Couverture territoriale"> </i>
 						</a>
 						<span class="pre" title="S:0.00, N:0.00, W:0.00, E:0.00">Couverture territoriale non précisée</span>
-					<br />
+						<br />
 					</span>
 				</p>
 				<p class="">
@@ -338,19 +316,18 @@
 							<a class="btn btn-xs btn-info" >
 								<i class="glyphicon glyphicon-globe" title="Système de projection"> </i>
 							</a>
-							~{dataReferenceSystem.code | translateCode:'MD_ReferenceSystemCode'}~
+							<span>~{dataReferenceSystem.code | translateCode:'MD_ReferenceSystemCode'}~</span>
 							<span ng-if="dataReferenceSystem.codespace">(~{dataReferenceSystem.codespace}~)</span>
-					<br />
-					</span>
+							<br />
+						</span>
 					</span>
 					<span ng-if="!vm.data.metadata.dataReferenceSystems">
 						<a class="btn btn-xs btn-info" >
 							<i class="glyphicon glyphicon-globe" title="Système de projection"> </i>
 						</a>
-						Aucun système de projection défini.
+						<span>Aucun système de projection défini.</span>
 					</span>
 				</p>
-
 				<hr />
 				<div id="keywords" class="">
 					<span ng-if="vm.data.metadata.dataTopicCategories">
@@ -361,13 +338,14 @@
 					<span ng-if="vm.data.metadata.dataInspireKeywords">
 						<span ng-repeat="dataInspireKeyword in vm.data.metadata.dataInspireKeywords track by $index">
 							<span title="~{dataInspireKeyword}~" class="label label-primary">~{dataInspireKeyword | translateCode:'MD_InspireTopicCategoryCode'}~</span>
-					</span>
+						</span>
 					</span>
 					<span ng-if="vm.data.metadata.dataKeywords">
 						<span ng-repeat="dataKeywords in vm.data.metadata.dataKeywords track by $index">
 							<span ng-repeat="keyword in dataKeywords.keywords | string2array">
 								<span title="~dataKeywords.keywordType}~ - ~{dataKeywords.thesaurusName}~" class="label label-primary">~{keyword}~</span>
 							</span>
+						</span>
 					</span>
 				</div>
 				<hr />

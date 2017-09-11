@@ -25,7 +25,7 @@ def get_all_users_for_organizations(list_id):
 class ResourceForm(forms.ModelForm):
 
     class CustomClearableFileInput(forms.ClearableFileInput):
-        template_name = 'idgo_admin/widgets/clearable_file_input.html'
+        template_name = 'idgo_admin/widgets/file_drop_zone.html'
 
     up_file = forms.FileField(
         label='Téléversement',

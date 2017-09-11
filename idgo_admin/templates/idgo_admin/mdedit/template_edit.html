@@ -8,13 +8,13 @@
 			<div class="panel panel-default" ng-show="vm.showAllFields">
 				<div class="panel-heading" role="tab" id="headingOne">
 					<h4 class="panel-title">
-						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#mdInfo" aria-expanded="false" aria-controls="collapseOne">
 							<span uib-tooltip="Informations sur la fiche de métadonnées" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="up">Informations sur la fiche de métadonnées</span>
 							<!-- <a role="button" href="#help"><span class="bt-doc glyphicon glyphicon-info-sign" aria-hidden="true" ng-click="vm.openModalDoc('empty')"></span></a> -->
 						</a>
 					</h4>
 				</div>
-				<div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+				<div id="mdInfo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
 					<div class="panel-body">
 						<div class="row">
 							<!-- metadata.mdFileIdentifier -->
@@ -58,11 +58,11 @@
 			<div class="panel panel-default">
 				<div class="panel-heading" role="tab" id="headingTwo">
 					<h4 class="panel-title">
-						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" uib-tooltip="Informations relatives aux auteurs et contacts pour la fiche de métadonnées" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="up">Auteurs et contacts pour la fiche de métadonnées</a>
+						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#mdContacts" aria-expanded="false" aria-controls="collapseTwo" uib-tooltip="Informations relatives aux auteurs et contacts pour la fiche de métadonnées" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="up">Auteurs et contacts pour la fiche de métadonnées</a>
 						<a role="button" href="#help"><span class="bt-doc glyphicon glyphicon-info-sign pull-right" aria-hidden="true" ng-click="vm.openModalDoc('mdContacts')"></span></a>
 					</h4>
 				</div>
-				<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+				<div id="mdContacts" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
 					<!-- directive editContact: mdContacts -->
 					<div class="panel-body" edit-contacts cnt-type="mdContacts" template-url="{% static "html/mdedit/editContacts.html" %}"></div>
 				</div>
@@ -72,11 +72,11 @@
 			<div class="panel panel-default">
 				<div class="panel-heading" role="tab" id="headingThree">
 					<h4 class="panel-title">
-						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree" uib-tooltip="Informations relatives à la description des données" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="right">Description des données</a>
+						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#mdDesc" aria-expanded="false" aria-controls="collapseThree" uib-tooltip="Informations relatives à la description des données" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="top">Description des données</a>
 						<!-- <a role="button" href="#help"><span class="bt-doc glyphicon glyphicon-info-sign pull-right" aria-hidden="true" ng-click="vm.openModalDoc('empty')"></span></a> -->
 					</h4>
 				</div>
-				<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+				<div id="mdDesc" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
 					<div class="panel-body">
 						<!-- dataTitle -->
 						<div class="row">
@@ -150,7 +150,7 @@
 						<!--
 						<div class="row">
 							<div class="col-md-12 form-group">
-								<label class="bt-doc control-label" for="~{fields.dataKeywordsList.id}~" uib-tooltip="~{fields.dataKeywordsList.description}~" tooltip-trigger="mouseenter" tooltip-placement="right" ng-click="vm.openModalDoc('empty', $event)">~{fields.dataKeywordsList.label}~</label>
+								<label class="bt-doc control-label" for="~{fields.dataKeywordsList.id}~" uib-tooltip="~{fields.dataKeywordsList.description}~" tooltip-trigger="mouseenter" tooltip-placement="top" ng-click="vm.openModalDoc('empty', $event)">~{fields.dataKeywordsList.label}~</label>
 								<textarea class="form-control input-sm" id="~{fields.dataKeywordsList.id}~" name="~{fields.dataKeywordsList.id}~" placeholder="~{fields.dataKeywordsList.placeholder}~" rows="3" ng-model="metadata.dataKeywordsList"></textarea>
 							</div>
 						</div>
@@ -170,11 +170,11 @@
 			<div class="panel panel-default">
 				<div class="panel-heading" role="tab" id="headingFour">
 					<h4 class="panel-title">
-						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFour" aria-expanded="false" aria-controls="collapseFour" uib-tooltip="Informations relatives aux contacts pour la base de données" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="right">Contacts pour la base de données</a>
+						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#dataPointOfContacts" aria-expanded="false" aria-controls="collapseFour" uib-tooltip="Informations relatives aux contacts pour la base de données" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="top">Contacts pour la base de données</a>
 						<a role="button" href="#help"><span class="bt-doc glyphicon glyphicon-info-sign pull-right" aria-hidden="true" ng-click="vm.openModalDoc('dataPointsOfContacts')"></span></a>
 					</h4>
 				</div>
-				<div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+				<div id="dataPointOfContacts" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
 					<!-- directive editContact: dataPointOfContacts -->
 					<div class="panel-body" edit-contacts cnt-type="dataPointOfContacts" template-url="{% static "html/mdedit/editContacts.html" %}"></div>
 				</div>
@@ -184,11 +184,11 @@
 			<div class="panel panel-default">
 				<div class="panel-heading" role="tab" id="headingFive">
 					<h4 class="panel-title">
-						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFive" aria-expanded="false" aria-controls="collapseFive" uib-tooltip="Informations relatives aux références géographiques et à la qualité de la base de données" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="right">Références géographiques et qualité des données</a>
+						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#mdQuality" aria-expanded="false" aria-controls="collapseFive" uib-tooltip="Informations relatives aux références géographiques et à la qualité de la base de données" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="top">Références géographiques et qualité des données</a>
 						<!-- <a role="button" href="#help"><span class="bt-doc glyphicon glyphicon-info-sign" aria-hidden="true" ng-click="vm.openModalDoc('empty')"></span></a> -->
 					</h4>
 				</div>
-				<div id="collapseFive" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFive">
+				<div id="mdQuality" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFive">
 					<div class="panel-body">
 						<div class="row">
 							<div class="col-md-12 form-group">
@@ -245,11 +245,11 @@
 			<div class="panel panel-default">
 				<div class="panel-heading" role="tab" id="headingSix">
 					<h4 class="panel-title">
-						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSix" aria-expanded="false" aria-controls="collapseSix" uib-tooltip="Informations relatives aux conditions légales d'accès et d'usage de la base de données" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="right">Conditions légales d'accès et d'usage</a>
+						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#mdAccess" aria-expanded="false" aria-controls="collapseSix" uib-tooltip="Informations relatives aux conditions légales d'accès et d'usage de la base de données" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="top">Conditions légales d'accès et d'usage</a>
 						<!-- <a role="button" href="#help"><span class="bt-doc glyphicon glyphicon-info-sign" aria-hidden="true" ng-click="vm.openModalDoc('empty')"></span></a> -->
 					</h4>
 				</div>
-				<div id="collapseSix" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSix">
+				<div id="mdAccess" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSix">
 					<div class="panel-body">
 						<div class="row">
 							<div class="col-md-12 form-group">
@@ -285,11 +285,11 @@
 			<div class="panel panel-default">
 				<div class="panel-heading" role="tab" id="headingSeven">
 					<h4 class="panel-title">
-						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven" uib-tooltip="Ressorces associées à la base de données" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="right">Ressources associées</a>
+						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#mdResources" aria-expanded="false" aria-controls="collapseSeven" uib-tooltip="Ressorces associées à la base de données" tooltip-popup-close-delay="100" tooltip-trigger="mouseenter" tooltip-placement="top">Ressources associées</a>
 						<!-- <a role="button" href="#help"><span class="bt-doc glyphicon glyphicon-info-sign" aria-hidden="true" ng-click="vm.openModalDoc('empty')"></span></a> -->
 					</h4>
 				</div>
-				<div id="collapseSeven" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSeven">
+				<div id="mdResources" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSeven">
 					<div class="panel-body" style="padding-left: 10px; padding-right: 10px;">
 						<div edit-data-linkages field="dataLinkages" multi="true" help="dataLinkages" template-url="{% static "html/mdedit/editDataLinkages.html" %}"></div>
 					</div>

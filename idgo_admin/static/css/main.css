@@ -270,7 +270,7 @@ a:focus {
 }
 
 .btn-link:hover,
-.btn-link:focus, {
+.btn-link:focus {
     color: #067ee6;
 }
 
@@ -564,4 +564,19 @@ div#categories.btn-group>label.btn.active:focus>span.badge {
 
 .panel-default .panel-heading {
     background-color: #ffffff;
+}
+
+.dz {
+    background-color: transparent;
+    -webkit-transition: background-color .123s, border .123s;
+            transition: background-color .123s, border .123s;
+}
+
+.dz-enter {
+    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+            box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+}
+
+.dz-focus {
+    background-color: #067ee6;
 }

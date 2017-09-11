@@ -37,10 +37,11 @@
 				</li>
 			</ul>
 			<div class="well tab-content" name="data-selector-panel">
+
 				<div role="tabpanel" class="tab-pane" id="up_file">
-					<p>Veuillez sélectionner un fichier sur votre disque local : </p>
 					{% bootstrap_field form.up_file show_label=False %}
 				</div>
+
 				<div role="tabpanel" class="tab-pane" id="dl_url">
 					<p>Veuillez indiquer l'URL d'un fichier à télécharger : </p>
 					{% bootstrap_field form.dl_url show_label=False %}
@@ -157,6 +158,7 @@
 // });
 
 $(function() {
+
 	var $permittedUsers = $('#permitted-users')
 		.collapse({
 			toggle: false
@@ -166,6 +168,7 @@ $(function() {
 				$(this).val('');
 			});
 		});
+
 	var $permittedOrganizations = $('#permitted-organizations')
 		.collapse({
 			toggle: false
@@ -175,6 +178,7 @@ $(function() {
 				$(this).val('');
 			});
 		});
+
 	function getAccessSelectedOption($this) {
 		var value = $this.find('option:selected').val();
 		if (value === '2') {
@@ -190,6 +194,7 @@ $(function() {
 			$permittedOrganizations.collapse('hide');
 		};
 	};
+
 	$selectAccess = $('select[name="restricted_level"]')
 		.change(function() {
 			getAccessSelectedOption($(this));
@@ -220,5 +225,6 @@ $(function() {
 		});
 		getAccessSelectedOption($('select[name="restricted_level"]'));
 	});
+
 });
 </script>

@@ -143,8 +143,8 @@ CKAN_API_KEY = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
 CKAN_TIMEOUT = 36000
 
 GEONETWORK_URL = 'http://geonetwork'
-GEONETWORK_LOGIN = 'admin'
-GEONETWORK_PASSWORD = 'admin'
+GEONETWORK_LOGIN = 'username'
+GEONETWORK_PASSWORD = 'password'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp-domaine.abc'
@@ -181,7 +181,7 @@ from django.contrib import admin
 urlpatterns = [
     url('^', include('idgo_admin.urls', namespace='idgo_admin')),
     url('^admin/', admin.site.urls),
-]
+    url(r'^cas/', include('mama_cas.urls'))]
 
 ```
 

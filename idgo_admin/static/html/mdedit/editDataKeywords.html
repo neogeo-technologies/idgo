@@ -32,8 +32,7 @@
 			</td>
 			<td>
 				<div class="input-group date">
-					<input type="text" class="form-control input-sm" uib-datepicker-popup="yyyy-MM-dd" is-open="datePicker['thesaurus_datepublicationOpened_'+$index]" datepicker-options="{startingDay: 1}" close-text="Close" ng-model="item.thesaurusDates[0].date" name="~{thesaurusDatePublication.id}~"
-					    id="~{thesaurusDatePublication.id}~" />
+					<input type="text" class="form-control input-sm" uib-datepicker-popup="yyyy-MM-dd" is-open="datePicker['thesaurus_datepublicationOpened_'+$index]" datepicker-options="{startingDay: 1}" close-text="Close" ng-model="item.thesaurusDates[0].date" name="~{thesaurusDatePublication.id}~" id="~{thesaurusDatePublication.id}~" />
 					<span class="input-group-btn">
 						<button type="button" class="btn btn-default btn-sm" ng-click="openDatePicker($event, 'thesaurus_datepublicationOpened_'+$index)">
 							<i class="glyphicon glyphicon-calendar"></i>
