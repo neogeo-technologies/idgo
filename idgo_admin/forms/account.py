@@ -50,6 +50,11 @@ class UserForm(forms.ModelForm):
 
     def clean(self):
 
+        username = self.cleaned_data.get('username', None)
+        if username and username.lower() != username:
+            self.add_error('username', "Le nom d'utilisateur doit contenir uniquement des caractères alphanumériques en minuscules (ascii) et ces symboles : -_")
+            raise ValidationError('UsernameLower')
+
         password = self.cleaned_data.get('password1', None)
         if password and (self.cleaned_data['password1'] != self.cleaned_data['password2']):
             self.add_error('password1', 'Vérifiez les mots de passe')
