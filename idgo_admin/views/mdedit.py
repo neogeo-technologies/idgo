@@ -218,6 +218,6 @@ class MDEdit(View):
         geonet.publish(id)  # Toujours publier la fiche
 
         messages.success(
-            request, 'La fiche de metadonnées a été créé avec succès.')
+            request, 'La fiche de metadonnées a été créée avec succès.')
 
         return HttpResponse()
