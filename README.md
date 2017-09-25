@@ -142,6 +142,8 @@ CKAN_URL = 'http://ckan'
 CKAN_API_KEY = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
 CKAN_TIMEOUT = 36000
 
+DOWNLOAD_SIZE_LIMIT = 104857600  # octets (e.g. 100Mio)
+
 GEONETWORK_URL = 'http://geonetwork'
 GEONETWORK_LOGIN = 'username'
 GEONETWORK_PASSWORD = 'password'

@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
@@ -127,9 +128,14 @@ class ResourceManager(View):
                     'form': form})
                 return render(request, self.template, context)
 
-            with transaction.atomic():
-                form.handle_me(
-                    request, dataset, id=id, uploaded_file=get_uploaded_file(form))
+            try:
+                with transaction.atomic():
+                    form.handle_me(
+                        request, dataset, id=id, uploaded_file=get_uploaded_file(form))
+            except ValidationError as e:
+                form.add_error(e.code, e.message)
+                context.update({'form': form})
+                return render(request, self.template, context)
 
             messages.success(
                 request, 'La ressource a été mise à jour avec succès.')
@@ -141,9 +147,14 @@ class ResourceManager(View):
             context.update({'form': form})
             return render(request, self.template, context)
 
-        with transaction.atomic():
-            instance = form.handle_me(
-                request, dataset, uploaded_file=get_uploaded_file(form))
+        try:
+            with transaction.atomic():
+                instance = form.handle_me(
+                    request, dataset, uploaded_file=get_uploaded_file(form))
+        except ValidationError as e:
+            form.add_error(e.code, e.message)
+            context.update({'form': form})
+            return render(request, self.template, context)
 
         messages.success(request, (
             'La ressource a été créée avec succès. Souhaitez-vous '

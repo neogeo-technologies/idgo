@@ -1,7 +1,10 @@
 from django.conf import settings
+from idgo_admin.exceptions import SizeLimitExceededError
 import json
 import os
+import re
 import requests
+import shutil
 import string
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -9,6 +12,10 @@ from uuid import uuid4
 
 STATIC_ROOT = settings.STATIC_ROOT
 STATICFILES_DIRS = settings.STATICFILES_DIRS
+try:
+    DOWNLOAD_SIZE_LIMIT = settings.DOWNLOAD_SIZE_LIMIT
+except AttributeError:
+    DOWNLOAD_SIZE_LIMIT = 104857600  # 100Mio
 
 
 # Metaclasses:
@@ -43,7 +50,19 @@ def create_dir(media_root):
     return create_dir(media_root)
 
 
+def remove_dir(directory):
+    if not os.path.exists(directory):
+        return
+    shutil.rmtree(directory)
+
+
 def download(url, media_root, **params):
+
+    def get_content_header_param(txt, param):
+        found = re.search('{0}="([^;"\n\r\t\0\s\X\R\v]+)"'.format(param), txt)
+        if found:
+            return found.groups()[0]
+
     for i in range(0, 10):  # Try at least ten times before raise
         try:
             r = requests.get(url, params=params, stream=True)
@@ -56,8 +75,15 @@ def download(url, media_root, **params):
         raise error
     r.raise_for_status()
 
-    filename = \
-        os.path.join(create_dir(media_root), urlparse(url).path.split('/')[-1])
+    if r.headers.get('Content-Length', 0) > DOWNLOAD_SIZE_LIMIT:
+        raise SizeLimitExceededError(max_size=DOWNLOAD_SIZE_LIMIT)
+
+    directory = create_dir(media_root)
+    filename = os.path.join(
+        directory,
+        get_content_header_param(r.headers.get('Content-Disposition'), 'filename')
+        or urlparse(url).path.split('/')[-1]
+        or 'file')
 
     # TODO(@m431m) -> https://github.com/django/django/blob/3c447b108ac70757001171f7a4791f493880bf5b/docs/topics/files.txt#L120
 
@@ -65,6 +91,9 @@ def download(url, media_root, **params):
         for chunk in r.iter_content(chunk_size=1024):
             if chunk:
                 f.write(chunk)
+            if os.fstat(f.fileno()).st_size > DOWNLOAD_SIZE_LIMIT:
+                remove_dir(directory)
+                raise SizeLimitExceededError(max_size=DOWNLOAD_SIZE_LIMIT)
 
     return filename, r.headers['Content-Type']
 

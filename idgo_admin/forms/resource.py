@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -5,6 +6,7 @@ from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.utils import download
@@ -37,7 +39,7 @@ class ResourceForm(forms.ModelForm):
     # referenced_url
 
     name = forms.CharField(
-        label='Titre',
+        label='Titre*',
         widget=forms.TextInput(
             attrs={'placeholder': 'Titre'}))
 
@@ -145,8 +147,20 @@ class ResourceForm(forms.ModelForm):
                 '{0}.{1}'.format(resource.name, resource.data_format)
 
         if resource.dl_url:
-            filename, content_type = \
-                download(resource.dl_url, settings.MEDIA_ROOT)
+            try:
+                filename, content_type = \
+                    download(resource.dl_url, settings.MEDIA_ROOT)
+            except SizeLimitExceededError as e:
+                l = len(str(e.max_size))
+                if l > 6:
+                    m = '{0} mo'.format(Decimal(int(e.max_size) / 1024 / 1024))
+                elif l > 3:
+                    m = '{0} ko'.format(Decimal(int(e.max_size) / 1024))
+                else:
+                    m = '{0} octets'.format(int(e.max_size))
+                raise ValidationError(
+                    "La taille du fichier dépasse la limite autorisée : {0}.".format(m), code='dl_url')
+
             downloaded_file = File(open(filename, 'rb'))
             ckan_params['upload'] = downloaded_file
             ckan_params['size'] = downloaded_file.size
