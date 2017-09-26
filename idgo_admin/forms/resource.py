@@ -10,11 +10,17 @@ from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.utils import download
+from idgo_admin.utils import readable_file_size
 import json
 from pathlib import Path
 
 
 _today = timezone.now().date()
+
+try:
+    DOWNLOAD_SIZE_LIMIT = settings.DOWNLOAD_SIZE_LIMIT
+except AttributeError:
+    DOWNLOAD_SIZE_LIMIT = 104857600  # 100Mio
 
 
 def get_all_users_for_organizations(list_id):
@@ -22,6 +28,15 @@ def get_all_users_for_organizations(list_id):
         profile.user.username
         for profile in Profile.objects.filter(
             organisation__in=list_id, organisation__is_active=True)]
+
+
+def file_size(value):
+    size_limit = DOWNLOAD_SIZE_LIMIT
+    if value.size > size_limit:
+        message = \
+            'Le fichier {0} ({1}) dépasse la limite de taille autorisée {2}.'.format(
+                value.name, readable_file_size(value.size), readable_file_size(size_limit))
+        raise ValidationError(message)
 
 
 class ResourceForm(forms.ModelForm):
@@ -32,7 +47,9 @@ class ResourceForm(forms.ModelForm):
     up_file = forms.FileField(
         label='Téléversement',
         required=False,
-        widget=CustomClearableFileInput())
+        validators=[file_size],
+        widget=CustomClearableFileInput(
+            attrs={'max_size_info': DOWNLOAD_SIZE_LIMIT}))
 
     # dl_url
 
@@ -148,8 +165,9 @@ class ResourceForm(forms.ModelForm):
 
         if resource.dl_url:
             try:
-                filename, content_type = \
-                    download(resource.dl_url, settings.MEDIA_ROOT)
+                filename, content_type = download(
+                    resource.dl_url, settings.MEDIA_ROOT,
+                    max_size=DOWNLOAD_SIZE_LIMIT)
             except SizeLimitExceededError as e:
                 l = len(str(e.max_size))
                 if l > 6:

@@ -388,6 +388,11 @@ a:focus {
     background-color: #fbbb1b;
 }
 
+.alert-danger {
+    color: #fff;
+    background-color: #f5193b;
+}
+
 .danger {
     color: #fff;
     background-color: #f5193b;

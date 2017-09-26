@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.conf import settings
 from idgo_admin.exceptions import SizeLimitExceededError
 import json
@@ -12,10 +13,6 @@ from uuid import uuid4
 
 STATIC_ROOT = settings.STATIC_ROOT
 STATICFILES_DIRS = settings.STATICFILES_DIRS
-try:
-    DOWNLOAD_SIZE_LIMIT = settings.DOWNLOAD_SIZE_LIMIT
-except AttributeError:
-    DOWNLOAD_SIZE_LIMIT = 104857600  # 100Mio
 
 
 # Metaclasses:
@@ -56,16 +53,18 @@ def remove_dir(directory):
     shutil.rmtree(directory)
 
 
-def download(url, media_root, **params):
+def download(url, media_root, **kwargs):
 
     def get_content_header_param(txt, param):
         found = re.search('{0}="([^;"\n\r\t\0\s\X\R\v]+)"'.format(param), txt)
         if found:
             return found.groups()[0]
 
+    max_size = kwargs.get('max_size')
+
     for i in range(0, 10):  # Try at least ten times before raise
         try:
-            r = requests.get(url, params=params, stream=True)
+            r = requests.get(url, stream=True)
         except Exception as e:
             error = e
             continue
@@ -75,8 +74,8 @@ def download(url, media_root, **params):
         raise error
     r.raise_for_status()
 
-    if r.headers.get('Content-Length', 0) > DOWNLOAD_SIZE_LIMIT:
-        raise SizeLimitExceededError(max_size=DOWNLOAD_SIZE_LIMIT)
+    if r.headers.get('Content-Length', 0) > max_size:
+        raise SizeLimitExceededError(max_size=max_size)
 
     directory = create_dir(media_root)
     filename = os.path.join(
@@ -91,9 +90,9 @@ def download(url, media_root, **params):
         for chunk in r.iter_content(chunk_size=1024):
             if chunk:
                 f.write(chunk)
-            if os.fstat(f.fileno()).st_size > DOWNLOAD_SIZE_LIMIT:
+            if os.fstat(f.fileno()).st_size > max_size:
                 remove_dir(directory)
-                raise SizeLimitExceededError(max_size=DOWNLOAD_SIZE_LIMIT)
+                raise SizeLimitExceededError(max_size=max_size)
 
     return filename, r.headers['Content-Type']
 
@@ -126,6 +125,16 @@ class PartialFormatter(string.Formatter):
 
 def three_suspension_points(val, max_len=19):
     return (len(val)) > max_len and val[0:max_len - 3] + '...' or val
+
+
+def readable_file_size(val):
+    l = len(str(val))
+    if l > 6:
+        return '{0} mo'.format(Decimal(int(val) / 1024 / 1024))
+    elif l > 3:
+        return '{0} ko'.format(Decimal(int(val) / 1024))
+    else:
+        return '{0} octets'.format(int(val))
 
 
 def open_json_staticfile(filename):
