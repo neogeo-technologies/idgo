@@ -1,7 +1,7 @@
 from .models import Category
 from .models import Commune
 from .models import Dataset
-# from .models import DataFormat
+from .models import FormatType
 from .models import License
 from .models import Projection
 from .models import Resolution
@@ -28,7 +28,7 @@ admin.site.register(Profile)
 
 admin.site.register(Category)
 admin.site.register(Commune)
-# admin.site.register(DataFormat)
+admin.site.register(FormatType)
 admin.site.register(License)
 admin.site.register(Projection)
 admin.site.register(Resolution)
