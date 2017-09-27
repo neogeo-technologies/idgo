@@ -15,6 +15,14 @@ from taggit.managers import TaggableManager
 import uuid
 
 
+
+# class DataFormat(models.Model):
+#
+#     extension = models.CharField(
+#         'Format', max_length=20, unique=True)
+#     description = models.TextField('Description', blank=True, null=True)
+
+
 class Resource(models.Model):
 
     # PENSER A SYNCHRONISER CETTE LISTE DES LANGUES
@@ -60,8 +68,10 @@ class Resource(models.Model):
     lang = models.CharField(
         'Langue', choices=LANG_CHOICES, default='french', max_length=10)
 
-    data_format = models.CharField(
-        'Format', max_length=20, blank=True)
+    data_format = models.CharField('Format', max_length=20, blank=True, null=True)
+
+    # data_format = models.ForeignKey(DataFormat, 'Format', max_length=20,
+    #                                 blank=True, null=True)
 
     projection = models.ForeignKey(
         'Projection', blank=True, null=True)
@@ -172,6 +182,10 @@ class Organisation(models.Model):
         null=True, verbose_name="Organisation parente")
 
     # Territoire de compétence
+    territory = models.ManyToManyField(
+        'Territoire de compétence', blank=True, null=True,
+        verbose_name="Territoire de compétence")
+
     geom = models.MultiPolygonField(
         'Territoire', srid=4171, blank=True, null=True)
     objects = models.GeoManager()
@@ -213,7 +227,7 @@ class Organisation(models.Model):
     org_phone = models.CharField(
         'Téléphone', max_length=10, blank=True, null=True)
 
-    communes = models.ManyToManyField(Commune)  # Territoires de compétence
+    # communes = models.ManyToManyField(Commune)  # Territoires de compétence
 
     license = models.ForeignKey(
         'License', on_delete=models.CASCADE, blank=True, null=True)
