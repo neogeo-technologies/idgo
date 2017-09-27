@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -5,14 +6,21 @@ from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.utils import download
+from idgo_admin.utils import readable_file_size
 import json
 from pathlib import Path
 
 
 _today = timezone.now().date()
+
+try:
+    DOWNLOAD_SIZE_LIMIT = settings.DOWNLOAD_SIZE_LIMIT
+except AttributeError:
+    DOWNLOAD_SIZE_LIMIT = 104857600  # 100Mio
 
 
 def get_all_users_for_organizations(list_id):
@@ -20,6 +28,15 @@ def get_all_users_for_organizations(list_id):
         profile.user.username
         for profile in Profile.objects.filter(
             organisation__in=list_id, organisation__is_active=True)]
+
+
+def file_size(value):
+    size_limit = DOWNLOAD_SIZE_LIMIT
+    if value.size > size_limit:
+        message = \
+            'Le fichier {0} ({1}) dépasse la limite de taille autorisée {2}.'.format(
+                value.name, readable_file_size(value.size), readable_file_size(size_limit))
+        raise ValidationError(message)
 
 
 class ResourceForm(forms.ModelForm):
@@ -30,14 +47,16 @@ class ResourceForm(forms.ModelForm):
     up_file = forms.FileField(
         label='Téléversement',
         required=False,
-        widget=CustomClearableFileInput())
+        validators=[file_size],
+        widget=CustomClearableFileInput(
+            attrs={'max_size_info': DOWNLOAD_SIZE_LIMIT}))
 
     # dl_url
 
     # referenced_url
 
     name = forms.CharField(
-        label='Titre',
+        label='Titre*',
         widget=forms.TextInput(
             attrs={'placeholder': 'Titre'}))
 
@@ -145,8 +164,21 @@ class ResourceForm(forms.ModelForm):
                 '{0}.{1}'.format(resource.name, resource.data_format)
 
         if resource.dl_url:
-            filename, content_type = \
-                download(resource.dl_url, settings.MEDIA_ROOT)
+            try:
+                filename, content_type = download(
+                    resource.dl_url, settings.MEDIA_ROOT,
+                    max_size=DOWNLOAD_SIZE_LIMIT)
+            except SizeLimitExceededError as e:
+                l = len(str(e.max_size))
+                if l > 6:
+                    m = '{0} mo'.format(Decimal(int(e.max_size) / 1024 / 1024))
+                elif l > 3:
+                    m = '{0} ko'.format(Decimal(int(e.max_size) / 1024))
+                else:
+                    m = '{0} octets'.format(int(e.max_size))
+                raise ValidationError(
+                    "La taille du fichier dépasse la limite autorisée : {0}.".format(m), code='dl_url')
+
             downloaded_file = File(open(filename, 'rb'))
             ckan_params['upload'] = downloaded_file
             ckan_params['size'] = downloaded_file.size

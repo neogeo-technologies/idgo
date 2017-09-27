@@ -92,6 +92,12 @@
 			{% bootstrap_field form.organisations_allowed %}
 		</div>
 	</div>
+	<br />
+	<div class="row">
+		<div class="col-xs-12">
+			<p>* Les champs marqués d'un astérisque sont obligatoires.</p>
+		</div>
+	</div>
 	<div class="buttons-on-the-right-side">
 		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
 		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">Annuler</a>
@@ -204,11 +210,16 @@ $(function() {
 		var $this = $(this);
 		var $files = $this.get(0).files;
 		var count = $files ? $files.length : 1;
-		var fileName = [];
-		for (var i = 0; i < $files.length; i ++) {
-			fileName.push($files[i].name);
+		if (count == 1) {
+			if ($files[0].type && $files[0].extension) {
+				$('input[name="data_format"]').val($files[0].extension);
+			};
 		};
-		$this.trigger('fileselect', [count, fileName.join(', ')]);
+		// var fileName = [];
+		// for (var i = 0; i < $files.length; i ++) {
+		// 	fileName.push($files[i].name);
+		// };
+		// $this.trigger('fileselect', [count, fileName.join(', ')]);
 	});
 
 	var $input = $('input[type="file"]').change(function(e) {
@@ -218,11 +229,11 @@ $(function() {
 	});
 
 	$(document).ready(function() {
-		$(':file').on('fileselect', function(e, count, label) {
-			var $this = $(this);
-			var $input = $this.parents('.input-group').find(':text');
-			$input.val((count > 1) ? count + ' fichiers : ' + label : label);
-		});
+		// $(':file').on('fileselect', function(e, count, label) {
+		// 	var $this = $(this);
+		// 	var $input = $this.parents('.input-group').find(':text');
+		// 	$input.val((count > 1) ? count + ' fichiers : ' + label : label);
+		// });
 		getAccessSelectedOption($('select[name="restricted_level"]'));
 	});
 

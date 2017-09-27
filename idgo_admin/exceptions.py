@@ -1,13 +1,12 @@
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponseServerError
-from django.shortcuts import render
 from functools import wraps
 
 
 class GenericException(Exception):
     def __init__(self, *args, **kwargs):
         self.args = args
-        self.kwargs = kwargs
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     def __str__(self):
         return str(self.args)
@@ -24,6 +23,11 @@ class ConflictError(GenericException):
 
 
 class FakeError(GenericException):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class SizeLimitExceededError(GenericException):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

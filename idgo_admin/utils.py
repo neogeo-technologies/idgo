@@ -1,7 +1,11 @@
+from decimal import Decimal
 from django.conf import settings
+from idgo_admin.exceptions import SizeLimitExceededError
 import json
 import os
+import re
 import requests
+import shutil
 import string
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -43,10 +47,24 @@ def create_dir(media_root):
     return create_dir(media_root)
 
 
-def download(url, media_root, **params):
+def remove_dir(directory):
+    if not os.path.exists(directory):
+        return
+    shutil.rmtree(directory)
+
+
+def download(url, media_root, **kwargs):
+
+    def get_content_header_param(txt, param):
+        found = re.search('{0}="([^;"\n\r\t\0\s\X\R\v]+)"'.format(param), txt)
+        if found:
+            return found.groups()[0]
+
+    max_size = kwargs.get('max_size')
+
     for i in range(0, 10):  # Try at least ten times before raise
         try:
-            r = requests.get(url, params=params, stream=True)
+            r = requests.get(url, stream=True)
         except Exception as e:
             error = e
             continue
@@ -56,8 +74,15 @@ def download(url, media_root, **params):
         raise error
     r.raise_for_status()
 
-    filename = \
-        os.path.join(create_dir(media_root), urlparse(url).path.split('/')[-1])
+    if r.headers.get('Content-Length', 0) > max_size:
+        raise SizeLimitExceededError(max_size=max_size)
+
+    directory = create_dir(media_root)
+    filename = os.path.join(
+        directory,
+        get_content_header_param(r.headers.get('Content-Disposition'), 'filename')
+        or urlparse(url).path.split('/')[-1]
+        or 'file')
 
     # TODO(@m431m) -> https://github.com/django/django/blob/3c447b108ac70757001171f7a4791f493880bf5b/docs/topics/files.txt#L120
 
@@ -65,6 +90,9 @@ def download(url, media_root, **params):
         for chunk in r.iter_content(chunk_size=1024):
             if chunk:
                 f.write(chunk)
+            if os.fstat(f.fileno()).st_size > max_size:
+                remove_dir(directory)
+                raise SizeLimitExceededError(max_size=max_size)
 
     return filename, r.headers['Content-Type']
 
@@ -97,6 +125,16 @@ class PartialFormatter(string.Formatter):
 
 def three_suspension_points(val, max_len=19):
     return (len(val)) > max_len and val[0:max_len - 3] + '...' or val
+
+
+def readable_file_size(val):
+    l = len(str(val))
+    if l > 6:
+        return '{0} mo'.format(Decimal(int(val) / 1024 / 1024))
+    elif l > 3:
+        return '{0} ko'.format(Decimal(int(val) / 1024))
+    else:
+        return '{0} octets'.format(int(val))
 
 
 def open_json_staticfile(filename):

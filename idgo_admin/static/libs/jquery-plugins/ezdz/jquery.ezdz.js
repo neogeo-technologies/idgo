@@ -49,8 +49,8 @@
         leave: function() {},
         reject: function() {},
         accept: function() {},
-        format: function(filename) {
-            return filename;
+        format: function(fileName, fileSize) {
+            return fileName;
         }
     };
 
@@ -140,7 +140,7 @@
                         var extension = file.name.split('.').pop();
                         var size = file.size;
                         var mimeType = file.type;
-                        var formatted = settings.format(basename);
+                        var formatted = settings.format(basename, size);
 
                         file.extension = extension;
 
@@ -223,7 +223,7 @@
                                 if (settings.validators.maxSize && file.size > settings.validators.maxSize) {
                                     valid = false;
                                     errors.maxSize = true;
-                                }
+                                };
 
                                 // if (isImage) {
                                 //     file.width  = img.width;
@@ -261,7 +261,7 @@
                                     // if (isImage && settings.previewImage === true) {
                                     // $ezdz.find('div').html($(img).fadeIn());
                                     // } else {
-                                    $ezdz.find('div').append('<span class="dz-filename">' + formatted + ' (' + size + 'b)</span>');
+                                    $ezdz.find('div').append('<span class="dz-filename">' + formatted + '</span>');
                                     // };
 
                                     $ezdz.addClass(settings.classes.accept);

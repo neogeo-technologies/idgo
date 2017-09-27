@@ -83,18 +83,17 @@
     border-color: #067ee6;
 }
 
-.ezdz-accept,
-.ezdz-reject {
+.ezdz-accept {
     margin: 1px;
     border: 1px solid #ccc;
 }
 
-.ezdz-accept .dz-filename {
-    background-color: #14d47f;
-    color: #ffffff;
+.ezdz-reject {
+    margin: 1px;
+    border: 1px solid red;
 }
 
-.ezdz-reject .dz-filename {
-    background-color: #f5193b;
+.ezdz-accept .dz-filename {
+    background-color: #14d47f;
     color: #ffffff;
 }
