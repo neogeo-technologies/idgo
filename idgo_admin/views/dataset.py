@@ -26,6 +26,8 @@ from idgo_admin.utils import three_suspension_points
 import json
 
 
+CKAN_URL = settings.CKAN_URL
+
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
@@ -34,6 +36,7 @@ class DatasetManager(View):
 
     template = 'idgo_admin/dataset.html'
     namespace = 'idgo_admin:dataset'
+    namespace_resource = 'idgo_admin:resource'
 
     @ExceptionsHandler(ignore=[Http404])
     def get(self, request):
@@ -43,6 +46,7 @@ class DatasetManager(View):
         form = Form(include={'user': user, 'identification': False, 'id': None})
         dataset_name = 'Nouveau'
         dataset_id = None
+        dataset_ckan_slug = None
         resources = []
 
         # Ugly
@@ -60,20 +64,24 @@ class DatasetManager(View):
                         include={'user': user, 'identification': True, 'id': id})
             dataset_name = instance.name
             dataset_id = instance.id
+            dataset_ckan_slug = instance.ckan_slug
             resources = [(
                 o.pk,
                 o.name,
                 o.data_format,
                 o.created_on.isoformat() if o.created_on else None,
                 o.last_update.isoformat() if o.last_update else None,
-                o.get_restricted_level_display()
+                o.get_restricted_level_display(),
+                str(o.ckan_id)
                 ) for o in Resource.objects.filter(dataset=instance)]
 
-        context = {'form': form,
+        context = {'ckan_url': CKAN_URL,
+                   'form': form,
                    'first_name': user.first_name,
                    'last_name': user.last_name,
                    'dataset_name': three_suspension_points(dataset_name),
                    'dataset_id': dataset_id,
+                   'dataset_ckan_slug': dataset_ckan_slug,
                    'licenses': dict(
                        (o.pk, o.license.pk) for o
                        in Liaisons_Contributeurs.get_contribs(profile=profile) if o.license),
@@ -113,8 +121,10 @@ class DatasetManager(View):
 
             if not form.is_valid():
                 context.update({
+                    'ckan_url': CKAN_URL,
                     'form': form,
                     'dataset_name': three_suspension_points(instance.name),
+                    'dataset_ckan_slug': instance.ckan_slug,
                     'dataset_id': instance.id,
                     'resources': json.dumps([(
                         o.pk,
@@ -122,7 +132,8 @@ class DatasetManager(View):
                         o.data_format,
                         o.created_on.isoformat() if o.created_on else None,
                         o.last_update.isoformat() if o.last_update else None,
-                        o.get_restricted_level_display()
+                        o.get_restricted_level_display(),
+                        str(o.ckan_id)
                         ) for o in Resource.objects.filter(dataset=instance)])})
                 return render(request, self.template, context)
 
@@ -147,7 +158,11 @@ class DatasetManager(View):
         messages.success(request, (
             'Le jeu de données a été créé avec succès. '
             'Souhaitez-vous <a href="{0}">créer un nouveau jeu de '
-            'données ?</a>').format(reverse(self.namespace)))
+            'données ?</a> ou <a href="{1}">ajouter une ressource ?</a>'
+            ).format(reverse(self.namespace),
+                     reverse(self.namespace_resource,
+                             kwargs={'dataset_id': instance.id})))
+
         return http_redirect(instance.id)
 
     @ExceptionsHandler(ignore=[Http404, CkanSyncingError])
@@ -198,7 +213,10 @@ def datasets(request):
         o.date_publication.isoformat() if o.date_publication else None,
         Organisation.objects.get(id=o.organisation_id).name,
         o.published,
-        o.is_inspire) for o in Dataset.objects.filter(editor=user)]
+        o.is_inspire,
+        o.ckan_slug,
+        profile in Liaisons_Contributeurs.get_contributors(o.organisation)
+        ) for o in Dataset.objects.filter(editor=user)]
 
     my_contributions = \
         Liaisons_Contributeurs.get_contribs(profile=profile)
@@ -207,7 +225,8 @@ def datasets(request):
         [c.name for c in Liaisons_Contributeurs.get_pending(profile=profile)]
 
     return render(request, 'idgo_admin/home.html',
-                  {'first_name': user.first_name,
+                  {'ckan_url': CKAN_URL,
+                   'first_name': user.first_name,
                    'last_name': user.last_name,
                    'datasets': json.dumps(datasets),
                    'is_contributor': json.dumps(len(my_contributions) > 0),

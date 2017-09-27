@@ -29,6 +29,9 @@
 var redirect = function(path) {
 	window.location.replace(window.location.origin + path);
 };
+var targetBlank = function(path) {
+	window.open(path, '_blank');
+};
 var activateButton = function($btn) {
 	$btn.removeClass('disabled').prop('disabled', false);
 };
@@ -122,8 +125,19 @@ var $modal = $('.modal[role="dialog"]')
 	});
 
 $('.phone').change(function() {
-	var str = $(this).val();
-	$(this).val(str.replace(/\s/g, ''));
+	var $this = $(this);
+	var str = $this.val().trim();
+	var regex = /^(\+33(\s*\(\s*0\s*\))?\s*|\s*0)((([\\\/\.,;:_-]?|\s*)\d){9})$/g;
+	while ((m = regex.exec(str)) !== null) {
+		if (m.index === regex.lastIndex) {
+			regex.lastIndex++;
+		};
+		m.forEach(function(match, groupIndex) {
+			if (groupIndex == 3) {
+				$this.val(0 + match.trim().replace(/[\\\/\.\,;:_-\s]/g, ''));
+			};
+		});
+	};
 });
 
 $('form').each(function() {

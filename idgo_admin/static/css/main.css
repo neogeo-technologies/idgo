@@ -218,14 +218,42 @@ table.table-hover>tbody>tr {
     cursor: pointer;
 }
 
+table tr.disabled,
+table tr.disabled:hover,
+table tr.disabled:focus {
+    pointer-events: none;
+    cursor: not-allowed;
+    color: #aaa;
+}
+
 table tr.selected td {
     background: #067ee6;
     color: #fff;
+    border-top-color: #067ee6;
+    border-bottom-color: #067ee6;
+}
+
+table tr.selected td:first-child {
+    border-left-color: #067ee6;
+}
+
+table tr.selected td:last-child {
+    border-right-color: #067ee6;
 }
 
 table tr.selected:hover td,
 table tr.selected:focus td {
     background: #0571cf;
+    border-top-color: #0571cf;
+    border-bottom-color: #0571cf;
+}
+
+table tr.selected td:first-child {
+    border-left-color: #0571cf;
+}
+
+table tr.selected td:last-child {
+    border-right-color: #0571cf;
 }
 
 .table-transparent>tbody>tr>td,
@@ -240,17 +268,28 @@ table tr.selected:focus td {
             box-shadow: 0 2px 1px 2px rgba(0,0,0,.25);
 }
 
+.btn-group {
+    margin-left: 5px;
+}
+
+.btn {
+    border-radius: 4px;
+    -webkit-box-shadow: 0 1px 1px 0 rgba(0,0,0,.25);
+            box-shadow: 0 1px 1px 0 rgba(0,0,0,.25);
+}
+
 .btn-default {
     color: #555;
     background-color: #fff;
-    border-color: #666;
+    border-top-color: #eee;
+    border-color: #aaa;
 }
 
 .btn-default:hover,
 .btn-default:focus {
     color: #444;
     background-color: #fcfcfc;
-    border-color: #444;
+    border-color: #999;
 }
 
 a {
@@ -357,7 +396,7 @@ a:focus {
 
 .buttons-on-the-right-side {
     text-align: right;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .buttons-on-the-right-side>.btn {
@@ -365,12 +404,18 @@ a:focus {
 }
 
 .alert {
-    border-radius: 0px;
+    border-radius: 8px;
     border-width: 0;
 }
 
 .alert a {
     color: inherit;
+}
+
+.alert .btn-primary,
+.alert .btn-danger,
+.alert .btn-danger {
+    color: #fff;
 }
 
 .alert-success {
@@ -584,4 +629,10 @@ div#categories.btn-group>label.btn.active:focus>span.badge {
 
 .dz-focus {
     background-color: #067ee6;
+}
+
+a.disabled {
+  color: #aaa !important;
+  pointer-events: none;
+  cursor: not-allowed;
 }
