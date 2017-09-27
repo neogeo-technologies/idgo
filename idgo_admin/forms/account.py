@@ -15,7 +15,6 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
 from idgo_admin.models import Status
-from idgo_admin.utils import phone_number
 
 from mama_cas.forms import LoginForm as MamaLoginForm
 
@@ -276,14 +275,9 @@ class ProfileForm(forms.ModelForm):
 
     def clean(self):
         params = ['adresse', 'code_insee', 'code_postal', 'description',
-                  'financeur', 'license', 'organisation_type', 'org_phone'
-                  'parent', 'status', 'ville', 'website', 'logo', 'new_orga']
-
-        # TODO: Augmenter le max_length des champs phone meme si on ne stock que 10 CharField
-        # pour eviter d'écraser l'erreur de validation de ce champs
-        if self.cleaned_data.get('phone') and 'phone' in self._errors:
-            del self._errors['phone']
-        self.cleaned_data['phone'] = phone_number(self.cleaned_data, 'phone')
+                  'financeur', 'license', 'organisation_type', 'org_phone',
+                  'phone', 'parent', 'status', 'ville', 'website', 'logo',
+                  'new_orga']
 
         if self.cleaned_data.get('referent_requested'):
             self.cleaned_data['referent_requested'] = True
@@ -300,15 +294,8 @@ class ProfileForm(forms.ModelForm):
 
             self.cleaned_data['mode'] = 'require_new_organization'
 
-            # TODO: Augmenter le max_length des champs phone meme si on ne stock que 10 CharField
-            # pour eviter d'écraser l'erreur de validation de ce champs
-            if self.cleaned_data.get('org_phone') and 'org_phone' in self._errors:
-                del self._errors['org_phone']
-
             for p in params:
                 self.cleaned_data[p] = self.cleaned_data.get(p)
-
-            self.cleaned_data['org_phone'] = phone_number(self.cleaned_data, 'org_phone')
 
             return self.cleaned_data
 

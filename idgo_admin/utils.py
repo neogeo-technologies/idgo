@@ -9,7 +9,6 @@ import shutil
 import string
 from urllib.parse import urlparse
 from uuid import uuid4
-import phonenumbers
 
 STATIC_ROOT = settings.STATIC_ROOT
 STATICFILES_DIRS = settings.STATICFILES_DIRS
@@ -157,13 +156,3 @@ def clean_my_obj(obj):
             (clean_my_obj(k), clean_my_obj(v)) for k, v in obj.items() if k and v)
     else:
         return obj
-
-
-def phone_number(cleaned_data, field):
-        # Le .replace(" ", "") n'est utile que si on garde la contrainte en base max_length=10
-        tmp = cleaned_data.get(field)
-        if tmp:
-            prs = phonenumbers.parse(tmp, "FR")
-            cleaned_data[field] = phonenumbers.format_number(
-                prs, phonenumbers.PhoneNumberFormat.NATIONAL).replace(" ", "")
-        return cleaned_data[field]

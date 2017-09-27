@@ -79,8 +79,6 @@ class Resource(models.Model):
     lang = models.CharField(
         'Langue', choices=LANG_CHOICES, default='french', max_length=10)
 
-    # data_format = models.CharField('Format', max_length=20, blank=True, null=True)
-
     format_type = models.ForeignKey(FormatType, blank=True, null=True)
 
     projection = models.ForeignKey(
