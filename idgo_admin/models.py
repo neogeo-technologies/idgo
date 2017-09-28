@@ -23,11 +23,10 @@ class ResourceFormats(models.Model):
         ('text_view', 'text_view'),
         ('geo_view', 'geo_view'),
         ('recline_view', 'recline_view'),
-        ('pdf', 'pdf_view'))
+        ('pdf_view', 'pdf_view'))
 
-    extension = models.CharField(
-        'Format', max_length=30, unique=True)
-    ckan_view = models.CharField('Vue ', max_length=100,
+    extension = models.CharField('Format', max_length=30, unique=True)
+    ckan_view = models.CharField('Vue', max_length=100,
                                  choices=CKAN_CHOICES, blank=True, null=True)
 
     def __str__(self):

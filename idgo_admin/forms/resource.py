@@ -131,10 +131,13 @@ class ResourceForm(forms.ModelForm):
         ckan_params = {
             'name': resource.name,
             'description': resource.description,
-            'format': resource.format_type.ckan_view,
+            'format': resource.format_type.extension,
+            'view_type': resource.format_type.ckan_view,
             'id': str(resource.ckan_id),
             'lang': resource.lang,
             'url': ''}
+
+        print(ckan_params)
 
         if restricted_level == '0':  # Public
             resource.users_allowed = users_allowed

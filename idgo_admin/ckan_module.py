@@ -136,20 +136,12 @@ class CkanUserHandler(object):
 
     @CkanExceptionsHandler()
     def publish_resource(self, dataset_id, **kwargs):
+        resource_view_type = kwargs['view_type'] or None
+        del kwargs['view_type']
         resource = self.push_resource(self.get_package(dataset_id), **kwargs)
-        resource_format = kwargs['format'].lower()
-        supported_view = {'csv': 'recline_view',
-                          'geojson': 'text_view',
-                          'json': 'text_view',
-                          'wms': 'geo_view',
-                          'xls': 'recline_view',
-                          'xlsc': 'recline_view',
-                          'xml': 'text_view',
-                          'pdf': 'pdf_view'}
-        if resource_format in [k for k, v in supported_view.items()]:
+        if resource_view_type:
             self.push_resource_view(
-                resource_id=resource['id'],
-                view_type=supported_view.get(resource_format))
+                resource_id=resource['id'], view_type=resource_view_type)
 
     @CkanExceptionsHandler()
     def delete_resource(self, id):
