@@ -5,6 +5,7 @@ from idgo_admin.views.account import forgotten_password
 from idgo_admin.views.account import reset_password
 from idgo_admin.views.account import SignIn
 from idgo_admin.views.account import SignOut
+from idgo_admin.views.action import ActionsManager
 from idgo_admin.views.dataset import DatasetManager
 from idgo_admin.views.dataset import datasets
 from idgo_admin.views.mailer import confirm_contribution
@@ -27,6 +28,7 @@ urlpatterns = [
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/?$', MDEdit.as_view(), name='mdedit'),
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/edit/?$', MDEditTplEdit.as_view(), name='mdedit_tpl_edit'),
     url('^$', datasets, name='home'),
+    url('^datasets/$', ActionsManager.as_view(), name='datasets'),
     url('^signin/?$', SignIn.as_view(), name='signIn'),
     url('^signout/?$', SignOut.as_view(), name='signOut'),
     url('^account/(?P<process>(create|update))/?$', AccountManager.as_view(), name='account_manager'),
