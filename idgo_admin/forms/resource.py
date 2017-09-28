@@ -7,7 +7,7 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import SizeLimitExceededError
-from idgo_admin.models import FormatType
+from idgo_admin.models import ResourceFormats
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.utils import download
@@ -76,7 +76,7 @@ class ResourceForm(forms.ModelForm):
 
     format_type = forms.ModelChoiceField(
         label='CSV, XML, JSON, XLS... ',
-        queryset=FormatType.objects.all(),
+        queryset=ResourceFormats.objects.all(),
         required=True)
 
     # restricted_level

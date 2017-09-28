@@ -15,7 +15,7 @@ from taggit.managers import TaggableManager
 import uuid
 
 
-class FormatType(models.Model):
+class ResourceFormats(models.Model):
 
     CKAN_CHOICES = (
         (None, 'N/A'),
@@ -79,7 +79,7 @@ class Resource(models.Model):
     lang = models.CharField(
         'Langue', choices=LANG_CHOICES, default='french', max_length=10)
 
-    format_type = models.ForeignKey(FormatType, blank=True, null=True)
+    format_type = models.ForeignKey(ResourceFormats, default=0)
 
     projection = models.ForeignKey(
         'Projection', blank=True, null=True)
@@ -250,7 +250,7 @@ class Organisation(models.Model):
     org_phone = models.CharField(
         'Téléphone', max_length=10, blank=True, null=True)
 
-    # communes = models.ManyToManyField(Commune)  # Territoires de compétence
+    communes = models.ManyToManyField(Commune)  # Territoires de compétence
 
     license = models.ForeignKey(
         'License', on_delete=models.CASCADE, blank=True, null=True)
