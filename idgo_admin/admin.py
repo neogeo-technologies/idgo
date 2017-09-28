@@ -1,6 +1,7 @@
 from .models import Category
 from .models import Commune
 from .models import Dataset
+from .models import ResourceFormats
 from .models import License
 from .models import Projection
 from .models import Resolution
@@ -26,11 +27,12 @@ admin.site.unregister(User)
 admin.site.register(Profile)
 
 admin.site.register(Category)
-admin.site.register(License)
 admin.site.register(Commune)
-admin.site.register(Territory)
+admin.site.register(ResourceFormats)
+admin.site.register(License)
 admin.site.register(Projection)
 admin.site.register(Resolution)
+admin.site.register(Territory)
 
 
 class ResourceInline(admin.StackedInline):
@@ -81,22 +83,22 @@ class MailAdmin(admin.ModelAdmin):
     model = Mail
 
     # Vue dev:
-    # list_display = ('template_name', 'subject', )
-    # fieldsets = (
-    #     ('Personnalisation des messages automatiques',
-    #      {'fields': ('template_name', 'subject', 'message', 'from_email')}),)
-
-    # Vue client:
-    list_display = ('subject', )
+    list_display = ('template_name', 'subject', )
     fieldsets = (
         ('Personnalisation des messages automatiques',
-         {'fields': ('subject', 'message', )}),)
+         {'fields': ('template_name', 'subject', 'message', 'from_email')}),)
 
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request, obj=None):
-        return False
+    # Vue client:
+    # list_display = ('subject', )
+    # fieldsets = (
+    #     ('Personnalisation des messages automatiques',
+    #      {'fields': ('subject', 'message', )}),)
+    #
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
+    #
+    # def has_add_permission(self, request, obj=None):
+    #     return False
     # Fin Vue client
 
 

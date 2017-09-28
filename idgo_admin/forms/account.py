@@ -15,6 +15,7 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
 from idgo_admin.models import Status
+
 from mama_cas.forms import LoginForm as MamaLoginForm
 
 
@@ -274,8 +275,9 @@ class ProfileForm(forms.ModelForm):
 
     def clean(self):
         params = ['adresse', 'code_insee', 'code_postal', 'description',
-                  'financeur', 'license', 'organisation_type', 'org_phone'
-                  'parent', 'status', 'ville', 'website', 'logo', 'new_orga']
+                  'financeur', 'license', 'organisation_type', 'org_phone',
+                  'phone', 'parent', 'status', 'ville', 'website', 'logo',
+                  'new_orga']
 
         if self.cleaned_data.get('referent_requested'):
             self.cleaned_data['referent_requested'] = True
@@ -291,8 +293,10 @@ class ProfileForm(forms.ModelForm):
                 raise ValidationError('OrganisationExist')
 
             self.cleaned_data['mode'] = 'require_new_organization'
+
             for p in params:
                 self.cleaned_data[p] = self.cleaned_data.get(p)
+
             return self.cleaned_data
 
         # On vide les valeurs d'une nouvelle organisation par sécurité

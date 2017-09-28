@@ -10,7 +10,6 @@ import string
 from urllib.parse import urlparse
 from uuid import uuid4
 
-
 STATIC_ROOT = settings.STATIC_ROOT
 STATICFILES_DIRS = settings.STATICFILES_DIRS
 

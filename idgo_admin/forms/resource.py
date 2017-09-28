@@ -7,6 +7,7 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import SizeLimitExceededError
+from idgo_admin.models import ResourceFormats
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.utils import download
@@ -68,10 +69,15 @@ class ResourceForm(forms.ModelForm):
 
     # lang
 
-    data_format = forms.CharField(
-        label='Format',
-        widget=forms.TextInput(
-            attrs={'placeholder': 'CSV, XML, JSON, XLS... '}))
+    # data_format = forms.CharField(
+    #     label='Format',
+    #     widget=forms.TextInput(
+    #         attrs={'placeholder': 'CSV, XML, JSON, XLS... '}))
+
+    format_type = forms.ModelChoiceField(
+        label='CSV, XML, JSON, XLS... ',
+        queryset=ResourceFormats.objects.all(),
+        required=True)
 
     # restricted_level
 
@@ -87,7 +93,7 @@ class ResourceForm(forms.ModelForm):
                   'name',
                   'description',
                   'lang',
-                  'data_format',
+                  'format_type',
                   'restricted_level',
                   'users_allowed',
                   'organisations_allowed')
@@ -106,7 +112,7 @@ class ResourceForm(forms.ModelForm):
                   'dl_url': data['dl_url'],
                   'referenced_url': data['referenced_url'],
                   'lang': data['lang'],
-                  'data_format': data['data_format'],
+                  'format_type': data['format_type'],
                   'restricted_level': restricted_level,
                   'up_file': data['up_file'],
                   'dataset': dataset}
@@ -125,10 +131,13 @@ class ResourceForm(forms.ModelForm):
         ckan_params = {
             'name': resource.name,
             'description': resource.description,
-            'format': resource.data_format,
+            'format': resource.format_type.extension,
+            'view_type': resource.format_type.ckan_view,
             'id': str(resource.ckan_id),
             'lang': resource.lang,
             'url': ''}
+
+        print(ckan_params)
 
         if restricted_level == '0':  # Public
             resource.users_allowed = users_allowed
@@ -161,7 +170,7 @@ class ResourceForm(forms.ModelForm):
         if resource.referenced_url:
             ckan_params['url'] = resource.referenced_url
             ckan_params['resource_type'] = \
-                '{0}.{1}'.format(resource.name, resource.data_format)
+                '{0}.{1}'.format(resource.name, resource.format_type.ckan_view)
 
         if resource.dl_url:
             try:

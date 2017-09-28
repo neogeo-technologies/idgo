@@ -135,20 +135,30 @@ def confirm_rattachement(request, key):
                      username=user.username,
                      organization_name=name)
     else:
-        action.profile.rattachement_active = True
         name = action.org_extras.name
-        action.closed = timezone.now()
         user = action.profile.user
-        action.profile.save()
-        action.save()
+        if not action.org_extras.is_active:
+            message = (
+                "Le rattachement de <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) "
+                "à l'organisation <strong>{organization_name}</strong> ne peut être effective que lorsque "
+                "la création de cette organisation a été confirmé par un administrateur."
+                ).format(first_name=user.first_name,
+                         last_name=user.last_name,
+                         username=user.username,
+                         organization_name=name)
 
-        message = (
-            "Le rattachement de <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) "
-            "à l'organisation <strong>{organization_name}</strong> a bien été confirmée."
-            ).format(first_name=user.first_name,
-                     last_name=user.last_name,
-                     username=user.username,
-                     organization_name=name)
+        else:
+            action.profile.rattachement_active = True
+            action.closed = timezone.now()
+            action.profile.save()
+            action.save()
+            message = (
+                "Le rattachement de <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) "
+                "à l'organisation <strong>{organization_name}</strong> a bien été confirmée."
+                ).format(first_name=user.first_name,
+                         last_name=user.last_name,
+                         username=user.username,
+                         organization_name=name)
 
     return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=200)
@@ -219,21 +229,32 @@ def confirm_contribution(request, key):
 
         else:
             user = action.profile.user
-            contrib_liaison.validated_on = timezone.now()
-            contrib_liaison.save()
-            action.closed = timezone.now()
-            action.save()
+            if not organisation.is_active:
+                message = (
+                    "Le status de contributeur pour l'organisation <strong>{organization_name}</strong> "
+                    "concernant <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>)  ne peut être effectif que lorsque "
+                    "la création de cette organisation a été confirmé par un administrateur."
+                    ).format(first_name=user.first_name,
+                             last_name=user.last_name,
+                             username=user.username,
+                             organization_name=organisation.name)
+                status = 200
+            else:
+                contrib_liaison.validated_on = timezone.now()
+                contrib_liaison.save()
+                action.closed = timezone.now()
+                action.save()
 
-            status = 200
-            message = (
-                "Le rôle de contributeur pour l'organisation <strong>{organization_name}</strong> "
-                "a bien été confirmée pour <strong>{username}</strong>."
-                ).format(organization_name=organisation.name,
-                         username=user.username)
-            try:
-                Mail.confirm_contrib_to_user(action)
-            except Exception:
-                pass
+                message = (
+                    "Le rôle de contributeur pour l'organisation <strong>{organization_name}</strong> "
+                    "a bien été confirmée pour <strong>{username}</strong>."
+                    ).format(organization_name=organisation.name,
+                             username=user.username)
+                status = 200
+                try:
+                    Mail.confirm_contrib_to_user(action)
+                except Exception:
+                    pass
 
     return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=status)

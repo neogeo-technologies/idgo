@@ -15,6 +15,24 @@ from taggit.managers import TaggableManager
 import uuid
 
 
+class ResourceFormats(models.Model):
+
+    CKAN_CHOICES = (
+        (None, 'N/A'),
+        ('recline_view', 'recline_view'),
+        ('text_view', 'text_view'),
+        ('geo_view', 'geo_view'),
+        ('recline_view', 'recline_view'),
+        ('pdf_view', 'pdf_view'))
+
+    extension = models.CharField('Format', max_length=30, unique=True)
+    ckan_view = models.CharField('Vue', max_length=100,
+                                 choices=CKAN_CHOICES, blank=True, null=True)
+
+    def __str__(self):
+        return self.extension
+
+
 class Resource(models.Model):
 
     # PENSER A SYNCHRONISER CETTE LISTE DES LANGUES
@@ -60,8 +78,7 @@ class Resource(models.Model):
     lang = models.CharField(
         'Langue', choices=LANG_CHOICES, default='french', max_length=10)
 
-    data_format = models.CharField(
-        'Format', max_length=20, blank=True)
+    format_type = models.ForeignKey(ResourceFormats, default=0)
 
     projection = models.ForeignKey(
         'Projection', blank=True, null=True)
@@ -118,6 +135,22 @@ class Commune(models.Model):
         return self.name
 
 
+class Territory(models.Model):
+
+    code = models.CharField('Code INSEE', max_length=10)
+    name = models.CharField('Nom', max_length=100)
+    communes = models.ManyToManyField(Commune)
+    geom = \
+        models.MultiPolygonField('Geometrie', srid=2154, blank=True, null=True)
+    objects = models.GeoManager()
+
+    def __str__(self):
+        return self.name
+
+    class Meta(object):
+        verbose_name = 'Territoire'
+
+
 class Financeur(models.Model):
 
     name = models.CharField('Nom du financeur', max_length=250)
@@ -172,6 +205,9 @@ class Organisation(models.Model):
         null=True, verbose_name="Organisation parente")
 
     # Territoire de compétence
+    territory = models.ForeignKey(Territory, blank=True, null=True,
+                                  verbose_name="Territoire de compétence")
+
     geom = models.MultiPolygonField(
         'Territoire', srid=4171, blank=True, null=True)
     objects = models.GeoManager()
@@ -335,7 +371,6 @@ class Liaisons_Resources(models.Model):
         verbose_name="Date de validation de l'action", blank=True, null=True)
 
 
-# TODO: en remplacement de class Registraion
 class AccountActions(models.Model):
 
     ACTION_CHOICES = (
@@ -726,22 +761,6 @@ class Resolution(models.Model):
 
     class Meta(object):
         verbose_name = 'Resolution'
-
-
-class Territory(models.Model):
-
-    code = models.CharField('Code INSEE', max_length=10)
-    name = models.CharField('Nom', max_length=100)
-    communes = models.ManyToManyField(Commune)
-    geom = \
-        models.MultiPolygonField('Geometrie', srid=2154, blank=True, null=True)
-    objects = models.GeoManager()
-
-    def __str__(self):
-        return self.name
-
-    class Meta(object):
-        verbose_name = 'Territoire'
 
 
 class Dataset(models.Model):

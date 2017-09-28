@@ -68,7 +68,7 @@ class DatasetManager(View):
             resources = [(
                 o.pk,
                 o.name,
-                o.data_format,
+                o.format_type.extension,
                 o.created_on.isoformat() if o.created_on else None,
                 o.last_update.isoformat() if o.last_update else None,
                 o.get_restricted_level_display(),
@@ -129,7 +129,7 @@ class DatasetManager(View):
                     'resources': json.dumps([(
                         o.pk,
                         o.name,
-                        o.data_format,
+                        o.format_type.extension,
                         o.created_on.isoformat() if o.created_on else None,
                         o.last_update.isoformat() if o.last_update else None,
                         o.get_restricted_level_display(),
