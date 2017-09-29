@@ -11,8 +11,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.forms.account import ProfileForm
 from idgo_admin.models import AccountActions
-from idgo_admin.models import Liaisons_Contributeurs
-from idgo_admin.models import Liaisons_Referents
+from idgo_admin.models import LiaisonsContributeurs
+from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
@@ -26,7 +26,7 @@ def contribution_request(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
     process = 'update'
-    contribs = Liaisons_Contributeurs.get_contribs(profile=profile)
+    contribs = LiaisonsContributeurs.get_contribs(profile=profile)
 
     if request.method == 'GET':
         return render(
@@ -45,7 +45,7 @@ def contribution_request(request):
 
     organisation = pform.cleaned_data['contributions']
 
-    Liaisons_Contributeurs.objects.create(
+    LiaisonsContributeurs.objects.create(
         profile=profile, organisation=organisation)
 
     contribution_action = AccountActions.objects.create(
@@ -69,7 +69,7 @@ def referent_request(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
     process = 'update'
-    subordonates = Liaisons_Referents.get_subordonates(profile=profile)
+    subordonates = LiaisonsReferents.get_subordonates(profile=profile)
 
     if request.method == 'GET':
         return render(
@@ -87,7 +87,7 @@ def referent_request(request):
         return render(request, 'idgo_admin/contribute.html', {'pform': pform})
 
     organisation = pform.cleaned_data['referents']
-    Liaisons_Referents.objects.create(
+    LiaisonsReferents.objects.create(
         profile=profile, organisation=organisation)
     request_action = AccountActions.objects.create(
         profile=profile, action='confirm_referent', org_extras=organisation)
@@ -133,19 +133,19 @@ class Contributions(View):
 
             contributions = \
                 [(c.id, c.name) for c
-                    in Liaisons_Contributeurs.get_contribs(profile=profile)]
+                    in LiaisonsContributeurs.get_contribs(profile=profile)]
 
             awaiting_contributions = \
                 [c.name for c
-                    in Liaisons_Contributeurs.get_pending(profile=profile)]
+                    in LiaisonsContributeurs.get_pending(profile=profile)]
 
             subordinates = \
                 [(c.id, c.name) for c
-                    in Liaisons_Referents.get_subordinates(profile=profile)]
+                    in LiaisonsReferents.get_subordinates(profile=profile)]
 
             awaiting_subordinates = \
                 [c.name for c
-                    in Liaisons_Referents.get_pending(profile=profile)]
+                    in LiaisonsReferents.get_pending(profile=profile)]
 
             return render(
                 request, 'idgo_admin/organizations.html',
@@ -167,7 +167,7 @@ class Contributions(View):
         organization = Organisation.objects.get(id=id)
         profile = get_object_or_404(Profile, user=request.user)
 
-        my_contribution = Liaisons_Contributeurs.objects.get(
+        my_contribution = LiaisonsContributeurs.objects.get(
             profile=profile, organisation__id=id)
         my_contribution.delete()
 
@@ -184,7 +184,7 @@ class Referents(View):
     def get(self, request):
             user = request.user
             profile = get_object_or_404(Profile, user=user)
-            my_subordinates = Liaisons_Referents.get_contribs(profile=profile)
+            my_subordinates = LiaisonsReferents.get_contribs(profile=profile)
             referents_tup = [(c.id, c.name) for c in my_subordinates]
 
             return render(
@@ -202,7 +202,7 @@ class Referents(View):
         organization = Organisation.objects.get(id=id)
         profile = get_object_or_404(Profile, user=request.user)
 
-        my_subordinates = Liaisons_Referents.objects.get(
+        my_subordinates = LiaisonsReferents.objects.get(
             profile=profile, organisation__id=id)
         my_subordinates.delete()
 

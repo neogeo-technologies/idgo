@@ -3,10 +3,10 @@ from .models import Commune
 from .models import Dataset
 from .models import ResourceFormats
 from .models import License
-from .models import Projection
-from .models import Resolution
+# from .models import Projection
+# from .models import Resolution
 from .models import Resource
-from .models import Territory
+from .models import Jurisdiction
 from .models import Mail
 from .models import Organisation
 from .models import OrganisationType
@@ -30,9 +30,9 @@ admin.site.register(Category)
 admin.site.register(Commune)
 admin.site.register(ResourceFormats)
 admin.site.register(License)
-admin.site.register(Projection)
-admin.site.register(Resolution)
-admin.site.register(Territory)
+# admin.site.register(Projection)
+# admin.site.register(Resolution)
+admin.site.register(Jurisdiction)
 
 
 class ResourceInline(admin.StackedInline):
@@ -53,7 +53,7 @@ class UserProfileInline(admin.StackedInline):
     model = Profile
     max_num = 1
     can_delete = False
-    readonly_fields = ('role', 'phone', 'organisation')
+    readonly_fields = ('phone', 'organisation')
 
 
 class UserAdmin(AuthUserAdmin):
@@ -64,10 +64,10 @@ admin.site.register(User, UserAdmin)
 
 
 class OrganisationAdmin(geo_admin.OSMGeoAdmin):
-    list_display = ('name', 'organisation_type', 'parent')
+    list_display = ('name', 'organisation_type')
     list_filter = ('organisation_type',)
     # prepopulated_fields = {"ckan_slug": ("name",)}
-    readonly_fields = ('ckan_slug', 'sync_in_ckan')
+    readonly_fields = ('ckan_slug', )
 
 
 admin.site.register(Organisation, OrganisationAdmin)

@@ -23,8 +23,8 @@ from idgo_admin.forms.account import UserForgetPassword
 from idgo_admin.forms.account import UserForm
 from idgo_admin.forms.account import UserResetPassword
 from idgo_admin.models import AccountActions
-from idgo_admin.models import Liaisons_Contributeurs
-from idgo_admin.models import Liaisons_Referents
+from idgo_admin.models import LiaisonsContributeurs
+from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
@@ -160,17 +160,17 @@ class AccountManager(View):
                 Organisation.objects.get_or_create(
                     name=profile_data['new_orga'],
                     defaults={
-                        'adresse': profile_data['adresse'],
+                        'address': profile_data['address'],
                         'code_insee': profile_data['code_insee'],
-                        'code_postal': profile_data['code_postal'],
+                        'postalcode': profile_data['postalcode'],
                         'description': profile_data['description'],
-                        'financeur': profile_data['financeur'],
+                        'financier': profile_data['financier'],
                         'license': profile_data['license'],
                         'logo': profile_data['logo'],
                         'organisation_type': profile_data['organisation_type'],
                         # 'parent': profile_data['parent'],
-                        'status': profile_data['status'],
-                        'ville': profile_data['ville'],
+                        # 'status': profile_data['status'],
+                        'city': profile_data['city'],
                         'website': profile_data['website'],
                         'is_active': False})
 
@@ -200,7 +200,7 @@ class AccountManager(View):
             Mail.confirm_updating_rattachement(request, rattachement_action)
 
     def referent_process(self, request, profile, organisation, process):
-        Liaisons_Referents.objects.get_or_create(
+        LiaisonsReferents.objects.get_or_create(
             profile=profile, organisation=organisation)
         referent_action = AccountActions.objects.create(
             profile=profile, action='confirm_referent',
@@ -209,7 +209,7 @@ class AccountManager(View):
             Mail.confirm_referent(request, referent_action)
 
     def contributor_process(self, request, profile, organisation, process):
-        Liaisons_Contributeurs.objects.get_or_create(
+        LiaisonsContributeurs.objects.get_or_create(
             profile=profile, organisation=organisation)
         contribution_action = AccountActions.objects.create(
             profile=profile, action='confirm_contribution',

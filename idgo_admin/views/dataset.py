@@ -17,7 +17,7 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Dataset
-from idgo_admin.models import Liaisons_Contributeurs
+from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
@@ -84,7 +84,7 @@ class DatasetManager(View):
                    'dataset_ckan_slug': dataset_ckan_slug,
                    'licenses': dict(
                        (o.pk, o.license.pk) for o
-                       in Liaisons_Contributeurs.get_contribs(profile=profile) if o.license),
+                       in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
                    'resources': json.dumps(resources),
                    'tags': json.dumps(ckan.get_tags())}
 
@@ -109,7 +109,7 @@ class DatasetManager(View):
             'dataset_id': None,
             'licenses': dict(
                 (o.pk, o.license.pk) for o
-                in Liaisons_Contributeurs.get_contribs(profile=profile) if o.license),
+                in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
             'resources': [],
             'tags': json.dumps(ckan.get_tags())}
 
@@ -215,14 +215,14 @@ def datasets(request):
         o.published,
         o.is_inspire,
         o.ckan_slug,
-        profile in Liaisons_Contributeurs.get_contributors(o.organisation)
+        profile in LiaisonsContributeurs.get_contributors(o.organisation)
         ) for o in Dataset.objects.filter(editor=user)]
 
     my_contributions = \
-        Liaisons_Contributeurs.get_contribs(profile=profile)
+        LiaisonsContributeurs.get_contribs(profile=profile)
 
     awaiting_contributions = \
-        [c.name for c in Liaisons_Contributeurs.get_pending(profile=profile)]
+        [c.name for c in LiaisonsContributeurs.get_pending(profile=profile)]
 
     return render(request, 'idgo_admin/home.html',
                   {'ckan_url': CKAN_URL,

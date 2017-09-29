@@ -57,8 +57,6 @@ class Resource(models.Model):
         ('3', 'Utilisateurs de cette organisations uniquements'),
         ('4', 'Organisations spécifiées'))
 
-    # Une fiche dataset correspond à n fiches Resource
-
     name = models.CharField('Nom', max_length=150)
 
     ckan_id = models.UUIDField(
@@ -80,11 +78,11 @@ class Resource(models.Model):
 
     format_type = models.ForeignKey(ResourceFormats, default=0)
 
-    projection = models.ForeignKey(
-        'Projection', blank=True, null=True)
+    # projection = models.ForeignKey(
+    #     'Projection', blank=True, null=True)
 
-    resolution = models.ForeignKey(
-        'Resolution', blank=True, null=True)
+    # resolution = models.ForeignKey(
+    #     'Resolution', blank=True, null=True)
 
     restricted_level = models.CharField(
         "Restriction d'accès", choices=LEVEL_CHOICES,
@@ -135,7 +133,7 @@ class Commune(models.Model):
         return self.name
 
 
-class Territory(models.Model):
+class Jurisdiction(models.Model):  # Territory
 
     code = models.CharField('Code INSEE', max_length=10)
     name = models.CharField('Nom', max_length=100)
@@ -148,10 +146,10 @@ class Territory(models.Model):
         return self.name
 
     class Meta(object):
-        verbose_name = 'Territoire'
+        verbose_name = 'Territoire de compétence'
 
 
-class Financeur(models.Model):
+class Financier(models.Model):  # Financeur
 
     name = models.CharField('Nom du financeur', max_length=250)
     code = models.CharField('Code du financeur', max_length=250)
@@ -164,16 +162,16 @@ class Financeur(models.Model):
         return self.name
 
 
-class Status(models.Model):
-
-    name = models.CharField("Status d'une organisation", max_length=250)
-    code = models.CharField('Code du status', max_length=250)
-
-    class Meta(object):
-        verbose_name = "Status d'une organisation"
-
-    def __str__(self):
-        return self.name
+# class Status(models.Model):
+#
+#     name = models.CharField("Status d'une organisation", max_length=250)
+#     code = models.CharField('Code du status', max_length=250)
+#
+#     class Meta(object):
+#         verbose_name = "Status d'une organisation"
+#
+#     def __str__(self):
+#         return self.name
 
 
 class OrganisationType(models.Model):
@@ -200,21 +198,21 @@ class Organisation(models.Model):
     code_insee = models.CharField(
         'Code INSEE', max_length=20, unique=False, db_index=True)
 
-    parent = models.ForeignKey(
-        'self', on_delete=models.CASCADE, blank=True,
-        null=True, verbose_name="Organisation parente")
+    # parent = models.ForeignKey(
+    #     'self', on_delete=models.CASCADE, blank=True,
+    #     null=True, verbose_name="Organisation parente")
 
     # Territoire de compétence
-    territory = models.ForeignKey(Territory, blank=True, null=True,
-                                  verbose_name="Territoire de compétence")
+    jurisdiction = models.ForeignKey(Jurisdiction, blank=True, null=True,
+                                     verbose_name="Territoire de compétence")
 
-    geom = models.MultiPolygonField(
-        'Territoire', srid=4171, blank=True, null=True)
-    objects = models.GeoManager()
+    # geom = models.MultiPolygonField(
+    #     'Territoire', srid=4171, blank=True, null=True)
+    # objects = models.GeoManager()
 
     # Champs à integrer:
-    sync_in_ckan = models.BooleanField(
-        'Synchronisé dans CKAN', default=False)
+    # sync_in_ckan = models.BooleanField(
+    #     'Synchronisé dans CKAN', default=False)
 
     ckan_slug = models.SlugField(
         'CKAN ID', max_length=150, unique=True, db_index=True)
@@ -227,10 +225,10 @@ class Organisation(models.Model):
     email = models.EmailField(
         verbose_name="Adresse mail de l'organisation", blank=True, null=True)
 
-    id_url_unique = models.URLField('URL unique', blank=True, null=True)
+    # id_url_unique = models.URLField('URL unique', blank=True, null=True)
 
-    titre = models.CharField(  # ???
-        'Titre', max_length=100, blank=True, null=True)
+    # titre = models.CharField(  # ???
+    #     'Titre', max_length=100, blank=True, null=True)
 
     description = models.TextField(
         'Description', blank=True, null=True)  # Description CKAN
@@ -238,27 +236,27 @@ class Organisation(models.Model):
     logo = models.ImageField(
         'Logo', upload_to="logos/", blank=True, null=True)
 
-    adresse = models.CharField(
+    address = models.CharField(
         'Adresse', max_length=100, blank=True, null=True)
 
-    code_postal = models.CharField(
+    postcode = models.CharField(
         'Code postal', max_length=100, blank=True, null=True)
 
-    ville = models.CharField('Ville', max_length=100, blank=True, null=True)
+    city = models.CharField('Ville', max_length=100, blank=True, null=True)
 
     org_phone = models.CharField(
         'Téléphone', max_length=10, blank=True, null=True)
 
-    communes = models.ManyToManyField(Commune)  # Territoires de compétence
+    # communes = models.ManyToManyField(Commune)  # Territoires de compétence
 
     license = models.ForeignKey(
         'License', on_delete=models.CASCADE, blank=True, null=True)
 
-    financeur = models.ForeignKey(
-        Financeur, blank=True, null=True, on_delete=models.CASCADE)
+    financier = models.ForeignKey(
+        Financier, blank=True, null=True, on_delete=models.CASCADE)
 
-    status = models.ForeignKey(
-        Status, blank=True, null=True, on_delete=models.CASCADE)
+    # status = models.ForeignKey(
+    #     Status, blank=True, null=True, on_delete=models.CASCADE)
 
     is_active = models.BooleanField(
         "Création validée par un administrateur", default=False)
@@ -280,36 +278,36 @@ class Profile(models.Model):
         verbose_name="Organisation d'appartenance")
 
     referents = models.ManyToManyField(
-        Organisation, through='Liaisons_Referents',
+        Organisation, through='LiaisonsReferents',
         verbose_name="Organisations dont l'utiliateur est réferent",
         related_name='profile_referents')
 
     contributions = models.ManyToManyField(
-        Organisation, through='Liaisons_Contributeurs',
+        Organisation, through='LiaisonsContributeurs',
         verbose_name="Organisations dont l'utiliateur est contributeur",
         related_name='profile_contributions')
 
     resources = models.ManyToManyField(
-        Resource, through='Liaisons_Resources',
+        Resource, through='LiaisonsResources',
         verbose_name="Resources publiées par l'utilisateur",
         related_name='profile_resources')
 
     phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
 
-    role = models.CharField('Fonction', max_length=150, blank=True, null=True)
+    # role = models.CharField('Fonction', max_length=150, blank=True, null=True)
 
     is_active = models.BooleanField(
         'Validation suite à confirmation mail par utilisateur', default=False)
 
-    rattachement_active = models.BooleanField(
-        verbose_name="Rattachement profile-organisation d'appartenance validé",
+    membership = models.BooleanField(
+        verbose_name="Etat de rattachement profile-organisation d'appartenance",
         default=False)
 
     def __str__(self):
         return self.user.username
 
 
-class Liaisons_Referents(models.Model):
+class LiaisonsReferents(models.Model):
 
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
@@ -323,16 +321,16 @@ class Liaisons_Referents(models.Model):
     @classmethod
     def get_subordinates(cls, profile):
         return [e.organisation for e
-                in Liaisons_Referents.objects.filter(profile=profile)]
+                in LiaisonsReferents.objects.filter(profile=profile)]
 
     @classmethod
     def get_pending(cls, profile):
         return [e.organisation for e
-                in Liaisons_Referents.objects.filter(
+                in LiaisonsReferents.objects.filter(
                     profile=profile, validated_on=None)]
 
 
-class Liaisons_Contributeurs(models.Model):
+class LiaisonsContributeurs(models.Model):
 
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
@@ -346,23 +344,23 @@ class Liaisons_Contributeurs(models.Model):
     @classmethod
     def get_contribs(cls, profile):
         return [e.organisation for e
-                in Liaisons_Contributeurs.objects.filter(
+                in LiaisonsContributeurs.objects.filter(
                     profile=profile, validated_on__isnull=False)]
 
     @classmethod
     def get_contributors(cls, organization):
         return [e.profile for e
-                in Liaisons_Contributeurs.objects.filter(
+                in LiaisonsContributeurs.objects.filter(
                     organisation=organization, validated_on__isnull=False)]
 
     @classmethod
     def get_pending(cls, profile):
         return [e.organisation for e
-                in Liaisons_Contributeurs.objects.filter(
+                in LiaisonsContributeurs.objects.filter(
                     profile=profile, validated_on=None)]
 
 
-class Liaisons_Resources(models.Model):
+class LiaisonsResources(models.Model):
 
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     resource = models.ForeignKey(Resource, on_delete=models.CASCADE)
@@ -740,27 +738,27 @@ class License(models.Model):
         verbose_name = 'Licence'
 
 
-class Projection(models.Model):
-
-    name = models.CharField('Nom', max_length=50)
-    code = models.IntegerField('Code EPSG', primary_key=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta(object):
-        verbose_name = 'Projection'
-
-
-class Resolution(models.Model):
-
-    value = models.CharField('Valeur', max_length=50)
-
-    def __str__(self):
-        return self.value
-
-    class Meta(object):
-        verbose_name = 'Resolution'
+# class Projection(models.Model):
+#
+#     name = models.CharField('Nom', max_length=50)
+#     code = models.IntegerField('Code EPSG', primary_key=True)
+#
+#     def __str__(self):
+#         return self.name
+#
+#     class Meta(object):
+#         verbose_name = 'Projection'
+#
+#
+# class Resolution(models.Model):
+#
+#     value = models.CharField('Valeur', max_length=50)
+#
+#     def __str__(self):
+#         return self.value
+#
+#     class Meta(object):
+#         verbose_name = 'Resolution'
 
 
 class Dataset(models.Model):
@@ -794,9 +792,9 @@ class Dataset(models.Model):
     ckan_id = models.UUIDField(
         'Ckan UUID', unique=True, db_index=True, blank=True, null=True)
 
-    sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
+    # sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
 
-    url_inspire = models.URLField('URL Inspire', blank=True, null=True)
+    # url_inspire = models.URLField('URL Inspire', blank=True, null=True)
 
     is_inspire = models.BooleanField("L'URL Inspire est valide", default=False)
 
@@ -874,7 +872,7 @@ def delete_user_in_externals(sender, instance, **kwargs):
         pass
 
 
-@receiver(pre_save, sender=Liaisons_Contributeurs)
+@receiver(pre_save, sender=LiaisonsContributeurs)
 def pre_save_contribution(sender, instance, **kwargs):
     if not instance.validated_on:
         return
@@ -884,7 +882,7 @@ def pre_save_contribution(sender, instance, **kwargs):
         ckan.add_user_to_organization(user.username, organisation.ckan_slug)
 
 
-@receiver(pre_delete, sender=Liaisons_Contributeurs)
+@receiver(pre_delete, sender=LiaisonsContributeurs)
 def pre_delete_contribution(sender, instance, **kwargs):
     user = instance.profile.user
     organisation = instance.organisation
@@ -899,6 +897,6 @@ def pre_save_organization(sender, instance, **kwargs):
 
 def create_organization_in_ckan(organization):
     ckan.add_organization(organization)
-    for profile in Liaisons_Contributeurs.get_contributors(organization):
+    for profile in LiaisonsContributeurs.get_contributors(organization):
         user = profile.user
         ckan.add_user_to_organization(user.username, organization.ckan_slug)

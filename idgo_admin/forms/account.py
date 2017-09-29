@@ -7,14 +7,14 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django import forms
 from django.utils.text import slugify
-from idgo_admin.models import Financeur
-from idgo_admin.models import Liaisons_Contributeurs
-from idgo_admin.models import Liaisons_Referents
+from idgo_admin.models import Financier
+from idgo_admin.models import LiaisonsContributeurs
+from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
-from idgo_admin.models import Status
+# from idgo_admin.models import Status
 
 from mama_cas.forms import LoginForm as MamaLoginForm
 
@@ -127,7 +127,7 @@ class UserResetPassword(forms.Form):
 class ProfileForm(forms.ModelForm):
 
     phone = common_fields.PHONE
-    role = common_fields.ROLE
+    # role = common_fields.ROLE
 
     # Champs Organisation
     organisation = forms.ModelChoiceField(
@@ -135,10 +135,10 @@ class ProfileForm(forms.ModelForm):
         label='Organisation',
         queryset=Organisation.objects.all())
 
-    parent = forms.ModelChoiceField(
-        required=False,
-        label='Organisation parent',
-        queryset=Organisation.objects.all())
+    # parent = forms.ModelChoiceField(
+    #     required=False,
+    #     label='Organisation parent',
+    #     queryset=Organisation.objects.all())
 
     new_orga = forms.CharField(
         error_messages={"Nom de l'organisation invalide": 'invalid'},
@@ -167,21 +167,21 @@ class ProfileForm(forms.ModelForm):
         widget=forms.Textarea(
             attrs={'placeholder': "Description"}))
 
-    adresse = forms.CharField(
+    address = forms.CharField(
         required=False,
         label="Adresse",
         max_length=1024,
         widget=forms.TextInput(
             attrs={'placeholder': "Numéro de voirie et rue"}))
 
-    code_postal = forms.CharField(
+    postalcode = forms.CharField(
         required=False,
         label="Code postal",
         max_length=10,
         widget=forms.TextInput(
             attrs={'placeholder': "Code postal"}))
 
-    ville = forms.CharField(
+    city = forms.CharField(
         required=False,
         label="Ville",
         max_length=150,
@@ -195,15 +195,15 @@ class ProfileForm(forms.ModelForm):
         label="Type d'organisation",
         queryset=OrganisationType.objects.all())
 
-    financeur = forms.ModelChoiceField(
+    financier = forms.ModelChoiceField(
         required=False,
         label='Financeur',
-        queryset=Financeur.objects.all())
+        queryset=Financier.objects.all())
 
-    status = forms.ModelChoiceField(
-        required=False,
-        label='Statut',
-        queryset=Status.objects.all())
+    # status = forms.ModelChoiceField(
+    #     required=False,
+    #     label='Statut',
+    #     queryset=Status.objects.all())
 
     license = forms.ModelChoiceField(
         required=False,
@@ -238,7 +238,7 @@ class ProfileForm(forms.ModelForm):
 
     class Meta(object):
         model = Profile
-        fields = ('phone', 'role', 'organisation')
+        fields = ('phone', 'organisation')
 
     def __init__(self, *args, **kwargs):
 
@@ -249,11 +249,11 @@ class ProfileForm(forms.ModelForm):
             self._profile = Profile.objects.get(user=self.include_args['user'])
             # On exclut de la liste de choix toutes les organisations pour
             # lesquelles l'user est contributeur ou en attente de validation
-            con_org_bl = [e.organisation.pk for e in Liaisons_Contributeurs.objects.filter(profile=self._profile)]
+            con_org_bl = [e.organisation.pk for e in LiaisonsContributeurs.objects.filter(profile=self._profile)]
             self.fields['contributions'].queryset = Organisation.objects.exclude(pk__in=con_org_bl).exclude(is_active=False)
 
             # Idem "Référent"
-            ref_org_bl = [e.organisation.pk for e in Liaisons_Referents.objects.filter(profile=self._profile)]
+            ref_org_bl = [e.organisation.pk for e in LiaisonsReferents.objects.filter(profile=self._profile)]
             self.fields['referents'].queryset = Organisation.objects.exclude(pk__in=ref_org_bl).exclude(is_active=False)
 
             organisation = self._profile.organisation
@@ -274,9 +274,9 @@ class ProfileForm(forms.ModelForm):
                 Organisation.objects.exclude(is_active=False)
 
     def clean(self):
-        params = ['adresse', 'code_insee', 'code_postal', 'description',
-                  'financeur', 'license', 'organisation_type', 'org_phone',
-                  'phone', 'parent', 'status', 'ville', 'website', 'logo',
+        params = ['address', 'code_insee', 'postalcode', 'description',
+                  'financier', 'license', 'organisation_type', 'org_phone',
+                  'phone', 'city', 'website', 'logo',
                   'new_orga']
 
         if self.cleaned_data.get('referent_requested'):

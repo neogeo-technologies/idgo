@@ -6,7 +6,7 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Category
 from idgo_admin.models import create_organization_in_ckan
 from idgo_admin.models import Dataset
-from idgo_admin.models import Liaisons_Contributeurs
+from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
@@ -136,7 +136,7 @@ class DatasetForm(forms.ModelForm):
 
         self.fields['organisation'].queryset = \
             Organisation.objects.filter(
-                pk__in=[o.pk for o in Liaisons_Contributeurs.get_contribs(
+                pk__in=[o.pk for o in LiaisonsContributeurs.get_contribs(
                         profile=Profile.objects.get(user=self.include_args['user']))])
 
     def clean(self):

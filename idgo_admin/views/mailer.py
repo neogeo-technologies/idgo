@@ -7,8 +7,8 @@ from django.views.decorators.csrf import csrf_exempt
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.models import AccountActions
-from idgo_admin.models import Liaisons_Contributeurs
-from idgo_admin.models import Liaisons_Referents
+from idgo_admin.models import LiaisonsContributeurs
+from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from uuid import UUID
 
@@ -48,7 +48,7 @@ def confirmation_mail(request, key):
 
         # Demande de rôle de référent
         try:
-            Liaisons_Referents.objects.get(
+            LiaisonsReferents.objects.get(
                 profile=profile, organisation=organisation)
         except Exception:
             pass
@@ -60,7 +60,7 @@ def confirmation_mail(request, key):
 
         # Demande de rôle de contributeur
         try:
-            Liaisons_Contributeurs.objects.get(
+            LiaisonsContributeurs.objects.get(
                 profile=profile, organisation=organisation)
         except Exception:
             pass
@@ -181,7 +181,7 @@ def confirm_referent(request, key):
                      username=action.profile.username)
     else:
         try:
-            ref_liaison = Liaisons_Referents.objects.get(
+            ref_liaison = LiaisonsReferents.objects.get(
                 profile=action.profile, organisation=organisation)
         except Exception:
             status = 400
@@ -221,7 +221,7 @@ def confirm_contribution(request, key):
 
     else:
         try:
-            contrib_liaison = Liaisons_Contributeurs.objects.get(
+            contrib_liaison = LiaisonsContributeurs.objects.get(
                 profile=action.profile, organisation=organisation)
         except Exception:
             message = ("Erreur lors de la validation du rôle de contributeur")
