@@ -51,13 +51,13 @@ class CommonFields(metaclass=StaticClass):
         widget=forms.PasswordInput(
             attrs={'placeholder': 'Confirmer le mot de passe'}))
 
-    ROLE = forms.CharField(
-        required=False,
-        label='Rôle',
-        max_length=150,
-        min_length=3,
-        widget=forms.TextInput(
-            attrs={'placeholder': 'Rôle'}))
+    # ROLE = forms.CharField(
+    #     required=False,
+    #     label='Rôle',
+    #     max_length=150,
+    #     min_length=3,
+    #     widget=forms.TextInput(
+    #         attrs={'placeholder': 'Rôle'}))
 
     PHONE = forms.CharField(
         error_messages={'invalid': 'Le numéro est invalide.'},

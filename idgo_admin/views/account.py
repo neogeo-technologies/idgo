@@ -117,7 +117,7 @@ class AccountManager(View):
             is_staff=False, is_superuser=False, is_active=False)
 
         profile = Profile.objects.create(
-            user=user, role=profile_data['role'], phone=profile_data['phone'],
+            user=user, phone=profile_data['phone'],
             rattachement_active=False, is_active=False)
 
         return user, profile
@@ -138,8 +138,6 @@ class AccountManager(View):
                       backend='django.contrib.auth.backends.ModelBackend')
             user.save()
 
-            if profile_data['role']:
-                profile.role = profile_data['role']
             if profile_data['phone']:
                 profile.phone = profile_data['phone']
 
