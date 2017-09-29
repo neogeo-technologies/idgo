@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django import forms
 from django.utils.text import slugify
 from idgo_admin.models import Financier
+from idgo_admin.models import Jurisdiction
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import License
@@ -126,19 +127,68 @@ class UserResetPassword(forms.Form):
 
 class ProfileForm(forms.ModelForm):
 
+    # Champs Profile
     phone = common_fields.PHONE
     # role = common_fields.ROLE
 
     # Champs Organisation
-    organisation = forms.ModelChoiceField(
+    address = forms.CharField(
         required=False,
-        label='Organisation',
+        label="Adresse",
+        max_length=1024,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Numéro de voirie et rue"}))
+
+    city = forms.CharField(
+        required=False,
+        label="Ville",
+        max_length=150,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Ville"}))
+
+    # code_insee = forms.CharField(
+    #     required=False,
+    #     label='Territoire de compétence',
+    #     max_length=10,
+    #     widget=forms.TextInput(
+    #         attrs={'placeholder': 'Territoire de compétence'}))
+
+    contribution_requested = forms.BooleanField(
+        initial=True,
+        label="Je souhaite être contributeur pour l'organisation",
+        required=False)
+
+    contributions = forms.ModelChoiceField(
+        required=False,
+        label='Organisation de contribution',
+        widget=forms.RadioSelect(),
         queryset=Organisation.objects.all())
 
-    # parent = forms.ModelChoiceField(
-    #     required=False,
-    #     label='Organisation parent',
-    #     queryset=Organisation.objects.all())
+    description = forms.CharField(
+        required=False,
+        label="Description",
+        max_length=1024,
+        widget=forms.Textarea(
+            attrs={'placeholder': "Description"}))
+
+    financier = forms.ModelChoiceField(
+        required=False,
+        label='Financeur',
+        queryset=Financier.objects.all())
+
+    jurisdiction = forms.ModelChoiceField(
+        required=False,
+        label='Téritoire de compétence',
+        queryset=Jurisdiction.objects.all())
+
+    license = forms.ModelChoiceField(
+        required=False,
+        label='Licence par défaut pour tout nouveau jeu de données',
+        queryset=License.objects.all())
+
+    logo = forms.ImageField(
+        label="Logo de l'organisation",
+        required=False)
 
     new_orga = forms.CharField(
         error_messages={"Nom de l'organisation invalide": 'invalid'},
@@ -148,76 +198,33 @@ class ProfileForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisation"}))
 
-    website = forms.URLField(
-        error_messages={'invalid': "L'adresse URL est erronée. "},
-        label="URL du site internet de l'organisation", required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Site internet'}))
-
-    code_insee = forms.CharField(
-        required=False,
-        label='Territoire de compétence',
-        max_length=10,
-        widget=forms.TextInput(
-            attrs={'placeholder': 'Territoire de compétence'}))
-
-    description = forms.CharField(
-        required=False,
-        label="Description",
-        max_length=1024,
-        widget=forms.Textarea(
-            attrs={'placeholder': "Description"}))
-
-    address = forms.CharField(
-        required=False,
-        label="Adresse",
-        max_length=1024,
-        widget=forms.TextInput(
-            attrs={'placeholder': "Numéro de voirie et rue"}))
-
-    postalcode = forms.CharField(
-        required=False,
-        label="Code postal",
-        max_length=10,
-        widget=forms.TextInput(
-            attrs={'placeholder': "Code postal"}))
-
-    city = forms.CharField(
-        required=False,
-        label="Ville",
-        max_length=150,
-        widget=forms.TextInput(
-            attrs={'placeholder': "Ville"}))
-
     org_phone = common_fields.PHONE
+
+    organisation = forms.ModelChoiceField(
+        required=False,
+        label='Organisation',
+        queryset=Organisation.objects.all())
 
     organisation_type = forms.ModelChoiceField(
         required=False,
         label="Type d'organisation",
         queryset=OrganisationType.objects.all())
 
-    financier = forms.ModelChoiceField(
-        required=False,
-        label='Financeur',
-        queryset=Financier.objects.all())
-
-    # status = forms.ModelChoiceField(
+    # parent = forms.ModelChoiceField(
     #     required=False,
-    #     label='Statut',
-    #     queryset=Status.objects.all())
+    #     label='Organisation parent',
+    #     queryset=Organisation.objects.all())
 
-    license = forms.ModelChoiceField(
+    postcode = forms.CharField(
         required=False,
-        label='Licence par défaut pour tout nouveau jeu de données',
-        queryset=License.objects.all())
+        label="Code postal",
+        max_length=10,
+        widget=forms.TextInput(
+            attrs={'placeholder': "Code postal"}))
 
     referent_requested = forms.BooleanField(
         initial=True,
         label='Je suis référent',
-        required=False)
-
-    contribution_requested = forms.BooleanField(
-        initial=True,
-        label="Je souhaite être contributeur pour l'organisation",
         required=False)
 
     referents = forms.ModelChoiceField(
@@ -226,15 +233,15 @@ class ProfileForm(forms.ModelForm):
         widget=forms.RadioSelect(),
         queryset=Organisation.objects.all())
 
-    contributions = forms.ModelChoiceField(
-        required=False,
-        label='Organisation de contribution',
-        widget=forms.RadioSelect(),
-        queryset=Organisation.objects.all())
+    # status = forms.ModelChoiceField(
+    #     required=False,
+    #     label='Statut',
+    #     queryset=Status.objects.all())
 
-    logo = forms.ImageField(
-        label="Logo de l'organisation",
-        required=False)
+    website = forms.URLField(
+        error_messages={'invalid': "L'adresse URL est erronée. "},
+        label="URL du site internet de l'organisation", required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Site internet'}))
 
     class Meta(object):
         model = Profile
@@ -274,10 +281,10 @@ class ProfileForm(forms.ModelForm):
                 Organisation.objects.exclude(is_active=False)
 
     def clean(self):
-        params = ['address', 'code_insee', 'postalcode', 'description',
-                  'financier', 'license', 'organisation_type', 'org_phone',
-                  'phone', 'city', 'website', 'logo',
-                  'new_orga']
+        params = ['address', 'city', 'description',
+                  'financier', 'jurisdiction', 'license', 'logo',
+                  'organisation_type', 'org_phone', 'phone', 'postalcode',
+                  'new_orga', 'website']
 
         if self.cleaned_data.get('referent_requested'):
             self.cleaned_data['referent_requested'] = True

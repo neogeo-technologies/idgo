@@ -159,16 +159,17 @@ class AccountManager(View):
                     name=profile_data['new_orga'],
                     defaults={
                         'address': profile_data['address'],
-                        'code_insee': profile_data['code_insee'],
-                        'postalcode': profile_data['postalcode'],
+                        'city': profile_data['city'],
+                        # 'code_insee': profile_data['code_insee'],
+                        'postcode': profile_data['postcode'],
                         'description': profile_data['description'],
                         'financier': profile_data['financier'],
+                        'jurisdiction': profile_data['jurisdiction'],
                         'license': profile_data['license'],
                         'logo': profile_data['logo'],
                         'organisation_type': profile_data['organisation_type'],
                         # 'parent': profile_data['parent'],
                         # 'status': profile_data['status'],
-                        'city': profile_data['city'],
                         'website': profile_data['website'],
                         'is_active': False})
 

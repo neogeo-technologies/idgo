@@ -40,9 +40,9 @@ def prefill_model(model, dataset):
         'individualName': editor.get_full_name(),
         'organisationName': organization.name,
         'email': organization.email,
-        'deliveryPoint': organization.adresse,
-        'postalCode': organization.code_postal,
-        'city': dataset.organisation.ville})
+        'deliveryPoint': organization.address,
+        'postalCode': organization.postcode,
+        'city': dataset.organisation.city})
 
     try:
         data['mdContacts'][0].update({
