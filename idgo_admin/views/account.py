@@ -118,7 +118,7 @@ class AccountManager(View):
 
         profile = Profile.objects.create(
             user=user, phone=profile_data['phone'],
-            rattachement_active=False, is_active=False)
+            membership=False, is_active=False)
 
         return user, profile
 
@@ -173,7 +173,7 @@ class AccountManager(View):
                         'is_active': False})
 
         profile.organisation = organisation
-        profile.rattachement_active = False
+        profile.membership = False
         profile.save()
         return user, profile, organisation, org_created
 

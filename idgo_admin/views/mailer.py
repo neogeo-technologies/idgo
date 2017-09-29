@@ -123,7 +123,7 @@ def confirm_rattachement(request, key):
         AccountActions, key=UUID(key), action='confirm_rattachement')
 
     if action.closed:
-        action.profile.rattachement_active = True
+        action.profile.membership = True
         action.profile.save()
         name = action.org_extras.name
         user = action.profile.user
@@ -148,7 +148,7 @@ def confirm_rattachement(request, key):
                          organization_name=name)
 
         else:
-            action.profile.rattachement_active = True
+            action.profile.membership = True
             action.closed = timezone.now()
             action.profile.save()
             action.save()

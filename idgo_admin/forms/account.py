@@ -261,7 +261,7 @@ class ProfileForm(forms.ModelForm):
                 if not organisation.is_active:  # L'organisation est en attente de validation par l'administrateur
                     self.fields['organisation'].widget = forms.HiddenInput()
                 else:
-                    if not self._profile.rattachement_active:  # Si l'utilisateur est en attente de rattachement
+                    if not self._profile.membership:  # Si l'utilisateur est en attente de rattachement
                         self.fields['organisation'].widget = forms.HiddenInput()
                     else:
                         self.fields['organisation'].initial = organisation.pk
