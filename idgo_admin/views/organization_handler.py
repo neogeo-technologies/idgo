@@ -116,7 +116,7 @@ class Contributions(View):
             user = request.user
             profile = get_object_or_404(Profile, user=user)
 
-            if profile.organisation and profile.rattachement_active:
+            if profile.organisation and profile.membership:
                 organization = profile.organisation.name
             else:
                 organization = None

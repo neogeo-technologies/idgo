@@ -1,0 +1,4 @@
+[{"model": "idgo_admin.financier", "pk": 1, "fields": {"name": "Etat", "code": "etat"}},
+{"model": "idgo_admin.financier", "pk": 2, "fields": {"name": "région PACA", "code": "region_paca"}},
+{"model": "idgo_admin.financier", "pk": 3, "fields": {"name": "EPCI", "code": "epci"}},
+{"model": "idgo_admin.financier", "pk": 4, "fields": {"name": "cd01", "code": "CD01"}}]
