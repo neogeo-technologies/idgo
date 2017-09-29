@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
@@ -18,17 +18,20 @@ class ActionsManager(View):
 
     @ExceptionsHandler(ignore=[Http404])
     def get(self, request):
-        dataset_id = request.GET.get("id", None)
-        publish = request.GET.get("publish", "")
-
         user = request.user
-        if not dataset_id or not publish.lower() in ['true', 'yes', 'oui', 'vrai', '1']:
-            return JsonResponse({"success": False,
-                                 "action": "What you mean by {}?".format(publish)}, status=400)
 
-        if dataset_id and publish.lower() in ['true', 'yes', 'oui', 'vrai', '1']:
+        dataset_id = request.GET.get('id', None)
+        publish = request.GET.get('publish', None)
+
+        if dataset_id and publish.lower() == 'toggle':
             ds = get_object_or_404(Dataset, id=dataset_id, editor=user)
             ds.published = not ds.published
+            message = (
+                'Le jeu de données <strong>{0}</strong> '
+                'est maintenant en accès <strong>{1}</strong>.'
+                ).format(ds.name, ds.published and 'public' or 'privé')
+            status = 200
             ds.save()
 
-        return JsonResponse({"success": True, "action": "Dataset publish state: {}".format(ds.published)}, status=200)
+        return render(request, 'idgo_admin/response.html',
+                      context={'message': message}, status=status)

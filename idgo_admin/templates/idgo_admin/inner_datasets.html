@@ -14,8 +14,10 @@
 			Editer <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
 		</button>
 		<ul class="dropdown-menu dropdown-menu-right">
-			<li><a role="button" name="edit-dataset" style="text-align: right;">Editer la fiche</a></li>
-			<li><a role="button" name="mdedit-dataset" style="text-align: right;">Editer la métadonnées INSPIRE</a></li>
+			<li><a role="button" name="edit-dataset" style="text-align: right;">Editer le jeu de données</a></li>
+			<li><a role="button" name="mdedit-dataset" style="text-align: right;">Editer la fiche de métadonnées INSPIRE</a></li>
+			<li role="separator" class="divider"></li>
+			<li><a role="button" name="publish-dataset" style="text-align: right;">Publier le jeu de données</a></li>
 		</ul>
 	</div>
 	<button name="delete-dataset" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
@@ -25,6 +27,7 @@
 $(function() {
 	var CKAN_URL = '{{ ckan_url }}';
 	var DATASET_URL = '{% url "idgo_admin:dataset" %}';
+	var ACTION_URL = '{% url "idgo_admin:action" %}';
 	var CONTRIBUTE_URL = '{% url "idgo_admin:contribute" %}';
 	var DATASETS = {{ datasets | safe }};
 	var IS_CONTRIBUTOR = {{ is_contributor | safe }};
@@ -170,6 +173,30 @@ $(function() {
 			e.stopPropagation();
 		});
 
+	var $publishDataset = $('#datasets a[name="publish-dataset"]')
+		.on('click', function(e) {
+			e.preventDefault();
+			closeAllModalDialog();
+			$.ajax({
+				type: 'GET',
+				// success: function() {},
+				url: ACTION_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id'] + '&publish=toggle'
+			})
+			.done(function(response, textStatus, jqXHR) {
+				// $modal.find('.close').remove();
+				$modal.find('.modal-title').text('Information');
+				$modal.find('.modal-body').append(jqXHR.responseText);
+				$modal.modal('show');
+			})
+			.fail(function(jqXHR, textStatus, errorThrown) {
+				// $modal.find('.close').remove();
+				$modal.find('.modal-title').text("L'opération a échouée");
+				$modal.find('.modal-body').append(jqXHR.responseText);
+				$modal.modal('show');
+			});
+			e.stopPropagation();
+		});
+
 	resourcesGrid.initializeGrid = function() {
 		var grid = resourcesGrid;
 		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button,a[role="button"]');
@@ -199,6 +226,7 @@ $(function() {
 						};
 					});
 				};
+				$publishDataset[0].innerHTML = (grid.getRowValues(nRowIdx)['published'] ? 'Dépublier' : 'Publier') + ' le jeu de données';
 			};
 			setCellRenderer('published', new CellRenderer({
 				render: function(cell, value) {
