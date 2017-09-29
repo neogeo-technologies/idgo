@@ -194,7 +194,11 @@ $(function() {
 		};
 
 		if (data.length == 0) {
-			$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'avez encore jamais ajouté de ressource. Cliquez sur le bouton <strong>[ ' + $parent.find('a[name="add-resource"]').get(0).text + ' ]</strong> pour commencer.</p><div/>');
+			$parent.find('button.btn, a.btn').each(function() {
+				deactivateButton($(this));
+				$(this).hide();
+			});
+			$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'avez encore jamais ajouté de ressource. <a name="add-resource" class="btn btn-primary" href="{% url "idgo_admin:resource" dataset_id=dataset_id %}">Créer une nouvelle ressource</a> pour commencer.</p><div/>');
 		};
 
 	};

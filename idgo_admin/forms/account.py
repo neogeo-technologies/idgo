@@ -166,10 +166,10 @@ class ProfileForm(forms.ModelForm):
 
     description = forms.CharField(
         required=False,
-        label="Description",
+        label='Description',
         max_length=1024,
         widget=forms.Textarea(
-            attrs={'placeholder': "Description"}))
+            attrs={'placeholder': 'Description'}))
 
     financier = forms.ModelChoiceField(
         required=False,
@@ -178,7 +178,7 @@ class ProfileForm(forms.ModelForm):
 
     jurisdiction = forms.ModelChoiceField(
         required=False,
-        label='Téritoire de compétence',
+        label='Territoire de compétence',
         queryset=Jurisdiction.objects.all())
 
     license = forms.ModelChoiceField(
@@ -217,10 +217,10 @@ class ProfileForm(forms.ModelForm):
 
     postcode = forms.CharField(
         required=False,
-        label="Code postal",
+        label='Code postal',
         max_length=10,
         widget=forms.TextInput(
-            attrs={'placeholder': "Code postal"}))
+            attrs={'placeholder': 'Code postal'}))
 
     referent_requested = forms.BooleanField(
         initial=True,

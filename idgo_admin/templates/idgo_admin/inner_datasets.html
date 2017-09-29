@@ -287,6 +287,10 @@ $(function() {
 		};
 
 		if (data.length == 0 && IS_CONTRIBUTOR) {
+			$parent.find('button.btn, a.btn').each(function() {
+				deactivateButton($(this));
+				$(this).hide();
+			});
 			$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'avez aucun jeu de données. <a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a> pour commencer.</p><div/>');
 		};
 
