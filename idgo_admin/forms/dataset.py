@@ -89,7 +89,7 @@ class DatasetForm(forms.ModelForm):
         queryset=Organisation.objects.all(),
         required=True)
 
-    licences = forms.ModelChoiceField(
+    license = forms.ModelChoiceField(
         label='Licence*',
         queryset=License.objects.all(),
         required=True)
@@ -124,7 +124,7 @@ class DatasetForm(forms.ModelForm):
                   'update_freq',
                   'geocover',
                   'organisation',
-                  'licences',
+                  'license',
                   # 'owner_email',
                   'published',
                   'is_inspire',)
@@ -184,7 +184,7 @@ class DatasetForm(forms.ModelForm):
             'description': data['description'],
             'editor': user,
             'geocover': data['geocover'],
-            'licences': data['licences'],
+            'license': data['license'],
             'name': data['name'],
             'organisation': data['organisation'],
             # 'owner_email': data['owner_email'],

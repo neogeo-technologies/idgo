@@ -195,8 +195,8 @@ class Organisation(models.Model):
         OrganisationType, verbose_name="Type d'organisation",
         default='1', blank=True, null=True)
 
-    code_insee = models.CharField(
-        'Code INSEE', max_length=20, unique=False, db_index=True)
+    # code_insee = models.CharField(
+    #     'Code INSEE', max_length=20, unique=False, db_index=True)
 
     # parent = models.ForeignKey(
     #     'self', on_delete=models.CASCADE, blank=True,
@@ -822,7 +822,7 @@ class Dataset(models.Model):
         Organisation, blank=True, null=True,
         verbose_name="Organisation d'appartenance")
 
-    licences = models.ForeignKey(License, verbose_name="Licence d'utilisation")
+    license = models.ForeignKey(License, verbose_name="Licence d'utilisation")
 
     categories = models.ManyToManyField(
         Category, verbose_name="Catégories d'appartenance")
