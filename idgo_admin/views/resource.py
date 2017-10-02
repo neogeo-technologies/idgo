@@ -17,6 +17,7 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
+from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.utils import three_suspension_points
 import json
@@ -24,7 +25,9 @@ import json
 
 def get_all_users():
     # TODO Récupérer depuis Django et non CKAN (ou bien comparer)
-    return [m[1] for m in ckan.get_all_users()]
+    # return [m[1] for m in ckan.get_all_users()]
+
+    return [p.user.username for p in Profile.objects.filter(is_active=True)]
 
 
 def get_all_organizations():

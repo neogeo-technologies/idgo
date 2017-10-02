@@ -92,7 +92,7 @@ class Resource(models.Model):
         User, verbose_name='Utilisateurs autorisés', blank=True)
 
     organisations_allowed = models.ManyToManyField(
-        'Organisation', verbose_name='Utilisateurs autorisés', blank=True)
+        'Organisation', verbose_name='Organisations autorisées', blank=True)
 
     dataset = models.ForeignKey(
         'Dataset', on_delete=models.CASCADE, blank=True, null=True)
@@ -305,6 +305,12 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    @classmethod
+    def active_users(cls):
+        active_profiles = Profile.objects.filter(is_active=True)
+        active_users = User.objects.filter(pk__in=[ap.user.pk for ap in active_profiles])
+        return active_users
 
 
 class LiaisonsReferents(models.Model):

@@ -7,9 +7,10 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import SizeLimitExceededError
-from idgo_admin.models import ResourceFormats
+from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
+from idgo_admin.models import ResourceFormats
 from idgo_admin.utils import download
 from idgo_admin.utils import readable_file_size
 import json
@@ -81,9 +82,15 @@ class ResourceForm(forms.ModelForm):
 
     # restricted_level
 
-    # users_allowed
+    users_allowed = forms.ModelMultipleChoiceField(
+        label='Utilisateurs autorisés',
+        queryset=Profile.active_users(),
+        to_field_name="pk")
 
-    # organisations_allowed
+    organisations_allowed = forms.ModelMultipleChoiceField(
+        label='Organisations autorisées',
+        queryset=Organisation.objects.filter(is_active=True),
+        to_field_name="pk")
 
     class Meta(object):
         model = Resource
@@ -97,6 +104,16 @@ class ResourceForm(forms.ModelForm):
                   'restricted_level',
                   'users_allowed',
                   'organisations_allowed')
+
+    def __init__(self, *args, **kwargs):
+
+        self.include_args = kwargs.pop('include', {})
+        super().__init__(*args, **kwargs)
+
+        ckan_orga = ckan.get_all_organizations()
+
+        self.fields['organisations_allowed'].queryset = \
+            Organisation.objects.filter(is_active=True, ckan_slug__in=ckan_orga)
 
     def handle_me(
             self, request, dataset, id=None, uploaded_file=None):
@@ -136,8 +153,6 @@ class ResourceForm(forms.ModelForm):
             'id': str(resource.ckan_id),
             'lang': resource.lang,
             'url': ''}
-
-        print(ckan_params)
 
         if restricted_level == '0':  # Public
             resource.users_allowed = users_allowed
