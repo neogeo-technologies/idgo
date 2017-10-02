@@ -144,8 +144,8 @@ class DatasetForm(forms.ModelForm):
         name = self.cleaned_data.get('name')
         # organisation = self.cleand_data.get('organisation', None)
         # if organisation:
-        #     self.fields['licence'].initial = organisation.license
-        #     self.fields['licence'].queryset = License.objects.all()
+        #     self.fields['license'].initial = organisation.license
+        #     self.fields['license'].queryset = License.objects.all()
 
         if self.include_args['identification']:
             dataset = Dataset.objects.get(id=self.include_args['id'])
@@ -227,7 +227,7 @@ class DatasetForm(forms.ModelForm):
             'geocover': dataset.geocover,
             'last_modified':
                 str(dataset.date_modification) if dataset.date_modification else '',
-            'license_id': dataset.licences.title,
+            'license_id': dataset.license.title,
             'maintainer': user.username,
             'maintainer_email': user.email,
             'notes': dataset.description,
