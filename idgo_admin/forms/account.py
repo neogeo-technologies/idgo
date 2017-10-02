@@ -283,7 +283,7 @@ class ProfileForm(forms.ModelForm):
     def clean(self):
         params = ['address', 'city', 'description',
                   'financier', 'jurisdiction', 'license', 'logo',
-                  'organisation_type', 'org_phone', 'phone', 'postalcode',
+                  'organisation_type', 'org_phone', 'postcode',
                   'new_orga', 'website']
 
         if self.cleaned_data.get('referent_requested'):
