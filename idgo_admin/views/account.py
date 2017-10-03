@@ -28,6 +28,7 @@ from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
+import json
 from mama_cas.compat import is_authenticated as mama_is_authenticated
 from mama_cas.models import ProxyGrantingTicket as MamaProxyGrantingTicket
 from mama_cas.models import ProxyTicket as MamaProxyTicket
@@ -251,9 +252,13 @@ class AccountManager(View):
             if user.is_anonymous:
                 return HttpResponseRedirect(reverse('idgo_admin:signIn'))
             profile = get_object_or_404(Profile, user=user)
+            contribs = LiaisonsContributeurs.get_contribs(profile)
+            pending = LiaisonsContributeurs.get_pending(profile=profile)
             return render(request, 'idgo_admin/modifyaccount.html',
                           {'first_name': user.first_name,
                            'last_name': user.last_name,
+                           'contribs': [c.id for c in contribs],
+                           'pending': [p.id for p in pending],
                            'uform': UserForm(instance=user,
                                              include={'action': process}),
                            'pform': ProfileForm(instance=profile,
