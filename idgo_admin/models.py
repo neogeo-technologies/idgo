@@ -693,6 +693,9 @@ class Mail(models.Model):
 
 class Category(models.Model):
 
+    # A chaque déploiement
+    # python manage.py sync_ckan_categories
+
     name = models.CharField('Nom', max_length=100)
     description = models.CharField('Description', max_length=1024)
     ckan_slug = models.SlugField(
