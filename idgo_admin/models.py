@@ -700,7 +700,7 @@ class Category(models.Model):
     description = models.CharField('Description', max_length=1024)
     ckan_slug = models.SlugField(
         'Ckan_ID', max_length=100, unique=True, db_index=True, blank=True)
-    sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
+    # sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
 
     def __str__(self):
         return self.name
