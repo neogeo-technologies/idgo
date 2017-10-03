@@ -291,10 +291,9 @@ class CkanManagerHandler(metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def add_group(self, group):
-        self.call_action(
+        return self.call_action(
             'group_create', name=group.ckan_slug,
             title=group.name, description=group.description)
-        return True
 
     @CkanExceptionsHandler()
     def del_group(self, group_name):
@@ -307,12 +306,12 @@ class CkanManagerHandler(metaclass=Singleton):
             group['users'].append({'name': username, 'capacity': 'admin'})
         self.call_action('group_update', **group)
 
-    @CkanExceptionsHandler()
-    def sync_group(self, group):
-        self.call_action(
-            'group_update', id=group.ckan_slug, name=group.ckan_slug,
-            title=group.name, description=group.description)
-        return True
+    # @CkanExceptionsHandler()
+    # def sync_group(self, group):
+    #     self.call_action(
+    #         'group_update', id=group.ckan_slug, name=group.ckan_slug,
+    #         title=group.name, description=group.description)
+    #     return True
 
     @CkanExceptionsHandler()
     def purge_dataset(self, id):

@@ -708,13 +708,13 @@ class Category(models.Model):
     class Meta(object):
         verbose_name = 'Catégorie'
 
-    def save(self, *args, **kwargs):
-        if self.id:
-            self.sync_in_ckan = ckan.sync_group(self)
-        else:
-            self.ckan_slug = slugify(self.name)
-            self.sync_in_ckan = ckan.add_group(self)
-        super(Category, self).save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if self.id:
+    #         self.sync_in_ckan = ckan.sync_group(self)
+    #     else:
+    #         self.ckan_slug = slugify(self.name)
+    #         self.sync_in_ckan = ckan.add_group(self)
+    #     super(Category, self).save(*args, **kwargs)
 
     # def delete(self):
     #     if ckan.del_group(self.ckan_slug):
