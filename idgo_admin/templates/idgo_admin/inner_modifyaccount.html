@@ -83,7 +83,7 @@ $(function() {
 	var pending = {{ pending|safe }};
 	var isContributor = function() {
 		var val = parseInt($('select[name="organisation"]').val());
-		$alert = $contributionRequested.siblings('.alert');
+		var $alert = $contributionRequested.siblings('.alert');
 		if ($alert) {
 			$alert.remove()
 		};
@@ -91,7 +91,7 @@ $(function() {
 			$contributionRequested.show();
 		} else if (val && contribs.indexOf(val) == -1 && pending.indexOf(val) > -1) {
 			$contributionRequested.hide();
-			$contributionRequested.before('<div class="alert alert-info">Demande de contribution en attente de validation</div>');
+			$contributionRequested.before('<div class="alert alert-info">Demande de contribution en attente de validation pour <strong>' + $('select[name="organisation"] option:selected').text() + '</strong></div>');
 		} else {
 			$contributionRequested.hide();
 		};

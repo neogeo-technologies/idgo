@@ -404,7 +404,7 @@ a:focus {
 }
 
 .alert {
-    border-radius: 8px;
+    border-radius: 4px;
     border-width: 0;
 }
 
@@ -424,8 +424,8 @@ a:focus {
 }
 
 .alert-info {
-    color: #fff;
-    background-color: #067ee6;
+    color: #333;
+    background-color: #b4d8f7;
 }
 
 .alert-warning {
