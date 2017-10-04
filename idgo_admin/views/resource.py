@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from django.http import Http404
+# from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
@@ -49,6 +50,10 @@ class ResourceManager(View):
 
         user = request.user
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+
+        if not dataset.is_profile_allowed(get_object_or_404(Profile, user=user)):
+            # return HttpResponseForbidden("L'accès à ce jeu de données est réservé")
+            raise Http404
 
         all_users = get_all_users()
         all_organizations = get_all_organizations()
@@ -96,6 +101,10 @@ class ResourceManager(View):
 
         user = request.user
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+
+        if not dataset.is_profile_allowed(get_object_or_404(Profile, user=user)):
+            # return HttpResponseForbidden("L'accès à cette ressource est réservé")
+            raise Http404
 
         all_users = get_all_users()
         all_organizations = get_all_organizations()
@@ -170,10 +179,15 @@ class ResourceManager(View):
     def delete(self, request, dataset_id):
 
         user = request.user
+        dataset = get_object_or_404(Dataset, id=dataset_id)
+        if not dataset.is_profile_allowed(get_object_or_404(Profile, user=user)):
+            # return HttpResponseForbidden("L'accès à cette ressource est réservé")
+            raise Http404
+
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
-            return Http404()
-        instance = get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+            raise Http404
+        instance = get_object_or_404(Resource, id=id, dataset=dataset)
         ckan_id = str(instance.ckan_id)
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
