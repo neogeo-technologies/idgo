@@ -857,6 +857,11 @@ class Dataset(models.Model):
         verbose_name = "Jeu de données"
         verbose_name_plural = "Jeux de données"
 
+    def is_profile_allowed(self, profile):
+        return LiaisonsContributeurs.objects.filter(
+            profile=profile, organisation=self.organisation,
+            validated_on__isnull=False).exists()
+
 
 # Triggers
 

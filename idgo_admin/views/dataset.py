@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponseRedirect
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
@@ -60,6 +61,10 @@ class DatasetManager(View):
         id = request.GET.get('id')
         if id:
             instance = get_object_or_404(Dataset, id=id, editor=user)
+
+            if not instance.is_profile_allowed(profile):
+                return HttpResponseForbidden("L'accès à ce jeu de données est réservé")
+
             form = Form(instance=instance,
                         include={'user': user, 'identification': True, 'id': id})
             dataset_name = instance.name
@@ -116,6 +121,10 @@ class DatasetManager(View):
         id = request.POST.get('id', request.GET.get('id'))
         if id:
             instance = get_object_or_404(Dataset, id=id, editor=user)
+
+            if not instance.is_profile_allowed(profile):
+                return HttpResponseForbidden("L'accès à ce jeu de données est réservé")
+
             form = Form(data=request.POST, instance=instance,
                         include={'user': user, 'identification': True, 'id': id})
 
@@ -173,6 +182,11 @@ class DatasetManager(View):
         if not id:
             return Http404()
         instance = get_object_or_404(Dataset, id=id, editor=user)
+
+        if not instance.is_profile_allowed(
+                get_object_or_404(Profile, user=user)):
+            return HttpResponseForbidden("L'accès à ce jeu de données est réservé")
+
         ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
