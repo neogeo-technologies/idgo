@@ -81,17 +81,21 @@ $(function() {
 	var $contributionRequested = $('input[name="contribution_requested"]').parent();
 	var contribs = {{ contribs|safe }};
 	var pending = {{ pending|safe }};
+	var pendingIds = [];
+	for (var i = 0; i < pending.length; i ++) {
+		pendingIds.push(pending[i][0]);
+	};
 	var isContributor = function() {
 		var val = parseInt($('select[name="organisation"]').val());
 		var $alert = $contributionRequested.siblings('.alert');
 		if ($alert) {
 			$alert.remove()
 		};
-		if (val && contribs.indexOf(val) == -1 && pending.indexOf(val) == -1) {
+		if (val && contribs.indexOf(val) == -1 && pendingIds.indexOf(val) == -1) {
 			$contributionRequested.show();
-		} else if (val && contribs.indexOf(val) == -1 && pending.indexOf(val) > -1) {
+		} else if (val && contribs.indexOf(val) == -1 && pendingIds.indexOf(val) > -1) {
 			$contributionRequested.hide();
-			$contributionRequested.before('<div class="alert alert-info">Demande de contribution en attente de validation pour <strong>' + $('select[name="organisation"] option:selected').text() + '</strong></div>');
+			$contributionRequested.before('<div class="alert alert-info">Demande de contribution en attente de validation pour : {% for organization in pending %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>');
 		} else {
 			$contributionRequested.hide();
 		};

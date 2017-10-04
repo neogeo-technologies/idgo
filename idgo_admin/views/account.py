@@ -258,7 +258,7 @@ class AccountManager(View):
                           {'first_name': user.first_name,
                            'last_name': user.last_name,
                            'contribs': [c.id for c in contribs],
-                           'pending': [p.id for p in pending],
+                           'pending': [[p.id, p.name] for p in pending],
                            'uform': UserForm(instance=user,
                                              include={'action': process}),
                            'pform': ProfileForm(instance=profile,

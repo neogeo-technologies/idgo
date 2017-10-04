@@ -13,14 +13,19 @@
 	{% endfor %}
 {% endif %}
 
-<div class="well">
-	{% if organization %}
-	<p>Vous êtes actuellement rattaché à l'organisation suivante : <strong>{{ organization }}</strong>. </p>
-	{% elif awaiting_organization %}
-	<div class="alert alert-info">Demande de rattachement en attente de validation pour : <strong>{{ awaiting_organization }}</strong>. </div>
-	{% else %}
-	<div class="alert alert-warning">Vous n'êtes rattaché à aucune organisation. </div>
-	{% endif %}
+<div class="panel well">
+	<div class="panel-heading">
+		<div class="panel-title">Organisation de rattachement</div>
+	</div>
+	<div class="panel-body">
+		{% if organization %}
+		<p>Vous êtes actuellement rattaché à l'organisation suivante : <strong>{{ organization }}</strong>. </p>
+		{% elif awaiting_organization %}
+		<div class="alert alert-info">Demande de rattachement en attente de validation pour : <strong>{{ awaiting_organization }}</strong>. </div>
+		{% else %}
+		<div class="alert alert-warning">Vous n'êtes rattaché à aucune organisation. </div>
+		{% endif %}
+	</div>
 </div>
 <!--
 <form name="subordinates" class="well">
@@ -31,18 +36,24 @@
 	</nav>
 </form>
 -->
-<form name="organization" class="well">
-	{% if awaiting_contributions %}
-	<div class="alert alert-info">Demande(s) de contribution en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization }}</strong>{% endfor %}</div>
-	{% endif %}
-	<p>Organisations pour lesquelles vous avez le droit de publier des jeux de données : </p>
-	<div id="table-organizations" class="table-responsive"></div>
-	<nav aria-label="Page navigation" style="text-align: center;">
-		<ul id="table-organizations-paginator" class="pagination pagination-sm"></ul>
-	</nav>
-	<div class="buttons-on-the-right-side">
-		<button name="unsubscribe" class="btn btn-sm btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus contribuer</span></button>
-		<a class="btn btn-sm btn-default" href="{% url "idgo_admin:contribute" %}">Nouvelle demande de contribution</a>
+<form name="organization">
+	<div class="panel well">
+		<div class="panel-heading">
+			<div class="panel-title">Organisation pour lesquelles vous avez le droit de publier des jeux de données</div>
+		</div>
+		<div class="panel-body">
+			{% if awaiting_contributions %}
+			<div class="alert alert-info">Demande(s) de contribution en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization }}</strong>{% endfor %}</div>
+			{% endif %}
+			<div id="table-organizations" class="table-responsive"></div>
+			<nav aria-label="Page navigation" style="text-align: center;">
+				<ul id="table-organizations-paginator" class="pagination pagination-sm"></ul>
+			</nav>
+			<div class="buttons-on-the-right-side">
+				<button name="unsubscribe" class="btn btn-sm btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus contribuer</span></button>
+				<a class="btn btn-sm btn-default" href="{% url "idgo_admin:contribute" %}">Nouvelle demande de contribution</a>
+			</div>
+		</div>
 	</div>
 </form>
 <br/>
@@ -200,7 +211,7 @@ $(function() {
 			$containerId.hide();
 		};
 
-		if (data.length == 0) {
+		if (data.length == 0 && !{{ awaiting_contributions|safe }}) {
 			$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:contribute" %}">ajouter une organisation à laquelle contribuer</a>.</p><div/>');
 		};
 	};
