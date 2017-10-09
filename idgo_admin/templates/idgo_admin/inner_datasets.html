@@ -1,6 +1,7 @@
 {% load bootstrap3 %}
 
 <div class="buttons-on-the-right-side">
+	<a name="export-csv" class="btn btn-default">Exporter</a>
 	<a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a>
 </div>
 <div id="table-datasets" class="table-responsive"></div>
@@ -9,7 +10,6 @@
 </nav>
 <div class="buttons-on-the-right-side">
 	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
-	<a name="export-csv" class="btn btn-default">Exporter</a>
 	<div class="btn-group">
 		<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			Editer <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
@@ -96,11 +96,17 @@ $(function() {
 		e.stopPropagation();
 	});
 
-	$('#datasets a[name="export-csv"]').on('click', function(e) {
+	$exportCSV = $('#datasets a[name="export-csv"]').on('click', function(e) {
 		e.preventDefault();
 		targetBlank('{% url "idgo_admin:export" %}?format=csv');
 		e.stopPropagation();
 	});
+
+	if (DATASETS.length > 0) {
+		activateButton($exportCSV);
+	} else {
+		deactivateButton($exportCSV);
+	};
 
 	$('#datasets button[name="delete-dataset"]')
 		.on('click', function(e) {
@@ -290,7 +296,7 @@ $(function() {
 				deactivateButton($(this));
 				$(this).hide();
 			});
-			$containerId.before('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez <a href="' + CONTRIBUTE_URL + '">ajouter une organisation à laquelle contribuer</a>.');
+			$containerId.parent().before('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez <a href="' + CONTRIBUTE_URL + '">ajouter une organisation à laquelle contribuer</a>.');
 		};
 
 		if (data.length == 0 && IS_CONTRIBUTOR) {
@@ -298,11 +304,11 @@ $(function() {
 				deactivateButton($(this));
 				$(this).hide();
 			});
-			$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'avez aucun jeu de données. <a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a> pour commencer.</p><div/>');
+			$containerId.parent().after('<div role="alert" class="alert alert-warning"><p>Vous n\'avez aucun jeu de données. <a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a> pour commencer.</p><div/>');
 		};
 
 		if (AWAITING_CONTRIBUTIONS.length > 0) {
-			$containerId.before('<div class="alert alert-info">Demande(s) de contribution en attente de validation pour : <strong class="comma-separated-list">' + AWAITING_CONTRIBUTIONS.join(', ') + '</strong></div>');
+			$containerId.parent().before('<div class="alert alert-info">Demande(s) de contribution en attente de validation pour : <strong class="comma-separated-list">' + AWAITING_CONTRIBUTIONS.join(', ') + '</strong></div>');
 		};
 
 	};
