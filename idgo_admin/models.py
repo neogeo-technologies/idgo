@@ -29,6 +29,10 @@ class ResourceFormats(models.Model):
     ckan_view = models.CharField('Vue', max_length=100,
                                  choices=CKAN_CHOICES, blank=True, null=True)
 
+    class Meta(object):
+        verbose_name = 'Format de ressource'
+        verbose_name_plural = 'Formats de ressource'
+
     def __str__(self):
         return self.extension
 
@@ -294,8 +298,6 @@ class Profile(models.Model):
 
     phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
 
-    # role = models.CharField('Fonction', max_length=150, blank=True, null=True)
-
     is_active = models.BooleanField(
         'Validation suite à confirmation mail par utilisateur', default=False)
 
@@ -305,6 +307,10 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    class Meta(object):
+        verbose_name = 'Profil'
+        verbose_name_plural = 'Profils'
 
     @classmethod
     def active_users(cls):
@@ -398,9 +404,9 @@ class AccountActions(models.Model):
         'Action de gestion de profile', blank=True, null=True,
         default='confirm_mail', max_length=250, choices=ACTION_CHOICES)
 
-    created = models.DateField(auto_now_add=True)
+    created_on = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
-    closed = models.DateField(
+    closed = models.DateTimeField(
         verbose_name="Date de validation de l'action",
         blank=True, null=True)
 
@@ -426,6 +432,10 @@ class Mail(models.Model):
 
     def __str__(self):
         return self.template_name
+
+    class Meta(object):
+        verbose_name = 'e-mail'
+        verbose_name_plural = 'e-mails'
 
     @classmethod
     def validation_user_mail(cls, request, action):
@@ -811,7 +821,7 @@ class Dataset(models.Model):
         'Couverture géographique', blank=True, null=True,
         default='regionale', max_length=30, choices=GEOCOVER_CHOICES)
 
-    keywords = TaggableManager(blank=True)
+    keywords = TaggableManager('Mots-clés', blank=True)
 
     date_creation = models.DateField(
         verbose_name='Date de création du jeu de données',
