@@ -26,18 +26,23 @@
 		<script>;moment.locale('fr');</script>
 		<script src="{% static "js/editablegrid_overload.js" %}"></script>
 		<script>
+
 var redirect = function(path) {
 	window.location.replace(window.location.origin + path);
 };
+
 var targetBlank = function(path) {
 	window.open(path, '_blank');
 };
+
 var activateButton = function($btn) {
 	$btn.removeClass('disabled').prop('disabled', false);
 };
+
 var deactivateButton = function($btn) {
 	$btn.addClass('disabled').prop('disabled', true);
 };
+
 		</script>
 
 		<link rel="stylesheet" href="{% static "libs/jquery-plugins/ezdz/jquery.ezdz.css" %}"/>
@@ -101,15 +106,12 @@ var deactivateButton = function($btn) {
 		{% endblock main %}
 	</body>
 	<script>
+
 var $popover = $('[data-toggle="popover"]')
 	.popover({
 		delay: {'show': 10, 'hide': 10},
 		trigger: 'hover'
 	});
-
-var closeAllModalDialog = function() {
-	$modal.modal('hide');
-};
 
 var $modal = $('.modal[role="dialog"]')
 	.modal({
@@ -123,6 +125,10 @@ var $modal = $('.modal[role="dialog"]')
 		$(this).find('.modal-body').empty();
 		$(this).find('.modal-title').val('');
 	});
+
+var closeAllModalDialog = function() {
+	$modal.modal('hide');
+};
 
 $('.phone').change(function() {
 	var $this = $(this);
@@ -149,34 +155,32 @@ $('form').each(function() {
 	});
 });
 
-var HASH_MENU = [];
+$(function (){
+	var HASH_MENU = [];
 
-$('a[data-toggle="tab"]')
-	.each(function(e) {
-		HASH_MENU.push($(this).prop('hash'));
-	})
-	.on('hide.bs.tab', function(e) {
-		e.stopPropagation();
-	})
-	.on('show.bs.tab', function(e) {
-		e.stopPropagation();
-		var $this = $(e.target);
-		var $thisHash = $this.prop('hash')
-		window.location = $thisHash;
+	$('a[data-toggle="tab"]')
+		.each(function(e) {
+			HASH_MENU.push($(this).prop('hash'));
+		})
+		.on('hide.bs.tab', function(e) {
+			e.stopPropagation();
+		})
+		.on('show.bs.tab', function(e) {
+			e.stopPropagation();
+			var $this = $(e.target);
+			var $thisHash = $this.prop('hash')
+			window.location = $thisHash;
+		});
+
+	$(window).bind('hashchange', function(e) {
+		if (HASH_MENU.indexOf(window.location.hash) > -1) {
+			$('a[href="' + window.location.hash + '"]').tab('show');
+		};
+		e.preventDefault();
 	});
 
-window.onhashchange = function(e) {
-	var hash = window.location.hash;
-	if (HASH_MENU.indexOf(hash) === -1) {
-		$('a[href="' + hash + '"]').tab('show');
-	};
-	e.preventDefault();
-};
+	$('a[href="' + ((HASH_MENU.indexOf(window.location.hash) === -1) ? HASH_MENU[0] : window.location.hash) + '"]').tab('show');
 
-window.onload = function(e) {
-	var hash = window.location.hash;
-	$('a[href="' + ((HASH_MENU.indexOf(hash) === -1) ? HASH_MENU[0] : hash) + '"]').tab('show');
-	e.preventDefault();
-};
+});
 	</script>
 </html>

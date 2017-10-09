@@ -9,6 +9,7 @@
 </nav>
 <div class="buttons-on-the-right-side">
 	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
+	<a name="export-csv" class="btn btn-default">Exporter</a>
 	<div class="btn-group">
 		<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			Editer <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
@@ -92,6 +93,12 @@ $(function() {
 	$('#datasets button[name="view-ckan"]').on('click', function(e) {
 		e.preventDefault();
 		targetBlank(CKAN_URL + '/dataset/' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['ckan_slug']);
+		e.stopPropagation();
+	});
+
+	$('#datasets a[name="export-csv"]').on('click', function(e) {
+		e.preventDefault();
+		targetBlank('{% url "idgo_admin:export" %}?format=csv');
 		e.stopPropagation();
 	});
 
