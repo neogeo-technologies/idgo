@@ -239,11 +239,8 @@ Apache doit pouvoir écrire dans les sous répertoires de `media`.
 /idgo_venv> source bin/activate
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/category.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/license.json
-(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/organisation_type.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/commune.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/mail.json
-(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/projection.json
-(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/financeur.json
 ```
 
 #### Synchroniser les catégories avec CKAN
