@@ -3,8 +3,6 @@ from .models import Commune
 from .models import Dataset
 from .models import ResourceFormats
 from .models import License
-# from .models import Projection
-# from .models import Resolution
 from .models import Resource
 from .models import Jurisdiction
 from .models import Mail
@@ -13,26 +11,23 @@ from .models import OrganisationType
 from .models import Profile
 
 from django.contrib import admin
+from django.contrib.gis import admin as geo_admin
+
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.auth.models import User
-from django.contrib.gis import admin as geo_admin
 
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
 geo_admin.GeoModelAdmin.default_zoom = 14
 
-
-admin.site.register(OrganisationType)
-admin.site.unregister(User)
-admin.site.register(Profile)
-
 admin.site.register(Category)
 admin.site.register(Commune)
-admin.site.register(ResourceFormats)
-admin.site.register(License)
-# admin.site.register(Projection)
-# admin.site.register(Resolution)
 admin.site.register(Jurisdiction)
+admin.site.register(License)
+admin.site.register(OrganisationType)
+admin.site.register(Profile)
+admin.site.register(ResourceFormats)
+admin.site.unregister(User)
 
 
 class ResourceInline(admin.StackedInline):
