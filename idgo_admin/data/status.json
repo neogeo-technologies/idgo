@@ -1,9 +1,0 @@
-[{"model": "idgo_admin.status", "pk": 1, "fields": {"name": "Etat", "code": "commune"}},
-{"model": "idgo_admin.status", "pk": 2, "fields": {"name": "Communauté de Commune", "code": "communaute_de_communes"}},
-{"model": "idgo_admin.status", "pk": 3, "fields": {"name": "Communauté d'Agglomération", "code": "communaute_d_agglomeration"}},
-{"model": "idgo_admin.status", "pk": 4, "fields": {"name": "Communauté Urbaine", "code": "communaute_urbaine"}},
-{"model": "idgo_admin.status", "pk": 5, "fields": {"name": "Métropoles", "code": "metrople"}},
-{"model": "idgo_admin.status", "pk": 6, "fields": {"name": "Conseil Départemental", "code": "conseil_departemental"}},
-{"model": "idgo_admin.status", "pk": 7, "fields": {"name": "Conseil Régional", "code": "conseil_regional"}},
-{"model": "idgo_admin.status", "pk": 8, "fields": {"name": "Organisme de recherche", "code": "organisme_de_recherche"}},
-{"model": "idgo_admin.status", "pk": 9, "fields": {"name": "Université", "code": "universite"}}]
