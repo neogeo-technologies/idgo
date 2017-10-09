@@ -28,6 +28,7 @@
 (idgo_venv) /idgo_venv> pip install requests
 (idgo_venv) /idgo_venv> pip install ckanapi
 (idgo_venv) /idgo_venv> pip install owslib
+(idgo_venv) /idgo_venv> pip install django-queryset-csv
 ```
 
 #### Récupérer les codes sources
