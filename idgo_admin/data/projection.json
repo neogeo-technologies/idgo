@@ -1,1 +1,19 @@
-[{"model": "idgo_admin.projection", "pk": 2154, "fields": {"name": "Lambert 93"}}, {"model": "idgo_admin.projection", "pk": 3857, "fields": {"name": "Mercator Sph\u00e9rique"}}, {"model": "idgo_admin.projection", "pk": 4326, "fields": {"name": "WGS84"}}]
+[{
+    "model": "idgo_admin.projection",
+    "pk": 2154,
+    "fields": {
+        "name": "Lambert 93"
+    }
+}, {
+    "model": "idgo_admin.projection",
+    "pk": 3857,
+    "fields": {
+        "name": "Mercator Sph\u00e9rique"
+    }
+}, {
+    "model": "idgo_admin.projection",
+    "pk": 4326,
+    "fields": {
+        "name": "WGS84"
+    }
+}]
