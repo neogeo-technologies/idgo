@@ -26,6 +26,8 @@ from idgo_admin.models import Resource
 from idgo_admin.utils import three_suspension_points
 import json
 
+from djqscsv import render_to_csv_response
+
 
 CKAN_URL = settings.CKAN_URL
 
@@ -249,3 +251,15 @@ def datasets(request):
                    'is_contributor': json.dumps(len(my_contributions) > 0),
                    'awaiting_contributions': awaiting_contributions},
                   status=200)
+
+
+@ExceptionsHandler(ignore=[Http404])
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def export(request):
+    f = request.GET.get('format')
+    if f == 'csv':
+        return render_to_csv_response(Dataset.objects.filter(
+            editor=request.user))
+
+    raise Http404
