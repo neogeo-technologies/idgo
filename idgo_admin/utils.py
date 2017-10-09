@@ -143,9 +143,11 @@ def open_json_staticfile(filename):
 
     if STATIC_ROOT:
         return open_json(STATIC_ROOT)
-    if STATICFILES_DIRS:
+    elif STATICFILES_DIRS:
         for staticfiles_dir in STATICFILES_DIRS:
             return open_json(staticfiles_dir)
+    else:
+        raise AttributeError('Neither STATIC_ROOT nor STATICFILES_DIRS are found in this context.')
 
 
 def clean_my_obj(obj):

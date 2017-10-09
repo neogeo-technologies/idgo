@@ -13,7 +13,10 @@ from urllib.parse import urljoin
 
 CKAN_URL = settings.CKAN_URL
 CKAN_API_KEY = settings.CKAN_API_KEY
-CKAN_TIMEOUT = settings.CKAN_TIMEOUT
+try:
+    CKAN_TIMEOUT = settings.GEONET_TIMEOUT
+except AttributeError:
+    CKAN_TIMEOUT = 36000
 
 
 def timeout(fun):

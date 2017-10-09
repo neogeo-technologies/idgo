@@ -1,14 +1,17 @@
 from django.conf import settings
 from idgo_admin.utils import Singleton
 from owslib.csw import CatalogueServiceWeb
-from urllib.parse import urljoin
 import requests
+from urllib.parse import urljoin
 
 
 GEONET_URL = settings.GEONETWORK_URL
 GEONET_USERNAME = settings.GEONETWORK_LOGIN
 GEONET_PASSWORD = settings.GEONETWORK_PASSWORD
-GEONET_TIMEOUT = 30
+try:
+    GEONET_TIMEOUT = settings.GEONET_TIMEOUT
+except AttributeError:
+    GEONET_TIMEOUT = 3600
 
 
 class GeonetUserHandler(metaclass=Singleton):
