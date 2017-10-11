@@ -312,12 +312,6 @@ class Profile(models.Model):
         verbose_name = 'Profil'
         verbose_name_plural = 'Profils'
 
-    @classmethod
-    def active_users(cls):
-        active_profiles = Profile.objects.filter(is_active=True)
-        active_users = User.objects.filter(pk__in=[ap.user.pk for ap in active_profiles])
-        return active_users
-
 
 class LiaisonsReferents(models.Model):
 

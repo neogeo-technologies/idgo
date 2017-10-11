@@ -16,7 +16,9 @@ from idgo_admin.utils import readable_file_size
 import json
 from pathlib import Path
 
-
+from django.db.utils import ProgrammingError
+from django.contrib.auth.models import User
+from django.db.models.query import QuerySet
 _today = timezone.now().date()
 
 try:
@@ -82,9 +84,18 @@ class ResourceForm(forms.ModelForm):
 
     # restricted_level
 
+    def active_users():
+        active_profiles = Profile.objects.filter(is_active=True)
+        return User.objects.filter(pk__in=[ap.user.pk for ap in active_profiles])
+
+    try:
+        queryset = active_users()
+    except ProgrammingError:
+        queryset = QuerySet().none()
+
     users_allowed = forms.ModelMultipleChoiceField(
         label='Utilisateurs autorisés',
-        queryset=Profile.active_users(),
+        queryset=queryset,
         to_field_name="pk")
 
     organisations_allowed = forms.ModelMultipleChoiceField(
