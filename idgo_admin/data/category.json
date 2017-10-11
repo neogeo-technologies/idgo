@@ -5,7 +5,6 @@
         "name": "Environnement",
         "description": "Donn\u00e9es environnementales",
         "ckan_slug": "environnement",
-        "sync_in_ckan": true
     }
 }, {
     "model": "idgo_admin.category",
@@ -14,7 +13,6 @@
         "name": "Transports",
         "description": "Donn\u00e9es Transport",
         "ckan_slug": "transports",
-        "sync_in_ckan": true
     }
 }, {
     "model": "idgo_admin.category",
@@ -23,6 +21,5 @@
         "name": "Culture",
         "description": "Donn\u00e9es Culture et Patrimoine en Paca",
         "ckan_slug": "culture",
-        "sync_in_ckan": true
     }
 }]
