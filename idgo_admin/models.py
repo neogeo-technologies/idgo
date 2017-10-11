@@ -92,8 +92,8 @@ class Resource(models.Model):
         "Restriction d'accès", choices=LEVEL_CHOICES,
         default='0', max_length=20, blank=True, null=True)
 
-    users_allowed = models.ManyToManyField(
-        User, verbose_name='Utilisateurs autorisés', blank=True)
+    profiles_allowed = models.ManyToManyField(
+        'Profile', verbose_name='Utilisateurs autorisés', blank=True)
 
     organisations_allowed = models.ManyToManyField(
         'Organisation', verbose_name='Organisations autorisées', blank=True)
@@ -311,6 +311,12 @@ class Profile(models.Model):
     class Meta(object):
         verbose_name = 'Profil'
         verbose_name_plural = 'Profils'
+
+    # @classmethod
+    # def active_users(cls):
+    #     active_profiles = Profile.objects.filter(is_active=True)
+    #     print(active_profiles)
+    #     return User.objects.filter(pk__in=[])
 
 
 class LiaisonsReferents(models.Model):

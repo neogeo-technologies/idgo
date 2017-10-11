@@ -19,6 +19,7 @@ from pathlib import Path
 from django.db.utils import ProgrammingError
 from django.contrib.auth.models import User
 from django.db.models.query import QuerySet
+
 _today = timezone.now().date()
 
 try:
@@ -84,23 +85,31 @@ class ResourceForm(forms.ModelForm):
 
     # restricted_level
 
-    def active_users():
-        active_profiles = Profile.objects.filter(is_active=True)
-        return User.objects.filter(pk__in=[ap.user.pk for ap in active_profiles])
+    # def active_users():
+    #     l = []
+    #     active_profiles = Profile.objects.all()
+    #     for ap in active_profiles:
+    #         l.append(ap.phone)
+    #     print(l)
+    #     return User.objects.all()
 
-    try:
-        queryset = active_users()
-    except ProgrammingError:
-        queryset = QuerySet().none()
+    #
+    # try:
+    #     queryset = active_users()
+    # except ProgrammingError as err:
+    #     print(str(err))
+    #     queryset = QuerySet().none()
 
-    users_allowed = forms.ModelMultipleChoiceField(
+    profiles_allowed = forms.ModelMultipleChoiceField(
         label='Utilisateurs autorisés',
-        queryset=queryset,
+        queryset=Profile.objects.filter(is_active=True),
+        required=False,
         to_field_name="pk")
 
     organisations_allowed = forms.ModelMultipleChoiceField(
         label='Organisations autorisées',
         queryset=Organisation.objects.filter(is_active=True),
+        required=False,
         to_field_name="pk")
 
     class Meta(object):
@@ -113,7 +122,7 @@ class ResourceForm(forms.ModelForm):
                   'lang',
                   'format_type',
                   'restricted_level',
-                  'users_allowed',
+                  'profiles_allowed',
                   'organisations_allowed')
 
     def __init__(self, *args, **kwargs):
@@ -132,7 +141,7 @@ class ResourceForm(forms.ModelForm):
         user = request.user
         data = self.cleaned_data
         restricted_level = data['restricted_level']
-        users_allowed = data['users_allowed']
+        profiles_allowed = data['profiles_allowed']
         organizations_allowed = data['organisations_allowed']
 
         params = {'name': data['name'],
@@ -166,17 +175,17 @@ class ResourceForm(forms.ModelForm):
             'url': ''}
 
         if restricted_level == '0':  # Public
-            resource.users_allowed = users_allowed
+            resource.profiles_allowed = profiles_allowed
             ckan_params['restricted'] = json.dumps({'level': 'public'})
 
         if restricted_level == '1':  # Registered users
-            resource.users_allowed = users_allowed
+            resource.profiles_allowed = profiles_allowed
             ckan_params['restricted'] = json.dumps({'level': 'registered'})
 
         if restricted_level == '2':  # Only allowed users
-            resource.users_allowed = users_allowed
+            resource.profiles_allowed = profiles_allowed
             ckan_params['restricted'] = json.dumps({
-                'allowed_users': ','.join([u.username for u in users_allowed]),
+                'allowed_users': ','.join([p.user.username for p in profiles_allowed]),
                 'level': 'only_allowed_users'})
 
         if restricted_level == '3':  # This organization

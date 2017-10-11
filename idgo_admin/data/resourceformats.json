@@ -1,0 +1,22 @@
+[{
+    "model": "idgo_admin.resourceformats",
+    "pk": 1,
+    "fields": {
+        "extension": "CSV",
+        "ckan_view": "recline_view"
+    }
+}, {
+    "model": "idgo_admin.resourceformats",
+    "pk": 2,
+    "fields": {
+        "extension": "XLS",
+        "ckan_view": "recline_view"
+    }
+}, {
+    "model": "idgo_admin.resourceformats",
+    "pk": 3,
+    "fields": {
+        "extension": "XLSX",
+        "ckan_view": "recline_view"
+    }
+}]
