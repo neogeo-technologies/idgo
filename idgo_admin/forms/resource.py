@@ -78,7 +78,7 @@ class ResourceForm(forms.ModelForm):
     #         attrs={'placeholder': 'CSV, XML, JSON, XLS... '}))
 
     format_type = forms.ModelChoiceField(
-        label='CSV, XML, JSON, XLS... ',
+        label='Format*',
         queryset=ResourceFormats.objects.all(),
         required=True)
 
