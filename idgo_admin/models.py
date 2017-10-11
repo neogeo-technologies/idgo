@@ -19,7 +19,6 @@ class ResourceFormats(models.Model):
 
     CKAN_CHOICES = (
         (None, 'N/A'),
-        ('recline_view', 'recline_view'),
         ('text_view', 'text_view'),
         ('geo_view', 'geo_view'),
         ('recline_view', 'recline_view'),

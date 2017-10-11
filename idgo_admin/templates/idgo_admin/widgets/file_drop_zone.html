@@ -15,7 +15,7 @@ $(function() {
 	var $inputFile = $('#{{ widget.attrs.id }}')
 	$inputFile.ezdz({
 		text: '<button class="btn btn-default">Parcourir...</button> ou déposez les fichiers dans cette zone !',
-		value: {% if is_initial %}'{{ widget.value }}'{% else %}null{% endif %},
+		value: {% if widget.is_initial %}'{{ widget.value }}'{% else %}null{% endif %},
 		validators: {
 			maxSize: {{ widget.attrs.max_size_info }}
 		},
