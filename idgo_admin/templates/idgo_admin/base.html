@@ -162,6 +162,7 @@ $(function (){
 			HASH_MENU.push($(this).prop('hash'));
 		})
 		.on('hide.bs.tab', function(e) {
+			$('body').find('div[name="message-tags"]').remove();
 			e.stopPropagation();
 		})
 		.on('show.bs.tab', function(e) {

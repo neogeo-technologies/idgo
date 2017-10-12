@@ -3,13 +3,13 @@
 {% if messages %}
 	{% for message in messages %}
 		{% if message.tags == 'success' %}
-		<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+			<div name='message-tags' class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
 		{% elif message.tags == 'error' %}
-		<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+			<div name='message-tags' class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
 		{% elif message.tags == 'info' %}
-			<div class="alert alert-info" role="alert">{{ message | escape | safe }}</div>
+			<div name='message-tags' class="alert alert-info" role="alert">{{ message | escape | safe }}</div>
 		{% endif %}
-		{% endfor %}
+	{% endfor %}
 {% endif %}
 
 <div>
@@ -193,7 +193,7 @@ $(function() {
 	function updateResourcesGrid(grid, containerId, metadata, data) {
 		var $containerId = $('#' + containerId);
 		var $parent = $($containerId.parent().get(0));
-		$parent.find('div[role="alert"]').remove();
+		$parent.find('div[role="alert"]not:(div[name="message-tags"])').remove();
 		$parent.find('button').each(function() {
 			deactivateButton($(this));
 		});
