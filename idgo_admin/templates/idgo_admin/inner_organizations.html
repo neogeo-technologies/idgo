@@ -9,6 +9,8 @@
 		<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
 		{% elif message.tags == 'error' %}
 		<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+		{% elif message.tags == 'info' %}
+			<div class="alert alert-info" role="alert">{{ message | escape | safe }}</div>
 		{% endif %}
 	{% endfor %}
 {% endif %}
@@ -115,14 +117,16 @@ $(function() {
 						url: '{% url "idgo_admin:organizations" %}' + '?id=' + organizationsGrid.getRowValues(organizationsGrid.lastSelectedRowIndex)['id']
 					})
 					.done(function(response, textStatus, jqXHR) {
-						$modal.find('.modal-title').text('Information');
-						$modal.find('.modal-body').append(jqXHR.responseText);
-						$modal.modal('show');
+						location.reload();
+						// $modal.find('.modal-title').text('Information');
+						// $modal.find('.modal-body').append(jqXHR.responseText);
+						// $modal.modal('show');
 					})
 					.fail(function(jqXHR, textStatus, errorThrown) {
-						$modal.find('.modal-title').text("L'opération a échouée");
-						$modal.find('.modal-body').append(jqXHR.responseText);
-						$modal.modal('show');
+						location.reload();
+						// $modal.find('.modal-title').text("L'opération a échouée");
+						// $modal.find('.modal-body').append(jqXHR.responseText);
+						// $modal.modal('show');
 					});
 					e.stopPropagation();
 				});

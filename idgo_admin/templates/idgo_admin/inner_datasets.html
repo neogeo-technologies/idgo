@@ -1,5 +1,17 @@
 {% load bootstrap3 %}
 
+{% if messages %}
+	{% for message in messages %}
+		{% if message.tags == 'success' %}
+		<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+		{% elif message.tags == 'error' %}
+		<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+		{% elif message.tags == 'info' %}
+			<div class="alert alert-info" role="alert">{{ message | escape | safe }}</div>
+		{% endif %}
+		{% endfor %}
+{% endif %}
+
 <div class="buttons-on-the-right-side">
 	<a name="export-csv" class="btn btn-default">Exporter</a>
 	<a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a>
@@ -126,16 +138,16 @@ $(function() {
 						url: DATASET_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']
 					})
 					.done(function(response, textStatus, jqXHR) {
-						// $modal.find('.close').remove();
-						$modal.find('.modal-title').text('Information');
-						$modal.find('.modal-body').append(jqXHR.responseText);
-						$modal.modal('show');
+						location.reload();
+						// $modal.find('.modal-title').text('Information');
+						// $modal.find('.modal-body').append(jqXHR.responseText);
+						// $modal.modal('show');
 					})
 					.fail(function(jqXHR, textStatus, errorThrown) {
-						// $modal.find('.close').remove();
-						$modal.find('.modal-title').text("L'opération a échouée");
-						$modal.find('.modal-body').append(jqXHR.responseText);
-						$modal.modal('show');
+						location.reload();
+						// $modal.find('.modal-title').text("L'opération a échouée");
+						// $modal.find('.modal-body').append(jqXHR.responseText);
+						// $modal.modal('show');
 					});
 					e.stopPropagation();
 				});

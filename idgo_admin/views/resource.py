@@ -198,13 +198,16 @@ class ResourceManager(View):
                 instance.delete()
             status = 500
             message = 'Impossible de supprimer la ressource Ckan.'
+            message.error(request, message)
         else:
             instance.delete()
             status = 200
             message = 'La ressource a été supprimée avec succès.'
+            message.info(request, message)
         finally:
             ckan_user.close()
 
-        return render(
-            request, 'idgo_admin/response.html',
-            context={'message': message}, status=status)
+        # return render(request, 'idgo_admin/response.html',
+        #               context={'message': message}, status=status)
+
+        return render(request, 'idgo_admin/response.html', status=status)

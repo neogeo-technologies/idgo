@@ -202,18 +202,21 @@ class DatasetManager(View):
                 instance.delete()
             status = 500
             message = 'Impossible de supprimer le jeu de données Ckan.'
+            messages.error(request, message)
         else:
             instance.delete()
             status = 200
             message = 'Le jeu de données a été supprimé avec succès.'
+            messages.info(request, message)
         finally:
             ckan_user.close()
 
         Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
 
-        return render(
-            request, 'idgo_admin/response.html',
-            context={'message': message}, status=status)
+        # return render(request, 'idgo_admin/response.html',
+        #               context={'message': message}, status=status)
+
+        return render(request, 'idgo_admin/response.html', status=status)
 
 
 @ExceptionsHandler(ignore=[Http404])
