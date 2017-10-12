@@ -199,12 +199,12 @@ class ResourceManager(View):
                 instance.delete()
             status = 500
             message = 'Impossible de supprimer la ressource Ckan.'
-            message.error(request, message)
+            messages.error(request, message)
         else:
             instance.delete()
             status = 200
             message = 'La ressource a été supprimée avec succès.'
-            message.success(request, message)
+            messages.success(request, message)
         finally:
             ckan_user.close()
 
