@@ -175,12 +175,12 @@ class Contributions(View):
         message = ("Vous n'êtes plus contributeur pour l'organisation "
                    "<strong>{0}</strong>").format(organization.name)
 
-        messages.success(request, message)
+        messages.info(request, message)
 
         # return render(request, 'idgo_admin/response.html',
         #               context={'message': message}, status=200)
 
-        return HttpResponse(status=status)
+        return HttpResponse(status=200)
 
 
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
@@ -214,9 +214,9 @@ class Referents(View):
         message = ("Vous n'êtes plus référent pour l'organisation "
                    "<strong>{0}</strong>").format(organization.name)
 
-        messages.success(request, message)
+        messages.info(request, message)
 
         # return render(request, 'idgo_admin/response.html',
         #               context={'message': message}, status=200)
 
-        return HttpResponse(status=status)
+        return HttpResponse(status=200)
