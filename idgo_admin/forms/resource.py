@@ -112,10 +112,12 @@ class ResourceForm(forms.ModelForm):
         self.include_args = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
 
-        ckan_orga = ckan.get_all_organizations()
+        # 12/10: On propose toute les organisations meme celle qui ne sont
+        # liées a un dataset
+        # ckan_orga = ckan.get_all_organizations()
 
         self.fields['organisations_allowed'].queryset = \
-            Organisation.objects.filter(is_active=True, ckan_slug__in=ckan_orga)
+            Organisation.objects.filter(is_active=True)
 
     def handle_me(
             self, request, dataset, id=None, uploaded_file=None):
