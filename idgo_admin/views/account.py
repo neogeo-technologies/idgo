@@ -312,7 +312,7 @@ class AccountManager(View):
                 if process == "update":
                     ckan.update_user(user)
 
-        except ValidationError:
+        except ValidationError as e:
             if process == "update":
                 ckan.update_user(User.objects.get(username=user.username))
                 return render(request, 'idgo_admin/modifyaccount.html',
@@ -320,13 +320,15 @@ class AccountManager(View):
                                'last_name': user.last_name,
                                'uform': uform,
                                'pform': pform})
+            raise e
 
         except Exception as e:
             if process == "update":
                 ckan.update_user(User.objects.get(username=user.username))
                 messages.error(
                     request, 'Une erreur est survenue lors de la modification de votre compte.')
-                raise e
+            raise e
+
         else:
             if org_created:
                 self.new_org_process(request, profile, process)
