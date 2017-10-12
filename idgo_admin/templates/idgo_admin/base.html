@@ -53,7 +53,7 @@ var deactivateButton = function($btn) {
 		<link rel="stylesheet" href="{% static "css/main.css" %}"/>
 	</head>
 	<body>
-		<div class="modal fade" tabindex="-1" role="dialog">
+		<div id="modal-dialog" class="modal fade" tabindex="-1" role="dialog">
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -62,8 +62,7 @@ var deactivateButton = function($btn) {
 						</button> -->
 						<h4 class="modal-title"></h4>
 					</div>
-					<div class="modal-body">
-					</div>
+					<div class="modal-body"></div>
 				</div>
 			</div>
 		</div>
@@ -113,7 +112,7 @@ var $popover = $('[data-toggle="popover"]')
 		trigger: 'hover'
 	});
 
-var $modal = $('.modal[role="dialog"]')
+var $modal = $('.modal[role="dialog"]#modal-dialog')
 	.modal({
 		'backdrop': 'static',
 		'show': false  // Important!
