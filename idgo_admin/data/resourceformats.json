@@ -1,22 +1,106 @@
 [{
-    "model": "idgo_admin.resourceformats",
-    "pk": 1,
-    "fields": {
-        "extension": "CSV",
-        "ckan_view": "recline_view"
-    }
+	"model": "idgo_admin.resourceformats",
+	"pk": 1,
+	"fields": {
+		"extension": "CSV",
+		"ckan_view": "recline_view"
+	}
 }, {
-    "model": "idgo_admin.resourceformats",
-    "pk": 2,
-    "fields": {
-        "extension": "XLS",
-        "ckan_view": "recline_view"
-    }
+	"model": "idgo_admin.resourceformats",
+	"pk": 2,
+	"fields": {
+		"extension": "XLS",
+		"ckan_view": "recline_view"
+	}
 }, {
-    "model": "idgo_admin.resourceformats",
-    "pk": 3,
-    "fields": {
-        "extension": "XLSX",
-        "ckan_view": "recline_view"
-    }
+	"model": "idgo_admin.resourceformats",
+	"pk": 3,
+	"fields": {
+		"extension": "HTML",
+		"ckan_view": "text_view"
+	}
+}, {
+	"model": "idgo_admin.resourceformats",
+	"pk": 4,
+	"fields": {
+		"extension": "PDF",
+		"ckan_view": "pdf_view"
+	}
+}, {
+	"model": "idgo_admin.resourceformats",
+	"pk": 5,
+	"fields": {
+		"extension": "XML",
+		"ckan_view": "text_view"
+	}
+}, {
+	"model": "idgo_admin.resourceformats",
+	"pk": 6,
+	"fields": {
+		"extension": "ZIP",
+		"ckan_view": null
+	}
+}, {
+	"model": "idgo_admin.resourceformats",
+	"pk": 7,
+	"fields": {
+		"extension": "TIFF",
+		"ckan_view": null
+	}
+}, {
+	"model": "idgo_admin.resourceformats",
+	"pk": 8,
+	"fields": {
+		"extension": "JSON",
+		"ckan_view": "text_view"
+	}
+}, {
+	"model": "idgo_admin.resourceformats",
+	"pk": 9,
+	"fields": {
+		"extension": "WMS",
+		"ckan_view": "geo_view"
+	}
+}, {
+	"model": "idgo_admin.resourceformats",
+	"pk": 10,
+	"fields": {
+		"extension": "JPG",
+		"ckan_view": null
+	}
+}, {
+	"model": "idgo_admin.resourceformats",
+	"pk": 11,
+	"fields": {
+		"extension": "WCS",
+		"ckan_view": "geo_view"
+	}
+}, {
+	"model": "idgo_admin.resourceformats",
+	"pk": 12,
+	"fields": {
+		"extension": "TXT",
+		"ckan_view": "text_view"
+	}
+}, {
+	"model": "idgo_admin.resourceformats",
+	"pk": 13,
+	"fields": {
+		"extension": "KML",
+		"ckan_view": "text_view"
+	}
+}, {
+	"model": "idgo_admin.resourceformats",
+	"pk": 14,
+	"fields": {
+		"extension": "WFS",
+		"ckan_view": "geo_view"
+	}
+}, {
+	"model": "idgo_admin.resourceformats",
+	"pk": 15,
+	"fields": {
+		"extension": "PNG",
+		"ckan_view": null
+	}
 }]
