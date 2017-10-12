@@ -175,7 +175,7 @@ class Contributions(View):
         message = ("Vous n'êtes plus contributeur pour l'organisation "
                    "<strong>{0}</strong>").format(organization.name)
 
-        messages.info(request, message)
+        messages.success(request, message)
 
         # return render(request, 'idgo_admin/response.html',
         #               context={'message': message}, status=200)
@@ -214,7 +214,7 @@ class Referents(View):
         message = ("Vous n'êtes plus référent pour l'organisation "
                    "<strong>{0}</strong>").format(organization.name)
 
-        messages.info(request, message)
+        messages.success(request, message)
 
         # return render(request, 'idgo_admin/response.html',
         #               context={'message': message}, status=200)

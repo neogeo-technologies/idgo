@@ -207,7 +207,7 @@ class DatasetManager(View):
             instance.delete()
             status = 200
             message = 'Le jeu de données a été supprimé avec succès.'
-            messages.info(request, message)
+            messages.success(request, message)
         finally:
             ckan_user.close()
 
