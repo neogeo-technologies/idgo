@@ -1,16 +1,30 @@
 {% load bootstrap3 %}
 
-<div class="buttons-on-the-right-side">
-	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_admin:resource" dataset_id=dataset_id %}">Ajouter une nouvelle ressource</a>
-</div>
-<div id="table-resources" class="table-responsive"></div>
-<nav aria-label="Page navigation" style="text-align: center;">
-	<ul id="table-resources-paginator" class="pagination pagination-sm"></ul>
-</nav>
-<div class="buttons-on-the-right-side">
-	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
-	<button name="edit-resource" class="btn btn-default">Editer</button>
-	<button name="delete-resource" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+{% if messages %}
+	{% for message in messages %}
+		{% if message.tags == 'success' %}
+		<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+		{% elif message.tags == 'error' %}
+		<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+		{% elif message.tags == 'info' %}
+			<div class="alert alert-info" role="alert">{{ message | escape | safe }}</div>
+		{% endif %}
+		{% endfor %}
+{% endif %}
+
+<div>
+	<div class="buttons-on-the-right-side">
+		<a name="add-resource" class="btn btn-primary" href="{% url "idgo_admin:resource" dataset_id=dataset_id %}">Ajouter une nouvelle ressource</a>
+	</div>
+	<div id="table-resources" class="table-responsive"></div>
+	<nav aria-label="Page navigation" style="text-align: center;">
+		<ul id="table-resources-paginator" class="pagination pagination-sm"></ul>
+	</nav>
+	<div class="buttons-on-the-right-side">
+		<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
+		<button name="edit-resource" class="btn btn-default">Editer</button>
+		<button name="delete-resource" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+	</div>
 </div>
 
 <script>

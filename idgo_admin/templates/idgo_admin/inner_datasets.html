@@ -12,28 +12,30 @@
 		{% endfor %}
 {% endif %}
 
-<div class="buttons-on-the-right-side">
-	<a name="export-csv" class="btn btn-default">Exporter</a>
-	<a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a>
-</div>
-<div id="table-datasets" class="table-responsive"></div>
-<nav aria-label="Page navigation" style="text-align: center;">
-	<ul id="table-datasets-paginator" class="pagination pagination-sm"></ul>
-</nav>
-<div class="buttons-on-the-right-side">
-	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
-	<div class="btn-group">
-		<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-			Editer <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
-		</button>
-		<ul class="dropdown-menu dropdown-menu-right">
-			<li><a role="button" name="edit-dataset" style="text-align: right;">Editer le jeu de données</a></li>
-			<li><a role="button" name="mdedit-dataset" style="text-align: right;">Editer la fiche de métadonnées INSPIRE</a></li>
-			<li role="separator" class="divider"></li>
-			<li><a role="button" name="publish-dataset" style="text-align: right;">Publier le jeu de données</a></li>
-		</ul>
+<div>
+	<div class="buttons-on-the-right-side">
+		<a name="export-csv" class="btn btn-default">Exporter</a>
+		<a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a>
 	</div>
-	<button name="delete-dataset" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+	<div id="table-datasets" class="table-responsive"></div>
+	<nav aria-label="Page navigation" style="text-align: center;">
+		<ul id="table-datasets-paginator" class="pagination pagination-sm"></ul>
+	</nav>
+	<div class="buttons-on-the-right-side">
+		<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
+		<div class="btn-group">
+			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				Editer <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
+			</button>
+			<ul class="dropdown-menu dropdown-menu-right">
+				<li><a role="button" name="edit-dataset" style="text-align: right;">Editer le jeu de données</a></li>
+				<li><a role="button" name="mdedit-dataset" style="text-align: right;">Editer la fiche de métadonnées INSPIRE</a></li>
+				<li role="separator" class="divider"></li>
+				<li><a role="button" name="publish-dataset" style="text-align: right;">Publier le jeu de données</a></li>
+			</ul>
+		</div>
+		<button name="delete-dataset" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+	</div>
 </div>
 
 <script>
