@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.http import Http404
 # from django.http import HttpResponseForbidden
+from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
@@ -210,4 +211,4 @@ class ResourceManager(View):
         # return render(request, 'idgo_admin/response.html',
         #               context={'message': message}, status=status)
 
-        return render(request, 'idgo_admin/response.html', status=status)
+        return HttpResponse(status=status)

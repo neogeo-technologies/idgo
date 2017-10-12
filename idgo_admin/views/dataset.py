@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from django.http import Http404
+from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 # from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
@@ -12,6 +13,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from djqscsv import render_to_csv_response
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanSyncingError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
@@ -25,8 +27,6 @@ from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.utils import three_suspension_points
 import json
-
-from djqscsv import render_to_csv_response
 
 
 CKAN_URL = settings.CKAN_URL
@@ -216,7 +216,7 @@ class DatasetManager(View):
         # return render(request, 'idgo_admin/response.html',
         #               context={'message': message}, status=status)
 
-        return render(request, 'idgo_admin/response.html', status=status)
+        return HttpResponse(status=status)
 
 
 @ExceptionsHandler(ignore=[Http404])

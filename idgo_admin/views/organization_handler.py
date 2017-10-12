@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import Http404
+from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
@@ -179,7 +180,7 @@ class Contributions(View):
         # return render(request, 'idgo_admin/response.html',
         #               context={'message': message}, status=200)
 
-        return render(request, 'idgo_admin/response.html', status=200)
+        return HttpResponse(status=status)
 
 
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
@@ -218,4 +219,4 @@ class Referents(View):
         # return render(request, 'idgo_admin/response.html',
         #               context={'message': message}, status=200)
 
-        return render(request, 'idgo_admin/response.html', status=200)
+        return HttpResponse(status=status)
