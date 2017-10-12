@@ -39,7 +39,7 @@
 <form name="organization">
 	<div class="panel well">
 		<div class="panel-heading">
-			<div class="panel-title">Organisation pour lesquelles vous avez le droit de publier des jeux de données</div>
+			<div class="panel-title">Organisations pour lesquelles vous avez le droit de publier des jeux de données</div>
 		</div>
 		<div class="panel-body">
 			{% if awaiting_contributions %}
@@ -211,7 +211,7 @@ $(function() {
 			$containerId.hide();
 		};
 
-		if (data.length == 0 && !{{ awaiting_contributions|safe }}) {
+		if (data.length == 0 && {{ awaiting_contributions|safe }}.length == 0) {
 			$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:contribute" %}">ajouter une organisation à laquelle contribuer</a>.</p><div/>');
 		};
 	};
