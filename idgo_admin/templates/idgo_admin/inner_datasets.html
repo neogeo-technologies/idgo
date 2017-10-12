@@ -289,7 +289,7 @@ $(function() {
 	function updateDatasetsGrid(grid, containerId, metadata, data) {
 		var $containerId = $('#' + containerId);
 		var $parent = $($containerId.parent().get(0));
-		$parent.find('div[role="alert"]not:(div[name="message-tags"])').remove();
+		$parent.find('div[role="alert"]not:div[name="message-tags"]').remove();
 		$parent.find('button').each(function() {
 			deactivateButton($(this));
 		});
