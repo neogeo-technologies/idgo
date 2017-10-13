@@ -100,7 +100,7 @@ class CkanUserHandler(object):
             if resource['id'] == kwargs['id']:
                 kwargs['last_modified'] = kwargs['created']
                 del kwargs['created']
-                if not kwargs['url']:
+                if 'url' in kwargs and not kwargs['url']:
                     del kwargs['url']
                 resource.update(kwargs)
                 del resource['tracking_summary']
