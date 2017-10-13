@@ -8,7 +8,7 @@ import json
 
 class Command(BaseCommand):
 
-    help = 'Synchroniser les organisations IDGO avec CKAN'
+    help = ''
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
