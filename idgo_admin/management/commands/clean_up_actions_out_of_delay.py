@@ -72,5 +72,5 @@ class Command(BaseCommand):
             u.delete()
 
         for o in del_org:
-            print("clean_up db - New Orga: {0}}%".format(o.name))
+            print("clean_up db - New Orga: {0}".format(o.name))
             o.delete()
