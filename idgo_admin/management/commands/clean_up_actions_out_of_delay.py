@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -15,7 +14,7 @@ class Command(BaseCommand):
         super(Command, self).__init__(*args, **kwargs)
 
     def n_days_ago(self, n):
-        return timezone.now() - timezone.timedelta(days=2)
+        return timezone.now() - timezone.timedelta(days=n)
 
     def handle(self, *args, **options):
 
@@ -73,5 +72,5 @@ class Command(BaseCommand):
             u.delete()
 
         for o in del_org:
-            print("clean_up db - New Orga: s%" % o.name)
+            print("clean_up db - New Orga: {0}}%".format(o.name))
             o.delete()
