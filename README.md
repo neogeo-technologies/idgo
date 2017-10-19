@@ -49,6 +49,14 @@ MDedit doit être installé dans le répertoire `static/libs/` du projet IDGO.
 > ln -s /apps/mdedit /apps/idgo/idgo_admin/static/libs/
 ```
 
+#### Initialiser Django
+
+```shell
+> cd /idgo_venv
+/idgo_venv> source bin/activate
+(idgo_venv) django-admin startproject config .
+```
+
 #### Éditer les fichiers de configuration Django
 
 D'abord :
