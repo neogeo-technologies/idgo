@@ -242,6 +242,7 @@ Apache doit pouvoir écrire dans les sous répertoires de `media`.
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/license.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/commune.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/mail.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/resourceformats.json
 ```
 
 #### Synchroniser les catégories avec CKAN
