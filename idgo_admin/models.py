@@ -426,7 +426,7 @@ class Mail(models.Model):
             is_superuser=True, is_active=True)]
         if organisation:
             profiles = Profile.objects.filter(referents=organisation)
-            res.append([usr.email for usr in profiles.user])
+            res = res + [p.user.email for p in profiles]
 
         # Pour retourner une liste de valeurs uniques
         return list(set(res))

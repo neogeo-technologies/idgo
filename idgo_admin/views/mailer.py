@@ -172,13 +172,14 @@ def confirm_referent(request, key):
         AccountActions, key=UUID(key), action='confirm_referent')
 
     organisation = action.org_extras
+    user = action.profile.user
     if action.closed:
         status = 200
         message = (
             "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
             "a déjà été confirmée pour <strong>{username}</strong>."
             ).format(organization_name=organisation.name,
-                     username=action.profile.username)
+                     username=user.username)
     else:
         try:
             ref_liaison = LiaisonsReferents.objects.get(
@@ -197,7 +198,7 @@ def confirm_referent(request, key):
                 "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
                 "a bien été confirmée pour <strong>{username}</strong>."
                 ).format(organization_name=organisation.name,
-                         username=action.profile.username)
+                         username=user.username)
 
     return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=status)
