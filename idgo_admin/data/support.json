@@ -1,0 +1,17 @@
+[{
+    "model": "idgo_admin.support",
+    "pk": 1,
+    "fields": {
+        "name": "CRIGE PACA",
+        "description": "Support technique du CRIGE PACA",
+        "ckan_slug": "crige-paca"
+    }
+}, {
+    "model": "idgo_admin.support",
+    "pk": 2,
+    "fields": {
+        "name": "Région PACA",
+        "description": "Support technique de la région PACA",
+        "ckan_slug": "region-paca"
+    }
+}]

@@ -420,6 +420,17 @@ class Mail(models.Model):
         return [usr.email for usr
                 in User.objects.filter(is_superuser=True, is_active=True)]
 
+    @staticmethod
+    def receivers_list(organisation=None):
+        res = [usr.email for usr in User.objects.filter(
+            is_superuser=True, is_active=True)]
+        if organisation:
+            profiles = Profile.objects.filter(referents=organisation)
+            res.append([usr.email for usr in profiles.user])
+
+        # Pour retourner une liste de valeurs uniques
+        return list(set(res))
+
     template_name = models.CharField(
         'Nom du model du message', primary_key=True, max_length=255)
 
@@ -480,7 +491,7 @@ class Mail(models.Model):
 
     @classmethod
     def confirm_new_organisation(cls, request, action):
-        """Mail permettant de valider la creation d'un nouvelle organsation
+        """Mail permettant de valider la creation d'un nouvelle organisation
         suite à une inscription.
         """
 
@@ -505,7 +516,7 @@ class Mail(models.Model):
         send_mail(subject=mail_template.subject,
                   message=message,
                   from_email=mail_template.from_email,
-                  recipient_list=cls.superuser_mails())
+                  recipient_list=cls.receivers_list(organisation))
 
     @classmethod
     def confirm_rattachement(cls, request, action):
@@ -530,7 +541,7 @@ class Mail(models.Model):
         send_mail(subject=mail_template.subject,
                   message=message,
                   from_email=mail_template.from_email,
-                  recipient_list=cls.superuser_mails())
+                  recipient_list=cls.receivers_list(organisation))
 
     @classmethod
     def confirm_updating_rattachement(cls, request, action):
@@ -556,7 +567,7 @@ class Mail(models.Model):
         send_mail(subject=mail_template.subject,
                   message=message,
                   from_email=mail_template.from_email,
-                  recipient_list=cls.superuser_mails())
+                  recipient_list=cls.receivers_list(organisation))
 
     @classmethod
     def confirm_referent(cls, request, action):
@@ -581,7 +592,7 @@ class Mail(models.Model):
         send_mail(subject=mail_template.subject,
                   message=message,
                   from_email=mail_template.from_email,
-                  recipient_list=cls.superuser_mails())
+                  recipient_list=cls.receivers_list())
 
     @classmethod
     def confirm_contribution(cls, request, action):
@@ -605,7 +616,7 @@ class Mail(models.Model):
         send_mail(subject=mail_template.subject,
                   message=message,
                   from_email=mail_template.from_email,
-                  recipient_list=cls.superuser_mails())
+                  recipient_list=cls.receivers_list(organisation))
 
     @classmethod
     def affiliate_confirmation_to_user(cls, profile):
@@ -782,6 +793,36 @@ class License(models.Model):
 #         verbose_name = 'Resolution'
 
 
+class Support(models.Model):
+
+    name = models.CharField('Nom', max_length=100)
+    description = models.CharField('Description', max_length=1024)
+    ckan_slug = models.SlugField(
+        'Ckan_ID', max_length=100, unique=True, db_index=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta(object):
+        verbose_name = 'Support technique'
+        verbose_name_plural = 'Supports techniques'
+
+
+class DataType(models.Model):
+
+    name = models.CharField('Nom', max_length=100)
+    description = models.CharField('Description', max_length=1024)
+    ckan_slug = models.SlugField(
+        'Ckan_ID', max_length=100, unique=True, db_index=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta(object):
+        verbose_name = 'Type de donnée'
+        verbose_name_plural = 'Types de données'
+
+
 class Dataset(models.Model):
 
     GEOCOVER_CHOICES = (
@@ -861,6 +902,10 @@ class Dataset(models.Model):
     geonet_id = models.UUIDField(
         'Metadonnées UUID', unique=True, db_index=True,
         blank=True, null=True)
+
+    support = models.OneToOneField(Support, verbose_name="Support technique", null=True, blank=True)
+
+    data_type = models.ManyToManyField(DataType, verbose_name="Type de données")
 
     def __str__(self):
         return self.name
