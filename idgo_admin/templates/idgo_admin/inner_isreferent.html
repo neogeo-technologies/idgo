@@ -1,0 +1,88 @@
+{% load bootstrap3 %}
+
+<script>var organizations = [];</script>
+{% if messages %}
+	{% for message in messages %}
+		{% if message.tags == 'success' %}
+			<div name='message-tags' class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+		{% elif message.tags == 'error' %}
+			<div name='message-tags' class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+		{% elif message.tags == 'info' %}
+			<div name='message-tags' class="alert alert-info" role="alert">{{ message | escape | safe }}</div>
+		{% endif %}
+	{% endfor %}
+{% endif %}
+
+
+<h2 class="modal-title">Nouvelle demande de status de référent</h2>
+<p>Toute demande est soumise à validation de l'administrateur du site. </p>
+<br/>
+<form>
+	<div class="form-group">
+		<div class="row">
+			<div class="col-md-6">
+				<div class="input-group" name="organization">
+					<input type="text" class="form-control typeahead" placeholder="Rechercher l'organisation...">
+					<span class="input-group-btn">
+						<button type="button" class="btn btn-primary">
+							<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+						</button>
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+<form method="post" action="">
+	<div class="btn-group-vertical btn-block scrolling-box"  style="height: 200px;" data-toggle="buttons">
+		{% for choice in pform.referents %}
+		<script>organizations.push('{{ choice.choice_label }}');</script>
+		<div class="btn btn-radio">{{ choice }}</div>
+		{% endfor %}
+	</div>
+	<div class="buttons-on-the-right-side">
+		<a class="btn btn-default" href="{% url "idgo_admin:organizations" %}">Annuler</a>
+		<button type="submit" class="btn btn-primary disabled" disabled=True>Envoyer la demande</button>
+	</div>
+</form>
+<script>
+$(function() {
+	var $submit = $('form button[type="submit"]');
+	var $radioInputs = $('form input:radio[name="referents"]')
+		.change(function() {
+			if ($('div.btn-radio').hasClass('active')) {
+				$submit.removeClass('disabled').prop('disabled', false);
+				$typeahead.val($('form input:radio[name="referents"]:checked').parent().text())
+			} else {
+				$submit.addClass('disabled').prop('disabled', true)
+			};
+		});
+
+	function highlight() {
+		$radioInputs.each(function(value) {
+			var $this = $(this);
+			var $entry = $(this).parent();
+			var $container = $('div.scrolling-box');
+			if ($entry.text().trim().toLowerCase().startsWith($('div[name="organization"] input[type="text"]').val().trim().toLowerCase())) {
+				$container.animate({
+					scrollTop: $entry.offset().top - $container.offset().top + $container.scrollTop() - 7
+				}, 606);
+				$this.click();
+			};
+		});
+	};
+
+	$('div[name="organization"] button[type="button"]').click(highlight);
+	var $typeahead = $('div[name="organization"] .typeahead')
+		.typeahead({
+			source: organizations,
+			afterSelect: highlight,
+		})
+		.keypress(function(e) {
+			if (e.which == 13) {
+				highlight();
+				return false;
+			};
+		});
+});
+</script>
