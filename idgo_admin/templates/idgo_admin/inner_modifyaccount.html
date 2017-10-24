@@ -12,7 +12,7 @@
 	{% endfor %}
 {% endif %}
 
-<h2 class="modal-title">Mes informations personnelles</h2>
+<!-- <h2 class="modal-title">Mes informations personnelles</h2> -->
 <br/>
 <form method="post" action="" enctype="multipart/form-data">
 	{% csrf_token %}
@@ -66,7 +66,7 @@
 	<div class="alert alert-info"><a href="{% url "idgo_admin:organizations" %}">En attente de rattachement</a></div>
 	{% endif %}
 	<div class="buttons-on-the-right-side">
-		<a class="btn btn-default" href="{% url "idgo_admin:home" %}">Annuler</a>
+		<a class="btn btn-default" href="{% url "idgo_admin:datasets" %}">Annuler</a>
 		<button type="submit" class="btn btn-default">Valider les changements</button>
 	</div>
 	<br />

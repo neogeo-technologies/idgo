@@ -3,7 +3,7 @@
 {% block nav_content %}
 <base href="."></base>
 <ol class="breadcrumb">
-	<li><a href="{% url "idgo_admin:home" %}#datasets">Mes jeux de données</a></li>
+	<li><a href="{% url "idgo_admin:datasets" %}">Mes jeux de données</a></li>
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">{{ dataset_name }}</a></li>
 	<li class="active">Édition de la fiche de métadonnées INSPIRE</li>
 </ol>

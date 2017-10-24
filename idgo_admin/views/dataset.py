@@ -246,7 +246,7 @@ def datasets(request):
     awaiting_contributions = \
         [c.name for c in LiaisonsContributeurs.get_pending(profile=profile)]
 
-    return render(request, 'idgo_admin/home.html',
+    return render(request, 'idgo_admin/datasets.html',
                   {'ckan_url': CKAN_URL,
                    'first_name': user.first_name,
                    'last_name': user.last_name,

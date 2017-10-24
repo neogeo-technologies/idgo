@@ -85,6 +85,16 @@ var deactivateButton = function($btn) {
 				<div class="row">
 					<div class="col-md-offset-1 col-md-10">
 						{% block nav_content %}
+						<ul id="menu" class="nav nav-default" role="tablist">
+							<li role="presentation">
+								<a href="{% url "idgo_admin:datasets" %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
+							</li>
+							<li role="presentation">
+								<a href="{% url "idgo_admin:organizations" %}" aria-controls="organizations" role="tab">Mes organisations</a>
+							</li>
+							{% block nav_content_extra %}
+							{% endblock nav_content_extra %}
+						</ul>
 						{% endblock nav_content %}
 					</div>
 				</div>
@@ -154,33 +164,34 @@ $('form').each(function() {
 	});
 });
 
-$(function (){
-	var HASH_MENU = [];
-
-	$('a[data-toggle="tab"]')
-		.each(function(e) {
-			HASH_MENU.push($(this).prop('hash'));
-		})
-		.on('hide.bs.tab', function(e) {
-			$('body').find('div[name="message-tags"]').remove();
-			e.stopPropagation();
-		})
-		.on('show.bs.tab', function(e) {
-			e.stopPropagation();
-			var $this = $(e.target);
-			var $thisHash = $this.prop('hash')
-			window.location = $thisHash;
-		});
-
-	$(window).bind('hashchange', function(e) {
-		if (HASH_MENU.indexOf(window.location.hash) > -1) {
-			$('a[href="' + window.location.hash + '"]').tab('show');
-		};
-		e.preventDefault();
-	});
-
-	$('a[href="' + ((HASH_MENU.indexOf(window.location.hash) === -1) ? HASH_MENU[0] : window.location.hash) + '"]').tab('show');
-
-});
+// $(function() {
+// 	var HASH_MENU = [];
+//
+// 	$('a[data-toggle="tab"]')
+// 		.each(function(e) {
+// 			console.log($(this).prop('hash'))
+// 			HASH_MENU.push($(this).prop('hash'));
+// 		})
+// 		.on('hide.bs.tab', function(e) {
+// 			$('body').find('div[name="message-tags"]').remove();
+// 			e.stopPropagation();
+// 		})
+// 		.on('show.bs.tab', function(e) {
+// 			e.stopPropagation();
+// 			var $this = $(e.target);
+// 			var $thisHash = $this.prop('hash')
+// 			window.location = $thisHash;
+// 		});
+//
+// 	$(window).bind('hashchange', function(e) {
+// 		if (HASH_MENU.indexOf(window.location.hash) > -1) {
+// 			$('a[href="' + window.location.hash + '"]').tab('show');
+// 		};
+// 		e.preventDefault();
+// 	});
+//
+// 	// $('a[href="' + ((HASH_MENU.indexOf(window.location.hash) === -1) ? HASH_MENU[0] : window.location.hash) + '"]').tab('show');
+//
+// });
 	</script>
 </html>

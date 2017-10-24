@@ -1,0 +1,10 @@
+{% extends "idgo_admin/base.html" %}
+
+{% block main_content %}
+{% include "idgo_admin/inner_datasets.html" %}
+<script>
+$(function() {
+	$('#menu a[href="{% url "idgo_admin:datasets" %}"]').parent().addClass('active');
+});
+</script>
+{% endblock main_content %}

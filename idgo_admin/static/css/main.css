@@ -25,6 +25,11 @@ br {
     line-height: 300%;
 }
 
+img {
+    -webkit-user-select: none;
+            user-select: none;
+}
+
 .comma-separated-list:not(:last-child)::after {
     content: ', '
 }
@@ -95,21 +100,19 @@ br {
 }
 
 div.page-header {
-    padding-top: 0;
-    padding-bottom: 0;
+    padding-top: 30px;
+    padding-bottom: 30px;
     margin: 0;
-    border-bottom: none;
-    background-color: #291809;
-    color: #fff;
+    border-bottom: 1px solid transparent;
+    background-color: #fff;
+    color: #002880;
     position: relative;
     z-index: 999;
 }
 
 div.page-header .title {
     font-size: 2.666em;
-    margin-top: 30px;
-    margin-bottom: 30px;
-    font-weight: 400;
+    font-weight: 600;
 }
 
 div.page-header .title a,
@@ -120,39 +123,57 @@ div.page-header .title a:focus {
     text-decoration: none;
 }
 
-div.page-header .username {
-    right: 49px;
-    vertical-align: middle;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
 div.page-header .login {
-    right: 0;
     vertical-align: middle;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+    right: 0;
+    color: #999;
+    -webkit-transition: color .123s, border-color .123s;
+            transition: color .123s, border-color .123s;
 }
 
-div.page-header .login button {
-    width: 2.666em;
-    height: 2.666em;
-    background-color: transparent;
-    border-color: transparent;
-    color: #ffffff;
-    border-radius: 9999px;
-    padding: 0;
-    -webkit-transition: background-color .123s, color .123s;
-            transition: background-color .123s, color .123s;
+div.page-header .login:hover {
+    color: #ff554f;
+    /*border-color: #ff554f;*/
+}
+
+div.page-header .login button,
+div.page-header .login button:focus {
+    padding: 12px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    -webkit-box-shadow: none;
+            box-shadow: none;
 }
 
 div.page-header .login button:hover,
-div.page-header .login button:focus {
-    background-color: #ffffff;
-    color: #291809;
+div.page-header .login.open button,
+div.page-header .login.open button:hover {
+    color: #ff554f;
+    border-color: #ff554f;
+    -webkit-box-shadow: none;
+            box-shadow: none;
 }
+
+div.page-header .login button > span {
+    font-size: 1.111em;
+    display:inline-block;
+    vertical-align:middle;
+}
+
+div.page-header .login button > span.glyphicon {
+    font-size: 1.777em;
+    padding-left: 12px;
+}
+
+div.page-header .login button:hover {
+    background: inherit;
+    color: inherit;
+}
+
 
 ul.nav.nav-default>li {
     float: left;
@@ -161,28 +182,65 @@ ul.nav.nav-default>li {
 ul.nav.nav-default>li>a {
     border-radius: 0;
     margin: 0;
+    padding-top: 15px;
+    padding-bottom: 15px;
     border-left: 1px solid transparent;
     border-right: 1px solid transparent;
     background: transparent;
     color: #999;
     font-weight: normal;
+    font-variant: small-caps;
+    font-size: 1.333em;
+    -webkit-box-shadow: 0 8px 0 0 #002880 inset;
+            box-shadow: 0 8px 0 0 #002880 inset;
+    -webkit-transition: box-shadow .321s, color .321s;
+            transition: box-shadow .321s, color .321s;
 }
 
 ul.nav.nav-default>li>a:focus,
 ul.nav.nav-default>li>a:hover {
-    color: #666;
+    color: #fff;
+    -webkit-box-shadow: 0 99px 0 0 #002880 inset;
+            box-shadow: 0 99px 0 0 #002880 inset;
 }
 
 ul.nav.nav-default>li.active>a,
 ul.nav.nav-default>li.active>a:focus,
 ul.nav.nav-default>li.active>a:hover {
-    color: #000;
-    background-color: #fff;
-    border-left: 1px solid #ccc;
-    border-right: 1px solid #ccc;
+    color: #fff  ;
+    font-weight: 600;
+    background-color: #002880;
+    border-left: 1px solid #002880;
+    border-right: 1px solid #002880;
+    margin-bottom: 1px;
+}
+
+ul.nav.nav-default>li[name=account].active {
+    float: right;
+}
+ul.nav.nav-default>li[name=account].active>a {
+    z-index: 99 !important;
+    border-top-right-radius: 0px;
+    border-top-left-radius: 8px;
+}
+ul.nav.nav-default>li[name=account].active::after {
+    content: '';
+    z-index: 98 !important;
+    position: absolute;
+    bottom: -26px;
+    left: 0px;
+    height: 51px;
+    width: 100%;
+    background-color: #002880;
+    border-radius: 8px;
+    -webkit-transform: skew(0deg, 6deg);
+            transform: skew(0deg, 5deg);
+    z-index: -1;
+    right: 0;
 }
 
 div.nav-container {
+    background-color: #fff;
 }
 
 div.nav-container .breadcrumb {
@@ -193,11 +251,13 @@ div.nav-container .breadcrumb {
 
 div.main-container {
     background-color: #fff;
-    border-top: 1px solid #ccc;
-    margin-top: -1px;
+    border-top: 1px solid #002880;
+    margin-top: -2px;
     padding-top: 60px;
     padding-bottom: 90px;
     bottom: 0;
+    -webkit-box-shadow: 0 3px 1px -1px rgba(0,40,128,.125) inset;
+            box-shadow: 0 3px 1px -1px rgba(0,40,128,.125) inset;
 }
 
 table>thead {

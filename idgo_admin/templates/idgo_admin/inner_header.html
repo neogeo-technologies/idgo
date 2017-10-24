@@ -1,17 +1,20 @@
+{% load static %}
 {% load bootstrap3 %}
 
 <span class="title">
-	<a href="{% url "idgo_admin:home" %}" data-toggle="popover" data-placement="right" data-content="Revenir à la page d'accueil">Back-Office IDGO</a>
+	<a href="{% url "idgo_admin:datasets" %}">IDGO</a>
+	<!-- <img src="{# static "img/logo_paca.jpg" #}"/> -->
+	<!-- <img src="{# static "img/logo_crige.jpg" #}"/> -->
 </span>
-<span class="username">{{ first_name}} {{ last_name }}</span>
 <div class="btn-group login">
 	<button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		<span>{{ first_name}} {{ last_name }}</span>
 		<span class="glyphicon glyphicon-user"></span>
 	</button>
 	<ul name="my-account-menu" class="dropdown-menu dropdown-menu-right">
-		<li style="text-align: left"><a href="{% url "idgo_admin:account_manager" process="update" %}">Mon compte</a></li>
-		<li style="text-align: left"><a href="{% url "idgo_admin:organizations" %}">Mes organisations</a></li>
-		<li style="text-align: left"><a href="{% url "idgo_admin:home" %}">Mes jeux de données</a></li>
-		<li style="text-align: left"><a href="{% url "idgo_admin:signOut" %}">Se déconnecter</a></li>
+		<li style="text-align: left"><a href="{% url "idgo_admin:account_manager" process="update" %}">Mes informations personnelles</a></li>
+		<!-- <li style="text-align: left"><a href="{% url "idgo_admin:organizations" %}">Mes organisations</a></li> -->
+		<!-- <li style="text-align: left"><a href="{% url "idgo_admin:datasets" %}">Mes jeux de données</a></li> -->
+		<li style="text-align: left"><a href="{% url "idgo_admin:signOut" %}">Me déconnecter</a></li>
 	</ul>
 </div>

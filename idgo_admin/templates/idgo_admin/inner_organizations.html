@@ -1,6 +1,6 @@
 {% load bootstrap3 %}
 
-<h2 class="modal-title">Mes organisations</h2>
+<!-- <h2 class="modal-title">Mes organisations</h2> -->
 <br />
 
 {% if messages %}
@@ -73,7 +73,7 @@
 </form>
 <br/>
 <div class="buttons-on-the-right-side">
-	<a class="btn btn-default" href="{% url "idgo_admin:home" %}">Revenir</a>
+	<a class="btn btn-default" href="{% url "idgo_admin:datasets" %}">Revenir</a>
 </div>
 <script>
 $(function() {
@@ -325,7 +325,7 @@ $(function() {
 			$containerId.hide();
 		};
 
-		if (data.length == 0 && {{ awaiting_subordinates|safe }}.length == 0)) {
+		if (data.length == 0 && {{ awaiting_subordinates|safe }}.length == 0) {
 			$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes référent d\'aucune organisation.<div/>');
 		};
 	};

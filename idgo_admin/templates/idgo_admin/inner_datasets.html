@@ -12,28 +12,30 @@
 	{% endfor %}
 {% endif %}
 
-<div class="buttons-on-the-right-side">
-	<a name="export-csv" class="btn btn-default">Exporter</a>
-	<a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a>
-</div>
-<div id="table-datasets" class="table-responsive"></div>
-<nav aria-label="Page navigation" style="text-align: center;">
-	<ul id="table-datasets-paginator" class="pagination pagination-sm"></ul>
-</nav>
-<div class="buttons-on-the-right-side">
-	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
-	<div class="btn-group">
-		<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-			Editer <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
-		</button>
-		<ul class="dropdown-menu dropdown-menu-right">
-			<li><a role="button" name="edit-dataset" style="text-align: right;">Editer le jeu de données</a></li>
-			<li><a role="button" name="mdedit-dataset" style="text-align: right;">Editer la fiche de métadonnées INSPIRE</a></li>
-			<li role="separator" class="divider"></li>
-			<li><a role="button" name="publish-dataset" style="text-align: right;">Publier le jeu de données</a></li>
-		</ul>
+<div id="datasets">
+	<div class="buttons-on-the-right-side">
+		<a name="export-csv" class="btn btn-default">Exporter</a>
+		<a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a>
 	</div>
-	<button name="delete-dataset" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+	<div id="table-datasets" class="table-responsive"></div>
+	<nav aria-label="Page navigation" style="text-align: center;">
+		<ul id="table-datasets-paginator" class="pagination pagination-sm"></ul>
+	</nav>
+	<div class="buttons-on-the-right-side">
+		<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
+		<div class="btn-group">
+			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				Editer <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
+			</button>
+			<ul class="dropdown-menu dropdown-menu-right">
+				<li><a role="button" name="edit-dataset" style="text-align: right;">Editer le jeu de données</a></li>
+				<li><a role="button" name="mdedit-dataset" style="text-align: right;">Editer la fiche de métadonnées INSPIRE</a></li>
+				<li role="separator" class="divider"></li>
+				<li><a role="button" name="publish-dataset" style="text-align: right;">Publier le jeu de données</a></li>
+			</ul>
+		</div>
+		<button name="delete-dataset" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+	</div>
 </div>
 
 <script>
@@ -124,7 +126,7 @@ $(function() {
 		.on('click', function(e) {
 			e.preventDefault();
 
-			var $button = $('<button/>')
+			const $button = $('<button/>')
 				.prop('type', 'button')
 				.prop('class', 'btn btn-danger disabled')
 				.prop('disabled', true)
@@ -152,7 +154,7 @@ $(function() {
 					e.stopPropagation();
 				});
 
-			var $input = $('<input/>')
+			const $input = $('<input/>')
 				.prop('type', 'text')
 				.prop('class', 'form-control')
 				.prop('placeholder', 'Nom du jeu de données à supprimer')
@@ -198,7 +200,7 @@ $(function() {
 			e.stopPropagation();
 		});
 
-	var $publishDataset = $('#datasets a[name="publish-dataset"]')
+	let $publishDataset = $('#datasets a[name="publish-dataset"]')
 		.on('click', function(e) {
 			e.preventDefault();
 			closeAllModalDialog();
@@ -223,14 +225,14 @@ $(function() {
 		});
 
 	resourcesGrid.initializeGrid = function() {
-		var grid = resourcesGrid;
-		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button,a[role="button"]');
+		let grid = resourcesGrid;
+		let $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button,a[role="button"]');
 
 		with (this) {
 			tableRendered = function(containerId, className) {
 				this.updatePaginator(grid);
-				for (var i = 0; i < data.length; i ++) {
-					var dataId = data[i].id;
+				for (let i = 0; i < data.length; i ++) {
+					const dataId = data[i].id;
 					if (data[i].columns[8] == 'false') {
 						$row = $(grid.tBody.rows[this.getRowIndex(data[i].id)]);
 						$row.addClass('disabled');
@@ -267,7 +269,7 @@ $(function() {
 					cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
 				}
 			}));
-			var DATE_FORMAT = 'dddd Do MMMM YYYY';
+			const DATE_FORMAT = 'dddd Do MMMM YYYY';
 			setCellRenderer('date_creation', new CellRenderer({
 				render: function(cell, value) {
 					cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
@@ -287,8 +289,8 @@ $(function() {
 	};
 
 	function updateDatasetsGrid(grid, containerId, metadata, data) {
-		var $containerId = $('#' + containerId);
-		var $parent = $($containerId.parent().get(0));
+		let $containerId = $('#' + containerId);
+		let $parent = $($containerId.parent().get(0));
 		$parent.find('div[role="alert"]not:div[name="message-tags"]').remove();
 		$parent.find('button').each(function() {
 			deactivateButton($(this));
@@ -330,8 +332,8 @@ $(function() {
 		DATASETS_CONTAINER,
 		DATASETS_METADATA,
 		(function(data) {
-			var m = [];
-			for (var i = 0; i < data.length; i ++) {
+			const m = [];
+			for (let i = 0; i < data.length; i ++) {
 				m.push({
 					id: i,
 					values: [

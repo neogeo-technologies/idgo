@@ -1,5 +1,16 @@
 {% extends "idgo_admin/base.html" %}
 
+{% block nav_content_extra %}
+<li role="presentation" name="account">
+	<a href="{% url "idgo_admin:account_manager" process="update" %}" role="tab">Mes informations personnelles</a>
+</li>
+{% endblock nav_content_extra %}
+
 {% block main_content %}
 {% include "idgo_admin/inner_modifyaccount.html" %}
+<script>
+$(function() {
+	$('#menu a[href="{% url "idgo_admin:account_manager" process="update" %}"]').parent().addClass('active');
+});
+</script>
 {% endblock main_content %}
