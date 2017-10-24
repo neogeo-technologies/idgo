@@ -70,7 +70,7 @@ def referent_request(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
     process = 'update'
-    subordonates = LiaisonsReferents.get_subordonates(profile=profile)
+    subordinates = LiaisonsReferents.get_subordinates(profile=profile)
 
     if request.method == 'GET':
         return render(
@@ -78,7 +78,7 @@ def referent_request(request):
             {'first_name': user.first_name,
              'last_name': user.last_name,
              'pform': ProfileForm(include={'user': user, 'action': process}),
-             'pub_liste': subordonates})
+             'pub_liste': subordinates})
 
     pform = ProfileForm(
         instance=profile, data=request.POST or None,
