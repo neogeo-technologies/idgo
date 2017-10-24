@@ -114,50 +114,52 @@ def referent_request(request):
 class Contributions(View):
 
     def get(self, request):
-            user = request.user
-            profile = get_object_or_404(Profile, user=user)
+        user = request.user
+        profile = get_object_or_404(Profile, user=user)
 
-            if profile.organisation and profile.membership:
-                organization = profile.organisation.name
-            else:
-                organization = None
+        if profile.organisation and profile.membership:
+            organization = profile.organisation.name
+        else:
+            organization = None
 
-            try:
-                action = AccountActions.objects.get(
-                    action='confirm_rattachement',
-                    profile=profile, closed__isnull=True)
-            except Exception:
-                awaiting_rattachement = None
-            else:
-                awaiting_rattachement = \
-                    action.org_extras.name if action.org_extras else None
+        try:
+            action = AccountActions.objects.get(
+                action='confirm_rattachement',
+                profile=profile, closed__isnull=True)
+        except Exception:
+            awaiting_rattachement = None
+        else:
+            awaiting_rattachement = \
+                action.org_extras.name if action.org_extras else None
 
-            contributions = \
-                [(c.id, c.name) for c
-                    in LiaisonsContributeurs.get_contribs(profile=profile)]
+        contributions = \
+            [(c.id, c.name) for c
+                in LiaisonsContributeurs.get_contribs(profile=profile)]
 
-            awaiting_contributions = \
-                [c.name for c
-                    in LiaisonsContributeurs.get_pending(profile=profile)]
+        awaiting_contributions = \
+            [c.name for c
+                in LiaisonsContributeurs.get_pending(profile=profile)]
 
-            subordinates = \
-                [(c.id, c.name) for c
-                    in LiaisonsReferents.get_subordinates(profile=profile)]
+        subordinates = \
+            [(c.id, c.name) for c
+                in LiaisonsReferents.get_subordinates(profile=profile)]
 
-            awaiting_subordinates = \
-                [c.name for c
-                    in LiaisonsReferents.get_pending(profile=profile)]
+        awaiting_subordinates = \
+            [c.name for c
+                in LiaisonsReferents.get_pending(profile=profile)]
 
-            return render(
-                request, 'idgo_admin/organizations.html',
-                context={'first_name': user.first_name,
-                         'last_name': user.last_name,
-                         'organization': organization,
-                         'awaiting_organization': awaiting_rattachement,
-                         'contributions': json.dumps(contributions),
-                         'awaiting_contributions': awaiting_contributions,
-                         'subordinates': json.dumps(subordinates),
-                         'awaiting_subordinates': awaiting_subordinates})
+        print(contributions, awaiting_contributions)
+
+        return render(
+            request, 'idgo_admin/organizations.html',
+            context={'first_name': user.first_name,
+                     'last_name': user.last_name,
+                     'organization': organization,
+                     'awaiting_organization': awaiting_rattachement,
+                     'contributions': json.dumps(contributions),
+                     'awaiting_contributions': awaiting_contributions,
+                     'subordinates': json.dumps(subordinates),
+                     'awaiting_subordinates': awaiting_subordinates})
 
     def delete(self, request):
 

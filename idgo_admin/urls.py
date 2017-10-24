@@ -18,6 +18,7 @@ from idgo_admin.views.mdedit import MDEdit
 from idgo_admin.views.mdedit import MDEditTplEdit
 from idgo_admin.views.organization_handler import contribution_request
 from idgo_admin.views.organization_handler import Contributions
+from idgo_admin.views.organization_handler import referent_request
 # from idgo_admin.views.organization_handler import Referents
 from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
@@ -43,6 +44,8 @@ urlpatterns = [
     url('^confirmation/contribute/(?P<key>.+)/?$', confirm_contribution, name='confirm_contribution'),
     url('^organizations/contribute/(?P<key>.+)/?$', contribution_request, name='contribute'),
     url('^organizations/contribute/?$', contribution_request, name='contribute'),
+    url('^organizations/supervisor/(?P<key>.+)/?$', referent_request, name='supervisor'),
+    url('^organizations/supervisor/?$', referent_request, name='supervisor'),
     url('^organizations/?$', Contributions.as_view(), name='organizations'),
     url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
     url('^deleteaccount/?$', delete_account, name='deleteAccount')]
