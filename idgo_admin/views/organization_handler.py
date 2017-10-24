@@ -74,7 +74,7 @@ def referent_request(request):
 
     if request.method == 'GET':
         return render(
-            request, 'idgo_admin/contribute.html',
+            request, 'idgo_admin/isreferent.html',
             {'first_name': user.first_name,
              'last_name': user.last_name,
              'pform': ProfileForm(include={'user': user, 'action': process}),
@@ -85,9 +85,10 @@ def referent_request(request):
         include={'user': user, 'action': process})
 
     if not pform.is_valid():
-        return render(request, 'idgo_admin/contribute.html', {'pform': pform})
+        return render(request, 'idgo_admin/isreferent.html', {'pform': pform})
 
     organisation = pform.cleaned_data['referents']
+    print(pform.cleaned_data)
     LiaisonsReferents.objects.create(
         profile=profile, organisation=organisation)
     request_action = AccountActions.objects.create(
@@ -95,23 +96,17 @@ def referent_request(request):
 
     Mail.confirm_referent(request, request_action)
 
-    return render(
-        request, 'idgo_admin/contribute.html',
-        {'first_name': user.first_name,
-         'last_name': user.last_name,
-         'pform': ProfileForm(include={'user': user, 'action': process}),
-         'pub_liste': subordonates,
-         'message': {
-             'status': 'success',
-             'text': (
-                 "Votre demande de contribution à l'organisation "
-                 '<strong>{0}</strong> est en cours de traitement. Celle-ci '
-                 "ne sera effective qu'après validation par un administrateur."
-                 ).format(organisation.name)}})
+    message = ("Votre demande de contribution à l'organisation "
+               '<strong>{0}</strong> est en cours de traitement. Celle-ci '
+               "ne sera effective qu'après validation par un administrateur."
+               ).format(organisation.name)
+    messages.success(request, message)
+
+    return HttpResponseRedirect(reverse('idgo_admin:organizations'))
 
 
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
-class Contributions(View):
+class OrganisationDisplay(View):
 
     def get(self, request):
         user = request.user
@@ -148,8 +143,6 @@ class Contributions(View):
             [c.name for c
                 in LiaisonsReferents.get_pending(profile=profile)]
 
-        print(contributions, awaiting_contributions)
-
         return render(
             request, 'idgo_admin/organizations.html',
             context={'first_name': user.first_name,
@@ -160,6 +153,10 @@ class Contributions(View):
                      'awaiting_contributions': awaiting_contributions,
                      'subordinates': json.dumps(subordinates),
                      'awaiting_subordinates': awaiting_subordinates})
+
+
+@method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
+class Contributions(View):
 
     def delete(self, request):
 
@@ -188,17 +185,17 @@ class Contributions(View):
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
 class Referents(View):
 
-    def get(self, request):
-            user = request.user
-            profile = get_object_or_404(Profile, user=user)
-            my_subordinates = LiaisonsReferents.get_contribs(profile=profile)
-            referents_tup = [(c.id, c.name) for c in my_subordinates]
-
-            return render(
-                request, 'idgo_admin/referents.html',
-                context={'first_name': user.first_name,
-                         'last_name': user.last_name,
-                         'referents': json.dumps(referents_tup)})
+    # def get(self, request):
+    #     user = request.user
+    #     profile = get_object_or_404(Profile, user=user)
+    #     my_subordinates = LiaisonsReferents.get_subordinates(profile=profile)
+    #     referents_tup = [(c.id, c.name) for c in my_subordinates]
+    #
+    #     return render(
+    #         request, 'idgo_admin/referents.html',
+    #         context={'first_name': user.first_name,
+    #                  'last_name': user.last_name,
+    #                  'referents': json.dumps(referents_tup)})
 
     def delete(self, request):
 

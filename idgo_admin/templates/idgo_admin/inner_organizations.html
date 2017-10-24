@@ -45,7 +45,7 @@
 			</nav>
 			<div class="buttons-on-the-right-side">
 				<button name="unsubscribe" class="btn btn-sm btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Demander à ne plus être référent</span></button>
-				<a class="btn btn-sm btn-default" href="{% url "idgo_admin:supervisor" %}">Nouvelle demande de status de référent</a>
+				<a class="btn btn-sm btn-default" href="{% url "idgo_admin:referent" %}">Nouvelle demande de status de référent</a>
 			</div>
 		</div>
 	</div>
@@ -127,7 +127,7 @@ $(function() {
 					$.ajax({
 						type: 'DELETE',
 						// success: function() {},
-						url: '{% url "idgo_admin:organizations" %}' + '?id=' + organizationsGrid.getRowValues(organizationsGrid.lastSelectedRowIndex)['id']
+						url: '{% url "idgo_admin:unsuscribe_contribution" %}' + '?id=' + organizationsGrid.getRowValues(organizationsGrid.lastSelectedRowIndex)['id']
 					})
 					.done(function(response, textStatus, jqXHR) {
 						location.reload();
@@ -191,7 +191,7 @@ $(function() {
 						$.ajax({
 							type: 'DELETE',
 							// success: function() {},
-							url: '{# url "idgo_admin:referent" #}' + '?id=' + subordinatesGrid.getRowValues(subordinatesGrid.lastSelectedRowIndex)['id']
+							url: '{# url "idgo_admin:unsuscribe_referent" #}' + '?id=' + subordinatesGrid.getRowValues(subordinatesGrid.lastSelectedRowIndex)['id']
 						})
 						.done(function(response, textStatus, jqXHR) {
 							location.reload();
