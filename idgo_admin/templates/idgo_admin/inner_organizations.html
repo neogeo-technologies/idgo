@@ -37,14 +37,14 @@
 		</div>
 		<div class="panel-body">
 			{% if awaiting_subordinates %}
-			<div class="alert alert-info">>Demande(s) de status de référent en attente de validation pour : {% for organization in awaiting_subordinates %}<strong class="comma-separated-list">{{ organization }}</strong>{% endfor %}</div>
+			<div class="alert alert-info">Demande(s) de status de référent en attente de validation pour : {% for organization in awaiting_subordinates %}<strong class="comma-separated-list">{{ organization }}</strong>{% endfor %}</div>
 			{% endif %}
 			<div id="table-subordinates" class="table-responsive"></div>
 			<nav aria-label="Page navigation" style="text-align: center;">
 				<ul id="table-subordinates-paginator" class="pagination pagination-sm"></ul>
 			</nav>
 			<div class="buttons-on-the-right-side">
-				<button name="unsubscribe" class="btn btn-sm btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Demander à ne plus être référent</span></button>
+				<button name="unsubscribe" class="btn btn-sm btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus être référent</span></button>
 				<a class="btn btn-sm btn-default" href="{% url "idgo_admin:referent" %}">Nouvelle demande de status de référent</a>
 			</div>
 		</div>
@@ -191,7 +191,7 @@ $(function() {
 						$.ajax({
 							type: 'DELETE',
 							// success: function() {},
-							url: '{# url "idgo_admin:unsuscribe_referent" #}' + '?id=' + subordinatesGrid.getRowValues(subordinatesGrid.lastSelectedRowIndex)['id']
+							url: '{% url "idgo_admin:unsuscribe_referent" %}' + '?id=' + subordinatesGrid.getRowValues(subordinatesGrid.lastSelectedRowIndex)['id']
 						})
 						.done(function(response, textStatus, jqXHR) {
 							location.reload();
@@ -325,7 +325,7 @@ $(function() {
 			$containerId.hide();
 		};
 
-		if (data.length == 0) {
+		if (data.length == 0 && {{ awaiting_subordinates|safe }}.length == 0)) {
 			$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes référent d\'aucune organisation.<div/>');
 		};
 	};
