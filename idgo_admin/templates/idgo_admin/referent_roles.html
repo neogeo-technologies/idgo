@@ -1,10 +1,10 @@
 {% extends "idgo_admin/base.html" %}
 
 {% block main_content %}
-{% include "idgo_admin/inner_referent_datasets.html" %}
+{% include "idgo_admin/inner_referent_roles.html" %}
 <script>
 $(function() {
-	$('#menu a[href="{% url "idgo_admin:referent_datasets" %}"]').parent().addClass('active');
+	$('#menu a[href="{% url "idgo_admin:referent_roles" %}"]').parent().addClass('active');
 });
 </script>
 {% endblock main_content %}

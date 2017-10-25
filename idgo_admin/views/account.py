@@ -476,17 +476,20 @@ def referent_roles(request):
         p.pk,
         p.user.first_name,
         p.user.last_name,
-        p.user.username
+        p.user.username,
+        p.organisation.name,
         )for p in Profile.objects.filter(
             organisation__in=my_subordinates, membership=True)]
 
-    contributors = [(
-        p.pk,
-        p.user.first_name,
-        p.user.last_name,
-        p.user.username
-        )for p in LiaisonsContributeurs.get_contributors(
-            organisation__in=my_subordinates)]
+    contributors = {}
+    for orga in my_subordinates:
+        contributors[str(orga.name)] = [(
+            p.pk,
+            p.user.first_name,
+            p.user.last_name,
+            p.user.username,
+            p.organisation.name,
+            )for p in LiaisonsContributeurs.get_contributors(orga)]
 
     return render(request, 'idgo_admin/referent_roles.html',
                   {'first_name': user.first_name,

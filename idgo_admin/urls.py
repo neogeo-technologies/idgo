@@ -31,7 +31,7 @@ from idgo_admin.views.stuffs import DisplayLicenses
 urlpatterns = [
     url('^dataset/?$', DatasetManager.as_view(), name='dataset'),
     url('^referent/dataset/?$', referent_datasets, name='referent_datasets'),
-    url('^referent/role/?$', referent_roles, name='roles'),
+    url('^referent/role/?$', referent_roles, name='referent_roles'),
     url('^referent/dataset/edit?$', ReferentDatasetManager.as_view(), name='referent_dataset_edit'),
     url('^dataset/(?P<dataset_id>(\d+))/resources/?$', ResourceManager.as_view(), name='resource'),
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/?$', MDEdit.as_view(), name='mdedit'),
