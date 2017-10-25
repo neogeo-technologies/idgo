@@ -218,7 +218,7 @@ class AccountManager(View):
         if process == "update":
             Mail.confirm_contribution(request, contribution_action)
 
-    def good_response(self, request, process):
+    def contextual_response(self, request, process):
         if process == "create":
             message = ('Votre compte a bien été créé. Vous recevrez un e-mail '
                        "de confirmation d'ici quelques minutes. Pour activer "
@@ -343,7 +343,7 @@ class AccountManager(View):
             if process == "create":
                 ckan.add_user(user, uform.cleaned_data['password1'])
                 self.signup_process(request, profile)
-            return self.good_response(request, process)
+            return self.contextual_response(request, process)
 
 
 @csrf_exempt

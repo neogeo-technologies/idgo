@@ -330,7 +330,7 @@ class LiaisonsReferents(models.Model):
         verbose_name="Date de validation de l'action", blank=True, null=True)
 
     class Meta(object):
-        unique_together = (('profile', 'organisation'),)
+        unique_together = (('profile', 'validated_on'),)
 
     @classmethod
     def get_subordinates(cls, profile):

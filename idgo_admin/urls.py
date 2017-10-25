@@ -21,6 +21,7 @@ from idgo_admin.views.mdedit import MDEdit
 from idgo_admin.views.mdedit import MDEditTplEdit
 from idgo_admin.views.organization_handler import contribution_request
 from idgo_admin.views.organization_handler import OrganisationDisplay
+from idgo_admin.views.organization_handler import OrganisationManager
 from idgo_admin.views.organization_handler import referent_request
 from idgo_admin.views.organization_handler import Contributions
 from idgo_admin.views.organization_handler import Referents
@@ -54,6 +55,7 @@ urlpatterns = [
     url('^unsuscribe/referent/?$', Referents.as_view(), name='unsuscribe_referent'),
     url('^organizations/contribute/?$', contribution_request, name='contribute'),
     url('^organizations/referent/?$', referent_request, name='referent'),
+    url('^organizations/myorganization?$', OrganisationManager.as_view(), name='organizations'),
     url('^organizations/?$', OrganisationDisplay.as_view(), name='organizations'),
     url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
     url('^deleteaccount/?$', delete_account, name='deleteAccount')]

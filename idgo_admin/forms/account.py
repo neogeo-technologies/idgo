@@ -287,7 +287,12 @@ class ProfileForm(forms.ModelForm):
                   'new_orga', 'website']
 
         if self.cleaned_data.get('referent_requested'):
+            # TODO: integrer avec la nouvelle vue de gestion des organisation
+            if self.cleaned_data.get('referent') != self._profile.organisation:
+                self.add_error('referent_requested', "Vous devez etre rattaché à l'organisation pour en être référent")
+                raise ValidationError('ReferentOrganisationError')
             self.cleaned_data['referent_requested'] = True
+
         if self.cleaned_data.get('contribution_requested'):
             self.cleaned_data['contribution_requested'] = True
         if self.cleaned_data['new_orga']:
@@ -312,11 +317,15 @@ class ProfileForm(forms.ModelForm):
 
         organisation = self.cleaned_data.get('organisation')
 
-        if not organisation:  # TODO
+        if not organisation:  # TODO cf if self.cleaned_data.get('referent_requested'):
+            # if self.cleaned_data.get('referent') != self._profile.organisation:
+            #     # self.add_error('referent', "Vous devez etre rattaché à l'organisation pour en être référent")
+            #     raise ValidationError('ReferentOrganisationError')
             self.cleaned_data['mode'] = 'no_organization_please'
             return self.cleaned_data
 
         if self.include_args['action'] == 'update':
+
             if organisation != self._profile.organisation:
                 self.cleaned_data['mode'] = 'change_organization'
                 return self.cleaned_data
@@ -366,3 +375,27 @@ class UserDeleteForm(AuthenticationForm):
     class Meta(object):
         model = User
         fields = ('username', 'password')
+
+
+class LiaisonsReferentsForm(forms.ModelForm):
+
+    class Meta(object):
+        model = LiaisonsReferents
+        fields = ('profile', 'organisation')
+
+    def __init__(self, *args, **kwargs):
+
+        self.include_args = kwargs.pop('include', {})
+        super().__init__(*args, **kwargs)
+
+        if self.include_args['action'] == 'update':
+            self._profile = Profile.objects.get(user=self.include_args['user'])
+
+    def clean(self):
+
+        if self.include_args['action'] == 'update':
+            # TODO: integrer avec la nouvelle vue de gestion des organisation
+            if self.cleaned_data.get('referent') != self._profile.organisation:
+                self.add_error('referent_requested', "Vous devez etre rattaché à l'organisation pour en être référent")
+                raise ValidationError('ReferentOrganisationError')
+            self.cleaned_data['referent_requested'] = True
