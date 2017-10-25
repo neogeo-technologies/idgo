@@ -1,14 +1,14 @@
 {% extends "idgo_admin/base.html" %}
 
-{% block nav_content %}
+{% block breadcrumb_content %}
 <ol class="breadcrumb">
+	<li><a href="{# url "idgo_admin:home" #}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>
 	<li><a href="{% url "idgo_admin:datasets" %}">Mes jeux de données</a></li>
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">{{ dataset_name }}</a></li>
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">ressources</a></li>
 	<li class="active">{{ resource_name }}</li>
 </ol>
-{% endblock nav_content %}
-
+{% endblock breadcrumb_content %}
 {% block main_content %}
 {% include "idgo_admin/inner_resource.html" %}
 {% endblock main_content %}
