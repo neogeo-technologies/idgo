@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db import transaction
+from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
@@ -28,6 +29,7 @@ from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
+import json
 from mama_cas.compat import is_authenticated as mama_is_authenticated
 from mama_cas.models import ProxyGrantingTicket as MamaProxyGrantingTicket
 from mama_cas.models import ProxyTicket as MamaProxyTicket
@@ -434,7 +436,6 @@ def delete_account(request):
                        'last_name': user.last_name,
                        'uform': UserDeleteForm()})
 
-    user = request.user
     uform = UserDeleteForm(data=request.POST)
     if not uform.is_valid():
         return render(request, 'idgo_admin/deleteaccount.html',
@@ -453,4 +454,45 @@ def delete_account(request):
 
     return render(request, 'idgo_admin/message.html',
                   context={'message': 'Votre compte a été supprimé.'},
+                  status=200)
+
+
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def referent_roles(request):
+
+    user = request.user
+    profile = get_object_or_404(Profile, user=user)
+
+    if not profile.referents:
+        raise Http404
+    my_subordinates = \
+        LiaisonsReferents.get_subordinates(profile=profile)
+    awaiting_subordinates = \
+        [c.name for c
+            in LiaisonsReferents.get_pending(profile=profile)]
+
+    members = [(
+        p.pk,
+        p.user.first_name,
+        p.user.last_name,
+        p.user.username
+        )for p in Profile.objects.filter(
+            organisation__in=my_subordinates, membership=True)]
+
+    contributors = [(
+        p.pk,
+        p.user.first_name,
+        p.user.last_name,
+        p.user.username
+        )for p in LiaisonsContributeurs.get_contributors(
+            organisation__in=my_subordinates)]
+
+    return render(request, 'idgo_admin/referent_roles.html',
+                  {'first_name': user.first_name,
+                   'last_name': user.last_name,
+                   'members': json.dumps(members),
+                   'contributors': json.dumps(contributors),
+                   'is_referent': json.dumps(len(my_subordinates) > 0),
+                   'awaiting_subordinates': awaiting_subordinates},
                   status=200)

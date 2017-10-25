@@ -52,7 +52,7 @@ class ResourceManager(View):
         user = request.user
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
 
-        if not dataset.is_profile_allowed(get_object_or_404(Profile, user=user)):
+        if not dataset.is_contributor(get_object_or_404(Profile, user=user)):
             # return HttpResponseForbidden("L'accès à ce jeu de données est réservé")
             raise Http404
 
@@ -103,7 +103,7 @@ class ResourceManager(View):
         user = request.user
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
 
-        if not dataset.is_profile_allowed(get_object_or_404(Profile, user=user)):
+        if not dataset.is_contributor(get_object_or_404(Profile, user=user)):
             # return HttpResponseForbidden("L'accès à cette ressource est réservé")
             raise Http404
 
@@ -181,7 +181,7 @@ class ResourceManager(View):
 
         user = request.user
         dataset = get_object_or_404(Dataset, id=dataset_id)
-        if not dataset.is_profile_allowed(get_object_or_404(Profile, user=user)):
+        if not dataset.is_contributor(get_object_or_404(Profile, user=user)):
             # return HttpResponseForbidden("L'accès à cette ressource est réservé")
             raise Http404
 

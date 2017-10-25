@@ -914,10 +914,17 @@ class Dataset(models.Model):
         verbose_name = "Jeu de données"
         verbose_name_plural = "Jeux de données"
 
-    def is_profile_allowed(self, profile):
-        return LiaisonsContributeurs.objects.filter(
+    def is_contributor(self, profile):
+        res = LiaisonsContributeurs.objects.filter(
             profile=profile, organisation=self.organisation,
             validated_on__isnull=False).exists()
+        return res
+
+    def is_referent(self, profile):
+        res = LiaisonsReferents.objects.filter(
+            profile=profile, organisation=self.organisation,
+            validated_on__isnull=False).exists()
+        return res
 
 
 # Triggers
