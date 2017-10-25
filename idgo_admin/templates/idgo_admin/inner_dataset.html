@@ -102,8 +102,10 @@
 		</div>
 	</div>
 	<div class="buttons-on-the-right-side">
+		{% if dataset_id|safe %}
+		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}">Annuler</a>
+		{% endif %}
 		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
-		<a class="btn btn-default" href="{% url "idgo_admin:datasets" %}">Revenir</a>
 	</div>
 </form>
 <script>

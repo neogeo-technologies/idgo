@@ -67,7 +67,7 @@ var deactivateButton = function($btn) {
 		<div class="page-header">
 			<div class="container">
 				<div class="row">
-					<div class="col-md-offset-1 col-md-10">
+					<div class="col-md-12">
 						{% block header_content %}
 						{% include "idgo_admin/inner_header.html" %}
 						{% endblock header_content %}
@@ -80,12 +80,17 @@ var deactivateButton = function($btn) {
 		<div class="nav-container">
 			<div class="container">
 				<div class="row">
-					<div class="col-md-offset-1 col-md-10">
+					<div class="col-md-12">
 						{% block nav_content %}
 						<ul id="menu" class="nav nav-default" role="tablist">
 							<li role="presentation">
 								<a href="{% url "idgo_admin:datasets" %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
 							</li>
+							{# if is_referent #}
+							<li role="presentation">
+								<a href="{% url "idgo_admin:referent_datasets" %}" aria-controls="referent" role="tab">Big Brother {# organization #}<span></a>
+							</li>
+							{# endif #}
 							<li role="presentation">
 								<a href="{% url "idgo_admin:organizations" %}" aria-controls="organizations" role="tab">Mes organisations</a>
 							</li>
@@ -102,7 +107,7 @@ var deactivateButton = function($btn) {
 		<div class="breadcrumb-container">
 			<div class="container">
 				<div class="row">
-					<div class="col-md-offset-1 col-md-10">
+					<div class="col-md-12">
 						{% block breadcrumb_content %}
 						{% endblock breadcrumb_content %}
 					</div>
@@ -114,7 +119,7 @@ var deactivateButton = function($btn) {
 		<div class="main-container">
 			<div class="container">
 				<div class="row">
-					<div class="col-md-offset-1 col-md-10">
+					<div class="col-md-12">
 						{% block main_content %}
 						{% endblock main_content %}
 					</div>

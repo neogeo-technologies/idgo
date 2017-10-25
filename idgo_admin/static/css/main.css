@@ -14,7 +14,6 @@ a.small-link {
 
 html {
     min-width: 767px;
-
 }
 
 body {
@@ -134,7 +133,7 @@ div.page-header .login {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    right: 0;
+    right: 15px;
     color: #aaa;
     -webkit-transition: color .123s, border-color .123s;
             transition: color .123s, border-color .123s;
@@ -178,9 +177,12 @@ div.page-header .login button:hover {
     color: inherit;
 }
 
-
 ul.nav.nav-default>li {
     float: left;
+}
+
+ul.nav.nav-default>li:not(:last-child) {
+    margin-right: 4px;
 }
 
 ul.nav.nav-default>li>a {
@@ -192,7 +194,7 @@ ul.nav.nav-default>li>a {
     border-right: -1px solid transparent;
     background: transparent;
     color: #002880;
-    font-weight: normal;
+    font-weight: 600;
     font-variant: small-caps;
     font-size: 1.333em;
     -webkit-box-shadow: 0 8px 0 0 #002880 inset;
@@ -222,9 +224,11 @@ ul.nav.nav-default>li.active>a:hover {
 ul.nav.nav-default>li[name=account].active {
     float: right;
 }
+
 ul.nav.nav-default>li[name=account].active>a {
     z-index: 1;
 }
+
 ul.nav.nav-default>li[name=account].active::after {
     z-index: 0;
     content: '';
@@ -278,7 +282,7 @@ div.main-container {
     background-color: #fff;
     /*border-top: 1px solid #002880;*/
     /*margin-top: -2px;*/
-    padding-top: 30px;
+    padding-top: 60px;
     padding-bottom: 90px;
     bottom: 0;
 }

@@ -227,7 +227,15 @@ class AccountManager(View):
 
             return render(request, 'idgo_admin/message.html',
                           {'message': message}, status=200)
-        else:
+
+        if process == "update_organization":
+            messages.success(
+                request, 'Les informations de votre profil sont à jour.')
+
+            return HttpResponseRedirect(reverse('idgo_admin:my_organization',
+                                                kwargs={'process': 'update'}))
+
+        if process == "update":
             messages.success(
                 request, 'Les informations de votre profil sont à jour.')
 
@@ -248,7 +256,25 @@ class AccountManager(View):
                           {'uform': UserForm(include={'action': process}),
                            'pform': ProfileForm(include={'action': process})})
 
-        elif process == "update":
+        if process == "update_organization":
+            user = request.user
+            if user.is_anonymous:
+                return HttpResponseRedirect(reverse('idgo_admin:signIn'))
+            profile = get_object_or_404(Profile, user=user)
+            contribs = LiaisonsContributeurs.get_contribs(profile)
+            pending = LiaisonsContributeurs.get_pending(profile=profile)
+            return render(request, 'idgo_admin/myorganization.html',
+                          {'first_name': user.first_name,
+                           'last_name': user.last_name,
+                           'contribs': [c.id for c in contribs],
+                           'pending': [[p.id, p.name] for p in pending],
+                           'uform': UserForm(instance=user,
+                                             include={'action': process}),
+                           'pform': ProfileForm(instance=profile,
+                                                include={'user': user,
+                                                         'action': process})})
+
+        if process == "update":
             user = request.user
             if user.is_anonymous:
                 return HttpResponseRedirect(reverse('idgo_admin:signIn'))
@@ -288,7 +314,13 @@ class AccountManager(View):
             if process == "create":
                 return render(request, 'idgo_admin/signup.html',
                               {'uform': uform, 'pform': pform})
-            elif process == "update":
+            if process == "update_organization":
+                return render(request, 'idgo_admin/myorganization.html',
+                              {'first_name': user.first_name,
+                               'last_name': user.last_name,
+                               'uform': uform,
+                               'pform': pform})
+            if process == "update":
                 return render(request, 'idgo_admin/modifyaccount.html',
                               {'first_name': user.first_name,
                                'last_name': user.last_name,
@@ -311,7 +343,7 @@ class AccountManager(View):
                     request,
                     uform.cleaned_data,
                     pform.cleaned_data, user, profile, process)
-                if process == "update":
+                if process in ("update", "update_organization"):
                     ckan.update_user(user)
 
         except ValidationError as e:
@@ -322,10 +354,17 @@ class AccountManager(View):
                                'last_name': user.last_name,
                                'uform': uform,
                                'pform': pform})
+            if process == "update_organization":
+                ckan.update_user(User.objects.get(username=user.username))
+                return render(request, 'idgo_admin/modifyaccount.html',
+                              {'first_name': user.first_name,
+                               'last_name': user.last_name,
+                               'uform': uform,
+                               'pform': pform})
             raise e
 
         except Exception as e:
-            if process == "update":
+            if process in ("update", "update_organization"):
                 ckan.update_user(User.objects.get(username=user.username))
                 messages.error(
                     request, 'Une erreur est survenue lors de la modification de votre compte.')

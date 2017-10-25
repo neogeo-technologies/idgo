@@ -460,24 +460,21 @@ def referent_datasets(request):
         o.date_creation.isoformat() if o.date_creation else None,
         o.date_modification.isoformat() if o.date_modification else None,
         o.date_publication.isoformat() if o.date_publication else None,
-        Organisation.objects.get(id=o.organisation_id).name,
+        o.editor.get_full_name() if o.editor != user else 'Moi',
         o.published,
         o.is_inspire,
         o.ckan_slug,
         profile in LiaisonsContributeurs.get_contributors(o.organisation)
-        ) for o in Dataset.objects.filter(organisation__in=my_subordinates)]
+        ) for o in Dataset.objects.filter(organisation__in=my_subordinates) if o.editor != user]
 
-    awaiting_subordinates = \
-        [c.name for c
-            in LiaisonsReferents.get_pending(profile=profile)]
+    print(datasets)
 
     return render(request, 'idgo_admin/referent_datasets.html',
                   {'ckan_url': CKAN_URL,
                    'first_name': user.first_name,
                    'last_name': user.last_name,
                    'datasets': json.dumps(datasets),
-                   'is_referent': json.dumps(len(my_subordinates) > 0),
-                   'awaiting_subordinates': awaiting_subordinates},
+                   'is_referent': json.dumps(len(my_subordinates) > 0)},
                   status=200)
 
 

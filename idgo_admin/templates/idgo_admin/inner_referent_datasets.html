@@ -15,7 +15,6 @@
 <div id="datasets">
 	<div class="buttons-on-the-right-side">
 		<a name="export-csv" class="btn btn-default">Exporter</a>
-		<a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a>
 	</div>
 	<div id="table-datasets" class="table-responsive"></div>
 	<nav aria-label="Page navigation" style="text-align: center;">
@@ -43,10 +42,7 @@ $(function() {
 	var CKAN_URL = '{{ ckan_url }}';
 	var DATASET_URL = '{% url "idgo_admin:dataset" %}';
 	var ACTION_URL = '{% url "idgo_admin:action" %}';
-	var CONTRIBUTE_URL = '{% url "idgo_admin:contribute" %}';
 	var DATASETS = {{ datasets | safe }};
-	var IS_CONTRIBUTOR = {{ is_referent | safe }};
-	var AWAITING_CONTRIBUTIONS = {{ awaiting_subordinates | safe }};
 	var DATASETS_CONTAINER = 'table-datasets';
 	var DATASETS_METADATA = [
 		{
@@ -70,8 +66,8 @@ $(function() {
 			editable: false,
 			datatype: 'string'
 		}, {
-			name: 'organization',
-			label: 'Organisation',
+			name: 'editor',
+			label: 'Editeur',
 			editable: false,
 			datatype: 'string'
 		}, {
@@ -304,27 +300,6 @@ $(function() {
 		} else {
 			$containerId.hide();
 		};
-
-		if (!IS_CONTRIBUTOR) {
-			$parent.find('button.btn, a.btn').each(function() {
-				deactivateButton($(this));
-				$(this).hide();
-			});
-			$containerId.parent().before('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez <a href="' + CONTRIBUTE_URL + '">ajouter une organisation à laquelle contribuer</a>.');
-		};
-
-		if (data.length == 0 && IS_CONTRIBUTOR) {
-			$parent.find('button.btn, a.btn').each(function() {
-				deactivateButton($(this));
-				$(this).hide();
-			});
-			$containerId.parent().after('<div role="alert" class="alert alert-warning"><p>Vous n\'avez aucun jeu de données. <a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a> pour commencer.</p><div/>');
-		};
-
-		if (AWAITING_CONTRIBUTIONS.length > 0) {
-			$containerId.parent().before('<div class="alert alert-info">Demande(s) de contribution en attente de validation pour : <strong class="comma-separated-list">' + AWAITING_CONTRIBUTIONS.join(', ') + '</strong></div>');
-		};
-
 	};
 
 	updateDatasetsGrid(
