@@ -55,7 +55,12 @@ class UserForm(forms.ModelForm):
                     attrs={'placeholder': 'Confirmez le nouveau mot de passe'}))
 
         if self.include_args['action'] == "update_organization":
-            return
+            self.fields['username'].required = False
+            self.fields['last_name'].required = False
+            self.fields['first_name'].required = False
+            self.fields['email'].required = False
+            self.fields['password1'].required = False
+            self.fields['password2'].required = False
 
     def clean(self):
         if self.include_args['action'] == "update_organization":
