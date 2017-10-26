@@ -331,10 +331,7 @@ class ProfileForm(forms.ModelForm):
 
         organisation = self.cleaned_data.get('organisation')
 
-        if not organisation:  # TODO cf if self.cleaned_data.get('referent_requested'):
-            # if self.cleaned_data.get('referent') != self._profile.organisation:
-            #     # self.add_error('referent', "Vous devez etre rattaché à l'organisation pour en être référent")
-            #     raise ValidationError('ReferentOrganisationError')
+        if not organisation:  # TODO
             self.cleaned_data['mode'] = 'no_organization_please'
             return self.cleaned_data
 

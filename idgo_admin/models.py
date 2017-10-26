@@ -307,6 +307,10 @@ class Profile(models.Model):
         verbose_name="Etat de rattachement profile-organisation d'appartenance",
         default=False)
 
+    is_admin = models.BooleanField(
+        verbose_name="Administrateur IDGO",
+        default=False)
+
     def __str__(self):
         return self.user.username
 
@@ -329,7 +333,7 @@ class LiaisonsReferents(models.Model):
         verbose_name="Date de validation de l'action", blank=True, null=True)
 
     class Meta(object):
-        unique_together = (('profile', 'validated_on'),)
+        unique_together = (('profile', 'organisation'),)
 
     @classmethod
     def get_subordinates(cls, profile):
