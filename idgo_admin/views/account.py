@@ -305,8 +305,6 @@ class AccountManager(View):
                                          'action': process})
             uform = UserForm(data=request.POST, instance=user, include={'action': process})
 
-        import pdb; pdb.set_trace()
-
         if not uform.is_valid() or not pform.is_valid():
             if process == "create":
                 return render(request, self.contextual_template(process),
