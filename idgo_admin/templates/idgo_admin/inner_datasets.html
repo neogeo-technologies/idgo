@@ -45,7 +45,7 @@ $(function() {
 	var ACTION_URL = '{% url "idgo_admin:action" %}';
 	var CONTRIBUTE_URL = '{% url "idgo_admin:contribute" %}';
 	var DATASETS = {{ datasets | safe }};
-	var IS_CONTRIBUTOR = {{ is_contributor | safe }};
+	var IS_CONTRIBUTOR = {{ is_contributor | yesno:"true,false,none" }};
 	var AWAITING_CONTRIBUTIONS = {{ awaiting_contributions | safe }};
 	var DATASETS_CONTAINER = 'table-datasets';
 	var DATASETS_METADATA = [

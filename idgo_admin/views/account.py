@@ -29,6 +29,7 @@ from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
+from idgo_admin.shortcuts import render_with_info_profile
 import json
 from mama_cas.compat import is_authenticated as mama_is_authenticated
 from mama_cas.models import ProxyGrantingTicket as MamaProxyGrantingTicket
@@ -242,15 +243,13 @@ class AccountManager(View):
                                                 kwargs={'process': 'update'}))
 
     def contextual_template(self, process):
-        d = {}
-        d['create'] = 'idgo_admin/signup.html'
-        d['update'] = 'idgo_admin/modifyaccount.html'
-        d['update_organization'] = 'idgo_admin/myorganization.html'
-        return d.get(process)
+        return {'create': 'idgo_admin/signup.html',
+                'update': 'idgo_admin/modifyaccount.html',
+                'update_organization': 'idgo_admin/myorganization.html'}.get(process)
 
     def render_on_error(self, request, html_template, uform, pform):
-        return render(request, html_template,
-                      {'uform': uform, 'pform': pform})
+        return render_with_info_profile(
+            request, html_template, {'uform': uform, 'pform': pform})
 
     def rewind_ckan(self, username):
         ckan.update_user(User.objects.get(username=username))
@@ -258,9 +257,10 @@ class AccountManager(View):
     def get(self, request, process):
 
         if process == "create":
-            return render(request, self.contextual_template(process),
-                          {'uform': UserForm(include={'action': process}),
-                           'pform': ProfileForm(include={'action': process})})
+            return render_with_info_profile(
+                request, self.contextual_template(process),
+                {'uform': UserForm(include={'action': process}),
+                 'pform': ProfileForm(include={'action': process})})
 
         elif process in ("update", "update_organization"):
 
@@ -269,22 +269,11 @@ class AccountManager(View):
                 return HttpResponseRedirect(reverse('idgo_admin:signIn'))
 
             profile = get_object_or_404(Profile, user=user)
-            contribs = LiaisonsContributeurs.get_contribs(profile)
-            pending = LiaisonsContributeurs.get_pending(profile=profile)
-            subordinates = LiaisonsReferents.get_subordinates(profile)
-            awaiting_subordinates = LiaisonsReferents.get_pending(profile)
-            return render(request, self.contextual_template(process),
-                          {'first_name': user.first_name,
-                           'last_name': user.last_name,
-                           'contribs': [c.id for c in contribs],
-                           'pending': [[p.id, p.name] for p in pending],
-                           'subordinates': [[o.id, o.name] for o in subordinates],
-                           'awaiting_subordinates': [[o.id, o.name] for o in awaiting_subordinates],
-                           'uform': UserForm(instance=user,
-                                             include={'action': process}),
-                           'pform': ProfileForm(instance=profile,
-                                                include={'user': user,
-                                                         'action': process})})
+
+            return render_with_info_profile(
+                request, self.contextual_template(process),
+                {'uform': UserForm(instance=user, include={'action': process}),
+                 'pform': ProfileForm(instance=profile, include={'user': user, 'action': process})})
 
     @transaction.atomic
     def post(self, request, process):
@@ -307,21 +296,20 @@ class AccountManager(View):
 
         if not uform.is_valid() or not pform.is_valid():
             if process == "create":
-                return render(request, self.contextual_template(process),
-                              {'uform': uform, 'pform': pform})
+                return render_with_info_profile(
+                    request, self.contextual_template(process),
+                    {'uform': uform, 'pform': pform})
             if process in ("update", "update_organization"):
-                return render(request, self.contextual_template(process),
-                              {'first_name': user.first_name,
-                               'last_name': user.last_name,
-                               'uform': uform,
-                               'pform': pform})
+                return render_with_info_profile(
+                    request, self.contextual_template(process),
+                    {'uform': uform, 'pform': pform})
 
         if process == "create":
             if ckan.is_user_exists(uform.cleaned_data['username']):
                 uform.add_error('username',
                                 'Cet identifiant de connexion est réservé.')
-                return self.render_on_error(request, self.contextual_template(process),
-                                            uform, pform)
+                return self.render_on_error(
+                    request, self.contextual_template(process), uform, pform)
 
             user, profile = self.create_account(uform.cleaned_data,
                                                 pform.cleaned_data)
@@ -338,11 +326,9 @@ class AccountManager(View):
         except ValidationError as e:
             if process in ("update", "update_organization"):
                 ckan.update_user(User.objects.get(username=user.username))
-                return render(request, self.contextual_template(process),
-                              {'first_name': user.first_name,
-                               'last_name': user.last_name,
-                               'uform': uform,
-                               'pform': pform})
+                return render_with_info_profile(
+                    request, self.contextual_template(process),
+                    {'uform': uform, 'pform': pform})
             raise e
 
         except Exception as e:
@@ -452,17 +438,14 @@ def delete_account(request):
 
     user = request.user
     if request.method == 'GET':
-        return render(request, 'idgo_admin/deleteaccount.html',
-                      {'first_name': user.first_name,
-                       'last_name': user.last_name,
-                       'uform': UserDeleteForm()})
+        return render_with_info_profile(
+            request, 'idgo_admin/deleteaccount.html',
+            {'uform': UserDeleteForm()})
 
     uform = UserDeleteForm(data=request.POST)
     if not uform.is_valid():
-        return render(request, 'idgo_admin/deleteaccount.html',
-                      {'first_name': user.first_name,
-                       'last_name': user.last_name,
-                       'uform': uform})
+        return render_with_info_profile(
+            request, 'idgo_admin/deleteaccount.html', {'uform': uform})
 
     user_data_copy = {'last_name': user.last_name,
                       'first_name': user.first_name,
@@ -473,9 +456,8 @@ def delete_account(request):
 
     Mail.conf_deleting_profile_to_user(user_data_copy)
 
-    return render(request, 'idgo_admin/message.html',
-                  context={'message': 'Votre compte a été supprimé.'},
-                  status=200)
+    return render(request, 'idgo_admin/message.html', status=200,
+                  context={'message': 'Votre compte a été supprimé.'})
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -487,11 +469,8 @@ def referent_roles(request):
 
     if not profile.referents:
         raise Http404
-    my_subordinates = \
-        LiaisonsReferents.get_subordinates(profile=profile)
-    awaiting_subordinates = \
-        [c.name for c
-            in LiaisonsReferents.get_pending(profile=profile)]
+
+    my_subordinates = LiaisonsReferents.get_subordinates(profile=profile)
 
     members = [(
         p.pk,
@@ -509,14 +488,9 @@ def referent_roles(request):
             p.user.first_name,
             p.user.last_name,
             p.user.username,
-            p.organisation.name,
-            )for p in LiaisonsContributeurs.get_contributors(orga)]
+            p.organisation and p.organisation.name or 'N/A',
+            ) for p in LiaisonsContributeurs.get_contributors(orga)]
 
-    return render(request, 'idgo_admin/referent_roles.html',
-                  {'first_name': user.first_name,
-                   'last_name': user.last_name,
-                   'members': json.dumps(members),
-                   'contributors': json.dumps(contributors),
-                   'is_referent': json.dumps(len(my_subordinates) > 0),
-                   'awaiting_subordinates': awaiting_subordinates},
-                  status=200)
+    return render_with_info_profile(
+        request, 'idgo_admin/all_members.html', status=200,
+        context={'members': members, 'contributors': contributors})

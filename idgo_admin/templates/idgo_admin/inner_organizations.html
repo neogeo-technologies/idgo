@@ -1,8 +1,5 @@
 {% load bootstrap3 %}
 
-<!-- <h2 class="modal-title">Mes organisations</h2> -->
-<br />
-
 {% if messages %}
 	{% for message in messages %}
 		{% if message.tags == 'success' %}
@@ -29,12 +26,31 @@
 		{% endif %}
 		<div class="buttons-on-the-right-side">
 			<a class="btn btn-sm btn-default" href="{% url "idgo_admin:my_organization" process="update_organization" %}">Demande de rattachement</a>
-			{# if organization and not is_referent #}
-			<a class="btn btn-sm btn-default" href="{% url "idgo_admin:referent" %}">Demander le statut de référent</a>
-			{# endif #}
 		</div>
 	</div>
 </div>
+
+<form name="subordinates">
+	<div class="panel well">
+		<div class="panel-heading">
+			<div class="panel-title">Organisations pour lesquelles vous êtes référents</div>
+		</div>
+		<div class="panel-body">
+			{% if awaiting_subordinates %}
+			<div class="alert alert-info">Demande(s) de status de référent en attente de validation pour : {% for organization in awaiting_subordinates %}<strong class="comma-separated-list">{{ organization }}</strong>{% endfor %}</div>
+			{% endif %}
+			<div id="table-subordinates" class="table-responsive"></div>
+			<nav aria-label="Page navigation" style="text-align: center;">
+				<ul id="table-subordinates-paginator" class="pagination pagination-sm"></ul>
+			</nav>
+			<div class="buttons-on-the-right-side">
+				<button name="unsubscribe" class="btn btn-sm btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus être référent</span></button>
+				<a class="btn btn-sm btn-default" href="{% url "idgo_admin:referent" %}">Nouvelle demande de status de référent</a>
+			</div>
+		</div>
+	</div>
+</form>
+
 <form name="organization">
 	<div class="panel well">
 		<div class="panel-heading">
@@ -73,7 +89,24 @@ $(function() {
 		}
 	];
 
+	var SUBORDINATES = {{ subordinates | safe }};
+	var SUBORDINATES_CONTAINER = 'table-subordinates';
+	var SUBORDINATES_METADATA = [
+		{
+			name: 'name',
+			label: "Nom de l'organisation",
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'id',
+			label: '_HIDDEN',  //->https://github.com/webismymind/editablegrid/issues/153
+			editable: false,
+			datatype: 'integer'
+		}
+	];
+
 	var organizationsGrid = new EditableGrid('Organizations', {pageSize: 5});
+	var subordinatesGrid = new EditableGrid('Subordinates', {pageSize: 5});
 
 	$('form[name="organization"] button[name="unsubscribe"]')
 		.on('click', function(e) {
@@ -139,8 +172,95 @@ $(function() {
 			e.stopPropagation();
 		});
 
+		$('form[name="subordinates"] button[name="unsubscribe"]')
+			.on('click', function(e) {
+				e.preventDefault();
+
+				const $button = $('<button/>')
+					.prop('type', 'button')
+					.prop('class', 'btn btn-danger disabled')
+					.prop('disabled', true)
+					.text('Oui, je ne souhaite plus être référent pour cette organisation')
+					.on('click', function(e) {
+						e.preventDefault();
+						closeAllModalDialog();
+						$.ajax({
+							type: 'DELETE',
+							// success: function() {},
+							url: '{% url "idgo_admin:unsuscribe_referent" %}' + '?id=' + subordinatesGrid.getRowValues(subordinatesGrid.lastSelectedRowIndex)['id']
+						})
+						.done(function(response, textStatus, jqXHR) {
+							location.reload();
+							// $modal.find('.modal-title').text('Information');
+							// $modal.find('.modal-body').append(jqXHR.responseText);
+							// $modal.modal('show');
+						})
+						.fail(function(jqXHR, textStatus, errorThrown) {
+							location.reload();
+							// $modal.find('.modal-title').text("L'opération a échouée");
+							// $modal.find('.modal-body').append(jqXHR.responseText);
+							// $modal.modal('show');
+						});
+						e.stopPropagation();
+					});
+
+				const $input = $('<input/>')
+					.prop('type', 'text')
+					.prop('class', 'form-control')
+					.prop('placeholder', "Nom de l'organisation")
+					.on('input', function(e) {
+						if ($(this).val() === subordinatesGrid.getRowValues(subordinatesGrid.lastSelectedRowIndex)['name']) {
+							$button.removeClass('disabled').prop('disabled', false);
+						} else {
+							$button.addClass('disabled').prop('disabled', true);
+						};
+					});
+
+				$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
+
+				$modal.find('.modal-body')
+					.append('<p>Cette action est irreversible...</p>')
+					.append(
+						$('<form/>')
+							.append(
+								$('<div/>').prop('class', 'form-group')
+									.append("<p>Pour confirmer, veuillez réécrire le nom de l'organisation.</p>")
+									.append($input))
+							.append(
+								$('<div class="buttons-on-the-right-side">')
+									.append($button)
+									.append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
+
+				$modal.modal('show');
+
+				e.stopPropagation();
+			});
+
 	organizationsGrid.initializeGrid = function() {
 		const grid = organizationsGrid;
+		const $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
+
+		with (this) {
+			tableRendered = function() {
+				this.updatePaginator(grid);
+			};
+			rowSelected = function(pRowIdx, nRowIdx) {
+				$(grid.getRow(pRowIdx)).removeClass('selected');
+				$buttons.each(function() {
+					deactivateButton($(this));
+				});
+				if (pRowIdx != nRowIdx) {
+					$(grid.getRow(nRowIdx)).addClass('selected');
+					$buttons.each(function() {
+						activateButton($(this));
+					});
+				};
+			};
+		};
+	};
+
+	subordinatesGrid.initializeGrid = function() {
+		const grid = subordinatesGrid;
 		const $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
 
 		with (this) {
@@ -184,6 +304,28 @@ $(function() {
 		};
 	};
 
+	function updateSubordinatesGrid(grid, containerId, metadata, data) {
+		const $containerId = $('#' + containerId);
+		const $parent = $($containerId.parent().get(0));
+		$parent.find('div[role="alert"]').remove();
+		$parent.find('button').each(function() {
+			deactivateButton($(this));
+		});
+		if (data.length > 0) {
+			grid.load({'metadata': metadata, 'data': data});
+			grid.renderGrid(containerId, 'table table-condensed');
+			grid.initializeGrid();
+			grid.refreshGrid();
+			$containerId.show();
+		} else {
+			$containerId.hide();
+		};
+
+		if (data.length == 0 && {{ awaiting_subordinates|safe }}.length == 0) {
+			$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes référent d\'aucune organisation.<div/>');
+		};
+	};
+
 	updateOrganizationsGrid(
 		organizationsGrid,
 		ORGANIZATIONS_CONTAINER,
@@ -203,5 +345,23 @@ $(function() {
 		})(ORGANIZATIONS)
 	);
 
+	updateSubordinatesGrid(
+		subordinatesGrid,
+		SUBORDINATES_CONTAINER,
+		SUBORDINATES_METADATA,
+		(function(data) {
+			let m = [];
+			for (let i = 0; i < data.length; i ++) {
+				m.push({
+					id: i,
+					values: [
+						data[i][1],  // name
+						data[i][0]   // id
+					]
+				});
+			};
+			return m;
+		})(SUBORDINATES)
+	);
 });
 </script>

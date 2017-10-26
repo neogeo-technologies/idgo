@@ -1,6 +1,5 @@
 {% load bootstrap3 %}
 
-<script>var organizations = [];</script>
 {% if messages %}
 	{% for message in messages %}
 		{% if message.tags == 'success' %}
@@ -12,7 +11,6 @@
 		{% endif %}
 	{% endfor %}
 {% endif %}
-
 
 <h2 class="modal-title">Nouvelle demande de contribution</h2>
 <p>Toute demande est soumise à validation de l'administrateur du site. </p>
@@ -35,10 +33,13 @@
 </form>
 <form method="post" action="">
 	<div class="btn-group-vertical btn-block scrolling-box"  style="height: 200px;" data-toggle="buttons">
+		<!-- UGLY -->
+		<script>var organizations = [];</script>
 		{% for choice in pform.contributions %}
 		<script>organizations.push('{{ choice.choice_label }}');</script>
 		<div class="btn btn-radio">{{ choice }}</div>
 		{% endfor %}
+		<!-- UGLY -->
 	</div>
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:organizations" %}">Annuler</a>
@@ -60,9 +61,9 @@ $(function() {
 
 	function highlight() {
 		$radioInputs.each(function(value) {
-			var $this = $(this);
-			var $entry = $(this).parent();
-			var $container = $('div.scrolling-box');
+			const $this = $(this);
+			const $entry = $(this).parent();
+			const $container = $('div.scrolling-box');
 			if ($entry.text().trim().toLowerCase().startsWith($('div[name="organization"] input[type="text"]').val().trim().toLowerCase())) {
 				$container.animate({
 					scrollTop: $entry.offset().top - $container.offset().top + $container.scrollTop() - 7

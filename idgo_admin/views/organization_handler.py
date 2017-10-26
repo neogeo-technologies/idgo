@@ -5,7 +5,7 @@ from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.shortcuts import render
+# from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -17,7 +17,7 @@ from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
-import json
+from idgo_admin.shortcuts import render_with_info_profile
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -26,23 +26,22 @@ def contribution_request(request):
 
     user = request.user
     profile = get_object_or_404(Profile, user=user)
+
     process = 'update'
-    contribs = LiaisonsContributeurs.get_contribs(profile=profile)
 
     if request.method == 'GET':
-        return render(
+        return render_with_info_profile(
             request, 'idgo_admin/contribute.html',
-            {'first_name': user.first_name,
-             'last_name': user.last_name,
-             'pform': ProfileForm(include={'user': user, 'action': process}),
-             'contribs': contribs})
+            {'pform': ProfileForm(include={'user': user, 'action': process})})
 
     pform = ProfileForm(
-        instance=profile, data=request.POST or None,
+        instance=profile, data=request.POST,
         include={'user': user, 'action': process})
 
     if not pform.is_valid():
-        return render(request, 'idgo_admin/contribute.html', {'pform': pform})
+        return render_with_info_profile(
+            request, 'idgo_admin/contribute.html',
+            {'pform': pform})
 
     organisation = pform.cleaned_data['contributions']
 
@@ -69,31 +68,35 @@ def referent_request(request):
 
     user = request.user
     profile = get_object_or_404(Profile, user=user)
-    organisation = profile.organisation
+    process = 'update'
 
-    if organisation and not profile.referents.exists():
-        LiaisonsReferents.objects.create(
-            profile=profile, organisation=organisation)
-        request_action = AccountActions.objects.create(
-            profile=profile, action='confirm_referent', org_extras=organisation)
+    if request.method == 'GET':
+        return render_with_info_profile(
+            request, 'idgo_admin/referent.html',
+            {'pform': ProfileForm(include={'user': user, 'action': process})})
 
-        Mail.confirm_referent(request, request_action)
+    pform = ProfileForm(
+        instance=profile, data=request.POST or None,
+        include={'user': user, 'action': process})
 
-        message = ("Votre demande de status de référent à l'organisation "
-                   '<strong>{0}</strong> est en cours de traitement. Celle-ci '
-                   "ne sera effective qu'après validation par un administrateur."
-                   ).format(organisation.name)
-        messages.success(request, message)
+    if not pform.is_valid():
+        return render_with_info_profile(request, 'idgo_admin/referent.html', {'pform': pform})
 
-        return HttpResponseRedirect(reverse('idgo_admin:organizations'))
+    organisation = pform.cleaned_data['referents']
+    LiaisonsReferents.objects.create(
+        profile=profile, organisation=organisation)
+    request_action = AccountActions.objects.create(
+        profile=profile, action='confirm_referent', org_extras=organisation)
 
-    else:
-        message = ("Votre demande de status de référent à l'organisation"
-                   '<strong>{0}</strong> à entrainé une erreur '
-                   ).format(organisation.name)
-        messages.error(request, message)
+    Mail.confirm_referent(request, request_action)
 
-        return HttpResponseRedirect(reverse('idgo_admin:organizations'))
+    message = ("Votre demande de contribution à l'organisation "
+               '<strong>{0}</strong> est en cours de traitement. Celle-ci '
+               "ne sera effective qu'après validation par un administrateur."
+               ).format(organisation.name)
+    messages.success(request, message)
+
+    return HttpResponseRedirect(reverse('idgo_admin:organizations'))
 
 
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
@@ -104,47 +107,8 @@ class OrganisationDisplay(View):
         user = request.user
         profile = get_object_or_404(Profile, user=user)
 
-        if profile.organisation and profile.membership:
-            organization = profile.organisation.name
-        else:
-            organization = None
-
-        try:
-            action = AccountActions.objects.get(
-                action='confirm_rattachement',
-                profile=profile, closed__isnull=True)
-        except Exception:
-            awaiting_rattachement = None
-        else:
-            awaiting_rattachement = \
-                action.org_extras.name if action.org_extras else None
-
-        contributions = \
-            [(c.id, c.name) for c
-                in LiaisonsContributeurs.get_contribs(profile=profile)]
-
-        awaiting_contributions = \
-            [c.name for c
-                in LiaisonsContributeurs.get_pending(profile=profile)]
-
-        subordinates = \
-            [(c.id, c.name) for c
-                in LiaisonsReferents.get_subordinates(profile=profile)]
-
-        awaiting_subordinates = \
-            [c.name for c
-                in LiaisonsReferents.get_pending(profile=profile)]
-
-        return render(
-            request, 'idgo_admin/organizations.html',
-            context={'first_name': user.first_name,
-                     'last_name': user.last_name,
-                     'organization': organization,
-                     'awaiting_organization': awaiting_rattachement,
-                     'contributions': json.dumps(contributions),
-                     'awaiting_contributions': awaiting_contributions,
-                     'subordinates': json.dumps(subordinates),
-                     'awaiting_subordinates': awaiting_subordinates})
+        return render_with_info_profile(
+            request, 'idgo_admin/organizations.html')
 
 
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
@@ -167,9 +131,6 @@ class Contributions(View):
                    "<strong>{0}</strong>").format(organization.name)
 
         messages.success(request, message)
-
-        # return render(request, 'idgo_admin/response.html',
-        #               context={'message': message}, status=200)
 
         return HttpResponse(status=200)
 
@@ -206,8 +167,5 @@ class Referents(View):
                    "<strong>{0}</strong>").format(organization.name)
 
         messages.success(request, message)
-
-        # return render(request, 'idgo_admin/response.html',
-        #               context={'message': message}, status=200)
 
         return HttpResponse(status=200)

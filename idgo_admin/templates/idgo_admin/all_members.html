@@ -1,0 +1,10 @@
+{% extends "idgo_admin/base.html" %}
+
+{% block main_content %}
+{% include "idgo_admin/inner_all_members.html" %}
+<script>
+$(function() {
+	$('#menu a[href="{% url "idgo_admin:all_members" %}"]').parent().addClass('active');
+});
+</script>
+{% endblock main_content %}

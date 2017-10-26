@@ -26,6 +26,7 @@ from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
+from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.utils import three_suspension_points
 import json
 
@@ -85,8 +86,6 @@ class DatasetManager(View):
 
         context = {'ckan_url': CKAN_URL,
                    'form': form,
-                   'first_name': user.first_name,
-                   'last_name': user.last_name,
                    'dataset_name': three_suspension_points(dataset_name),
                    'dataset_id': dataset_id,
                    'dataset_ckan_slug': dataset_ckan_slug,
@@ -96,7 +95,7 @@ class DatasetManager(View):
                    'resources': json.dumps(resources),
                    'tags': json.dumps(ckan.get_tags())}
 
-        return render(request, self.template, context=context)
+        return render_with_info_profile(request, self.template, context=context)
 
     @ExceptionsHandler(ignore=[Http404])
     @transaction.atomic
@@ -270,8 +269,6 @@ class ReferentDatasetManager(View):
 
         context = {'ckan_url': CKAN_URL,
                    'form': form,
-                   'first_name': user.first_name,
-                   'last_name': user.last_name,
                    'dataset_name': three_suspension_points(dataset_name),
                    'dataset_id': dataset_id,
                    'dataset_ckan_slug': dataset_ckan_slug,
@@ -281,7 +278,7 @@ class ReferentDatasetManager(View):
                    'resources': json.dumps(resources),
                    'tags': json.dumps(ckan.get_tags())}
 
-        return render(request, self.template, context=context)
+        return render_with_info_profile(request, self.template, context=context)
 
     @ExceptionsHandler(ignore=[Http404])
     @transaction.atomic
@@ -425,55 +422,40 @@ def datasets(request):
         profile in LiaisonsContributeurs.get_contributors(o.organisation)
         ) for o in Dataset.objects.filter(editor=user)]
 
-    my_contributions = \
-        LiaisonsContributeurs.get_contribs(profile=profile)
-
-    awaiting_contributions = \
-        [c.name for c in LiaisonsContributeurs.get_pending(profile=profile)]
-
-    return render(request, 'idgo_admin/datasets.html',
-                  {'ckan_url': CKAN_URL,
-                   'first_name': user.first_name,
-                   'last_name': user.last_name,
-                   'datasets': json.dumps(datasets),
-                   'is_contributor': json.dumps(len(my_contributions) > 0),
-                   'awaiting_contributions': awaiting_contributions},
-                  status=200)
+    return render_with_info_profile(
+        request, 'idgo_admin/datasets.html', status=200,
+        context={'ckan_url': CKAN_URL, 'datasets': json.dumps(datasets)})
 
 
 @ExceptionsHandler(ignore=[Http404])
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
-def referent_datasets(request):
+def all_datasets(request):
 
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
     if not profile.referents:
         raise Http404
-    my_subordinates = \
-        LiaisonsReferents.get_subordinates(profile=profile)
 
     datasets = [(
-        o.pk,
-        o.name,
-        o.date_creation.isoformat() if o.date_creation else None,
-        o.date_modification.isoformat() if o.date_modification else None,
-        o.date_publication.isoformat() if o.date_publication else None,
-        o.editor.get_full_name() if o.editor != user else 'Moi',
-        o.published,
-        o.is_inspire,
-        o.ckan_slug,
-        profile in LiaisonsContributeurs.get_contributors(o.organisation)
-        ) for o in Dataset.objects.filter(organisation__in=my_subordinates) if o.editor != user]
+        d.pk,
+        d.name,
+        d.date_creation.isoformat() if d.date_creation else None,
+        d.date_modification.isoformat() if d.date_modification else None,
+        d.date_publication.isoformat() if d.date_publication else None,
+        Organisation.objects.get(id=d.organisation_id).name,
+        d.editor.get_full_name() if d.editor != user else 'Moi',
+        d.published,
+        d.is_inspire,
+        d.ckan_slug,
+        profile in LiaisonsContributeurs.get_contributors(d.organisation)
+        ) for d in Dataset.objects.filter(
+            organisation__in=LiaisonsReferents.get_subordinates(profile=profile))]
 
-    return render(request, 'idgo_admin/referent_datasets.html',
-                  {'ckan_url': CKAN_URL,
-                   'first_name': user.first_name,
-                   'last_name': user.last_name,
-                   'datasets': json.dumps(datasets),
-                   'is_referent': json.dumps(len(my_subordinates) > 0)},
-                  status=200)
+    return render_with_info_profile(
+        request, 'idgo_admin/all_datasets.html',
+        {'ckan_url': CKAN_URL, 'datasets': json.dumps(datasets)}, status=200)
 
 
 @ExceptionsHandler(ignore=[Http404])

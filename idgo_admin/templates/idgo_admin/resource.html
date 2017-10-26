@@ -2,7 +2,6 @@
 
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
-	<li><a href="{# url "idgo_admin:home" #}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>
 	<li><a href="{% url "idgo_admin:datasets" %}">Mes jeux de données</a></li>
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">{{ dataset_name }}</a></li>
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">ressources</a></li>
@@ -11,4 +10,9 @@
 {% endblock breadcrumb_content %}
 {% block main_content %}
 {% include "idgo_admin/inner_resource.html" %}
+<script>
+$(function() {
+	$('#menu a[href="{% url "idgo_admin:datasets" %}"]').parent().addClass('active');
+});
+</script>
 {% endblock main_content %}

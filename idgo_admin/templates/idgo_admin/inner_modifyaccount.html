@@ -12,9 +12,7 @@
 	{% endfor %}
 {% endif %}
 
-<!-- <h2 class="modal-title">Mes informations personnelles</h2> -->
-<br/>
-<form method="post" action="" enctype="multipart/form-data">
+<form method="post" action="" enctype="multipart/form-data" class="well">
 	{% csrf_token %}
 	<div class="row">
 		<div class="col-xs-6">
@@ -37,15 +35,10 @@
 			{% bootstrap_field pform.phone %}
 		</div>
 	</div>
-	<!-- <div class="row">
-		<div class="col-xs-9">
-			{# {% bootstrap_field pform.role %} #}
-		</div>
-	</div> -->
 	<div class="row">
 		<div class="col-xs-6">
-			<div class="well">
-				<p>Entrez votre nouveau mot de passe ci-dessous si vous souhaitez le modifier. </p>
+			<div class="well well2">
+				<p>Entrez votre nouveau mot de passe ci-dessous si vous souhaitez le modifier.</p>
 				<div class="row">
 					<div class="col-xs-8">
 						{% bootstrap_field uform.password1 show_label=False %}
@@ -59,86 +52,15 @@
 			</div>
 		</div>
 	</div>
-	<hr />
-	{# if pform.organisation.field.widget.is_hidden == False #}
-		{# include "idgo_admin/inner_manageorganization.html" #}
-	{# else #}
-	<!-- <div class="alert alert-info"><a href="{# url "idgo_admin:organizations" #}">En attente de rattachement</a></div> -->
-	{# endif #}
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:account_manager" process="update" %}">Annuler</a>
 		<button type="submit" class="btn btn-default">Valider</button>
 	</div>
-	<br />
-	<div class="well">
-		<h4 class="modal-title">Supprimer mon compte</h4>
-		<p>Cette action est irreversible et supprimera définitivement votre compte.</p>
-		<div>
-			<a class="btn btn-danger" href="{% url "idgo_admin:deleteAccount" %}">Supprimer mon compte</a></li>
-		</div>
-	</div>
 </form>
-<script>
-$(function() {
-	var $contributionRequested = $('input[name="contribution_requested"]').parent();
-	var contribs = {{ contribs|safe }};
-	var pending = {{ pending|safe }};
-	var pendingIds = [];
-	for (var i = 0; i < pending.length; i ++) {
-		pendingIds.push(pending[i][0]);
-	};
-	var isContributor = function() {
-		var val = parseInt($('select[name="organisation"]').val());
-		var $alert = $contributionRequested.siblings('.alert');
-		if ($alert) {
-			$alert.remove()
-		};
-		if (val && contribs.indexOf(val) == -1 && pendingIds.indexOf(val) == -1) {
-			$contributionRequested.show();
-		} else if (val && contribs.indexOf(val) == -1 && pendingIds.indexOf(val) > -1) {
-			$contributionRequested.hide();
-			$contributionRequested.before('<div class="alert alert-info">Demande de contribution en attente de validation pour : {% for organization in pending %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>');
-		} else {
-			$contributionRequested.hide();
-		};
-	};
-
-	$('select[name="organisation"]').change(isContributor);
-
-	var $collapseOne = $('#collapse-one')
-		.collapse({
-			toggle: false
-		})
-		.on('hidden.bs.collapse', function() {
-			$('#collapse-one select').each(function(i) {
-				// $(this)[0].selectedIndex = 0;
-				$contributionRequested.show();
-			});
-		});
-	var $collapseTwo = $('#collapse-two')
-		.collapse({
-			toggle: false
-		})
-		.on('hidden.bs.collapse', function() {
-			$('#collapse-two input').each(function(i) {
-				$(this).val('');
-				$contributionRequested.hide();
-			});
-		});
-
-	function tggl() {
-		$collapseOne.collapse('toggle');
-		$collapseTwo.collapse('toggle');
-	};
-
-	$('#add-organization').click(tggl);
-	$('#collapse-two .close').click(tggl);
-
-	$contributionRequested.hide();
-	{% if pform.new_orga.value %} tggl(); {% endif %}
-
-	$('select[name="organisation"]').ready(isContributor);
-
-});
-
-</script>
+<div class="well">
+	<h4 class="modal-title">Supprimer mon compte</h4>
+	<p>Cette action est irreversible et supprimera définitivement votre compte.</p>
+	<div>
+		<a class="btn btn-danger" href="{% url "idgo_admin:deleteAccount" %}">Supprimer mon compte</a></li>
+	</div>
+</div>
