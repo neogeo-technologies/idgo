@@ -110,7 +110,6 @@ class SignOut(MamaLogoutView):
 
 @method_decorator([csrf_exempt, ], name='dispatch')
 class AccountManager(View):
-
     def create_account(self, user_data, profile_data):
         user = User.objects.create_user(
             username=user_data['username'], password=user_data['password1'],
@@ -126,7 +125,7 @@ class AccountManager(View):
 
     def handle_me(self, request, user_data, profile_data, user, profile, process):
 
-        if process == "update":
+        if process in ("update", "update_organization"):
             user.first_name = user_data['first_name']
             user.last_name = user_data['last_name']
             user.username = user_data['username']
@@ -189,7 +188,7 @@ class AccountManager(View):
         # Ajout clé uuid et envoi mail aux admin pour confirmations de création
         new_organisation_action = AccountActions.objects.create(
             profile=profile, action='confirm_new_organisation')
-        if process == "update":
+        if process in ("update", "update_organization"):
             Mail.confirm_new_organisation(request, new_organisation_action)
 
     def rattachement_process(self, request, profile, organisation, process):
@@ -197,7 +196,7 @@ class AccountManager(View):
         rattachement_action = AccountActions.objects.create(
             profile=profile, action='confirm_rattachement',
             org_extras=organisation)
-        if process == "update":
+        if process in ("update", "update_organization"):
             Mail.confirm_updating_rattachement(request, rattachement_action)
 
     def referent_process(self, request, profile, organisation, process):
@@ -206,7 +205,7 @@ class AccountManager(View):
         referent_action = AccountActions.objects.create(
             profile=profile, action='confirm_referent',
             org_extras=organisation)
-        if process == "update":
+        if process in ("update", "update_organization"):
             Mail.confirm_referent(request, referent_action)
 
     def contributor_process(self, request, profile, organisation, process):
@@ -215,7 +214,7 @@ class AccountManager(View):
         contribution_action = AccountActions.objects.create(
             profile=profile, action='confirm_contribution',
             org_extras=organisation)
-        if process == "update":
+        if process in ("update", "update_organization"):
             Mail.confirm_contribution(request, contribution_action)
 
     def contextual_response(self, request, process):
@@ -233,7 +232,7 @@ class AccountManager(View):
                 request, 'Les informations de votre profil sont à jour.')
 
             return HttpResponseRedirect(reverse('idgo_admin:my_organization',
-                                                kwargs={'process': 'update'}))
+                                                kwargs={'process': 'update_organization'}))
 
         if process == "update":
             messages.success(
@@ -241,6 +240,13 @@ class AccountManager(View):
 
             return HttpResponseRedirect(reverse('idgo_admin:account_manager',
                                                 kwargs={'process': 'update'}))
+
+    def contextual_template(self, process):
+        d = {}
+        d['create'] = 'idgo_admin/signup.html'
+        d['update'] = 'idgo_admin/modifyaccount.html'
+        d['update_organization'] = 'idgo_admin/myorganization.html'
+        return d.get(process)
 
     def render_on_error(self, request, html_template, uform, pform):
         return render(request, html_template,
@@ -252,40 +258,28 @@ class AccountManager(View):
     def get(self, request, process):
 
         if process == "create":
-            return render(request, 'idgo_admin/signup.html',
+            return render(request, self.contextual_template(process),
                           {'uform': UserForm(include={'action': process}),
                            'pform': ProfileForm(include={'action': process})})
 
-        if process == "update_organization":
-            user = request.user
-            if user.is_anonymous:
-                return HttpResponseRedirect(reverse('idgo_admin:signIn'))
-            profile = get_object_or_404(Profile, user=user)
-            contribs = LiaisonsContributeurs.get_contribs(profile)
-            pending = LiaisonsContributeurs.get_pending(profile=profile)
-            return render(request, 'idgo_admin/myorganization.html',
-                          {'first_name': user.first_name,
-                           'last_name': user.last_name,
-                           'contribs': [c.id for c in contribs],
-                           'pending': [[p.id, p.name] for p in pending],
-                           'uform': UserForm(instance=user,
-                                             include={'action': process}),
-                           'pform': ProfileForm(instance=profile,
-                                                include={'user': user,
-                                                         'action': process})})
+        elif process in ("update", "update_organization"):
 
-        if process == "update":
             user = request.user
             if user.is_anonymous:
                 return HttpResponseRedirect(reverse('idgo_admin:signIn'))
+
             profile = get_object_or_404(Profile, user=user)
             contribs = LiaisonsContributeurs.get_contribs(profile)
             pending = LiaisonsContributeurs.get_pending(profile=profile)
-            return render(request, 'idgo_admin/modifyaccount.html',
+            subordinates = LiaisonsReferents.get_subordinates(profile)
+            awaiting_subordinates = LiaisonsReferents.get_pending(profile)
+            return render(request, self.contextual_template(process),
                           {'first_name': user.first_name,
                            'last_name': user.last_name,
                            'contribs': [c.id for c in contribs],
                            'pending': [[p.id, p.name] for p in pending],
+                           'subordinates': [[o.id, o.name] for o in subordinates],
+                           'awaiting_subordinates': [[o.id, o.name] for o in awaiting_subordinates],
                            'uform': UserForm(instance=user,
                                              include={'action': process}),
                            'pform': ProfileForm(instance=profile,
@@ -295,33 +289,28 @@ class AccountManager(View):
     @transaction.atomic
     def post(self, request, process):
 
-        uform = UserForm(data=request.POST, include={'action': process})
-
         if process == "create":
             pform = ProfileForm(request.POST, request.FILES,
                                 include={'action': process})
+            uform = UserForm(data=request.POST, include={'action': process})
 
-        elif process == "update":
+        if process in ("update", "update_organization"):
             user = request.user
             if user.is_anonymous:
                 return HttpResponseRedirect(reverse('idgo_admin:signIn'))
             profile = get_object_or_404(Profile, user=user)
             pform = ProfileForm(request.POST, request.FILES,
+                                instance=profile,
                                 include={'user': user,
                                          'action': process})
+            uform = UserForm(data=request.POST, instance=user, include={'action': process})
 
         if not uform.is_valid() or not pform.is_valid():
             if process == "create":
-                return render(request, 'idgo_admin/signup.html',
+                return render(request, self.contextual_template(process),
                               {'uform': uform, 'pform': pform})
-            if process == "update_organization":
-                return render(request, 'idgo_admin/myorganization.html',
-                              {'first_name': user.first_name,
-                               'last_name': user.last_name,
-                               'uform': uform,
-                               'pform': pform})
-            if process == "update":
-                return render(request, 'idgo_admin/modifyaccount.html',
+            if process in ("update", "update_organization"):
+                return render(request, self.contextual_template(process),
                               {'first_name': user.first_name,
                                'last_name': user.last_name,
                                'uform': uform,
@@ -331,7 +320,7 @@ class AccountManager(View):
             if ckan.is_user_exists(uform.cleaned_data['username']):
                 uform.add_error('username',
                                 'Cet identifiant de connexion est réservé.')
-                return self.render_on_error(request, 'idgo_admin/signup.html',
+                return self.render_on_error(request, self.contextual_template(process),
                                             uform, pform)
 
             user, profile = self.create_account(uform.cleaned_data,
@@ -347,16 +336,9 @@ class AccountManager(View):
                     ckan.update_user(user)
 
         except ValidationError as e:
-            if process == "update":
+            if process in ("update", "update_organization"):
                 ckan.update_user(User.objects.get(username=user.username))
-                return render(request, 'idgo_admin/modifyaccount.html',
-                              {'first_name': user.first_name,
-                               'last_name': user.last_name,
-                               'uform': uform,
-                               'pform': pform})
-            if process == "update_organization":
-                ckan.update_user(User.objects.get(username=user.username))
-                return render(request, 'idgo_admin/modifyaccount.html',
+                return render(request, self.contextual_template(process),
                               {'first_name': user.first_name,
                                'last_name': user.last_name,
                                'uform': uform,

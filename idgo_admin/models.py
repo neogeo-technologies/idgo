@@ -317,7 +317,6 @@ class Profile(models.Model):
     # @classmethod
     # def active_users(cls):
     #     active_profiles = Profile.objects.filter(is_active=True)
-    #     print(active_profiles)
     #     return User.objects.filter(pk__in=[])
 
 

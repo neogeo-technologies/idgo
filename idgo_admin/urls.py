@@ -21,7 +21,6 @@ from idgo_admin.views.mdedit import MDEdit
 from idgo_admin.views.mdedit import MDEditTplEdit
 from idgo_admin.views.organization_handler import contribution_request
 from idgo_admin.views.organization_handler import OrganisationDisplay
-from idgo_admin.views.organization_handler import OrganisationManager
 from idgo_admin.views.organization_handler import referent_request
 from idgo_admin.views.organization_handler import Contributions
 from idgo_admin.views.organization_handler import Referents
@@ -37,7 +36,7 @@ urlpatterns = [
     url('^dataset/(?P<dataset_id>(\d+))/resources/?$', ResourceManager.as_view(), name='resource'),
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/?$', MDEdit.as_view(), name='mdedit'),
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/edit/?$', MDEditTplEdit.as_view(), name='mdedit_tpl_edit'),
-    # url('^$', datasets, name='datasets'),
+    url('^$', datasets, name='datasets'),
     url('^datasets$', datasets, name='datasets'),
     url('^dataset/export/?$', export, name='export'),
     url('^action/$', ActionsManager.as_view(), name='action'),

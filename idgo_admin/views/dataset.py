@@ -467,8 +467,6 @@ def referent_datasets(request):
         profile in LiaisonsContributeurs.get_contributors(o.organisation)
         ) for o in Dataset.objects.filter(organisation__in=my_subordinates) if o.editor != user]
 
-    print(datasets)
-
     return render(request, 'idgo_admin/referent_datasets.html',
                   {'ckan_url': CKAN_URL,
                    'first_name': user.first_name,

@@ -11,7 +11,6 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.forms.account import ProfileForm
-from idgo_admin.forms.account import UserForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
@@ -70,146 +69,38 @@ def referent_request(request):
 
     user = request.user
     profile = get_object_or_404(Profile, user=user)
-    process = 'update'
-    subordinates = LiaisonsReferents.get_subordinates(profile=profile)
+    organisation = profile.organisation
 
-    if request.method == 'GET':
-        return render(
-            request, 'idgo_admin/isreferent.html',
-            {'first_name': user.first_name,
-             'last_name': user.last_name,
-             'pform': ProfileForm(include={'user': user, 'action': process}),
-             'pub_liste': subordinates})
-
-    pform = ProfileForm(
-        instance=profile, data=request.POST or None,
-        include={'user': user, 'action': process})
-
-    if not pform.is_valid():
-        return render(request, 'idgo_admin/isreferent.html', {'pform': pform})
-
-    organisation = pform.cleaned_data['referents']
-    LiaisonsReferents.objects.create(
-        profile=profile, organisation=organisation)
-    request_action = AccountActions.objects.create(
-        profile=profile, action='confirm_referent', org_extras=organisation)
-
-    Mail.confirm_referent(request, request_action)
-
-    message = ("Votre demande de contribution à l'organisation "
-               '<strong>{0}</strong> est en cours de traitement. Celle-ci '
-               "ne sera effective qu'après validation par un administrateur."
-               ).format(organisation.name)
-    messages.success(request, message)
-
-    return HttpResponseRedirect(reverse('idgo_admin:organizations'))
-
-
-@method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
-class OrganisationManager(View):
-
-    def new_org_process(self, request, profile, process):
-        # Ajout clé uuid et envoi mail aux admin pour confirmations de création
-        new_organisation_action = AccountActions.objects.create(
-            profile=profile, action='confirm_new_organisation')
-        Mail.confirm_new_organisation(request, new_organisation_action)
-
-    def rattachement_process(self, request, profile, organisation, process):
-        # Demande de rattachement à l'organisation
-        rattachement_action = AccountActions.objects.create(
-            profile=profile, action='confirm_rattachement',
-            org_extras=organisation)
-        Mail.confirm_updating_rattachement(request, rattachement_action)
-
-    def referent_process(self, request, profile, organisation, process):
-        LiaisonsReferents.objects.get_or_create(
+    if organisation and not profile.referents.exists():
+        LiaisonsReferents.objects.create(
             profile=profile, organisation=organisation)
-        referent_action = AccountActions.objects.create(
-            profile=profile, action='confirm_referent',
-            org_extras=organisation)
-        Mail.confirm_referent(request, referent_action)
+        request_action = AccountActions.objects.create(
+            profile=profile, action='confirm_referent', org_extras=organisation)
 
-    def contributor_process(self, request, profile, organisation, process):
-        LiaisonsContributeurs.objects.get_or_create(
-            profile=profile, organisation=organisation)
-        contribution_action = AccountActions.objects.create(
-            profile=profile, action='confirm_contribution',
-            org_extras=organisation)
-        Mail.confirm_contribution(request, contribution_action)
+        Mail.confirm_referent(request, request_action)
 
-    def contextual_response(self, request):
-        messages.success(
-            request, 'Les informations de votre profil sont à jour.')
+        message = ("Votre demande de status de référent à l'organisation "
+                   '<strong>{0}</strong> est en cours de traitement. Celle-ci '
+                   "ne sera effective qu'après validation par un administrateur."
+                   ).format(organisation.name)
+        messages.success(request, message)
+
         return HttpResponseRedirect(reverse('idgo_admin:organizations'))
 
-    def render_on_error(self, request, html_template, uform, pform):
-        return render(request, html_template,
-                      {'uform': uform, 'pform': pform})
+    else:
+        message = ("Votre demande de status de référent à l'organisation"
+                   '<strong>{0}</strong> à entrainé une erreur '
+                   ).format(organisation.name)
+        messages.error(request, message)
 
-    def get(self, request):
-        user = request.user
-        profile = get_object_or_404(Profile, user=user)
-        if user.is_anonymous:
-            return HttpResponseRedirect(reverse('idgo_admin:signIn'))
-        profile = get_object_or_404(Profile, user=user)
-        contribs = LiaisonsContributeurs.get_contribs(profile)
-        pending = LiaisonsContributeurs.get_pending(profile=profile)
-        subordinates = LiaisonsReferents.get_subordinates(profile=profile)
-        return render(request, 'idgo_admin/modifyaccount.html',
-                      {'first_name': user.first_name,
-                       'last_name': user.last_name,
-                       'contribs': [c.id for c in contribs],
-                       'pending': [[p.id, p.name] for p in pending],
-                       'uform': UserForm(instance=user,
-                                         include={'action': "update"}),
-                       'pform': ProfileForm(instance=profile,
-                                            include={'user': user,
-                                                     'action': "update"})})
-
+        return HttpResponseRedirect(reverse('idgo_admin:organizations'))
 
 
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
 class OrganisationDisplay(View):
 
-    def new_org_process(self, request, profile, process):
-        # Ajout clé uuid et envoi mail aux admin pour confirmations de création
-        new_organisation_action = AccountActions.objects.create(
-            profile=profile, action='confirm_new_organisation')
-        Mail.confirm_new_organisation(request, new_organisation_action)
-
-    def rattachement_process(self, request, profile, organisation, process):
-        # Demande de rattachement à l'organisation
-        rattachement_action = AccountActions.objects.create(
-            profile=profile, action='confirm_rattachement',
-            org_extras=organisation)
-        Mail.confirm_updating_rattachement(request, rattachement_action)
-
-    def referent_process(self, request, profile, organisation, process):
-        LiaisonsReferents.objects.get_or_create(
-            profile=profile, organisation=organisation)
-        referent_action = AccountActions.objects.create(
-            profile=profile, action='confirm_referent',
-            org_extras=organisation)
-        Mail.confirm_referent(request, referent_action)
-
-    def contributor_process(self, request, profile, organisation, process):
-        LiaisonsContributeurs.objects.get_or_create(
-            profile=profile, organisation=organisation)
-        contribution_action = AccountActions.objects.create(
-            profile=profile, action='confirm_contribution',
-            org_extras=organisation)
-        Mail.confirm_contribution(request, contribution_action)
-
-    def contextual_response(self, request):
-        messages.success(
-            request, 'Les informations de votre profil sont à jour.')
-        return HttpResponseRedirect(reverse('idgo_admin:organizations'))
-
-    def render_on_error(self, request, html_template, uform, pform):
-        return render(request, html_template,
-                      {'uform': uform, 'pform': pform})
-
     def get(self, request):
+
         user = request.user
         profile = get_object_or_404(Profile, user=user)
 
