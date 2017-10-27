@@ -13,6 +13,9 @@
 {% endif %}
 
 <div id="datasets">
+	{% if awaiting_contributions %}
+	<div class="alert alert-info">Demande(s) de contribution en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
+	{% endif %}
 	<div class="buttons-on-the-right-side">
 		<a name="export-csv" class="btn btn-default">Exporter</a>
 		<a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a>
@@ -42,11 +45,8 @@
 $(function() {
 	var CKAN_URL = '{{ ckan_url }}';
 	var DATASET_URL = '{% url "idgo_admin:dataset" %}';
-	var ACTION_URL = '{% url "idgo_admin:action" %}';
-	var CONTRIBUTE_URL = '{% url "idgo_admin:contribute" %}';
+
 	var DATASETS = {{ datasets | safe }};
-	var IS_CONTRIBUTOR = {{ is_contributor | yesno:"true,false,none" }};
-	var AWAITING_CONTRIBUTIONS = {{ awaiting_contributions | safe }};
 	var DATASETS_CONTAINER = 'table-datasets';
 	var DATASETS_METADATA = [
 		{
@@ -207,7 +207,7 @@ $(function() {
 			$.ajax({
 				type: 'GET',
 				// success: function() {},
-				url: ACTION_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id'] + '&publish=toggle'
+				url: '{% url "idgo_admin:action" %}?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id'] + '&publish=toggle'
 			})
 			.done(function(response, textStatus, jqXHR) {
 				// $modal.find('.close').remove();
@@ -305,24 +305,22 @@ $(function() {
 			$containerId.hide();
 		};
 
-		if (!IS_CONTRIBUTOR) {
+		const isContributor = {{ is_contributor | yesno:"true,false,none" }};
+
+		if (!isContributor) {
 			$parent.find('button.btn, a.btn').each(function() {
 				deactivateButton($(this));
 				$(this).hide();
 			});
-			$containerId.parent().before('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez <a href="' + CONTRIBUTE_URL + '">ajouter une organisation à laquelle contribuer</a>.');
+			$containerId.parent().before('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:contribute" %}">ajouter une organisation à laquelle contribuer</a>.');
 		};
 
-		if (data.length == 0 && IS_CONTRIBUTOR) {
+		if (data.length == 0 && isContributor) {
 			$parent.find('button.btn, a.btn').each(function() {
 				deactivateButton($(this));
 				$(this).hide();
 			});
 			$containerId.parent().after('<div role="alert" class="alert alert-warning"><p>Vous n\'avez aucun jeu de données. <a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a> pour commencer.</p><div/>');
-		};
-
-		if (AWAITING_CONTRIBUTIONS.length > 0) {
-			$containerId.parent().before('<div class="alert alert-info">Demande(s) de contribution en attente de validation pour : <strong class="comma-separated-list">' + AWAITING_CONTRIBUTIONS.join(', ') + '</strong></div>');
 		};
 
 	};

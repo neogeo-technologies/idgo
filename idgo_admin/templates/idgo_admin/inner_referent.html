@@ -1,6 +1,5 @@
 {% load bootstrap3 %}
 
-<script>var organizations = [];</script>
 {% if messages %}
 	{% for message in messages %}
 		{% if message.tags == 'success' %}
@@ -13,28 +12,26 @@
 	{% endfor %}
 {% endif %}
 
-
 <h2 class="modal-title">Nouvelle demande de status de référent</h2>
 <p>Toute demande est soumise à validation de l'administrateur du site. </p>
 <br/>
-<form>
-	<div class="form-group">
-		<div class="row">
-			<div class="col-md-6">
-				<div class="input-group" name="organization">
-					<input type="text" class="form-control typeahead" placeholder="Rechercher l'organisation...">
-					<span class="input-group-btn">
-						<button type="button" class="btn btn-primary">
-							<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-						</button>
-					</span>
-				</div>
+<div class="form-group">
+	<div class="row">
+		<div class="col-md-6">
+			<div class="input-group" name="organization">
+				<input type="text" class="form-control typeahead" placeholder="Rechercher l'organisation...">
+				<span class="input-group-btn">
+					<button type="button" class="btn btn-primary">
+						<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+					</button>
+				</span>
 			</div>
 		</div>
 	</div>
-</form>
-<form method="post" action="">
+</div>
+<form method="post">
 	<div class="btn-group-vertical btn-block scrolling-box"  style="height: 200px;" data-toggle="buttons">
+		<script>let organizations = [];</script>
 		{% for choice in form.referents %}
 		<script>organizations.push('{{ choice.choice_label }}');</script>
 		<div class="btn btn-radio">{{ choice }}</div>

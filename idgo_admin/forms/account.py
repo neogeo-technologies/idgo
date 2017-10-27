@@ -174,7 +174,7 @@ class ProfileForm(forms.ModelForm):
 
     contribution_requested = forms.BooleanField(
         initial=True,
-        label="Je souhaite être contributeur pour l'organisation",
+        label="Je souhaite être <strong>contributeur</strong> de l'organisation",
         required=False)
 
     contributions = forms.ModelChoiceField(
@@ -242,8 +242,8 @@ class ProfileForm(forms.ModelForm):
             attrs={'placeholder': 'Code postal'}))
 
     referent_requested = forms.BooleanField(
-        initial=True,
-        label='Je suis référent',
+        initial=False,
+        label="Je souhaite être <strong>référent</strong> de l'organisation",
         required=False)
 
     referents = forms.ModelChoiceField(

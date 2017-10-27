@@ -245,7 +245,7 @@ class AccountManager(View):
     def contextual_template(self, process):
         return {'create': 'idgo_admin/signup.html',
                 'update': 'idgo_admin/modifyaccount.html',
-                'update_organization': 'idgo_admin/myorganization.html'}.get(process)
+                'update_organization': 'idgo_admin/update_my_organization.html'}.get(process)
 
     def render_on_error(self, request, html_template, uform, pform):
         return render_with_info_profile(
@@ -257,7 +257,7 @@ class AccountManager(View):
     def get(self, request, process):
 
         if process == "create":
-            return render_with_info_profile(
+            return render(
                 request, self.contextual_template(process),
                 {'uform': UserForm(include={'action': process}),
                  'pform': ProfileForm(include={'action': process})})

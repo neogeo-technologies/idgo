@@ -37,7 +37,7 @@
 		</div>
 		<div class="panel-body">
 			{% if awaiting_subordinates %}
-			<div class="alert alert-info">Demande(s) de status de référent en attente de validation pour : {% for organization in awaiting_subordinates %}<strong class="comma-separated-list">{{ organization }}</strong>{% endfor %}</div>
+			<div class="alert alert-info">Demande(s) de statut de référent en attente de validation pour : {% for organization in awaiting_subordinates %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
 			{% endif %}
 			<div id="table-subordinates" class="table-responsive"></div>
 			<nav aria-label="Page navigation" style="text-align: center;">
@@ -58,7 +58,7 @@
 		</div>
 		<div class="panel-body">
 			{% if awaiting_contributions %}
-			<div class="alert alert-info">Demande(s) de contribution en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization }}</strong>{% endfor %}</div>
+			<div class="alert alert-info">Demande(s) de statut de contributeur en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
 			{% endif %}
 			<div id="table-organizations" class="table-responsive"></div>
 			<nav aria-label="Page navigation" style="text-align: center;">

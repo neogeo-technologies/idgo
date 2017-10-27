@@ -1,0 +1,26 @@
+{% load bootstrap3 %}
+
+{% if messages %}
+	{% for message in messages %}
+		{% if message.tags == 'success' %}
+			<div name='message-tags' class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+		{% elif message.tags == 'error' %}
+			<div name='message-tags' class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+		{% elif message.tags == 'info' %}
+			<div name='message-tags' class="alert alert-info" role="alert">{{ message | escape | safe }}</div>
+		{% endif %}
+	{% endfor %}
+{% endif %}
+
+<form method="post" action="" enctype="multipart/form-data">
+	{% csrf_token %}
+	{% if pform.organisation.field.widget.is_hidden == False %}
+		{% include "idgo_admin/inner_manageorganization.html" %}
+	{% else %}
+	<div class="alert alert-info"><a href="{% url "idgo_admin:organizations" %}">En attente de rattachement</a></div>
+	{% endif %}
+	<div class="buttons-on-the-right-side">
+		<a class="btn btn-default" href="{% url "idgo_admin:organizations" %}">Revenir</a>
+		<button type="submit" class="btn btn-default">Valider les changements</button>
+	</div>
+</form>

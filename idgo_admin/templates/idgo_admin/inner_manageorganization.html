@@ -1,5 +1,14 @@
 {% load bootstrap3 %}
 
+{% if awaiting_contributions %}
+<div class="alert alert-info">Demande(s) de statut de contributeur en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
+{% endif %}
+{% if awaiting_subordinates %}
+<div class="alert alert-info">Demande(s) de statut de référent en attente de validation pour : {% for organization in awaiting_subordinates %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
+{% endif %}
+{% if awaiting_rattachement %}
+<div class="alert alert-info">Demande(s) de rattachement en attente pour : <strong>{{ awaiting_rattachement }}</strong></div>
+{% else %}
 <div id="collapse-one" class="collapse in">
 	<p>Sélectionnez dans la liste ci-dessous votre organisation</p>
 	<div class="row">
@@ -7,11 +16,11 @@
 			{% bootstrap_field pform.organisation show_label=False %}
 		</div>
 	</div>
-	<p>Si celle-ci n'est pas dans la liste, vous pouvez <a id="add-organization" type="button">indiquer une nouvelle organisation</a>. </p>
+	<p>Si celle-ci n'est pas dans la liste, vous pouvez <a name="open" type="button">indiquer une nouvelle organisation</a>. </p>
 </div>
 <div id="collapse-two" class="collapse">
 	<div class="well">
-		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+		<button name="close" type="button" class="close" data-dismiss="alert" aria-label="Close">
 			<span aria-hidden="true">&times;</span>
 		</button>
 		<h4>Formulaire de création d'une organisation</h4>
@@ -72,7 +81,95 @@
 				{% bootstrap_field pform.license %}
 			</div>
 		</div>
+		<div class="buttons-on-the-right-side">
+			<button name="close" type="button" class="btn btn-default" data-dismiss="alert" aria-label="Close">Fermer</button>
+		</div>
 	</div>
 </div>
-{% bootstrap_field pform.contribution_requested show_label=False %}
-{% bootstrap_field pform.referent_requested show_label=False %}
+<div>
+	{% bootstrap_field pform.contribution_requested show_label=False %}
+	{% bootstrap_field pform.referent_requested show_label=False %}
+</div>
+{% endif %}
+<script>
+$(function() {
+
+	const contributions = [];
+	for (organization of {{ contributions | safe }}) {
+		contributions.push(organization[0]);
+	};
+
+	const awaitingContributions = [];
+	for (organization of {{ awaiting_contributions | safe }}) {
+		awaitingContributions.push(organization[0]);
+	};
+
+	const subordinates = [];
+	for (organization of {{ subordinates | safe }}) {
+		subordinates.push(organization[0]);
+	};
+
+	const awaitingSubordinates = [];
+	for (organization of {{ awaiting_subordinates | safe }}) {
+		awaitingSubordinates.push(organization[0]);
+	};
+
+	const $inputContribution = $('input[name="{{ pform.contribution_requested.name }}"]');
+	const $inputReferent = $('input[name="{{ pform.referent_requested.name }}"]');
+
+	const toggleInputVisibility = function() {
+		const selected = parseInt($selectOrganization.val());
+		if ({{ pform.organisation.value }} === selected) {
+			$inputContribution.parent().hide();
+			$inputReferent.parent().hide();
+		} else {
+			$inputContribution.parent().show();
+			if (awaitingContributions.indexOf(selected) > -1 || contributions.indexOf(selected) > -1) {
+				$inputContribution.parent().hide();
+			};
+			$inputReferent.parent().show();
+			if (awaitingSubordinates.indexOf(selected) > -1 || subordinates.indexOf(selected) > -1) {
+				$inputReferent.parent().hide();;
+			};
+		};
+	};
+
+	const $selectOrganization = $('select[name="organisation"]')
+		.ready(toggleInputVisibility)
+		.change(toggleInputVisibility);
+
+	const $collapseOne = $('#collapse-one').collapse({toggle: false})
+		.on('hidden.bs.collapse', function() {
+			$inputContribution.prop('checked', true);
+			$inputReferent.prop('checked', true);
+			$selectOrganization.selectedIndex = 0;
+			$('#collapse-one select').each(function(i) {
+				$(this)[0].selectedIndex = 0;
+			});
+			toggleInputVisibility();
+		});
+
+	const $collapseTwo = $('#collapse-two').collapse({toggle: false})
+		.on('hide.bs.collapse', function() {
+			$inputContribution.prop('checked', true);
+			$inputReferent.prop('checked', false);
+			$selectOrganization.find('option[value="{{ pform.organisation.value }}"]').prop('selected', true);
+			toggleInputVisibility();
+			$('#collapse-two input').each(function(i) {
+				$(this).val('');
+			});
+			toggleInputVisibility();
+		});
+
+	const toggleCollpase = function() {
+		$collapseOne.collapse('toggle');
+		$collapseTwo.collapse('toggle');
+	};
+
+	$collapseOne.find('[name="open"]').click(toggleCollpase);
+	$collapseTwo.find('[name="close"]').click(toggleCollpase);
+
+	{% if pform.new_orga.value %} toggleCollpase(); {% endif %}
+});
+
+</script>

@@ -35,7 +35,7 @@
 	<div class="btn-group-vertical btn-block scrolling-box"  style="height: 200px;" data-toggle="buttons">
 		<!-- UGLY -->
 		<script>var organizations = [];</script>
-		{% for choice in pform.contributions %}
+		{% for choice in form.contributions %}
 		<script>organizations.push('{{ choice.choice_label }}');</script>
 		<div class="btn btn-radio">{{ choice }}</div>
 		{% endfor %}

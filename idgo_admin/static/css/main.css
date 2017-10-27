@@ -31,11 +31,11 @@ img {
 }
 
 .comma-separated-list:not(:last-child)::after {
-    content: ', '
+    content: ', ';
 }
 
 .comma-separated-list:last-child::after {
-    content: '. '
+    content: '. ';
 }
 
 .well {

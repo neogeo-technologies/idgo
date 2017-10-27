@@ -26,24 +26,20 @@ def contribution_request(request):
 
     user = request.user
     profile = get_object_or_404(Profile, user=user)
-
     process = 'update'
+    template = 'idgo_admin/contribute.html'
 
     if request.method == 'GET':
-        return render_with_info_profile(
-            request, 'idgo_admin/contribute.html',
-            {'pform': ProfileForm(include={'user': user, 'action': process})})
+        form = ProfileForm(include={'user': user, 'action': process})
+        return render_with_info_profile(request, template, {'form': form})
 
-    pform = ProfileForm(
-        instance=profile, data=request.POST,
-        include={'user': user, 'action': process})
+    form = ProfileForm(instance=profile, data=request.POST,
+                       include={'user': user, 'action': process})
 
-    if not pform.is_valid():
-        return render_with_info_profile(
-            request, 'idgo_admin/contribute.html',
-            {'pform': pform})
+    if not form.is_valid():
+        return render_with_info_profile(request, template, {'form': form})
 
-    organisation = pform.cleaned_data['contributions']
+    organisation = form.cleaned_data['contributions']
 
     LiaisonsContributeurs.objects.create(
         profile=profile, organisation=organisation)
@@ -69,22 +65,23 @@ def referent_request(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
     process = 'update'
+    template = 'idgo_admin/referent.html'
 
     if request.method == 'GET':
-        return render_with_info_profile(
-            request, 'idgo_admin/referent.html',
-            {'pform': ProfileForm(include={'user': user, 'action': process})})
+        form = ProfileForm(include={'user': user, 'action': process})
+        return render_with_info_profile(request, template, {'form': form})
 
-    pform = ProfileForm(
-        instance=profile, data=request.POST or None,
-        include={'user': user, 'action': process})
+    form = ProfileForm(instance=profile, data=request.POST or None,
+                       include={'user': user, 'action': process})
 
-    if not pform.is_valid():
-        return render_with_info_profile(request, 'idgo_admin/referent.html', {'pform': pform})
+    if not form.is_valid():
+        return render_with_info_profile(request, template, {'form': form})
 
-    organisation = pform.cleaned_data['referents']
+    organisation = form.cleaned_data['referents']
+
     LiaisonsReferents.objects.create(
         profile=profile, organisation=organisation)
+
     request_action = AccountActions.objects.create(
         profile=profile, action='confirm_referent', org_extras=organisation)
 

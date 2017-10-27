@@ -15,7 +15,7 @@ def render_with_info_profile(request, template_name, context=None,
     if not context:
         context = {}
 
-    organization = (profile.organisation and profile.membership) and profile.organisation.name
+    organization = (profile.organisation and profile.membership) and profile.organisation
 
     try:
         action = AccountActions.objects.get(
@@ -42,10 +42,11 @@ def render_with_info_profile(request, template_name, context=None,
         'first_name': user.first_name,
         'last_name': user.last_name,
         'is_membership': profile.membership,
-        'is_referent': profile.referents.exists(),
-        'is_contributor': profile.contributions.exists(),
+        'is_referent': profile.referents.exists(),  # TODO: faire une methode
+        'is_contributor': profile.contributions.exists(),   # TODO: faire une methode
         'is_admin': profile.is_admin,
-        'organization': organization,
+        'organization': organization and organization.name,
+        'organization_id': organization and organization.id,
         'awaiting_rattachement': awaiting_rattachement,
         'contributions': contributions,
         'awaiting_contributions': awaiting_contributions,
