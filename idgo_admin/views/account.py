@@ -474,21 +474,23 @@ def all_members(request):
 
     organizations = {}
     for orga in my_subordinates:
-
         organizations[str(orga.name)] = {}
-        organizations[str(orga.name)]["members"] = list(Profile.objects.filter(
-            organisation=orga, membership=True).values().values(
-                "id",
-                "user__first_name",
-                "user__last_name",
-                "user__username"))
+        organizations[str(orga.name)]["members"] = [{
+            "profile_id": p.pk,
+            "first_name": p.user.first_name,
+            "last_name": p.user.last_name,
+            "username": p.user.username,
+            "nb_datasets": p.nb_datasets
+            } for p in Profile.objects.filter(organisation=orga, membership=True)]
 
-        organizations[str(orga.name)]["contributors"] = list(LiaisonsContributeurs.objects.filter(
-            organisation__in=my_subordinates, validated_on__isnull=False).values(
-                "id",
-                "profile__user__first_name",
-                "profile__user__last_name",
-                "profile__user__username"))
+        organizations[str(orga.name)]["contributors"] = [{
+            "profile_id": lc.profile.pk,
+            "first_name": lc.profile.user.first_name,
+            "last_name": lc.profile.user.last_name,
+            "username": lc.profile.user.username,
+            "nb_datasets": lc.profile.nb_datasets
+            } for lc in LiaisonsContributeurs.objects.filter(
+            organisation=orga, validated_on__isnull=False)]
 
     return render_with_info_profile(
         request, 'idgo_admin/all_members.html', status=200,
