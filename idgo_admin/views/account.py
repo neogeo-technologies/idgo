@@ -466,7 +466,7 @@ def delete_account(request):
 
 @method_decorator(decorators, name='dispatch')
 class ReferentAccountManager(View):
-    
+
     def get(self, request, *args, **kwargs):
         user = request.user
         profile = get_object_or_404(Profile, user=user)
@@ -481,7 +481,7 @@ class ReferentAccountManager(View):
             organizations[str(orga.name)] = {'id': orga.id}
             organizations[str(orga.name)]["members"] = [{
                 "profile_id": p.pk,
-                "is_referent": p.is_referent(orga),
+                "is_referent": p.is_referent(orga) and "true" or "false",
                 "first_name": p.user.first_name,
                 "last_name": p.user.last_name,
                 "username": p.user.username,
@@ -490,7 +490,7 @@ class ReferentAccountManager(View):
 
             organizations[str(orga.name)]["contributors"] = [{
                 "profile_id": lc.profile.pk,
-                "is_referent": lc.profile.is_referent(orga),
+                "is_referent": lc.profile.is_referent(orga) and "true" or "false",
                 "first_name": lc.profile.user.first_name,
                 "last_name": lc.profile.user.last_name,
                 "username": lc.profile.user.username,
