@@ -516,7 +516,7 @@ class ReferentAccountManager(View):
             return HttpResponseForbidden()
         organisation = get_object_or_404(Organisation, id=organization_id)
 
-        if target == 'member':
+        if target == 'members':
             if profile.organisation != organisation:
                 raise Http404
             profile.organisation = None
@@ -525,7 +525,7 @@ class ReferentAccountManager(View):
             message = "L'utilisateur <strong>{0}</strong> n'est plus membre de cette organidation. ".format(username)
             messages.success(request, message)
 
-        if target == 'contributor':
+        if target == 'contributors':
             lc = get_object_or_404(LiaisonsContributeurs, profile=profile, organisation=organisation)
             lc.delete()
             message = "L'utilisateur <strong>{0}</strong> n'est plus contributeur de cette organisation. ".format(username)
