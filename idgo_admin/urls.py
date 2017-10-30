@@ -2,7 +2,7 @@ from django.conf.urls import url
 from idgo_admin.views.account import AccountManager
 from idgo_admin.views.account import delete_account
 from idgo_admin.views.account import forgotten_password
-from idgo_admin.views.account import referent_roles
+from idgo_admin.views.account import all_members
 from idgo_admin.views.account import reset_password
 from idgo_admin.views.account import SignIn
 from idgo_admin.views.account import SignOut
@@ -37,7 +37,7 @@ urlpatterns = [
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/?$', MDEdit.as_view(), name='mdedit'),
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/edit/?$', MDEditTplEdit.as_view(), name='mdedit_tpl_edit'),
     url('^dataset/export/?$', export, name='export'),
-    url('^members/all/?$', referent_roles, name='all_members'),
+    url('^members/all/?$', all_members, name='all_members'),
     url('^referent/dataset/edit?$', ReferentDatasetManager.as_view(), name='referent_dataset_edit'),
     url('^action/$', ActionsManager.as_view(), name='action'),
     url('^signin/?$', SignIn.as_view(), name='signIn'),

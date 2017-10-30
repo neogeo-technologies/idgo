@@ -462,15 +462,14 @@ def delete_account(request):
 
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
-def referent_roles(request):
-
+def all_members(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
     if not profile.referents.exists():
         raise Http404
 
-    my_subordinates = LiaisonsReferents.get_subordinates(profile=profile)
+    my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinates(profile=profile)
 
     members = [(
         p.pk,

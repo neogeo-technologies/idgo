@@ -337,12 +337,7 @@ class LiaisonsReferents(models.Model):
 
     @classmethod
     def get_subordinates(cls, profile):
-        l = []
-        if profile.is_admin:
-            l = [o for o in Organisation.objects.filter(is_active=True)]
-        else:
-            l = [e.organisation for e in LiaisonsReferents.objects.filter(profile=profile)]
-        return l
+        return [e.organisation for e in LiaisonsReferents.objects.filter(profile=profile)]
 
     @classmethod
     def get_pending(cls, profile):
