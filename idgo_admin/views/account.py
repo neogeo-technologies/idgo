@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db import transaction
 from django.http import Http404
+from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
@@ -24,7 +25,6 @@ from idgo_admin.forms.account import UserForgetPassword
 from idgo_admin.forms.account import UserForm
 from idgo_admin.forms.account import UserResetPassword
 from idgo_admin.models import AccountActions
-from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
@@ -41,7 +41,10 @@ from mama_cas.views import LoginView as MamaLoginView
 from mama_cas.views import LogoutView as MamaLogoutView
 
 
-@method_decorator([csrf_exempt], name='dispatch')
+decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+
+
+@method_decorator(decorators[0], name='dispatch')
 class SignIn(MamaLoginView):
 
     template_name = 'idgo_admin/signin.html'
@@ -109,7 +112,7 @@ class SignOut(MamaLogoutView):
         return mama_redirect('idgo_admin:signIn')
 
 
-@method_decorator([csrf_exempt, ], name='dispatch')
+@method_decorator(decorators[0], name='dispatch')
 class AccountManager(View):
     def create_account(self, user_data, profile_data):
         user = User.objects.create_user(
@@ -461,6 +464,69 @@ def delete_account(request):
                   context={'message': 'Votre compte a été supprimé.'})
 
 
+@method_decorator(decorators, name='dispatch')
+class ReferentAccountManager(View):
+    import pdb; pdb.set_trace()
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        profile = get_object_or_404(Profile, user=user)
+
+        if not profile.referents.exists() and not profile.is_admin:
+            raise Http404
+
+        my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinates(profile=profile)
+
+        organizations = {}
+        for orga in my_subordinates:
+            organizations[str(orga.name)] = {'id': orga.id}
+            organizations[str(orga.name)]["members"] = [{
+                "profile_id": p.pk,
+                "is_referent": p.is_referent(orga),
+                "first_name": p.user.first_name,
+                "last_name": p.user.last_name,
+                "username": p.user.username,
+                "nb_datasets": p.nb_datasets(orga)
+                } for p in Profile.objects.filter(organisation=orga, membership=True)]
+
+            organizations[str(orga.name)]["contributors"] = [{
+                "profile_id": lc.profile.pk,
+                "is_referent": lc.profile.is_referent(orga),
+                "first_name": lc.profile.user.first_name,
+                "last_name": lc.profile.user.last_name,
+                "username": lc.profile.user.username,
+                "nb_datasets": lc.profile.nb_datasets(orga)
+                } for lc in LiaisonsContributeurs.objects.filter(
+                organisation=orga, validated_on__isnull=False)]
+
+        return render_with_info_profile(
+            request, 'idgo_admin/all_members.html', status=200,
+            context={'organizations': organizations})
+
+    def delete(self, request, *args, **kwargs):
+
+        organization_id = request.GET.get('organization')
+        username = request.GET.get('username')
+        target = request.GET.get('target')
+        if not organization_id or not username or not target or target not in ['member', 'contributor']:
+            raise Http404
+        if target == 'member':
+            profile = get_object_or_404(Profile, username=username, organisation_id=organization_id)
+            profile.organisation = None
+            profile.membership = False
+            profile.save()
+            message = "L'utilisateur <strong>{0}</strong> n'est plus membre de cette organidation. ".format(username)
+            messages.success(request, message)
+
+        if target == 'contributor':
+            lc = get_object_or_404(LiaisonsContributeurs, profile__user_username=username, organisation_id=organization_id)
+            lc.delete()
+            message = "L'utilisateur <strong>{0}</strong> n'est plus contributeur de cette organisation. ".format(username)
+            messages.success(request, message)
+
+        return HttpResponse(status=200)
+
+
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def all_members(request):
@@ -478,6 +544,7 @@ def all_members(request):
         organizations[str(orga.name)] = {'id': orga.id}
         organizations[str(orga.name)]["members"] = [{
             "profile_id": p.pk,
+            "is_referent": p.is_referent(orga),
             "first_name": p.user.first_name,
             "last_name": p.user.last_name,
             "username": p.user.username,
@@ -486,6 +553,7 @@ def all_members(request):
 
         organizations[str(orga.name)]["contributors"] = [{
             "profile_id": lc.profile.pk,
+            "is_referent": lc.profile.is_referent(orga),
             "first_name": lc.profile.user.first_name,
             "last_name": lc.profile.user.last_name,
             "username": lc.profile.user.username,

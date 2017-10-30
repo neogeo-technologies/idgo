@@ -321,6 +321,15 @@ class Profile(models.Model):
     def nb_datasets(self, organisation):
         return Dataset.objects.filter(
             editor=self.user, organisation=organisation).count()
+
+    def is_referent(self, organisation):
+        res = False
+        if self.is_admin:
+            res = True
+        else:
+            res = LiaisonsReferents.objects.filter(profile=self, organisation=organisation).exists()
+        return res
+
     # @classmethod
     # def active_users(cls):
     #     active_profiles = Profile.objects.filter(is_active=True)
