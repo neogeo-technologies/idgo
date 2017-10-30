@@ -508,7 +508,7 @@ class ReferentAccountManager(View):
         organization_id = request.GET.get('organization')
         username = request.GET.get('username')
         target = request.GET.get('target')
-        if not organization_id or not username or not target or target not in ['member', 'contributor']:
+        if not organization_id or not username or target not in ['member', 'contributor']:
             raise Http404
 
         profile = get_object_or_404(Profile, user_username=username)
