@@ -49,9 +49,9 @@ $(function() {
 		.change(function() {
 			if ($('div.btn-radio').hasClass('active')) {
 				$submit.removeClass('disabled').prop('disabled', false);
-				$typeahead.val($('form input:radio[name="referents"]:checked').parent().text())
+				$typeahead.val($('form input:radio[name="referents"]:checked').parent().text());
 			} else {
-				$submit.addClass('disabled').prop('disabled', true)
+				$submit.addClass('disabled').prop('disabled', true);
 			};
 		});
 

@@ -11,3 +11,299 @@
 		{% endif %}
 	{% endfor %}
 {% endif %}
+
+<div>
+	<div class="form-group">
+		<div class="row">
+			<div class="col-md-6">
+				{% if organizations|length > 10 %}
+				<div class="input-group">
+					<input name="organization" type="text" class="form-control typeahead" placeholder="Rechercher l'organisation...">
+					<span class="input-group-btn">
+						<button type="button" class="btn btn-primary">
+							<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+						</button>
+					</span>
+				</div>
+				{% elif organizations|length > 1 and organizations|length <= 10 %}
+				<select name="organization" class="form-control">
+					{% for organization in organizations %}
+					<option value="{{ organization }}">{{ organization }}</option>
+					{% endfor %}
+				</select>
+				{% else %}
+				<input name="organization" class="form-control" type="text" value="{{ organization }}" disabled />
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	<ul class="nav nav-tabs">
+		<li role="presentation">
+			<a href="#members" aria-controls="members" role="tab" data-toggle="tab">Liste des membres</a>
+		</li>
+		<li role="presentation">
+			<a href="#contributors" aria-controls="contributors" role="tab" data-toggle="tab">Liste des contributeurs</a>
+		</li>
+	</ul>
+	<div class="tab-content">
+		<div id="members" role="tabpanel" class="tab-pane fade in">
+			<br/>
+			<div name="message-alert"></div>
+			<div id="table-members" class="table-responsive"></div>
+			<nav aria-label="Page navigation" style="text-align: center;">
+				<ul id="table-contributors-paginator" class="pagination pagination-sm"></ul>
+			</nav>
+		</div>
+		<div id="contributors" role="tabpanel" class="tab-pane fade in">
+			<br/>
+			<div name="message-alert"></div>
+			<div id="table-contributors" class="table-responsive"></div>
+			<nav aria-label="Page navigation" style="text-align: center;">
+				<ul id="table-contributors-paginator" class="pagination pagination-sm"></ul>
+			</nav>
+		</div>
+	</div>
+	<div class="buttons-on-the-right-side">
+		<button name="delete" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+	</div>
+</div>
+<script>
+$(function() {
+	const DATA = {{ organizations | safe }};
+	const METADATA = [
+		{
+			name: 'username',
+			label: 'Utilisateur',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'first_name',
+			label: 'Prénom',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'last_name',
+			label: 'Nom',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'datasets_count',
+			label: 'Nombre de jeux de données',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'id',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'integer'
+		}
+	];
+
+	let $button = $('button[name="delete"]')
+		.on('click', function(e) {
+			e.preventDefault();
+
+			const $button = $('<button/>')
+				.prop('type', 'button')
+				.prop('class', 'btn btn-danger disabled')
+				.prop('disabled', true)
+				.text('Oui, supprimer ce membre')
+				.on('click', function(e) {
+					e.preventDefault();
+					closeAllModalDialog();
+					$.ajax({
+						type: 'DELETE',
+						url: '' // TODO
+					})
+					.done(function(response, textStatus, jqXHR) {
+						location.reload();
+					})
+					.fail(function(jqXHR, textStatus, errorThrown) {
+						location.reload();
+					});
+					e.stopPropagation();
+				});
+
+			const $input = $('<input/>')
+				.prop('type', 'text')
+				.prop('class', 'form-control')
+				.prop('placeholder', 'Nom du compte de l\'utilisateur')
+				.on('input', function(e) {
+					if ($(this).val() === resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['name']) {
+						$button.removeClass('disabled').prop('disabled', false);
+					} else {
+						$button.addClass('disabled').prop('disabled', true);
+					};
+				});
+
+			$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
+
+			$modal.find('.modal-body')
+				.append(
+					$('<form/>')
+						.append(
+							$('<div/>').prop('class', 'form-group')
+								.append('<p>Pour confirmer, veuillez réécrire le nom du compte de l\'utilisateur.</p>')
+								.append($input))
+						.append(
+							$('<div class="buttons-on-the-right-side">')
+								.append($button)
+								.append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
+
+			$modal.modal('show');
+
+			e.stopPropagation();
+		});
+
+	var membersGrid = new EditableGrid('Members', {pageSize: 10});
+	var contributorsGrid = new EditableGrid('Contributors', {pageSize: 10});
+
+	membersGrid.initializeGrid = function() {
+		let grid = membersGrid;
+
+		with (this) {
+			tableRendered = function(containerId, className) {
+				this.updatePaginator(grid);
+				for (let i = 0; i < data.length; i ++) {
+					const dataId = data[i].id;
+					if (data[i].columns[8] == 'false') {
+						$row = $(grid.tBody.rows[this.getRowIndex(data[i].id)]);
+						$row.addClass('disabled');
+					};
+				};
+			};
+			rowSelected = function(pRowIdx, nRowIdx) {
+				$(grid.getRow(pRowIdx)).removeClass('selected');
+				deactivateButton($button);
+				if (pRowIdx != nRowIdx) {
+					$(grid.getRow(nRowIdx)).addClass('selected');
+					activateButton($button);
+				};
+			};
+		};
+	};
+
+	contributorsGrid.initializeGrid = function() {
+		let grid = contributorsGrid;
+
+		with (this) {
+			tableRendered = function(containerId, className) {
+				this.updatePaginator(grid);
+				for (let i = 0; i < data.length; i ++) {
+					const dataId = data[i].id;
+					if (data[i].columns[8] == 'false') {
+						$row = $(grid.tBody.rows[this.getRowIndex(data[i].id)]);
+						$row.addClass('disabled');
+					};
+				};
+			};
+			rowSelected = function(pRowIdx, nRowIdx) {
+				$(grid.getRow(pRowIdx)).removeClass('selected');
+				deactivateButton($button);
+				if (pRowIdx != nRowIdx) {
+					$(grid.getRow(nRowIdx)).addClass('selected');
+					activateButton($button);
+				};
+			};
+		};
+	};
+
+	function updateMembersGrid(grid, containerId, metadata, data) {
+		let $containerId = $('#' + containerId);
+		let $parent = $($containerId.parent().get(0));
+		if (data.length > 0) {
+			grid.load({'metadata': metadata, 'data': data});
+			grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
+			grid.initializeGrid();
+			grid.refreshGrid();
+			$containerId.show();
+		} else {
+			$containerId.hide();
+		};
+	};
+
+	function updateContributorsGrid(grid, containerId, metadata, data) {
+		let $containerId = $('#' + containerId);
+		let $parent = $($containerId.parent().get(0));
+		if (data.length > 0) {
+			grid.load({'metadata': metadata, 'data': data});
+			grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
+			grid.initializeGrid();
+			grid.refreshGrid();
+			$containerId.show();
+		} else {
+			$containerId.hide();
+		};
+	};
+
+	const updateGrids = function(key) {
+
+		const format = function(data) {
+			const m = [];
+			for (let i in data) {
+				m.push({
+					id: i,
+					values: [
+						data[i].username,  // username
+						data[i].first_name,  // first_name
+						data[i].last_name,  // last_name
+						data[i].nb_datasets,  // datasets_count
+						data[i].profile_id  // id
+					]
+				});
+			};
+			return m;
+		};
+		updateMembersGrid(membersGrid, 'table-members', METADATA, format(DATA[key].members));
+		updateContributorsGrid(contributorsGrid, 'table-contributors', METADATA, format(DATA[key].contributors));
+	};
+
+	$('a[data-toggle="tab"][href="#contributors"]').on('hide.bs.tab', function(e) {
+		rowId = contributorsGrid.lastSelectedRowIndex;
+		contributorsGrid.rowSelected(rowId, rowId);
+	});
+
+	$('a[data-toggle="tab"][href="#members"]').on('hide.bs.tab', function(e) {
+		rowId = membersGrid.lastSelectedRowIndex;
+		membersGrid.rowSelected(rowId, rowId);
+	});
+
+	deactivateButton($button);
+
+	{% if organizations|length > 10 %}
+	$button.hide();
+	const $alert = $('div[role="tabpanel"] div[name="message-alert"]').prepend('<div class="alert alert-warning">Sélectionner une organisation.</div>');
+	$('.typeahead[name="organization"]').typeahead({
+		source: (function(data) {
+			let arr = [];
+			for (const key in data) {
+				arr.push(key);
+			};
+			return arr;
+		})(DATA),
+		afterSelect: function(val) {
+			$alert.empty();
+			$button.show();
+			updateGrids(val);
+		}
+	});
+	$('.typeahead button').click(updateGrids);
+
+	{% elif organizations|length > 1 and organizations|length <= 10 %}
+
+	const $select = $('select[name="organization"]').change(function() {
+		updateGrids($select.val());
+	});
+
+	if ($select.val()) {
+		updateGrids($select.val());
+	};
+
+	{% else %}
+
+	updateGrids($('input[name="organization"]').val());
+
+	{% endif %}
+
+});
+</script>

@@ -464,17 +464,18 @@ def delete_account(request):
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def all_members(request):
+
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
-    if not profile.referents.exists() or not profile.is_admin:
+    if not profile.referents.exists() and not profile.is_admin:
         raise Http404
 
     my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinates(profile=profile)
 
     organizations = {}
     for orga in my_subordinates:
-        organizations[str(orga.name)] = {}
+        organizations[str(orga.name)] = {'id': orga.id}
         organizations[str(orga.name)]["members"] = [{
             "profile_id": p.pk,
             "first_name": p.user.first_name,
