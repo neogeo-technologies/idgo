@@ -466,8 +466,7 @@ def delete_account(request):
 
 @method_decorator(decorators, name='dispatch')
 class ReferentAccountManager(View):
-    import pdb; pdb.set_trace()
-
+    
     def get(self, request, *args, **kwargs):
         user = request.user
         profile = get_object_or_404(Profile, user=user)
