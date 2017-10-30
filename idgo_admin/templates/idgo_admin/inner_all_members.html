@@ -69,7 +69,9 @@
 </div>
 <script>
 $(function() {
+	let ORGANIZATION_ID, USERNAME;
 	const DATA = {{ organizations | safe }};
+
 	const METADATA = [
 		{
 			name: 'username',
@@ -87,10 +89,15 @@ $(function() {
 			editable: false,
 			datatype: 'string'
 		}, {
+			name: 'is_referent',
+			label: 'Référent',
+			editable: false,
+			datatype: 'boolean'
+		}, {
 			name: 'datasets_count',
 			label: 'Nombre de jeux de données',
 			editable: false,
-			datatype: 'string'
+			datatype: 'integer'
 		}, {
 			name: 'id',
 			label: '_HIDDEN',
@@ -113,7 +120,7 @@ $(function() {
 					closeAllModalDialog();
 					$.ajax({
 						type: 'DELETE',
-						url: '' // TODO
+						url: '{% url "idgo_admin:all_members" %}?organization=' + ORGANIZATION_ID + '&username=' + USERNAME + '&target=' + $('li[role="presentation"].active a[data-toggle="tab"]').attr('href').substring(1)
 					})
 					.done(function(response, textStatus, jqXHR) {
 						location.reload();
@@ -129,7 +136,7 @@ $(function() {
 				.prop('class', 'form-control')
 				.prop('placeholder', 'Nom du compte de l\'utilisateur')
 				.on('input', function(e) {
-					if ($(this).val() === resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['name']) {
+					if ($(this).val() === USERNAME) {
 						$button.removeClass('disabled').prop('disabled', false);
 					} else {
 						$button.addClass('disabled').prop('disabled', true);
@@ -173,13 +180,22 @@ $(function() {
 				};
 			};
 			rowSelected = function(pRowIdx, nRowIdx) {
+				const data = grid.getRowValues(nRowIdx);
+				USERNAME = data.username;
 				$(grid.getRow(pRowIdx)).removeClass('selected');
 				deactivateButton($button);
-				if (pRowIdx != nRowIdx) {
+				if (pRowIdx != nRowIdx && !data.is_referent) {
 					$(grid.getRow(nRowIdx)).addClass('selected');
 					activateButton($button);
 				};
 			};
+			setCellRenderer('is_referent', new CellRenderer({
+				render: function(cell, value) {
+					cell.style.textAlign = 'center';
+					cell.style.width = '32px';
+					cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
+				}
+			}));
 		};
 	};
 
@@ -198,19 +214,30 @@ $(function() {
 				};
 			};
 			rowSelected = function(pRowIdx, nRowIdx) {
+				const data = grid.getRowValues(nRowIdx);
+				USERNAME = data.username;
 				$(grid.getRow(pRowIdx)).removeClass('selected');
 				deactivateButton($button);
-				if (pRowIdx != nRowIdx) {
+				if (pRowIdx != nRowIdx && !data.is_referent) {
 					$(grid.getRow(nRowIdx)).addClass('selected');
 					activateButton($button);
 				};
 			};
+			setCellRenderer('is_referent', new CellRenderer({
+				render: function(cell, value) {
+					cell.style.textAlign = 'center';
+					cell.style.width = '32px';
+					cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
+				}
+			}));
 		};
 	};
 
 	function updateMembersGrid(grid, containerId, metadata, data) {
 		let $containerId = $('#' + containerId);
-		let $parent = $($containerId.parent().get(0));
+		let $parent = $($containerId.parent());
+		let $alert = $parent.find('div[name="message-alert"]');
+
 		if (data.length > 0) {
 			grid.load({'metadata': metadata, 'data': data});
 			grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
@@ -219,12 +246,19 @@ $(function() {
 			$containerId.show();
 		} else {
 			$containerId.hide();
+		};
+		if (data.length == 0) {
+			$alert.prepend('<div role="alert" class="alert alert-info">Aucun utilisateur contributeur.<div/>');
+		} else {
+			$alert.empty();
 		};
 	};
 
 	function updateContributorsGrid(grid, containerId, metadata, data) {
 		let $containerId = $('#' + containerId);
-		let $parent = $($containerId.parent().get(0));
+		let $parent = $($containerId.parent());
+		let $alert = $parent.find('div[name="message-alert"]');
+
 		if (data.length > 0) {
 			grid.load({'metadata': metadata, 'data': data});
 			grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
@@ -234,9 +268,15 @@ $(function() {
 		} else {
 			$containerId.hide();
 		};
+		if (data.length == 0) {
+			$alert.prepend('<div role="alert" class="alert alert-info">Aucun utilisateur contributeur.<div/>');
+		} else {
+			$alert.empty();
+		};
 	};
 
 	const updateGrids = function(key) {
+		ORGANIZATION_ID = DATA[key].id;
 
 		const format = function(data) {
 			const m = [];
@@ -247,6 +287,7 @@ $(function() {
 						data[i].username,  // username
 						data[i].first_name,  // first_name
 						data[i].last_name,  // last_name
+						data[i].is_referent,  // is_referent
 						data[i].nb_datasets,  // datasets_count
 						data[i].profile_id  // id
 					]
