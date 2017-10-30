@@ -472,18 +472,18 @@ def all_members(request):
 
     my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinates(profile=profile)
 
-    context = {}
+    organizations = {}
     for orga in my_subordinates:
 
-        context[str(orga.name)] = {}
-        context[str(orga.name)]["members"] = list(Profile.objects.filter(
+        organizations[str(orga.name)] = {}
+        organizations[str(orga.name)]["members"] = list(Profile.objects.filter(
             organisation=orga, membership=True).values().values(
                 "id",
                 "user__first_name",
                 "user__last_name",
                 "user__username"))
 
-        context[str(orga.name)]["contributors"] = list(LiaisonsContributeurs.objects.filter(
+        organizations[str(orga.name)]["contributors"] = list(LiaisonsContributeurs.objects.filter(
             organisation__in=my_subordinates, validated_on__isnull=False).values(
                 "id",
                 "profile__user__first_name",
@@ -492,4 +492,4 @@ def all_members(request):
 
     return render_with_info_profile(
         request, 'idgo_admin/all_members.html', status=200,
-        context=context)
+        context={'organizations': organizations})
