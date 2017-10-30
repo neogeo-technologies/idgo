@@ -467,31 +467,29 @@ def all_members(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
-    if not profile.referents.exists():
+    if not profile.referents.exists() or not profile.is_admin:
         raise Http404
 
     my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinates(profile=profile)
 
-    members = [(
-        p.pk,
-        p.user.first_name,
-        p.user.last_name,
-        p.user.username,
-        p.organisation.name,
-        )for p in Profile.objects.filter(
-            organisation__in=my_subordinates, membership=True)]
-
-    contributors = {}
+    context = {}
     for orga in my_subordinates:
-        contributors[str(orga.name)] = [(
-            p.pk,
-            p.user.first_name,
-            p.user.last_name,
-            p.user.username,
-            p.organisation and p.organisation.name or 'N/A',
-            p.nb_datasets
-            ) for p in LiaisonsContributeurs.get_contributors(orga)]
+
+        context[str(orga.name)] = {}
+        context[str(orga.name)]["members"] = list(Profile.objects.filter(
+            organisation=orga, membership=True).values().values(
+                "id",
+                "user__first_name",
+                "user__last_name",
+                "user__username"))
+
+        context[str(orga.name)]["contributors"] = list(LiaisonsContributeurs.objects.filter(
+            organisation__in=my_subordinates, validated_on__isnull=False).values(
+                "id",
+                "profile__user__first_name",
+                "profile__user__last_name",
+                "profile__user__username"))
 
     return render_with_info_profile(
         request, 'idgo_admin/all_members.html', status=200,
-        context={'members': members, 'contributors': contributors})
+        context=context)
