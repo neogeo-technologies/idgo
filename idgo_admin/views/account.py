@@ -24,6 +24,7 @@ from idgo_admin.forms.account import UserForgetPassword
 from idgo_admin.forms.account import UserForm
 from idgo_admin.forms.account import UserResetPassword
 from idgo_admin.models import AccountActions
+from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
@@ -463,6 +464,7 @@ def delete_account(request):
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def all_members(request):
+    import pdb; pdb.set_trace()
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
@@ -488,6 +490,7 @@ def all_members(request):
             p.user.last_name,
             p.user.username,
             p.organisation and p.organisation.name or 'N/A',
+            p.nb_datasets
             ) for p in LiaisonsContributeurs.get_contributors(orga)]
 
     return render_with_info_profile(

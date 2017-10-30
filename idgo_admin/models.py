@@ -318,6 +318,9 @@ class Profile(models.Model):
         verbose_name = 'Profil'
         verbose_name_plural = 'Profils'
 
+    @property
+    def nb_datasets(self):
+        return Dataset.objects.filter(editor=self.user).count()
     # @classmethod
     # def active_users(cls):
     #     active_profiles = Profile.objects.filter(is_active=True)
@@ -927,7 +930,6 @@ class Dataset(models.Model):
             profile=profile, organisation=self.organisation,
             validated_on__isnull=False).exists()
         return res
-
 
 # Triggers
 
