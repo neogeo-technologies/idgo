@@ -318,9 +318,9 @@ class Profile(models.Model):
         verbose_name = 'Profil'
         verbose_name_plural = 'Profils'
 
-    @property
-    def nb_datasets(self):
-        return Dataset.objects.filter(editor=self.user).count()
+    def nb_datasets(self, organisation):
+        return Dataset.objects.filter(
+            editor=self.user, organisation=organisation).count()
     # @classmethod
     # def active_users(cls):
     #     active_profiles = Profile.objects.filter(is_active=True)
@@ -340,7 +340,9 @@ class LiaisonsReferents(models.Model):
 
     @classmethod
     def get_subordinates(cls, profile):
-        return [e.organisation for e in LiaisonsReferents.objects.filter(profile=profile)]
+        return [e.organisation for e
+                in LiaisonsReferents.objects.filter(
+                    profile=profile, validated_on__isnull=False)]
 
     @classmethod
     def get_pending(cls, profile):
@@ -884,6 +886,8 @@ class Dataset(models.Model):
         blank=True, null=True)
 
     editor = models.ForeignKey(User)
+
+    # author = models.ForeignKey(Profile)
 
     organisation = models.ForeignKey(
         Organisation, blank=True, null=True,

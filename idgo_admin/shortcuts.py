@@ -70,31 +70,20 @@ def get_object_or_404_extended(MyModel, user, include):
     if profile.is_admin or is_referent or is_editor:
         res = instance
 
-
-    # if MyModel.__name__ == Dataset.__name__:
-    #     dataset = get_object_or_404(Dataset, **include)
-    #     if profile.is_admin:
-    #         res = dataset
-    #     elif dataset.is_referent(profile):
-    #         res = dataset
-    #     # Si on veut donner acces aux contributeur
-    #     # elif dataset.is_contributor(profile):
-    #     #     res = dataset
-    #     elif dataset.editor == user:
-    #         res = dataset
-    #
-    # if MyModel.__name__ == Resource.__name__:
-    #     resource = get_object_or_404(Resource, **include)
-    #     if profile.is_admin:
-    #         res = resource
-    #     elif resource.dataset.is_referent(profile):
-    #         res = resource
-    #     # Si on veut donner acces aux contributeur
-    #     # elif resource.dataset.is_contributor(profile):
-    #     #     res = resource
-    #     elif resource.dataset.editor == user:
-    #         res = resource
-
     if not res:
         raise Http404('No %s matches the given query.' % MyModel.__name__)
+    return res
+
+
+def user_and_profile(request):
+    user = request.user
+    res = None, None
+    if user.is_anonymous:
+        return res
+    try:
+        profile = get_object_or_404(Profile, user=user)
+    except:
+        pass
+    else:
+        res = user, profile
     return res

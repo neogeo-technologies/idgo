@@ -481,7 +481,7 @@ def all_members(request):
             "first_name": p.user.first_name,
             "last_name": p.user.last_name,
             "username": p.user.username,
-            "nb_datasets": p.nb_datasets
+            "nb_datasets": p.nb_datasets(orga)
             } for p in Profile.objects.filter(organisation=orga, membership=True)]
 
         organizations[str(orga.name)]["contributors"] = [{
@@ -489,7 +489,7 @@ def all_members(request):
             "first_name": lc.profile.user.first_name,
             "last_name": lc.profile.user.last_name,
             "username": lc.profile.user.username,
-            "nb_datasets": lc.profile.nb_datasets
+            "nb_datasets": lc.profile.nb_datasets(orga)
             } for lc in LiaisonsContributeurs.objects.filter(
             organisation=orga, validated_on__isnull=False)]
 
