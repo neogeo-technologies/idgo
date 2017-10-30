@@ -11,6 +11,7 @@ from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
@@ -509,8 +510,15 @@ class ReferentAccountManager(View):
         target = request.GET.get('target')
         if not organization_id or not username or not target or target not in ['member', 'contributor']:
             raise Http404
+
+        profile = get_object_or_404(Profile, user_username=username)
+        if profile.referents.exists():
+            return HttpResponseForbidden()
+        organisation = get_object_or_404(Organisation, id=organization_id)
+
         if target == 'member':
-            profile = get_object_or_404(Profile, username=username, organisation_id=organization_id)
+            if profile.organisation != organisation:
+                raise Http404
             profile.organisation = None
             profile.membership = False
             profile.save()
@@ -518,48 +526,9 @@ class ReferentAccountManager(View):
             messages.success(request, message)
 
         if target == 'contributor':
-            lc = get_object_or_404(LiaisonsContributeurs, profile__user_username=username, organisation_id=organization_id)
+            lc = get_object_or_404(LiaisonsContributeurs, profile=profile, organisation=organisation)
             lc.delete()
             message = "L'utilisateur <strong>{0}</strong> n'est plus contributeur de cette organisation. ".format(username)
             messages.success(request, message)
 
         return HttpResponse(status=200)
-
-
-@login_required(login_url=settings.LOGIN_URL)
-@csrf_exempt
-def all_members(request):
-
-    user = request.user
-    profile = get_object_or_404(Profile, user=user)
-
-    if not profile.referents.exists() and not profile.is_admin:
-        raise Http404
-
-    my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinates(profile=profile)
-
-    organizations = {}
-    for orga in my_subordinates:
-        organizations[str(orga.name)] = {'id': orga.id}
-        organizations[str(orga.name)]["members"] = [{
-            "profile_id": p.pk,
-            "is_referent": p.is_referent(orga),
-            "first_name": p.user.first_name,
-            "last_name": p.user.last_name,
-            "username": p.user.username,
-            "nb_datasets": p.nb_datasets(orga)
-            } for p in Profile.objects.filter(organisation=orga, membership=True)]
-
-        organizations[str(orga.name)]["contributors"] = [{
-            "profile_id": lc.profile.pk,
-            "is_referent": lc.profile.is_referent(orga),
-            "first_name": lc.profile.user.first_name,
-            "last_name": lc.profile.user.last_name,
-            "username": lc.profile.user.username,
-            "nb_datasets": lc.profile.nb_datasets(orga)
-            } for lc in LiaisonsContributeurs.objects.filter(
-            organisation=orga, validated_on__isnull=False)]
-
-    return render_with_info_profile(
-        request, 'idgo_admin/all_members.html', status=200,
-        context={'organizations': organizations})
