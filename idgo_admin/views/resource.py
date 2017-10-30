@@ -21,6 +21,7 @@ from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
+from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.utils import three_suspension_points
 import json
 
@@ -50,11 +51,9 @@ class ResourceManager(View):
     def get(self, request, dataset_id):
 
         user = request.user
-        dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
 
-        if not dataset.is_contributor(get_object_or_404(Profile, user=user)):
-            # return HttpResponseForbidden("L'accès à ce jeu de données est réservé")
-            raise Http404
+        dataset = get_object_or_404_extended(
+            Dataset, user, include={'id': dataset_id})
 
         all_users = get_all_users()
         all_organizations = get_all_organizations()
@@ -70,8 +69,10 @@ class ResourceManager(View):
 
         id = request.GET.get('id')
         if id:
-            instance = \
-                get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+            # instance = \
+            #     get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+            instance = get_object_or_404_extended(
+                Resource, user, include={'id': id, 'dataset_id': dataset_id})
 
             mode = None
             if instance.up_file:
@@ -101,11 +102,9 @@ class ResourceManager(View):
                         ) + '?id={0}'.format(resource_id))
 
         user = request.user
-        dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
 
-        if not dataset.is_contributor(get_object_or_404(Profile, user=user)):
-            # return HttpResponseForbidden("L'accès à cette ressource est réservé")
-            raise Http404
+        dataset = get_object_or_404_extended(
+            Dataset, user, include={'id': dataset_id})
 
         all_users = get_all_users()
         all_organizations = get_all_organizations()
@@ -121,8 +120,10 @@ class ResourceManager(View):
 
         id = request.POST.get('id', request.GET.get('id'))
         if id:
-            instance = \
-                get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+            # instance = \
+            #     get_object_or_404(Resource, id=id, dataset_id=dataset_id)
+            instance = get_object_or_404_extended(
+                Resource, user, include={'id': id, 'dataset': dataset})
 
             mode = None
             if instance.up_file:
@@ -180,15 +181,16 @@ class ResourceManager(View):
     def delete(self, request, dataset_id):
 
         user = request.user
-        dataset = get_object_or_404(Dataset, id=dataset_id)
-        if not dataset.is_contributor(get_object_or_404(Profile, user=user)):
-            # return HttpResponseForbidden("L'accès à cette ressource est réservé")
-            raise Http404
+
+        dataset = get_object_or_404_extended(
+            Dataset, user, include={'id': dataset_id})
 
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
             raise Http404
-        instance = get_object_or_404(Resource, id=id, dataset=dataset)
+        # instance = get_object_or_404(Resource, id=id, dataset=dataset)
+        instance = get_object_or_404_extended(
+            Resource, user, include={'id': id, 'dataset': dataset})
         ckan_id = str(instance.ckan_id)
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])

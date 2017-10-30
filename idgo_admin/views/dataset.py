@@ -27,6 +27,7 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.shortcuts import render_with_info_profile
+from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.utils import three_suspension_points
 import json
 
@@ -45,8 +46,10 @@ class DatasetManager(View):
 
     @ExceptionsHandler(ignore=[Http404])
     def get(self, request):
+
         user = request.user
         profile = get_object_or_404(Profile, user=user)
+
         form = Form(include={'user': user, 'identification': False, 'id': None})
         dataset_name = 'Nouveau'
         dataset_id = None
@@ -56,18 +59,16 @@ class DatasetManager(View):
         # Ugly
         ckan_slug = request.GET.get('ckan_slug')
         if ckan_slug:
-            instance = get_object_or_404(
-                Dataset, ckan_slug=ckan_slug, editor=user)
+            instance = get_object_or_404_extended(
+                Dataset, user, include={'ckan_slug': ckan_slug})
             return redirect(
                 reverse(self.namespace) + '?id={0}'.format(instance.pk))
 
         id = request.GET.get('id')
         if id:
-            instance = get_object_or_404(Dataset, id=id, editor=user)
 
-            if not instance.is_contributor(profile):
-                # return HttpResponseForbidden("L'accès à ce jeu de données est réservé")
-                raise Http404
+            instance = get_object_or_404_extended(
+                Dataset, user, include={'id': id})
 
             form = Form(instance=instance,
                         include={'user': user, 'identification': True, 'id': id})
@@ -122,11 +123,9 @@ class DatasetManager(View):
 
         id = request.POST.get('id', request.GET.get('id'))
         if id:
-            instance = get_object_or_404(Dataset, id=id, editor=user)
 
-            if not instance.is_contributor(profile):
-                # return HttpResponseForbidden("L'accès à ce jeu de données est réservé")
-                raise Http404
+            instance = get_object_or_404_extended(
+                Dataset, user, include={'id': id})
 
             form = Form(data=request.POST, instance=instance,
                         include={'user': user, 'identification': True, 'id': id})
@@ -184,12 +183,9 @@ class DatasetManager(View):
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
             raise Http404
-        instance = get_object_or_404(Dataset, id=id, editor=user)
 
-        if not instance.is_contributor(
-                get_object_or_404(Profile, user=user)):
-            # return HttpResponseForbidden("L'accès à ce jeu de données est réservé")
-            return Http404
+        instance = get_object_or_404_extended(
+            Dataset, user, include={'id': id})
 
         ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
@@ -230,6 +226,7 @@ class ReferentDatasetManager(View):
 
         user = request.user
         profile = get_object_or_404(Profile, user=user)
+
         form = Form(include={'user': user, 'identification': False, 'id': None})
         dataset_name = 'Nouveau'
         dataset_id = None
@@ -246,11 +243,8 @@ class ReferentDatasetManager(View):
 
         id = request.GET.get('id')
         if id:
-            instance = get_object_or_404(Dataset, id=id)
-
-            if not instance.is_referent(profile):
-                # return HttpResponseForbidden("L'accès à ce jeu de données est réservé")
-                raise Http404
+            instance = get_object_or_404_extended(
+                Dataset, user, include={'id': id})
 
             form = Form(instance=instance,
                         include={'user': user, 'identification': True, 'id': id})
@@ -305,11 +299,9 @@ class ReferentDatasetManager(View):
 
         id = request.POST.get('id', request.GET.get('id'))
         if id:
-            instance = get_object_or_404(Dataset, id=id)
 
-            if not instance.is_referent(profile):
-                # return HttpResponseForbidden("L'accès à ce jeu de données est réservé")
-                raise Http404
+            instance = get_object_or_404_extended(
+                Dataset, user, include={'id': id})
 
             form = Form(data=request.POST, instance=instance,
                         include={'user': user, 'identification': True, 'id': id})
@@ -365,14 +357,13 @@ class ReferentDatasetManager(View):
 
         user = request.user
         profile = get_object_or_404(Profile, user=user)
+
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
             raise Http404
-        instance = get_object_or_404(Dataset, id=id)
 
-        if not instance.is_referent(profile):
-            # return HttpResponseForbidden("L'accès à ce jeu de données est réservé")
-            return Http404
+        instance = get_object_or_404_extended(
+            Dataset, user, include={'id': id})
 
         ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
@@ -397,7 +388,6 @@ class ReferentDatasetManager(View):
 
         # return render(request, 'idgo_admin/response.html',
         #               context={'message': message}, status=status)
-
         return HttpResponse(status=status)
 
 
@@ -435,7 +425,7 @@ def all_datasets(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
-    if not profile.referents:
+    if not profile.referents.exists():
         raise Http404
 
     datasets = [(

@@ -30,7 +30,6 @@ from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.shortcuts import render_with_info_profile
-import json
 from mama_cas.compat import is_authenticated as mama_is_authenticated
 from mama_cas.models import ProxyGrantingTicket as MamaProxyGrantingTicket
 from mama_cas.models import ProxyTicket as MamaProxyTicket
@@ -267,7 +266,6 @@ class AccountManager(View):
             user = request.user
             if user.is_anonymous:
                 return HttpResponseRedirect(reverse('idgo_admin:signIn'))
-
             profile = get_object_or_404(Profile, user=user)
 
             return render_with_info_profile(
@@ -284,10 +282,12 @@ class AccountManager(View):
             uform = UserForm(data=request.POST, include={'action': process})
 
         if process in ("update", "update_organization"):
+
             user = request.user
             if user.is_anonymous:
                 return HttpResponseRedirect(reverse('idgo_admin:signIn'))
             profile = get_object_or_404(Profile, user=user)
+
             pform = ProfileForm(request.POST, request.FILES,
                                 instance=profile,
                                 include={'user': user,
@@ -467,7 +467,7 @@ def referent_roles(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
-    if not profile.referents:
+    if not profile.referents.exists():
         raise Http404
 
     my_subordinates = LiaisonsReferents.get_subordinates(profile=profile)

@@ -19,7 +19,6 @@ class ActionsManager(View):
     @ExceptionsHandler(ignore=[Http404])
     def get(self, request):
         user = request.user
-
         dataset_id = request.GET.get('id', None)
         publish = request.GET.get('publish', None)
 

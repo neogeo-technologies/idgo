@@ -64,6 +64,7 @@ def referent_request(request):
 
     user = request.user
     profile = get_object_or_404(Profile, user=user)
+
     process = 'update'
     template = 'idgo_admin/referent.html'
 
