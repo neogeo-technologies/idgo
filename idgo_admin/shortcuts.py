@@ -45,7 +45,7 @@ def render_with_info_profile(request, template_name, context=None,
         'first_name': user.first_name,
         'last_name': user.last_name,
         'is_membership': profile.membership,
-        'is_referent': profile.referents.exists(),  # TODO: faire une methode
+        'is_referent': profile.is_referent(),  # TODO: faire une methode
         'is_contributor': profile.contributions.exists(),   # TODO: faire une methode
         'is_admin': profile.is_admin,
         'organization': organization and organization.name,

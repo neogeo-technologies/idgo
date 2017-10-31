@@ -322,12 +322,14 @@ class Profile(models.Model):
         return Dataset.objects.filter(
             editor=self.user, organisation=organisation).count()
 
-    def is_referent(self, organisation):
+    def is_referent(self, organisation=None):
         res = False
         if self.is_admin:
             res = True
-        else:
+        elif organisation:
             res = LiaisonsReferents.objects.filter(profile=self, organisation=organisation).exists()
+        else:
+            res = LiaisonsReferents.objects.filter(profile=self).exists()
         return res
 
     # @classmethod
@@ -939,6 +941,7 @@ class Dataset(models.Model):
         return res
 
     def is_referent(self, profile):
+
         res = LiaisonsReferents.objects.filter(
             profile=profile, organisation=self.organisation,
             validated_on__isnull=False).exists()
