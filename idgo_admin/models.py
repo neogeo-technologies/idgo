@@ -351,6 +351,8 @@ class LiaisonsReferents(models.Model):
 
     @classmethod
     def get_subordinates(cls, profile):
+        if profile.is_admin:
+            return Organisation.objects.filter(is_active=True)
         return [e.organisation for e
                 in LiaisonsReferents.objects.filter(
                     profile=profile, validated_on__isnull=False)]
