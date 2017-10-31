@@ -10,8 +10,8 @@
     "model": "idgo_admin.datatype",
     "pk": 2,
     "fields": {
-        "name": "Données intellingentes",
-        "description": "Donn\u00e9es intellingentes",
+        "name": "Données intelligentes",
+        "description": "Donn\u00e9es intelligentes",
         "ckan_slug": "donnees-intelligentes"
     }
 }, {

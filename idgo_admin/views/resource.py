@@ -44,7 +44,6 @@ class ResourceManager(View):
 
     @ExceptionsHandler(ignore=[Http404])
     def get(self, request, dataset_id):
-
         user = request.user
 
         dataset = get_object_or_404_extended(

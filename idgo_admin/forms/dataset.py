@@ -4,12 +4,14 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Category
+from idgo_admin.models import DataType
 from idgo_admin.models import create_organization_in_ckan
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
+from idgo_admin.models import Support
 from taggit.forms import TagField
 from taggit.forms import TagWidget
 
@@ -44,6 +46,12 @@ class DatasetForm(forms.ModelForm):
     categories = forms.ModelMultipleChoiceField(
         label='Catégories associées',
         queryset=Category.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple())
+
+    data_type = forms.ModelMultipleChoiceField(
+        label='Type de données',
+        queryset=DataType.objects.all(),
         required=False,
         widget=forms.CheckboxSelectMultiple())
 
@@ -107,6 +115,12 @@ class DatasetForm(forms.ModelForm):
         label='Publier le jeu de données',
         required=False)
 
+    support = forms.ModelChoiceField(
+        label='Support technique',
+        queryset=Support.objects.all(),
+        required=False,
+        empty_label="(Aucun)")
+
     is_inspire = forms.BooleanField(
         initial=False,
         label='Le jeu de données est soumis à la règlementation INSPIRE',
@@ -114,20 +128,21 @@ class DatasetForm(forms.ModelForm):
 
     class Meta(object):
         model = Dataset
-        fields = ('name',
-                  'description',
-                  'keywords',
-                  'categories',
+        fields = ('categories',
+                  'data_type',
                   'date_creation',
                   'date_modification',
                   'date_publication',
-                  'update_freq',
+                  'description',
                   'geocover',
-                  'organisation',
+                  'is_inspire',
+                  'keywords',
                   'license',
-                  # 'owner_email',
+                  'organisation',
                   'published',
-                  'is_inspire',)
+                  'support',
+                  'update_freq',
+                  'name',)
 
     def __init__(self, *args, **kwargs):
 
@@ -190,6 +205,7 @@ class DatasetForm(forms.ModelForm):
             # 'owner_email': data['owner_email'],
             'update_freq': data['update_freq'],
             'published': data['published'],
+            'support': data['support'],
             'is_inspire': data['is_inspire']}
 
         if id:  # Mise à jour du jeu de données
@@ -213,6 +229,11 @@ class DatasetForm(forms.ModelForm):
             dataset.keywords.clear()
             for tag in data['keywords']:
                 dataset.keywords.add(tag)
+
+        if data.get('data_type'):
+            dataset.data_type.clear()
+            for tp in data['data_type']:
+                dataset.data_type.add(tp)
 
         ckan_params = {
             'author': user.username,
