@@ -504,21 +504,22 @@ class ReferentAccountManager(View):
             context={'organizations': organizations})
 
     def delete(self, request, *args, **kwargs):
-
+        import pdb; pdb.set_trace()
         organization_id = request.GET.get('organization')
         username = request.GET.get('username')
         target = request.GET.get('target')
-        if not organization_id or not username or target not in ['member', 'contributor']:
+        if not organization_id or not username or target not in ['members', 'contributors']:
             raise Http404
 
-        profile = get_object_or_404(Profile, user_username=username)
-        if profile.referents.exists():
-            return HttpResponseForbidden()
+        profile = get_object_or_404(Profile, user__username=username)
         organisation = get_object_or_404(Organisation, id=organization_id)
+        if profile.is_referent(organisation):
+            return HttpResponseForbidden()
 
         if target == 'members':
             if profile.organisation != organisation:
                 raise Http404
+
             profile.organisation = None
             profile.membership = False
             profile.save()

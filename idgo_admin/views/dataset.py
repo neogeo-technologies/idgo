@@ -425,7 +425,7 @@ def all_datasets(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
-    if not profile.referents.exists() and not profile.is_admin:
+    if not profile.is_referent() and not profile.is_admin:
         raise Http404
 
     datasets = [(
