@@ -78,7 +78,8 @@ class ResourceForm(forms.ModelForm):
     format_type = forms.ModelChoiceField(
         label='Format*',
         queryset=ResourceFormats.objects.all(),
-        required=True)
+        required=True,
+        empty_label="Sélectionnez un format")
 
     # restricted_level
 

@@ -222,7 +222,8 @@ class ProfileForm(forms.ModelForm):
     organisation = forms.ModelChoiceField(
         required=False,
         label='Organisation',
-        queryset=Organisation.objects.all())
+        queryset=Organisation.objects.all(),
+        empty_label="Je ne suis rattaché à aucune organisation")
 
     organisation_type = forms.ModelChoiceField(
         required=False,

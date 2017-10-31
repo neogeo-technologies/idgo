@@ -95,12 +95,14 @@ class DatasetForm(forms.ModelForm):
     organisation = forms.ModelChoiceField(
         label='Organisation à laquelle est rattaché ce jeu de données*',
         queryset=Organisation.objects.all(),
-        required=True)
+        required=True,
+        empty_label="Sélectionnez une organisation")
 
     license = forms.ModelChoiceField(
         label='Licence*',
         queryset=License.objects.all(),
-        required=True)
+        required=True,
+        empty_label="Sélectionnez une licence")
 
     # owner_email = forms.EmailField(
     #     label='Adresse e-mail du producteur',
@@ -119,7 +121,7 @@ class DatasetForm(forms.ModelForm):
         label='Support technique',
         queryset=Support.objects.all(),
         required=False,
-        empty_label="(Aucun)")
+        empty_label="Aucun")
 
     is_inspire = forms.BooleanField(
         initial=False,
