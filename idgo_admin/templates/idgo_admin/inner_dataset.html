@@ -80,22 +80,19 @@
 			{% bootstrap_field form.license %}
 		</div>
 	</div>
-	<hr />
+
 	<div class="row">
 		<div class="col-xs-8">
 			{% bootstrap_field form.support %}
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-xs-8">
-			{% bootstrap_field form.data_type %}
+		<div class="col-xs-4">
+			<div class="well">
+				{% bootstrap_field form.data_type %}
+			</div>
 		</div>
 	</div>
-	<!-- <div class="row">
-		<div class="col-xs-4">
-			{# {% bootstrap_field form.owner_email %} #}
-		</div>
-	</div> -->
 	<div class="row">
 		<div class="col-xs-12">
 			{% bootstrap_field form.published %}
@@ -121,11 +118,8 @@
 </form>
 <script>
 $(function() {
-	var LICENSES = {{ licenses }};
-
-	// TODO récupérer les 'id' dynamiquements..
 	$('#id_organisation').change(function() {
-		$('#id_license').val(LICENSES[$(this).val()]);
+		$('#id_license').val({{ licenses }}[$(this).val()]);
 	});
 
 	$('.datepicker').datepicker();
@@ -161,13 +155,5 @@ $(function() {
 			});
 		}
 	});
-
-	// $('#dataset .typeahead').tagsinput({
-	// 	typeahead: {
-	// 		source: {{ tags | safe }}
-	// 	},
-	// 	freeInput: true,
-	// 	tagClass: 'badge'
-	// });
 });
 </script>

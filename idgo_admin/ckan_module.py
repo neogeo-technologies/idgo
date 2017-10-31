@@ -321,8 +321,30 @@ class CkanManagerHandler(metaclass=Singleton):
         return self.call_action('dataset_purge', id=id)
 
     @CkanExceptionsHandler()
-    def get_tags(self, query=None):
-        return self.call_action('tag_list', query=query)
+    def get_tags(self, query=None, all_fields=False, vocabulary_id=None):
+        return self.call_action('tag_list', vocabulary_id=vocabulary_id,
+                                all_fields=all_fields, query=query)
 
+    def is_tag_exists(self, name, vocabulary_id=None):
+        try:
+            return name in self.get_tags(vocabulary_id=vocabulary_id)
+        except Exception:
+            return False
+
+    @CkanExceptionsHandler()
+    def create_tag(self, name, vocabulary_id=None):
+        return self.call_action(
+            'tag_create', name=name, vocabulary_id=vocabulary_id)
+
+    @CkanExceptionsHandler()
+    def create_vocabulary(self, name, tags):
+        return self.call_action('vocabulary_create', name=name, tags=[{'name': tag} for tag in tags])
+
+    @CkanExceptionsHandler()
+    def get_vocabulary(self, id):
+        try:
+            return self.call_action('vocabulary_show', id=id)
+        except CkanError.NotFound:
+            return None
 
 CkanHandler = CkanManagerHandler()

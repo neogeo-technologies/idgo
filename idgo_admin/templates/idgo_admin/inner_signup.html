@@ -1,46 +1,48 @@
 {% load bootstrap3 %}
 
-<h1>Création d'un compte</h1>
-<br />
-<form method="post" action="" enctype="multipart/form-data">
-	{% csrf_token %}
-	<div class="row">
-		<div class="col-xs-12 col-sm-6">
-			{% bootstrap_field uform.first_name show_label=False %}
-		</div>
-		<div class="col-xs-12 col-sm-6">
-			{% bootstrap_field uform.last_name show_label=False %}
-		</div>
+<div class="panel">
+	<div class="panel-heading">
+		<h1 class="panel-title">Création d'un compte</h1>
 	</div>
-	<div class="row">
-		<div class="col-xs-12 col-sm-4">
-			{% bootstrap_field uform.username show_label=False %}
-		</div>
-		<div class="col-xs-12 col-sm-8">
-			{% bootstrap_field uform.email show_label=False %}
-		</div>
+	<div class="panel-body">
+		<form method="post" action="" enctype="multipart/form-data">
+			{% csrf_token %}
+			<div class="row">
+				<div class="col-xs-12 col-sm-6">
+					{% bootstrap_field uform.first_name show_label=False %}
+				</div>
+				<div class="col-xs-12 col-sm-6">
+					{% bootstrap_field uform.last_name show_label=False %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12 col-sm-4">
+					{% bootstrap_field uform.username show_label=False %}
+				</div>
+				<div class="col-xs-12 col-sm-8">
+					{% bootstrap_field uform.email show_label=False %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-3">
+					{% bootstrap_field pform.phone show_label=False %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12 col-sm-6">
+					{% bootstrap_field uform.password1 show_label=False %}
+				</div>
+				<div class="col-xs-12 col-sm-6">
+					{% bootstrap_field uform.password2 show_label=False %}
+				</div>
+			</div>
+			<hr />
+			{% include "idgo_admin/inner_manageorganization.html" %}
+			<br />
+			<div class="buttons-on-the-right-side">
+				<a class="btn btn-default" href="{% url "idgo_admin:signIn" %}">Revenir</a>
+				<button type="submit" class="btn btn-primary">Valider</button>
+			</div>
+		</form>
 	</div>
-	<div class="row">
-		<!-- <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-			{# {% bootstrap_field pform.role show_label=False %} #}
-		</div> -->
-		<div class="col-xs-3">
-			{% bootstrap_field pform.phone show_label=False %}
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-12 col-sm-6">
-			{% bootstrap_field uform.password1 show_label=False %}
-		</div>
-		<div class="col-xs-12 col-sm-6">
-			{% bootstrap_field uform.password2 show_label=False %}
-		</div>
-	</div>
-	<hr />
-	{% include "idgo_admin/inner_manageorganization.html" %}
-	<hr />
-	<div class="buttons-on-the-right-side">
-		<a class="btn btn-default" href="{% url "idgo_admin:signIn" %}">Revenir</a>
-		<button type="submit" class="btn btn-primary">Valider</button>
-	</div>
-</form>
+</div>

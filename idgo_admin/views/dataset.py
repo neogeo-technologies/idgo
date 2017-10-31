@@ -148,11 +148,14 @@ class DatasetManager(View):
                         ) for o in Resource.objects.filter(dataset=instance)])})
                 return render(request, self.template, context)
 
-            with transaction.atomic():
-                form.handle_me(request, id=id)
-
-            messages.success(
-                request, 'Le jeu de données a été mis à jour avec succès.')
+            try:
+                with transaction.atomic():
+                    form.handle_me(request, id=id)
+            except CkanSyncingError:
+                messages.error(request, 'Une erreur de synchronisation avec CKan est survenue.')
+            else:
+                messages.success(
+                    request, 'Le jeu de données a été mis à jour avec succès.')
 
             return http_redirect(instance.id)
 

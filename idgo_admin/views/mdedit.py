@@ -15,6 +15,7 @@ from idgo_admin.models import Resource
 from idgo_admin.utils import clean_my_obj
 from idgo_admin.utils import open_json_staticfile
 from idgo_admin.utils import three_suspension_points
+from idgo_admin.shortcuts import render_with_info_profile
 import os
 import re
 from urllib.parse import urljoin
@@ -171,8 +172,6 @@ class MDEdit(View):
                 'help': join_url('modal-help.html', path='html/mdedit/')}}
 
         context = {
-            'first_name': user.first_name,
-            'last_name': user.last_name,
             'dataset_name': three_suspension_points(dataset.name),
             'dataset_id': dataset.id,
             'config': config}
@@ -186,7 +185,7 @@ class MDEdit(View):
                 prefill_model(open_json_staticfile(
                     os.path.join(self.config_path, self.model_json)), dataset)
 
-        return render(request, self.template, context=context)
+        return render_with_info_profile(request, self.template, context=context)
 
     def post(self, request, dataset_id):
 

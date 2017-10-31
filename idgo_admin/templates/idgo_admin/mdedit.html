@@ -1,23 +1,26 @@
 {% extends "idgo_admin/base.html" %}
+{% load static %}
 
-{% block nav_content %}
-<base href="."></base>
+{% block head_extras %}
+<script>var config = {{ config | safe }};</script>
+<base href=".">
+{% endblock head_extras %}
+
+{% block breadcrumb_content %}
 <ol class="breadcrumb">
-	<li><a href="{% url "idgo_admin:datasets" %}">Mes jeux de données</a></li>
+	<li>Jeu de données</li>
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">{{ dataset_name }}</a></li>
 	<li class="active">Édition de la fiche de métadonnées INSPIRE</li>
 </ol>
-{% endblock nav_content %}
+{% endblock breadcrumb_content %}
 
 {% block main %}
 <div ng-app="mdEdit">
-	<script>var config = {{ config | safe }};</script>
 	<div class="main-container" ng-controller="mdEditCtrl as vm">
 		{% include "idgo_admin/mdedit/inner.html" %}
 	</div>
 </div>
 
-{% load static %}
 <script src="{% static "libs/mdedit/lib/showdown/showdown.min.js" %}"></script>
 <script src="{% static "libs/mdedit/lib/angular/angular-1.5.3.min.js" %}"></script>
 <script src="{% static "libs/mdedit/lib/ui-bootstrap/ui-bootstrap-tpls-1.3.0.min.js" %}"></script>
@@ -63,6 +66,8 @@
 <script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.services.js" %}"></script>
 <script>
 $(function() {
+	$('#menu a[href="{% url "idgo_admin:datasets" %}"]').parent().addClass('active');
+
 	var $scope = angular.element('div[ng-controller="mdEditCtrl as vm"]').scope();
 
 	{% if record_xml %}

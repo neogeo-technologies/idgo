@@ -95,31 +95,44 @@
 $(function() {
 
 	const contributions = [];
+	{% if contributions %}
 	for (organization of {{ contributions | safe }}) {
 		contributions.push(organization[0]);
 	};
+	{% endif %}
 
 	const awaitingContributions = [];
+	{% if awaiting_contributions %}
 	for (organization of {{ awaiting_contributions | safe }}) {
 		awaitingContributions.push(organization[0]);
 	};
+	{% endif %}
 
 	const subordinates = [];
+	{% if subordinates %}
 	for (organization of {{ subordinates | safe }}) {
 		subordinates.push(organization[0]);
 	};
+	{% endif %}
 
 	const awaitingSubordinates = [];
+	{% if awaiting_subordinates %}
 	for (organization of {{ awaiting_subordinates | safe }}) {
 		awaitingSubordinates.push(organization[0]);
 	};
+	{% endif %}
 
 	const $inputContribution = $('input[name="{{ pform.contribution_requested.name }}"]');
 	const $inputReferent = $('input[name="{{ pform.referent_requested.name }}"]');
 
 	const toggleInputVisibility = function() {
-		const selected = parseInt($selectOrganization.val());
-		if ({{ pform.organisation.value }} === selected) {
+		let selected = parseInt($selectOrganization.val());
+		let value = {{ pform.organisation.value | yesno:"true,false,NaN" }};
+
+		selected = isNaN(selected) ? null : selected;
+		value = isNaN(value) ? null : value;
+
+		if (value === selected && $collapseOne.hasClass('in')) {
 			$inputContribution.parent().hide();
 			$inputReferent.parent().hide();
 		} else {
@@ -153,11 +166,12 @@ $(function() {
 		.on('hide.bs.collapse', function() {
 			$inputContribution.prop('checked', true);
 			$inputReferent.prop('checked', false);
-			$selectOrganization.find('option[value="{{ pform.organisation.value }}"]').prop('selected', true);
-			toggleInputVisibility();
+			$selectOrganization.find('option[value="{{ pform.organisation.value | yesno:"true,false,NaN" }}"]').prop('selected', true);
 			$('#collapse-two input').each(function(i) {
 				$(this).val('');
 			});
+		})
+		.on('hidden.bs.collapse', function() {
 			toggleInputVisibility();
 		});
 

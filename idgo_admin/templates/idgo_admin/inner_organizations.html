@@ -33,7 +33,11 @@
 <form name="subordinates">
 	<div class="panel well">
 		<div class="panel-heading">
+			{% if is_admin %}
+			<div class="panel-title">Liste de toutes les organisations</div>
+			{% else %}
 			<div class="panel-title">Organisations pour lesquelles vous êtes référents</div>
+			{% endif %}
 		</div>
 		<div class="panel-body">
 			{% if awaiting_subordinates %}
@@ -43,10 +47,12 @@
 			<nav aria-label="Page navigation" style="text-align: center;">
 				<ul id="table-subordinates-paginator" class="pagination pagination-sm"></ul>
 			</nav>
+			{% if not is_admin %}
 			<div class="buttons-on-the-right-side">
 				<button name="unsubscribe" class="btn btn-sm btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus être référent</span></button>
 				<a class="btn btn-sm btn-default" href="{% url "idgo_admin:referent" %}">Nouvelle demande de status de référent</a>
 			</div>
+			{% endif %}
 		</div>
 	</div>
 </form>

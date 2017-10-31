@@ -3,6 +3,7 @@ from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.ckan_module import CkanSyncingError
 from idgo_admin.models import Category
 from idgo_admin.models import DataType
 from idgo_admin.models import create_organization_in_ckan
@@ -232,10 +233,16 @@ class DatasetForm(forms.ModelForm):
             for tag in data['keywords']:
                 dataset.keywords.add(tag)
 
+        tags = [{'name': name} for name in data['keywords']]
+
         if data.get('data_type'):
             dataset.data_type.clear()
             for tp in data['data_type']:
+                tags.append({'name': tp.ckan_slug, 'vocabulary_id': ckan.get_vocabulary('data_type')['id']})
                 dataset.data_type.add(tp)
+
+        if params['support']:
+            tags.append({'name': name, 'vocabulary_id': ckan.get_vocabulary('support')['id']})
 
         ckan_params = {
             'author': user.username,
@@ -257,7 +264,7 @@ class DatasetForm(forms.ModelForm):
             'owner_org': dataset.organisation.ckan_slug,
             'private': not dataset.published,
             'state': 'active',
-            'tags': [{'name': name} for name in data['keywords']],
+            'tags': tags,
             'title': dataset.name,
             'update_frequency': dataset.update_freq,
             # TODO Générer l'URL INSPIRE
@@ -274,12 +281,9 @@ class DatasetForm(forms.ModelForm):
         except Exception as e:
             if created:
                 dataset.delete()
-            # else:
-            #     dataset.sync_in_ckan = False
             raise e
         else:
             dataset.ckan_id = UUID(ckan_dataset['id'])
-            # dataset.sync_in_ckan = True
             dataset.save()
         finally:
             ckan_user.close()
