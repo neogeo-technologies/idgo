@@ -435,21 +435,36 @@ class AccountActions(models.Model):
 
 class Mail(models.Model):
 
-    @staticmethod
-    def superuser_mails():
-        return [usr.email for usr
-                in User.objects.filter(is_superuser=True, is_active=True)]
+    @classmethod
+    def superuser_mails(cls, receip_list):
+        receip_list = receip_list + [
+            usr.email for usr in User.objects.filter(
+                is_superuser=True, is_active=True)]
+        return receip_list
 
-    @staticmethod
-    def receivers_list(organisation=None):
-        res = [usr.email for usr in User.objects.filter(
-            is_superuser=True, is_active=True)]
+    @classmethod
+    def admin_mails(cls, receip_list):
+        receip_list = receip_list + [
+            usr.email for usr in User.objects.filter(
+                is_superuser=True, is_active=True)]
+        return receip_list
+
+    @classmethod
+    def referents_mails(cls, receip_list, organisation):
+        receip_list = receip_list + [
+            p.user.email for p in Profile.objects.filter(referents=organisation)]
+        return receip_list
+
+    @classmethod
+    def receivers_list(cls, organisation=None):
+        receip_list = []
+        receip_list = cls.superuser_mails(receip_list)
+        receip_list = cls.admin_mails(receip_list)
         if organisation:
-            profiles = Profile.objects.filter(referents=organisation)
-            res = res + [p.user.email for p in profiles]
+            receip_list = cls.referents_mails(receip_list, organisation)
 
         # Pour retourner une liste de valeurs uniques
-        return list(set(res))
+        return list(set(receip_list))
 
     template_name = models.CharField(
         'Nom du model du message', primary_key=True, max_length=255)
