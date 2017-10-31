@@ -7,8 +7,6 @@ from django.http import Http404
 # from django.http import HttpResponseForbidden
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404
-from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -22,20 +20,17 @@ from idgo_admin.models import Dataset
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.shortcuts import get_object_or_404_extended
+from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.utils import three_suspension_points
 import json
 
 
-def get_all_users():
-    # TODO Récupérer depuis Django et non CKAN (ou bien comparer)
-    # return [m[1] for m in ckan.get_all_users()]
-
-    return [p.user.username for p in Profile.objects.filter(is_active=True)]
+# def get_all_users():
+#     return [p.user.username for p in Profile.objects.filter(is_active=True)]
 
 
-def get_all_organizations():
-    # TODO Récupérer depuis Django et non CKAN (ou bien comparer)
-    return ckan.get_all_organizations()
+# def get_all_organizations():
+#     return ckan.get_all_organizations()
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -55,16 +50,9 @@ class ResourceManager(View):
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
 
-        all_users = get_all_users()
-        all_organizations = get_all_organizations()
-
-        context = {'users': json.dumps(all_users),
-                   'organizations': json.dumps(all_organizations),
-                   'first_name': user.first_name,
-                   'last_name': user.last_name,
-                   'dataset_name': three_suspension_points(dataset.name),
+        context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
-                   'resource_name': 'Nouveau',
+                   'resource_name': 'Nouvelle ressource',
                    'form': Form()}
 
         id = request.GET.get('id')
@@ -87,7 +75,7 @@ class ResourceManager(View):
                 'mode': mode,
                 'form': Form(instance=instance)})
 
-        return render(request, self.template, context)
+        return render_with_info_profile(request, self.template, context)
 
     @ExceptionsHandler(ignore=[Http404])
     @transaction.atomic
@@ -106,22 +94,13 @@ class ResourceManager(View):
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
 
-        all_users = get_all_users()
-        all_organizations = get_all_organizations()
-
-        context = {'users': json.dumps(all_users),
-                   'organizations': json.dumps(all_organizations),
-                   'first_name': user.first_name,
-                   'last_name': user.last_name,
-                   'dataset_name': three_suspension_points(dataset.name),
+        context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
                    'mode': None,
-                   'resource_name': 'Nouveau'}
+                   'resource_name': 'Nouvelle ressource'}
 
         id = request.POST.get('id', request.GET.get('id'))
         if id:
-            # instance = \
-            #     get_object_or_404(Resource, id=id, dataset_id=dataset_id)
             instance = get_object_or_404_extended(
                 Resource, user, include={'id': id, 'dataset': dataset})
 
@@ -140,7 +119,7 @@ class ResourceManager(View):
                 context.update({
                     'resource_name': three_suspension_points(instance.name),
                     'form': form})
-                return render(request, self.template, context)
+                return render_with_info_profile(request, self.template, context)
 
             try:
                 with transaction.atomic():
@@ -149,7 +128,7 @@ class ResourceManager(View):
             except ValidationError as e:
                 form.add_error(e.code, e.message)
                 context.update({'form': form})
-                return render(request, self.template, context)
+                return render_with_info_profile(request, self.template, context)
 
             messages.success(
                 request, 'La ressource a été mise à jour avec succès.')
@@ -159,7 +138,7 @@ class ResourceManager(View):
         form = Form(request.POST, request.FILES)
         if not form.is_valid():
             context.update({'form': form})
-            return render(request, self.template, context)
+            return render_with_info_profile(request, self.template, context)
 
         try:
             with transaction.atomic():
@@ -168,7 +147,7 @@ class ResourceManager(View):
         except ValidationError as e:
             form.add_error(e.code, e.message)
             context.update({'form': form})
-            return render(request, self.template, context)
+            return render_with_info_profile(request, self.template, context)
 
         messages.success(request, (
             'La ressource a été créée avec succès. Souhaitez-vous '
@@ -188,7 +167,6 @@ class ResourceManager(View):
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
             raise Http404
-        # instance = get_object_or_404(Resource, id=id, dataset=dataset)
         instance = get_object_or_404_extended(
             Resource, user, include={'id': id, 'dataset': dataset})
         ckan_id = str(instance.ckan_id)
@@ -209,8 +187,5 @@ class ResourceManager(View):
             messages.success(request, message)
         finally:
             ckan_user.close()
-
-        # return render(request, 'idgo_admin/response.html',
-        #               context={'message': message}, status=status)
 
         return HttpResponse(status=status)

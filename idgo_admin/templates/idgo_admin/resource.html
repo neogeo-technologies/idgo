@@ -2,7 +2,7 @@
 
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
-	<li><a href="{% url "idgo_admin:datasets" %}">Mes jeux de données</a></li>
+	<li>Jeu de données</li>
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">{{ dataset_name }}</a></li>
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">ressources</a></li>
 	<li class="active">{{ resource_name }}</li>

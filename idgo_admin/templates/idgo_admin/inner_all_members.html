@@ -51,7 +51,7 @@
 			<div name="message-alert"></div>
 			<div id="table-members" class="table-responsive"></div>
 			<nav aria-label="Page navigation" style="text-align: center;">
-				<ul id="table-contributors-paginator" class="pagination pagination-sm"></ul>
+				<ul id="table-members-paginator" class="pagination pagination-sm"></ul>
 			</nav>
 		</div>
 		<div id="contributors" role="tabpanel" class="tab-pane fade in">
@@ -114,7 +114,7 @@ $(function() {
 				.prop('type', 'button')
 				.prop('class', 'btn btn-danger disabled')
 				.prop('disabled', true)
-				.text('Oui, supprimer ce membre')
+				.text('Oui, je confirme')
 				.on('click', function(e) {
 					e.preventDefault();
 					closeAllModalDialog();
@@ -248,7 +248,7 @@ $(function() {
 			$containerId.hide();
 		};
 		if (data.length == 0) {
-			$alert.prepend('<div role="alert" class="alert alert-info">Aucun utilisateur contributeur.<div/>');
+			$alert.prepend('<div role="alert" class="alert alert-info">Aucun utilisateur membre.<div/>');
 		} else {
 			$alert.empty();
 		};

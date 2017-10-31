@@ -86,15 +86,15 @@ var deactivateButton = function($btn) {
 							<li role="presentation">
 								<a href="{% url "idgo_admin:datasets" %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
 							</li>
-							<li role="presentation">
-								<a href="{% url "idgo_admin:organizations" %}" aria-controls="organizations" role="tab">Mes organisations</a>
-							</li>
 							{% if is_referent or is_admin  %}
 							<li role="presentation">
-								<a href="{% url "idgo_admin:all_datasets" %}" aria-controls="all-datasets" role="tab">Gestion des jeux de données<span></a>
+								<a href="{% url "idgo_admin:all_datasets" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
 							</li>
 							<li role="presentation">
-								<a href="{% url "idgo_admin:all_members" %}" aria-controls="all-members" role="tab">Gestion des membres<span></a>
+								<a href="{% url "idgo_admin:all_members" %}" aria-controls="all-members" role="tab">Gestion des utilisateurs<span></a>
+							</li>
+							<li role="presentation">
+								<a href="{% url "idgo_admin:organizations" %}" aria-controls="organizations" role="tab">Mes organisations</a>
 							</li>
 							{% endif %}
 							{% block nav_content_extra %}
