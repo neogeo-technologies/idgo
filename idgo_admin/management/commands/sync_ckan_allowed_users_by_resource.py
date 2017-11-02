@@ -19,6 +19,9 @@ class Command(BaseCommand):
 
             ckan_user = ckan_me(
                 ckan.get_user(dataset.editor.username)['apikey'])
+            # TODO(cbenhabib): author=profile in Dataset model
+            # ckan_user = ckan_me(
+            #     ckan.get_user(dataset.author.user.username)['apikey'])
 
             ckan_params = {
                 'id': str(resource.ckan_id),

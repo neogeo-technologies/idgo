@@ -36,10 +36,13 @@ def prefill_model(model, dataset):
     data = model.copy()
 
     editor = dataset.editor
+    # TODO(cbenhabib): author=profile in Dataset model
+    # author_full_name = dataset.author.user.get_full_name()
     organization = dataset.organisation
 
     data['mdContacts'][0].update({
         'individualName': editor.get_full_name(),
+        # 'individualName': author_full_name,
         'organisationName': organization.name,
         'email': organization.email,
         'deliveryPoint': organization.address,
@@ -97,9 +100,9 @@ class MDEditTplEdit(View):
         user, profile = user_and_profile(request)
 
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
-
         # TODO(cbenhabib): author=profile in Dataset model
         # dataset = get_object_or_404(Dataset, id=dataset_id, author=profile)
+
         del dataset
 
         return render(request, self.template)
@@ -120,7 +123,6 @@ class MDEdit(View):
         user, profile = user_and_profile(request)
 
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
-
         # TODO(cbenhabib): author=profile in Dataset model
         # dataset = get_object_or_404(Dataset, id=dataset_id, author=profile)
 
