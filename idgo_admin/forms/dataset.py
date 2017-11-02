@@ -192,7 +192,6 @@ class DatasetForm(forms.ModelForm):
         return self.cleaned_data
 
     def handle_me(self, request, id=None):
-        import pdb; pdb.set_trace()
         user = request.user
         data = self.cleaned_data
         params = {
