@@ -3,7 +3,6 @@ from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.ckan_module import CkanSyncingError
 from idgo_admin.models import Category
 from idgo_admin.models import DataType
 from idgo_admin.models import create_organization_in_ckan
@@ -13,6 +12,7 @@ from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Support
+from idgo_admin.shortcuts import user_and_profile
 from taggit.forms import TagField
 from taggit.forms import TagWidget
 
@@ -192,7 +192,7 @@ class DatasetForm(forms.ModelForm):
         return self.cleaned_data
 
     def handle_me(self, request, id=None):
-        user = request.user
+        user, profile = user_and_profile(request)
         data = self.cleaned_data
         params = {
             'date_creation': data['date_creation'],
@@ -200,7 +200,7 @@ class DatasetForm(forms.ModelForm):
             'date_publication': data['date_publication'],
             'description': data['description'],
             'editor': user,
-            # 'author': profile, #  TODO(cbenbib): a integrer apres migration du model
+            # 'author': profile,
             'geocover': data['geocover'],
             'license': data['license'],
             'name': data['name'],
@@ -214,6 +214,7 @@ class DatasetForm(forms.ModelForm):
         if id:  # Mise à jour du jeu de données
             created = False
             params.pop('editor', None)
+            # params.pop('author', None)
             dataset = Dataset.objects.get(pk=id)
             for key, value in params.items():
                 setattr(dataset, key, value)
