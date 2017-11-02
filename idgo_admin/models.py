@@ -322,10 +322,6 @@ class Profile(models.Model):
         return Dataset.objects.filter(
             editor=self.user, organisation=organisation).count()
 
-    # def nb_datasets(self, organisation):
-    #     return Dataset.objects.filter(
-    #         author=self.author, organisation=organisation).count()
-
     def is_referent(self, organisation=None):
         res = False
         if self.is_admin:
@@ -919,8 +915,6 @@ class Dataset(models.Model):
         blank=True, null=True)
 
     editor = models.ForeignKey(User)
-
-    # author = models.ForeignKey(Profile)
 
     organisation = models.ForeignKey(
         Organisation, blank=True, null=True,

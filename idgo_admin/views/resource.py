@@ -24,14 +24,6 @@ from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.utils import three_suspension_points
 
 
-# def get_all_users():
-#     return [p.user.username for p in Profile.objects.filter(is_active=True)]
-
-
-# def get_all_organizations():
-#     return ckan.get_all_organizations()
-
-
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
@@ -48,9 +40,6 @@ class ResourceManager(View):
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
-        # TODO(cbenhabib): author=profile in Dataset model
-        # instance = get_object_or_404_extended(
-        #     Dataset, profile, include={'id': id})
 
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
@@ -61,9 +50,6 @@ class ResourceManager(View):
         if id:
             instance = get_object_or_404_extended(
                 Resource, user, include={'id': id, 'dataset_id': dataset_id})
-            # TODO(cbenhabib): author=profile in Dataset model
-            # instance = get_object_or_404_extended(
-            #     Resource, profile, include={'id': id, 'dataset_id': dataset_id})
 
             mode = None
             if instance.up_file:
@@ -96,9 +82,6 @@ class ResourceManager(View):
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
-        # TODO(cbenhabib): author=profile in Dataset model
-        # instance = get_object_or_404_extended(
-        #     Dataset, profile, include={'id': id})
 
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
@@ -109,9 +92,6 @@ class ResourceManager(View):
         if id:
             instance = get_object_or_404_extended(
                 Resource, user, include={'id': id, 'dataset': dataset})
-            # TODO(cbenhabib): author=profile in Dataset model
-            # instance = get_object_or_404_extended(
-            #     Resource, profile, include={'id': id, 'dataset': dataset})
 
             mode = None
             if instance.up_file:
@@ -172,9 +152,6 @@ class ResourceManager(View):
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
-        # TODO(cbenhabib): author=profile in Dataset model
-        # instance = get_object_or_404_extended(
-        #     Dataset, profile, include={'id': id})
 
         id = request.POST.get('id', request.GET.get('id'))
         if not id:

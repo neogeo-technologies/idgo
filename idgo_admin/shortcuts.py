@@ -68,10 +68,6 @@ def get_object_or_404_extended(MyModel, user, include):
     is_editor = instance.dataset.editor == user if i_am_resource else instance.editor == user
     if profile.is_admin or is_referent or is_editor:
         res = instance
-    # TODO(cbenhabib): author=profile in Dataset model
-    # is_author = instance.dataset.author == profile if i_am_resource else instance.author == profile
-    # if profile.is_admin or is_referent or is_author:
-    #     res = instance
 
     if not res:
         raise Http404('No %s matches the given query.' % MyModel.__name__)

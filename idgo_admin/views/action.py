@@ -29,10 +29,6 @@ class ActionsManager(View):
             ds = get_object_or_404_extended(
                 Dataset, user, include={'id': dataset_id})
 
-            # TODO(cbenhabib): author=profile in Dataset model
-            # instance = get_object_or_404_extended(
-            #     Dataset, profile, include={'id': dataset_id})
-
             ds.published = not ds.published
             message = (
                 'Le jeu de données <strong>{0}</strong> '

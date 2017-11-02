@@ -200,7 +200,6 @@ class DatasetForm(forms.ModelForm):
             'date_publication': data['date_publication'],
             'description': data['description'],
             'editor': user,
-            # 'author': profile,
             'geocover': data['geocover'],
             'license': data['license'],
             'name': data['name'],
@@ -214,7 +213,6 @@ class DatasetForm(forms.ModelForm):
         if id:  # Mise à jour du jeu de données
             created = False
             params.pop('editor', None)
-            # params.pop('author', None)
             dataset = Dataset.objects.get(pk=id)
             for key, value in params.items():
                 setattr(dataset, key, value)

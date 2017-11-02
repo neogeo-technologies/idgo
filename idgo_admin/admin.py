@@ -55,7 +55,6 @@ class DatasetAdmin(admin.ModelAdmin):
 
     def full_name(self, obj):
         return obj.editor.get_full_name()
-        # return obj.author.user.get_full_name()
     full_name.short_description = "Nom de l'éditeur"
 
     def has_delete_permission(self, request, obj=None):

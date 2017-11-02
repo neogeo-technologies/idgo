@@ -189,10 +189,6 @@ class DatasetManager(View):
         instance = get_object_or_404_extended(
             Dataset, user, include={'id': id})
 
-        # TODO(cbenhabib): author=profile in Dataset model
-        # instance = get_object_or_404_extended(
-        #     Dataset, profile, include={'id': id})
-
         ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
@@ -245,21 +241,11 @@ class ReferentDatasetManager(View):
                 Dataset, ckan_slug=ckan_slug, editor=user)
             return redirect(
                 reverse(self.namespace) + '?id={0}'.format(instance.pk))
-        # TODO(cbenhabib): author=profile in Dataset model
-        # if ckan_slug:
-        #     instance = get_object_or_404(
-        #         Dataset, ckan_slug=ckan_slug, author=profile)
-        #     return redirect(
-        #         reverse(self.namespace) + '?id={0}'.format(instance.pk))
 
         id = request.GET.get('id')
         if id:
             instance = get_object_or_404_extended(
                 Dataset, user, include={'id': id})
-
-            # TODO(cbenhabib): author=profile in Dataset model
-            # instance = get_object_or_404_extended(
-            #     Dataset, profile, include={'id': id})
 
             form = Form(instance=instance,
                         include={'user': user, 'identification': True, 'id': id})
@@ -316,10 +302,6 @@ class ReferentDatasetManager(View):
 
             instance = get_object_or_404_extended(
                 Dataset, user, include={'id': id})
-
-            # TODO(cbenhabib): author=profile in Dataset model
-            # instance = get_object_or_404_extended(
-            #     Dataset, profile, include={'id': id})
 
             form = Form(data=request.POST, instance=instance,
                         include={'user': user, 'identification': True, 'id': id})
@@ -382,10 +364,6 @@ class ReferentDatasetManager(View):
         instance = get_object_or_404_extended(
             Dataset, user, include={'id': id})
 
-        # TODO(cbenhabib): author=profile in Dataset model
-        # instance = get_object_or_404_extended(
-        #     Dataset, profile, include={'id': id})
-
         ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
@@ -430,20 +408,6 @@ def datasets(request, *args, **kwargs):
         profile in LiaisonsContributeurs.get_contributors(o.organisation)
         ) for o in Dataset.objects.filter(editor=user)]
 
-    # TODO(cbenhabib): author=profile in Dataset model
-    # datasets = [(
-    #     o.pk,
-    #     o.name,
-    #     o.date_creation.isoformat() if o.date_creation else None,
-    #     o.date_modification.isoformat() if o.date_modification else None,
-    #     o.date_publication.isoformat() if o.date_publication else None,
-    #     Organisation.objects.get(id=o.organisation_id).name,
-    #     o.published,
-    #     o.is_inspire,
-    #     o.ckan_slug,
-    #     profile in LiaisonsContributeurs.get_contributors(o.organisation)
-    #     ) for o in Dataset.objects.filter(author=profile)]
-
     return render_with_info_profile(
         request, 'idgo_admin/datasets.html', status=200,
         context={'ckan_url': CKAN_URL, 'datasets': json.dumps(datasets)})
@@ -467,7 +431,6 @@ def all_datasets(request, *args, **kwargs):
         d.date_publication.isoformat() if d.date_publication else None,
         Organisation.objects.get(id=d.organisation_id).name,
         d.editor.get_full_name() if d.editor != user else 'Moi',
-        # d.author.user.get_full_name() if d.author != profile else 'Moi',
         d.published,
         d.is_inspire,
         d.ckan_slug,
@@ -491,8 +454,5 @@ def export(request, *args, **kwargs):
     if f == 'csv':
         return render_to_csv_response(Dataset.objects.filter(
             editor=user))
-        # TODO(cbenhabib): author=profile in Dataset model
-        # return render_to_csv_response(Dataset.objects.filter(
-        #     author=profile))
 
     raise Http404
