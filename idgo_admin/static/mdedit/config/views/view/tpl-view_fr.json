@@ -227,7 +227,7 @@
             "id": "dataBrowseGraphics",
             "label": "Miniature d'illustration",
             "placeholder": "",
-            "description": "Lien vers une image illustrant la base de données.",
+            "description": "Lien vers une image illustrant les données.",
             "_keywords": "miniature, données",
             "children": {
                 "fileName": {

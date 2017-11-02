@@ -26,6 +26,7 @@ import xml.etree.ElementTree as ET
 
 STATIC_URL = settings.STATIC_URL
 GEONETWORK_URL = settings.GEONETWORK_URL
+CKAN_URL = settings.CKAN_URL
 DOMAIN_NAME = settings.DOMAIN_NAME
 
 
@@ -77,8 +78,12 @@ def prefill_model(model, dataset):
 
     resources = Resource.objects.filter(dataset=dataset)
     for resource in resources:
+        print(resource.data_type)
         data['dataLinkages'].insert(0, {
             'name': resource.name,
+            'url': '{0}/dataset/{1}/resource/{2}'.format(
+                CKAN_URL, dataset.ckan_slug, resource.ckan_id),
+            # 'type': resource.data_type,
             'description': resource.description})
 
     return clean_my_obj(data)
