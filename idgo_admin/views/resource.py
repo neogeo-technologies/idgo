@@ -17,12 +17,11 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
-from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.shortcuts import get_object_or_404_extended
+from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.utils import three_suspension_points
-import json
 
 
 # def get_all_users():
@@ -43,11 +42,15 @@ class ResourceManager(View):
     namespace = 'idgo_admin:resource'
 
     @ExceptionsHandler(ignore=[Http404])
-    def get(self, request, dataset_id):
-        user = request.user
+    def get(self, request, dataset_id, *args, **kwargs):
+
+        user, profile = user_and_profile(request)
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
+        # TODO(cbenhabib): author=profile in Dataset model
+        # instance = get_object_or_404_extended(
+        #     Dataset, profile, include={'id': id})
 
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
@@ -56,10 +59,11 @@ class ResourceManager(View):
 
         id = request.GET.get('id')
         if id:
-            # instance = \
-            #     get_object_or_404(Resource, id=id, dataset_id=dataset_id)
             instance = get_object_or_404_extended(
                 Resource, user, include={'id': id, 'dataset_id': dataset_id})
+            # TODO(cbenhabib): author=profile in Dataset model
+            # instance = get_object_or_404_extended(
+            #     Resource, profile, include={'id': id, 'dataset_id': dataset_id})
 
             mode = None
             if instance.up_file:
@@ -78,7 +82,7 @@ class ResourceManager(View):
 
     @ExceptionsHandler(ignore=[Http404])
     @transaction.atomic
-    def post(self, request, dataset_id):
+    def post(self, request, dataset_id, *args, **kwargs):
 
         def get_uploaded_file(form):
             return form.is_multipart() and request.FILES.get('up_file')
@@ -88,10 +92,13 @@ class ResourceManager(View):
                 reverse(self.namespace, kwargs={'dataset_id': dataset_id}
                         ) + '?id={0}'.format(resource_id))
 
-        user = request.user
+        user, profile = user_and_profile(request)
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
+        # TODO(cbenhabib): author=profile in Dataset model
+        # instance = get_object_or_404_extended(
+        #     Dataset, profile, include={'id': id})
 
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
@@ -102,6 +109,9 @@ class ResourceManager(View):
         if id:
             instance = get_object_or_404_extended(
                 Resource, user, include={'id': id, 'dataset': dataset})
+            # TODO(cbenhabib): author=profile in Dataset model
+            # instance = get_object_or_404_extended(
+            #     Resource, profile, include={'id': id, 'dataset': dataset})
 
             mode = None
             if instance.up_file:
@@ -156,18 +166,22 @@ class ResourceManager(View):
         return http_redirect(dataset_id, instance.id)
 
     @ExceptionsHandler(ignore=[Http404])
-    def delete(self, request, dataset_id):
+    def delete(self, request, dataset_id, *args, **kwargs):
 
-        user = request.user
+        user, profile = user_and_profile(request)
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
+        # TODO(cbenhabib): author=profile in Dataset model
+        # instance = get_object_or_404_extended(
+        #     Dataset, profile, include={'id': id})
 
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
             raise Http404
         instance = get_object_or_404_extended(
             Resource, user, include={'id': id, 'dataset': dataset})
+
         ckan_id = str(instance.ckan_id)
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])

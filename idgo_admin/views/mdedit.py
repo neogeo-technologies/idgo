@@ -16,6 +16,7 @@ from idgo_admin.utils import clean_my_obj
 from idgo_admin.utils import open_json_staticfile
 from idgo_admin.utils import three_suspension_points
 from idgo_admin.shortcuts import render_with_info_profile
+from idgo_admin.shortcuts import user_and_profile
 import os
 import re
 from urllib.parse import urljoin
@@ -88,13 +89,17 @@ class MDEditTplEdit(View):
 
     template = 'idgo_admin/mdedit/template_edit.html'
 
-    def get(self, request, dataset_id):
+    def get(self, request, dataset_id, *args, **kwargs):
 
         def join_url(filename, path='html/mdedit/'):
             return urljoin(urljoin(STATIC_URL, path), filename)
 
-        user = request.user
+        user, profile = user_and_profile(request)
+
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+
+        # TODO(cbenhabib): author=profile in Dataset model
+        # dataset = get_object_or_404(Dataset, id=dataset_id, author=profile)
         del dataset
 
         return render(request, self.template)
@@ -110,10 +115,14 @@ class MDEdit(View):
     # filenames
     model_json = 'models/model-empty.json'
 
-    def get(self, request, dataset_id):
+    def get(self, request, dataset_id, *args, **kwargs):
 
-        user = request.user
+        user, profile = user_and_profile(request)
+
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+
+        # TODO(cbenhabib): author=profile in Dataset model
+        # dataset = get_object_or_404(Dataset, id=dataset_id, author=profile)
 
         def join_url(filename, path=self.config_path):
             return urljoin(urljoin(STATIC_URL, path), filename)
@@ -187,10 +196,13 @@ class MDEdit(View):
 
         return render_with_info_profile(request, self.template, context=context)
 
-    def post(self, request, dataset_id):
+    def post(self, request, dataset_id, *args, **kwargs):
 
-        user = request.user
+        user, profile = user_and_profile(request)
+
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+        # TODO(cbenhabib): author=profile in Dataset model
+        # dataset = get_object_or_404(Dataset, id=dataset_id, author=profile)
 
         def http_redirect(dataset_id):
             return HttpResponseRedirect(

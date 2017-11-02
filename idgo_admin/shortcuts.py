@@ -9,11 +9,9 @@ from idgo_admin.models import Resource
 
 
 def render_with_info_profile(request, template_name, context=None,
-                             content_type=None, status=None, using=None):
+                             content_type=None, status=None, using=None, *args, **kwargs):
 
-    user = request.user
-
-    profile = get_object_or_404(Profile, user=user)
+    user, profile = user_and_profile(request)
 
     if not context:
         context = {}
@@ -67,6 +65,12 @@ def get_object_or_404_extended(MyModel, user, include):
     i_am_resource = (MyModel.__name__ == Resource.__name__)
     is_referent = instance.dataset.is_referent(profile) if i_am_resource else instance.is_referent(profile)
     is_editor = instance.dataset.editor == user if i_am_resource else instance.editor == user
+
+    # TODO(cbenhabib): author=profile in Dataset model
+    # is_author = instance.dataset.author == profile if i_am_resource else instance.author == profile
+    # if profile.is_admin or is_referent or is_author:
+    #     res = instance
+
     if profile.is_admin or is_referent or is_editor:
         res = instance
 

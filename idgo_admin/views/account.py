@@ -504,7 +504,7 @@ class ReferentAccountManager(View):
             context={'organizations': organizations})
 
     def delete(self, request, *args, **kwargs):
-        import pdb; pdb.set_trace()
+
         organization_id = request.GET.get('organization')
         username = request.GET.get('username')
         target = request.GET.get('target')
