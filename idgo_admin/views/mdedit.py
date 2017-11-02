@@ -12,11 +12,11 @@ from django.views import View
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
+from idgo_admin.shortcuts import render_with_info_profile
+from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.utils import clean_my_obj
 from idgo_admin.utils import open_json_staticfile
 from idgo_admin.utils import three_suspension_points
-from idgo_admin.shortcuts import render_with_info_profile
-from idgo_admin.shortcuts import user_and_profile
 import os
 import re
 from urllib.parse import urljoin
