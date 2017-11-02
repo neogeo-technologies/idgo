@@ -431,18 +431,18 @@ def datasets(request, *args, **kwargs):
         ) for o in Dataset.objects.filter(editor=user)]
 
     # TODO(cbenhabib): author=profile in Dataset model
-    datasets = [(
-        o.pk,
-        o.name,
-        o.date_creation.isoformat() if o.date_creation else None,
-        o.date_modification.isoformat() if o.date_modification else None,
-        o.date_publication.isoformat() if o.date_publication else None,
-        Organisation.objects.get(id=o.organisation_id).name,
-        o.published,
-        o.is_inspire,
-        o.ckan_slug,
-        profile in LiaisonsContributeurs.get_contributors(o.organisation)
-        ) for o in Dataset.objects.filter(author=profile)]
+    # datasets = [(
+    #     o.pk,
+    #     o.name,
+    #     o.date_creation.isoformat() if o.date_creation else None,
+    #     o.date_modification.isoformat() if o.date_modification else None,
+    #     o.date_publication.isoformat() if o.date_publication else None,
+    #     Organisation.objects.get(id=o.organisation_id).name,
+    #     o.published,
+    #     o.is_inspire,
+    #     o.ckan_slug,
+    #     profile in LiaisonsContributeurs.get_contributors(o.organisation)
+    #     ) for o in Dataset.objects.filter(author=profile)]
 
     return render_with_info_profile(
         request, 'idgo_admin/datasets.html', status=200,
