@@ -19,35 +19,35 @@
 						<div class="row">
 							<!-- metadata.mdFileIdentifier -->
 							<div class="col-md-6 form-group">
-								<div edit-input field="mdFileIdentifier" help="mdFileIdentifier" template-url="{% static "html/mdedit/editInput.html" %}"></div>
+								<div edit-input field="mdFileIdentifier" help="mdFileIdentifier" template-url="{% static "mdedit/html/editInput.html" %}"></div>
 							</div>
 							<!-- metadata.mdLanguage -->
 							<div class="col-md-3 form-group">
-								<div edit-select field="mdLanguage" list="MD_LanguageCode" help="mdLanguage" template-url="{% static "html/mdedit/editSelect.html" %}"></div>
+								<div edit-select field="mdLanguage" list="MD_LanguageCode" help="mdLanguage" template-url="{% static "mdedit/html/editSelect.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<!-- mdStandardName -->
 							<div class="col-md-3 form-group">
-								<div edit-input field="mdStandardName" help="mdStandardName" template-url="{% static "html/mdedit/editInput.html" %}"></div>
+								<div edit-input field="mdStandardName" help="mdStandardName" template-url="{% static "mdedit/html/editInput.html" %}"></div>
 							</div>
 							<!-- mdStandardVersion -->
 							<div class="col-md-3 form-group">
-								<div edit-input field="mdStandardVersion" help="mdStandardVersion" template-url="{% static "html/mdedit/editInput.html" %}"></div>
+								<div edit-input field="mdStandardVersion" help="mdStandardVersion" template-url="{% static "mdedit/html/editInput.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<!--mdHierarchyLevel -->
 							<div class="col-md-4 form-group">
-								<div edit-select field="mdHierarchyLevel" list="MD_ScopeCode" help="mdHierarchyLevel" template-url="{% static "html/mdedit/editSelect.html" %}"></div>
+								<div edit-select field="mdHierarchyLevel" list="MD_ScopeCode" help="mdHierarchyLevel" template-url="{% static "mdedit/html/editSelect.html" %}"></div>
 							</div>
 							<!-- mdCharacterSet -->
 							<div class="col-md-4 form-group">
-								<div edit-select field="mdCharacterSet" list="MD_CharacterSetCode" disabled="true" help="mdCharacterSet" template-url="{% static "html/mdedit/editSelect.html" %}"></div>
+								<div edit-select field="mdCharacterSet" list="MD_CharacterSetCode" disabled="true" help="mdCharacterSet" template-url="{% static "mdedit/html/editSelect.html" %}"></div>
 							</div>
 							<!-- mdDateStamp -->
 							<div class="col-md-4 form-group">
-								<div edit-date field="mdDateStamp" help="mdDateStamp" template-url="{% static "html/mdedit/editDate.html" %}"></div>
+								<div edit-date field="mdDateStamp" help="mdDateStamp" template-url="{% static "mdedit/html/editDate.html" %}"></div>
 							</div>
 						</div>
 					</div>
@@ -64,7 +64,7 @@
 				</div>
 				<div id="mdContacts" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
 					<!-- directive editContact: mdContacts -->
-					<div class="panel-body" edit-contacts cnt-type="mdContacts" template-url="{% static "html/mdedit/editContacts.html" %}"></div>
+					<div class="panel-body" edit-contacts cnt-type="mdContacts" template-url="{% static "mdedit/html/editContacts.html" %}"></div>
 				</div>
 			</div>
 
@@ -81,69 +81,69 @@
 						<!-- dataTitle -->
 						<div class="row">
 							<div class="col-md-8 form-group">
-								<div edit-input field="dataTitle" help="dataTitle" template-url="{% static "html/mdedit/editInput.html" %}"></div>
+								<div edit-input field="dataTitle" help="dataTitle" template-url="{% static "mdedit/html/editInput.html" %}"></div>
 							</div>
 						</div>
 						<!-- dataAbstract -->
 						<div class="row">
 							<div class="col-md-12 form-group">
-								<div edit-textarea field="dataAbstract" help="dataAbstract" template-url="{% static "html/mdedit/editTextarea.html" %}"></div>
+								<div edit-textarea field="dataAbstract" help="dataAbstract" template-url="{% static "mdedit/html/editTextarea.html" %}"></div>
 							</div>
 						</div>
 						<!-- dataIdentifiers -->
 						<div class="row">
 							<div class="col-md-12 form-group">
-								<div class="well" edit-data-identifiers multi="true" help="dataIdentifiers" template-url="{% static "html/mdedit/editDataIdentifiers.html" %}"></div>
+								<div class="well" edit-data-identifiers multi="true" help="dataIdentifiers" template-url="{% static "mdedit/html/editDataIdentifiers.html" %}"></div>
 							</div>
 						</div>
 						<!-- dataBrowseGraphics -->
 						<div class="row">
 							<div class="col-md-12 form-group">
-								<div class="well" edit-data-browsegraphics multi="true" help="dataBrowseGraphics" template-url="{% static "html/mdedit/editDataBrowsegraphics.html" %}"></div>
+								<div class="well" edit-data-browsegraphics multi="true" help="dataBrowseGraphics" template-url="{% static "mdedit/html/editDataBrowsegraphics.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<!-- dataDateCreation -->
 							<div class="col-md-4 form-group">
-								<div edit-date field="dataDateCreation" help="dataDates" template-url="{% static "html/mdedit/editDate.html" %}"></div>
+								<div edit-date field="dataDateCreation" help="dataDates" template-url="{% static "mdedit/html/editDate.html" %}"></div>
 							</div>
 							<!-- dataDateRevision -->
 							<div class="col-md-4 form-group">
-								<div edit-date field="dataDateRevision" help="dataDates" template-url="{% static "html/mdedit/editDate.html" %}"></div>
+								<div edit-date field="dataDateRevision" help="dataDates" template-url="{% static "mdedit/html/editDate.html" %}"></div>
 							</div>
 							<!-- dataDatePublication -->
 							<div class="col-md-4 form-group">
-								<div edit-date field="dataDatePublication" help="dataDates" template-url="{% static "html/mdedit/editDate.html" %}"></div>
+								<div edit-date field="dataDatePublication" help="dataDates" template-url="{% static "mdedit/html/editDate.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<!-- dataMaintenanceFrequencyCode -->
 							<div class="col-md-6 form-group">
-								<div edit-select field="dataMaintenanceFrequency" list="MD_MaintenanceFrequencyCode" help="dataMaintenanceFrequency" template-url="{% static "html/mdedit/editSelect.html" %}"></div>
+								<div edit-select field="dataMaintenanceFrequency" list="MD_MaintenanceFrequencyCode" help="dataMaintenanceFrequency" template-url="{% static "mdedit/html/editSelect.html" %}"></div>
 							</div>
 						</div>
 						<div class="row" ng-show="vm.showAllFields">
 							<!-- dataTemporalExtents -->
 							<div class="col-md-12">
-								<div class="well" edit-data-temporal-extents multi="true" help="dataTemporalExtents" template-url="{% static "html/mdedit/editDataTemporalExtents.html" %}"></div>
+								<div class="well" edit-data-temporal-extents multi="true" help="dataTemporalExtents" template-url="{% static "mdedit/html/editDataTemporalExtents.html" %}"></div>
 							</div>
 						</div>
 						<div class="row" ng-show="vm.showAllFields">
 							<!-- dataLanguages -->
 							<div class="col-md-12 form-group">
-								<div class="well" edit-multi-select field="dataLanguages" list="MD_LanguageCode" multi="true" template-url="{% static "html/mdedit/editMultiSelect.html" %}"></div>
+								<div class="well" edit-multi-select field="dataLanguages" list="MD_LanguageCode" multi="true" template-url="{% static "mdedit/html/editMultiSelect.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<!-- dataTopicCategories -->
 							<div class="col-md-12 form-group">
-								<div class="well" edit-multi-select field="dataTopicCategories" list="MD_TopicCategoryCode" multi="true" help="dataTopicCategories" template-url="{% static "html/mdedit/editMultiSelect.html" %}"></div>
+								<div class="well" edit-multi-select field="dataTopicCategories" list="MD_TopicCategoryCode" multi="true" help="dataTopicCategories" template-url="{% static "mdedit/html/editMultiSelect.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<!-- dataInspireKeywords -->
 							<div class="col-md-12 form-group">
-								<div class="well" edit-multi-select field="dataInspireKeywords" list="MD_InspireTopicCategoryCode" multi="true" help="dataInspireKeywords" template-url="{% static "html/mdedit/editMultiSelect.html" %}"></div>
+								<div class="well" edit-multi-select field="dataInspireKeywords" list="MD_InspireTopicCategoryCode" multi="true" help="dataInspireKeywords" template-url="{% static "mdedit/html/editMultiSelect.html" %}"></div>
 							</div>
 						</div>
 						<!-- dataKeywordsList -->
@@ -159,7 +159,7 @@
 						<div class="row">
 							<!-- dataKeywords -->
 							<div class="col-md-12 form-group">
-								<div class="well" edit-data-keywords field="dataKeywords" multi="true" help="dataKeywords" template-url="{% static "html/mdedit/editDataKeywords.html" %}"></div>
+								<div class="well" edit-data-keywords field="dataKeywords" multi="true" help="dataKeywords" template-url="{% static "mdedit/html/editDataKeywords.html" %}"></div>
 							</div>
 						</div>
 					</div>
@@ -176,7 +176,7 @@
 				</div>
 				<div id="dataPointOfContacts" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
 					<!-- directive editContact: dataPointOfContacts -->
-					<div class="panel-body" edit-contacts cnt-type="dataPointOfContacts" template-url="{% static "html/mdedit/editContacts.html" %}"></div>
+					<div class="panel-body" edit-contacts cnt-type="dataPointOfContacts" template-url="{% static "mdedit/html/editContacts.html" %}"></div>
 				</div>
 			</div>
 
@@ -192,49 +192,49 @@
 					<div class="panel-body">
 						<div class="row">
 							<div class="col-md-12 form-group">
-								<div edit-select field="dataSpatialRepresentationType" list="MD_SpatialRepresentationTypeCode" help="dataSpatialRepresentationType" template-url="{% static "html/mdedit/editSelect.html" %}"></div>
+								<div edit-select field="dataSpatialRepresentationType" list="MD_SpatialRepresentationTypeCode" help="dataSpatialRepresentationType" template-url="{% static "mdedit/html/editSelect.html" %}"></div>
 							</div>
 						</div>
 						<!-- geographic extents -->
 						<div class="row">
 							<div class="col-md-12">
-								<div class="well" edit-data-geographic-extents multi="true" help="dataGeographicExtents" template-url="{% static "html/mdedit/editDataGeographicExtents.html" %}"></div>
+								<div class="well" edit-data-geographic-extents multi="true" help="dataGeographicExtents" template-url="{% static "mdedit/html/editDataGeographicExtents.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-md-12 form-group">
-								<div class="well" edit-data-reference-systems field="dataReferenceSystems" multi="true" help="dataReferenceSystems" template-url="{% static "html/mdedit/editDataReferenceSystems.html" %}"></div>
+								<div class="well" edit-data-reference-systems field="dataReferenceSystems" multi="true" help="dataReferenceSystems" template-url="{% static "mdedit/html/editDataReferenceSystems.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-md-12 form-group">
-								<div edit-input field="dataScaleDenominator" help="dataScale" template-url="{% static "html/mdedit/editInput.html" %}"></div>
+								<div edit-input field="dataScaleDenominator" help="dataScale" template-url="{% static "mdedit/html/editInput.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-md-12 form-group">
-								<div edit-input field="dataScaleDistance" help="dataScale" template-url="{% static "html/mdedit/editInput.html" %}"></div>
+								<div edit-input field="dataScaleDistance" help="dataScale" template-url="{% static "mdedit/html/editInput.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-md-12 form-group">
-								<div edit-textarea field="dataLiStatement" help="dataLiStatement" template-url="{% static "html/mdedit/editTextarea.html" %}"></div>
+								<div edit-textarea field="dataLiStatement" help="dataLiStatement" template-url="{% static "mdedit/html/editTextarea.html" %}"></div>
 							</div>
 						</div>
 						<div class="row" ng-show="vm.showAllFields">
 							<div class="col-md-12 form-group">
-								<div edit-multi-textarea field="dataUseLimitations" multi="true" rows="1" help="dataUseLimitations" template-url="{% static "html/mdedit/editMultiTextarea.html" %}"></div>>
+								<div edit-multi-textarea field="dataUseLimitations" multi="true" rows="1" help="dataUseLimitations" template-url="{% static "mdedit/html/editMultiTextarea.html" %}"></div>>
 							</div>
 						</div>
 						<!-- dataCharacterSet -->
 						<div class="row" ng-show="vm.showAllFields">
 							<div class="col-md-12 form-group">
-								<div edit-select field="dataCharacterSet" list="MD_CharacterSetCode" help="dataCharacterSet" template-url="{% static "html/mdedit/editSelect.html" %}"></div>
+								<div edit-select field="dataCharacterSet" list="MD_CharacterSetCode" help="dataCharacterSet" template-url="{% static "mdedit/html/editSelect.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-md-12 form-group">
-								<div class="well" edit-data-distribution-formats field="dataDistributionFormats" multi="true" help="dataDistributionFormats" template-url="{% static "html/mdedit/editDataDistributionFormats.html" %}"></div>
+								<div class="well" edit-data-distribution-formats field="dataDistributionFormats" multi="true" help="dataDistributionFormats" template-url="{% static "mdedit/html/editDataDistributionFormats.html" %}"></div>
 							</div>
 						</div>
 					</div>
@@ -253,28 +253,28 @@
 					<div class="panel-body">
 						<div class="row">
 							<div class="col-md-12 form-group">
-								<div edit-select field="dataSecurityClassification" list="MD_ClassificationCode" help="dataSecurityClassification" template-url="{% static "html/mdedit/editSelect.html" %}"></div>
+								<div edit-select field="dataSecurityClassification" list="MD_ClassificationCode" help="dataSecurityClassification" template-url="{% static "mdedit/html/editSelect.html" %}"></div>
 							</div>
 						</div>
 						<!-- dataLegalAccessInspireConstraints -->
 						<div class="row">
 							<div class="col-md-12">
-								<div class="well" edit-multi-select field="dataLegalAccessInspireConstraints" list="MD_InspireRestrictionCode" multi="true" help="dataLegalAccessInspireConstraints" template-url="{% static "html/mdedit/editMultiSelect.html" %}"></div>
+								<div class="well" edit-multi-select field="dataLegalAccessInspireConstraints" list="MD_InspireRestrictionCode" multi="true" help="dataLegalAccessInspireConstraints" template-url="{% static "mdedit/html/editMultiSelect.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-md-12">
-								<div class="well" edit-multi-select field="dataLegalAccessConstraints" list="MD_RestrictionCode" multi="true" help="dataLegalAccessConstraints" template-url="{% static "html/mdedit/editMultiSelect.html" %}"></div>
+								<div class="well" edit-multi-select field="dataLegalAccessConstraints" list="MD_RestrictionCode" multi="true" help="dataLegalAccessConstraints" template-url="{% static "mdedit/html/editMultiSelect.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-md-12">
-								<div class="well" edit-multi-select field="dataLegalUseConstraints" list="MD_RestrictionCode" multi="true" help="dataLegalUseConstraints" template-url="{% static "html/mdedit/editMultiSelect.html" %}"></div>
+								<div class="well" edit-multi-select field="dataLegalUseConstraints" list="MD_RestrictionCode" multi="true" help="dataLegalUseConstraints" template-url="{% static "mdedit/html/editMultiSelect.html" %}"></div>
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-md-12">
-								<div edit-multi-textarea field="dataLegalUseLimitations" multi="true" rows="2" help="dataLegalUseLimitations" template-url="{% static "html/mdedit/editMultiTextarea.html" %}"></div>
+								<div edit-multi-textarea field="dataLegalUseLimitations" multi="true" rows="2" help="dataLegalUseLimitations" template-url="{% static "mdedit/html/editMultiTextarea.html" %}"></div>
 							</div>
 						</div>
 					</div>
@@ -291,7 +291,7 @@
 				</div>
 				<div id="mdResources" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSeven">
 					<div class="panel-body" style="padding-left: 10px; padding-right: 10px;">
-						<div edit-data-linkages field="dataLinkages" multi="true" help="dataLinkages" template-url="{% static "html/mdedit/editDataLinkages.html" %}"></div>
+						<div edit-data-linkages field="dataLinkages" multi="true" help="dataLinkages" template-url="{% static "mdedit/html/editDataLinkages.html" %}"></div>
 					</div>
 				</div>
 			</div>

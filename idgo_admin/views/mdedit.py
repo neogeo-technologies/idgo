@@ -91,7 +91,7 @@ class MDEditTplEdit(View):
 
     def get(self, request, dataset_id, *args, **kwargs):
 
-        def join_url(filename, path='html/mdedit/'):
+        def join_url(filename, path='mdedit/html/'):
             return urljoin(urljoin(STATIC_URL, path), filename)
 
         user, profile = user_and_profile(request)
@@ -107,7 +107,7 @@ class MDEdit(View):
 
     template = 'idgo_admin/mdedit.html'
     namespace = 'idgo_admin:mdedit'
-    config_path = 'libs/mdedit/config/'
+    config_path = 'mdedit/config/'
 
     # filenames
     model_json = 'models/model-empty.json'
@@ -125,54 +125,43 @@ class MDEdit(View):
             return reverse(
                 'idgo_admin:{0}'.format(namespace), kwargs={'dataset_id': dataset.id})
 
-        views = {
-            'list': [
-                {
+        config = {
+            'app_name': 'mdEdit',
+            'app_title': 'mdEdit',
+            'app_version': '0.14.9',
+            'app_copyrights': '(c) CIGAL 2016',
+            'defaultLanguage': 'fr',
+            'server_url_md': GEONETWORK_URL,
+            'views_file': {
+                'list': [{
                     'path': 'mdedit/edit/',
                     'values': {
                         'fr': 'Edition'},
                     'locales': {
-                        'fr': join_url('views/edit/tpl-edit_fr.json')}},
-                {
-                    'path': join_url('tpl-view.html', path='html/mdedit/'),
+                        'fr': join_url('views/edit/tpl-edit_fr.json')}
+                    }, {
+                    'path': join_url('views/html/tpl-view.html'),
                     'values': {
                         'fr': 'Vue'},
                     'locales': {
-                        'fr': join_url('views/view/tpl-view_fr.json')}},
-                {
-                    'path': join_url('views/listXml/tpl-listxml.html'),
-                    'values': {
-                        'fr': 'Liste XML'},
-                    'locales': {
-                        'fr': join_url('views/listXml/tpl-listxml_fr.json')}}]}
-
-        models = {
-            'list': [
-                {
+                        'fr': join_url('views/view/tpl-view_fr.json')}
+                    # }, {
+                    # 'path': join_url('views/listXml/tpl-listxml.html'),
+                    # 'values': {
+                    #     'fr': 'Liste XML'},
+                    # 'locales': {
+                    #     'fr': join_url('views/listXml/tpl-listxml_fr.json')}
+                    }]},
+            'models_file': {
+                'list': [{
                     'path': join_url(self.model_json),
-                    'value': 'Modèle de fiche vierge'},
-                {
-                    'path': join_url('models/model-cigal-opendata.json'),
-                    'value': 'Modèle de fiche CIGAL (open data)'},
-                {
-                    'path': join_url('models/model-bdocs-cigal-2011-12.json'),
-                    'value': 'Modèle de fiche BdOCS CIGAL 2011/12'}]}
-
-        config = {
-            'app_name': 'mdEdit',
-            'app_title': 'mdEdit',
-            'app_version': '0.14.9~hacked by m431m@neogeo',
-            'app_copyrights': '(c) CIGAL 2016',
-            'defaultLanguage': 'fr',
-            'server_url_md': GEONETWORK_URL,
-            'views_file': views,
-            'models_file': models,
+                    'value': 'Modèle de fiche vierge'}]},
             'locales_path': join_url('locales/'),
             'geographicextents_list': join_url('list_geographicextents.json'),
             'referencesystems_list': join_url('list_referencesystems.json'),
             'static_root': join_url('libs/mdedit/', path=STATIC_URL),
             'modal_template': {
-                'help': join_url('modal-help.html', path='html/mdedit/')}}
+                'help': join_url('modal-help.html', path='mdedit/html/')}}
 
         context = {
             'dataset_name': three_suspension_points(dataset.name),
