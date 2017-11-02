@@ -39,13 +39,43 @@ def prefill_model(model, dataset):
     editor = dataset.editor
     organization = dataset.organisation
 
-    data['mdContacts'][0].update({
+    data['mdContacts'] = [{
+        'role': 'author',
         'individualName': editor.get_full_name(),
         'organisationName': organization.name,
         'email': organization.email,
+        'phoneVoice': editor.profile.phone,
         'deliveryPoint': organization.address,
         'postalCode': organization.postcode,
-        'city': dataset.organisation.city})
+        'city': dataset.organisation.city
+        }, {
+        'role': 'pointOfContact',
+        'individualName': '',
+        'organisationName': '',  # TODO -> A préciser avec @mlefort
+        'email': '',
+        'phoneVoice': '',
+        'deliveryPoint': '',
+        'postalCode': '',
+        'city': ''}]
+
+    data['dataPointOfContacts'] = [{
+        'role': 'distributor',
+        'individualName': editor.get_full_name(),
+        'organisationName': organization.name,
+        'email': organization.email,
+        'phoneVoice': editor.profile.phone,
+        'deliveryPoint': organization.address,
+        'postalCode': organization.postcode,
+        'city': dataset.organisation.city
+        }, {
+        'role': 'pointOfContact',
+        'individualName': '',
+        'organisationName': '',  # TODO -> A préciser avec @mlefort
+        'email': '',
+        'phoneVoice': '',
+        'deliveryPoint': '',
+        'postalCode': '',
+        'city': ''}]
 
     try:
         data['mdContacts'][0].update({
@@ -177,6 +207,8 @@ class MDEdit(View):
             record = geonet.get_record(str(dataset.geonet_id))
             xml = record.xml.decode(encoding='utf-8')
             context['record_xml'] = re.sub('\n', '', xml).replace("'", "\\'")  # C'est moche
+            print(context['record_xml'])
+
         else:
             context['record_obj'] = \
                 prefill_model(open_json_staticfile(
