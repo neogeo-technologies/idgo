@@ -12,11 +12,16 @@
 	{% endfor %}
 {% endif %}
 
-<form name="dataset" method="post" action="">
+<form name="dataset" method="post" action="" enctype="multipart/form-data">
 	{% csrf_token %}
 	<div class="row">
 		<div class="col-xs-12">
 			{% bootstrap_field form.name %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12">
+			{% bootstrap_field form.thumbnail %}
 		</div>
 	</div>
 	<div class="row">

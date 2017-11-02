@@ -939,9 +939,11 @@ class Dataset(models.Model):
         'Metadonnées UUID', unique=True, db_index=True,
         blank=True, null=True)
 
-    support = models.OneToOneField(Support, verbose_name="Support technique", null=True, blank=True)
+    support = models.ForeignKey(Support, verbose_name="Support technique", null=True, blank=True)
 
     data_type = models.ManyToManyField(DataType, verbose_name="Type de données")
+
+    thumbnail = models.ImageField(upload_to='thumbnails/', blank=True, null=True)
 
     def __str__(self):
         return self.name

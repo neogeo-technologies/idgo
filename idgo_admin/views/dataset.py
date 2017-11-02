@@ -125,7 +125,7 @@ class DatasetManager(View):
             instance = get_object_or_404_extended(
                 Dataset, user, include={'id': id})
 
-            form = Form(data=request.POST, instance=instance,
+            form = Form(request.POST, request.FILES, instance=instance,
                         include={'user': user, 'identification': True, 'id': id})
 
             if not form.is_valid():
@@ -157,7 +157,7 @@ class DatasetManager(View):
 
             return http_redirect(instance.id)
 
-        form = Form(data=request.POST,
+        form = Form(request.POST, request.FILES,
                     include={'user': user, 'identification': False, 'id': None})
 
         if not form.is_valid():
