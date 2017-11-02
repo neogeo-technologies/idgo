@@ -54,6 +54,7 @@ class CkanExceptionsHandler(object):
             try:
                 return f(*args, **kwargs)
             except Exception as e:
+                print('Error', e.__str__())
                 if isinstance(e, timeout_decorator.TimeoutError):
                     raise CkanTimeoutError
                 if self.is_ignored(e):
@@ -293,9 +294,9 @@ class CkanManagerHandler(metaclass=Singleton):
         return self.get_group(str(id)) and True or False
 
     @CkanExceptionsHandler()
-    def add_group(self, group):
+    def add_group(self, group, type=None):
         return self.call_action(
-            'group_create', name=group.ckan_slug,
+            'group_create', name=group.ckan_slug, type=type,
             title=group.name, description=group.description)
 
     @CkanExceptionsHandler()
@@ -308,13 +309,6 @@ class CkanManagerHandler(metaclass=Singleton):
         if username not in [user['name'] for user in group['users']]:
             group['users'].append({'name': username, 'capacity': 'admin'})
         self.call_action('group_update', **group)
-
-    # @CkanExceptionsHandler()
-    # def sync_group(self, group):
-    #     self.call_action(
-    #         'group_update', id=group.ckan_slug, name=group.ckan_slug,
-    #         title=group.name, description=group.description)
-    #     return True
 
     @CkanExceptionsHandler()
     def purge_dataset(self, id):
@@ -332,12 +326,12 @@ class CkanManagerHandler(metaclass=Singleton):
             return False
 
     @CkanExceptionsHandler()
-    def create_tag(self, name, vocabulary_id=None):
+    def add_tag(self, name, vocabulary_id=None):
         return self.call_action(
             'tag_create', name=name, vocabulary_id=vocabulary_id)
 
     @CkanExceptionsHandler()
-    def create_vocabulary(self, name, tags):
+    def add_vocabulary(self, name, tags):
         return self.call_action('vocabulary_create', name=name, tags=[{'name': tag} for tag in tags])
 
     @CkanExceptionsHandler()

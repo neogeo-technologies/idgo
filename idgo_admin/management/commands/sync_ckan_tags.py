@@ -15,19 +15,31 @@ class Command(BaseCommand):
     def sync_tags(self, data, vocabulary_name):
         vocabulary = self.ckan.get_vocabulary(vocabulary_name)
         if not vocabulary:
-            self.ckan.create_vocabulary(vocabulary, [entry.ckan_slug for entry in data])
+            self.ckan.add_vocabulary(vocabulary, [entry.ckan_slug for entry in data])
             self.stdout.write("New vocabulary '{0}' created".format(entry.ckan_slug))
         else:
             for entry in data:
                 if self.ckan.is_tag_exists(
-                        entry.ckan_slug, vocabulary_id=vocabulary['id']):
-                    self.stdout.write("'{0}' already sync".format(entry.ckan_slug))
+                        entry.name, vocabulary_id=vocabulary['id']):
+                    self.stdout.write("'{0}' already sync".format(entry.name))
                     continue
-                self.ckan.create_tag(
-                    entry.ckan_slug, vocabulary_id=vocabulary['id'])
-                self.stdout.write("'{0}' added".format(entry.ckan_slug))
+                self.ckan.add_tag(
+                    entry.name, vocabulary_id=vocabulary['id'])
+                self.stdout.write("'{0}' added".format(entry.name))
+
+    def sync_group(self, queryset, group_type=None):
+        for entry in queryset:
+            if self.ckan.is_group_exists(entry.ckan_slug):
+                self.stdout.write("'{0}' already exists".format(entry.ckan_slug))
+                continue
+            self.ckan.add_group(entry, type=group_type)
+            self.stdout.write("'{0}' is created".format(entry.ckan_slug))
 
     def handle(self, *args, **options):
-        self.sync_tags(DataType.objects.all(), 'data_type')
-        self.sync_tags(Support.objects.all(), 'support')
+        self.sync_group(DataType.objects.all(), group_type='data_type')
+        self.sync_group(Support.objects.all(), group_type='support')
+
+        # self.sync_tags(DataType.objects.all(), 'data_type')
+        # self.sync_tags(Support.objects.all(), 'support')
+
         self.stdout.write('Done!')

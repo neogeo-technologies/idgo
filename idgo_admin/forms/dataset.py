@@ -233,16 +233,28 @@ class DatasetForm(forms.ModelForm):
             for tag in data['keywords']:
                 dataset.keywords.add(tag)
 
+        groups = []
         tags = [{'name': name} for name in data['keywords']]
 
         if data.get('data_type'):
             dataset.data_type.clear()
-            for tp in data['data_type']:
-                tags.append({'name': tp.ckan_slug, 'vocabulary_id': ckan.get_vocabulary('data_type')['id']})
-                dataset.data_type.add(tp)
+            for group in data['data_type']:
+                dataset.data_type.add(group)
+                # TODO
+                # ~ soit ~
+                tags.append({
+                    'name': group.name,
+                    'vocabulary_id': ckan.get_vocabulary('data_type')['id']})
+                # ~ soit ~
+                ckan.add_user_to_group(user.username, group.ckan_slug)
+                groups.append({'name': group.ckan_slug})
 
         if params['support']:
-            tags.append({'name': name, 'vocabulary_id': ckan.get_vocabulary('support')['id']})
+            group = params['support']
+            tags.append({'name': group.name,
+                         'vocabulary_id': ckan.get_vocabulary('support')['id']})
+            ckan.add_user_to_group(user.username, group.ckan_slug)
+            groups.append({'name': group.ckan_slug})
 
         ckan_params = {
             'author': user.username,
@@ -253,7 +265,7 @@ class DatasetForm(forms.ModelForm):
                 str(dataset.date_modification) if dataset.date_modification else '',
             'dataset_publication_date':
                 str(dataset.date_publication) if dataset.date_publication else '',
-            'groups': [],
+            'groups': groups,
             'geocover': dataset.geocover,
             'last_modified':
                 str(dataset.date_modification) if dataset.date_modification else '',
