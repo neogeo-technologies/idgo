@@ -445,14 +445,15 @@ class Mail(models.Model):
     @classmethod
     def admin_mails(cls, receip_list):
         receip_list = receip_list + [
-            usr.email for usr in User.objects.filter(
-                is_superuser=True, is_active=True)]
+            p.user.email for p in Profile.objects.filter(
+                is_active=True, is_admin=True)]
         return receip_list
 
     @classmethod
     def referents_mails(cls, receip_list, organisation):
         receip_list = receip_list + [
-            p.user.email for p in Profile.objects.filter(referents=organisation)]
+            p.user.email for p in Profile.objects.filter(
+                referents=organisation)]
         return receip_list
 
     @classmethod

@@ -28,6 +28,7 @@ from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import get_object_or_404_extended
+from idgo_admin.shortcuts import GetProfile
 from idgo_admin.utils import three_suspension_points
 import json
 
@@ -44,11 +45,14 @@ class DatasetManager(View):
     namespace = 'idgo_admin:dataset'
     namespace_resource = 'idgo_admin:resource'
 
+    @GetProfile()
     @ExceptionsHandler(ignore=[Http404])
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
 
-        user = request.user
-        profile = get_object_or_404(Profile, user=user)
+        user = kwargs.get('user')
+        profile = kwargs.get('profile')
+        # user = request.user
+        # profile = get_object_or_404(Profile, user=user)
 
         form = Form(include={'user': user, 'identification': False, 'id': None})
         dataset_name = 'Nouveau'
@@ -98,16 +102,19 @@ class DatasetManager(View):
 
         return render_with_info_profile(request, self.template, context=context)
 
+    @GetProfile()
     @ExceptionsHandler(ignore=[Http404])
     @transaction.atomic
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
 
         def http_redirect(dataset_id):
             return HttpResponseRedirect(
                 reverse(self.namespace) + '?id={0}'.format(dataset_id))
 
-        user = request.user
-        profile = get_object_or_404(Profile, user=user)
+        user = kwargs.get('user')
+        profile = kwargs.get('profile')
+        # user = request.user
+        # profile = get_object_or_404(Profile, user=user)
 
         context = {
             'form': None,
@@ -176,16 +183,22 @@ class DatasetManager(View):
 
         return http_redirect(instance.id)
 
+    @GetProfile()
     @ExceptionsHandler(ignore=[Http404, CkanSyncingError])
-    def delete(self, request):
+    def delete(self, request, *args, **kwargs):
 
-        user = request.user
+        user = kwargs.get('user')
+        # profile = kwargs.get('profile')
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
             raise Http404
 
         instance = get_object_or_404_extended(
             Dataset, user, include={'id': id})
+
+        # TODO(cbenhabib): author=profile in Dataset model
+        # instance = get_object_or_404_extended(
+        #     Dataset, profile, include={'id': id})
 
         ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
@@ -221,11 +234,12 @@ class ReferentDatasetManager(View):
     namespace = 'idgo_admin:dataset'
     namespace_resource = 'idgo_admin:resource'
 
+    @GetProfile()
     @ExceptionsHandler(ignore=[Http404])
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
 
-        user = request.user
-        profile = get_object_or_404(Profile, user=user)
+        user = kwargs.get('user')
+        profile = kwargs.get('profile')
 
         form = Form(include={'user': user, 'identification': False, 'id': None})
         dataset_name = 'Nouveau'
@@ -245,6 +259,10 @@ class ReferentDatasetManager(View):
         if id:
             instance = get_object_or_404_extended(
                 Dataset, user, include={'id': id})
+
+            # TODO(cbenhabib): author=profile in Dataset model
+            # instance = get_object_or_404_extended(
+            #     Dataset, profile, include={'id': id})
 
             form = Form(instance=instance,
                         include={'user': user, 'identification': True, 'id': id})
@@ -274,16 +292,19 @@ class ReferentDatasetManager(View):
 
         return render_with_info_profile(request, self.template, context=context)
 
+    @GetProfile()
     @ExceptionsHandler(ignore=[Http404])
     @transaction.atomic
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
 
         def http_redirect(dataset_id):
             return HttpResponseRedirect(
                 reverse(self.namespace) + '?id={0}'.format(dataset_id))
 
-        user = request.user
-        profile = get_object_or_404(Profile, user=user)
+        # user = request.user
+        # profile = get_object_or_404(Profile, user=user)
+        user = kwargs.get('user')
+        profile = kwargs.get('profile')
 
         context = {
             'form': None,
@@ -302,6 +323,10 @@ class ReferentDatasetManager(View):
 
             instance = get_object_or_404_extended(
                 Dataset, user, include={'id': id})
+
+            # TODO(cbenhabib): author=profile in Dataset model
+            # instance = get_object_or_404_extended(
+            #     Dataset, profile, include={'id': id})
 
             form = Form(data=request.POST, instance=instance,
                         include={'user': user, 'identification': True, 'id': id})
@@ -352,11 +377,14 @@ class ReferentDatasetManager(View):
 
         return http_redirect(instance.id)
 
+    @GetProfile()
     @ExceptionsHandler(ignore=[Http404, CkanSyncingError])
-    def delete(self, request):
+    def delete(self, request, *args, **kwargs):
 
-        user = request.user
-        profile = get_object_or_404(Profile, user=user)
+        # user = request.user
+        # profile = get_object_or_404(Profile, user=user)
+        user = kwargs.get('user')
+        # profile = kwargs.get('profile')
 
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
@@ -364,6 +392,10 @@ class ReferentDatasetManager(View):
 
         instance = get_object_or_404_extended(
             Dataset, user, include={'id': id})
+
+        # TODO(cbenhabib): author=profile in Dataset model
+        # instance = get_object_or_404_extended(
+        #     Dataset, profile, include={'id': id})
 
         ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
@@ -386,18 +418,19 @@ class ReferentDatasetManager(View):
 
         Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
 
-        # return render(request, 'idgo_admin/response.html',
-        #               context={'message': message}, status=status)
         return HttpResponse(status=status)
 
 
+@GetProfile()
 @ExceptionsHandler(ignore=[Http404])
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
-def datasets(request):
+def datasets(request, *args, **kwargs):
 
-    user = request.user
-    profile = get_object_or_404(Profile, user=user)
+    # user = request.user
+    # profile = get_object_or_404(Profile, user=user)
+    user = kwargs.get('user')
+    profile = kwargs.get('profile')
 
     datasets = [(
         o.pk,
@@ -417,13 +450,16 @@ def datasets(request):
         context={'ckan_url': CKAN_URL, 'datasets': json.dumps(datasets)})
 
 
+@GetProfile()
 @ExceptionsHandler(ignore=[Http404])
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
-def all_datasets(request):
+def all_datasets(request, *args, **kwargs):
 
-    user = request.user
-    profile = get_object_or_404(Profile, user=user)
+    # user = request.user
+    # profile = get_object_or_404(Profile, user=user)
+    user = kwargs.get('user')
+    profile = kwargs.get('profile')
 
     if not profile.is_referent() and not profile.is_admin:
         raise Http404
@@ -448,13 +484,20 @@ def all_datasets(request):
         {'ckan_url': CKAN_URL, 'datasets': json.dumps(datasets)}, status=200)
 
 
+@GetProfile()
 @ExceptionsHandler(ignore=[Http404])
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
-def export(request):
+def export(request, *args, **kwargs):
     f = request.GET.get('format')
+
+    user = kwargs.get('user')
+    # profile = kwargs.get('profile')
+
     if f == 'csv':
         return render_to_csv_response(Dataset.objects.filter(
-            editor=request.user))
+            editor=user))
+        # return render_to_csv_response(Dataset.objects.filter(
+        #     author=profile))
 
     raise Http404

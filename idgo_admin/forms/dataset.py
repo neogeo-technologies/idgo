@@ -191,7 +191,7 @@ class DatasetForm(forms.ModelForm):
         return self.cleaned_data
 
     def handle_me(self, request, id=None):
-
+        import pdb; pdb.set_trace()
         user = request.user
         data = self.cleaned_data
         params = {
@@ -200,6 +200,7 @@ class DatasetForm(forms.ModelForm):
             'date_publication': data['date_publication'],
             'description': data['description'],
             'editor': user,
+            # 'author': profile, #  TODO(cbenbib): a integrer apres migration du model
             'geocover': data['geocover'],
             'license': data['license'],
             'name': data['name'],

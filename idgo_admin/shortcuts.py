@@ -1,4 +1,7 @@
 from django.http import Http404
+# from django.http import HttpResponseForbidden
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from idgo_admin.models import AccountActions
@@ -6,14 +9,41 @@ from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
+from functools import wraps
 
 
+class GetProfile(object):
+
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, f):
+
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            import pdb; pdb.set_trace()
+            request = [arg for arg in args if arg.__class__.__name__ == 'WSGIRequest']
+            request = request[0]
+            kwargs['user'] = request.user
+            if request.user.is_anonymous:
+                return HttpResponseRedirect(reverse('idgo_admin:signIn'))
+            try:
+                kwargs['profile'] = get_object_or_404(Profile, user=request.user, is_active=True)
+            except Exception:
+                return HttpResponseRedirect(reverse('idgo_admin:signIn'))
+            return f(*args, **kwargs)
+
+        return wrapper
+
+
+@GetProfile()
 def render_with_info_profile(request, template_name, context=None,
-                             content_type=None, status=None, using=None):
+                             content_type=None, status=None, using=None, *args, **kwargs):
 
-    user = request.user
+    user = kwargs.get('user')
+    profile = kwargs.get('profile')
 
-    profile = get_object_or_404(Profile, user=user)
+    # profile = get_object_or_404(Profile, user=user)
 
     if not context:
         context = {}
@@ -67,6 +97,12 @@ def get_object_or_404_extended(MyModel, user, include):
     i_am_resource = (MyModel.__name__ == Resource.__name__)
     is_referent = instance.dataset.is_referent(profile) if i_am_resource else instance.is_referent(profile)
     is_editor = instance.dataset.editor == user if i_am_resource else instance.editor == user
+
+    # TODO(cbenhabib): author=profile in Dataset model
+    # is_author = instance.dataset.author == profile if i_am_resource else instance.author == profile
+    # if profile.is_admin or is_referent or is_author:
+    #     res = instance
+
     if profile.is_admin or is_referent or is_editor:
         res = instance
 

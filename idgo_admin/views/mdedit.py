@@ -15,6 +15,7 @@ from idgo_admin.models import Resource
 from idgo_admin.utils import clean_my_obj
 from idgo_admin.utils import open_json_staticfile
 from idgo_admin.utils import three_suspension_points
+from idgo_admin.shortcuts import GetProfile
 import os
 import re
 from urllib.parse import urljoin
@@ -87,13 +88,19 @@ class MDEditTplEdit(View):
 
     template = 'idgo_admin/mdedit/template_edit.html'
 
-    def get(self, request, dataset_id):
+    @GetProfile()
+    def get(self, request, dataset_id, *args, **kwargs):
 
         def join_url(filename, path='html/mdedit/'):
             return urljoin(urljoin(STATIC_URL, path), filename)
 
-        user = request.user
+        user = kwargs.get('user')
+        # profile = kwargs.get('profile')
+
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+
+        # TODO(cbenhabib): author=profile in Dataset model
+        # dataset = get_object_or_404(Dataset, id=dataset_id, author=profile)
         del dataset
 
         return render(request, self.template)
@@ -109,10 +116,17 @@ class MDEdit(View):
     # filenames
     model_json = 'models/model-empty.json'
 
-    def get(self, request, dataset_id):
+    @GetProfile()
+    def get(self, request, dataset_id, *args, **kwargs):
 
-        user = request.user
+        # user = request.user
+        user = kwargs.get('user')
+        # profile = kwargs.get('profile')
+
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+
+        # TODO(cbenhabib): author=profile in Dataset model
+        # dataset = get_object_or_404(Dataset, id=dataset_id, author=profile)
 
         def join_url(filename, path=self.config_path):
             return urljoin(urljoin(STATIC_URL, path), filename)
@@ -188,10 +202,16 @@ class MDEdit(View):
 
         return render(request, self.template, context=context)
 
-    def post(self, request, dataset_id):
+    @GetProfile()
+    def post(self, request, dataset_id, *args, **kwargs):
 
-        user = request.user
+        # user = request.user
+        user = kwargs.get('user')
+        # profile = kwargs.get('profile')
+
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+        # TODO(cbenhabib): author=profile in Dataset model
+        # dataset = get_object_or_404(Dataset, id=dataset_id, author=profile)
 
         def http_redirect(dataset_id):
             return HttpResponseRedirect(

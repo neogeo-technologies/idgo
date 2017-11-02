@@ -18,14 +18,20 @@ from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.shortcuts import render_with_info_profile
+from idgo_admin.shortcuts import GetProfile
 
 
+@GetProfile()
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
-def contribution_request(request):
+def contribution_request(request, *args, **kwargs):
 
-    user = request.user
-    profile = get_object_or_404(Profile, user=user)
+    # user = request.user
+    # profile = get_object_or_404(Profile, user=user)
+
+    user = kwargs.get('user')
+    profile = kwargs.get('profile')
+
     process = 'update'
     template = 'idgo_admin/contribute.html'
 
@@ -58,12 +64,15 @@ def contribution_request(request):
     return HttpResponseRedirect(reverse('idgo_admin:organizations'))
 
 
+@GetProfile()
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
-def referent_request(request):
+def referent_request(request, *args, **kwargs):
 
-    user = request.user
-    profile = get_object_or_404(Profile, user=user)
+    # user = request.user
+    # profile = get_object_or_404(Profile, user=user)
+    user = kwargs.get('user')
+    profile = kwargs.get('profile')
 
     process = 'update'
     template = 'idgo_admin/referent.html'
@@ -100,10 +109,7 @@ def referent_request(request):
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
 class OrganisationDisplay(View):
 
-    def get(self, request):
-
-        user = request.user
-        profile = get_object_or_404(Profile, user=user)
+    def get(self, request, *args, **kwargs):
 
         return render_with_info_profile(
             request, 'idgo_admin/organizations.html')
@@ -112,14 +118,16 @@ class OrganisationDisplay(View):
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
 class Contributions(View):
 
-    def delete(self, request):
+    @GetProfile()
+    def delete(self, request, *args, **kwargs):
 
         id = request.POST.get('id', request.GET.get('id')) or None
         if not id:
             return Http404()
 
-        organization = Organisation.objects.get(id=id)
-        profile = get_object_or_404(Profile, user=request.user)
+        organization = get_object_or_404(Organisation, id=id)
+        # profile = get_object_or_404(Profile, user=request.user)
+        profile = kwargs.get('profile')
 
         my_contribution = LiaisonsContributeurs.objects.get(
             profile=profile, organisation__id=id)
@@ -148,14 +156,16 @@ class Referents(View):
     #                  'last_name': user.last_name,
     #                  'referents': json.dumps(referents_tup)})
 
-    def delete(self, request):
+    @GetProfile()
+    def delete(self, request, *args, **kwargs):
 
         id = request.POST.get('id', request.GET.get('id')) or None
         if not id:
             return Http404()
 
-        organization = Organisation.objects.get(id=id)
-        profile = get_object_or_404(Profile, user=request.user)
+        organization = get_object_or_404(Organisation, id=id)
+        # profile = get_object_or_404(Profile, user=request.user)
+        profile = kwargs.get('profile')
 
         my_subordinates = LiaisonsReferents.objects.get(
             profile=profile, organisation__id=id)
