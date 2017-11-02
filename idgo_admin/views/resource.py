@@ -19,7 +19,7 @@ from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
 from idgo_admin.shortcuts import get_object_or_404_extended
-from idgo_admin.shortcuts import GetProfile
+from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.utils import three_suspension_points
 
@@ -41,11 +41,10 @@ class ResourceManager(View):
     template = 'idgo_admin/resource.html'
     namespace = 'idgo_admin:resource'
 
-    @GetProfile()
     @ExceptionsHandler(ignore=[Http404])
     def get(self, request, dataset_id, *args, **kwargs):
-        user = kwargs.get('user')
-        # profile = kwargs.get('profile')
+
+        user, profile = user_and_profile(request)
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
@@ -81,7 +80,6 @@ class ResourceManager(View):
 
         return render_with_info_profile(request, self.template, context)
 
-    @GetProfile()
     @ExceptionsHandler(ignore=[Http404])
     @transaction.atomic
     def post(self, request, dataset_id, *args, **kwargs):
@@ -94,8 +92,7 @@ class ResourceManager(View):
                 reverse(self.namespace, kwargs={'dataset_id': dataset_id}
                         ) + '?id={0}'.format(resource_id))
 
-        user = kwargs.get('user')
-        # profile = kwargs.get('profile')
+        user, profile = user_and_profile(request)
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
@@ -168,12 +165,10 @@ class ResourceManager(View):
 
         return http_redirect(dataset_id, instance.id)
 
-    @GetProfile()
     @ExceptionsHandler(ignore=[Http404])
     def delete(self, request, dataset_id, *args, **kwargs):
 
-        user = kwargs.get('user')
-        # profile = kwargs.get('profile')
+        user, profile = user_and_profile(request)
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})

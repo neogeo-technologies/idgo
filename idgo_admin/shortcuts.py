@@ -1,7 +1,4 @@
 from django.http import Http404
-# from django.http import HttpResponseForbidden
-from django.http import HttpResponseRedirect
-from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from idgo_admin.models import AccountActions
@@ -9,41 +6,12 @@ from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
-from functools import wraps
 
 
-class GetProfile(object):
-
-    def __init__(self):
-        super().__init__()
-
-    def __call__(self, f):
-
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            import pdb; pdb.set_trace()
-            request = [arg for arg in args if arg.__class__.__name__ == 'WSGIRequest']
-            request = request[0]
-            kwargs['user'] = request.user
-            if request.user.is_anonymous:
-                return HttpResponseRedirect(reverse('idgo_admin:signIn'))
-            try:
-                kwargs['profile'] = get_object_or_404(Profile, user=request.user, is_active=True)
-            except Exception:
-                return HttpResponseRedirect(reverse('idgo_admin:signIn'))
-            return f(*args, **kwargs)
-
-        return wrapper
-
-
-@GetProfile()
 def render_with_info_profile(request, template_name, context=None,
                              content_type=None, status=None, using=None, *args, **kwargs):
 
-    user = kwargs.get('user')
-    profile = kwargs.get('profile')
-
-    # profile = get_object_or_404(Profile, user=user)
+    user, profile = user_and_profile(request)
 
     if not context:
         context = {}

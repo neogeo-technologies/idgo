@@ -16,21 +16,15 @@ from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
-from idgo_admin.models import Profile
 from idgo_admin.shortcuts import render_with_info_profile
-from idgo_admin.shortcuts import GetProfile
+from idgo_admin.shortcuts import user_and_profile
 
 
-@GetProfile()
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def contribution_request(request, *args, **kwargs):
 
-    # user = request.user
-    # profile = get_object_or_404(Profile, user=user)
-
-    user = kwargs.get('user')
-    profile = kwargs.get('profile')
+    user, profile = user_and_profile(request)
 
     process = 'update'
     template = 'idgo_admin/contribute.html'
@@ -64,15 +58,11 @@ def contribution_request(request, *args, **kwargs):
     return HttpResponseRedirect(reverse('idgo_admin:organizations'))
 
 
-@GetProfile()
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def referent_request(request, *args, **kwargs):
 
-    # user = request.user
-    # profile = get_object_or_404(Profile, user=user)
-    user = kwargs.get('user')
-    profile = kwargs.get('profile')
+    user, profile = user_and_profile(request)
 
     process = 'update'
     template = 'idgo_admin/referent.html'
@@ -118,7 +108,6 @@ class OrganisationDisplay(View):
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
 class Contributions(View):
 
-    @GetProfile()
     def delete(self, request, *args, **kwargs):
 
         id = request.POST.get('id', request.GET.get('id')) or None
@@ -126,8 +115,7 @@ class Contributions(View):
             return Http404()
 
         organization = get_object_or_404(Organisation, id=id)
-        # profile = get_object_or_404(Profile, user=request.user)
-        profile = kwargs.get('profile')
+        user, profile = user_and_profile(request)
 
         my_contribution = LiaisonsContributeurs.objects.get(
             profile=profile, organisation__id=id)
@@ -144,19 +132,6 @@ class Contributions(View):
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
 class Referents(View):
 
-    # def get(self, request):
-    #     user = request.user
-    #     profile = get_object_or_404(Profile, user=user)
-    #     my_subordinates = LiaisonsReferents.get_subordinates(profile=profile)
-    #     referents_tup = [(c.id, c.name) for c in my_subordinates]
-    #
-    #     return render(
-    #         request, 'idgo_admin/referents.html',
-    #         context={'first_name': user.first_name,
-    #                  'last_name': user.last_name,
-    #                  'referents': json.dumps(referents_tup)})
-
-    @GetProfile()
     def delete(self, request, *args, **kwargs):
 
         id = request.POST.get('id', request.GET.get('id')) or None
@@ -164,8 +139,7 @@ class Referents(View):
             return Http404()
 
         organization = get_object_or_404(Organisation, id=id)
-        # profile = get_object_or_404(Profile, user=request.user)
-        profile = kwargs.get('profile')
+        user, profile = user_and_profile(request)
 
         my_subordinates = LiaisonsReferents.objects.get(
             profile=profile, organisation__id=id)

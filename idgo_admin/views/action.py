@@ -8,7 +8,7 @@ from django.views import View
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.models import Dataset
 from idgo_admin.shortcuts import get_object_or_404_extended
-from idgo_admin.shortcuts import GetProfile
+from idgo_admin.shortcuts import user_and_profile
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -17,11 +17,10 @@ decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 @method_decorator(decorators, name='dispatch')
 class ActionsManager(View):
 
-    @GetProfile()
     @ExceptionsHandler(ignore=[Http404])
     def get(self, request, *args, **kwargs):
-        user = kwargs.get('user')
-        # profile = kwargs.get('profile')
+
+        user, profile = user_and_profile(request)
 
         dataset_id = request.GET.get('id', None)
         publish = request.GET.get('publish', None)
