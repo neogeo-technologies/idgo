@@ -173,7 +173,7 @@ class ProfileForm(forms.ModelForm):
     #         attrs={'placeholder': 'Territoire de compétence'}))
 
     contribution_requested = forms.BooleanField(
-        initial=True,
+        initial=False,
         label="Je souhaite être <strong>contributeur</strong> de l'organisation",
         required=False)
 

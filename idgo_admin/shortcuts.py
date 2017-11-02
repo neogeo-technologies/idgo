@@ -73,7 +73,6 @@ def get_object_or_404_extended(MyModel, user, include):
     # if profile.is_admin or is_referent or is_author:
     #     res = instance
 
-
     if not res:
         raise Http404('No %s matches the given query.' % MyModel.__name__)
     return res
