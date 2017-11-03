@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block head_extras %}
-<script>var config = {{ config | safe }};</script>
 <base href=".">
 {% endblock head_extras %}
 
@@ -26,7 +25,44 @@
 <script src="{% static "libs/mdedit/lib/ui-bootstrap/ui-bootstrap-tpls-1.3.0.min.js" %}"></script>
 <script src="{% static "libs/mdedit/lib/vkbeautify/vkbeautify.js" %}"></script>
 <script src="{% static "libs/mdedit/lib/mdjs/mdjs.js" %}"></script>
-<script src="{% static "libs/mdedit/app/mdEdit.js" %}"></script>
+<script>
+angular.module('mdEdit.services', []);
+angular.module('mdEdit.filters', []);
+angular.module('mdEdit.directives', []);
+
+angular.module('mdEdit', ['ui.bootstrap', 'mdEdit.services', 'mdEdit.directives', 'mdEdit.filters', 'modalDoc']);
+
+angular.module('mdEdit.directives').config(function($locationProvider) {
+	$locationProvider.html5Mode(true);
+});
+
+angular.module('mdEdit').run(['configSrv', 'modelsSrv', 'viewsSrv', 'xmlSrv', 'AppDataSrv', 'BroadcastSrv', runApp]);
+
+function runApp(configSrv, modelsSrv, viewsSrv, xmlSrv, AppDataSrv, BroadcastSrv) {
+	AppDataSrv.config = {{ config | safe }};
+
+	AppDataSrv.locales = AppDataSrv.config.languages;
+	AppDataSrv.userLanguage = AppDataSrv.config.defaultLanguage;
+	AppDataSrv.ui = AppDataSrv.config.locales.ui;
+	AppDataSrv.md_errors = AppDataSrv.config.locales.md_errors;
+	AppDataSrv.codelists = AppDataSrv.config.locales.codelists;
+
+	AppDataSrv.views = AppDataSrv.config.views.list;
+	viewsSrv.getViewLocales(false, AppDataSrv.views, AppDataSrv.userLanguage, function(view, data) {
+		AppDataSrv.view = view;
+		AppDataSrv.fields = data.fields;
+	});
+
+	AppDataSrv.models = AppDataSrv.config.models.list;
+	if (xmlSrv.getXml()) {
+		BroadcastSrv.send('configLoaded');
+	} else {
+		modelsSrv.getModel(AppDataSrv.models, false, function(model) {
+			BroadcastSrv.send('configLoaded');
+		});
+	};
+};
+</script>
 <script src="{% static "libs/mdedit/app/mdEdit.controllers.js" %}"></script>
 <script src="{% static "libs/mdedit/app/mdEdit.services/mdjs.js" %}"></script>
 <script src="{% static "libs/mdedit/app/mdEdit.services/empty-json.js" %}"></script>

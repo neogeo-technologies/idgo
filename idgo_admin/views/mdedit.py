@@ -12,11 +12,13 @@ from django.views import View
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
+from idgo_admin.models import ResourceFormats
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.utils import clean_my_obj
 from idgo_admin.utils import open_json_staticfile
 from idgo_admin.utils import three_suspension_points
+import json
 import os
 import re
 from urllib.parse import urljoin
@@ -29,6 +31,13 @@ GEONETWORK_URL = settings.GEONETWORK_URL
 CKAN_URL = settings.CKAN_URL
 DOMAIN_NAME = settings.DOMAIN_NAME
 
+if settings.STATIC_ROOT:
+    locales_path = os.path.join(settings.STATIC_ROOT, 'mdedit/config/locales/fr/locales.json')
+else:
+    locales_path = os.path.join(settings.BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')
+
+with open(locales_path) as f:
+    MDEDIT_LOCALES = json.loads(f.read())
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
@@ -108,7 +117,6 @@ def prefill_model(model, dataset):
 
     resources = Resource.objects.filter(dataset=dataset)
     for resource in resources:
-        print(resource.data_type)
         data['dataLinkages'].insert(0, {
             'name': resource.name,
             'url': '{0}/dataset/{1}/resource/{2}'.format(
@@ -143,6 +151,9 @@ class MDEdit(View):
     template = 'idgo_admin/mdedit.html'
     namespace = 'idgo_admin:mdedit'
     config_path = 'mdedit/config/'
+    locales = MDEDIT_LOCALES
+    geonetwork_url = GEONETWORK_URL
+    static_url = STATIC_URL
 
     # filenames
     model_json = 'models/model-empty.json'
@@ -154,43 +165,39 @@ class MDEdit(View):
         dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
 
         def join_url(filename, path=self.config_path):
-            return urljoin(urljoin(STATIC_URL, path), filename)
+            return urljoin(urljoin(self.static_url, path), filename)
 
         def server_url(namespace):
-            return reverse(
-                'idgo_admin:{0}'.format(namespace), kwargs={'dataset_id': dataset.id})
+            return reverse('idgo_admin:{0}'.format(namespace),
+                           kwargs={'dataset_id': dataset.id})
+
+        self.locales['codelists']['MD_LinkageProtocolCode'] = \
+            [{'id': e.extension, 'value': e.extension} for e in ResourceFormats.objects.all()]
 
         config = {
             'app_name': 'mdEdit',
             'app_title': 'mdEdit',
             'app_version': '0.14.9',
             'app_copyrights': '(c) CIGAL 2016',
+            'languages': {'locales': ['fr']},
             'defaultLanguage': 'fr',
-            'server_url_md': GEONETWORK_URL,
-            'views_file': {
+            'server_url_md': self.geonetwork_url,
+            'views': {
                 'list': [{
                     'path': 'mdedit/edit/',
-                    'values': {
-                        'fr': 'Edition'},
-                    'locales': {
-                        'fr': join_url('views/edit/tpl-edit_fr.json')}
+                    'values': {'fr': 'Edition'},
+                    'locales': {'fr': join_url('views/edit/tpl-edit_fr.json')}
                     }, {
                     'path': join_url('views/html/tpl-view.html'),
-                    'values': {
-                        'fr': 'Vue'},
-                    'locales': {
-                        'fr': join_url('views/view/tpl-view_fr.json')}
-                    # }, {
-                    # 'path': join_url('views/listXml/tpl-listxml.html'),
-                    # 'values': {
-                    #     'fr': 'Liste XML'},
-                    # 'locales': {
-                    #     'fr': join_url('views/listXml/tpl-listxml_fr.json')}
+                    'values': {'fr': 'Vue'},
+                    'locales': {'fr': join_url('views/view/tpl-view_fr.json')}
                     }]},
-            'models_file': {
+            'models': {
                 'list': [{
                     'path': join_url(self.model_json),
-                    'value': 'Modèle de fiche vierge'}]},
+                    'value': 'Modèle de fiche vierge'
+                    }]},
+            'locales': self.locales,
             'locales_path': join_url('locales/'),
             'geographicextents_list': join_url('list_geographicextents.json'),
             'referencesystems_list': join_url('list_referencesystems.json'),
@@ -198,17 +205,13 @@ class MDEdit(View):
             'modal_template': {
                 'help': join_url('modal-help.html', path='mdedit/html/')}}
 
-        context = {
-            'dataset_name': three_suspension_points(dataset.name),
-            'dataset_id': dataset.id,
-            'config': config}
+        context = {'dataset_name': three_suspension_points(dataset.name),
+                   'dataset_id': dataset.id, 'config': config}
 
         if dataset.geonet_id:
             record = geonet.get_record(str(dataset.geonet_id))
             xml = record.xml.decode(encoding='utf-8')
             context['record_xml'] = re.sub('\n', '', xml).replace("'", "\\'")  # C'est moche
-            print(context['record_xml'])
-
         else:
             context['record_obj'] = \
                 prefill_model(open_json_staticfile(

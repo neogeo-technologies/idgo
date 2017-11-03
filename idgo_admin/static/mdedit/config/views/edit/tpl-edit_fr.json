@@ -108,7 +108,7 @@
                 "logoDescription": {
                     "id": "logoDescription",
                     "label": "Description du logo",
-                    "placeholder": "ex.: Logo du partenariat CIGAL",
+                    "placeholder": "ex.: Logo du partenariat",
                     "description": "Description du logo de l'organisme.",
                     "_keywords": "logo, identifiant, données"
                 },
@@ -465,7 +465,7 @@
                 "logoDescription": {
                     "id": "logoDescription",
                     "label": "Description du logo",
-                    "placeholder": "ex.: Logo du partenariat CIGAL",
+                    "placeholder": "ex.: Logo du partenariat",
                     "description": "Description du logo de l'organisme.",
                     "_keywords": "logo, identifiant, données"
                 },
