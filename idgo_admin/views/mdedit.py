@@ -36,7 +36,7 @@ if settings.STATIC_ROOT:
 else:
     locales_path = os.path.join(settings.BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')
 
-with open(locales_path) as f:
+with open(locales_path, 'r', encoding='utf-8') as f:
     MDEDIT_LOCALES = json.loads(f.read())
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
