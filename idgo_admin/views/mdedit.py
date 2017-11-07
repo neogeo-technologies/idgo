@@ -48,43 +48,25 @@ def prefill_model(model, dataset):
     editor = dataset.editor
     organization = dataset.organisation
 
-    data['mdContacts'] = [{
+    data['mdContacts'].insert(0, {
         'role': 'author',
         'individualName': editor.get_full_name(),
         'organisationName': organization.name,
         'email': organization.email,
-        'phoneVoice': editor.profile.phone,
+        'phoneVoice': organization.org_phone,
         'deliveryPoint': organization.address,
         'postalCode': organization.postcode,
-        'city': dataset.organisation.city
-        }, {
-        'role': 'pointOfContact',
-        'individualName': '',
-        'organisationName': '',  # TODO -> A préciser avec @mlefort
-        'email': '',
-        'phoneVoice': '',
-        'deliveryPoint': '',
-        'postalCode': '',
-        'city': ''}]
+        'city': dataset.organisation.city})
 
-    data['dataPointOfContacts'] = [{
-        'role': 'distributor',
-        'individualName': editor.get_full_name(),
+    data['dataPointOfContacts'].insert(0, {
+        'role': 'owner',
+        'individualNzame': editor.get_full_name(),
         'organisationName': organization.name,
         'email': organization.email,
-        'phoneVoice': editor.profile.phone,
+        'phoneVoice': organization.org_phone,
         'deliveryPoint': organization.address,
         'postalCode': organization.postcode,
-        'city': dataset.organisation.city
-        }, {
-        'role': 'pointOfContact',
-        'individualName': '',
-        'organisationName': '',  # TODO -> A préciser avec @mlefort
-        'email': '',
-        'phoneVoice': '',
-        'deliveryPoint': '',
-        'postalCode': '',
-        'city': ''}]
+        'city': dataset.organisation.city})
 
     try:
         data['mdContacts'][0].update({

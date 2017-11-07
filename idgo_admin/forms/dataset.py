@@ -1,23 +1,26 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django import forms
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Category
-from idgo_admin.models import DataType
 from idgo_admin.models import create_organization_in_ckan
 from idgo_admin.models import Dataset
+from idgo_admin.models import DataType
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Support
 from idgo_admin.shortcuts import user_and_profile
+import re
 from taggit.forms import TagField
 from taggit.forms import TagWidget
-
-import re
 from uuid import UUID
+
+
+GEONETWORK_URL = settings.GEONETWORK_URL
 
 
 _today = timezone.now().date()
@@ -239,29 +242,36 @@ class DatasetForm(forms.ModelForm):
         groups = []
         tags = [{'name': name} for name in data['keywords']]
 
+        datatype = []
+
         if data.get('data_type'):
             dataset.data_type.clear()
-            for group in data['data_type']:
-                dataset.data_type.add(group)
+            for entry in data['data_type']:
+                dataset.data_type.add(entry)
                 # TODO
                 # ~ soit ~
-                tags.append({
-                    'name': group.name,
-                    'vocabulary_id': ckan.get_vocabulary('data_type')['id']})
+                # tags.append({
+                #     'name': entry.name,
+                #     'vocabulary_id': entry.get_vocabulary('data_type')['id']})
                 # ~ soit ~
-                ckan.add_user_to_group(user.username, group.ckan_slug)
-                groups.append({'name': group.ckan_slug})
+                # ckan.add_user_to_group(user.username, entry.ckan_slug)
+                # groups.append({'name': entry.ckan_slug})
+                # ~ soit ~
+                datatype.append(entry.ckan_slug)
 
+        support = None
         if params['support']:
-            group = params['support']
-            tags.append({'name': group.name,
-                         'vocabulary_id': ckan.get_vocabulary('support')['id']})
-            ckan.add_user_to_group(user.username, group.ckan_slug)
-            groups.append({'name': group.ckan_slug})
+            entry = params['support']
+            # tags.append({'name': group.name,
+            #              'vocabulary_id': ckan.get_vocabulary('support')['id']})
+            # ckan.add_user_to_group(user.username, group.ckan_slug)
+            # groups.append({'name': group.ckan_slug})
+            support = entry.ckan_slug
 
         ckan_params = {
             'author': user.username,
             'author_email': user.email,
+            'datatype': datatype,
             'dataset_creation_date':
                 str(dataset.date_creation) if dataset.date_creation else '',
             'dataset_modification_date':
@@ -279,11 +289,18 @@ class DatasetForm(forms.ModelForm):
             'owner_org': dataset.organisation.ckan_slug,
             'private': not dataset.published,
             'state': 'active',
+            'support': support,
             'tags': tags,
             'title': dataset.name,
             'update_frequency': dataset.update_freq,
-            # TODO Générer l'URL INSPIRE
             'url': ''}
+
+        print(0, dataset.geonet_id)
+
+        if dataset.geonet_id:
+            ckan_params['inspire_url'] = \
+                '{0}srv/fre/catalog.search#/metadata/{1}'.format(
+                    GEONETWORK_URL, dataset.geonet_id)
 
         for category in Category.objects.filter(pk__in=data['categories']):
             ckan.add_user_to_group(user.username, category.ckan_slug)

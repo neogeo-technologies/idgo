@@ -7,15 +7,16 @@
 	{
 		"individualName": "",
 		"positionName": "",
-		"organisationName": "",
-		"phoneVoice": "",
-		"email": "",
-		"deliveryPoint": "",
-		"postalCode": "",
-		"city": "",
+		"organisationName": "CRIGE-PACA",
+		"phoneVoice": "0442907222",
+		"email": "geocatalogue@crige-paca.org",
+		"deliveryPoint": "Technopôle de l'Environnement Arbois-Méditerranée\nDomaine du Petit Arbois\nAvenue Louis Philibert - Bât G. Mégie\nCS 90646",
+		"postalCode": "13547",
+		"city": "Aix-en-Provence CEDEX 4",
+		"country": "France",
 		"logoUrl": "",
 		"logoDescription": "",
-		"role": ""
+		"role": "pointOfContact"
 	}],
 	"mdDateStamp": "",
 	"mdStandardName": "ISO 19115/19139",
@@ -66,15 +67,16 @@
 	{
 		"individualName": "",
 		"positionName": "",
-		"organisationName": "",
-		"phoneVoice": "",
-		"email": "",
-		"deliveryPoint": "",
-		"postalCode": "",
-		"city": "",
+		"organisationName": "CRIGE-PACA",
+		"phoneVoice": "0442907222",
+		"email": "geocatalogue@crige-paca.org",
+		"deliveryPoint": "Technopôle de l'Environnement Arbois-Méditerranée\nDomaine du Petit Arbois\nAvenue Louis Philibert - Bât G. Mégie\nCS 90646",
+		"postalCode": "13547",
+		"city": "Aix-en-Provence CEDEX 4",
+		"country": "France",
 		"logoUrl": "",
 		"logoDescription": "",
-		"role": ""
+		"role": "distributor"
 	}],
 	"dataGeographicExtents": [
 	{
