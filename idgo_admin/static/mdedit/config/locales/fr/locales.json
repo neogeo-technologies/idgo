@@ -815,8 +815,20 @@
 			"value": "WCS"
 		},
 		{
+			"id": "OGC:KML",
+			"value": "KML"
+		},
+		{
 			"id": "WWW:DOWNLOAD-1.0-http--download",
-			"value": "ZIP"
+			"value": "Fichier à télécharger"
+		},
+		{
+			"id": "WWW:LINK-1.0-http--link",
+			"value": "Adresse Internet (URL)"
+		},
+		{
+			"id": "DB:POSTGIS",
+			"value": "Base de données / Table PostGIS"
 		}],
 		"MD_ReferenceSystemCode": [
 		{
