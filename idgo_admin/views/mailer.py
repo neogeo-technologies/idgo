@@ -196,7 +196,7 @@ def confirm_referent(request, key):
             status = 200
             message = (
                 "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
-                "a bien été confirmée pour <strong>{username}</strong>."
+                "a bien été confirmé pour <strong>{username}</strong>."
                 ).format(organization_name=organisation.name,
                          username=user.username)
 
@@ -248,7 +248,7 @@ def confirm_contribution(request, key):
 
                 message = (
                     "Le rôle de contributeur pour l'organisation <strong>{organization_name}</strong> "
-                    "a bien été confirmée pour <strong>{username}</strong>."
+                    "a bien été confirmé pour <strong>{username}</strong>."
                     ).format(organization_name=organisation.name,
                              username=user.username)
                 status = 200
