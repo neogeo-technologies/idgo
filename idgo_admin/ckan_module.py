@@ -306,6 +306,8 @@ class CkanManagerHandler(metaclass=Singleton):
     @CkanExceptionsHandler()
     def add_user_to_group(self, username, group_name):
         group = self.get_group(group_name)
+        if not group:  # TODO better
+            raise Exception("The group '{0}' does not exists".format(group_name))
         if username not in [user['name'] for user in group['users']]:
             group['users'].append({'name': username, 'capacity': 'admin'})
         self.call_action('group_update', **group)

@@ -239,34 +239,14 @@ class DatasetForm(forms.ModelForm):
             for tag in data['keywords']:
                 dataset.keywords.add(tag)
 
-        groups = []
         tags = [{'name': name} for name in data['keywords']]
 
         datatype = []
-
         if data.get('data_type'):
             dataset.data_type.clear()
-            for entry in data['data_type']:
-                dataset.data_type.add(entry)
-                # TODO
-                # ~ soit ~
-                # tags.append({
-                #     'name': entry.name,
-                #     'vocabulary_id': entry.get_vocabulary('data_type')['id']})
-                # ~ soit ~
-                # ckan.add_user_to_group(user.username, entry.ckan_slug)
-                # groups.append({'name': entry.ckan_slug})
-                # ~ soit ~
-                datatype.append(entry.ckan_slug)
-
-        support = None
-        if params['support']:
-            entry = params['support']
-            # tags.append({'name': group.name,
-            #              'vocabulary_id': ckan.get_vocabulary('support')['id']})
-            # ckan.add_user_to_group(user.username, group.ckan_slug)
-            # groups.append({'name': group.ckan_slug})
-            support = entry.ckan_slug
+            for obj in data['data_type']:
+                dataset.data_type.add(obj)
+                datatype.append(obj.ckan_slug)
 
         ckan_params = {
             'author': user.username,
@@ -278,7 +258,7 @@ class DatasetForm(forms.ModelForm):
                 str(dataset.date_modification) if dataset.date_modification else '',
             'dataset_publication_date':
                 str(dataset.date_publication) if dataset.date_publication else '',
-            'groups': groups,
+            'groups': [],
             'geocover': dataset.geocover,
             'last_modified':
                 str(dataset.date_modification) if dataset.date_modification else '',
@@ -289,18 +269,16 @@ class DatasetForm(forms.ModelForm):
             'owner_org': dataset.organisation.ckan_slug,
             'private': not dataset.published,
             'state': 'active',
-            'support': support,
+            'support': params.get('support') and params.get('support').ckan_slug or '',
             'tags': tags,
             'title': dataset.name,
             'update_frequency': dataset.update_freq,
             'url': ''}
 
-        print(0, dataset.geonet_id)
-
         if dataset.geonet_id:
             ckan_params['inspire_url'] = \
                 '{0}srv/fre/catalog.search#/metadata/{1}'.format(
-                    GEONETWORK_URL, dataset.geonet_id)
+                    GEONETWORK_URL, dataset.geonet_id or '')
 
         for category in Category.objects.filter(pk__in=data['categories']):
             ckan.add_user_to_group(user.username, category.ckan_slug)
