@@ -115,6 +115,7 @@ class SignOut(MamaLogoutView):
 
 @method_decorator(decorators[0], name='dispatch')
 class AccountManager(View):
+
     def create_account(self, user_data, profile_data):
         user = User.objects.create_user(
             username=user_data['username'], password=user_data['password1'],
@@ -252,8 +253,8 @@ class AccountManager(View):
                 'update_organization': 'idgo_admin/update_my_organization.html'}.get(process)
 
     def render_on_error(self, request, html_template, uform, pform):
-        return render_with_info_profile(
-            request, html_template, {'uform': uform, 'pform': pform})
+        return render(request, html_template,
+                      {'uform': uform, 'pform': pform})
 
     def rewind_ckan(self, username):
         ckan.update_user(User.objects.get(username=username))
@@ -280,7 +281,6 @@ class AccountManager(View):
 
     @transaction.atomic
     def post(self, request, process):
-
         if process == "create":
             pform = ProfileForm(request.POST, request.FILES,
                                 include={'action': process})

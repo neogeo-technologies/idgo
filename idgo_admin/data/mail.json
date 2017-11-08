@@ -8,14 +8,6 @@
     }
 }, {
     "model": "idgo_admin.mail",
-    "pk": "affiliate_request_to_administrators_with_new_org",
-    "fields": {
-        "subject": "Un utilisateur demande son rattachement \u00e0 une nouvelle organisation",
-        "message": "Bonjour,\n\nUn nouvel utilisateur ({username}, {user_mail}) demande le rattachement\n\u00e0 l'organisation qu'il a \u00e9galement cr\u00e9\u00e9e:\n\nVeuillez v\u00e9rifier les donn\u00e9es renseign\u00e9es avant de valider son inscription:\n*   Nom de l'organisation : {organisation_name}\n*   Adresse URL de l'organisation : {website}\n\nVeuillez cliquer sur le lien suivant afin de valider son inscription, la\ncr\u00e9ation de la nouvelle organisation et pour activer son compte : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
-    }
-}, {
-    "model": "idgo_admin.mail",
     "pk": "conf_deleting_dataset_by_user",
     "fields": {
         "subject": "Confirmation de la suppression d'un jeu de donn\u00e9es",
@@ -27,7 +19,7 @@
     "pk": "conf_deleting_profile_to_user",
     "fields": {
         "subject": "Confirmation de votre d\u00e9sinscription au service IDGO",
-        "message": "Bonjour {first_name} {last_name} ({username}),\r\n\r\nNous confirmons votre d\u00e9sinscription du site IDGO.\r\n\r\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
+        "message": "Bonjour {first_name} {last_name} ({username}),\n\nNous confirmons votre d\u00e9sinscription du site IDGO.\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
         "from_email": "idgo@neogeo-technologies.fr"
     }
 }, {
@@ -51,7 +43,7 @@
     "pk": "confirm_contrib_to_user",
     "fields": {
         "subject": "Confirmation de votre inscription en tant que contributeur pour une organisation.",
-        "message": "Bonjour,\n\nVotre demande de contribution pour l'organisation {organisation_name} a \u00e9t\u00e9 valid\u00e9.\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
+        "message": "Bonjour,\n\nVotre demande de contribution pour l'organisation {organisation_name} a \u00e9t\u00e9 valid\u00e9e.\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
         "from_email": "idgo@neogeo-technologies.fr"
     }
 }, {
@@ -59,7 +51,7 @@
     "pk": "confirm_contribution",
     "fields": {
         "subject": "Un utilisateur requiert un statut de contributeur pour une organisation.",
-        "message": "Bonjour,\n\nUn utilisateur ({username}, {user_mail}) a fait une demande\nde contribution pour l'organisation {organisation_name} {website}.\n\nVeuillez cliquer sur le lien suivant pour valider sa demande : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
+        "message": "Bonjour,\n\nUn utilisateur ({first_name} {last_name}, {username}, {user_mail}) a fait une demande\nde contribution pour l'organisation {organisation_name} {website}.\n\nVeuillez cliquer sur le lien suivant pour valider sa demande : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
         "from_email": "idgo@neogeo-technologies.fr"
     }
 }, {
@@ -67,7 +59,7 @@
     "pk": "confirm_new_organisation",
     "fields": {
         "subject": "Un utilisateur demande la cr\u00e9ation d'une nouvelle organisation",
-        "message": "Bonjour,\n\nUn nouvel utilisateur ({username}, {user_mail}) demande le rattachement\n\u00e0 une nouvelle organisation qu'il a \u00e9galement cr\u00e9\u00e9e:\n\nVeuillez v\u00e9rifier les donn\u00e9es renseign\u00e9es avant de valider son inscription:\n*   Nom de l'organisation : {organisation_name}\n*   Adresse URL de l'organisation : {website}\n\nVeuillez cliquer sur le lien suivant afin de valider cette demande de cr\u00e9ation:\n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
+        "message": "Bonjour,\n\nUn nouvel utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le rattachement\n\u00e0 une nouvelle organisation qu'il a \u00e9galement cr\u00e9\u00e9e:\n\nVeuillez v\u00e9rifier les donn\u00e9es renseign\u00e9es avant de valider son inscription:\n*   Nom de l'organisation : {organisation_name}\n*   Adresse URL de l'organisation : {website}\n\nVeuillez cliquer sur le lien suivant afin de valider cette demande de cr\u00e9ation:\n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
         "from_email": "idgo@neogeo-technologies.fr"
     }
 }, {
@@ -75,7 +67,7 @@
     "pk": "confirm_rattachement",
     "fields": {
         "subject": "Un utilisateur demande son rattachement \u00e0 une organisation",
-        "message": "Bonjour,\n\nUn nouvel utilisateur ({username}, {user_mail}) demande le rattachement \u00e0\nl'organisation : {organisation_name}, {website}.\n\nVeuillez cliquer sur ce lien afin de valider cette demande : \n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
+        "message": "Bonjour,\n\nUn nouvel utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le rattachement \u00e0\nl'organisation : {organisation_name}, {website}.\n\nVeuillez cliquer sur ce lien afin de valider cette demande : \n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
         "from_email": "idgo@neogeo-technologies.fr"
     }
 }, {
@@ -83,7 +75,7 @@
     "pk": "confirm_referent",
     "fields": {
         "subject": "Un utilisateur requiert un statut de r\u00e9f\u00e9rent pour une organisation.",
-        "message": "Bonjour,\n\nUn nouvel utilisateur ({username}, {user_mail}) demande le r\u00f4le de r\u00e9f\u00e9rent pour {organisation_name}.\n\nVeuillez cliquer sur le lien suivant pour valider sa demande : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
+        "message": "Bonjour,\n\nUn nouvel utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le r\u00f4le de r\u00e9f\u00e9rent pour {organisation_name}.\n\nVeuillez cliquer sur le lien suivant pour valider sa demande : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
         "from_email": "idgo@neogeo-technologies.fr"
     }
 }, {
@@ -91,7 +83,7 @@
     "pk": "confirm_updating_rattachement",
     "fields": {
         "subject": "Un utilisateur demande son rattachement \u00e0 une organisation",
-        "message": "Bonjour,\n\nUn utilisateur ({username}, {user_mail}) demande le rattachement \u00e0\nl'organisation : {organisation_name}, {website}.\n\nVeuillez cliquer sur ce lien afin de valider cette demande : \n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
+        "message": "Bonjour,\n\nUn utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le rattachement \u00e0\nl'organisation : {organisation_name}, {website}.\n\nVeuillez cliquer sur ce lien afin de valider cette demande : \n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
         "from_email": "idgo@neogeo-technologies.fr"
     }
 }, {

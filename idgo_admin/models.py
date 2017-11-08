@@ -452,8 +452,8 @@ class Mail(models.Model):
     @classmethod
     def referents_mails(cls, receip_list, organisation):
         receip_list = receip_list + [
-            p.user.email for p in Profile.objects.filter(
-                referents=organisation)]
+            lr.profile.user.email for lr in LiaisonsReferents.objects.filter(
+                organisation=organisation, validated_on__isnull=False)]
         return receip_list
 
     @classmethod
@@ -640,7 +640,9 @@ class Mail(models.Model):
             Mail.objects.get(template_name="confirm_contribution")
 
         fmt = PartialFormatter()
-        data = {'username': user.username,
+        data = {'first_name': user.first_name,
+                'last_name': user.last_name,
+                'username': user.username,
                 'user_mail': user.email,
                 'organisation_name': organisation.name,
                 'website': website,

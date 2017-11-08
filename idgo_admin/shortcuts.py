@@ -12,6 +12,8 @@ def render_with_info_profile(request, template_name, context=None,
                              content_type=None, status=None, using=None, *args, **kwargs):
 
     user, profile = user_and_profile(request)
+    if not profile:
+        raise Http404()
 
     if not context:
         context = {}
