@@ -15,6 +15,7 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanSyncingError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
+from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
@@ -22,7 +23,7 @@ from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.utils import three_suspension_points
-
+from idgo_admin.shortcuts import on_profile_http404
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
@@ -33,7 +34,7 @@ class ResourceManager(View):
     template = 'idgo_admin/resource.html'
     namespace = 'idgo_admin:resource'
 
-    @ExceptionsHandler(ignore=[Http404])
+    @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
     def get(self, request, dataset_id, *args, **kwargs):
 
         user, profile = user_and_profile(request)
@@ -66,7 +67,7 @@ class ResourceManager(View):
 
         return render_with_info_profile(request, self.template, context)
 
-    @ExceptionsHandler(ignore=[Http404])
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     @transaction.atomic
     def post(self, request, dataset_id, *args, **kwargs):
 
@@ -145,7 +146,7 @@ class ResourceManager(View):
 
         return http_redirect(dataset_id, instance.id)
 
-    @ExceptionsHandler(ignore=[Http404])
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, dataset_id, *args, **kwargs):
 
         user, profile = user_and_profile(request)

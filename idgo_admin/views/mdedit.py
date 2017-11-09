@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from idgo_admin.exceptions import ExceptionsHandler
+from idgo_admin.exceptions import ProfileHttp404
+from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -15,6 +18,7 @@ from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
+from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.utils import clean_my_obj
 from idgo_admin.utils import open_json_staticfile
 from idgo_admin.utils import three_suspension_points
@@ -24,7 +28,6 @@ import re
 from urllib.parse import urljoin
 from uuid import UUID
 import xml.etree.ElementTree as ET
-
 
 STATIC_URL = settings.STATIC_URL
 GEONETWORK_URL = settings.GEONETWORK_URL
@@ -114,6 +117,7 @@ class MDEditTplEdit(View):
 
     template = 'idgo_admin/mdedit/template_edit.html'
 
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, dataset_id, *args, **kwargs):
 
         def join_url(filename, path='mdedit/html/'):
@@ -140,6 +144,7 @@ class MDEdit(View):
     # filenames
     model_json = 'models/model-empty.json'
 
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, dataset_id, *args, **kwargs):
 
         user, profile = user_and_profile(request)
@@ -201,6 +206,7 @@ class MDEdit(View):
 
         return render_with_info_profile(request, self.template, context=context)
 
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def post(self, request, dataset_id, *args, **kwargs):
 
         user, profile = user_and_profile(request)

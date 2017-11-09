@@ -1,5 +1,10 @@
-from django.core.handlers.wsgi import WSGIRequest
 from functools import wraps
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import Http404
+
+
+class ProfileHttp404(Http404):
+    pass
 
 
 class GenericException(Exception):
@@ -39,8 +44,9 @@ class ExceptionsHandler(object):
     MESSAGES = {
         'CkanTimeoutError': 'Impossible de joindre le serveur CKAN.'}
 
-    def __init__(self, ignore=None):
+    def __init__(self, ignore=None, actions=None):
         self.ignore = ignore or []
+        self.actions = actions or {}
 
     def __call__(self, f):
 
@@ -54,6 +60,10 @@ class ExceptionsHandler(object):
             try:
                 return f(*args, **kwargs)
             except Exception as e:
+                for exception, callback in self.actions.items():
+                    if isinstance(e, exception):
+                        return callback()
+
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
                 raise e

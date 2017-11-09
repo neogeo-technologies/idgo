@@ -18,8 +18,12 @@ from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
+from idgo_admin.exceptions import ExceptionsHandler
+from idgo_admin.exceptions import ProfileHttp404
+from idgo_admin.shortcuts import on_profile_http404
 
 
+@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def contribution_request(request, *args, **kwargs):
@@ -58,6 +62,7 @@ def contribution_request(request, *args, **kwargs):
     return HttpResponseRedirect(reverse('idgo_admin:organizations'))
 
 
+@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def referent_request(request, *args, **kwargs):
@@ -96,9 +101,11 @@ def referent_request(request, *args, **kwargs):
     return HttpResponseRedirect(reverse('idgo_admin:organizations'))
 
 
+
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
 class OrganisationDisplay(View):
 
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, *args, **kwargs):
 
         return render_with_info_profile(
@@ -108,6 +115,7 @@ class OrganisationDisplay(View):
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
 class Contributions(View):
 
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, *args, **kwargs):
 
         id = request.POST.get('id', request.GET.get('id')) or None
@@ -132,6 +140,7 @@ class Contributions(View):
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
 class Referents(View):
 
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, *args, **kwargs):
 
         id = request.POST.get('id', request.GET.get('id')) or None

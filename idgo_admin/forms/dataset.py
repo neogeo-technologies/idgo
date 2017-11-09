@@ -199,6 +199,7 @@ class DatasetForm(forms.ModelForm):
 
     def handle_me(self, request, id=None):
         user, profile = user_and_profile(request)
+
         data = self.cleaned_data
         params = {
             'date_creation': data['date_creation'],

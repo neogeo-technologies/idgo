@@ -18,6 +18,7 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanSyncingError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
+from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
@@ -28,6 +29,7 @@ from idgo_admin.models import Resource
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import user_and_profile
+from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.utils import three_suspension_points
 import json
 
@@ -44,7 +46,7 @@ class DatasetManager(View):
     namespace = 'idgo_admin:dataset'
     namespace_resource = 'idgo_admin:resource'
 
-    @ExceptionsHandler(ignore=[Http404])
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, *args, **kwargs):
 
         user, profile = user_and_profile(request)
@@ -97,7 +99,7 @@ class DatasetManager(View):
 
         return render_with_info_profile(request, self.template, context=context)
 
-    @ExceptionsHandler(ignore=[Http404])
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     @transaction.atomic
     def post(self, request, *args, **kwargs):
 
@@ -177,7 +179,7 @@ class DatasetManager(View):
 
         return http_redirect(instance.id)
 
-    @ExceptionsHandler(ignore=[Http404, CkanSyncingError])
+    @ExceptionsHandler(ignore=[Http404, CkanSyncingError], actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, *args, **kwargs):
 
         user, profile = user_and_profile(request)
@@ -223,7 +225,7 @@ class ReferentDatasetManager(View):
     namespace = 'idgo_admin:dataset'
     namespace_resource = 'idgo_admin:resource'
 
-    @ExceptionsHandler(ignore=[Http404])
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, *args, **kwargs):
 
         user, profile = user_and_profile(request)
@@ -275,7 +277,7 @@ class ReferentDatasetManager(View):
 
         return render_with_info_profile(request, self.template, context=context)
 
-    @ExceptionsHandler(ignore=[Http404])
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     @transaction.atomic
     def post(self, request, *args, **kwargs):
 
@@ -352,7 +354,7 @@ class ReferentDatasetManager(View):
 
         return http_redirect(instance.id)
 
-    @ExceptionsHandler(ignore=[Http404, CkanSyncingError])
+    @ExceptionsHandler(ignore=[Http404, CkanSyncingError], actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, *args, **kwargs):
 
         user, profile = user_and_profile(request)
@@ -388,7 +390,7 @@ class ReferentDatasetManager(View):
         return HttpResponse(status=status)
 
 
-@ExceptionsHandler(ignore=[Http404])
+@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def datasets(request, *args, **kwargs):
@@ -413,7 +415,7 @@ def datasets(request, *args, **kwargs):
         context={'ckan_url': CKAN_URL, 'datasets': json.dumps(datasets)})
 
 
-@ExceptionsHandler(ignore=[Http404])
+@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def all_datasets(request, *args, **kwargs):
@@ -443,7 +445,7 @@ def all_datasets(request, *args, **kwargs):
         {'ckan_url': CKAN_URL, 'datasets': json.dumps(datasets)}, status=200)
 
 
-@ExceptionsHandler(ignore=[Http404])
+@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def export(request, *args, **kwargs):
