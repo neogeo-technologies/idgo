@@ -193,17 +193,20 @@ class ProfileForm(forms.ModelForm):
     financier = forms.ModelChoiceField(
         required=False,
         label='Financeur',
-        queryset=Financier.objects.all())
+        queryset=Financier.objects.all(),
+        empty_label="Sélectionnez un financeur")
 
     jurisdiction = forms.ModelChoiceField(
         required=False,
         label='Territoire de compétence',
-        queryset=Jurisdiction.objects.all())
+        queryset=Jurisdiction.objects.all(),
+        empty_label="Sélectionnez un territoire de compétence")
 
     license = forms.ModelChoiceField(
         required=False,
         label='Licence par défaut pour tout nouveau jeu de données',
-        queryset=License.objects.all())
+        queryset=License.objects.all(),
+        empty_label="Sélectionnez une licence par défaut")
 
     logo = forms.ImageField(
         label="Logo de l'organisation",
@@ -228,7 +231,8 @@ class ProfileForm(forms.ModelForm):
     organisation_type = forms.ModelChoiceField(
         required=False,
         label="Type d'organisation",
-        queryset=OrganisationType.objects.all())
+        queryset=OrganisationType.objects.all(),
+        empty_label="Sélectionnez un type d'organisation")
 
     # parent = forms.ModelChoiceField(
     #     required=False,

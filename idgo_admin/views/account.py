@@ -489,7 +489,7 @@ class ReferentAccountManager(View):
                 "last_name": p.user.last_name,
                 "username": p.user.username,
                 "nb_datasets": p.nb_datasets(orga)
-                } for p in Profile.objects.filter(organisation=orga, membership=True)]
+                } for p in Profile.objects.filter(organisation=orga, membership=True).order_by('user__last_name')]
 
             organizations[str(orga.name)]["contributors"] = [{
                 "profile_id": lc.profile.pk,

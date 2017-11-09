@@ -449,12 +449,14 @@ def all_datasets(request, *args, **kwargs):
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def export(request, *args, **kwargs):
-    f = request.GET.get('format')
 
     user, profile = user_and_profile(request)
 
-    if f == 'csv':
-        return render_to_csv_response(Dataset.objects.filter(
-            editor=user))
+    if profile.is_referent() and request.GET.get('all'):
+        datasets = Dataset.objects.filter(organisation__in=LiaisonsReferents.get_subordinates(profile))
+    else:
+        datasets = Dataset.objects.filter(editor=user)
+    if request.GET.get('format') == 'csv':
+        return render_to_csv_response(datasets)
 
     raise Http404
