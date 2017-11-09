@@ -123,7 +123,9 @@ $(function() {
 	{% endif %}
 
 	const $inputContribution = $('input[name="{{ pform.contribution_requested.name }}"]');
-	const $inputReferent = $('input[name="{{ pform.referent_requested.name }}"]');
+	const $inputReferent = $('input[name="{{ pform.referent_requested.name }}"]').change(function() {
+		this.checked ? $inputContribution.attr({'checked': true, 'disabled': true}) : $inputContribution.attr({'checked': false, 'disabled': false});
+	});
 
 	const toggleInputVisibility = function() {
 		let selected = parseInt($selectOrganization.val());
@@ -132,7 +134,7 @@ $(function() {
 		selected = isNaN(selected) ? null : selected;
 		value = isNaN(value) ? null : value;
 
-		if (value === selected && $collapseOne.hasClass('in')) {
+		if ((value === selected && $collapseOne.hasClass('in')) || !selected) {
 			$inputContribution.parent().hide();
 			$inputReferent.parent().hide();
 		} else {
