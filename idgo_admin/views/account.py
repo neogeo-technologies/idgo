@@ -213,14 +213,16 @@ class AccountManager(View):
             org_extras=organisation)
         if process in ("update", "update_organization"):
             Mail.confirm_referent(request, referent_action)
+        # Un referent est obligatoirement un contributeur
+        self.contributor_process(request, profile, organisation, process, send_mail=False)
 
-    def contributor_process(self, request, profile, organisation, process):
+    def contributor_process(self, request, profile, organisation, process, send_mail=True):
         LiaisonsContributeurs.objects.get_or_create(
             profile=profile, organisation=organisation)
         contribution_action = AccountActions.objects.create(
             profile=profile, action='confirm_contribution',
             org_extras=organisation)
-        if process in ("update", "update_organization"):
+        if process in ("update", "update_organization") and send_mail:
             Mail.confirm_contribution(request, contribution_action)
 
     def contextual_response(self, request, process):

@@ -6,6 +6,8 @@ from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
+from django.http import HttpResponseRedirect
+from django.shortcuts import reverse
 
 
 def render_with_info_profile(request, template_name, context=None,
@@ -13,7 +15,8 @@ def render_with_info_profile(request, template_name, context=None,
 
     user, profile = user_and_profile(request)
     if not profile:
-        raise Http404()
+        return HttpResponseRedirect(
+            reverse('idgo_admin:signIn'))
 
     if not context:
         context = {}
