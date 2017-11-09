@@ -45,7 +45,6 @@
 $(function() {
 	var CKAN_URL = '{{ ckan_url }}';
 	var DATASET_URL = '{% url "idgo_admin:dataset" %}';
-
 	var DATASETS = {{ datasets | safe }};
 	var DATASETS_CONTAINER = 'table-datasets';
 	var DATASETS_METADATA = [
