@@ -73,6 +73,7 @@ def prefill_model(model, dataset):
 
     try:
         data['mdContacts'][0].update({
+            'logoDescription': 'logo',
             'logoUrl': urljoin(DOMAIN_NAME, organization.logo.url)})
     except Exception:
         pass

@@ -12,6 +12,9 @@
 	{% endfor %}
 {% endif %}
 
+{% if datasets_count == 0 %}
+<div role="alert" class="alert alert-warning"><p>Il n'y a aucun jeu de données actuellement.</p><div/>
+{% else %}
 <div id="datasets">
 	<div class="buttons-on-the-right-side">
 		<a name="export-csv" class="btn btn-default">Exporter</a>
@@ -305,6 +308,7 @@ $(function() {
 		} else {
 			$containerId.hide();
 		};
+
 	};
 
 	updateDatasetsGrid(
@@ -336,3 +340,4 @@ $(function() {
 	);
 });
 </script>
+{% endif %}

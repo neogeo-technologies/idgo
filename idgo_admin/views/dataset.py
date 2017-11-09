@@ -412,7 +412,9 @@ def datasets(request, *args, **kwargs):
 
     return render_with_info_profile(
         request, 'idgo_admin/datasets.html', status=200,
-        context={'ckan_url': CKAN_URL, 'datasets': json.dumps(datasets)})
+        context={'ckan_url': CKAN_URL,
+                 'datasets': json.dumps(datasets),
+                 'datasets_count': len(datasets)})
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -441,8 +443,8 @@ def all_datasets(request, *args, **kwargs):
             organisation__in=LiaisonsReferents.get_subordinates(profile=profile))]
 
     return render_with_info_profile(
-        request, 'idgo_admin/all_datasets.html',
-        {'ckan_url': CKAN_URL, 'datasets': json.dumps(datasets)}, status=200)
+        request, 'idgo_admin/all_datasets.html', status=200,
+        context={'ckan_url': CKAN_URL, 'datasets': json.dumps(datasets)})
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})

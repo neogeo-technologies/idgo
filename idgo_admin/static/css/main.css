@@ -193,6 +193,7 @@ ul.nav.nav-default>li:not(:last-child) {
 }
 
 ul.nav.nav-default>li>a {
+    font-family: "Libre Franklin", "Helvetica Neue", helvetica, arial, sans-serif;
     border-radius: 0;
     margin: 0;
     padding-top: 15px;
@@ -201,9 +202,10 @@ ul.nav.nav-default>li>a {
     border-right: -1px solid transparent;
     background: transparent;
     color: #002880;
-    font-weight: 600;
-    font-variant: small-caps;
-    font-size: 1.333em;
+    font-weight: 400;
+    text-transform: uppercase;
+    /*font-size: 1.333em;*/
+    font-size: 16px;
     -webkit-box-shadow: 0 8px 0 0 #002880 inset;
             box-shadow: 0 8px 0 0 #002880 inset;
     -webkit-transition: box-shadow .5s, color .5s;
@@ -228,12 +230,15 @@ ul.nav.nav-default>li.active>a:hover {
     /*margin-bottom: 1px;*/
 }
 
-ul.nav.nav-default>li[name=account].active {
+ul.nav.nav-default>li[name=account] {
     float: right;
 }
 
-ul.nav.nav-default>li[name=account].active>a {
+ul.nav.nav-default>li[name=account]>a {
+    font-size: 16px;
     z-index: 1;
+    padding-left: 30px;
+    padding-right: 30px;
 }
 
 ul.nav.nav-default>li[name=account].active::after {
@@ -244,15 +249,20 @@ ul.nav.nav-default>li[name=account].active::after {
     height: 51px;
     width: 100%;
     background-color: #002880;
-    border-radius: 8px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
     -webkit-transform: skew(0deg, 6deg);
             transform: skew(0deg, 5deg);
+    -webkit-box-shadow: 0 2px 1px 0px rgba(0,40,128,.5);
+            box-shadow: 0 2px 1px 0px rgba(0,40,128,.5);
 }
 
 div.nav-container {
     background-color: #fff;
-    -webkit-box-shadow: 0 6px 8px -5px rgba(0,40,128,.5) inset;
-            box-shadow: 0 6px 8px -5px rgba(0,40,128,.5) inset;
+    -webkit-box-shadow: 0 2px 4px 0px rgba(0,40,128,.25);
+            box-shadow: 0 2px 4px 0px rgba(0,40,128,.25);
 }
 
 div.breadcrumb-container {
@@ -294,7 +304,7 @@ div.main-container {
     /*border-top: 1px solid #002880;*/
     /*margin-top: -2px;*/
     padding-top: 30px;
-    padding-bottom: 30px;
+    padding-bottom: 110px;
     bottom: 0;
 }
 
@@ -754,4 +764,16 @@ a.disabled {
   color: #aaa !important;
   pointer-events: none;
   cursor: not-allowed;
+}
+
+.footer {
+    background-color: #002880;
+}
+
+.footer p {
+    text-align: center;
+    color: #fff;
+    font-size: .8em;
+    letter-spacing: 0.4px;
+    margin: 10px 0;
 }
