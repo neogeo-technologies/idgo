@@ -329,7 +329,7 @@ class Profile(models.Model):
         elif organisation:
             res = LiaisonsReferents.objects.filter(profile=self, organisation=organisation).exists()
         else:
-            res = LiaisonsReferents.objects.filter(profile=self).exists()
+            res = LiaisonsReferents.objects.filter(profile=self, validated_on__isnull=False).exists()
         return res
 
     # @classmethod
