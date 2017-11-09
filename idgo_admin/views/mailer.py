@@ -188,17 +188,28 @@ def confirm_referent(request, key):
             status = 400
             message = ("Erreur lors de la validation du role de réferent")
         else:
-            ref_liaison.validated_on = timezone.now()
-            ref_liaison.save()
-            action.closed = timezone.now()
-            action.save()
+            if not organisation.is_active:
+                message = (
+                    "Le status de référent pour l'organisation <strong>{organization_name}</strong> "
+                    "concernant <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>)  ne peut être effectif que lorsque "
+                    "la création de cette organisation a été confirmé par un administrateur."
+                    ).format(first_name=user.first_name,
+                             last_name=user.last_name,
+                             username=user.username,
+                             organization_name=organisation.name)
+                status = 200
+            else:
+                ref_liaison.validated_on = timezone.now()
+                ref_liaison.save()
+                action.closed = timezone.now()
+                action.save()
 
-            status = 200
-            message = (
-                "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
-                "a bien été confirmé pour <strong>{username}</strong>."
-                ).format(organization_name=organisation.name,
-                         username=user.username)
+                status = 200
+                message = (
+                    "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
+                    "a bien été confirmé pour <strong>{username}</strong>."
+                    ).format(organization_name=organisation.name,
+                             username=user.username)
 
     return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=status)
