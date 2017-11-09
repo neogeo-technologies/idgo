@@ -92,7 +92,7 @@ var deactivateButton = function($btn) {
 								<a href="{% url "idgo_admin:all_datasets" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
 							</li>
 							<li role="presentation">
-								<a href="{% url "idgo_admin:all_members" %}" aria-controls="all-members" role="tab">Gestion des utilisateurs<span></a>
+								<a href="{% url "idgo_admin:all_members" %}" aria-controls="all-members" role="tab">Utilisateurs<span></a>
 							</li>
 							{% endif %}
 							<li role="presentation">
@@ -131,6 +131,17 @@ var deactivateButton = function($btn) {
 			</div>
 		</div>
 		{% endblock main %}
+		{% block footer %}
+		<div class="footer navbar-fixed-bottom">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-12">
+						<p>© 2017 CRIGE  |  Tous droits réservés</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% endblock footer %}
 	</body>
 	<script>
 
