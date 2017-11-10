@@ -116,7 +116,7 @@ $(function() {
 
 	$exportCSV = $('#datasets a[name="export-csv"]').on('click', function(e) {
 		e.preventDefault();
-		targetBlank('{% url "idgo_admin:export" %}?format=csv');
+		targetBlank('{% url "idgo_admin:export" %}?format=csv&all');
 		e.stopPropagation();
 	});
 

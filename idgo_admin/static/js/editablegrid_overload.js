@@ -249,6 +249,21 @@ EditableGrid.prototype.updatePaginator = function(grid) {
 	paginator.append(lastLink);
 };
 
+
+EditableGrid.prototype.tableSorted = function(columnIndex, descending) {
+
+	// if (rowIndex > -1) {
+	// 	rowSelected(lastSelectedRowIndex, rowIndex);
+	// 	if (lastSelectedRowIndex == rowIndex) {
+	// 		lastSelectedRowIndex = -1;
+	// 	} else {
+	// 		lastSelectedRowIndex = rowIndex;
+	// 	};
+	// };
+
+};
+
+
 function CreateGrid($, container, options) {
 	this.grid = new EditableGrid(container, {pageSize: options.pageSize});
 	// TODO
