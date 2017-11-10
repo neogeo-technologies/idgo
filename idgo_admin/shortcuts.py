@@ -68,11 +68,13 @@ def get_object_or_404_extended(MyModel, user, include):
     res = None
     profile = get_object_or_404(Profile, user=user)
     instance = get_object_or_404(MyModel, **include)
-    i_am_resource = (MyModel.__name__ == Resource.__name__)
-    is_referent = instance.dataset.is_referent(profile) if i_am_resource else instance.is_referent(profile)
 
-    is_editor = instance.dataset.editor == user if i_am_resource else instance.editor == user
-    if profile.is_admin or is_referent or is_editor:
+    i_am_resource = (MyModel.__name__ == Resource.__name__)
+
+    is_referent = instance.dataset.is_referent(profile) if i_am_resource else instance.is_referent(profile)
+    is_contributor = instance.dataset.is_contributor(profile) if i_am_resource else instance.is_contributor(profile)
+
+    if profile.is_admin or is_referent or is_contributor:
         res = instance
 
     if not res:

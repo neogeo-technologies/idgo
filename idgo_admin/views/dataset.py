@@ -451,14 +451,25 @@ def all_datasets(request, *args, **kwargs):
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def export(request, *args, **kwargs):
-
+    from django.db.models import F
     user, profile = user_and_profile(request)
 
-    if profile.is_referent() and request.GET.get('all'):
+    if profile.is_referent() and request.GET.get('mode') == 'all':
         datasets = Dataset.objects.filter(organisation__in=LiaisonsReferents.get_subordinates(profile))
     else:
         datasets = Dataset.objects.filter(editor=user)
+
     if request.GET.get('format') == 'csv':
+        datasets = datasets.annotate(
+            auteur=F('editor__username'),
+            nom_organisation=F('organisation__name'),
+            titre_licence=F('license__title'),
+            type_donnees=F('data_type__name'),
+            ).values(
+                'name', 'description', 'auteur', 'ckan_slug',
+                'date_creation', 'date_publication', 'date_modification',
+                'nom_organisation', 'titre_licence', 'update_freq', 'published', 'type_donnees',
+                'is_inspire', 'geocover',)
         return render_to_csv_response(datasets)
 
     raise Http404

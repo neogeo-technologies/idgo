@@ -961,11 +961,11 @@ class Dataset(models.Model):
         return res
 
     def is_referent(self, profile):
-
         res = LiaisonsReferents.objects.filter(
             profile=profile, organisation=self.organisation,
             validated_on__isnull=False).exists()
         return res
+
 
 # Triggers
 
