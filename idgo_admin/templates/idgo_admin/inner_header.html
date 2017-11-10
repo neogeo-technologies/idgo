@@ -2,7 +2,7 @@
 {% load bootstrap3 %}
 
 <span class="title">
-	<a href="{% url "idgo_admin:datasets" %}"><img src="{% static "img/logo_data_sud.png" %}"/></a>
+	<a href="{% url "idgo_admin:datasets" %}"><img src="{% static "img/logo_data_sud.jpg" %}"/></a>
 	<img src="{% static "img/logo_paca.jpg" %}"/>
 	<img src="{% static "img/logo_crige.jpg" %}"/>
 </span>
@@ -13,8 +13,6 @@
 	</button>
 	<ul name="my-account-menu" class="dropdown-menu dropdown-menu-right">
 		<li style="text-align: left"><a href="{% url "idgo_admin:account_manager" process="update" %}">Mon profil</a></li>
-		<!-- <li style="text-align: left"><a href="{% url "idgo_admin:organizations" %}">Mes organisations</a></li> -->
-		<!-- <li style="text-align: left"><a href="{% url "idgo_admin:datasets" %}">Mes jeux de données</a></li> -->
 		<li style="text-align: left"><a href="{% url "idgo_admin:signOut" %}">Me déconnecter</a></li>
 	</ul>
 </div>

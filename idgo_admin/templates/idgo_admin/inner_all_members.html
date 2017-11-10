@@ -71,6 +71,8 @@
 $(function() {
 	let ORGANIZATION_ID, USERNAME;
 	const DATA = {{ organizations | safe }};
+	const GRID_MEMBERS_NAME = 'Members';
+	const GRID_CONTRIBUTORS_NAME = 'Contributors';
 
 	const METADATA = [
 		{
@@ -162,22 +164,16 @@ $(function() {
 			e.stopPropagation();
 		});
 
-	var membersGrid = new EditableGrid('Members', {pageSize: 10});
-	var contributorsGrid = new EditableGrid('Contributors', {pageSize: 10});
+	var membersGrid = new EditableGrid(GRID_MEMBERS_NAME, {pageSize: 10});
+	var contributorsGrid = new EditableGrid(GRID_CONTRIBUTORS_NAME, {pageSize: 10});
 
 	membersGrid.initializeGrid = function() {
 		let grid = membersGrid;
 
 		with (this) {
 			tableRendered = function(containerId, className) {
-				this.updatePaginator(grid);
-				for (let i = 0; i < data.length; i ++) {
-					const dataId = data[i].id;
-					if (data[i].columns[8] == 'false') {
-						$row = $(grid.tBody.rows[this.getRowIndex(data[i].id)]);
-						$row.addClass('disabled');
-					};
-				};
+				rowSelected(-1, -1);
+				updatePaginator(grid);
 			};
 			rowSelected = function(pRowIdx, nRowIdx) {
 				const data = grid.getRowValues(nRowIdx);
@@ -204,14 +200,8 @@ $(function() {
 
 		with (this) {
 			tableRendered = function(containerId, className) {
-				this.updatePaginator(grid);
-				for (let i = 0; i < data.length; i ++) {
-					const dataId = data[i].id;
-					if (data[i].columns[8] == 'false') {
-						$row = $(grid.tBody.rows[this.getRowIndex(data[i].id)]);
-						$row.addClass('disabled');
-					};
-				};
+				rowSelected(-1, -1);
+				updatePaginator(grid);
 			};
 			rowSelected = function(pRowIdx, nRowIdx) {
 				const data = grid.getRowValues(nRowIdx);

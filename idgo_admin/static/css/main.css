@@ -245,8 +245,8 @@ ul.nav.nav-default>li[name=account].active::after {
     z-index: 0;
     content: '';
     position: absolute;
-    bottom: -26px;
-    height: 51px;
+    bottom: -15px;
+    height: 40px;
     width: 100%;
     background-color: #002880;
     border-top-left-radius: 0;
@@ -255,8 +255,8 @@ ul.nav.nav-default>li[name=account].active::after {
     border-bottom-right-radius: 8px;
     -webkit-transform: skew(0deg, 6deg);
             transform: skew(0deg, 5deg);
-    -webkit-box-shadow: 0 2px 1px 0px rgba(0,40,128,.5);
-            box-shadow: 0 2px 1px 0px rgba(0,40,128,.5);
+    -webkit-box-shadow: 0 4px 2px -2px rgba(0,40,128,.5);
+            box-shadow: 0 4px 2px -2px rgba(0,40,128,.5);
 }
 
 div.nav-container {

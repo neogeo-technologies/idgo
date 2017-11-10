@@ -43,79 +43,27 @@
 
 <script>
 $(function() {
-	var CKAN_URL = '{{ ckan_url }}';
-	var DATASET_URL = '{% url "idgo_admin:dataset" %}';
-	var DATASETS = {{ datasets | safe }};
-	var DATASETS_CONTAINER = 'table-datasets';
-	var DATASETS_METADATA = [
-		{
-			name: 'name',
-			label: 'Nom',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'date_creation',
-			label: 'Date de création',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'date_modification',
-			label: 'Dernière modification',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'date_publication',
-			label: 'Date de publication',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'organization',
-			label: 'Organisation',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'published',
-			label: 'Publié',
-			editable: true,
-			datatype: 'boolean'
-		}, {
-			name: 'is_inspire',
-			label: 'INSPIRE',
-			editable: true,
-			datatype: 'boolean'
-		}, {
-			name: 'ckan_slug',
-			label: '_HIDDEN',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'is_contributor',
-			label: '_HIDDEN',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'id',
-			label: '_HIDDEN',
-			editable: false,
-			datatype: 'integer'
-		}
-	];
+	const GRID_NAME = 'Datasets';
+	const CKAN_URL = '{{ ckan_url }}';
+	const DATASET_URL = '{% url "idgo_admin:dataset" %}';
+	const DATA = {{ datasets | safe }};
+	const CONTAINER = 'table-datasets';
 
-	var resourcesGrid = new EditableGrid('Datasets', {pageSize: 10});
+	const tableGrid = new EditableGrid(GRID_NAME, {pageSize: 15});
 
 	$('#datasets button[name="view-ckan"]').on('click', function(e) {
 		e.preventDefault();
-		targetBlank(CKAN_URL + '/dataset/' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['ckan_slug']);
+		targetBlank(CKAN_URL + '/dataset/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_slug']);
 		e.stopPropagation();
 	});
 
-	$exportCSV = $('#datasets a[name="export-csv"]').on('click', function(e) {
+	const $exportCSV = $('#datasets a[name="export-csv"]').on('click', function(e) {
 		e.preventDefault();
 		targetBlank('{% url "idgo_admin:export" %}?format=csv');
 		e.stopPropagation();
 	});
 
-	if (DATASETS.length > 0) {
+	if (DATA.length > 0) {
 		activateButton($exportCSV);
 	} else {
 		deactivateButton($exportCSV);
@@ -136,19 +84,13 @@ $(function() {
 					$.ajax({
 						type: 'DELETE',
 						// success: function() {},
-						url: DATASET_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']
+						url: DATASET_URL + '?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']
 					})
 					.done(function(response, textStatus, jqXHR) {
 						location.reload();
-						// $modal.find('.modal-title').text('Information');
-						// $modal.find('.modal-body').append(jqXHR.responseText);
-						// $modal.modal('show');
 					})
 					.fail(function(jqXHR, textStatus, errorThrown) {
 						location.reload();
-						// $modal.find('.modal-title').text("L'opération a échouée");
-						// $modal.find('.modal-body').append(jqXHR.responseText);
-						// $modal.modal('show');
 					});
 					e.stopPropagation();
 				});
@@ -158,7 +100,7 @@ $(function() {
 				.prop('class', 'form-control')
 				.prop('placeholder', 'Nom du jeu de données à supprimer')
 				.on('input', function(e) {
-					if ($(this).val() === resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['name']) {
+					if ($(this).val() === tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['name']) {
 						$button.removeClass('disabled').prop('disabled', false);
 					} else {
 						$button.addClass('disabled').prop('disabled', true);
@@ -188,14 +130,14 @@ $(function() {
 	$('#datasets a[name="edit-dataset"]')
 		.on('click', function(e) {
 			e.preventDefault();
-			redirect(DATASET_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']);
+			redirect(DATASET_URL + '?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
 			e.stopPropagation();
 		});
 
 	$('#datasets a[name="mdedit-dataset"]')
 		.on('click', function(e) {
 			e.preventDefault();
-			redirect(DATASET_URL + '/' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']  + '/mdedit');
+			redirect(DATASET_URL + '/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']  + '/mdedit');
 			e.stopPropagation();
 		});
 
@@ -206,7 +148,7 @@ $(function() {
 			$.ajax({
 				type: 'GET',
 				// success: function() {},
-				url: '{% url "idgo_admin:action" %}?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id'] + '&publish=toggle'
+				url: '{% url "idgo_admin:action" %}?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id'] + '&publish=toggle'
 			})
 			.done(function(response, textStatus, jqXHR) {
 				// $modal.find('.close').remove();
@@ -223,18 +165,17 @@ $(function() {
 			e.stopPropagation();
 		});
 
-	resourcesGrid.initializeGrid = function() {
-		let grid = resourcesGrid;
+	tableGrid.initializeGrid = function() {
+		let grid = tableGrid;
 		let $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button,a[role="button"]');
-
 		with (this) {
 			tableRendered = function(containerId, className) {
-				this.updatePaginator(grid);
-				for (let i = 0; i < data.length; i ++) {
-					const dataId = data[i].id;
-					if (data[i].columns[8] == 'false') {
-						$row = $(grid.tBody.rows[this.getRowIndex(data[i].id)]);
-						$row.addClass('disabled');
+				rowSelected(-1, -1);
+				updatePaginator(grid);
+				for (const entry of data) {
+					if (entry.columns[8] == 'false') {
+						// $(grid.tBody.rows[this.getRowIndex(entry.id)]).addClass('disabled');
+						$('#' + CONTAINER + ' tr#' + GRID_NAME + '_' + entry.id).addClass('disabled');
 					};
 				};
 			};
@@ -287,7 +228,7 @@ $(function() {
 		};
 	};
 
-	function updateDatasetsGrid(grid, containerId, metadata, data) {
+	function updateGrid(grid, containerId, metadata, data) {
 		let $containerId = $('#' + containerId);
 		let $parent = $($containerId.parent().get(0));
 		$parent.find('div[role="alert"]not:div[name="message-tags"]').remove();
@@ -307,7 +248,7 @@ $(function() {
 		const isContributor = {{ is_contributor | yesno:"true,false,none" }};
 
 		if (!isContributor) {
-			$parent.find('button.btn, a.btn').each(function() {
+			$parent.find('button.btn, a.btn').not($exportCSV).each(function() {
 				deactivateButton($(this));
 				$(this).hide();
 			});
@@ -324,10 +265,62 @@ $(function() {
 
 	};
 
-	updateDatasetsGrid(
-		resourcesGrid,
-		DATASETS_CONTAINER,
-		DATASETS_METADATA,
+	updateGrid(
+		tableGrid,
+		CONTAINER,
+		[
+			{
+				name: 'name',
+				label: 'Nom',
+				editable: false,
+				datatype: 'string'
+			}, {
+				name: 'date_creation',
+				label: 'Date de création',
+				editable: false,
+				datatype: 'string'
+			}, {
+				name: 'date_modification',
+				label: 'Dernière modification',
+				editable: false,
+				datatype: 'string'
+			}, {
+				name: 'date_publication',
+				label: 'Date de publication',
+				editable: false,
+				datatype: 'string'
+			}, {
+				name: 'organization',
+				label: 'Organisation',
+				editable: false,
+				datatype: 'string'
+			}, {
+				name: 'published',
+				label: 'Publié',
+				editable: true,
+				datatype: 'boolean'
+			}, {
+				name: 'is_inspire',
+				label: 'INSPIRE',
+				editable: true,
+				datatype: 'boolean'
+			}, {
+				name: 'ckan_slug',
+				label: '_HIDDEN',
+				editable: false,
+				datatype: 'string'
+			}, {
+				name: 'is_contributor',
+				label: '_HIDDEN',
+				editable: false,
+				datatype: 'string'
+			}, {
+				name: 'id',
+				label: '_HIDDEN',
+				editable: false,
+				datatype: 'integer'
+			}
+		],
 		(function(data) {
 			const m = [];
 			for (let i = 0; i < data.length; i ++) {
@@ -348,7 +341,7 @@ $(function() {
 				});
 			};
 			return m;
-		})(DATASETS)
+		})(DATA)
 	);
 });
 </script>

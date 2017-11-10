@@ -77,40 +77,8 @@
 </form>
 <script>
 $(function() {
-	var ORGANIZATIONS = {{ contributions | safe }};
-	var ORGANIZATIONS_CONTAINER = 'table-organizations';
-	var ORGANIZATIONS_METADATA = [
-		{
-			name: 'name',
-			label: "Nom de l'organisation",
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'id',
-			label: '_HIDDEN',  //->https://github.com/webismymind/editablegrid/issues/153
-			editable: false,
-			datatype: 'integer'
-		}
-	];
-
-	var SUBORDINATES = {{ subordinates | safe }};
-	var SUBORDINATES_CONTAINER = 'table-subordinates';
-	var SUBORDINATES_METADATA = [
-		{
-			name: 'name',
-			label: "Nom de l'organisation",
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'id',
-			label: '_HIDDEN',  //->https://github.com/webismymind/editablegrid/issues/153
-			editable: false,
-			datatype: 'integer'
-		}
-	];
-
-	var organizationsGrid = new EditableGrid('Organizations', {pageSize: 5});
-	var subordinatesGrid = new EditableGrid('Subordinates', {pageSize: 5});
+	const organizationsGrid = new EditableGrid('Organizations', {pageSize: 5});
+	const subordinatesGrid = new EditableGrid('Subordinates', {pageSize: 5});
 
 	$('form[name="organization"] button[name="unsubscribe"]')
 		.on('click', function(e) {
@@ -131,15 +99,9 @@ $(function() {
 					})
 					.done(function(response, textStatus, jqXHR) {
 						location.reload();
-						// $modal.find('.modal-title').text('Information');
-						// $modal.find('.modal-body').append(jqXHR.responseText);
-						// $modal.modal('show');
 					})
 					.fail(function(jqXHR, textStatus, errorThrown) {
 						location.reload();
-						// $modal.find('.modal-title').text("L'opération a échouée");
-						// $modal.find('.modal-body').append(jqXHR.responseText);
-						// $modal.modal('show');
 					});
 					e.stopPropagation();
 				});
@@ -195,15 +157,9 @@ $(function() {
 						})
 						.done(function(response, textStatus, jqXHR) {
 							location.reload();
-							// $modal.find('.modal-title').text('Information');
-							// $modal.find('.modal-body').append(jqXHR.responseText);
-							// $modal.modal('show');
 						})
 						.fail(function(jqXHR, textStatus, errorThrown) {
 							location.reload();
-							// $modal.find('.modal-title').text("L'opération a échouée");
-							// $modal.find('.modal-body').append(jqXHR.responseText);
-							// $modal.modal('show');
 						});
 						e.stopPropagation();
 					});
@@ -243,10 +199,10 @@ $(function() {
 	organizationsGrid.initializeGrid = function() {
 		const grid = organizationsGrid;
 		const $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
-
 		with (this) {
 			tableRendered = function() {
-				this.updatePaginator(grid);
+				rowSelected(-1, -1);
+				updatePaginator(grid);
 			};
 			rowSelected = function(pRowIdx, nRowIdx) {
 				$(grid.getRow(pRowIdx)).removeClass('selected');
@@ -266,10 +222,10 @@ $(function() {
 	subordinatesGrid.initializeGrid = function() {
 		const grid = subordinatesGrid;
 		const $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
-
 		with (this) {
 			tableRendered = function() {
-				this.updatePaginator(grid);
+				rowSelected(-1, -1);
+				updatePaginator(grid);
 			};
 			rowSelected = function(pRowIdx, nRowIdx) {
 				$(grid.getRow(pRowIdx)).removeClass('selected');
@@ -332,8 +288,20 @@ $(function() {
 
 	updateOrganizationsGrid(
 		organizationsGrid,
-		ORGANIZATIONS_CONTAINER,
-		ORGANIZATIONS_METADATA,
+		'table-organizations',
+		[
+			{
+				name: 'name',
+				label: "Nom de l'organisation",
+				editable: false,
+				datatype: 'string'
+			}, {
+				name: 'id',
+				label: '_HIDDEN',
+				editable: false,
+				datatype: 'integer'
+			}
+		],
 		(function(data) {
 			let m = [];
 			for (let i = 0; i < data.length; i ++) {
@@ -346,13 +314,25 @@ $(function() {
 				});
 			};
 			return m;
-		})(ORGANIZATIONS)
+		})({{ contributions | safe }})
 	);
 
 	updateSubordinatesGrid(
 		subordinatesGrid,
-		SUBORDINATES_CONTAINER,
-		SUBORDINATES_METADATA,
+		'table-subordinates',
+		[
+			{
+				name: 'name',
+				label: "Nom de l'organisation",
+				editable: false,
+				datatype: 'string'
+			}, {
+				name: 'id',
+				label: '_HIDDEN',
+				editable: false,
+				datatype: 'integer'
+			}
+		],
 		(function(data) {
 			let m = [];
 			for (let i = 0; i < data.length; i ++) {
@@ -365,7 +345,7 @@ $(function() {
 				});
 			};
 			return m;
-		})(SUBORDINATES)
+		})({{ subordinates | safe }})
 	);
 });
 </script>

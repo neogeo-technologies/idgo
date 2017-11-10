@@ -173,7 +173,7 @@ EditableGrid.prototype.editCell = function(rowIndex, columnIndex) {
 };
 
 EditableGrid.prototype.updatePaginator = function(grid) {
-
+	
 	var paginator = $('#' + this.currentContainerid + '-paginator').empty();
 	var navigator = paginator.parent().hide();
 	var pageCount = this.getPageCount();
@@ -251,16 +251,10 @@ EditableGrid.prototype.updatePaginator = function(grid) {
 
 
 EditableGrid.prototype.tableSorted = function(columnIndex, descending) {
-
-	// if (rowIndex > -1) {
-	// 	rowSelected(lastSelectedRowIndex, rowIndex);
-	// 	if (lastSelectedRowIndex == rowIndex) {
-	// 		lastSelectedRowIndex = -1;
-	// 	} else {
-	// 		lastSelectedRowIndex = rowIndex;
-	// 	};
-	// };
-
+	with (this) {
+		// Réinitialise la sélection
+		rowSelected(-1, -1);
+	}
 };
 
 
