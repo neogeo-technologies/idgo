@@ -110,7 +110,6 @@ def referent_request(request, *args, **kwargs):
     return HttpResponseRedirect(reverse('idgo_admin:organizations'))
 
 
-
 @method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
 class OrganisationDisplay(View):
 

@@ -462,12 +462,11 @@ def export(request, *args, **kwargs):
             Auteur=F('editor__email'),
             Nom_organisation=F('organisation__name'),
             Titre_licence=F('license__title'),
-            Type_donnees=F('data_type__name'),
             ).values(
-                'name', 'description', 'Auteur', 'ckan_slug',
+                'name', 'description', 'Auteur', 'published', 'is_inspire',
                 'date_creation', 'date_publication', 'date_modification',
-                'Nom_organisation', 'Titre_licence', 'update_freq', 'published', 'Type_donnees',
-                'is_inspire', 'geocover',)
+                'Nom_organisation', 'Titre_licence', 'update_freq',
+                'geocover', 'ckan_slug')
         return render_to_csv_response(datasets)
 
     raise Http404
