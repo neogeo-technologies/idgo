@@ -461,14 +461,14 @@ def export(request, *args, **kwargs):
 
     if request.GET.get('format') == 'csv':
         datasets = datasets.annotate(
-            auteur=F('editor__username'),
-            nom_organisation=F('organisation__name'),
-            titre_licence=F('license__title'),
-            type_donnees=F('data_type__name'),
+            Auteur=F('editor__email'),
+            Nom_organisation=F('organisation__name'),
+            Titre_licence=F('license__title'),
+            Type_donnees=F('data_type__name'),
             ).values(
-                'name', 'description', 'auteur', 'ckan_slug',
+                'name', 'description', 'Auteur', 'ckan_slug',
                 'date_creation', 'date_publication', 'date_modification',
-                'nom_organisation', 'titre_licence', 'update_freq', 'published', 'type_donnees',
+                'Nom_organisation', 'Titre_licence', 'update_freq', 'published', 'Type_donnees',
                 'is_inspire', 'geocover',)
         return render_to_csv_response(datasets)
 
