@@ -350,7 +350,7 @@ class LiaisonsReferents(models.Model):
         unique_together = (('profile', 'organisation'),)
 
     @classmethod
-    def get_subordinates(cls, profile):
+    def get_subordinated_organizations(cls, profile):
         if profile.is_admin:
             return Organisation.objects.filter(is_active=True)
         return [e.organisation for e
@@ -966,6 +966,10 @@ class Dataset(models.Model):
             validated_on__isnull=False).exists()
         return res
 
+    @classmethod
+    def get_subordinated_datasets(cls, profile):
+        return cls.objects.filter(
+            organisation__in=LiaisonsReferents.get_subordinated_organizations(profile=profile))
 
 # Triggers
 

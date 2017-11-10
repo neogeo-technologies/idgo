@@ -92,6 +92,15 @@ def referent_request(request, *args, **kwargs):
 
     Mail.confirm_referent(request, request_action)
 
+    # Un referent étant contributeur par defaut:
+    LiaisonsContributeurs.objects.create(
+        profile=profile, organisation=organisation)
+
+    contribution_action = AccountActions.objects.create(
+        profile=profile, action='confirm_contribution', org_extras=organisation)
+
+    Mail.confirm_contribution(request, contribution_action)
+
     message = ("Votre demande de contribution à l'organisation "
                '<strong>{0}</strong> est en cours de traitement. Celle-ci '
                "ne sera effective qu'après validation par un administrateur."

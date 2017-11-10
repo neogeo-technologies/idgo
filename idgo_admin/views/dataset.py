@@ -438,9 +438,7 @@ def all_datasets(request, *args, **kwargs):
         d.published,
         d.is_inspire,
         d.ckan_slug,
-        profile in LiaisonsContributeurs.get_contributors(d.organisation)
-        ) for d in Dataset.objects.filter(
-            organisation__in=LiaisonsReferents.get_subordinates(profile=profile))]
+        ) for d in Dataset.get_subordinated_datasets(profile)]
 
     return render_with_info_profile(
         request, 'idgo_admin/all_datasets.html', status=200,
@@ -455,7 +453,7 @@ def export(request, *args, **kwargs):
     user, profile = user_and_profile(request)
 
     if profile.is_referent() and request.GET.get('mode') == 'all':
-        datasets = Dataset.objects.filter(organisation__in=LiaisonsReferents.get_subordinates(profile))
+        datasets = Dataset.get_subordinated_datasets(profile)
     else:
         datasets = Dataset.objects.filter(editor=user)
 

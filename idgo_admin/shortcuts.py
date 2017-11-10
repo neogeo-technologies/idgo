@@ -40,7 +40,7 @@ def render_with_info_profile(request, template_name, context=None,
             in LiaisonsContributeurs.get_pending(profile=profile)]
     subordinates = \
         [[c.id, c.name] for c
-            in LiaisonsReferents.get_subordinates(profile=profile)]
+            in LiaisonsReferents.get_subordinated_organizations(profile=profile)]
     awaiting_subordinates = \
         [[c.id, c.name] for c
             in LiaisonsReferents.get_pending(profile=profile)]

@@ -477,7 +477,7 @@ class ReferentAccountManager(View):
         if not profile.referents.exists() and not profile.is_admin:
             raise Http404
 
-        my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinates(profile=profile)
+        my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinated_organizations(profile=profile)
 
         organizations = {}
         for orga in my_subordinates:
