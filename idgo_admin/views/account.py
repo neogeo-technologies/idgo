@@ -115,7 +115,6 @@ class SignOut(MamaLogoutView):
 
 @method_decorator(decorators[0], name='dispatch')
 class AccountManager(View):
-    import pdb; pdb.set_trace()
 
     def create_account(self, user_data, profile_data):
         user = User.objects.create_user(
