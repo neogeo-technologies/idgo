@@ -40,14 +40,14 @@ Il est recommandé de saisir l’ensemble des informations descriptives du conta
 
 ## Exemples
 
-- Nom: Guillaume RYCKELYNCK
-- Fonction: Chef de projet CIGAL
-- Organisme: Région Alsace
-- Adresse: 1, place Adrien Zeller
-- Code postal: 67000
-- Ville: STRASBOURG
-- Tél: 03 88 15 65 48
-- Email: guillaume.ryckelynck@region-alsace.eu
+- Nom: Mathieu KASMIERSKI
+- Fonction: Chef de projet CRIGE
+- Organisme: CRIGE-PACA
+- Adresse: Technopôle de l'Environnement Arbois-Méditerranée, Domaine du Petit Arbois, Avenue Louis Philibert - Bât G. Mégie, CS 90646
+- Code postal: 13547
+- Ville: Aix-en-Provence CEDEX 4
+- Tél: 04 42 90 72 22
+- Email: geocatalogue@crige-paca.org
 - Rôle: Point de contact
 
 <!-- End @contacts.md -->
