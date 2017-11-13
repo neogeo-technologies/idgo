@@ -499,7 +499,7 @@ class ReferentAccountManager(View):
                 "username": lc.profile.user.username,
                 "nb_datasets": lc.profile.nb_datasets(orga)
                 } for lc in LiaisonsContributeurs.objects.filter(
-                organisation=orga, validated_on__isnull=False)]
+                organisation=orga, validated_on__isnull=False).order_by('profile__user__last_name')]
 
         return render_with_info_profile(
             request, 'idgo_admin/all_members.html', status=200,
