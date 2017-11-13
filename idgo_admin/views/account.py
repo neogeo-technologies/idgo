@@ -115,6 +115,7 @@ class SignOut(MamaLogoutView):
 
 @method_decorator(decorators[0], name='dispatch')
 class AccountManager(View):
+    import pdb; pdb.set_trace()
 
     def create_account(self, user_data, profile_data):
         user = User.objects.create_user(
@@ -283,6 +284,7 @@ class AccountManager(View):
 
     @transaction.atomic
     def post(self, request, process):
+
         if process == "create":
             pform = ProfileForm(request.POST, request.FILES,
                                 include={'action': process})
@@ -303,7 +305,7 @@ class AccountManager(View):
 
         if not uform.is_valid() or not pform.is_valid():
             if process == "create":
-                return render_with_info_profile(
+                return render(
                     request, self.contextual_template(process),
                     {'uform': uform, 'pform': pform})
             if process in ("update", "update_organization"):
