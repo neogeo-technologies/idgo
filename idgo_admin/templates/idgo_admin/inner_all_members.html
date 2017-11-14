@@ -27,12 +27,14 @@
 				</div>
 				{% elif organizations|length > 1 and organizations|length <= 10 %}
 				<select name="organization" class="form-control">
-					{% for organization in organizations %}
-					<option value="{{ organization }}">{{ organization }}</option>
+					{% for entry in organizations %}
+					<option value="{{ entry }}">{{ entry }}</option>
 					{% endfor %}
 				</select>
 				{% else %}
-				<input name="organization" class="form-control" type="text" value="{{ organization }}" disabled />
+				{% for k, v in organizations.items %}
+				<input name="organization" class="form-control" type="text" value="{{ k }}" disabled />
+				{% endfor %}
 				{% endif %}
 			</div>
 		</div>
