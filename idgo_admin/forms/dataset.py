@@ -242,17 +242,15 @@ class DatasetForm(forms.ModelForm):
 
         tags = [{'name': name} for name in data['keywords']]
 
-        datatype = []
-        if data.get('data_type'):
-            dataset.data_type.clear()
-            for obj in data['data_type']:
-                dataset.data_type.add(obj)
-                datatype.append(obj.ckan_slug)
+        # datatype = []
+        dataset.data_type.set(data.get('data_type', []), clear=True)
+        # for obj in data['data_type']:
+        #     datatype.append(obj.ckan_slug)
 
         ckan_params = {
             'author': user.username,
             'author_email': user.email,
-            'datatype': datatype,
+            'datatype': [obj.ckan_slug for obj in data.get('data_type', [])],
             'dataset_creation_date':
                 str(dataset.date_creation) if dataset.date_creation else '',
             'dataset_modification_date':
