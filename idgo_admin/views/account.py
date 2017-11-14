@@ -19,6 +19,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.exceptions import ProfileHttp404
+from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.forms.account import ProfileForm
 from idgo_admin.forms.account import SignInForm
 from idgo_admin.forms.account import UserDeleteForm
@@ -32,6 +34,8 @@ from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.shortcuts import render_with_info_profile
+from idgo_admin.shortcuts import user_and_profile
+from idgo_admin.shortcuts import on_profile_http404
 from mama_cas.compat import is_authenticated as mama_is_authenticated
 from mama_cas.models import ProxyGrantingTicket as MamaProxyGrantingTicket
 from mama_cas.models import ProxyTicket as MamaProxyTicket
@@ -40,7 +44,7 @@ from mama_cas.utils import redirect as mama_redirect
 from mama_cas.utils import to_bool as mama_to_bool
 from mama_cas.views import LoginView as MamaLoginView
 from mama_cas.views import LogoutView as MamaLogoutView
-
+import uuid
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
@@ -271,10 +275,10 @@ class AccountManager(View):
 
         elif process in ("update", "update_organization"):
 
-            user = request.user
-            if user.is_anonymous:
+            try:
+                user, profile = user_and_profile(request)
+            except ProfileHttp404:
                 return HttpResponseRedirect(reverse('idgo_admin:signIn'))
-            profile = get_object_or_404(Profile, user=user)
 
             return render_with_info_profile(
                 request, self.contextual_template(process),
@@ -291,10 +295,10 @@ class AccountManager(View):
 
         if process in ("update", "update_organization"):
 
-            user = request.user
-            if user.is_anonymous:
+            try:
+                user, profile = user_and_profile(request)
+            except ProfileHttp404:
                 return HttpResponseRedirect(reverse('idgo_admin:signIn'))
-            profile = get_object_or_404(Profile, user=user)
 
             pform = ProfileForm(request.POST, request.FILES,
                                 instance=profile,
@@ -415,6 +419,11 @@ def reset_password(request, key):
     if not form.is_valid():
         return render(request, 'idgo_admin/resetpassword.html', {'form': form})
 
+    try:
+        uuid.UUID(key)
+    except:
+        raise Http404
+
     reset_action = \
         get_object_or_404(AccountActions, key=key, action="reset_password")
 
@@ -471,9 +480,10 @@ def delete_account(request):
 @method_decorator(decorators, name='dispatch')
 class ReferentAccountManager(View):
 
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, *args, **kwargs):
-        user = request.user
-        profile = get_object_or_404(Profile, user=user)
+
+        user, profile = user_and_profile(request)
 
         if not profile.referents.exists() and not profile.is_admin:
             raise Http404

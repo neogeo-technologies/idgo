@@ -5,7 +5,6 @@ from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-# from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
@@ -22,7 +21,6 @@ from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
-from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource

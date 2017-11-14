@@ -262,3 +262,12 @@ cd /idgo_venv
 /idgo_venv> source bin/activate
 (idgo_venv) /idgo_venv> python manage.py sync_ckan_categories
 ```
+
+#### CRON
+
+```shell
+cd /idgo_venv
+/idgo_venv> source bin/activate
+(idgo_venv) /idgo_venv> python manage.py clean_up_actions_out_of_delay.py
+(idgo_venv) /idgo_venv> python manage.py sync_ckan_allowed_users_by_resource
+```

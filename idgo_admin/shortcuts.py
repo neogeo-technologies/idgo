@@ -1,6 +1,7 @@
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
+from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import AccountActions
 from idgo_admin.models import LiaisonsContributeurs
@@ -11,13 +12,15 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import reverse
 
 
+def on_profile_http404():
+    return HttpResponseRedirect(reverse('idgo_admin:signIn'))
+
+
+@ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
 def render_with_info_profile(request, template_name, context=None,
                              content_type=None, status=None, using=None, *args, **kwargs):
 
     user, profile = user_and_profile(request)
-    if not profile:
-        return HttpResponseRedirect(
-            reverse('idgo_admin:signIn'))
 
     if not context:
         context = {}
@@ -89,12 +92,8 @@ def user_and_profile(request):
         raise ProfileHttp404
     try:
         profile = get_object_or_404(Profile, user=user)
-    except Exception:
+    except:
         raise ProfileHttp404
     else:
         res = user, profile
     return res
-
-
-def on_profile_http404():
-    return HttpResponseRedirect(reverse('idgo_admin:signIn'))
