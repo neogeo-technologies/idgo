@@ -110,7 +110,8 @@ class UserForgetPassword(forms.Form):
 
 class UserResetPassword(forms.Form):
 
-    username = forms.CharField(widget=forms.HiddenInput(), required=False)
+    username = common_fields.USERNAME
+    # username = forms.CharField(widget=forms.HiddenInput(), required=False)
     password1 = forms.CharField(
         label='Nouveau mot de passe',
         min_length=6, max_length=150, required=False,
@@ -313,8 +314,9 @@ class ProfileForm(forms.ModelForm):
 
         if self.cleaned_data.get('referent_requested'):
             self.cleaned_data['referent_requested'] = True
-        if self.cleaned_data.get('contribution_requested'):
+        if self.cleaned_data.get('contribution_requested') and not self.cleaned_data.get('referent_requested'):
             self.cleaned_data['contribution_requested'] = True
+
         if self.cleaned_data['new_orga']:
             self.cleaned_data['organisation'] = None
 

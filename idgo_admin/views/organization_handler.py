@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 # from django.shortcuts import render
+from django.db import IntegrityError
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -44,9 +45,12 @@ def contribution_request(request, *args, **kwargs):
         return render_with_info_profile(request, template, {'form': form})
 
     organisation = form.cleaned_data['contributions']
-
-    LiaisonsContributeurs.objects.create(
-        profile=profile, organisation=organisation)
+    try:
+        LiaisonsContributeurs.objects.create(
+            profile=profile, organisation=organisation)
+    except IntegrityError:
+        # TODO(cbenhabib): Retourner message erreur
+        raise Http404
 
     contribution_action = AccountActions.objects.create(
         profile=profile, action='confirm_contribution', org_extras=organisation)
@@ -84,8 +88,12 @@ def referent_request(request, *args, **kwargs):
 
     organisation = form.cleaned_data['referents']
 
-    LiaisonsReferents.objects.create(
-        profile=profile, organisation=organisation)
+    try:
+        LiaisonsReferents.objects.create(
+            profile=profile, organisation=organisation)
+    except IntegrityError:
+        # TODO(cbenhabib): retourner message erreur
+        raise Http404
 
     request_action = AccountActions.objects.create(
         profile=profile, action='confirm_referent', org_extras=organisation)
@@ -93,8 +101,12 @@ def referent_request(request, *args, **kwargs):
     Mail.confirm_referent(request, request_action)
 
     # Un referent étant contributeur par defaut:
-    LiaisonsContributeurs.objects.create(
-        profile=profile, organisation=organisation)
+    try:
+        LiaisonsContributeurs.objects.create(
+            profile=profile, organisation=organisation)
+    except IntegrityError:
+        # TODO(cbenhabib): Retourner message erreur
+        raise Http404
 
     contribution_action = AccountActions.objects.create(
         profile=profile, action='confirm_contribution', org_extras=organisation)

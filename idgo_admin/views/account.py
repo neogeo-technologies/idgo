@@ -212,10 +212,10 @@ class AccountManager(View):
     def referent_process(self, request, profile, organisation, process):
         LiaisonsReferents.objects.get_or_create(
             profile=profile, organisation=organisation)
-        referent_action = AccountActions.objects.create(
-            profile=profile, action='confirm_referent',
-            org_extras=organisation)
         if process in ("update", "update_organization"):
+            referent_action = AccountActions.objects.create(
+                profile=profile, action='confirm_referent',
+                org_extras=organisation)
             Mail.confirm_referent(request, referent_action)
         # Un referent est obligatoirement un contributeur
         self.contributor_process(request, profile, organisation, process, send_mail=False)
@@ -223,10 +223,10 @@ class AccountManager(View):
     def contributor_process(self, request, profile, organisation, process, send_mail=True):
         LiaisonsContributeurs.objects.get_or_create(
             profile=profile, organisation=organisation)
-        contribution_action = AccountActions.objects.create(
-            profile=profile, action='confirm_contribution',
-            org_extras=organisation)
         if process in ("update", "update_organization") and send_mail:
+            contribution_action = AccountActions.objects.create(
+                profile=profile, action='confirm_contribution',
+                org_extras=organisation)
             Mail.confirm_contribution(request, contribution_action)
 
     def contextual_response(self, request, process):
@@ -242,16 +242,15 @@ class AccountManager(View):
         if process == "update_organization":
             messages.success(
                 request, 'Les informations de votre profil sont à jour.')
-
-            return HttpResponseRedirect(reverse('idgo_admin:my_organization',
-                                                kwargs={'process': 'update_organization'}))
+            name_space = 'idgo_admin:my_organization'
 
         if process == "update":
             messages.success(
                 request, 'Les informations de votre profil sont à jour.')
+            name_space = 'idgo_admin:account_manager'
 
-            return HttpResponseRedirect(reverse('idgo_admin:account_manager',
-                                                kwargs={'process': 'update'}))
+        return HttpResponseRedirect(reverse(name_space,
+                                            kwargs={'process': process}))
 
     def contextual_template(self, process):
         return {'create': 'idgo_admin/signup.html',
@@ -355,9 +354,9 @@ class AccountManager(View):
                 self.new_org_process(request, profile, process)
             if pform.cleaned_data['mode'] in ['change_organization', 'require_new_organization']:
                 self.rattachement_process(request, profile, organisation, process)
-                if pform.cleaned_data['referent_requested']:
+                if pform.cleaned_data.get('referent_requested'):
                     self.referent_process(request, profile, organisation, process)
-                if pform.cleaned_data['contribution_requested']:
+                if pform.cleaned_data.get('contribution_requested'):
                     self.contributor_process(request, profile, organisation, process)
             if process == "create":
                 ckan.add_user(user, uform.cleaned_data['password1'])
@@ -421,14 +420,22 @@ def reset_password(request, key):
 
     try:
         uuid.UUID(key)
-    except:
+    except Exception:
         raise Http404
 
-    reset_action = \
-        get_object_or_404(AccountActions, key=key, action="reset_password")
+    try:
+        reset_action = AccountActions.objects.get(
+            key=key, action="reset_password",
+            profile__user__username=form.cleaned_data.get('username'))
+    except:
+        message = ("Une erreur s'est produite lors de la réinitilaisation "
+                   "de votre mot de pass")
+
+        status = 400
+        return render(request, 'idgo_admin/message.html',
+                      {'message': message}, status=status)
 
     user = reset_action.profile.user
-
     try:
         with transaction.atomic():
             user = form.save(request, user)
