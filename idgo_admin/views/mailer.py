@@ -190,7 +190,7 @@ def confirm_referent(request, key):
         else:
             if not organisation.is_active:
                 message = (
-                    "Le status de référent pour l'organisation <strong>{organization_name}</strong> "
+                    "Le statut de référent pour l'organisation <strong>{organization_name}</strong> "
                     "concernant <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>)  ne peut être effectif que lorsque "
                     "la création de cette organisation a été confirmé par un administrateur."
                     ).format(first_name=user.first_name,
@@ -243,7 +243,7 @@ def confirm_contribution(request, key):
             user = action.profile.user
             if not organisation.is_active:
                 message = (
-                    "Le status de contributeur pour l'organisation <strong>{organization_name}</strong> "
+                    "Le statut de contributeur pour l'organisation <strong>{organization_name}</strong> "
                     "concernant <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>)  ne peut être effectif que lorsque "
                     "la création de cette organisation a été confirmé par un administrateur."
                     ).format(first_name=user.first_name,

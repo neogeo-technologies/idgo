@@ -172,11 +172,11 @@ class Financier(models.Model):  # Financeur
 
 # class Status(models.Model):
 #
-#     name = models.CharField("Status d'une organisation", max_length=250)
-#     code = models.CharField('Code du status', max_length=250)
+#     name = models.CharField("Statut d'une organisation", max_length=250)
+#     code = models.CharField('Code du statut', max_length=250)
 #
 #     class Meta(object):
-#         verbose_name = "Status d'une organisation"
+#         verbose_name = "Statut d'une organisation"
 #
 #     def __str__(self):
 #         return self.name
