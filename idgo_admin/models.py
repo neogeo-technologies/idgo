@@ -764,7 +764,7 @@ class Category(models.Model):
     ckan_slug = models.SlugField(
         'Ckan_ID', max_length=100, unique=True, db_index=True, blank=True)
     # sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
-    iso_topic = models.CharField('Théme ISO', max_length=100,
+    iso_topic = models.CharField('Thème ISO', max_length=100,
                                  blank=True, null=True)
 
     def __str__(self):
