@@ -27,6 +27,8 @@ class ResourceFormats(models.Model):
     extension = models.CharField('Format', max_length=30, unique=True)
     ckan_view = models.CharField('Vue', max_length=100,
                                  choices=CKAN_CHOICES, blank=True, null=True)
+    protocol = models.CharField('Protocole', max_length=100,
+                                blank=True, null=True)
 
     class Meta(object):
         verbose_name = 'Format de ressource'
@@ -762,6 +764,8 @@ class Category(models.Model):
     ckan_slug = models.SlugField(
         'Ckan_ID', max_length=100, unique=True, db_index=True, blank=True)
     # sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
+    iso_topic = models.CharField('Théme ISO', max_length=100,
+                                 blank=True, null=True)
 
     def __str__(self):
         return self.name
