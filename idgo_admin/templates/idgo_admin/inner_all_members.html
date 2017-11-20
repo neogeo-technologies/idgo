@@ -228,7 +228,7 @@ $(function() {
 	function updateMembersGrid(grid, containerId, metadata, data) {
 		let $containerId = $('#' + containerId);
 		let $parent = $($containerId.parent());
-		let $alert = $parent.find('div[name="message-alert"]');
+		let $alert = $parent.find('div[name="message-alert"]').empty();
 
 		if (data.length > 0) {
 			grid.load({'metadata': metadata, 'data': data});
@@ -241,15 +241,13 @@ $(function() {
 		};
 		if (data.length == 0) {
 			$alert.prepend('<div role="alert" class="alert alert-info">Aucun utilisateur membre.<div/>');
-		} else {
-			$alert.empty();
 		};
 	};
 
 	function updateContributorsGrid(grid, containerId, metadata, data) {
 		let $containerId = $('#' + containerId);
 		let $parent = $($containerId.parent());
-		let $alert = $parent.find('div[name="message-alert"]');
+		let $alert = $parent.find('div[name="message-alert"]').empty();
 
 		if (data.length > 0) {
 			grid.load({'metadata': metadata, 'data': data});
@@ -262,8 +260,6 @@ $(function() {
 		};
 		if (data.length == 0) {
 			$alert.prepend('<div role="alert" class="alert alert-info">Aucun utilisateur contributeur.<div/>');
-		} else {
-			$alert.empty();
 		};
 	};
 
