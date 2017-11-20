@@ -773,13 +773,10 @@ class Category(models.Model):
     class Meta(object):
         verbose_name = 'Catégorie'
 
-    # def save(self, *args, **kwargs):
-    #     if self.id:
-    #         self.sync_in_ckan = ckan.sync_group(self)
-    #     else:
-    #         self.ckan_slug = slugify(self.name)
-    #         self.sync_in_ckan = ckan.add_group(self)
-    #     super(Category, self).save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.ckan_slug = slugify(self.name)
+        super(Category, self).save(*args, **kwargs)
 
     # def delete(self):
     #     if ckan.del_group(self.ckan_slug):
@@ -976,6 +973,14 @@ class Dataset(models.Model):
             organisation__in=LiaisonsReferents.get_subordinated_organizations(profile=profile))
 
 # Triggers
+
+
+# @receiver(pre_save, sender=Category)
+# def pre_save_category(sender, instance, **kwargs):
+#     #(cbenhabib): à integrer si on veut éviter l'action sync_ckan ds BO admin
+#     instance.ckan_slug = slugify(instance.name)
+#     if not ckan.is_group_exists(instance.ckan_slug):
+#         ckan.add_group(instance)
 
 
 @receiver(pre_save, sender=Dataset)
