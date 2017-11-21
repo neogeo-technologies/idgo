@@ -232,8 +232,7 @@ class DatasetForm(forms.ModelForm):
         if not ckan.get_organization(dataset.organisation.ckan_slug):
             create_organization_in_ckan(dataset.organisation)
 
-        if data.get('categories'):
-            dataset.categories = data['categories']
+        dataset.categories.set(data.get('categories', []), clear=True)
 
         if data.get('keywords'):
             dataset.keywords.clear()
@@ -242,10 +241,7 @@ class DatasetForm(forms.ModelForm):
 
         tags = [{'name': name} for name in data['keywords']]
 
-        # datatype = []
         dataset.data_type.set(data.get('data_type', []), clear=True)
-        # for obj in data['data_type']:
-        #     datatype.append(obj.ckan_slug)
 
         ckan_params = {
             'author': user.username,
