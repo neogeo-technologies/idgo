@@ -1030,3 +1030,19 @@ def create_organization_in_ckan(organization):
     for profile in LiaisonsContributeurs.get_contributors(organization):
         user = profile.user
         ckan.add_user_to_organization(user.username, organization.ckan_slug)
+
+
+@receiver(pre_save, sender=Category)
+def updating_category(sender, instance, *args, **kwargs):
+
+    if instance.pk:  # Lors d'un mise a jour
+        previous_slug = Category.objects.get(pk=instance.pk).ckan_slug
+        if instance.pk and instance.ckan_slug != previous_slug:
+            # Le status de la catgorie est passé en delete dans CKAN
+            ckan.group_delete(previous_slug)
+        if not ckan.is_group_exists(instance.ckan_slug):
+            # On ajoute dans CKAN une catégorie nouvelle
+            ckan.add_group(instance)
+    else:  # Lors d'une création
+        if not ckan.is_group_exists(instance.ckan_slug):
+            ckan.add_group(instance)

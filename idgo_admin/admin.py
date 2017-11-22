@@ -178,10 +178,9 @@ class CategoryAdmin(admin.ModelAdmin):
             if not category.ckan_slug:
                 # Dans le cas ou le nom n'a pas été normalisé lors du save
                 continue
-            if ckan.is_group_exists(category.ckan_slug):
-                continue
-            ckan.add_group(category)
-            neworgs.append(category.name)
+            if not ckan.is_group_exists(category.ckan_slug):
+                ckan.add_group(category)
+                neworgs.append(category.name)
         if len(neworgs) == 0:
             messages.error(request, "Aucune catégorie n'a dû être synchronisée")
         else:

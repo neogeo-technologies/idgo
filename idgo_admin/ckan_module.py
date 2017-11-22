@@ -224,6 +224,14 @@ class CkanManagerHandler(metaclass=Singleton):
         except CkanError.NotFound:
             return None
 
+    # TODO : Vérifier les effets de bords dans CKAN
+    @CkanExceptionsHandler()
+    def group_delete(self, id):
+        try:
+            return self.call_action('group_delete', id=str(id))
+        except CkanError.NotFound:
+            return None
+
     def is_organization_exists(self, organization_id):
         return self.get_organization(str(organization_id)) and True or False
 
