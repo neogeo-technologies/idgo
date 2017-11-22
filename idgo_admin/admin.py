@@ -17,7 +17,7 @@ from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
-from django.utils.text import slugify
+# from django.utils.text import slugify
 
 from idgo_admin.ckan_module import CkanManagerHandler
 

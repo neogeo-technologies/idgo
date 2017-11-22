@@ -774,8 +774,7 @@ class Category(models.Model):
         verbose_name = 'Catégorie'
 
     def save(self, *args, **kwargs):
-        if not self.id:
-            self.ckan_slug = slugify(self.name)
+        self.ckan_slug = slugify(self.name)
         super(Category, self).save(*args, **kwargs)
 
     # def delete(self):
