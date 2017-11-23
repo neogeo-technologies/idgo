@@ -1035,14 +1035,10 @@ def create_organization_in_ckan(organization):
 @receiver(pre_save, sender=Category)
 def saving_category(sender, instance, *args, **kwargs):
 
-    if instance.pk:  # Lors d'un mise a jour
+    if instance.pk:  # Lors d'une mise a jour..
         previous_slug = Category.objects.get(pk=instance.pk).ckan_slug
-        if instance.pk and instance.ckan_slug != previous_slug:
-            # Le status de la catgorie est passé en delete dans CKAN
-            ckan.group_delete(previous_slug)
-        if not ckan.is_group_exists(instance.ckan_slug):
-            # On ajoute dans CKAN une catégorie nouvelle
-            ckan.add_group(instance)
-    else:  # Lors d'une création
-        if not ckan.is_group_exists(instance.ckan_slug):
-            ckan.add_group(instance)
+        if instance.ckan_slug != previous_slug:
+            ckan.rename_group(previous_slug, instance)
+
+    if not ckan.is_group_exists(instance.ckan_slug):
+        ckan.add_group(instance)

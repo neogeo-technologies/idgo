@@ -224,14 +224,6 @@ class CkanManagerHandler(metaclass=Singleton):
         except CkanError.NotFound:
             return None
 
-    # TODO : Vérifier les effets de bords dans CKAN
-    @CkanExceptionsHandler()
-    def group_delete(self, id):
-        try:
-            return self.call_action('group_delete', id=str(id))
-        except CkanError.NotFound:
-            return None
-
     def is_organization_exists(self, organization_id):
         return self.get_organization(str(organization_id)) and True or False
 
@@ -292,9 +284,9 @@ class CkanManagerHandler(metaclass=Singleton):
             self.del_user_from_organization(username, organization_name)
 
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
-    def get_group(self, id):
+    def get_group(self, id, **kwargs):
         try:
-            return self.call_action('group_show', id=str(id))
+            return self.call_action('group_show', id=str(id), **kwargs)
         except CkanError.NotFound:
             return None
 
@@ -306,6 +298,18 @@ class CkanManagerHandler(metaclass=Singleton):
         return self.call_action(
             'group_create', name=group.ckan_slug, type=type,
             title=group.name, description=group.description)
+
+    @CkanExceptionsHandler()
+    def rename_group(self, id, group):
+        ckan_group = self.get_group(id, include_datasets=True)
+        ckan_group.update({
+            'title': group.name,
+            'name': group.ckan_slug,
+            'description': group.description})
+        try:
+            return self.call_action('group_update', **ckan_group)
+        except CkanError.NotFound:
+            return None
 
     @CkanExceptionsHandler()
     def del_group(self, group_name):
