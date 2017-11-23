@@ -1,6 +1,8 @@
 from django.http import Http404
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
+from django.shortcuts import reverse
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import AccountActions
@@ -8,8 +10,6 @@ from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
-from django.http import HttpResponseRedirect
-from django.shortcuts import reverse
 
 
 def on_profile_http404():
@@ -17,8 +17,9 @@ def on_profile_http404():
 
 
 @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
-def render_with_info_profile(request, template_name, context=None,
-                             content_type=None, status=None, using=None, *args, **kwargs):
+def render_with_info_profile(
+        request, template_name, context=None,
+        content_type=None, status=None, using=None, *args, **kwargs):
 
     user, profile = user_and_profile(request)
 
@@ -29,7 +30,8 @@ def render_with_info_profile(request, template_name, context=None,
 
     try:
         action = AccountActions.objects.get(
-            action='confirm_rattachement', profile=profile, closed__isnull=True)
+            action='confirm_rattachement',
+            profile=profile, closed__isnull=True)
     except Exception:
         awaiting_rattachement = None
     else:
@@ -92,7 +94,7 @@ def user_and_profile(request):
         raise ProfileHttp404
     try:
         profile = get_object_or_404(Profile, user=user)
-    except:
+    except Exception:
         raise ProfileHttp404
     else:
         res = user, profile

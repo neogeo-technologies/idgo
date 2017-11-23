@@ -1,8 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from idgo_admin.exceptions import ExceptionsHandler
-from idgo_admin.exceptions import ProfileHttp404
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -12,13 +10,16 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from idgo_admin.exceptions import ExceptionsHandler
+from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
+from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
+from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
-from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.utils import clean_my_obj
 from idgo_admin.utils import open_json_staticfile
 from idgo_admin.utils import three_suspension_points
@@ -28,6 +29,7 @@ import re
 from urllib.parse import urljoin
 from uuid import UUID
 import xml.etree.ElementTree as ET
+
 
 STATIC_URL = settings.STATIC_URL
 GEONETWORK_URL = settings.GEONETWORK_URL
@@ -41,13 +43,21 @@ else:
 
 with open(locales_path, 'r', encoding='utf-8') as f:
     MDEDIT_LOCALES = json.loads(f.read())
+    # TODO: Sync MD_LinkageProtocolCode et MD_TopicCategoryCode ?
+
+    AUTHORIZED_ISO_TOPIC = [
+        iso_topic['id'] for iso_topic in MDEDIT_LOCALES['codelists']['MD_TopicCategoryCode']]
+
+    AUTHORIZED_PROTOCOL = [
+        protocol['id'] for protocol in MDEDIT_LOCALES['codelists']['MD_LinkageProtocolCode']]
+
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
 def prefill_model(model, dataset):
-    data = model.copy()
 
+    data = model.copy()
     editor = dataset.editor
     organization = dataset.organisation
 
@@ -101,14 +111,22 @@ def prefill_model(model, dataset):
             'keywords': [kw for kw in dataset.keywords.names()],
             'keywordType': 'theme'})
 
+    for category in Category.objects.filter(dataset=dataset):
+        iso_topic = category.iso_topic
+        if iso_topic and iso_topic in AUTHORIZED_ISO_TOPIC:
+            data['dataTopicCategories'].append(iso_topic)
+
     resources = Resource.objects.filter(dataset=dataset)
     for resource in resources:
-        data['dataLinkages'].insert(0, {
+        entry = {
             'name': resource.name,
             'url': '{0}/dataset/{1}/resource/{2}'.format(
                 CKAN_URL, dataset.ckan_slug, resource.ckan_id),
-            # 'type': resource.data_type,
-            'description': resource.description})
+            'description': resource.description}
+        protocol = resource.format_type.protocol
+        if protocol in AUTHORIZED_PROTOCOL:
+            entry['protocol'] = protocol
+        data['dataLinkages'].insert(0, entry)
 
     return clean_my_obj(data)
 

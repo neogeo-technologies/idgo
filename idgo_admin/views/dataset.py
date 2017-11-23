@@ -24,10 +24,10 @@ from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
-from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import get_object_or_404_extended
-from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.shortcuts import on_profile_http404
+from idgo_admin.shortcuts import render_with_info_profile
+from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.utils import three_suspension_points
 import json
 

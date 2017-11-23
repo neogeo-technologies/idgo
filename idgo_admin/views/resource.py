@@ -1,7 +1,7 @@
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
 # from django.http import HttpResponseForbidden
@@ -20,10 +20,11 @@ from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
 from idgo_admin.shortcuts import get_object_or_404_extended
-from idgo_admin.shortcuts import user_and_profile
-from idgo_admin.shortcuts import render_with_info_profile
-from idgo_admin.utils import three_suspension_points
 from idgo_admin.shortcuts import on_profile_http404
+from idgo_admin.shortcuts import render_with_info_profile
+from idgo_admin.shortcuts import user_and_profile
+from idgo_admin.utils import three_suspension_points
+
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 

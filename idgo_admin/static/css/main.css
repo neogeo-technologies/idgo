@@ -768,6 +768,8 @@ a.disabled {
 
 .footer {
     background-color: #002880;
+    -webkit-box-shadow: 0 -2px 4px 0px rgba(0,40,128,.25);
+            box-shadow: 0 -2px 4px 0px rgba(0,40,128,.25);
 }
 
 .footer p {

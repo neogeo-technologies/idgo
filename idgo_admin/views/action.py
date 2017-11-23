@@ -9,8 +9,9 @@ from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import Dataset
 from idgo_admin.shortcuts import get_object_or_404_extended
-from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.shortcuts import on_profile_http404
+from idgo_admin.shortcuts import user_and_profile
+
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 

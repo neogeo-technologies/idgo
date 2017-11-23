@@ -1,6 +1,6 @@
-from functools import wraps
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import Http404
+from functools import wraps
 
 
 class ProfileHttp404(Http404):

@@ -100,13 +100,13 @@ class DatasetForm(forms.ModelForm):
         label='Organisation à laquelle est rattaché ce jeu de données*',
         queryset=Organisation.objects.all(),
         required=True,
-        empty_label="Sélectionnez une organisation")
+        empty_label='Sélectionnez une organisation')
 
     license = forms.ModelChoiceField(
         label='Licence*',
         queryset=License.objects.all(),
         required=True,
-        empty_label="Sélectionnez une licence")
+        empty_label='Sélectionnez une licence')
 
     # owner_email = forms.EmailField(
     #     label='Adresse e-mail du producteur',
@@ -125,9 +125,9 @@ class DatasetForm(forms.ModelForm):
         label='Support technique',
         queryset=Support.objects.all(),
         required=False,
-        empty_label="Aucun")
+        empty_label='Aucun')
 
-    thumbnail = forms.ImageField(label="Vignette", required=False)
+    thumbnail = forms.ImageField(label='Vignette', required=False)
 
     is_inspire = forms.BooleanField(
         initial=False,
@@ -194,7 +194,7 @@ class DatasetForm(forms.ModelForm):
                 regex = '^[a-zA-Z0-9áàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ\._\-\s]*$'
                 if not re.match(regex, w):
                     self.add_error('keywords', "Les mots-clés ne peuvent pas contenir de caractères spéciaux. ")
-                    raise ValidationError("KeywordsError")
+                    raise ValidationError('KeywordsError')
         return self.cleaned_data
 
     def handle_me(self, request, id=None):
@@ -264,7 +264,7 @@ class DatasetForm(forms.ModelForm):
             'owner_org': dataset.organisation.ckan_slug,
             'private': not dataset.published,
             'state': 'active',
-            'support': params.get('support') and params.get('support').ckan_slug or '',
+            'support': params.get('support') and params.get('support').ckan_slug,
             'tags': tags,
             'title': dataset.name,
             'update_frequency': dataset.update_freq,

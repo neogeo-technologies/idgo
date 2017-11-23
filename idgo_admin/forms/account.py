@@ -1,4 +1,3 @@
-from . import common_fields
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
@@ -7,6 +6,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django import forms
 from django.utils.text import slugify
+from idgo_admin.forms import common_fields
 from idgo_admin.models import Financier
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import LiaisonsContributeurs
@@ -16,7 +16,6 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
 # from idgo_admin.models import Status
-
 from mama_cas.forms import LoginForm as MamaLoginForm
 
 

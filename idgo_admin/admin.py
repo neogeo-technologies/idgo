@@ -1,25 +1,23 @@
-from .models import Category
-from .models import Dataset
-from .models import ResourceFormats
-from .models import License
-from .models import Resource
-from .models import Jurisdiction
-from .models import Mail
-from .models import Organisation
-from .models import OrganisationType
-from .models import Profile
-from taggit.admin import Tag
-
 from django.contrib import admin
-from django.contrib.gis import admin as geo_admin
-
-from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
+from django.contrib.gis import admin as geo_admin
+from django.contrib import messages
 # from django.utils.text import slugify
-
 from idgo_admin.ckan_module import CkanManagerHandler
+from idgo_admin.models import Category
+from idgo_admin.models import Dataset
+from idgo_admin.models import Jurisdiction
+from idgo_admin.models import License
+from idgo_admin.models import Mail
+from idgo_admin.models import Organisation
+from idgo_admin.models import OrganisationType
+from idgo_admin.models import Profile
+from idgo_admin.models import Resource
+from idgo_admin.models import ResourceFormats
+from taggit.admin import Tag
+
 
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331

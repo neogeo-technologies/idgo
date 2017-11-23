@@ -1,6 +1,6 @@
-from ..utils import StaticClass
 from django.core import validators
 from django import forms
+from idgo_admin.utils import StaticClass
 
 
 class CommonFields(metaclass=StaticClass):
