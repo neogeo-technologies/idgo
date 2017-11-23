@@ -1033,7 +1033,7 @@ def create_organization_in_ckan(organization):
 
 
 @receiver(pre_save, sender=Category)
-def updating_category(sender, instance, *args, **kwargs):
+def saving_category(sender, instance, *args, **kwargs):
 
     if instance.pk:  # Lors d'un mise a jour
         previous_slug = Category.objects.get(pk=instance.pk).ckan_slug

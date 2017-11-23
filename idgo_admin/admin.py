@@ -170,6 +170,7 @@ admin.site.register(Mail, MailAdmin)
 class CategoryAdmin(admin.ModelAdmin):
     model = Category
     actions = ['sync_ckan']
+    exclude = ('ckan_slug',)
 
     def sync_ckan(self, request, queryset):
         ckan = CkanManagerHandler()
