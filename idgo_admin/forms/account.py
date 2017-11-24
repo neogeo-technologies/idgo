@@ -200,7 +200,8 @@ class ProfileForm(forms.ModelForm):
         required=False,
         label='Territoire de compétence',
         queryset=Jurisdiction.objects.all(),
-        empty_label="Sélectionnez un territoire de compétence")
+        empty_label='Aucun')
+        # empty_label="Sélectionnez un territoire de compétence")
 
     license = forms.ModelChoiceField(
         required=False,
