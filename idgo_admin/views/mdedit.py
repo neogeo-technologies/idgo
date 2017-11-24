@@ -17,6 +17,7 @@ from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import MDEDIT_LOCALES
 from idgo_admin.models import Resource
+from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
@@ -128,7 +129,8 @@ class MDEditTplEdit(View):
 
         user, profile = user_and_profile(request)
 
-        dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+        dataset = get_object_or_404_extended(
+            Dataset, user, include={'id': dataset_id})
         del dataset
 
         return render(request, self.template)
@@ -152,7 +154,8 @@ class MDEdit(View):
 
         user, profile = user_and_profile(request)
 
-        dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+        dataset = get_object_or_404_extended(
+            Dataset, user, include={'id': dataset_id})
 
         def join_url(filename, path=self.config_path):
             return urljoin(urljoin(self.static_url, path), filename)
@@ -211,7 +214,8 @@ class MDEdit(View):
 
         user, profile = user_and_profile(request)
 
-        dataset = get_object_or_404(Dataset, id=dataset_id, editor=user)
+        dataset = get_object_or_404_extended(
+            Dataset, user, include={'id': dataset_id})
 
         def http_redirect(dataset_id):
             return HttpResponseRedirect(
