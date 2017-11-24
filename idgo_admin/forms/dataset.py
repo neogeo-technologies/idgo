@@ -244,6 +244,8 @@ class DatasetForm(forms.ModelForm):
 
         dataset.data_type.set(data.get('data_type', []), clear=True)
 
+        license_id = slugify(dataset.license.title)
+
         ckan_params = {
             'author': user.username,
             'author_email': user.email,
@@ -258,7 +260,7 @@ class DatasetForm(forms.ModelForm):
             'geocover': dataset.geocover,
             'last_modified':
                 str(dataset.date_modification) if dataset.date_modification else '',
-            'license_id': slugify(dataset.license.title),
+            'license_id': (license_id in [license['id'] for license in ckan.get_licenses()]) and license_id or '',
             'maintainer': user.username,
             'maintainer_email': user.email,
             'notes': dataset.description,
