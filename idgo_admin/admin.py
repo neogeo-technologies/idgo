@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 from django.contrib.gis import admin as geo_admin
 from django.contrib import messages
-# from django.utils.text import slugify
+from django.utils.text import slugify
 from idgo_admin.ckan_module import CkanManagerHandler
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
@@ -17,7 +17,6 @@ from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
 from taggit.admin import Tag
-
 
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
@@ -168,23 +167,30 @@ admin.site.register(Mail, MailAdmin)
 class CategoryAdmin(admin.ModelAdmin):
     model = Category
     actions = ['sync_ckan']
-    exclude = ('ckan_slug',)
+    # exclude = ('ckan_slug',)
+    readonly_fields = ('ckan_slug',)
 
     def sync_ckan(self, request, queryset):
         ckan = CkanManagerHandler()
         neworgs = []
         for category in queryset:
-            if not category.ckan_slug:
-                # Dans le cas ou le nom n'a pas été normalisé lors du save
+
+            current_slug = category.ckan_slug
+            correct_slug = slugify(category.name)
+            if not category.ckan_slug or (current_slug != correct_slug):
+                category.save()
+                neworgs.append(category.name)
                 continue
+
             if not ckan.is_group_exists(category.ckan_slug):
                 ckan.add_group(category)
                 neworgs.append(category.name)
+
         if len(neworgs) == 0:
             messages.error(request, "Aucune catégorie n'a dû être synchronisée")
         else:
             msg = ("Les catégories suivantes ont été synchronisées avec "
-                   "les données CKAN: {0}".format(neworgs))
+                   "les données CKAN: {0}".format(set(neworgs)))
             messages.success(request, msg)
     sync_ckan.short_description = 'Synchronisation des catégories séléctionnées'
 
