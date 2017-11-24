@@ -15,15 +15,14 @@ from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
+from idgo_admin.models import MDEDIT_LOCALES
 from idgo_admin.models import Resource
-from idgo_admin.models import ResourceFormats
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.utils import clean_my_obj
 from idgo_admin.utils import open_json_staticfile
 from idgo_admin.utils import three_suspension_points
-import json
 import os
 import re
 from urllib.parse import urljoin
@@ -35,21 +34,6 @@ STATIC_URL = settings.STATIC_URL
 GEONETWORK_URL = settings.GEONETWORK_URL
 CKAN_URL = settings.CKAN_URL
 DOMAIN_NAME = settings.DOMAIN_NAME
-
-if settings.STATIC_ROOT:
-    locales_path = os.path.join(settings.STATIC_ROOT, 'mdedit/config/locales/fr/locales.json')
-else:
-    locales_path = os.path.join(settings.BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')
-
-with open(locales_path, 'r', encoding='utf-8') as f:
-    MDEDIT_LOCALES = json.loads(f.read())
-    # TODO: Sync MD_LinkageProtocolCode et MD_TopicCategoryCode ?
-
-    AUTHORIZED_ISO_TOPIC = [
-        iso_topic['id'] for iso_topic in MDEDIT_LOCALES['codelists']['MD_TopicCategoryCode']]
-
-    AUTHORIZED_PROTOCOL = [
-        protocol['id'] for protocol in MDEDIT_LOCALES['codelists']['MD_LinkageProtocolCode']]
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -113,7 +97,7 @@ def prefill_model(model, dataset):
 
     for category in Category.objects.filter(dataset=dataset):
         iso_topic = category.iso_topic
-        if iso_topic and iso_topic in AUTHORIZED_ISO_TOPIC:
+        if iso_topic:
             data['dataTopicCategories'].append(iso_topic)
 
     resources = Resource.objects.filter(dataset=dataset)
@@ -124,7 +108,7 @@ def prefill_model(model, dataset):
                 CKAN_URL, dataset.ckan_slug, resource.ckan_id),
             'description': resource.description}
         protocol = resource.format_type.protocol
-        if protocol in AUTHORIZED_PROTOCOL:
+        if protocol:
             entry['protocol'] = protocol
         data['dataLinkages'].insert(0, entry)
 
@@ -176,9 +160,6 @@ class MDEdit(View):
         def server_url(namespace):
             return reverse('idgo_admin:{0}'.format(namespace),
                            kwargs={'dataset_id': dataset.id})
-
-        self.locales['codelists']['MD_LinkageProtocolCode'] = \
-            [{'id': e.extension, 'value': e.extension} for e in ResourceFormats.objects.all()]
 
         config = {
             'app_name': 'mdEdit',

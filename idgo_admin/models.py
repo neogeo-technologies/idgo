@@ -11,11 +11,32 @@ from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.utils import PartialFormatter
+import json
+import os
 from taggit.managers import TaggableManager
 import uuid
 
 
+if settings.STATIC_ROOT:
+    locales_path = os.path.join(settings.STATIC_ROOT, 'mdedit/config/locales/fr/locales.json')
+else:
+    locales_path = os.path.join(settings.BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')
+
+with open(locales_path, 'r', encoding='utf-8') as f:
+    MDEDIT_LOCALES = json.loads(f.read())
+
+    AUTHORIZED_ISO_TOPIC = (
+        (iso_topic['id'], iso_topic['value']) for iso_topic
+        in MDEDIT_LOCALES['codelists']['MD_TopicCategoryCode'])
+
+    AUTHORIZED_PROTOCOL = (
+        (protocol['id'], protocol['value']) for protocol
+        in MDEDIT_LOCALES['codelists']['MD_LinkageProtocolCode'])
+
+
 class ResourceFormats(models.Model):
+
+    PROTOCOL_CHOICES = AUTHORIZED_PROTOCOL
 
     CKAN_CHOICES = (
         (None, 'N/A'),
@@ -27,8 +48,8 @@ class ResourceFormats(models.Model):
     extension = models.CharField('Format', max_length=30, unique=True)
     ckan_view = models.CharField('Vue', max_length=100,
                                  choices=CKAN_CHOICES, blank=True, null=True)
-    protocol = models.CharField('Protocole', max_length=100,
-                                blank=True, null=True)
+    protocol = models.CharField('Protocole', max_length=100, blank=True,
+                                null=True, choices=PROTOCOL_CHOICES)
 
     class Meta(object):
         verbose_name = 'Format de ressource'
@@ -83,12 +104,6 @@ class Resource(models.Model):
 
     format_type = models.ForeignKey(ResourceFormats, default=0)
 
-    # projection = models.ForeignKey(
-    #     'Projection', blank=True, null=True)
-
-    # resolution = models.ForeignKey(
-    #     'Resolution', blank=True, null=True)
-
     restricted_level = models.CharField(
         "Restriction d'accès", choices=LEVEL_CHOICES,
         default='0', max_length=20, blank=True, null=True)
@@ -141,13 +156,11 @@ class Commune(models.Model):
         ordering = ['name']
 
 
-class Jurisdiction(models.Model):  # Territory
+class Jurisdiction(models.Model):
 
     code = models.CharField('Code INSEE', max_length=10)
     name = models.CharField('Nom', max_length=100)
     communes = models.ManyToManyField(Commune)
-    # geom = \
-    #     models.MultiPolygonField('Geometrie', srid=2154, blank=True, null=True)
     objects = models.GeoManager()
 
     def __str__(self):
@@ -157,7 +170,7 @@ class Jurisdiction(models.Model):  # Territory
         verbose_name = 'Territoire de compétence'
 
 
-class Financier(models.Model):  # Financeur
+class Financier(models.Model):
 
     name = models.CharField('Nom du financeur', max_length=250)
     code = models.CharField('Code du financeur', max_length=250)
@@ -168,18 +181,6 @@ class Financier(models.Model):  # Financeur
 
     def __str__(self):
         return self.name
-
-
-# class Status(models.Model):
-#
-#     name = models.CharField("Statut d'une organisation", max_length=250)
-#     code = models.CharField('Code du statut', max_length=250)
-#
-#     class Meta(object):
-#         verbose_name = "Statut d'une organisation"
-#
-#     def __str__(self):
-#         return self.name
 
 
 class OrganisationType(models.Model):
@@ -329,9 +330,11 @@ class Profile(models.Model):
         if self.is_admin:
             res = True
         elif organisation:
-            res = LiaisonsReferents.objects.filter(profile=self, organisation=organisation).exists()
+            res = LiaisonsReferents.objects.filter(
+                profile=self, organisation=organisation).exists()
         else:
-            res = LiaisonsReferents.objects.filter(profile=self, validated_on__isnull=False).exists()
+            res = LiaisonsReferents.objects.filter(
+                profile=self, validated_on__isnull=False).exists()
         return res
 
     # @classmethod
@@ -510,11 +513,13 @@ class Mail(models.Model):
 
     @classmethod
     def confirmation_user_mail(cls, user):
-        """Mail confirmant la creation d'un nouvelle organisation
+        """E-mail de confirmation.
+
+        E-mail confirmant la creation d'une nouvelle organisation
         suite à une inscription.
         """
-
-        mail_template = Mail.objects.get(template_name='confirmation_user_mail')
+        mail_template = \
+            Mail.objects.get(template_name='confirmation_user_mail')
 
         fmt = PartialFormatter()
         data = {'first_name': user.first_name,
@@ -529,10 +534,11 @@ class Mail(models.Model):
 
     @classmethod
     def confirm_new_organisation(cls, request, action):
-        """Mail permettant de valider la creation d'un nouvelle organisation
+        """E-mail de validation.
+
+        E-mail permettant de valider la création d'une nouvelle organisation
         suite à une inscription.
         """
-
         user = action.profile.user
         organisation = action.profile.organisation
         website = organisation.website or '- adresse url manquante -'
@@ -675,7 +681,6 @@ class Mail(models.Model):
 
     @classmethod
     def confirm_contrib_to_user(cls, action):
-        """Message confirmant le role de contributeur à un utilisateur"""
 
         organisation = action.org_extras
         user = action.profile.user
@@ -756,6 +761,8 @@ class Mail(models.Model):
 
 class Category(models.Model):
 
+    ISO_TOPIC_CHOICES = AUTHORIZED_ISO_TOPIC
+
     # A chaque déploiement
     # python manage.py sync_ckan_categories
 
@@ -763,8 +770,8 @@ class Category(models.Model):
     description = models.CharField('Description', max_length=1024)
     ckan_slug = models.SlugField(
         'Ckan_ID', max_length=100, unique=True, db_index=True, blank=True)
-    # sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
     iso_topic = models.CharField('Thème ISO', max_length=100,
+                                 choices=ISO_TOPIC_CHOICES,
                                  blank=True, null=True)
 
     def __str__(self):
@@ -776,10 +783,6 @@ class Category(models.Model):
     def save(self, *args, **kwargs):
         self.ckan_slug = slugify(self.name)
         super(Category, self).save(*args, **kwargs)
-
-    # def delete(self):
-    #     if ckan.del_group(self.ckan_slug):
-    #         super(Category, self).delete()
 
 
 class License(models.Model):
@@ -806,29 +809,6 @@ class License(models.Model):
 
     class Meta(object):
         verbose_name = 'Licence'
-
-
-# class Projection(models.Model):
-#
-#     name = models.CharField('Nom', max_length=50)
-#     code = models.IntegerField('Code EPSG', primary_key=True)
-#
-#     def __str__(self):
-#         return self.name
-#
-#     class Meta(object):
-#         verbose_name = 'Projection'
-#
-#
-# class Resolution(models.Model):
-#
-#     value = models.CharField('Valeur', max_length=50)
-#
-#     def __str__(self):
-#         return self.value
-#
-#     class Meta(object):
-#         verbose_name = 'Resolution'
 
 
 class Support(models.Model):
@@ -892,10 +872,6 @@ class Dataset(models.Model):
     ckan_id = models.UUIDField(
         'Ckan UUID', unique=True, db_index=True, blank=True, null=True)
 
-    # sync_in_ckan = models.BooleanField('Synchro CKAN', default=False)
-
-    # url_inspire = models.URLField('URL Inspire', blank=True, null=True)
-
     is_inspire = models.BooleanField("L'URL Inspire est valide", default=False)
 
     geocover = models.CharField(
@@ -941,11 +917,14 @@ class Dataset(models.Model):
         'Metadonnées UUID', unique=True, db_index=True,
         blank=True, null=True)
 
-    support = models.ForeignKey(Support, verbose_name="Support technique", null=True, blank=True)
+    support = models.ForeignKey(
+        Support, verbose_name="Support technique", null=True, blank=True)
 
-    data_type = models.ManyToManyField(DataType, verbose_name="Type de données")
+    data_type = models.ManyToManyField(
+        DataType, verbose_name="Type de données")
 
-    thumbnail = models.ImageField(upload_to='thumbnails/', blank=True, null=True)
+    thumbnail = models.ImageField(
+        upload_to='thumbnails/', blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -969,17 +948,11 @@ class Dataset(models.Model):
     @classmethod
     def get_subordinated_datasets(cls, profile):
         return cls.objects.filter(
-            organisation__in=LiaisonsReferents.get_subordinated_organizations(profile=profile))
+            organisation__in=LiaisonsReferents.get_subordinated_organizations(
+                profile=profile))
+
 
 # Triggers
-
-
-# @receiver(pre_save, sender=Category)
-# def pre_save_category(sender, instance, **kwargs):
-#     #(cbenhabib): à integrer si on veut éviter l'action sync_ckan ds BO admin
-#     instance.ckan_slug = slugify(instance.name)
-#     if not ckan.is_group_exists(instance.ckan_slug):
-#         ckan.add_group(instance)
 
 
 @receiver(pre_save, sender=Dataset)
@@ -996,8 +969,7 @@ def post_save_resource(sender, instance, **kwargs):
 @receiver(pre_delete, sender=User)
 def delete_user_in_externals(sender, instance, **kwargs):
     try:
-        # ldap.del_user(instance.username)
-        ckan.del_user(instance.username)  # ->state='deleted'
+        ckan.del_user(instance.username)  # -> state='deleted'
     except Exception:
         pass
 
