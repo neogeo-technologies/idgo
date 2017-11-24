@@ -24,8 +24,8 @@
 		<div class="row">
 			<div class="col-md-4 form-group">
 				<label class="bt-doc control-label" for="~{id}~_~{$index}~" uib-tooltip="~{protocol.description}~" tooltip-trigger="mouseenter" tooltip-placement="right" ng-click="openModalDoc(help)">~{protocol.label}~</label>
-				<select class="form-control input-sm selectpicker_" name="~{id}~" id="~{id}~_~{$index}~" ng-options="linkage.id as linkage.value for linkage in MD_LinkageProtocolCode" ng-model="item.protocol">
-					<option value="">Sélectionnez</option>
+				<select class="form-control input-sm selectpicker_" name="~{id}~" id="~{id}~_~{$index}~" ng-options="linkage.id as linkage.value for linkage in MD_LinkageProtocolCode" ng-model="item.protocol" ng-disabled="disabled">
+					<option value="">~{protocol.placeholder}~</option>
 				</select>
 			</div>
 		</div>
