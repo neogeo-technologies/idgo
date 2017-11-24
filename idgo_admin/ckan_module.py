@@ -355,4 +355,8 @@ class CkanManagerHandler(metaclass=Singleton):
         except CkanError.NotFound:
             return None
 
+    @CkanExceptionsHandler()
+    def get_licenses(self):
+        return self.call_action('license_list')
+
 CkanHandler = CkanManagerHandler()

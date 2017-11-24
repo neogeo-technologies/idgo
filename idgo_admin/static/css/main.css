@@ -30,6 +30,10 @@ img {
             user-select: none;
 }
 
+.text-is-red {
+    color: #ff554f;
+}
+
 .comma-separated-list:not(:last-child)::after {
     content: ', ';
 }

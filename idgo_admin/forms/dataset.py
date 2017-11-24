@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django import forms
+from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
@@ -257,7 +258,7 @@ class DatasetForm(forms.ModelForm):
             'geocover': dataset.geocover,
             'last_modified':
                 str(dataset.date_modification) if dataset.date_modification else '',
-            'license_id': dataset.license.title,
+            'license_id': slugify(dataset.license.title),
             'maintainer': user.username,
             'maintainer_email': user.email,
             'notes': dataset.description,

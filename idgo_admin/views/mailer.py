@@ -139,9 +139,13 @@ def confirm_rattachement(request, key):
         user = action.profile.user
         if not action.org_extras.is_active:
             message = (
-                "Le rattachement de <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) "
-                "à l'organisation <strong>{organization_name}</strong> ne peut être effective que lorsque "
-                "la création de cette organisation a été confirmé par un administrateur."
+                '<span class="text-is-red">Le rattachement de '
+                '<strong>{first_name} {last_name}</strong> '
+                '(<strong>{username}</strong>) '
+                "à l'organisation <strong>{organization_name}</strong> "
+                'ne peut être effective que lorsque '
+                'la création de cette organisation a été confirmé '
+                'par un administrateur</span>.'
                 ).format(first_name=user.first_name,
                          last_name=user.last_name,
                          username=user.username,
@@ -190,9 +194,11 @@ def confirm_referent(request, key):
         else:
             if not organisation.is_active:
                 message = (
-                    "Le statut de référent pour l'organisation <strong>{organization_name}</strong> "
-                    "concernant <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>)  ne peut être effectif que lorsque "
-                    "la création de cette organisation a été confirmé par un administrateur."
+                    '<span class="text-is-red">Le statut de référent pour '
+                    "l'organisation <strong>{organization_name}</strong> "
+                    "concernant <strong>{first_name} {last_name}</strong> "
+                    '(<strong>{username}</strong>) ne peut être effectif que lorsque '
+                    "la création de cette organisation a été confirmé par un administrateur</span>."
                     ).format(first_name=user.first_name,
                              last_name=user.last_name,
                              username=user.username,
@@ -243,9 +249,11 @@ def confirm_contribution(request, key):
             user = action.profile.user
             if not organisation.is_active:
                 message = (
-                    "Le statut de contributeur pour l'organisation <strong>{organization_name}</strong> "
-                    "concernant <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>)  ne peut être effectif que lorsque "
-                    "la création de cette organisation a été confirmé par un administrateur."
+                    '<span class="text-is-red">Le statut de contributeur pour '
+                    " l'organisation <strong>{organization_name}</strong> "
+                    'concernant <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) '
+                    '<strong class="text-is-red">ne peut être effective que lorsque '
+                    'la création de cette organisation a été confirmé par un administrateur</span>.'
                     ).format(first_name=user.first_name,
                              last_name=user.last_name,
                              username=user.username,
