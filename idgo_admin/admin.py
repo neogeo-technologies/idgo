@@ -80,12 +80,9 @@ class LiaisonReferentsInline(admin.TabularInline):
     verbose_name_plural = "Organisations pour lesquelles l'utilisateur est référent"
     verbose_name = "Organisation"
 
-    def get_queryset(self, request):
-        qs = super(LiaisonReferentsInline, self).get_queryset(request)
-        return qs.exclude(organisation__is_active=False)
-
 
 class ProfileAdmin(admin.ModelAdmin):
+
     inlines = (LiaisonReferentsInline,)
     models = Profile
     list_display = ('username', 'first_name', 'last_name', 'is_admin')
@@ -100,6 +97,18 @@ class ProfileAdmin(admin.ModelAdmin):
 
     def username(self, obj):
         return str(obj.user.username)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super(ProfileAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
 
     first_name.short_description = "Prénom"
     last_name.short_description = "Nom"
