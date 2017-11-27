@@ -211,7 +211,7 @@ class AccountManager(View):
 
     def referent_process(self, request, profile, organisation, process):
         LiaisonsReferents.objects.get_or_create(
-            profile=profile, organisation=organisation)
+            profile=profile, organisation=organisation, validated_on=None)
         if process in ("update", "update_organization"):
             referent_action = AccountActions.objects.create(
                 profile=profile, action='confirm_referent',
