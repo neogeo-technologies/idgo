@@ -999,6 +999,8 @@ def pre_delete_contribution(sender, instance, **kwargs):
 @receiver(pre_save, sender=Organisation)
 def pre_save_organization(sender, instance, **kwargs):
     instance.ckan_slug = slugify(instance.name)
+    if instance.pk:  # Lors d'une mise a jour..
+        ckan.update_organization(instance)
 
 
 def create_organization_in_ckan(organization):
@@ -1012,6 +1014,8 @@ def create_organization_in_ckan(organization):
 def pre_save_category(sender, instance, *args, **kwargs):
 
     if instance.pk:  # Lors d'une mise a jour..
+        # Compliqué pour pas grand chose. Il faudrait plutôt passer par
+        # l'ID du `group` CKan (TODO pour une prochaine version...)
         previous_slug = Category.objects.get(pk=instance.pk).ckan_slug
         if instance.ckan_slug != previous_slug:
             ckan.rename_group(previous_slug, instance)

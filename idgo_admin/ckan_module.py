@@ -218,9 +218,9 @@ class CkanManagerHandler(metaclass=Singleton):
                 for organization in self.call_action('organization_list')]
 
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
-    def get_organization(self, id):
+    def get_organization(self, id, **kwargs):
         try:
-            self.call_action('organization_show', id=str(id))
+            return self.call_action('organization_show', id=str(id), **kwargs)
         except CkanError.NotFound:
             return None
 
@@ -241,13 +241,37 @@ class CkanManagerHandler(metaclass=Singleton):
             pass
         self.call_action('organization_create', **params)
 
-    # @CkanExceptionsHandler()
-    # def activate_organization(self, id):
-    #     self.call_action('organization_update', id=str(id), state='active')
+    @CkanExceptionsHandler()
+    def update_organization(self, organization):
+        ckan_organization = \
+            self.get_organization(organization.ckan_id, include_datasets=True)
+        if not ckan_organization:
+            return
 
-    # @CkanExceptionsHandler()
-    # def deactivate_organization(self, id):
-    #     self.call_action('organization_update', id=str(id), state='deleted')
+        ckan_organization.update({
+            'title': organization.name,
+            'name': organization.ckan_slug,
+            'description': organization.description})
+
+        try:
+            ckan_organization['image_url'] = \
+                urljoin(settings.DOMAIN_NAME, organization.logo.url)
+        except ValueError:
+            pass
+
+        self.call_action('organization_update', **ckan_organization)
+
+        for package in ckan_organization['packages']:
+            self.call_action('package_owner_org_update', id=package['id'],
+                             organization_id=ckan_organization['id'])
+
+    @CkanExceptionsHandler()
+    def activate_organization(self, id):
+        self.call_action('organization_update', id=id, state='active')
+
+    @CkanExceptionsHandler()
+    def deactivate_organization(self, id):
+        self.call_action('organization_update', id=id, state='deleted')
 
     @CkanExceptionsHandler()
     def del_organization(self, id):
