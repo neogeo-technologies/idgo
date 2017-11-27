@@ -128,7 +128,7 @@ class DatasetForm(forms.ModelForm):
         required=False,
         empty_label='Aucun')
 
-    thumbnail = forms.ImageField(label='Vignette', required=False)
+    # thumbnail = forms.ImageField(label='Vignette', required=False)
 
     is_inspire = forms.BooleanField(
         initial=False,
@@ -150,7 +150,7 @@ class DatasetForm(forms.ModelForm):
                   'organisation',
                   'published',
                   'support',
-                  'thumbnail',
+                  # 'thumbnail',
                   'update_freq',
                   'name',)
 
@@ -216,7 +216,7 @@ class DatasetForm(forms.ModelForm):
             'update_freq': data['update_freq'],
             'published': data['published'],
             'support': data['support'],
-            'thumbnail': data['thumbnail'],
+            # 'thumbnail': data['thumbnail'],
             'is_inspire': data['is_inspire']}
 
         if id:  # Mise à jour du jeu de données
