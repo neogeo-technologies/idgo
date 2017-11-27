@@ -14,7 +14,7 @@ class DisplayLicenses(View):
             'domain_data': license.domain_data,
             'domain_software': license.domain_software,
             'family': '',  # TODO?
-            'id': 'license-{0}'.format(license.id),  # Ugly
+            'id': license.ckan_id,  # license.license_id
             'maintainer': license.maintainer,
             'od_conformance': license.od_conformance,
             'osd_conformance': license.osd_conformance,

@@ -244,12 +244,12 @@ class DatasetForm(forms.ModelForm):
 
         dataset.data_type.set(data.get('data_type', []), clear=True)
 
-        license_id = (
-            dataset.license.id
-            in [license['id'] for license in ckan.get_licenses()]
-            ) and 'license-{0}'.format(dataset.license.id) or ''
+        print(dataset.license.ckan_id)
 
-        print(ckan.get_licenses())
+        license_id = (
+            dataset.license.ckan_id
+            in [license['id'] for license in ckan.get_licenses()]
+            ) and dataset.license.ckan_id or ''
 
         ckan_params = {
             'author': user.username,
@@ -277,8 +277,6 @@ class DatasetForm(forms.ModelForm):
             'title': dataset.name,
             'update_frequency': dataset.update_freq,
             'url': ''}
-
-        print(ckan_params)
 
         if dataset.geonet_id:
             ckan_params['inspire_url'] = \

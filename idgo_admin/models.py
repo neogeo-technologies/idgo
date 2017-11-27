@@ -810,6 +810,10 @@ class License(models.Model):
     class Meta(object):
         verbose_name = 'Licence'
 
+    @property
+    def ckan_id(self):
+        return 'license-{0}'.format(self.pk)
+
 
 class Support(models.Model):
 
