@@ -324,8 +324,8 @@ class Profile(models.Model):
         return self.user.username
 
     class Meta(object):
-        verbose_name = 'Profil'
-        verbose_name_plural = 'Profils'
+        verbose_name = 'Profil utilisateur'
+        verbose_name_plural = 'Profils des utilisateurs'
 
     def nb_datasets(self, organisation):
         return Dataset.objects.filter(
