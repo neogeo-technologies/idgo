@@ -1,6 +1,5 @@
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
-from django.utils.text import slugify
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.models import License
@@ -11,15 +10,15 @@ class DisplayLicenses(View):
 
     def get(self, request):
         data = [{
-            'domain_content': o.domain_content,
-            'domain_data': o.domain_data,
-            'domain_software': o.domain_software,
-            'family': '',  # TODO ???
-            'id': slugify(o.title),
-            'maintainer': o.maintainer,
-            'od_conformance': o.od_conformance,
-            'osd_conformance': o.osd_conformance,
-            'status': o.status,
-            'title': o.title,
-            'url': o.url} for o in License.objects.all()]
+            'domain_content': license.domain_content,
+            'domain_data': license.domain_data,
+            'domain_software': license.domain_software,
+            'family': '',  # TODO?
+            'id': 'license-{0}'.format(license.id),  # Ugly
+            'maintainer': license.maintainer,
+            'od_conformance': license.od_conformance,
+            'osd_conformance': license.osd_conformance,
+            'status': license.status,
+            'title': license.title,
+            'url': license.url} for license in License.objects.all()]
         return JsonResponse(data, safe=False)

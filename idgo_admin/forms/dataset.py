@@ -244,7 +244,12 @@ class DatasetForm(forms.ModelForm):
 
         dataset.data_type.set(data.get('data_type', []), clear=True)
 
-        license_id = slugify(dataset.license.title)
+        license_id = (
+            dataset.license.id
+            in [license['id'] for license in ckan.get_licenses()]
+            ) and 'license-{0}'.format(dataset.license.id) or ''
+
+        print(ckan.get_licenses())
 
         ckan_params = {
             'author': user.username,
@@ -260,7 +265,7 @@ class DatasetForm(forms.ModelForm):
             'geocover': dataset.geocover,
             'last_modified':
                 str(dataset.date_modification) if dataset.date_modification else '',
-            'license_id': (license_id in [license['id'] for license in ckan.get_licenses()]) and license_id or '',
+            'license_id': license_id,
             'maintainer': user.username,
             'maintainer_email': user.email,
             'notes': dataset.description,
@@ -272,6 +277,8 @@ class DatasetForm(forms.ModelForm):
             'title': dataset.name,
             'update_frequency': dataset.update_freq,
             'url': ''}
+
+        print(ckan_params)
 
         if dataset.geonet_id:
             ckan_params['inspire_url'] = \
