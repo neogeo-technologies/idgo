@@ -11,6 +11,7 @@ from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.utils import PartialFormatter
+from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garder l'original
 import json
 import os
 from taggit.managers import TaggableManager
@@ -59,6 +60,10 @@ class ResourceFormats(models.Model):
         return self.extension
 
 
+def upload_resource(instance, filename):
+    return _slugify(filename, exclude_dot=False)
+
+
 class Resource(models.Model):
 
     # PENSER A SYNCHRONISER CETTE LISTE DES LANGUES
@@ -97,7 +102,8 @@ class Resource(models.Model):
         'Télécharger depuis une URL', blank=True, null=True)
 
     up_file = models.FileField(
-        'Téléverser un ou plusieurs fichiers', blank=True, null=True)
+        'Téléverser un ou plusieurs fichiers',
+        blank=True, null=True, upload_to=upload_resource)
 
     lang = models.CharField(
         'Langue', choices=LANG_CHOICES, default='french', max_length=10)

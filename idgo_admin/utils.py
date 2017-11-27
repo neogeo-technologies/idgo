@@ -1,5 +1,8 @@
 from decimal import Decimal
 from django.conf import settings
+from django.utils.functional import keep_lazy
+from django.utils.safestring import mark_safe
+from django.utils.safestring import SafeText
 from idgo_admin.exceptions import SizeLimitExceededError
 import json
 import os
@@ -7,6 +10,7 @@ import re
 import requests
 import shutil
 import string
+import unicodedata
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -159,3 +163,18 @@ def clean_my_obj(obj):
             (clean_my_obj(k), clean_my_obj(v)) for k, v in obj.items() if k and v)
     else:
         return obj
+
+
+@keep_lazy(str, SafeText)
+def slugify(value, allow_unicode=False, exclude_dot=True):
+    # Réécriture du slugify (ajouté le paramètre `exclude_dot`)
+    value = str(value)
+    if allow_unicode:
+        value = unicodedata.normalize('NFKC', value)
+    else:
+        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+
+    value = re.sub(
+        exclude_dot and r'[^\w\s-]' or r'[^\.\w\s-]', '', value).strip().lower()
+
+    return mark_safe(re.sub(r'[-\s]+', '-', value))

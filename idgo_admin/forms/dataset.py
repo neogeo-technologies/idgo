@@ -244,8 +244,6 @@ class DatasetForm(forms.ModelForm):
 
         dataset.data_type.set(data.get('data_type', []), clear=True)
 
-        print(dataset.license.ckan_id)
-
         license_id = (
             dataset.license.ckan_id
             in [license['id'] for license in ckan.get_licenses()]
