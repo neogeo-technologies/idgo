@@ -90,7 +90,7 @@ def referent_request(request, *args, **kwargs):
 
     try:
         LiaisonsReferents.objects.create(
-            profile=profile, organisation=organisation)
+            profile=profile, organisation=organisation, validated_on=None)
     except IntegrityError:
         # TODO(cbenhabib): retourner message erreur
         raise Http404

@@ -9,6 +9,7 @@ from idgo_admin.ckan_module import CkanManagerHandler
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import Jurisdiction
+from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import License
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
@@ -26,7 +27,6 @@ geo_admin.GeoModelAdmin.default_zoom = 14
 admin.site.register(Jurisdiction)
 admin.site.register(License)
 admin.site.register(OrganisationType)
-admin.site.register(Profile)
 admin.site.register(ResourceFormats)
 admin.site.unregister(Group)
 admin.site.unregister(User)
@@ -74,6 +74,41 @@ class DatasetAdmin(admin.ModelAdmin):
 admin.site.register(Dataset, DatasetAdmin)
 
 
+class LiaisonReferentsInline(admin.TabularInline):
+    model = LiaisonsReferents
+    extra = 0
+    verbose_name_plural = "Organisations pour lesquelles l'utilisateur est référent"
+    verbose_name = "Organisation"
+
+    def get_queryset(self, request):
+        qs = super(LiaisonReferentsInline, self).get_queryset(request)
+        return qs.exclude(organisation__is_active=False)
+
+
+class ProfileAdmin(admin.ModelAdmin):
+    inlines = (LiaisonReferentsInline,)
+    models = Profile
+    list_display = ('username', 'first_name', 'last_name', 'is_admin')
+    search_fields = ('user__username', 'user__last_name')
+    ordering = ('user__last_name',)
+
+    def first_name(self, obj):
+        return str(obj.user.first_name)
+
+    def last_name(self, obj):
+        return str(obj.user.last_name)
+
+    def username(self, obj):
+        return str(obj.user.username)
+
+    first_name.short_description = "Prénom"
+    last_name.short_description = "Nom"
+    username.short_description = "Nom d'utilisateur"
+
+
+admin.site.register(Profile, ProfileAdmin)
+
+
 class UserProfileInline(admin.StackedInline):
     model = Profile
     max_num = 1
@@ -87,6 +122,7 @@ class UserProfileInline(admin.StackedInline):
 
 class UserAdmin(AuthUserAdmin):
     inlines = [UserProfileInline]
+    ordering = ('last_name',)
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -107,7 +143,7 @@ admin.site.register(User, UserAdmin)
 class OrganisationAdmin(geo_admin.OSMGeoAdmin):
     list_display = ('name', 'organisation_type')
     list_filter = ('organisation_type',)
-    readonly_fields = ('ckan_slug', )
+    readonly_fields = ('name', 'ckan_slug',)
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -167,7 +203,6 @@ admin.site.register(Mail, MailAdmin)
 class CategoryAdmin(admin.ModelAdmin):
     model = Category
     actions = ['sync_ckan']
-    # exclude = ('ckan_slug',)
     readonly_fields = ('ckan_slug',)
 
     def sync_ckan(self, request, queryset):

@@ -355,7 +355,8 @@ class LiaisonsReferents(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     validated_on = models.DateField(
-        verbose_name="Date de validation de l'action", blank=True, null=True)
+        verbose_name="Date de validation de l'action", blank=True,
+        null=True, default=timezone.now)
 
     class Meta(object):
         unique_together = (('profile', 'organisation'),)
