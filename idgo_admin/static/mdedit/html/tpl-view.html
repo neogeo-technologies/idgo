@@ -284,8 +284,8 @@
 				<p class="">
 					<span ng-if="vm.data.metadata.dataGeographicExtents">
 						<span ng-repeat="dataGeographicExtent in vm.data.metadata.dataGeographicExtents track by $index">
-							<a class="btn btn-xs btn-info" >
-								<i class="glyphicon glyphicon-screenshot" title="Couverture territoriale"> </i>
+							<a class="btn btn-xs btn-info">
+								<i class="glyphicon glyphicon-screenshot" title="Couverture territoriale"></i>
 							</a>
 							<span class="" title="S:~{dataGeographicExtent.dataGeographicExtentSouthBound}~, N:~{dataGeographicExtent.dataGeographicExtentNorthBound}~, W:{~dataGeographicExtent.dataGeographicExtentWestBound}~, E:~{dataGeographicExtent.dataGeographicExtentEastBound}~">
 								<span ng-if="dataGeographicExtent.dataExtentName">~{dataGeographicExtent.dataExtentName}~ (S:~{dataGeographicExtent.dataGeographicExtentSouthBound}~, N:~{dataGeographicExtent.dataGeographicExtentNorthBound}~, W:~{dataGeographicExtent.dataGeographicExtentWestBound}~, E:~{dataGeographicExtent.dataGeographicExtentEastBound}~),</span>
@@ -295,8 +295,8 @@
 						</span>
 					</span>
 					<span ng-if="!vm.data.metadata.dataGeographicExtents">
-						<a class="btn btn-xs btn-info" >
-							<i class="glyphicon glyphicon-screenshot" title="Couverture territoriale"> </i>
+						<a class="btn btn-xs btn-info">
+							<i class="glyphicon glyphicon-screenshot" title="Couverture territoriale"></i>
 						</a>
 						<span class="pre" title="S:0.00, N:0.00, W:0.00, E:0.00">Couverture territoriale non précisée</span>
 						<br />
@@ -304,7 +304,7 @@
 				</p>
 				<p class="">
 					<a class="btn btn-xs btn-info">
-						<i class="glyphicon glyphicon-zoom-in" title="Echelle d'utilisation"> </i>
+						<i class="glyphicon glyphicon-zoom-in" title="Echelle d'utilisation"></i>
 					</a>
 					<span ng-if="vm.data.metadata.dataScaleDenominator">1/~{vm.data.metadata.dataScaleDenominator}~</span>
 					<span ng-if="vm.data.metadata.dataScaleDistance">~{vm.data.metadata.dataScaleDistance}~ mètre(s)</span>
@@ -313,17 +313,17 @@
 				<p class="">
 					<span ng-if="vm.data.metadata.dataReferenceSystems">
 						<span ng-repeat="dataReferenceSystem in vm.data.metadata.dataReferenceSystems track by $index">
-							<a class="btn btn-xs btn-info" >
-								<i class="glyphicon glyphicon-globe" title="Système de projection"> </i>
+							<a class="btn btn-xs btn-info">
+								<i class="glyphicon glyphicon-globe" title="Système de projection"></i>
 							</a>
-							<span>~{dataReferenceSystem.code | translateCode:'MD_ReferenceSystemCode'}~</span>
+							<span>~{dataReferenceSystem.code}~</span> <!-- <span>~{dataReferenceSystem.code | translateCode:'MD_ReferenceSystemCode'}~</span> -->
 							<span ng-if="dataReferenceSystem.codespace">(~{dataReferenceSystem.codespace}~)</span>
 							<br />
 						</span>
 					</span>
 					<span ng-if="!vm.data.metadata.dataReferenceSystems">
-						<a class="btn btn-xs btn-info" >
-							<i class="glyphicon glyphicon-globe" title="Système de projection"> </i>
+						<a class="btn btn-xs btn-info">
+							<i class="glyphicon glyphicon-globe" title="Système de projection"></i>
 						</a>
 						<span>Aucun système de projection défini.</span>
 					</span>

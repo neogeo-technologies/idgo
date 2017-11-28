@@ -142,6 +142,7 @@ class MDEdit(View):
     template = 'idgo_admin/mdedit.html'
     namespace = 'idgo_admin:mdedit'
     config_path = 'mdedit/config/'
+    html_path = 'mdedit/html/'
     locales = MDEDIT_LOCALES
     geonetwork_url = GEONETWORK_URL
     static_url = STATIC_URL
@@ -178,7 +179,7 @@ class MDEdit(View):
                     'values': {'fr': 'Edition'},
                     'locales': {'fr': join_url('views/edit/tpl-edit_fr.json')}
                     }, {
-                    'path': join_url('views/html/tpl-view.html'),
+                    'path': join_url('tpl-view.html', path=self.html_path),
                     'values': {'fr': 'Vue'},
                     'locales': {'fr': join_url('views/view/tpl-view_fr.json')}
                     }]},
