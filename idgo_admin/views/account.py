@@ -10,8 +10,8 @@ from django.db import IntegrityError
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
-from django.http import HttpResponseRedirect
 from django.http import HttpResponseForbidden
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
@@ -19,8 +19,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.exceptions import ExceptionsHandler
+from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.account import ProfileForm
 from idgo_admin.forms.account import SignInForm
 from idgo_admin.forms.account import UserDeleteForm
@@ -33,9 +33,9 @@ from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
+from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
-from idgo_admin.shortcuts import on_profile_http404
 from mama_cas.compat import is_authenticated as mama_is_authenticated
 from mama_cas.models import ProxyGrantingTicket as MamaProxyGrantingTicket
 from mama_cas.models import ProxyTicket as MamaProxyTicket
@@ -45,6 +45,7 @@ from mama_cas.utils import to_bool as mama_to_bool
 from mama_cas.views import LoginView as MamaLoginView
 from mama_cas.views import LogoutView as MamaLogoutView
 import uuid
+
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
@@ -427,7 +428,7 @@ def reset_password(request, key):
         reset_action = AccountActions.objects.get(
             key=key, action="reset_password",
             profile__user__username=form.cleaned_data.get('username'))
-    except:
+    except Exception:
         message = ("Une erreur s'est produite lors de la réinitilaisation "
                    "de votre mot de pass")
 

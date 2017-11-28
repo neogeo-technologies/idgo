@@ -1,4 +1,6 @@
 from django.conf.urls import url
+from django.conf.urls.static import static
+from django.conf import settings
 from idgo_admin.views.account import AccountManager
 from idgo_admin.views.account import delete_account
 from idgo_admin.views.account import forgotten_password
@@ -26,8 +28,7 @@ from idgo_admin.views.organization_handler import referent_request
 from idgo_admin.views.organization_handler import Referents
 from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
-from django.conf import settings
-from django.conf.urls.static import static
+
 
 urlpatterns = [
     url('^$', datasets, name='datasets'),
@@ -58,4 +59,5 @@ urlpatterns = [
     url('^organizations/(?P<process>(update_organization))/?$', AccountManager.as_view(), name='my_organization'),
     url('^organizations/?$', OrganisationDisplay.as_view(), name='organizations'),
     url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
-    url('^deleteaccount/?$', delete_account, name='deleteAccount')] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    url('^deleteaccount/?$', delete_account, name='deleteAccount')
+    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

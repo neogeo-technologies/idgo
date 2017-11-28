@@ -19,6 +19,7 @@ from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
 from taggit.admin import Tag
 
+
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
 geo_admin.GeoModelAdmin.default_zoom = 14

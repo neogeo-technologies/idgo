@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django import forms
-from django.utils.text import slugify
+# from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
