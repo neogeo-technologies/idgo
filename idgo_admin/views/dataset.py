@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
-from django.shortcuts import render
+# from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -93,7 +93,6 @@ class DatasetManager(View):
                        (o.pk, o.license.pk) for o
                        in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
                    'resources': json.dumps(resources),
-                   'is_editor': instance.editor == user,
                    'tags': json.dumps(ckan.get_tags())}
 
         return render_with_info_profile(request, self.template, context=context)
@@ -145,7 +144,7 @@ class DatasetManager(View):
                         o.get_restricted_level_display(),
                         str(o.ckan_id)
                         ) for o in Resource.objects.filter(dataset=instance)])})
-                return render(request, self.template, context)
+                return render_with_info_profile(request, self.template, context)
 
             try:
                 with transaction.atomic():
@@ -163,7 +162,7 @@ class DatasetManager(View):
 
         if not form.is_valid():
             context.update({'form': form})
-            return render(request, self.template, context)
+            return render_with_info_profile(request, self.template, context)
 
         with transaction.atomic():
             instance = form.handle_me(request)
@@ -211,7 +210,7 @@ class DatasetManager(View):
 
         Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
 
-        # return render(request, 'idgo_admin/response.html',
+        # return render_with_info_profile(request, 'idgo_admin/response.html',
         #               context={'message': message}, status=status)
 
         return HttpResponse(status=status)
@@ -268,7 +267,6 @@ class ReferentDatasetManager(View):
                    'dataset_name': three_suspension_points(dataset_name),
                    'dataset_id': dataset_id,
                    'dataset_ckan_slug': dataset_ckan_slug,
-                   'is_editor': instance.editor == user,
                    'licenses': dict(
                        (o.pk, o.license.pk) for o
                        in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
@@ -324,7 +322,7 @@ class ReferentDatasetManager(View):
                         o.get_restricted_level_display(),
                         str(o.ckan_id)
                         ) for o in Resource.objects.filter(dataset=instance)])})
-                return render(request, self.template, context)
+                return render_with_info_profile(request, self.template, context)
 
             with transaction.atomic():
                 form.handle_me(request, id=id)
@@ -339,7 +337,7 @@ class ReferentDatasetManager(View):
 
         if not form.is_valid():
             context.update({'form': form})
-            return render(request, self.template, context)
+            return render_with_info_profile(request, self.template, context)
 
         with transaction.atomic():
             instance = form.handle_me(request)

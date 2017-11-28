@@ -157,16 +157,23 @@ class DatasetForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
 
         self.include_args = kwargs.pop('include', {})
+
         super().__init__(*args, **kwargs)
 
         # if Profile.objects.get(user=self.include_args['user']).is_referent:
         #     self.fields['organisation'].queryset = \
         #         Organisation.objects.all()
 
-        self.fields['organisation'].queryset = \
-            Organisation.objects.filter(
-                pk__in=[o.pk for o in LiaisonsContributeurs.get_contribs(
-                        profile=Profile.objects.get(user=self.include_args['user']))])
+        instance = kwargs.get('instance')
+        if instance and not instance.editor == self.include_args.get('user'):
+            self.fields['organisation'].queryset = \
+                Organisation.objects.filter(pk=instance.organisation.pk)
+        else:
+            self.fields['organisation'].queryset = \
+                Organisation.objects.filter(
+                    pk__in=[o.pk for o in LiaisonsContributeurs.get_contribs(
+                            profile=Profile.objects.get(
+                                user=self.include_args['user']))])
 
     def clean(self):
 
