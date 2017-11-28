@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.auth.models import Group
@@ -75,8 +76,19 @@ class DatasetAdmin(admin.ModelAdmin):
 admin.site.register(Dataset, DatasetAdmin)
 
 
+class CustomLiaisonsReferentsModelForm(forms.ModelForm):
+
+    model = LiaisonsReferents
+    fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(CustomLiaisonsReferentsModelForm, self).__init__(*args, **kwargs)
+        self.fields['organisation'].queryset = Organisation.objects.filter(is_active=True)
+
+
 class LiaisonReferentsInline(admin.TabularInline):
     model = LiaisonsReferents
+    form = CustomLiaisonsReferentsModelForm
     extra = 0
     verbose_name_plural = "Organisations pour lesquelles l'utilisateur est référent"
     verbose_name = "Organisation"
