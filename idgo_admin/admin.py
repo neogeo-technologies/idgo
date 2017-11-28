@@ -82,7 +82,6 @@ class LiaisonReferentsInline(admin.TabularInline):
 
 
 class ProfileAdmin(admin.ModelAdmin):
-
     inlines = (LiaisonReferentsInline,)
     models = Profile
     list_display = ('username', 'first_name', 'last_name', 'is_admin')

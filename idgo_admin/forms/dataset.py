@@ -159,6 +159,10 @@ class DatasetForm(forms.ModelForm):
         self.include_args = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
 
+        # if Profile.objects.get(user=self.include_args['user']).is_referent:
+        #     self.fields['organisation'].queryset = \
+        #         Organisation.objects.all()
+
         self.fields['organisation'].queryset = \
             Organisation.objects.filter(
                 pk__in=[o.pk for o in LiaisonsContributeurs.get_contribs(

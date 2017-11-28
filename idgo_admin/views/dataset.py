@@ -93,6 +93,7 @@ class DatasetManager(View):
                        (o.pk, o.license.pk) for o
                        in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
                    'resources': json.dumps(resources),
+                   'is_editor': instance.editor == user,
                    'tags': json.dumps(ckan.get_tags())}
 
         return render_with_info_profile(request, self.template, context=context)
@@ -267,6 +268,7 @@ class ReferentDatasetManager(View):
                    'dataset_name': three_suspension_points(dataset_name),
                    'dataset_id': dataset_id,
                    'dataset_ckan_slug': dataset_ckan_slug,
+                   'is_editor': instance.editor == user,
                    'licenses': dict(
                        (o.pk, o.license.pk) for o
                        in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
