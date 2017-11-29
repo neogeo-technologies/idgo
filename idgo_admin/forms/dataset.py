@@ -29,6 +29,70 @@ _today = timezone.now().date()
 _today_str = _today.strftime('%d/%m/%Y')
 
 
+def publish_dataset_to_ckan(user, dataset, created=False):
+
+    ckan_params = {
+        'author': dataset.editor.username,
+        'author_email': dataset.editor.email,
+        'datatype': [obj.ckan_slug for obj in dataset.data_type.all()],
+        'dataset_creation_date':
+            str(dataset.date_creation) if dataset.date_creation else '',
+        'dataset_modification_date':
+            str(dataset.date_modification) if dataset.date_modification else '',
+        'dataset_publication_date':
+            str(dataset.date_publication) if dataset.date_publication else '',
+        'groups': [],
+        'geocover': dataset.geocover,
+        'last_modified':
+            str(dataset.date_modification) if dataset.date_modification else '',
+        'license_id': (
+            dataset.license.ckan_id
+            in [license['id'] for license in ckan.get_licenses()]
+            ) and dataset.license.ckan_id or '',
+        'maintainer': dataset.editor.username,
+        'maintainer_email': dataset.editor.email,
+        'notes': dataset.description,
+        'owner_org': dataset.organisation.ckan_slug,
+        'private': not dataset.published,
+        'state': 'active',
+        'support': dataset.support and dataset.support.ckan_slug,
+        'tags': [{'name': keyword.name} for keyword in dataset.keywords.all()],
+        'title': dataset.name,
+        'update_frequency': dataset.update_freq,
+        'url': ''}
+
+    if dataset.geonet_id:
+        ckan_params['inspire_url'] = \
+            '{0}srv/fre/catalog.search#/metadata/{1}'.format(
+                GEONETWORK_URL, dataset.geonet_id or '')
+
+    for category in dataset.categories.all():
+        ckan.add_user_to_group(dataset.editor.username, category.ckan_slug)
+        ckan_params['groups'].append({'name': category.ckan_slug})
+
+    # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+    # de données existant mais administrateur de données,
+    # alors l'admin Ckan édite le jeu de données..
+    profile = Profile.objects.get(user=user)
+    is_admin = profile.is_admin
+    is_referent = LiaisonsReferents.objects.filter(
+        profile=profile, organisation=dataset.organisation).exists()
+    is_editor = (user == dataset.editor) if created else True
+    if is_admin and not is_referent and not is_editor:
+        ckan_user = ckan_me(ckan.apikey)
+    else:
+        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+    try:
+        ckan_dataset = ckan_user.publish_dataset(
+            dataset.ckan_slug, id=str(dataset.ckan_id), **ckan_params)
+    except Exception as e:
+        raise e
+    else:
+        return UUID(ckan_dataset['id'])
+    finally:
+        ckan_user.close()
+
+
 class DatasetForm(forms.ModelForm):
 
     name = forms.CharField(
@@ -242,9 +306,6 @@ class DatasetForm(forms.ModelForm):
             created = True
             dataset = Dataset.objects.create(**params)
 
-        if not ckan.get_organization(dataset.organisation.ckan_slug):
-            create_organization_in_ckan(dataset.organisation)
-
         dataset.categories.set(data.get('categories', []), clear=True)
 
         if data.get('keywords'):
@@ -252,73 +313,20 @@ class DatasetForm(forms.ModelForm):
             for tag in data['keywords']:
                 dataset.keywords.add(tag)
 
-        tags = [{'name': name} for name in data['keywords']]
-
         dataset.data_type.set(data.get('data_type', []), clear=True)
 
-        license_id = (
-            dataset.license.ckan_id
-            in [license['id'] for license in ckan.get_licenses()]
-            ) and dataset.license.ckan_id or ''
+        if not ckan.get_organization(dataset.organisation.ckan_slug):
+            # Crée l'organisation une première fois
+            create_organization_in_ckan(dataset.organisation)
 
-        ckan_params = {
-            'author': user.username,
-            'author_email': user.email,
-            'datatype': [obj.ckan_slug for obj in data.get('data_type', [])],
-            'dataset_creation_date':
-                str(dataset.date_creation) if dataset.date_creation else '',
-            'dataset_modification_date':
-                str(dataset.date_modification) if dataset.date_modification else '',
-            'dataset_publication_date':
-                str(dataset.date_publication) if dataset.date_publication else '',
-            'groups': [],
-            'geocover': dataset.geocover,
-            'last_modified':
-                str(dataset.date_modification) if dataset.date_modification else '',
-            'license_id': license_id,
-            'maintainer': user.username,
-            'maintainer_email': user.email,
-            'notes': dataset.description,
-            'owner_org': dataset.organisation.ckan_slug,
-            'private': not dataset.published,
-            'state': 'active',
-            'support': params.get('support') and params.get('support').ckan_slug,
-            'tags': tags,
-            'title': dataset.name,
-            'update_frequency': dataset.update_freq,
-            'url': ''}
-
-        if dataset.geonet_id:
-            ckan_params['inspire_url'] = \
-                '{0}srv/fre/catalog.search#/metadata/{1}'.format(
-                    GEONETWORK_URL, dataset.geonet_id or '')
-
-        for category in Category.objects.filter(pk__in=data['categories']):
-            ckan.add_user_to_group(user.username, category.ckan_slug)
-            ckan_params['groups'].append({'name': category.ckan_slug})
-
-        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-        # de données existant mais administrateur de données,
-        # alors l'admin Ckan édite le jeu de données..
-        is_admin = profile.is_admin
-        is_referent = LiaisonsReferents.objects.filter(
-            profile=profile, organisation=data['organisation']).exists()
-        is_editor = (user == Dataset.objects.get(id=id).editor) if id else True
-        if is_admin and not is_referent and not is_editor:
-            ckan_user = ckan_me(ckan.apikey)
-        else:
-            ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
-            ckan_dataset = ckan_user.publish_dataset(
-                dataset.ckan_slug, id=str(dataset.ckan_id), **ckan_params)
+            ckan_uuid = publish_dataset_to_ckan(user, dataset, created=created)
         except Exception as e:
             if created:
                 dataset.delete()
             raise e
         else:
-            dataset.ckan_id = UUID(ckan_dataset['id'])
+            dataset.ckan_id = ckan_uuid
             dataset.save()
-        finally:
-            ckan_user.close()
 
         return dataset

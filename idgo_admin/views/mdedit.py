@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
+from idgo_admin.forms.dataset import publish_dataset_to_ckan
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
@@ -233,16 +234,31 @@ class MDEdit(View):
         record = ET.tostring(
             root, encoding='utf-8', method='xml', short_empty_elements=True)
 
+        # Ça marche mais c'est moche et illisible...
+        # TODO: faire du code plus beau ; gérer les exceptions mieux que ça.
         if not geonet.get_record(id):
-            geonet.create_record(id, record)
-            dataset.geonet_id = UUID(id)
-            dataset.save()
+            try:
+                geonet.create_record(id, record)
+            except Exception:
+                messages.error(request, 'La création de la fiche de métadonnées a échoué.')
+            else:
+                geonet.publish(id)  # Toujours publier la fiche
+                dataset.geonet_id = UUID(id)
+                dataset.save()
+                try:
+                    publish_dataset_to_ckan(user, dataset)
+                except Exception:
+                    messages.error(request, 'Une erreur de synchronisation avec CKan est survenue.')
+                else:
+                    messages.success(
+                        request, 'La fiche de metadonnées a été créée avec succès.')
         else:
-            geonet.update_record(id, record)
-
-        geonet.publish(id)  # Toujours publier la fiche
-
-        messages.success(
-            request, 'La fiche de metadonnées a été créée avec succès.')
+            try:
+                geonet.update_record(id, record)
+            except Exception:
+                messages.error(request, 'La mise à jour de la fiche de métadonnées a échoué.')
+            else:
+                messages.success(
+                    request, 'La fiche de metadonnées a été créée avec succès.')
 
         return HttpResponse()

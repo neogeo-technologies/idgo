@@ -60,9 +60,13 @@ def remove_dir(directory):
 def download(url, media_root, **kwargs):
 
     def get_content_header_param(txt, param):
-        found = re.search('{0}="([^;"\n\r\t\0\s\X\R\v]+)"'.format(param), txt)
-        if found:
-            return found.groups()[0]
+        try:
+            found = re.search('{0}="([^;"\n\r\t\0\s\X\R\v]+)"'.format(param), txt)
+        except Exception:
+            return None
+        else:
+            if found:
+                return found.groups()[0]
 
     max_size = kwargs.get('max_size')
 
