@@ -82,7 +82,7 @@ def download(url, media_root, **kwargs):
         raise error
     r.raise_for_status()
 
-    if r.headers.get('Content-Length', 0) > max_size:
+    if int(r.headers.get('Content-Length', 0)) > max_size:
         raise SizeLimitExceededError(max_size=max_size)
 
     directory = create_dir(media_root)
