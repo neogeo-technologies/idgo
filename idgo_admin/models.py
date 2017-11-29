@@ -96,10 +96,10 @@ class Resource(models.Model):
     description = models.TextField('Description', blank=True, null=True)
 
     referenced_url = models.URLField(
-        'Référencer une URL', blank=True, null=True)
+        'Référencer une URL', max_length=2000, blank=True, null=True)
 
     dl_url = models.URLField(
-        'Télécharger depuis une URL', blank=True, null=True)
+        'Télécharger depuis une URL', max_length=2000, blank=True, null=True)
 
     up_file = models.FileField(
         'Téléverser un ou plusieurs fichiers',

@@ -272,6 +272,7 @@ class DatasetForm(forms.ModelForm):
                 if not re.match(regex, w):
                     self.add_error('keywords', "Les mots-clés ne peuvent pas contenir de caractères spéciaux. ")
                     raise ValidationError('KeywordsError')
+
         return self.cleaned_data
 
     def handle_me(self, request, id=None):

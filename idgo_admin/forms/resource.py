@@ -15,7 +15,8 @@ from idgo_admin.utils import download
 from idgo_admin.utils import readable_file_size
 import json
 from pathlib import Path
-
+from urllib.parse import urlparse
+from urllib.parse import unquote
 
 _today = timezone.now().date()
 
