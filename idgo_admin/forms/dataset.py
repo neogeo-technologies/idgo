@@ -10,6 +10,7 @@ from idgo_admin.models import create_organization_in_ckan
 from idgo_admin.models import Dataset
 from idgo_admin.models import DataType
 from idgo_admin.models import LiaisonsContributeurs
+from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
@@ -296,7 +297,17 @@ class DatasetForm(forms.ModelForm):
             ckan.add_user_to_group(user.username, category.ckan_slug)
             ckan_params['groups'].append({'name': category.ckan_slug})
 
-        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+        # de données existant mais administrateur de données,
+        # alors l'admin Ckan édite le jeu de données..
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation=data['organisation']).exists()
+        is_editor = (user == Dataset.objects.get(id=id).editor) if id else True
+        if is_admin and not is_referent and not is_editor:
+            ckan_user = ckan_me(ckan.apikey)
+        else:
+            ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
             ckan_dataset = ckan_user.publish_dataset(
                 dataset.ckan_slug, id=str(dataset.ckan_id), **ckan_params)

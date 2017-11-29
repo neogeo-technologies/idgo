@@ -158,8 +158,10 @@ class CkanUserHandler(object):
 
 class CkanManagerHandler(metaclass=Singleton):
 
+    apikey = CKAN_API_KEY
+
     def __init__(self):
-        self.remote = RemoteCKAN(CKAN_URL, apikey=CKAN_API_KEY)
+        self.remote = RemoteCKAN(CKAN_URL, apikey=self.apikey)
 
     @timeout
     def call_action(self, action, **kwargs):
