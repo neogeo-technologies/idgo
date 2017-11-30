@@ -421,8 +421,8 @@ def datasets(request, *args, **kwargs):
 def all_datasets(request, *args, **kwargs):
 
     user, profile = user_and_profile(request)
-
-    if not profile.is_referent() and not profile.is_admin:
+    roles = profile.get_roles()
+    if not roles["is_referent"] and not roles["is_admin"]:
         raise Http404
 
     datasets = [(

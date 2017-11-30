@@ -503,7 +503,7 @@ class ReferentAccountManager(View):
             organizations[str(orga.name)] = {'id': orga.id}
             organizations[str(orga.name)]["members"] = [{
                 "profile_id": p.pk,
-                "is_referent": p.is_referent(orga) and "true" or "false",
+                "is_referent": p.get_roles(organisation=orga)["is_referent"] and "true" or "false",
                 "first_name": p.user.first_name,
                 "last_name": p.user.last_name,
                 "username": p.user.username,
@@ -512,7 +512,7 @@ class ReferentAccountManager(View):
 
             organizations[str(orga.name)]["contributors"] = [{
                 "profile_id": lc.profile.pk,
-                "is_referent": lc.profile.is_referent(orga) and "true" or "false",
+                "is_referent": lc.profile.get_roles(organisation=orga)["is_referent"] and "true" or "false",
                 "first_name": lc.profile.user.first_name,
                 "last_name": lc.profile.user.last_name,
                 "username": lc.profile.user.username,
@@ -534,7 +534,7 @@ class ReferentAccountManager(View):
 
         profile = get_object_or_404(Profile, user__username=username)
         organisation = get_object_or_404(Organisation, id=organization_id)
-        if profile.is_referent(organisation):
+        if profile.get_roles(organisation=organisation)["is_referent"]:
             return HttpResponseForbidden()
 
         if target == 'members':
