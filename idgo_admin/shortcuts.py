@@ -75,15 +75,16 @@ def get_object_or_404_extended(MyModel, user, include):
     instance = get_object_or_404(MyModel, **include)
 
     i_am_resource = (MyModel.__name__ == Resource.__name__)
+    dataset = instance.dataset if i_am_resource else instance
 
-    is_referent = instance.dataset.is_referent(profile) if i_am_resource else instance.is_referent(profile)
-    is_contributor = instance.dataset.is_contributor(profile) if i_am_resource else instance.is_contributor(profile)
+    is_referent = dataset.is_referent(profile)
+    is_contributor = dataset.is_contributor(profile)
+    is_editor = dataset.editor == profile.user
 
     if profile.is_admin or is_referent:
         res = instance
-    if is_contributor and not profile.is_admin and not is_referent:
-        dataset = instance.dataset if i_am_resource else instance
-        res = instance if profile.user == dataset.editor else None
+    if is_contributor and is_editor:
+        res = instance
 
     if not res:
         raise Http404('No %s matches the given query.' % MyModel.__name__)
