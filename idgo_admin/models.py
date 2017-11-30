@@ -274,7 +274,7 @@ class Organisation(models.Model):
     #     Status, blank=True, null=True, on_delete=models.CASCADE)
 
     is_active = models.BooleanField(
-        "Création validée par un administrateur", default=False)
+        "Organisation active", default=False)
 
     def __str__(self):
         return self.name
