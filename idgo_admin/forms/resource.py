@@ -7,6 +7,7 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import SizeLimitExceededError
+from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
@@ -16,7 +17,9 @@ from idgo_admin.utils import readable_file_size
 import json
 from pathlib import Path
 
+
 _today = timezone.now().date()
+
 
 try:
     DOWNLOAD_SIZE_LIMIT = settings.DOWNLOAD_SIZE_LIMIT
@@ -147,8 +150,6 @@ class ResourceForm(forms.ModelForm):
             created = True
             resource = Resource.objects.create(**params)
 
-        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
-
         ckan_params = {
             'name': resource.name,
             'description': resource.description,
@@ -219,16 +220,26 @@ class ResourceForm(forms.ModelForm):
             ckan_params['mimetype'] = uploaded_file.content_type
             ckan_params['resource_type'] = uploaded_file.name
 
+        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+        # de données existant mais administrateur de données,
+        # alors l'admin Ckan édite le jeu de données..
+        # TODO: Factoriser avec form/dataset.py
+        profile = Profile.objects.get(user=user)
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation=dataset.organisation).exists()
+        is_editor = (user == dataset.editor) if created else True
+        if is_admin and not is_referent and not is_editor:
+            ckan_user = ckan_me(ckan.apikey)
+        else:
+            ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
             ckan_user.publish_resource(str(dataset.ckan_id), **ckan_params)
         except Exception as e:
             if created:
                 resource.delete()
-            # else:
-            #     resource.sync_in_ckan = False
             raise e
         else:
-            # resource.sync_in_ckan = True
             resource.last_update = _today
             resource.save()
         finally:
