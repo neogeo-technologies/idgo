@@ -331,33 +331,33 @@ class Profile(models.Model):
         return Dataset.objects.filter(
             editor=self.user, organisation=organisation).count()
 
-    def is_referent(self, organisation=None):
-        res = False
-        if self.is_admin:
-            res = True
-        elif organisation:
-            res = LiaisonsReferents.objects.filter(
-                profile=self, organisation=organisation).exists()
-        else:
-            res = LiaisonsReferents.objects.filter(
-                profile=self, validated_on__isnull=False).exists()
-        return res
-
-    # def get_roles(self, organisation=None, dataset=None):
-    #
-    #     if organisation:
-    #         is_referent = LiaisonsReferents.objects.filter(
-    #             profile=self,
-    #             organisation=organisation,
-    #             validated_on__isnull=False).exists()
+    # def is_referent(self, organisation=None):
+    #     res = False
+    #     if self.is_admin:
+    #         res = True
+    #     elif organisation:
+    #         res = LiaisonsReferents.objects.filter(
+    #             profile=self, organisation=organisation).exists()
     #     else:
-    #         is_referent = LiaisonsReferents.objects.filter(
-    #             profile=self,
-    #             validated_on__isnull=False).exists()
-    #
-    #     return {"is_admin": self.is_admin,
-    #             "is_referent": is_referent,
-    #             "is_editor": (self.user == dataset.editor) if dataset else False}
+    #         res = LiaisonsReferents.objects.filter(
+    #             profile=self, validated_on__isnull=False).exists()
+    #     return res
+
+    def get_roles(self, organisation=None, dataset=None):
+
+        if organisation:
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=self,
+                organisation=organisation,
+                validated_on__isnull=False).exists()
+        else:
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=self,
+                validated_on__isnull=False).exists()
+
+        return {"is_admin": self.is_admin,
+                "is_referent": is_referent,
+                "is_editor": (self.user == dataset.editor) if dataset else False}
 
     # @classmethod
     # def active_users(cls):
