@@ -450,7 +450,7 @@ def export(request, *args, **kwargs):
     from django.db.models import F
     user, profile = user_and_profile(request)
 
-    if profile.is_referent() and request.GET.get('mode') == 'all':
+    if profile.get_roles()["is_referent"] and request.GET.get('mode') == 'all':
         datasets = Dataset.get_subordinated_datasets(profile)
     else:
         datasets = Dataset.objects.filter(editor=user)
