@@ -164,13 +164,19 @@ admin.site.register(User, UserAdmin)
 class OrganisationAdmin(geo_admin.OSMGeoAdmin):
     list_display = ('name', 'organisation_type')
     list_filter = ('organisation_type',)
-    readonly_fields = ('name', 'ckan_slug',)
+
+    # Permet d'empecher la modification du nom et du slug d'une organisation aprés sa création
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ['name', 'ckan_slug']
+        else:
+            return ['ckan_slug']
 
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def has_add_permission(self, request, obj=None):
-        return False
+    # def has_add_permission(self, request, obj=None):
+    #     return False
 
     def get_actions(self, request):
         actions = super(OrganisationAdmin, self).get_actions(request)
