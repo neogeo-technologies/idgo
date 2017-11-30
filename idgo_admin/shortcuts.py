@@ -1,4 +1,3 @@
-from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
@@ -10,6 +9,7 @@ from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
+from django.core.exceptions import PermissionDenied
 
 
 def on_profile_http404():
@@ -87,7 +87,7 @@ def get_object_or_404_extended(MyModel, user, include):
         res = instance
 
     if not res:
-        raise Http404('No %s matches the given query.' % MyModel.__name__)
+        raise PermissionDenied
     return res
 
 
