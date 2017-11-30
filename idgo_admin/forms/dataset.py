@@ -29,7 +29,7 @@ _today = timezone.now().date()
 _today_str = _today.strftime('%d/%m/%Y')
 
 
-def publish_dataset_to_ckan(user, dataset, created=False):
+def publish_dataset_to_ckan(user, dataset):
 
     ckan_params = {
         'author': dataset.editor.username,
@@ -77,7 +77,7 @@ def publish_dataset_to_ckan(user, dataset, created=False):
     is_admin = profile.is_admin
     is_referent = LiaisonsReferents.objects.filter(
         profile=profile, organisation=dataset.organisation).exists()
-    is_editor = (user == dataset.editor) if created else True
+    is_editor = (user == dataset.editor)
     if is_admin and not is_referent and not is_editor:
         ckan_user = ckan_me(ckan.apikey)
     else:
@@ -321,7 +321,7 @@ class DatasetForm(forms.ModelForm):
             create_organization_in_ckan(dataset.organisation)
 
         try:
-            ckan_uuid = publish_dataset_to_ckan(user, dataset, created=created)
+            ckan_uuid = publish_dataset_to_ckan(user, dataset)
         except Exception as e:
             if created:
                 dataset.delete()

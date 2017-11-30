@@ -228,7 +228,7 @@ class ResourceForm(forms.ModelForm):
         is_admin = profile.is_admin
         is_referent = LiaisonsReferents.objects.filter(
             profile=profile, organisation=dataset.organisation).exists()
-        is_editor = (user == dataset.editor) if created else True
+        is_editor = (user == dataset.editor)
         if is_admin and not is_referent and not is_editor:
             ckan_user = ckan_me(ckan.apikey)
         else:
