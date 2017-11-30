@@ -23,16 +23,21 @@ if settings.STATIC_ROOT:
 else:
     locales_path = os.path.join(settings.BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')
 
-with open(locales_path, 'r', encoding='utf-8') as f:
-    MDEDIT_LOCALES = json.loads(f.read())
+try:
+    with open(locales_path, 'r', encoding='utf-8') as f:
+        MDEDIT_LOCALES = json.loads(f.read())
 
-    AUTHORIZED_ISO_TOPIC = (
-        (iso_topic['id'], iso_topic['value']) for iso_topic
-        in MDEDIT_LOCALES['codelists']['MD_TopicCategoryCode'])
+        AUTHORIZED_ISO_TOPIC = (
+            (iso_topic['id'], iso_topic['value']) for iso_topic
+            in MDEDIT_LOCALES['codelists']['MD_TopicCategoryCode'])
 
-    AUTHORIZED_PROTOCOL = (
-        (protocol['id'], protocol['value']) for protocol
-        in MDEDIT_LOCALES['codelists']['MD_LinkageProtocolCode'])
+        AUTHORIZED_PROTOCOL = (
+            (protocol['id'], protocol['value']) for protocol
+            in MDEDIT_LOCALES['codelists']['MD_LinkageProtocolCode'])
+except Exception:
+    MDEDIT_LOCALES = ''
+    AUTHORIZED_ISO_TOPIC = ''
+    AUTHORIZED_PROTOCOL = ''
 
 
 class ResourceFormats(models.Model):
