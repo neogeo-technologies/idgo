@@ -67,7 +67,7 @@ def publish_dataset_to_ckan(user, dataset):
                 GEONETWORK_URL, dataset.geonet_id or '')
 
     for category in dataset.categories.all():
-        ckan.add_user_to_group(dataset.editor.username, category.ckan_slug)
+        ckan.add_user_to_group(user.username, category.ckan_slug)
         ckan_params['groups'].append({'name': category.ckan_slug})
 
     # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
