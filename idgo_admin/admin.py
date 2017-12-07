@@ -143,7 +143,7 @@ class ProfileAdmin(admin.ModelAdmin):
     models = Profile
     list_display = ('full_name', 'username', 'is_admin')
     search_fields = ('user__username', 'user__last_name')
-    ordering = ('user__last_name',)
+    ordering = ('user__last_name', 'user__first_name')
 
     def first_name(self, obj):
         return str(obj.user.first_name)
