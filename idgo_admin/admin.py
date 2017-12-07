@@ -25,14 +25,38 @@ geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
 geo_admin.GeoModelAdmin.default_zoom = 14
 
-
-admin.site.register(Jurisdiction)
-admin.site.register(License)
-admin.site.register(OrganisationType)
-admin.site.register(ResourceFormats)
 admin.site.unregister(Group)
 admin.site.unregister(User)
 admin.site.unregister(Tag)
+
+
+class JurisdictionAdmin(admin.ModelAdmin):
+    ordering = ("name", )
+    search_fields = ('name', 'commune')
+
+
+admin.site.register(Jurisdiction, JurisdictionAdmin)
+
+
+class LicensenAdmin(admin.ModelAdmin):
+    ordering = ("title", )
+
+
+admin.site.register(License, LicensenAdmin)
+
+
+class OrganisationTypeAdmin(admin.ModelAdmin):
+    ordering = ("name", )
+
+
+admin.site.register(OrganisationType, OrganisationTypeAdmin)
+
+
+class ResourceFormatsAdmin(admin.ModelAdmin):
+    ordering = ("extension", )
+
+
+admin.site.register(ResourceFormats, ResourceFormatsAdmin)
 
 
 class ResourceInline(admin.StackedInline):
@@ -57,6 +81,7 @@ class ResourceInline(admin.StackedInline):
 class DatasetAdmin(admin.ModelAdmin):
     list_display = ('name', 'full_name', 'organisation', 'nb_resources')
     inlines = [ResourceInline]
+    ordering = ('name', )
 
     def nb_resources(self, obj):
         return Resource.objects.filter(dataset=obj).count()
@@ -116,7 +141,7 @@ class LiaisonReferentsInline(admin.TabularInline):
 class ProfileAdmin(admin.ModelAdmin):
     inlines = (LiaisonReferentsInline,)
     models = Profile
-    list_display = ('username', 'first_name', 'last_name', 'is_admin')
+    list_display = ('full_name', 'username', 'is_admin')
     search_fields = ('user__username', 'user__last_name')
     ordering = ('user__last_name',)
 
@@ -128,6 +153,9 @@ class ProfileAdmin(admin.ModelAdmin):
 
     def username(self, obj):
         return str(obj.user.username)
+
+    def full_name(self, obj):
+        return " ".join((obj.user.last_name.upper(), obj.user.first_name.capitalize()))
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -183,6 +211,7 @@ admin.site.register(User, UserAdmin)
 class OrganisationAdmin(geo_admin.OSMGeoAdmin):
     list_display = ('name', 'organisation_type')
     list_filter = ('organisation_type',)
+    ordering = ('name',)
 
     # Permet d'empecher la modification du nom et du slug d'une organisation aprés sa création
     def get_readonly_fields(self, request, obj=None):
@@ -215,7 +244,7 @@ admin.site.register(Organisation, OrganisationAdmin)
 
 class MailAdmin(admin.ModelAdmin):
     model = Mail
-
+    ordering = ('subject',)
     # Vue dev:
     # list_display = ('template_name', 'subject', )
     # fieldsets = (
@@ -250,6 +279,7 @@ class CategoryAdmin(admin.ModelAdmin):
     model = Category
     actions = ['sync_ckan']
     readonly_fields = ('ckan_slug',)
+    ordering = ('name',)
 
     def sync_ckan(self, request, queryset):
         ckan = CkanManagerHandler()
