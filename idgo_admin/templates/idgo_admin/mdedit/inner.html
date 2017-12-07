@@ -13,7 +13,7 @@
 			<div class="buttons-on-the-right-side">
 				<span ng-show="vm.data.view == 1" ng-hide="vm.data.view == 3">
 					<a role="button" class="btn btn-default" target="blank" href="{{ doc_url }}">
-						Voir l'aide en ligne <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+						<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
 					</a>
 					<a href="#" role="button" class="btn btn-default" ng-init="vm.showAllFields=False" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="!vm.showAllFields" uib-tooltip="Permuter vers l'affichage complet" tooltip-trigger="mouseenter" tooltip-placement="left">
 						<span class="glyphicon glyphicon-th"></span>
