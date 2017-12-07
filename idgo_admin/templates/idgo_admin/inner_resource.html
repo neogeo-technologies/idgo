@@ -99,8 +99,11 @@
 		</div>
 	</div>
 	<div class="buttons-on-the-right-side">
-		<button type="submit" name="save" class="btn btn-default">Enregistrer</button>
 		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">Annuler</a>
+		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
+		{% if resource_ckan_id %}
+		<a class="btn btn-default" target="blank" href="{{ ckan_url }}/dataset/{{ dataset_ckan_slug }}/resource/{{ resource_ckan_id }}">Ouvrir dans CKAN</a>
+		{% endif %}
 	</div>
 </form>
 

@@ -45,7 +45,9 @@ class ResourceManager(View):
 
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
+                   'dataset_ckan_slug': dataset.ckan_slug,
                    'resource_name': 'Nouvelle ressource',
+                   'resource_ckan_id': None,
                    'form': Form()}
 
         id = request.GET.get('id')
@@ -63,6 +65,7 @@ class ResourceManager(View):
 
             context.update({
                 'resource_name': three_suspension_points(instance.name),
+                'resource_ckan_id': instance.ckan_id,
                 'mode': mode,
                 'form': Form(instance=instance)})
 
@@ -87,8 +90,10 @@ class ResourceManager(View):
 
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
+                   'dataset_ckan_slug': dataset.ckan_slug,
                    'mode': None,
-                   'resource_name': 'Nouvelle ressource'}
+                   'resource_name': 'Nouvelle ressource',
+                   'resource_ckan_id': None}
 
         id = request.POST.get('id', request.GET.get('id'))
         if id:

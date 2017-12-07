@@ -32,8 +32,6 @@ from idgo_admin.utils import three_suspension_points
 import json
 
 
-CKAN_URL = settings.CKAN_URL
-
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
@@ -84,8 +82,7 @@ class DatasetManager(View):
                 str(o.ckan_id)
                 ) for o in Resource.objects.filter(dataset=instance)]
 
-        context = {'ckan_url': CKAN_URL,
-                   'form': form,
+        context = {'form': form,
                    'dataset_name': three_suspension_points(dataset_name),
                    'dataset_id': dataset_id,
                    'dataset_ckan_slug': dataset_ckan_slug,
@@ -130,7 +127,6 @@ class DatasetManager(View):
 
             if not form.is_valid():
                 context.update({
-                    'ckan_url': CKAN_URL,
                     'form': form,
                     'dataset_name': three_suspension_points(instance.name),
                     'dataset_ckan_slug': instance.ckan_slug,
@@ -262,8 +258,7 @@ class ReferentDatasetManager(View):
                 str(o.ckan_id)
                 ) for o in Resource.objects.filter(dataset=instance)]
 
-        context = {'ckan_url': CKAN_URL,
-                   'form': form,
+        context = {'form': form,
                    'dataset_name': three_suspension_points(dataset_name),
                    'dataset_id': dataset_id,
                    'dataset_ckan_slug': dataset_ckan_slug,
@@ -308,7 +303,6 @@ class ReferentDatasetManager(View):
 
             if not form.is_valid():
                 context.update({
-                    'ckan_url': CKAN_URL,
                     'form': form,
                     'dataset_name': three_suspension_points(instance.name),
                     'dataset_ckan_slug': instance.ckan_slug,
@@ -410,8 +404,7 @@ def datasets(request, *args, **kwargs):
 
     return render_with_info_profile(
         request, 'idgo_admin/datasets.html', status=200,
-        context={'ckan_url': CKAN_URL,
-                 'datasets': json.dumps(datasets),
+        context={'datasets': json.dumps(datasets),
                  'datasets_count': len(datasets)})
 
 
@@ -440,7 +433,7 @@ def all_datasets(request, *args, **kwargs):
 
     return render_with_info_profile(
         request, 'idgo_admin/all_datasets.html', status=200,
-        context={'ckan_url': CKAN_URL, 'datasets': json.dumps(datasets)})
+        context={'datasets': json.dumps(datasets)})
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})

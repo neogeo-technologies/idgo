@@ -104,7 +104,7 @@ function runApp(configSrv, modelsSrv, viewsSrv, xmlSrv, AppDataSrv, BroadcastSrv
 $(function() {
 	$('#menu a[href="{% url "idgo_admin:datasets" %}"]').parent().addClass('active');
 
-	var $scope = angular.element('div[ng-controller="mdEditCtrl as vm"]').scope();
+	const $scope = angular.element('div[ng-controller="mdEditCtrl as vm"]').scope();
 
 	{% if record_xml %}
 	$scope.vm.record = '{{ record_xml | safe }}';

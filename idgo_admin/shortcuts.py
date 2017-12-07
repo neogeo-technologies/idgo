@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
@@ -9,7 +11,9 @@ from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
-from django.core.exceptions import PermissionDenied
+
+
+CKAN_URL = settings.CKAN_URL
 
 
 def on_profile_http404():
@@ -51,6 +55,7 @@ def render_with_info_profile(
             in LiaisonsReferents.get_pending(profile=profile)]
 
     context.update({
+        'ckan_url': CKAN_URL,
         'first_name': user.first_name,
         'last_name': user.last_name,
         'is_membership': profile.membership,
