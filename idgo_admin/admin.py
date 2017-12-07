@@ -145,12 +145,6 @@ class ProfileAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'user__last_name')
     ordering = ('user__last_name', 'user__first_name')
 
-    def first_name(self, obj):
-        return str(obj.user.first_name)
-
-    def last_name(self, obj):
-        return str(obj.user.last_name)
-
     def username(self, obj):
         return str(obj.user.username)
 
@@ -169,9 +163,8 @@ class ProfileAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
-    first_name.short_description = "Prénom"
-    last_name.short_description = "Nom"
     username.short_description = "Nom d'utilisateur"
+    full_name.short_description = "Nom et prénom"
 
 
 admin.site.register(Profile, ProfileAdmin)
@@ -190,7 +183,9 @@ class UserProfileInline(admin.StackedInline):
 
 class UserAdmin(AuthUserAdmin):
     inlines = [UserProfileInline]
-    ordering = ('last_name',)
+    list_display = ('full_name', 'username', 'is_superuser', 'is_active')
+    list_display_links = ('username', )
+    ordering = ('last_name', 'first_name')
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -203,6 +198,10 @@ class UserAdmin(AuthUserAdmin):
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
+
+    def full_name(self, obj):
+        return " ".join((obj.last_name.upper(), obj.first_name.capitalize()))
+    full_name.short_description = "Nom et prénom"
 
 
 admin.site.register(User, UserAdmin)

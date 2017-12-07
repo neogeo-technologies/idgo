@@ -789,6 +789,8 @@ class Category(models.Model):
     iso_topic = models.CharField('Thème ISO', max_length=100,
                                  choices=ISO_TOPIC_CHOICES,
                                  blank=True, null=True)
+    picto = models.ImageField(
+        'Pictogramme', upload_to="logo/", blank=True, null=True)
 
     def __str__(self):
         return self.name
