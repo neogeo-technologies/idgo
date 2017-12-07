@@ -157,6 +157,9 @@ GEONETWORK_URL = 'http://geonetwork'
 GEONETWORK_LOGIN = 'username'
 GEONETWORK_PASSWORD = 'password'
 
+READTHEDOC_URL = 'http://datasud.readthedocs.io/fr/latest/producteurs.html#comment-renseigner-les-metadonnees-sur-datasud'
+READTHEDOC_URL_INSPIRE = 'http://datasud.readthedocs.io/fr/latest/producteurs.html#comment-renseigner-les-metadonnees-inspire-sur-datasud'
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp-domaine.abc'
 EMAIL_HOST_USER = 'username@your-domaine.abc'

@@ -32,6 +32,9 @@ from idgo_admin.utils import three_suspension_points
 import json
 
 
+READTHEDOC_URL = settings.READTHEDOC_URL
+
+
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
@@ -83,6 +86,7 @@ class DatasetManager(View):
                 ) for o in Resource.objects.filter(dataset=instance)]
 
         context = {'form': form,
+                   'doc_url': READTHEDOC_URL,
                    'dataset_name': three_suspension_points(dataset_name),
                    'dataset_id': dataset_id,
                    'dataset_ckan_slug': dataset_ckan_slug,
