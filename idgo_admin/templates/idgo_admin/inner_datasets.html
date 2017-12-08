@@ -350,7 +350,9 @@ $(function() {
 		const columnIdx = tableGrid.getColumnIndex('id')
 		for (var i = 0; i < tableGrid.data.length; i ++) {
 			if (hashFragments[1] == tableGrid.data[i].columns[columnIdx]) {
-				tableGrid.rowSelected(-1, tableGrid.getRowIndex(tableGrid.data[i].id));
+				const rowIndex = tableGrid.getRowIndex(tableGrid.data[i].id)
+				tableGrid.rowSelected(-1, rowIndex);
+				tableGrid.lastSelectedRowIndex = rowIndex;
 			};
 		};
 	};

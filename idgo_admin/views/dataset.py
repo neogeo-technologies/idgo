@@ -106,12 +106,12 @@ class DatasetManager(View):
 
         def http_redirect(dataset):
             if 'save' in request.POST:
-                namespace = 'idgo_admin:{0}'.format(
-                    dataset.editor == profile.user and 'datasets' or 'all_datasets')
+                namespace = dataset.editor == profile.user and 'datasets' or 'all_datasets'
+                return HttpResponseRedirect(
+                    reverse('idgo_admin:{0}'.format(namespace)) + '#dataset={0}'.format(dataset.id))
             if 'continue' in request.POST:
-                namespace = self.namespace
-            return HttpResponseRedirect(
-                reverse(namespace) + '#dataset={0}'.format(dataset.id))
+                return HttpResponseRedirect(
+                    reverse(self.namespace) + '?id={0}'.format(dataset.id))
 
         context = {
             'form': None,

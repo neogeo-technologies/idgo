@@ -245,7 +245,9 @@ $(function() {
 		const columnIdx = resourcesGrid.getColumnIndex('id')
 		for (var i = 0; i < resourcesGrid.data.length; i ++) {
 			if (hashFragments[1] == resourcesGrid.data[i].columns[columnIdx]) {
-				resourcesGrid.rowSelected(-1, resourcesGrid.getRowIndex(resourcesGrid.data[i].id));
+				const rowIndex = resourcesGrid.getRowIndex(resourcesGrid.data[i].id)
+				resourcesGrid.rowSelected(-1, rowIndex);
+				resourcesGrid.lastSelectedRowIndex = rowIndex;
 			};
 		};
 	};
