@@ -79,9 +79,13 @@ class ResourceManager(View):
             return form.is_multipart() and request.FILES.get('up_file')
 
         def http_redirect(dataset_id, resource_id):
-            return HttpResponseRedirect(
-                reverse(self.namespace, kwargs={'dataset_id': dataset_id}
-                        ) + '?id={0}'.format(resource_id))
+            if 'save' in request.POST:
+                return HttpResponseRedirect(
+                    reverse('idgo_admin:dataset') + '?id={0}#resources={1}'.format(dataset_id, resource_id))
+            if 'continue' in request.POST:
+                return HttpResponseRedirect(
+                    reverse(self.namespace, kwargs={'dataset_id': dataset_id}
+                            ) + '?id={0}'.format(dataset.id))
 
         user, profile = user_and_profile(request)
 

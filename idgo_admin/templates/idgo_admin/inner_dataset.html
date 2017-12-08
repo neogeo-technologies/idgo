@@ -125,6 +125,7 @@
 	</div>
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:datasets" %}">Annuler</a>
+		<button type="submit" name="continue" class="btn btn-primary">Enregistrer et continuer les modifications</button>
 		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
 		{% if dataset_id %}
 		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset_ckan_slug }}">Ouvrir dans CKAN</a>

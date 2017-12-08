@@ -238,5 +238,17 @@ $(function() {
 			return m;
 		})(RESOURCES)
 	);
+
+	// TODO à améliorer (et factoriser)
+	const hashFragments = window.location.hash.split('=');
+	if (hashFragments[1]) {
+		const columnIdx = resourcesGrid.getColumnIndex('id')
+		for (var i = 0; i < resourcesGrid.data.length; i ++) {
+			if (hashFragments[1] == resourcesGrid.data[i].columns[columnIdx]) {
+				resourcesGrid.rowSelected(-1, resourcesGrid.getRowIndex(resourcesGrid.data[i].id));
+			};
+		};
+	};
+
 });
 </script>

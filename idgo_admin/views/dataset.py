@@ -102,11 +102,16 @@ class DatasetManager(View):
     @transaction.atomic
     def post(self, request, *args, **kwargs):
 
-        def http_redirect(dataset_id):
-            return HttpResponseRedirect(
-                reverse(self.namespace) + '?id={0}'.format(dataset_id))
-
         user, profile = user_and_profile(request)
+
+        def http_redirect(dataset):
+            if 'save' in request.POST:
+                namespace = 'idgo_admin:{0}'.format(
+                    dataset.editor == profile.user and 'datasets' or 'all_datasets')
+            if 'continue' in request.POST:
+                namespace = self.namespace
+            return HttpResponseRedirect(
+                reverse(namespace) + '#dataset={0}'.format(dataset.id))
 
         context = {
             'form': None,
@@ -155,7 +160,7 @@ class DatasetManager(View):
                 messages.success(
                     request, 'Le jeu de données a été mis à jour avec succès.')
 
-            return http_redirect(instance.id)
+            return http_redirect(instance)
 
         form = Form(request.POST, request.FILES,
                     include={'user': user, 'identification': False, 'id': None})
@@ -175,7 +180,7 @@ class DatasetManager(View):
                      reverse(self.namespace_resource,
                              kwargs={'dataset_id': instance.id})))
 
-        return http_redirect(instance.id)
+        return http_redirect(instance)
 
     @ExceptionsHandler(ignore=[Http404, CkanSyncingError], actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, *args, **kwargs):
