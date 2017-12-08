@@ -330,6 +330,20 @@ $(function() {
 			return m;
 		})(DATA)
 	);
+
+	// TODO à améliorer (et factoriser)
+	const hashFragments = window.location.hash.split('=');
+	if (hashFragments[1]) {
+		const columnIdx = tableGrid.getColumnIndex('id')
+		for (var i = 0; i < tableGrid.data.length; i ++) {
+			if (hashFragments[1] == tableGrid.data[i].columns[columnIdx]) {
+				const rowIndex = tableGrid.getRowIndex(tableGrid.data[i].id)
+				tableGrid.rowSelected(-1, rowIndex);
+				tableGrid.lastSelectedRowIndex = rowIndex;
+			};
+		};
+	};
+
 });
 </script>
 {% endif %}
