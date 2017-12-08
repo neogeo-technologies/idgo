@@ -13,6 +13,12 @@
 {% endif %}
 
 <form method="post" action="" enctype="multipart/form-data">
+	<div class="buttons-on-the-right-side">
+		{% if resource_ckan_id %}
+		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset_ckan_slug }}/resource/{{ resource_ckan_id }}">Ouvrir dans CKAN</a>
+		{% endif %}
+	</div>
+	<br/>
 	{% csrf_token %}
 	<div class="row">
 		<div class="col-xs-12">
