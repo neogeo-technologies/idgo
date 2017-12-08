@@ -809,7 +809,6 @@ class License(models.Model):
     # QUAND DES ELEMENTS SONT AJOUTES, il faut mettre à jour
     # le fichier /etc/ckan/default/licenses.json
 
-    license_id = models.CharField('id', max_length=30)
     domain_content = models.BooleanField(default=False)
     domain_data = models.BooleanField(default=False)
     domain_software = models.BooleanField(default=False)
