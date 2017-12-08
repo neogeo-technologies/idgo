@@ -12,6 +12,9 @@
 			{% endif %}
 			<div class="buttons-on-the-right-side">
 				<span ng-show="vm.data.view == 1" ng-hide="vm.data.view == 3">
+					<a role="button" class="btn btn-default" target="_blank" href="{{ doc_url }}">
+						<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
+					</a>
 					<a href="#" role="button" class="btn btn-default" ng-init="vm.showAllFields=False" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="!vm.showAllFields" uib-tooltip="Permuter vers l'affichage complet" tooltip-trigger="mouseenter" tooltip-placement="left">
 						<span class="glyphicon glyphicon-th"></span>
 					</a>
@@ -34,7 +37,7 @@
 					<!-- Content -->
 				</div>
 				<div class="buttons-on-the-right-side">
-					<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">Annuler</a>
+					<a class="btn btn-default" target="_self" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">Annuler</a>
 					<button id="validate" type="button" class="btn btn-primary">Enregistrer</button>
 				</div>
 			</form>

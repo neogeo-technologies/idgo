@@ -1034,8 +1034,8 @@ def pre_save_category(sender, instance, *args, **kwargs):
         # Compliqué pour pas grand chose. Il faudrait plutôt passer par
         # l'ID du `group` CKan (TODO pour une prochaine version...)
         previous_slug = Category.objects.get(pk=instance.pk).ckan_slug
-        if instance.ckan_slug != previous_slug:
-            ckan.rename_group(previous_slug, instance)
+        # if instance.ckan_slug != previous_slug:
+        ckan.update_group(previous_slug, instance)
 
     if not ckan.is_group_exists(instance.ckan_slug):
         ckan.add_group(instance)

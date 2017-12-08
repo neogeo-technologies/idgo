@@ -325,17 +325,30 @@ class CkanManagerHandler(metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def add_group(self, group, type=None):
-        return self.call_action(
-            'group_create', name=group.ckan_slug, type=type,
-            title=group.name, description=group.description)
+        ckan_group = {
+            'type': type,
+            'title': group.name,
+            'name': group.ckan_slug,
+            'description': group.description}
+        try:
+            ckan_group['image_url'] = \
+                urljoin(settings.DOMAIN_NAME, group.picto.url)
+        except ValueError:
+            pass
+        return self.call_action('group_create', **ckan_group)
 
     @CkanExceptionsHandler()
-    def rename_group(self, id, group):
+    def update_group(self, id, group):
         ckan_group = self.get_group(id, include_datasets=True)
         ckan_group.update({
             'title': group.name,
             'name': group.ckan_slug,
             'description': group.description})
+        try:
+            ckan_group['image_url'] = \
+                urljoin(settings.DOMAIN_NAME, group.picto.url)
+        except ValueError:
+            pass
         try:
             return self.call_action('group_update', **ckan_group)
         except CkanError.NotFound:
@@ -376,7 +389,8 @@ class CkanManagerHandler(metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def add_vocabulary(self, name, tags):
-        return self.call_action('vocabulary_create', name=name, tags=[{'name': tag} for tag in tags])
+        return self.call_action('vocabulary_create', name=name,
+                                tags=[{'name': tag} for tag in tags])
 
     @CkanExceptionsHandler()
     def get_vocabulary(self, id):
@@ -388,5 +402,6 @@ class CkanManagerHandler(metaclass=Singleton):
     @CkanExceptionsHandler()
     def get_licenses(self):
         return self.call_action('license_list')
+
 
 CkanHandler = CkanManagerHandler()

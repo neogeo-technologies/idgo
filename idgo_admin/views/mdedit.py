@@ -36,6 +36,7 @@ STATIC_URL = settings.STATIC_URL
 GEONETWORK_URL = settings.GEONETWORK_URL
 CKAN_URL = settings.CKAN_URL
 DOMAIN_NAME = settings.DOMAIN_NAME
+READTHEDOC_URL_INSPIRE = settings.READTHEDOC_URL_INSPIRE
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -198,7 +199,9 @@ class MDEdit(View):
                 'help': join_url('modal-help.html', path='mdedit/html/')}}
 
         context = {'dataset_name': three_suspension_points(dataset.name),
-                   'dataset_id': dataset.id, 'config': config}
+                   'dataset_id': dataset.id,
+                   'doc_url': READTHEDOC_URL_INSPIRE,
+                   'config': config}
 
         if dataset.geonet_id:
             record = geonet.get_record(str(dataset.geonet_id))
