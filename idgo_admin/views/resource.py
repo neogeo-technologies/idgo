@@ -139,7 +139,7 @@ class ResourceManager(View):
                 request, (
                     'La ressource a été mise à jour avec succès.'
                     'Souhaitez-vous <a href="{0}/dataset/{1}/resource/{2}" '
-                    'target="_blank">voir la ressource dans ckan</a> ?'
+                    'target="_blank">voir la ressource dans CKAN</a> ?'
                     ).format(CKAN_URL, dataset.ckan_slug, instance.ckan_id))
 
             return http_redirect(dataset_id, instance.id)
@@ -162,7 +162,7 @@ class ResourceManager(View):
             'La ressource a été créée avec succès. Souhaitez-vous '
             '<a href="{0}">ajouter une nouvelle ressource</a> ? ou bien '
             '<a href="{1}/dataset/{2}/resource/{3}" target="_blank">'
-            'voir la ressource dans ckan</a> ?'
+            'voir la ressource dans CKAN</a> ?'
             ).format(
                 reverse(self.namespace, kwargs={'dataset_id': dataset_id}),
                 CKAN_URL, dataset.ckan_slug, instance.ckan_id))
@@ -192,7 +192,7 @@ class ResourceManager(View):
             if e.name == 'NotFound':
                 instance.delete()
             status = 500
-            message = 'Impossible de supprimer la ressource Ckan.'
+            message = 'Impossible de supprimer la ressource CKAN.'
             messages.error(request, message)
         else:
             instance.delete()

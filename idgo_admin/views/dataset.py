@@ -155,12 +155,12 @@ class DatasetManager(View):
                 with transaction.atomic():
                     form.handle_me(request, id=id)
             except CkanSyncingError:
-                messages.error(request, 'Une erreur de synchronisation avec CKan est survenue.')
+                messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
             else:
                 messages.success(request, (
                     'Le jeu de données a été mis à jour avec succès. '
                     'Souhaitez-vous <a href="{0}/dataset/{1}" target="_blank">'
-                    'voir le jeu de données dans ckan</a> ?'
+                    'voir le jeu de données dans CKAN</a> ?'
                     ).format(CKAN_URL, instance.ckan_slug))
 
             return http_redirect(instance)
@@ -180,7 +180,7 @@ class DatasetManager(View):
             '<a href="{0}">créer un nouveau jeu de données</a> ? ou '
             '<a href="{1}">ajouter une ressource</a> ? ou bien '
             '<a href="{2}/dataset/{3}" target="_blank">voir le jeu de données '
-            'dans ckan</a> ?'
+            'dans CKAN</a> ?'
             ).format(reverse(self.namespace),
                      reverse(self.namespace_resource,
                              kwargs={'dataset_id': instance.id}),
@@ -209,7 +209,7 @@ class DatasetManager(View):
             if e.name == 'NotFound':
                 instance.delete()
             status = 500
-            message = 'Impossible de supprimer le jeu de données Ckan.'
+            message = 'Impossible de supprimer le jeu de données CKAN.'
             messages.error(request, message)
         else:
             instance.delete()
