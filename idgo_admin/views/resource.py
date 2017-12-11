@@ -26,6 +26,8 @@ from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.utils import three_suspension_points
 
 
+CKAN_URL = settings.CKAN_URL
+
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
@@ -81,11 +83,14 @@ class ResourceManager(View):
         def http_redirect(dataset_id, resource_id):
             if 'save' in request.POST:
                 return HttpResponseRedirect(
-                    reverse('idgo_admin:dataset') + '?id={0}#resources={1}'.format(dataset_id, resource_id))
+                    '{0}?id={1}#resources={2}'.format(
+                        reverse('idgo_admin:dataset'), dataset_id, resource_id))
             if 'continue' in request.POST:
                 return HttpResponseRedirect(
-                    reverse(self.namespace, kwargs={'dataset_id': dataset_id}
-                            ) + '?id={0}'.format(dataset.id))
+                    '{0}?id={1}'.format(
+                        reverse(self.namespace,
+                                kwargs={'dataset_id': dataset_id}),
+                        resource_id))
 
         user, profile = user_and_profile(request)
 
@@ -131,7 +136,11 @@ class ResourceManager(View):
                 return render_with_info_profile(request, self.template, context)
 
             messages.success(
-                request, 'La ressource a été mise à jour avec succès.')
+                request, (
+                    'La ressource a été mise à jour avec succès.'
+                    'Souhaitez-vous <a href="{0}/dataset/{1}/resource/{2}" '
+                    'target="_blank">voir la ressource dans ckan</a> ?'
+                    ).format(CKAN_URL, dataset.ckan_slug, instance.ckan_id))
 
             return http_redirect(dataset_id, instance.id)
 
@@ -151,8 +160,12 @@ class ResourceManager(View):
 
         messages.success(request, (
             'La ressource a été créée avec succès. Souhaitez-vous '
-            '<a href="{0}">ajouter une nouvelle ressource ?</a>').format(
-                reverse(self.namespace, kwargs={'dataset_id': dataset_id})))
+            '<a href="{0}">ajouter une nouvelle ressource</a> ? ou bien '
+            '<a href="{1}/dataset/{2}/resource/{3}" target="_blank">'
+            'voir la ressource dans ckan</a> ?'
+            ).format(
+                reverse(self.namespace, kwargs={'dataset_id': dataset_id}),
+                CKAN_URL, dataset.ckan_slug, instance.ckan_id))
 
         return http_redirect(dataset_id, instance.id)
 

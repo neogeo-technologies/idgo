@@ -32,8 +32,8 @@ from idgo_admin.utils import three_suspension_points
 import json
 
 
+CKAN_URL = settings.CKAN_URL
 READTHEDOC_URL = settings.READTHEDOC_URL
-
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
@@ -107,11 +107,11 @@ class DatasetManager(View):
         def http_redirect(dataset):
             if 'save' in request.POST:
                 namespace = dataset.editor == profile.user and 'datasets' or 'all_datasets'
-                return HttpResponseRedirect(
-                    reverse('idgo_admin:{0}'.format(namespace)) + '#dataset={0}'.format(dataset.id))
+                return HttpResponseRedirect('{0}#dataset={1}'.format(
+                    reverse('idgo_admin:{0}'.format(namespace)), dataset.id))
             if 'continue' in request.POST:
-                return HttpResponseRedirect(
-                    reverse(self.namespace) + '?id={0}'.format(dataset.id))
+                return HttpResponseRedirect('{0}?id={1}'.format(
+                    reverse(self.namespace), dataset.id))
 
         context = {
             'form': None,
@@ -157,8 +157,11 @@ class DatasetManager(View):
             except CkanSyncingError:
                 messages.error(request, 'Une erreur de synchronisation avec CKan est survenue.')
             else:
-                messages.success(
-                    request, 'Le jeu de données a été mis à jour avec succès.')
+                messages.success(request, (
+                    'Le jeu de données a été mis à jour avec succès. '
+                    'Souhaitez-vous <a href="{0}/dataset/{1}" target="_blank">'
+                    'voir le jeu de données dans ckan</a> ?'
+                    ).format(CKAN_URL, instance.ckan_slug))
 
             return http_redirect(instance)
 
@@ -173,12 +176,15 @@ class DatasetManager(View):
             instance = form.handle_me(request)
 
         messages.success(request, (
-            'Le jeu de données a été créé avec succès. '
-            'Souhaitez-vous <a href="{0}">créer un nouveau jeu de '
-            'données ?</a> ou <a href="{1}">ajouter une ressource ?</a>'
+            'Le jeu de données a été créé avec succès. Souhaitez-vous '
+            '<a href="{0}">créer un nouveau jeu de données</a> ? ou '
+            '<a href="{1}">ajouter une ressource</a> ? ou bien '
+            '<a href="{2}/dataset/{3}" target="_blank">voir le jeu de données '
+            'dans ckan</a> ?'
             ).format(reverse(self.namespace),
                      reverse(self.namespace_resource,
-                             kwargs={'dataset_id': instance.id})))
+                             kwargs={'dataset_id': instance.id}),
+                     CKAN_URL, instance.ckan_slug))
 
         return http_redirect(instance)
 
