@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
@@ -291,7 +292,10 @@ class Organisation(models.Model):
         self.ckan_slug = slugify(self.name)
         super(Organisation, self).save(*args, **kwargs)
         if self.pk:
-            ckan.update_organization(self)
+            try:
+                ckan.update_organization(self)
+            except Exception:
+                raise ValidationError('Erreur de synchronisation CKAN.')
 
 
 @receiver(post_save, sender=Organisation)  # MOCHE
@@ -813,10 +817,13 @@ class Category(models.Model):
             previous_slug = Category.objects.get(pk=self.pk).ckan_slug
         self.ckan_slug = slugify(self.name)
         super(Category, self).save(*args, **kwargs)
-        if not ckan.is_group_exists(self.ckan_slug):
-            ckan.add_group(self)
-        else:
-            ckan.update_group(previous_slug, self)
+        try:
+            if not ckan.is_group_exists(self.ckan_slug):
+                ckan.add_group(self)
+            else:
+                ckan.update_group(previous_slug, self)
+        except Exception:
+            raise ValidationError('Erreur de synchronisation CKAN.')
 
 
 class License(models.Model):
