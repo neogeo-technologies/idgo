@@ -141,7 +141,7 @@ class DatasetForm(forms.ModelForm):
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
-                'placeholder': _today_str}))
+                'placeholder': '{0} (valeur par défaut)'.format(_today_str)}))
 
     date_publication = forms.DateField(
         label='Date de publication',
@@ -150,7 +150,7 @@ class DatasetForm(forms.ModelForm):
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
-                'placeholder': _today_str}))
+                'placeholder': '{0} (valeur par défaut)'.format(_today_str)}))
 
     update_freq = forms.ChoiceField(
         choices=Dataset.FREQUENCY_CHOICES,
@@ -261,8 +261,14 @@ class DatasetForm(forms.ModelForm):
 
         if not self.cleaned_data.get('date_creation'):
             self.cleaned_data['date_creation'] = _today
-        kwords = self.cleaned_data.get('keywords')
 
+        if not self.cleaned_data.get('date_modification'):
+            self.cleaned_data['date_modification'] = _today
+
+        if not self.cleaned_data.get('date_publication'):
+            self.cleaned_data['date_publication'] = _today
+
+        kwords = self.cleaned_data.get('keywords')
         if kwords:
             for w in kwords:
                 if len(w) < 2:

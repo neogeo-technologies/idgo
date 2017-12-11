@@ -254,7 +254,7 @@ class Organisation(models.Model):
         'Description', blank=True, null=True)  # Description CKAN
 
     logo = models.ImageField(
-        'Logo', upload_to="logo/", blank=True, null=True)
+        'Logo', upload_to='logos/', blank=True, null=True)
 
     address = models.CharField(
         'Adresse', max_length=100, blank=True, null=True)
@@ -278,8 +278,7 @@ class Organisation(models.Model):
     # status = models.ForeignKey(
     #     Status, blank=True, null=True, on_delete=models.CASCADE)
 
-    is_active = models.BooleanField(
-        "Organisation active", default=False)
+    is_active = models.BooleanField('Organisation active', default=False)
 
     def __str__(self):
         return self.name
@@ -790,7 +789,7 @@ class Category(models.Model):
                                  choices=ISO_TOPIC_CHOICES,
                                  blank=True, null=True)
     picto = models.ImageField(
-        'Pictogramme', upload_to="logo/", blank=True, null=True)
+        'Pictogramme', upload_to='logos/', blank=True, null=True)
 
     def __str__(self):
         return self.name
