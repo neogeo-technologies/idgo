@@ -254,7 +254,7 @@ class Organisation(models.Model):
         'Description', blank=True, null=True)  # Description CKAN
 
     logo = models.ImageField(
-        'Logo', upload_to="logos/", blank=True, null=True)
+        'Logo', upload_to="logo/", blank=True, null=True)
 
     address = models.CharField(
         'Adresse', max_length=100, blank=True, null=True)
