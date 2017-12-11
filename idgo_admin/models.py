@@ -287,6 +287,17 @@ class Organisation(models.Model):
     #     ckan.del_organization(self.ckan_id)
     #     super().delete()
 
+    def save(self, *args, **kwargs):
+        self.ckan_slug = slugify(self.name)
+        super(Organisation, self).save(*args, **kwargs)
+        if self.pk:
+            ckan.update_organization(self)
+
+
+@receiver(post_save, sender=Organisation)  # MOCHE
+def post_save_organization(sender, instance, **kwargs):
+    ckan.update_organization(instance)
+
 
 class Profile(models.Model):
 
@@ -789,7 +800,7 @@ class Category(models.Model):
                                  choices=ISO_TOPIC_CHOICES,
                                  blank=True, null=True)
     picto = models.ImageField(
-        'Pictogramme', upload_to='logos/', blank=True, null=True)
+        'Pictogramme', upload_to='pictos/', blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -798,8 +809,14 @@ class Category(models.Model):
         verbose_name = 'Catégorie'
 
     def save(self, *args, **kwargs):
+        if self.id:
+            previous_slug = Category.objects.get(pk=self.pk).ckan_slug
         self.ckan_slug = slugify(self.name)
         super(Category, self).save(*args, **kwargs)
+        if not ckan.is_group_exists(self.ckan_slug):
+            ckan.add_group(self)
+        else:
+            ckan.update_group(previous_slug, self)
 
 
 class License(models.Model):
@@ -1012,29 +1029,8 @@ def pre_delete_contribution(sender, instance, **kwargs):
         ckan.del_user_from_organization(user.username, organisation.ckan_slug)
 
 
-@receiver(pre_save, sender=Organisation)
-def pre_save_organization(sender, instance, **kwargs):
-    instance.ckan_slug = slugify(instance.name)
-    if instance.pk:  # Lors d'une mise a jour..
-        ckan.update_organization(instance)
-
-
 def create_organization_in_ckan(organization):
     ckan.add_organization(organization)
     for profile in LiaisonsContributeurs.get_contributors(organization):
         user = profile.user
         ckan.add_user_to_organization(user.username, organization.ckan_slug)
-
-
-@receiver(pre_save, sender=Category)
-def pre_save_category(sender, instance, *args, **kwargs):
-
-    if instance.pk:  # Lors d'une mise a jour..
-        # Compliqué pour pas grand chose. Il faudrait plutôt passer par
-        # l'ID du `group` CKan (TODO pour une prochaine version...)
-        previous_slug = Category.objects.get(pk=instance.pk).ckan_slug
-        # if instance.ckan_slug != previous_slug:
-        ckan.update_group(previous_slug, instance)
-
-    if not ckan.is_group_exists(instance.ckan_slug):
-        ckan.add_group(instance)
