@@ -799,7 +799,7 @@ class Category(models.Model):
                                  choices=ISO_TOPIC_CHOICES,
                                  blank=True, null=True)
     picto = models.ImageField(
-        'Pictogramme', upload_to='pictos/', blank=True, null=True)
+        'Pictogramme', upload_to='logos/', blank=True, null=True)
 
     def __str__(self):
         return self.name
