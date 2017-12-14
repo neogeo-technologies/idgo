@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanSyncingError
+from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
@@ -130,6 +131,14 @@ class ResourceManager(View):
                 with transaction.atomic():
                     form.handle_me(
                         request, dataset, id=id, uploaded_file=get_uploaded_file(form))
+            except CkanSyncingError:
+                messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
+                context.update({'form': form})
+                return render_with_info_profile(request, self.template, context)
+            except CkanTimeoutError:
+                messages.error(request, 'Impossible de joindre CKAN.')
+                context.update({'form': form})
+                return render_with_info_profile(request, self.template, context)
             except ValidationError as e:
                 form.add_error(e.code, e.message)
                 context.update({'form': form})

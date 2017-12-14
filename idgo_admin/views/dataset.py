@@ -15,6 +15,7 @@ from django.views import View
 from djqscsv import render_to_csv_response
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanSyncingError
+from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
@@ -156,6 +157,8 @@ class DatasetManager(View):
                     form.handle_me(request, id=id)
             except CkanSyncingError:
                 messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
+            except CkanTimeoutError:
+                messages.error(request, 'Impossible de joindre CKAN.')
             else:
                 messages.success(request, (
                     'Le jeu de données a été mis à jour avec succès. '
