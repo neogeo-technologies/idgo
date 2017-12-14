@@ -118,13 +118,13 @@ class ResourceManager(View):
             if instance.referenced_url:
                 mode = 'referenced_url'
 
-            context.update({'mode': mode})
+            context.update({
+                'mode': mode,
+                'resource_name': three_suspension_points(instance.name)})
 
             form = Form(request.POST, request.FILES, instance=instance)
             if not form.is_valid():
-                context.update({
-                    'resource_name': three_suspension_points(instance.name),
-                    'form': form})
+                context.update({'form': form})
                 return render_with_info_profile(request, self.template, context)
 
             try:
