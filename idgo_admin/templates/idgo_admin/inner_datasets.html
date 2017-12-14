@@ -186,6 +186,10 @@ $(function() {
 					deactivateButton($(this));
 				});
 				if (pRowIdx != nRowIdx) {
+					if ($('#' + CONTAINER + ' tr#' + GRID_NAME + '_' + getRowId(nRowIdx)).hasClass('disabled')) {
+						return
+					};
+					window.location = '#datasets/' + getRowValues(nRowIdx).id;
 					$(grid.getRow(nRowIdx)).addClass('selected');
 					$buttons.each(function() {
 						activateButton($(this));

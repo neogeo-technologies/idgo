@@ -184,6 +184,7 @@ $(function() {
 					deactivateButton($(this));
 				});
 				if (pRowIdx != nRowIdx) {
+					window.location = '#datasets/' + getRowValues(nRowIdx).id;
 					$(grid.getRow(nRowIdx)).addClass('selected');
 					$buttons.each(function() {
 						activateButton($(this));
