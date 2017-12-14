@@ -227,6 +227,24 @@ $(function() {
 		};
 	};
 
+	const selectRowByDataId = function(dataId) {
+		for (var i = 0; i < tableGrid.data.length; i ++) {
+			if (tableGrid.data[i].columns[tableGrid.getColumnIndex('id')] == dataId) {
+				tableGrid.setPageIndex(0);
+				// TODO Pas good
+				while (tableGrid.currentPageIndex < tableGrid.getPageCount()) {
+					const rowIndex = tableGrid.getRowIndex(tableGrid.data[i].id);
+					if (tableGrid.getRow(rowIndex)) {
+						tableGrid.rowSelected(tableGrid.lastSelectedRowIndex, rowIndex);
+						tableGrid.lastSelectedRowIndex = rowIndex;
+						break;
+					};
+					tableGrid.setPageIndex(tableGrid.currentPageIndex + 1);
+				};
+			};
+		};
+	};
+
 	function updateGrid(grid, containerId, metadata, data) {
 		let $containerId = $('#' + containerId);
 		let $parent = $($containerId.parent().get(0));
@@ -331,18 +349,10 @@ $(function() {
 		})(DATA)
 	);
 
-	// TODO à améliorer (et factoriser)
-	const hashFragments = window.location.hash.split('=');
-	if (hashFragments[1]) {
-		const columnIdx = tableGrid.getColumnIndex('id')
-		for (var i = 0; i < tableGrid.data.length; i ++) {
-			if (hashFragments[1] == tableGrid.data[i].columns[columnIdx]) {
-				const rowIndex = tableGrid.getRowIndex(tableGrid.data[i].id)
-				tableGrid.rowSelected(-1, rowIndex);
-				tableGrid.lastSelectedRowIndex = rowIndex;
-			};
-		};
-	};
+	$(window).bind('hashchange', function(e) {
+		selectRowByDataId(location.hash.split('/')[1]);
+	});
+	selectRowByDataId(location.hash.split('/')[1]);
 
 });
 </script>

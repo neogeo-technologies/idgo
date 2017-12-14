@@ -256,11 +256,3 @@ EditableGrid.prototype.tableSorted = function(columnIndex, descending) {
 		rowSelected(-1, -1);
 	}
 };
-
-
-function CreateGrid($, container, options) {
-	this.grid = new EditableGrid(container, {pageSize: options.pageSize});
-	// TODO
-};
-
-CreateGrid.prototype.constructor = CreateGrid;

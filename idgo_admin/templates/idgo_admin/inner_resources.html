@@ -70,11 +70,11 @@ $(function() {
 		}
 	];
 
-	var resourcesGrid = new EditableGrid('Resources', {pageSize: 10});
+	var tableGrid = new EditableGrid('Resources', {pageSize: 10});
 
 	$('#resources button[name="view-ckan"]').on('click', function(e) {
 		e.preventDefault();
-		targetBlank(CKAN_URL + '/dataset/{{ dataset_ckan_slug }}/resource/' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['ckan_id']);
+		targetBlank(CKAN_URL + '/dataset/{{ dataset_ckan_slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
 		e.stopPropagation();
 	});
 
@@ -93,7 +93,7 @@ $(function() {
 					$.ajax({
 						type: 'DELETE',
 						// success: function() {},
-						url: RESOURCE_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']
+						url: RESOURCE_URL + '?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']
 					})
 					.done(function(response, textStatus, jqXHR) {
 						location.reload();
@@ -115,7 +115,7 @@ $(function() {
 				.prop('class', 'form-control')
 				.prop('placeholder', 'Nom de la ressource à supprimer')
 				.on('input', function(e) {
-					if ($(this).val() === resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['title']) {
+					if ($(this).val() === tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['title']) {
 						$button.removeClass('disabled').prop('disabled', false);
 					} else {
 						$button.addClass('disabled').prop('disabled', true);
@@ -145,12 +145,12 @@ $(function() {
 	$('#resources button[name="edit-resource"]')
 		.on('click', function(e) {
 			e.preventDefault();
-			redirect(RESOURCE_URL + '?id=' + resourcesGrid.getRowValues(resourcesGrid.lastSelectedRowIndex)['id']);
+			redirect(RESOURCE_URL + '?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
 			e.stopPropagation();
 		});
 
-	resourcesGrid.initializeGrid = function() {
-		var grid = resourcesGrid;
+	tableGrid.initializeGrid = function() {
+		var grid = tableGrid;
 		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
 
 		with (this) {
@@ -188,7 +188,25 @@ $(function() {
 		};
 	};
 
-	function updateResourcesGrid(grid, containerId, metadata, data) {
+	const selectRowByDataId = function(dataId) {
+		for (var i = 0; i < tableGrid.data.length; i ++) {
+			if (tableGrid.data[i].columns[tableGrid.getColumnIndex('id')] == dataId) {
+				tableGrid.setPageIndex(0);
+				// TODO Pas good
+				while (tableGrid.currentPageIndex < tableGrid.getPageCount()) {
+					const rowIndex = tableGrid.getRowIndex(tableGrid.data[i].id);
+					if (tableGrid.getRow(rowIndex)) {
+						tableGrid.rowSelected(tableGrid.lastSelectedRowIndex, rowIndex);
+						tableGrid.lastSelectedRowIndex = rowIndex;
+						break;
+					};
+					tableGrid.setPageIndex(tableGrid.currentPageIndex + 1);
+				};
+			};
+		};
+	};
+
+	function updateTableGrid(grid, containerId, metadata, data) {
 		var $containerId = $('#' + containerId);
 		var $parent = $($containerId.parent().get(0));
 		$parent.find('div[role="alert"]not:div[name="message-tags"]').remove();
@@ -215,8 +233,8 @@ $(function() {
 
 	};
 
-	updateResourcesGrid(
-		resourcesGrid,
+	updateTableGrid(
+		tableGrid,
 		RESOURCES_CONTAINER,
 		RESOURCES_METADATA,
 		(function(data) {
@@ -239,18 +257,10 @@ $(function() {
 		})(RESOURCES)
 	);
 
-	// TODO à améliorer (et factoriser)
-	const hashFragments = window.location.hash.split('=');
-	if (hashFragments[1]) {
-		const columnIdx = resourcesGrid.getColumnIndex('id')
-		for (var i = 0; i < resourcesGrid.data.length; i ++) {
-			if (hashFragments[1] == resourcesGrid.data[i].columns[columnIdx]) {
-				const rowIndex = resourcesGrid.getRowIndex(resourcesGrid.data[i].id)
-				resourcesGrid.rowSelected(-1, rowIndex);
-				resourcesGrid.lastSelectedRowIndex = rowIndex;
-			};
-		};
-	};
+	$(window).bind('hashchange', function(e) {
+		selectRowByDataId(location.hash.split('/')[1]);
+	});
+	selectRowByDataId(location.hash.split('/')[1]);
 
 });
 </script>

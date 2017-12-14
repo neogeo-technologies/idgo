@@ -83,7 +83,7 @@ class ResourceManager(View):
         def http_redirect(dataset_id, resource_id):
             if 'save' in request.POST:
                 return HttpResponseRedirect(
-                    '{0}?id={1}#resources={2}'.format(
+                    '{0}?id={1}#resources/{2}'.format(
                         reverse('idgo_admin:dataset'), dataset_id, resource_id))
             if 'continue' in request.POST:
                 return HttpResponseRedirect(

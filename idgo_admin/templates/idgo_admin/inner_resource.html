@@ -153,7 +153,7 @@ $(function() {
 		};
 	};
 
-	$selectAccess = $('select[name="restricted_level"]')
+	$selectAccess = $('select[name="{{ form.restricted_level.name }}"]')
 		.change(function() {
 			getAccessSelectedOption($(this));
 		});
@@ -164,12 +164,11 @@ $(function() {
 		var count = $files ? $files.length : 1;
 		if (count == 1) {
 			if ($files[0].type && $files[0].extension) {
-				$('#id_format_type option').each(function() {
+				$('select[name="{{ form.format_type.name }}"] option').each(function() {
 					if ($files[0].extension.toLowerCase() == this.text.toLowerCase()) {
-						$('#id_format_type option[value="' + this.value + '"]').prop('selected', true);
+						$('select[name="{{ form.format_type.name }}"] option[value="' + this.value + '"]').prop('selected', true);
 					};
 				});
-				$('input[name="data_format"]').val($files[0].extension);
 			};
 		};
 	});
@@ -181,7 +180,7 @@ $(function() {
 	});
 
 	$(document).ready(function() {
-		getAccessSelectedOption($('select[name="restricted_level"]'));
+		getAccessSelectedOption($('select[name="{{ form.restricted_level.name }}"]'));
 	});
 });
 </script>
