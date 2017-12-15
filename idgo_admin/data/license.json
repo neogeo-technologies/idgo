@@ -2,7 +2,6 @@
     "model": "idgo_admin.license",
     "pk": 1,
     "fields": {
-        "license_id": "CC-BY-SA-4.0",
         "domain_content": true,
         "domain_data": true,
         "domain_software": false,
@@ -17,7 +16,6 @@
     "model": "idgo_admin.license",
     "pk": 2,
     "fields": {
-        "license_id": "ODbL-1.0",
         "domain_content": false,
         "domain_data": true,
         "domain_software": false,
@@ -32,7 +30,6 @@
     "model": "idgo_admin.license",
     "pk": 3,
     "fields": {
-        "license_id": "Licence Ouverte Version 2.0",
         "domain_content": false,
         "domain_data": false,
         "domain_software": false,
@@ -40,7 +37,7 @@
         "maintainer": "",
         "od_conformance": "approved",
         "osd_conformance": "not reviewed",
-        "title": "Licence Ouverte Version 2.0",
+        "title": "Licence Ouverte Version 2.0 BETA BETA",
         "url": "https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf"
     }
 }]
