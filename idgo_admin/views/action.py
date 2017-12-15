@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
+from idgo_admin.forms.dataset import publish_dataset_to_ckan
 from idgo_admin.models import Dataset
 from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
@@ -28,16 +29,24 @@ class ActionsManager(View):
         publish = request.GET.get('publish', None)
 
         if dataset_id and publish.lower() == 'toggle':
-            ds = get_object_or_404_extended(
+            dataset = get_object_or_404_extended(
                 Dataset, user, include={'id': dataset_id})
 
-            ds.published = not ds.published
+            dataset.published = not dataset.published
+
+            try:
+                ckan_uuid = publish_dataset_to_ckan(user, dataset)
+            except Exception as e:
+                raise e
+            else:
+                dataset.ckan_id = ckan_uuid
+                dataset.save()
+
             message = (
                 'Le jeu de données <strong>{0}</strong> '
                 'est maintenant en accès <strong>{1}</strong>.'
-                ).format(ds.name, ds.published and 'public' or 'privé')
+                ).format(dataset.name, dataset.published and 'public' or 'privé')
             status = 200
-            ds.save()
 
         return render(request, 'idgo_admin/response.html',
                       context={'message': message}, status=status)
