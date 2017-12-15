@@ -31,14 +31,17 @@
 					<option value="{{ entry }}">{{ entry }}</option>
 					{% endfor %}
 				</select>
-				{% else %}
+				{% elif organizations|length == 1 %}
 				{% for k, v in organizations.items %}
 				<input name="organization" class="form-control" type="text" value="{{ k }}" disabled />
 				{% endfor %}
+				{% else %}
+				<div class="alert alert-info" role="alert">Aucune organisation n'est disponible</div>
 				{% endif %}
 			</div>
 		</div>
 	</div>
+{% if organizations|length > 0 %}
 	<ul class="nav nav-tabs">
 		<li role="presentation">
 			<a href="#members" aria-controls="members" role="tab" data-toggle="tab">Liste des membres</a>
@@ -336,3 +339,6 @@ $(function() {
 
 });
 </script>
+{% else %}
+</div>
+{% endif %}

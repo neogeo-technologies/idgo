@@ -470,7 +470,8 @@ def all_datasets(request, *args, **kwargs):
 
     return render_with_info_profile(
         request, 'idgo_admin/all_datasets.html', status=200,
-        context={'datasets': json.dumps(datasets)})
+        context={'datasets': json.dumps(datasets),
+                 'datasets_count': len(datasets)})
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
