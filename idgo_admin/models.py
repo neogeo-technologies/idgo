@@ -298,11 +298,6 @@ class Organisation(models.Model):
                 raise ValidationError('Erreur de synchronisation CKAN.')
 
 
-@receiver(post_save, sender=Organisation)  # MOCHE
-def post_save_organization(sender, instance, **kwargs):
-    ckan.update_organization(instance)
-
-
 class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -804,7 +799,7 @@ class Category(models.Model):
                                  choices=ISO_TOPIC_CHOICES,
                                  blank=True, null=True)
     picto = models.ImageField(
-        'Pictogramme', upload_to='pictos/', blank=True, null=True)
+        'Pictogramme', upload_to='logos/', blank=True, null=True)
 
     def __str__(self):
         return self.name

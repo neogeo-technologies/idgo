@@ -15,6 +15,7 @@ from django.views import View
 from djqscsv import render_to_csv_response
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanSyncingError
+from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
@@ -107,7 +108,7 @@ class DatasetManager(View):
         def http_redirect(dataset):
             if 'save' in request.POST:
                 namespace = dataset.editor == profile.user and 'datasets' or 'all_datasets'
-                return HttpResponseRedirect('{0}#dataset={1}'.format(
+                return HttpResponseRedirect('{0}#datasets/{1}'.format(
                     reverse('idgo_admin:{0}'.format(namespace)), dataset.id))
             if 'continue' in request.POST:
                 return HttpResponseRedirect('{0}?id={1}'.format(
@@ -155,12 +156,14 @@ class DatasetManager(View):
                 with transaction.atomic():
                     form.handle_me(request, id=id)
             except CkanSyncingError:
-                messages.error(request, 'Une erreur de synchronisation avec CKan est survenue.')
+                messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
+            except CkanTimeoutError:
+                messages.error(request, 'Impossible de joindre CKAN.')
             else:
                 messages.success(request, (
                     'Le jeu de données a été mis à jour avec succès. '
                     'Souhaitez-vous <a href="{0}/dataset/{1}" target="_blank">'
-                    'voir le jeu de données dans ckan</a> ?'
+                    'voir le jeu de données dans CKAN</a> ?'
                     ).format(CKAN_URL, instance.ckan_slug))
 
             return http_redirect(instance)
@@ -180,7 +183,7 @@ class DatasetManager(View):
             '<a href="{0}">créer un nouveau jeu de données</a> ? ou '
             '<a href="{1}">ajouter une ressource</a> ? ou bien '
             '<a href="{2}/dataset/{3}" target="_blank">voir le jeu de données '
-            'dans ckan</a> ?'
+            'dans CKAN</a> ?'
             ).format(reverse(self.namespace),
                      reverse(self.namespace_resource,
                              kwargs={'dataset_id': instance.id}),
@@ -188,8 +191,11 @@ class DatasetManager(View):
 
         return http_redirect(instance)
 
-    @ExceptionsHandler(ignore=[Http404, CkanSyncingError], actions={ProfileHttp404: on_profile_http404})
+    @ExceptionsHandler(ignore=[Http404, CkanSyncingError],
+                       actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, *args, **kwargs):
+
+        # TODO: factoriser
 
         user, profile = user_and_profile(request)
 
@@ -200,6 +206,8 @@ class DatasetManager(View):
         instance = get_object_or_404_extended(
             Dataset, user, include={'id': id})
 
+        organisation = instance.organisation
+
         ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
@@ -209,7 +217,7 @@ class DatasetManager(View):
             if e.name == 'NotFound':
                 instance.delete()
             status = 500
-            message = 'Impossible de supprimer le jeu de données Ckan.'
+            message = 'Impossible de supprimer le jeu de données CKAN.'
             messages.error(request, message)
         else:
             instance.delete()
@@ -219,10 +227,13 @@ class DatasetManager(View):
         finally:
             ckan_user.close()
 
-        Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
+        ckan_orga = ckan.get_organization(
+            str(organisation.ckan_id), include_datasets=True)
+        if (ckan_orga and len(ckan_orga['packages']) == 0) \
+                and not Dataset.objects.filter(organisation=organisation).exists():
+            ckan.purge_organization(str(organisation.ckan_id))
 
-        # return render_with_info_profile(request, 'idgo_admin/response.html',
-        #               context={'message': message}, status=status)
+        Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
 
         return HttpResponse(status=status)
 
@@ -361,8 +372,11 @@ class ReferentDatasetManager(View):
 
         return http_redirect(instance.id)
 
-    @ExceptionsHandler(ignore=[Http404, CkanSyncingError], actions={ProfileHttp404: on_profile_http404})
+    @ExceptionsHandler(ignore=[Http404, CkanSyncingError],
+                       actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, *args, **kwargs):
+
+        # TODO: factoriser
 
         user, profile = user_and_profile(request)
 
@@ -372,6 +386,8 @@ class ReferentDatasetManager(View):
 
         instance = get_object_or_404_extended(
             Dataset, user, include={'id': id})
+
+        organisation = instance.organisation
 
         ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
@@ -391,6 +407,12 @@ class ReferentDatasetManager(View):
             messages.success(request, message)
         finally:
             ckan_user.close()
+
+        ckan_orga = ckan.get_organization(
+            str(organisation.ckan_id), include_datasets=True)
+        if (ckan_orga and len(ckan_orga['packages']) == 0) \
+                and not Dataset.objects.filter(organisation=organisation).exists():
+            ckan.purge_organization(str(organisation.ckan_id))
 
         Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
 

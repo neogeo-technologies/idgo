@@ -783,3 +783,11 @@ a.disabled {
     letter-spacing: 0.4px;
     margin: 10px 0;
 }
+
+.footer a {
+    color: #fff;
+}
+
+.footer a:hover {
+    color: #fff;
+}

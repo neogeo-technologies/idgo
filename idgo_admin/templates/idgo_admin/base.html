@@ -25,21 +25,22 @@
 		<script>;moment.locale('fr');</script>
 		<script src="{% static "js/editablegrid_overload.js" %}"></script>
 		<script>
-var redirect = function(path) {
-	window.location.replace(window.location.origin + path);
-};
-
-var targetBlank = function(path) {
-	window.open(path, '_blank');
-};
-
-var activateButton = function($btn) {
-	$btn.removeClass('disabled').prop('disabled', false);
-};
-
-var deactivateButton = function($btn) {
-	$btn.addClass('disabled').prop('disabled', true);
-};
+(function() {
+	with (this) {
+		redirect = function(path) {
+			window.location.replace(window.location.origin + path);
+		};
+		targetBlank = function(path) {
+			window.open(path, '_blank');
+		};
+		activateButton = function($btn) {
+			$btn.removeClass('disabled').prop('disabled', false);
+		};
+		deactivateButton = function($btn) {
+			$btn.addClass('disabled').prop('disabled', true);
+		};
+	}
+})();
 		</script>
 		<link rel="stylesheet" href="{% static "libs/jquery-plugins/ezdz/jquery.ezdz.css" %}"/>
 		<link rel="stylesheet" href="{% static "libs/bootstrap/css/bootstrap.min.css" %}"/>
@@ -136,7 +137,7 @@ var deactivateButton = function($btn) {
 			<div class="container">
 				<div class="row">
 					<div class="col-md-12">
-						<p>© 2017 CRIGE  |  Tous droits réservés</p>
+						<p>© 2017 - Région Provence-Alpes-Côte d'Azur et CRIGE PACA | Tous droits réservés | Propulsé par <a href='http://www.neogeo.fr' target="blank">Neogeo-Technologies</a></p>
 					</div>
 				</div>
 			</div>
@@ -210,13 +211,13 @@ $(function() {
 			window.location = $thisHash;
 		});
 	$(window).bind('hashchange', function(e) {
-		const fragments = window.location.hash.split('=');
+		const fragments = window.location.hash.split('/');
 		if (HASH_MENU.indexOf(fragments[0]) > -1) {
 			$('a[href="' + fragments[0] + '"]').tab('show');
 		};
 		e.preventDefault();
 	});
-	const fragments = window.location.hash.split('=');
+	const fragments = window.location.hash.split('/');
 	$('a[href="' + ((HASH_MENU.indexOf(fragments[0]) === -1) ? HASH_MENU[0] : fragments[0]) + '"]').tab('show');
 });
 	</script>

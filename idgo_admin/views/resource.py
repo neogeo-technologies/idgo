@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanSyncingError
+from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
@@ -83,7 +84,7 @@ class ResourceManager(View):
         def http_redirect(dataset_id, resource_id):
             if 'save' in request.POST:
                 return HttpResponseRedirect(
-                    '{0}?id={1}#resources={2}'.format(
+                    '{0}?id={1}#resources/{2}'.format(
                         reverse('idgo_admin:dataset'), dataset_id, resource_id))
             if 'continue' in request.POST:
                 return HttpResponseRedirect(
@@ -117,19 +118,27 @@ class ResourceManager(View):
             if instance.referenced_url:
                 mode = 'referenced_url'
 
-            context.update({'mode': mode})
+            context.update({
+                'mode': mode,
+                'resource_name': three_suspension_points(instance.name)})
 
             form = Form(request.POST, request.FILES, instance=instance)
             if not form.is_valid():
-                context.update({
-                    'resource_name': three_suspension_points(instance.name),
-                    'form': form})
+                context.update({'form': form})
                 return render_with_info_profile(request, self.template, context)
 
             try:
                 with transaction.atomic():
                     form.handle_me(
                         request, dataset, id=id, uploaded_file=get_uploaded_file(form))
+            except CkanSyncingError:
+                messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
+                context.update({'form': form})
+                return render_with_info_profile(request, self.template, context)
+            except CkanTimeoutError:
+                messages.error(request, 'Impossible de joindre CKAN.')
+                context.update({'form': form})
+                return render_with_info_profile(request, self.template, context)
             except ValidationError as e:
                 form.add_error(e.code, e.message)
                 context.update({'form': form})
@@ -139,7 +148,7 @@ class ResourceManager(View):
                 request, (
                     'La ressource a été mise à jour avec succès.'
                     'Souhaitez-vous <a href="{0}/dataset/{1}/resource/{2}" '
-                    'target="_blank">voir la ressource dans ckan</a> ?'
+                    'target="_blank">voir la ressource dans CKAN</a> ?'
                     ).format(CKAN_URL, dataset.ckan_slug, instance.ckan_id))
 
             return http_redirect(dataset_id, instance.id)
@@ -162,7 +171,7 @@ class ResourceManager(View):
             'La ressource a été créée avec succès. Souhaitez-vous '
             '<a href="{0}">ajouter une nouvelle ressource</a> ? ou bien '
             '<a href="{1}/dataset/{2}/resource/{3}" target="_blank">'
-            'voir la ressource dans ckan</a> ?'
+            'voir la ressource dans CKAN</a> ?'
             ).format(
                 reverse(self.namespace, kwargs={'dataset_id': dataset_id}),
                 CKAN_URL, dataset.ckan_slug, instance.ckan_id))
@@ -192,7 +201,7 @@ class ResourceManager(View):
             if e.name == 'NotFound':
                 instance.delete()
             status = 500
-            message = 'Impossible de supprimer la ressource Ckan.'
+            message = 'Impossible de supprimer la ressource CKAN.'
             messages.error(request, message)
         else:
             instance.delete()

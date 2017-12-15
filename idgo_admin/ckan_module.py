@@ -272,6 +272,10 @@ class CkanManagerHandler(metaclass=Singleton):
                              organization_id=ckan_organization['id'])
 
     @CkanExceptionsHandler()
+    def purge_organization(self, id):
+        return self.call_action('organization_purge', id=id)
+
+    @CkanExceptionsHandler()
     def activate_organization(self, id):
         self.call_action('organization_update', id=id, state='active')
 
