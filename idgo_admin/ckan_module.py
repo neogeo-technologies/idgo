@@ -108,7 +108,8 @@ class CkanUserHandler(object):
                 # Moche pour tester
                 if resource['datastore_active']:
                     self.remote.action.resource_update(**resource)
-                    del resource['upload']
+                    if 'upload' in resource:
+                        del resource['upload']
                 # Fin de 'Moche pour tester'
                 return self.remote.action.resource_update(**resource)
         return self.remote.action.resource_create(**kwargs)
