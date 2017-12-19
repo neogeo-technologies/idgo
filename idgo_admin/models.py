@@ -301,7 +301,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     organisation = models.ForeignKey(
-        Organisation, blank=True, null=True,
+        Organisation, blank=True, null=True, on_delete=models.SET_NULL,
         verbose_name="Organisation d'appartenance")
 
     referents = models.ManyToManyField(
