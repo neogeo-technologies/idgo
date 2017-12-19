@@ -11,7 +11,6 @@ from django.urls import reverse
 from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanSyncingError
 from idgo_admin.utils import PartialFormatter
 from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garder l'original
 import json
@@ -285,18 +284,16 @@ class Organisation(models.Model):
     def __str__(self):
         return self.name
 
-    # def delete(self, *args, **kwargs):
-    #     ckan.del_organization(self.ckan_id)
-    #     super().delete()
-
-    def save(self, *args, **kwargs):
-        self.ckan_slug = slugify(self.name)
-        super(Organisation, self).save(*args, **kwargs)
+    def sync_ckan(self):
         if self.pk:
-            try:
-                ckan.update_organization(self)
-            except Exception:
-                raise ValidationError('Erreur de synchronisation CKAN.')
+            ckan.update_organization(self)
+
+    def clean(self):
+        self.ckan_slug = slugify(self.name)
+        try:
+            self.sync_ckan()
+        except Exception as e:
+            raise ValidationError(e.__str__())
 
 
 class Profile(models.Model):
@@ -810,30 +807,18 @@ class Category(models.Model):
     class Meta(object):
         verbose_name = 'Catégorie'
 
-    def save(self, *args, **kwargs):
-        if self.id:
-            previous_slug = Category.objects.get(pk=self.pk).ckan_slug
+    def sync_ckan(self):
+        if self.pk:
+            ckan.update_group(self)
+        else:
+            ckan.add_group(self)
+
+    def clean(self):
         self.ckan_slug = slugify(self.name)
-        super(Category, self).save(*args, **kwargs)
         try:
-            if not ckan.is_group_exists(previous_slug):
-                ckan.add_group(self)
-            else:
-                ckan.update_group(previous_slug, self)
-        # except CkanSyncingError as e:
-        #     raise ValidationError(e.__str__())
+            self.sync_ckan()
         except Exception as e:
             raise ValidationError(e.__str__())
-
-    # def clean(self):
-    #     ckan_slug = self.ckan_slug
-    #     try:
-    #         if not ckan.is_group_exists(ckan_slug):
-    #             ckan.add_group(self)
-    #         else:
-    #             ckan.update_group(ckan_slug, self)
-    #     except Exception as e:
-    #         raise ValidationError(e.__str__())
 
 
 class License(models.Model):
@@ -1021,11 +1006,8 @@ def post_save_resource(sender, instance, **kwargs):
 
 
 @receiver(pre_delete, sender=User)
-def delete_user_in_externals(sender, instance, **kwargs):
-    try:
-        ckan.del_user(instance.username)  # -> state='deleted'
-    except Exception:
-        pass
+def pre_delete_user(sender, instance, **kwargs):
+    ckan.del_user(instance.username)
 
 
 @receiver(pre_save, sender=LiaisonsContributeurs)
@@ -1034,20 +1016,35 @@ def pre_save_contribution(sender, instance, **kwargs):
         return
     user = instance.profile.user
     organisation = instance.organisation
-    if ckan.get_organization(organisation.ckan_slug):
-        ckan.add_user_to_organization(user.username, organisation.ckan_slug)
+    if ckan.get_organization(str(organisation.ckan_id)):
+        ckan.add_user_to_organization(user.username, str(organisation.ckan_id))
 
 
 @receiver(pre_delete, sender=LiaisonsContributeurs)
 def pre_delete_contribution(sender, instance, **kwargs):
     user = instance.profile.user
     organisation = instance.organisation
-    if ckan.get_organization(organisation.ckan_slug):
-        ckan.del_user_from_organization(user.username, organisation.ckan_slug)
+    if ckan.get_organization(str(organisation.ckan_id)):
+        ckan.del_user_from_organization(user.username, str(organisation.ckan_id))
+
+
+@receiver(pre_delete, sender=Organisation)
+def pre_delete_organisation(sender, instance, **kwargs):
+    if ckan.is_organization_exists(str(instance.ckan_id)):
+        ckan.del_organization(str(instance.ckan_id))
+
+
+@receiver(pre_delete, sender=Category)
+def pre_delete_category(sender, instance, **kwargs):
+    if ckan.is_group_exists(str(instance.ckan_id)):
+        ckan.del_group(str(instance.ckan_id))
+
+
+# Others methods
 
 
 def create_organization_in_ckan(organization):
     ckan.add_organization(organization)
     for profile in LiaisonsContributeurs.get_contributors(organization):
         user = profile.user
-        ckan.add_user_to_organization(user.username, organization.ckan_slug)
+        ckan.add_user_to_organization(user.username, str(organization.ckan_id))

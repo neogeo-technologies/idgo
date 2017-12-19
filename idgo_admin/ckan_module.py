@@ -252,8 +252,6 @@ class CkanManagerHandler(metaclass=Singleton):
     def update_organization(self, organization):
         ckan_organization = \
             self.get_organization(organization.ckan_id, include_datasets=True)
-        if not ckan_organization:
-            return
 
         ckan_organization.update({
             'title': organization.name,
@@ -286,7 +284,7 @@ class CkanManagerHandler(metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def del_organization(self, id):
-        self.call_action('organization_purge', id=id)
+        self.call_action('organization_purge', id=str(id))
 
     @CkanExceptionsHandler()
     def get_organizations_which_user_belongs(
@@ -331,6 +329,7 @@ class CkanManagerHandler(metaclass=Singleton):
     @CkanExceptionsHandler()
     def add_group(self, group, type=None):
         ckan_group = {
+            'id': str(group.ckan_id),
             'type': type,
             'title': group.name,
             'name': group.ckan_slug,
@@ -343,12 +342,18 @@ class CkanManagerHandler(metaclass=Singleton):
         return self.call_action('group_create', **ckan_group)
 
     @CkanExceptionsHandler()
-    def update_group(self, id, group):
-        ckan_group = self.get_group(id, include_datasets=True)
+    def update_group(self, group):
+        ckan_group = self.get_group(str(group.ckan_id), include_datasets=True)
         ckan_group.update({
             'title': group.name,
             'name': group.ckan_slug,
             'description': group.description})
+
+        for val in ('packages', 'users', 'tags', 'groups'):
+            lst = ckan_group.get(val, [])
+            del ckan_group[val]
+            ckan_group[val] = [{'id': e['id'], 'name': e['name']} for e in lst]
+
         try:
             ckan_group['image_url'] = \
                 urljoin(settings.DOMAIN_NAME, group.picto.url)
@@ -360,8 +365,8 @@ class CkanManagerHandler(metaclass=Singleton):
             return None
 
     @CkanExceptionsHandler()
-    def del_group(self, group_name):
-        self.call_action('group_purge', id=group_name)
+    def del_group(self, id):
+        self.call_action('group_purge', id=str(id))
 
     @CkanExceptionsHandler()
     def add_user_to_group(self, username, group_name):

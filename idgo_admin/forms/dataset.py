@@ -322,7 +322,7 @@ class DatasetForm(forms.ModelForm):
 
         dataset.data_type.set(data.get('data_type', []), clear=True)
 
-        if not ckan.get_organization(dataset.organisation.ckan_slug):
+        if not ckan.get_organization(str(dataset.organisation.ckan_id)):
             # Crée l'organisation une première fois
             create_organization_in_ckan(dataset.organisation)
 
