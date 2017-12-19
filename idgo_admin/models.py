@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanSyncingError
 from idgo_admin.utils import PartialFormatter
 from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garder l'original
 import json
@@ -813,12 +814,14 @@ class Category(models.Model):
         self.ckan_slug = slugify(self.name)
         super(Category, self).save(*args, **kwargs)
         try:
-            if not ckan.is_group_exists(self.ckan_slug):
+            if not ckan.is_group_exists(previous_slug):
                 ckan.add_group(self)
             else:
                 ckan.update_group(previous_slug, self)
-        except Exception:
-            raise ValidationError('Erreur de synchronisation CKAN.')
+        # except CkanSyncingError as e:
+        #     raise ValidationError(e.__str__())
+        except Exception as e:
+            raise ValidationError(e.__str__())
 
 
 class License(models.Model):
