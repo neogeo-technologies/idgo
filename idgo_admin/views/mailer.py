@@ -153,8 +153,9 @@ def confirm_rattachement(request, key):
 
         else:
             action.profile.membership = True
-            action.closed = timezone.now()
+            action.profile.organisation = action.org_extras
             action.profile.save()
+            action.closed = timezone.now()
             action.save()
             message = (
                 "Le rattachement de <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) "
@@ -177,7 +178,7 @@ def confirm_referent(request, key):
 
     organisation = action.org_extras
     user = action.profile.user
-    if action.closed:
+    if not action.closed:
         status = 200
         message = (
             "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
@@ -205,17 +206,26 @@ def confirm_referent(request, key):
                              organization_name=organisation.name)
                 status = 200
             else:
-                ref_liaison.validated_on = timezone.now()
-                ref_liaison.save()
-                action.closed = timezone.now()
-                action.save()
+                # Fix confirmation referent == confirmation LiaisonContributeur
+                try:
+                    contrib_me = LiaisonsContributeurs.objects.get(profile=action.profile, organisation=organisation)
+                except:
+                    status = 400
+                    message = ("Erreur lors de la confirmation du rôle de contributeur")
+                else:
+                    contrib_me.validated_on = timezone.now()
+                    contrib_me.save()
+                    ref_liaison.validated_on = timezone.now()
+                    ref_liaison.save()
+                    action.closed = timezone.now()
+                    action.save()
 
-                status = 200
-                message = (
-                    "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
-                    "a bien été confirmé pour <strong>{username}</strong>."
-                    ).format(organization_name=organisation.name,
-                             username=user.username)
+                    status = 200
+                    message = (
+                        "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
+                        "a bien été confirmé pour <strong>{username}</strong>."
+                        ).format(organization_name=organisation.name,
+                                 username=user.username)
 
     return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=status)
