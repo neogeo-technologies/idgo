@@ -19,8 +19,8 @@
 	<div class="panel-body">
 		{% if organization %}
 		<p>Vous êtes actuellement rattaché à l'organisation suivante : <strong>{{ organization }}</strong>. </p>
-		{% elif awaiting_organization %}
-		<div class="alert alert-info">Demande de rattachement en attente de validation pour : <strong>{{ awaiting_organization }}</strong>. </div>
+		{% elif awaiting_rattachement %}
+		<div class="alert alert-info">Demande de rattachement en attente de validation pour : <strong>{{ awaiting_rattachement }}</strong>. </div>
 		{% else %}
 		<div class="alert alert-warning">Vous n'êtes rattaché à aucune organisation. </div>
 		{% endif %}
