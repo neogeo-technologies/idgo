@@ -249,21 +249,12 @@ Apache doit pouvoir écrire dans les sous répertoires de `media`.
 ```shell
 > cd /idgo_venv
 /idgo_venv> source bin/activate
-(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/category.json
-(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/license.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/support.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/commune.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/mail.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/resourceformats.json
-(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/support.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/jurisdiction.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/datatype.json
-```
-
-#### Synchroniser les catégories avec CKAN
-
-```shell
-cd /idgo_venv
-/idgo_venv> source bin/activate
-(idgo_venv) /idgo_venv> python manage.py sync_ckan_categories
 ```
 
 #### CRON
@@ -273,4 +264,12 @@ cd /idgo_venv
 /idgo_venv> source bin/activate
 (idgo_venv) /idgo_venv> python manage.py clean_up_actions_out_of_delay.py
 (idgo_venv) /idgo_venv> python manage.py sync_ckan_allowed_users_by_resource
+```
+
+#### (Synchroniser les catégories avec CKAN)
+
+```shell
+cd /idgo_venv
+/idgo_venv> source bin/activate
+(idgo_venv) /idgo_venv> python manage.py sync_ckan_categories
 ```
