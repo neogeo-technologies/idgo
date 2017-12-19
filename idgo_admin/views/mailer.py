@@ -178,7 +178,7 @@ def confirm_referent(request, key):
 
     organisation = action.org_extras
     user = action.profile.user
-    if not action.closed:
+    if action.closed:
         status = 200
         message = (
             "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
