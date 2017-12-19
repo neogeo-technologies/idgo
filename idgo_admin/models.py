@@ -795,7 +795,9 @@ class Category(models.Model):
     name = models.CharField('Nom', max_length=100)
     description = models.CharField('Description', max_length=1024)
     ckan_slug = models.SlugField(
-        'Ckan_ID', max_length=100, unique=True, db_index=True, blank=True)
+        'Ckan slug', max_length=100, unique=True, db_index=True, blank=True)
+    ckan_id = models.UUIDField(
+        'Ckan UUID', default=uuid.uuid4, editable=False)
     iso_topic = models.CharField('Thème ISO', max_length=100,
                                  choices=ISO_TOPIC_CHOICES,
                                  blank=True, null=True)
@@ -822,6 +824,16 @@ class Category(models.Model):
         #     raise ValidationError(e.__str__())
         except Exception as e:
             raise ValidationError(e.__str__())
+
+    # def clean(self):
+    #     ckan_slug = self.ckan_slug
+    #     try:
+    #         if not ckan.is_group_exists(ckan_slug):
+    #             ckan.add_group(self)
+    #         else:
+    #             ckan.update_group(ckan_slug, self)
+    #     except Exception as e:
+    #         raise ValidationError(e.__str__())
 
 
 class License(models.Model):
