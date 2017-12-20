@@ -817,6 +817,10 @@ class Category(models.Model):
         else:
             ckan.add_group(self)
 
+    def save(self, *args, **kwargs):
+        self.ckan_slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
     def clean(self):
         self.ckan_slug = slugify(self.name)
         try:
