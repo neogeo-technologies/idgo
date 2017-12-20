@@ -253,7 +253,7 @@ class CkanManagerHandler(metaclass=Singleton):
     @CkanExceptionsHandler()
     def update_organization(self, organization):
         ckan_organization = \
-            self.get_organization(organization.ckan_id, include_datasets=True)
+            self.get_organization(str(organization.ckan_id), include_datasets=True)
 
         ckan_organization.update({
             'title': organization.name,
