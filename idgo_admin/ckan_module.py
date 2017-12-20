@@ -193,6 +193,7 @@ class CkanManagerHandler(metaclass=Singleton):
                   'fullname': user.get_full_name(),
                   'name': user.username,
                   'password': password,
+                  'activity_streams_email_notifications': True,
                   'state': 'deleted'}
         user = self.call_action('user_create', **params)
 
@@ -240,6 +241,7 @@ class CkanManagerHandler(metaclass=Singleton):
             'id': str(organization.ckan_id),
             'name': organization.ckan_slug,
             'title': organization.name,
+            'description': organization.description,
             'state': 'active'}
         try:
             params['image_url'] = \
@@ -380,6 +382,12 @@ class CkanManagerHandler(metaclass=Singleton):
             del ckan_group['packages']
         ckan_group['packages'] = \
             [{'id': package['id'], 'name': package['name']} for package in packages]
+
+        users = ckan_group.get('users', [])
+        if users:
+            del ckan_group['users']
+        ckan_group['users'] = \
+            [{'id': user['id'], 'name': user['name'], 'capacity': 'admin'} for user in users]
 
         if username not in [user['name'] for user in ckan_group['users']]:
             ckan_group['users'].append({'name': username, 'capacity': 'admin'})
