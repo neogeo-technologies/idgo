@@ -193,6 +193,7 @@ class CkanManagerHandler(metaclass=Singleton):
                   'fullname': user.get_full_name(),
                   'name': user.username,
                   'password': password,
+                  'activity_streams_email_notifications': True,
                   'state': 'deleted'}
         user = self.call_action('user_create', **params)
 
