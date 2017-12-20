@@ -288,6 +288,10 @@ class Organisation(models.Model):
         if self.pk:
             ckan.update_organization(self)
 
+    def save(self, *args, **kwargs):
+        self.ckan_slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
     def clean(self):
         self.ckan_slug = slugify(self.name)
         try:
