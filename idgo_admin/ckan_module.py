@@ -349,9 +349,10 @@ class CkanManagerHandler(metaclass=Singleton):
             'name': group.ckan_slug,
             'description': group.description})
 
-        for val in ('packages', 'users', 'tags', 'groups'):
+        for val in ('packages', 'tags', 'groups'):
             lst = ckan_group.get(val, [])
-            del ckan_group[val]
+            if lst:
+                del ckan_group[val]
             ckan_group[val] = [{'id': e['id'], 'name': e['name']} for e in lst]
 
         try:
@@ -369,13 +370,21 @@ class CkanManagerHandler(metaclass=Singleton):
         self.call_action('group_purge', id=str(id))
 
     @CkanExceptionsHandler()
-    def add_user_to_group(self, username, group_name):
-        group = self.get_group(group_name, include_datasets=True)
-        if not group:  # TODO better
-            raise Exception("The group '{0}' does not exists".format(group_name))
-        if username not in [user['name'] for user in group['users']]:
-            group['users'].append({'name': username, 'capacity': 'admin'})
-        self.call_action('group_update', **group)
+    def add_user_to_group(self, username, group_id):
+        ckan_group = self.get_group(str(group_id), include_datasets=True)
+        if not ckan_group:
+            raise Exception("The group '{0}' does not exists".format(str(group_id)))
+
+        packages = ckan_group.get('packages', [])
+        if packages:
+            del ckan_group['packages']
+        ckan_group['packages'] = \
+            [{'id': package['id'], 'name': package['name']} for package in packages]
+
+        if username not in [user['name'] for user in ckan_group['users']]:
+            ckan_group['users'].append({'name': username, 'capacity': 'admin'})
+
+        self.call_action('group_update', **ckan_group)
 
     @CkanExceptionsHandler()
     def purge_dataset(self, id):
