@@ -281,6 +281,9 @@ class Organisation(models.Model):
 
     is_active = models.BooleanField('Organisation active', default=False)
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return self.name
 
