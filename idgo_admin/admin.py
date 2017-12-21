@@ -224,10 +224,11 @@ class OrganisationAdmin(geo_admin.OSMGeoAdmin):
 
     # Permet d'empecher la modification du nom et du slug d'une organisation aprés sa création
     def get_readonly_fields(self, request, obj=None):
-        if obj:
-            return ['name', 'ckan_slug']
-        else:
-            return ['ckan_slug']
+        return ['ckan_slug']
+        # if obj:
+        #     return ['name', 'ckan_slug']
+        # else:
+        #     return ['ckan_slug']
 
     def has_delete_permission(self, request, obj=None):
         return False
