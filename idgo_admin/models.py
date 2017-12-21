@@ -188,8 +188,9 @@ class Financier(models.Model):
     code = models.CharField('Code du financeur', max_length=250)
 
     class Meta(object):
-        verbose_name = "Nom du financeur d'une organisation"
-        verbose_name_plural = "Noms des financeurs"
+        verbose_name = "Financeur d'une organisation"
+        verbose_name_plural = "Financeurs"
+        ordering = ('name', )
 
     def __str__(self):
         return self.name
@@ -197,12 +198,13 @@ class Financier(models.Model):
 
 class OrganisationType(models.Model):
 
-    name = models.CharField('Dénomination', max_length=50)
-    code = models.CharField('Code', max_length=3)
+    name = models.CharField("Type d'organisation", max_length=250)
+    code = models.CharField("Code", max_length=250)
 
     class Meta(object):
         verbose_name = "Type d'organisation"
         verbose_name_plural = "Types d'organisations"
+        ordering = ('name', )
 
     def __str__(self):
         return self.name
@@ -214,7 +216,7 @@ class Organisation(models.Model):
 
     organisation_type = models.ForeignKey(
         OrganisationType, verbose_name="Type d'organisation",
-        default='1', blank=True, null=True)
+        default='1', blank=True, null=True, on_delete=models.SET_NULL)
 
     # code_insee = models.CharField(
     #     'Code INSEE', max_length=20, unique=False, db_index=True)
@@ -274,7 +276,7 @@ class Organisation(models.Model):
         'License', on_delete=models.CASCADE, blank=True, null=True)
 
     financier = models.ForeignKey(
-        Financier, blank=True, null=True, on_delete=models.CASCADE)
+        Financier, blank=True, null=True, on_delete=models.SET_NULL)
 
     # status = models.ForeignKey(
     #     Status, blank=True, null=True, on_delete=models.CASCADE)

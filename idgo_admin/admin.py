@@ -9,6 +9,7 @@ from django.utils.text import slugify
 from idgo_admin.ckan_module import CkanManagerHandler
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
+from idgo_admin.models import Financier
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import License
@@ -38,18 +39,27 @@ class JurisdictionAdmin(admin.ModelAdmin):
 admin.site.register(Jurisdiction, JurisdictionAdmin)
 
 
+class FinancierAdmin(admin.ModelAdmin):
+    ordering = ("name", )
+    search_fields = ('name', 'code')
+
+
+admin.site.register(Financier, FinancierAdmin)
+
+
+class OrganisationTypeAdmin(admin.ModelAdmin):
+    ordering = ("name", )
+    search_fields = ('name', 'code')
+
+
+admin.site.register(OrganisationType, OrganisationTypeAdmin)
+
+
 class LicensenAdmin(admin.ModelAdmin):
     ordering = ("title", )
 
 
 admin.site.register(License, LicensenAdmin)
-
-
-class OrganisationTypeAdmin(admin.ModelAdmin):
-    ordering = ("name", )
-
-
-admin.site.register(OrganisationType, OrganisationTypeAdmin)
 
 
 class ResourceFormatsAdmin(admin.ModelAdmin):
