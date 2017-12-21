@@ -289,21 +289,6 @@ class Organisation(models.Model):
     def __str__(self):
         return self.name
 
-    def sync_ckan(self):
-        if self.pk:
-            ckan.update_organization(self)
-
-    def save(self, *args, **kwargs):
-        self.ckan_slug = slugify(self.name)
-        super().save(*args, **kwargs)
-
-    def clean(self):
-        self.ckan_slug = slugify(self.name)
-        try:
-            self.sync_ckan()
-        except Exception as e:
-            raise ValidationError(e.__str__())
-
 
 class Profile(models.Model):
 
@@ -822,10 +807,6 @@ class Category(models.Model):
         else:
             ckan.add_group(self)
 
-    def save(self, *args, **kwargs):
-        self.ckan_slug = slugify(self.name)
-        super().save(*args, **kwargs)
-
     def clean(self):
         self.ckan_slug = slugify(self.name)
         try:
@@ -1039,6 +1020,13 @@ def pre_delete_contribution(sender, instance, **kwargs):
     organisation = instance.organisation
     if ckan.get_organization(str(organisation.ckan_id)):
         ckan.del_user_from_organization(user.username, str(organisation.ckan_id))
+
+
+@receiver(pre_save, sender=Organisation)
+def pre_save_organisation(sender, instance, **kwargs):
+    instance.ckan_slug = slugify(instance.name)
+    if instance.pk and ckan.is_organization_exists(instance.ckan_id):
+        ckan.update_organization(instance)
 
 
 @receiver(pre_delete, sender=Organisation)
