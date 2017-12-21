@@ -287,33 +287,33 @@ admin.site.register(Mail, MailAdmin)
 
 class CategoryAdmin(admin.ModelAdmin):
     model = Category
-    actions = ['sync_ckan']
+    # actions = ['sync_ckan']
     readonly_fields = ('ckan_slug',)
     ordering = ('name',)
 
-    def sync_ckan(self, request, queryset):
-        ckan = CkanManagerHandler()
-        neworgs = []
-        for category in queryset:
-
-            current_slug = category.ckan_slug
-            correct_slug = slugify(category.name)
-            if not category.ckan_slug or (current_slug != correct_slug):
-                category.save()
-                neworgs.append(category.name)
-                continue
-
-            if not ckan.is_group_exists(category.ckan_slug):
-                ckan.add_group(category)
-                neworgs.append(category.name)
-
-        if len(neworgs) == 0:
-            messages.error(request, "Aucune catégorie n'a dû être synchronisée")
-        else:
-            msg = ("Les catégories suivantes ont été synchronisées avec "
-                   "les données CKAN: {0}".format(set(neworgs)))
-            messages.success(request, msg)
-    sync_ckan.short_description = 'Synchronisation des catégories séléctionnées'
+    # def sync_ckan(self, request, queryset):
+    #     ckan = CkanManagerHandler()
+    #     neworgs = []
+    #     for category in queryset:
+    #
+    #         current_slug = category.ckan_slug
+    #         correct_slug = slugify(category.name)
+    #         if not category.ckan_slug or (current_slug != correct_slug):
+    #             category.save()
+    #             neworgs.append(category.name)
+    #             continue
+    #
+    #         if not ckan.is_group_exists(category.ckan_slug):
+    #             ckan.add_group(category)
+    #             neworgs.append(category.name)
+    #
+    #     if len(neworgs) == 0:
+    #         messages.error(request, "Aucune catégorie n'a dû être synchronisée")
+    #     else:
+    #         msg = ("Les catégories suivantes ont été synchronisées avec "
+    #                "les données CKAN: {0}".format(set(neworgs)))
+    #         messages.success(request, msg)
+    # sync_ckan.short_description = 'Synchronisation des catégories séléctionnées'
 
     def has_delete_permission(self, request, obj=None):
         return False
