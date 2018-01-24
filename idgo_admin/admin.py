@@ -19,8 +19,11 @@ from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
+from idgo_admin.utils import PartialFormatter
 from taggit.admin import Tag
-
+from django.contrib.auth.forms import UserCreationForm
+from django.core.mail import send_mail
+from django.urls import reverse
 
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
@@ -180,38 +183,115 @@ class ProfileAdmin(admin.ModelAdmin):
 admin.site.register(Profile, ProfileAdmin)
 
 
+# class EmailRequiredMixin(object):
+#     def __init__(self, *args, **kwargs):
+#         super(EmailRequiredMixin, self).__init__(*args, **kwargs)
+#         # make user email field required
+#         self.fields['email'].required = True
+
+
+class MyUserCreationForm(UserCreationForm):
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ('first_name', 'last_name', 'email', 'username')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].required = True
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required = True
+
+    def password_generator(self, N=8):
+        import string
+        import random
+        return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(N))
+
+    def send_credentials_to_user(self, cleaned_data, pass_generated):
+        mail_template = Mail.objects.get(template_name='validation_user_mail')
+        from_email = mail_template.from_email
+        subject = mail_template.subject
+
+        fmt = PartialFormatter()
+        data = {'username': cleaned_data.get('username', ''),
+                'password': pass_generated,
+                'url': reverse('idgo_admin:signIn')}
+        message = ("Bonjour, "
+                   "Un compte vous a été créé sur la plateforme Datasud, "
+                   "Veuillez changer votre mot de passe apres votre premiere connexion: "
+                   "Identifiant de connexion: {username} "
+                   "Mot de passe: {password} "
+                   "Url de connexion: {url}")
+        message = fmt.format(message, **data)
+        send_mail(subject=subject, message=message,
+                  from_email=from_email, recipient_list=[self.cleaned_data['email']])
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Ce nom d'utilisateur est reservé")
+        return username
+
+    def save_model(self):
+        pass
+
+    def save(self, commit=True):
+        user = super(UserCreationForm, self).save(commit=False)
+        auto_pass = self.password_generator()
+        self.send_credentials_to_user(self.cleaned_data, auto_pass)
+        user.set_password(auto_pass)
+        if commit:
+            user.save()
+        return user
+
+
 class UserProfileInline(admin.StackedInline):
     model = Profile
     max_num = 1
 
-    def has_delete_permission(self, request, obj=None):
-        return False
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
 
-    def has_add_permission(self, request, obj=None):
-        return False
+    # def has_add_permission(self, request, obj=None):
+    #     return False
 
 
 class UserAdmin(AuthUserAdmin):
     inlines = [UserProfileInline]
+    add_form = MyUserCreationForm
     list_display = ('full_name', 'username', 'is_superuser', 'is_active')
     list_display_links = ('username', )
     ordering = ('last_name', 'first_name')
+    prepopulated_fields = {'username': ('first_name', 'last_name',)}
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('first_name', 'last_name', 'username',
+                       'password1', 'password2', 'email'),
+            }),
+        )
 
-    def has_delete_permission(self, request, obj=None):
-        return False
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
 
-    def has_add_permission(self, request, obj=None):
-        return False
+    # def has_add_permission(self, request, obj=None):
+    #     return False
 
-    def get_actions(self, request):
-        actions = super(UserAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
+    # def get_actions(self, request):
+    #     actions = super(UserAdmin, self).get_actions(request)
+    #     if 'delete_selected' in actions:
+    #         del actions['delete_selected']
+    #     return actions
 
     def full_name(self, obj):
         return " ".join((obj.last_name.upper(), obj.first_name.capitalize()))
     full_name.short_description = "Nom et prénom"
+
+    def save_model(self, request, obj, form, change):
+        # import pdb; pdb.set_trace()
+        # obj.set_password('impasse')
+        # obj.save
+        super().save_model(request, obj, form, change)
 
 
 admin.site.register(User, UserAdmin)
