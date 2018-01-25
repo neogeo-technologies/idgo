@@ -4,9 +4,9 @@ from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 from django.contrib.gis import admin as geo_admin
-from django.contrib import messages
-from django.utils.text import slugify
-from idgo_admin.ckan_module import CkanManagerHandler
+# from django.contrib import messages
+# from django.utils.text import slugify
+# from idgo_admin.ckan_module import CkanManagerHandler
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import Financier
@@ -19,11 +19,14 @@ from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
-from idgo_admin.utils import PartialFormatter
 from taggit.admin import Tag
 from django.contrib.auth.forms import UserCreationForm
 from django.core.mail import send_mail
 from django.urls import reverse
+from idgo_admin.ckan_module import CkanHandler as ckan
+from django.core.exceptions import ValidationError
+from django.conf import settings
+from django.contrib.auth.views import redirect_to_login
 
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
@@ -192,11 +195,12 @@ admin.site.register(Profile, ProfileAdmin)
 
 class MyUserCreationForm(UserCreationForm):
 
-    class Meta(UserCreationForm.Meta):
+    class Meta():
         model = User
         fields = ('first_name', 'last_name', 'email', 'username')
 
     def __init__(self, *args, **kwargs):
+        self._request = self.request
         super().__init__(*args, **kwargs)
         self.fields['email'].required = True
         self.fields['first_name'].required = True
@@ -207,39 +211,55 @@ class MyUserCreationForm(UserCreationForm):
         import random
         return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(N))
 
-    def send_credentials_to_user(self, cleaned_data, pass_generated):
-        mail_template = Mail.objects.get(template_name='validation_user_mail')
-        from_email = mail_template.from_email
-        subject = mail_template.subject
+    def send_credentials_to_user(self, cleaned_data, pass_generated, request=None):
 
-        fmt = PartialFormatter()
-        data = {'username': cleaned_data.get('username', ''),
-                'password': pass_generated,
-                'url': reverse('idgo_admin:signIn')}
-        message = ("Bonjour, "
-                   "Un compte vous a été créé sur la plateforme Datasud, "
-                   "Veuillez changer votre mot de passe apres votre premiere connexion: "
-                   "Identifiant de connexion: {username} "
-                   "Mot de passe: {password} "
-                   "Url de connexion: {url}")
-        message = fmt.format(message, **data)
+        from_email = settings.DEFAULT_FROM_EMAIL
+        subject = "Un nouveau compte vous a été crée par le service d'administration de la plateforme Datasud "
+        data = {
+            'username': cleaned_data.get('username'),
+            'first_name': cleaned_data.get('first_name'),
+            'last_name': cleaned_data.get('last_name').upper(),
+            'password': pass_generated}
+
+        data['url'] = request.build_absolute_uri(reverse('idgo_admin:account_manager', kwargs={'process': 'update'}))
+
+        message = """\
+            <html>
+              <head></head>
+              <body>
+                    Bonjour, {last_name}, {first_name}<br>
+                    <p>Un compte vous a été créé sur la plateforme Datasud. </p>
+                    <p>Après votre premiere connexion, veuillez <b>réinitializer</b> votre mot de passe. </p>
+                    <br>
+                    <p>Identifiant de connexion: <b>{username}</b> </p>
+                    <p>Mot de passe: {password}</p>
+                    <p>Url de connexion: {url}</p>
+                    <br>
+                    <p>Ce message est envoyé automatiquement...</p>
+             </body>
+            </html>
+            """.format(**data)
         send_mail(subject=subject, message=message,
                   from_email=from_email, recipient_list=[self.cleaned_data['email']])
 
     def clean_username(self):
         username = self.cleaned_data['username']
-        if User.objects.filter(username=username).exists():
+        if User.objects.filter(username=username).exists() or ckan.is_user_exists(username):
             raise forms.ValidationError("Ce nom d'utilisateur est reservé")
         return username
 
-    def save_model(self):
-        pass
+    def clean_password2(self):
+        return "overwrited password"
 
-    def save(self, commit=True):
+    def save(self, commit=True, *args, **kwargs):
         user = super(UserCreationForm, self).save(commit=False)
-        auto_pass = self.password_generator()
-        self.send_credentials_to_user(self.cleaned_data, auto_pass)
-        user.set_password(auto_pass)
+        pass_generated = self.password_generator()
+        self.send_credentials_to_user(self.cleaned_data, pass_generated, request=self._request)
+        try:
+            ckan.add_user(user, pass_generated)
+        except Exception as e:
+            ValidationError("L'ajout de l'utilisateur sur CKAN à echoué: {}".format(e))
+        user.set_password(pass_generated)
         if commit:
             user.save()
         return user
@@ -267,7 +287,7 @@ class UserAdmin(AuthUserAdmin):
         (None, {
             'classes': ('wide',),
             'fields': ('first_name', 'last_name', 'username',
-                       'password1', 'password2', 'email'),
+                       'email', 'password1', 'password2'),
             }),
         )
 
@@ -283,15 +303,15 @@ class UserAdmin(AuthUserAdmin):
     #         del actions['delete_selected']
     #     return actions
 
+    # Necessaire pour ajouter la 'request' dans MyUserCreationForm.__init__
+    def get_form(self, request, obj=None, **kwargs):
+        add_form = super(UserAdmin, self).get_form(request, obj=obj, **kwargs)
+        add_form.request = request
+        return add_form
+
     def full_name(self, obj):
         return " ".join((obj.last_name.upper(), obj.first_name.capitalize()))
     full_name.short_description = "Nom et prénom"
-
-    def save_model(self, request, obj, form, change):
-        # import pdb; pdb.set_trace()
-        # obj.set_password('impasse')
-        # obj.save
-        super().save_model(request, obj, form, change)
 
 
 admin.site.register(User, UserAdmin)
