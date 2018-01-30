@@ -102,4 +102,12 @@
         "message": "Bonjour {first_name} {last_name} ({username}),\n\nPour valider votre inscription, veuillez cliquer sur le lien suivant : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
         "from_email": "idgo@neogeo-technologies.fr"
     }
+},{
+    "model": "idgo_admin.mail",
+    "pk": "credentials_user_creation_admin",
+    "fields": {
+        "subject": "Un nouveau compte vous a été crée par le service d'administration de la plateforme Datasud",
+        "message": "Bonjour {first_name} {last_name} ({username}),\n\nUn compte vous a été créé sur la plateforme IDGO.\n\nAprès votre première connexion, veuillez réinitializer votre mot de passe dans votre gestionnaire de profil.\n\n+ Identifiant de connexion: {username}\n\n+ Mot de passe: {password}\n\n+ Url de connexion:\n\n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
+        "from_email": "idgo@neogeo-technologies.fr"
+    }
 }]

@@ -37,6 +37,10 @@ class SizeLimitExceededError(GenericException):
         super().__init__(*args, **kwargs)
 
 
+class ErrorOnDeleteAccount(Exception):
+    pass
+
+
 class ExceptionsHandler(object):
 
     template_html_500 = 'idgo_admin/servererror.html'

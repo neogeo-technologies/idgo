@@ -17,7 +17,7 @@ import json
 import os
 from taggit.managers import TaggableManager
 import uuid
-
+from django.contrib.auth.views import redirect_to_login
 
 if settings.STATIC_ROOT:
     locales_path = os.path.join(settings.STATIC_ROOT, 'mdedit/config/locales/fr/locales.json')
@@ -507,6 +507,38 @@ class Mail(models.Model):
     class Meta(object):
         verbose_name = 'e-mail'
         verbose_name_plural = 'e-mails'
+
+    @classmethod
+    def send_credentials_user_creation_admin(cls, request, cleaned_data, pass_generated):
+
+        msg_on_create = """Bonjour, {last_name}, {first_name},
+Un compte vous a été créé sur la plateforme IDGO.
+Après votre première connexion, veuillez réinitializer votre mot de passe dans votre gestionnaire de profil.
+
++ Identifiant de connexion: {username}
++ Mot de passe: {password}
++ Url de connexion: {url}
+
+Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
+        sub_on_create = "Un nouveau compte vous a été crée par le service d'administration de la plateforme Datasud"
+
+        mail_template, created = cls.objects.get_or_create(
+            template_name='credentials_user_creation_admin',
+            defaults={
+                'message': msg_on_create,
+                'subject': sub_on_create,
+                'from_email': 'idgo@neogeo-technologies.fr'})
+
+        fmt = PartialFormatter()
+        data = {'first_name': cleaned_data.get('first_name'),
+                'last_name': cleaned_data.get('last_name').upper(),
+                'username': cleaned_data.get('username'),
+                'password': pass_generated}
+        redirection = redirect_to_login(reverse('idgo_admin:account_manager', kwargs={'process': 'update'}))
+        data['url'] = request.build_absolute_uri(redirection.url)
+        message = fmt.format(mail_template.message, **data)
+        send_mail(subject=mail_template.subject, message=message,
+                  from_email=settings.DEFAULT_FROM_EMAIL, recipient_list=[cleaned_data.get('email')])
 
     @classmethod
     def validation_user_mail(cls, request, action):
