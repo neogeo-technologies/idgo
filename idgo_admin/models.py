@@ -218,24 +218,9 @@ class Organisation(models.Model):
         OrganisationType, verbose_name="Type d'organisation",
         default='1', blank=True, null=True, on_delete=models.SET_NULL)
 
-    # code_insee = models.CharField(
-    #     'Code INSEE', max_length=20, unique=False, db_index=True)
-
-    # parent = models.ForeignKey(
-    #     'self', on_delete=models.CASCADE, blank=True,
-    #     null=True, verbose_name="Organisation parente")
-
     # Territoire de compétence
     jurisdiction = models.ForeignKey(Jurisdiction, blank=True, null=True,
                                      verbose_name="Territoire de compétence")
-
-    # geom = models.MultiPolygonField(
-    #     'Territoire', srid=4171, blank=True, null=True)
-    # objects = models.GeoManager()
-
-    # Champs à integrer:
-    # sync_in_ckan = models.BooleanField(
-    #     'Synchronisé dans CKAN', default=False)
 
     ckan_slug = models.SlugField(
         'CKAN ID', max_length=150, unique=True, db_index=True)
@@ -247,11 +232,6 @@ class Organisation(models.Model):
 
     email = models.EmailField(
         verbose_name="Adresse mail de l'organisation", blank=True, null=True)
-
-    # id_url_unique = models.URLField('URL unique', blank=True, null=True)
-
-    # titre = models.CharField(  # ???
-    #     'Titre', max_length=100, blank=True, null=True)
 
     description = models.TextField(
         'Description', blank=True, null=True)  # Description CKAN
@@ -270,16 +250,11 @@ class Organisation(models.Model):
     org_phone = models.CharField(
         'Téléphone', max_length=10, blank=True, null=True)
 
-    # communes = models.ManyToManyField(Commune)  # Territoires de compétence
-
     license = models.ForeignKey(
         'License', on_delete=models.CASCADE, blank=True, null=True)
 
     financier = models.ForeignKey(
         Financier, blank=True, null=True, on_delete=models.SET_NULL)
-
-    # status = models.ForeignKey(
-    #     Status, blank=True, null=True, on_delete=models.CASCADE)
 
     is_active = models.BooleanField('Organisation active', default=False)
 

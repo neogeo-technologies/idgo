@@ -1,13 +1,16 @@
+from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django import forms
+from django.db import transaction, IntegrityError
 from django.utils.text import slugify
+
+from idgo_admin.exceptions import ErrorOnDeleteAccount
 from idgo_admin.forms import common_fields
-from idgo_admin.models import Financier
+from idgo_admin.models import Dataset
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
@@ -15,7 +18,6 @@ from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
-# from idgo_admin.models import Status
 from mama_cas.forms import LoginForm as MamaLoginForm
 
 
@@ -148,7 +150,6 @@ class UserResetPassword(forms.Form):
 class ProfileForm(forms.ModelForm):
     # Champs Profile
     phone = common_fields.PHONE
-    # role = common_fields.ROLE
 
     # Champs Organisation
     address = forms.CharField(
@@ -164,13 +165,6 @@ class ProfileForm(forms.ModelForm):
         max_length=150,
         widget=forms.TextInput(
             attrs={'placeholder': "Ville"}))
-
-    # code_insee = forms.CharField(
-    #     required=False,
-    #     label='Territoire de compétence',
-    #     max_length=10,
-    #     widget=forms.TextInput(
-    #         attrs={'placeholder': 'Territoire de compétence'}))
 
     contribution_requested = forms.BooleanField(
         initial=False,
@@ -190,18 +184,11 @@ class ProfileForm(forms.ModelForm):
         widget=forms.Textarea(
             attrs={'placeholder': 'Description'}))
 
-    financier = forms.ModelChoiceField(
-        required=False,
-        label='Financeur',
-        queryset=Financier.objects.all(),
-        empty_label="Sélectionnez un financeur")
-
     jurisdiction = forms.ModelChoiceField(
         required=False,
         label='Territoire de compétence',
         queryset=Jurisdiction.objects.all(),
         empty_label='Aucun')
-        # empty_label="Sélectionnez un territoire de compétence")
 
     license = forms.ModelChoiceField(
         required=False,
@@ -235,11 +222,6 @@ class ProfileForm(forms.ModelForm):
         queryset=OrganisationType.objects.all(),
         empty_label="Sélectionnez un type d'organisation")
 
-    # parent = forms.ModelChoiceField(
-    #     required=False,
-    #     label='Organisation parent',
-    #     queryset=Organisation.objects.all())
-
     postcode = forms.CharField(
         required=False,
         label='Code postal',
@@ -257,11 +239,6 @@ class ProfileForm(forms.ModelForm):
         label='Référent pour ces organisations',
         widget=forms.RadioSelect(),
         queryset=Organisation.objects.all())
-
-    # status = forms.ModelChoiceField(
-    #     required=False,
-    #     label='Statut',
-    #     queryset=Status.objects.all())
 
     website = forms.URLField(
         error_messages={'invalid': "L'adresse URL est erronée. "},
@@ -308,7 +285,7 @@ class ProfileForm(forms.ModelForm):
 
     def clean(self):
         params = ['address', 'city', 'description',
-                  'financier', 'jurisdiction', 'license', 'logo',
+                  'jurisdiction', 'license', 'logo',
                   'organisation_type', 'org_phone', 'postcode',
                   'new_orga', 'website']
 
@@ -394,3 +371,37 @@ class UserDeleteForm(AuthenticationForm):
     class Meta(object):
         model = User
         fields = ('username', 'password')
+
+
+class DeleteAdminForm(forms.Form):
+
+    new_user = forms.ModelChoiceField(
+        User.objects.all(),
+        empty_label="Selectionnez un utilisateur",
+        label="Comptes utilisateur auquel seront affectés les jeux de donnés orphelins",
+        required=False,
+        widget=None,
+        initial=None,
+        help_text="Choisissez un nouvel utilisateur auquel seront affectés les jeux de données de l'utilisateur supprimé",
+        to_field_name=None,
+        limit_choices_to=None)
+
+    confirm = forms.BooleanField(
+        label="Cocher pour confirmer la suppression de ce compte. ",
+        required=True, initial=False)
+
+    def __init__(self, *args, **kwargs):
+        self.included = kwargs.pop('include', {})
+        super().__init__(*args, **kwargs)
+        if self.included['user_id']:
+            self.fields['new_user'].queryset = User.objects.exclude(id=self.included['user_id']).exclude(is_active=False)
+        else:
+            self.fields['new_user'].queryset = User.objects.filter(is_active=True)
+
+    def delete_controller(self, deleted_user, new_user, related_datasets):
+        if related_datasets:
+            if not new_user:
+                Dataset.objects.filter(editor=deleted_user).delete()
+            else:
+                Dataset.objects.filter(editor=deleted_user).update(editor=new_user)
+        deleted_user.delete()
