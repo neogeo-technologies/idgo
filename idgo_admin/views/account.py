@@ -361,96 +361,120 @@ class AccountManager(View):
             return self.contextual_response(request, process)
 
 
-@csrf_exempt
-def forgotten_password(request):
+@method_decorator(decorators[0], name='dispatch')
+class PasswordManager(View):
 
-    if request.method == 'GET':
-        return render(request, 'idgo_admin/forgottenpassword.html',
-                      {'form': UserForgetPassword()})
+    def get(self, request, process, key=None):
+        if process == 'forget':
+            template = 'idgo_admin/forgottenpassword.html'
+            form = UserForgetPassword()
+        else:
+            try:
+                uuid.UUID(key)
+            except Exception:
+                raise Http404
 
-    form = UserForgetPassword(data=request.POST)
+            if process == 'initiate':
+                template = 'idgo_admin/initiatepassword.html'
+                form = UserResetPassword()
 
-    if not form.is_valid():
-        return render(request, 'idgo_admin/forgottenpassword.html',
-                      {'form': form})
-    try:
-        profile = Profile.objects.get(
-            user__email=form.cleaned_data["email"], is_active=True)
-    except Exception:
-        message = "Cette adresse n'est pas liée a un compte IDGO actif "
-        return render(request, 'idgo_admin/message.html',
-                      {'message': message}, status=200)
+            if process == 'reset':
+                template = 'idgo_admin/resetpassword.html'
+                form = UserResetPassword()
 
-    action, created = AccountActions.objects.get_or_create(
-        profile=profile, action='reset_password', closed=None)
+        return render(request, template, {'form': form})
 
-    try:
-        Mail.send_reset_password_link_to_user(request, action)
-    except Exception as e:
-        message = ("Une erreur s'est produite lors de l'envoi du mail "
-                   "de réinitialisation: {error}".format(error=e))
+    def post(self, request, process, key=None):
 
-        status = 400
-    else:
-        message = ('Vous recevrez un e-mail de réinitialisation '
-                   "de mot de passe d'ici quelques minutes. "
-                   'Pour changer votre mot de passe, '
-                   'cliquez sur le lien qui vous sera indiqué '
-                   "dans les 48h après réception de l'e-mail.")
-        status = 200
-    finally:
-        return render(request, 'idgo_admin/message.html',
-                      {'message': message}, status=status)
+        if process == 'forget':
+            template = 'idgo_admin/forgottenpassword.html'
+            form = UserForgetPassword(data=request.POST)
+            action = 'reset_password'
+            if not form.is_valid():
+                return render(request, template, {'form': form})
 
+            try:
+                profile = Profile.objects.get(
+                    user__email=form.cleaned_data["email"], is_active=True)
+            except Exception:
+                message = "Cette adresse n'est pas liée a un compte IDGO actif "
+                return render(request, 'idgo_admin/message.html',
+                              {'message': message}, status=200)
+            forget_action, created = AccountActions.objects.get_or_create(
+                profile=profile, action=action, closed=None)
+            try:
+                Mail.send_reset_password_link_to_user(request, forget_action)
+            except Exception as e:
+                message = ("Une erreur s'est produite lors de l'envoi du mail "
+                           "de réinitialisation: {error}".format(error=e))
 
-@transaction.atomic
-@csrf_exempt
-def reset_password(request, key):
+                status = 400
+            else:
+                message = ('Vous recevrez un e-mail de réinitialisation '
+                           "de mot de passe d'ici quelques minutes. "
+                           'Pour changer votre mot de passe, '
+                           'cliquez sur le lien qui vous sera indiqué '
+                           "dans les 48h après réception de l'e-mail.")
+                status = 200
+            finally:
+                return render(request, 'idgo_admin/message.html',
+                              {'message': message}, status=status)
 
-    if request.method == 'GET':
-        return render(request, 'idgo_admin/resetpassword.html',
-                      {'form': UserResetPassword()})
+        if process == 'initiate':
+            template = 'idgo_admin/initiatepassword.html'
+            form = UserResetPassword(data=request.POST)
+            action = "set_password_admin"
+            message_error = ("Une erreur s'est produite lors de l'initilaisation "
+                             "de votre mot de passe")
+            message_success = 'Votre compte utilisateur a été initialisé.'
 
-    form = UserResetPassword(data=request.POST)
-    if not form.is_valid():
-        return render(request, 'idgo_admin/resetpassword.html', {'form': form})
+        if process == 'reset':
+            template = 'idgo_admin/resetpassword.html'
+            form = UserResetPassword(data=request.POST)
+            action = "reset_password"
+            message_error = ("Une erreur s'est produite lors de l'initilaisation "
+                             "de votre mot de passe")
+            message_success = 'Votre mot de passe a été réinitialisé.'
 
-    try:
-        uuid.UUID(key)
-    except Exception:
-        raise Http404
+        try:
+            uuid.UUID(key)
+        except Exception:
+            raise Http404
 
-    try:
-        reset_action = AccountActions.objects.get(
-            key=key, action="reset_password",
-            profile__user__username=form.cleaned_data.get('username'))
-    except Exception:
-        message = ("Une erreur s'est produite lors de la réinitilaisation "
-                   "de votre mot de pass")
+        if not form.is_valid():
+            return render(request, template,
+                          {'form': form})
 
-        status = 400
-        return render(request, 'idgo_admin/message.html',
-                      {'message': message}, status=status)
+        try:
+            generic_action = AccountActions.objects.get(
+                key=key, action=action,
+                profile__user__username=form.cleaned_data.get('username'))
+        except Exception:
+            message = message_error
 
-    user = reset_action.profile.user
-    try:
-        with transaction.atomic():
-            user = form.save(request, user)
-            reset_action.closed = datetime.now()
-            reset_action.save()
-    except ValidationError:
-        return render(request, 'idgo_admin/resetpassword.html', {'form': form})
-    except IntegrityError:
-        logout(request)
-    except Exception:
-        messages.error(
-            request, 'Une erreur est survenue lors de la modification de votre compte.')
-    else:
-        messages.success(
-            request, 'Votre mot de passe a été réinitialisé.')
+            status = 400
+            return render(request, 'idgo_admin/message.html',
+                          {'message': message}, status=status)
 
-    return HttpResponseRedirect(
-        reverse('idgo_admin:account_manager', kwargs={'process': 'update'}))
+        user = generic_action.profile.user
+        try:
+            with transaction.atomic():
+                user = form.save(request, user)
+                generic_action.closed = datetime.now()
+                generic_action.save()
+        except ValidationError:
+            return render(request, template, {'form': form})
+        except IntegrityError:
+            logout(request)
+        except Exception:
+            messages.error(
+                request, message_error)
+        else:
+            messages.success(
+                request, message_success)
+
+        return HttpResponseRedirect(
+            reverse('idgo_admin:account_manager', kwargs={'process': 'update'}))
 
 
 @login_required(login_url=settings.LOGIN_URL)

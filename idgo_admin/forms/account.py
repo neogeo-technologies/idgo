@@ -5,10 +5,8 @@ from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db import transaction, IntegrityError
 from django.utils.text import slugify
 
-from idgo_admin.exceptions import ErrorOnDeleteAccount
 from idgo_admin.forms import common_fields
 from idgo_admin.models import Dataset
 from idgo_admin.models import Jurisdiction
@@ -133,6 +131,7 @@ class UserResetPassword(forms.Form):
             self.add_error('password1', 'Vérifiez les mots de passe')
             self.add_error('password2', '')
             raise ValidationError('Les mots de passe ne sont pas identiques.')
+        return self.cleaned_data
 
     def save(self, request, user):
         password = self.cleaned_data['password1']
@@ -378,11 +377,11 @@ class DeleteAdminForm(forms.Form):
     new_user = forms.ModelChoiceField(
         User.objects.all(),
         empty_label="Selectionnez un utilisateur",
-        label="Comptes utilisateur auquel seront affectés les jeux de donnés orphelins",
+        label="Compte utilisateur pour réaffecter les jeux de donnés orphelins",
         required=False,
         widget=None,
         initial=None,
-        help_text="Choisissez un nouvel utilisateur auquel seront affectés les jeux de données de l'utilisateur supprimé",
+        help_text="Choisissez un nouvel utilisateur auquel seront affectés les jeux de données de l'utilisateur supprimé.",
         to_field_name=None,
         limit_choices_to=None)
 
@@ -404,4 +403,5 @@ class DeleteAdminForm(forms.Form):
                 Dataset.objects.filter(editor=deleted_user).delete()
             else:
                 Dataset.objects.filter(editor=deleted_user).update(editor=new_user)
+        # Profil supprimé en cascade
         deleted_user.delete()

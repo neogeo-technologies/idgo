@@ -408,7 +408,8 @@ class AccountActions(models.Model):
         ('confirm_rattachement', "Rattachement d'un utilisateur à une organsiation par un administrateur"),
         ('confirm_referent', "Confirmation du rôle de réferent d'une organisation pour un utilisatur par un administrateur"),
         ('confirm_contribution', "Confirmation du rôle de contributeur d'une organisation pour un utilisatur par un administrateur"),
-        ('reset_password', "Réinitialisation du mot de passe"))
+        ('reset_password', "Réinitialisation du mot de passe"),
+        ('set_password_admin', "Initialisation du mot de passe suite à une inscription par un administrateur"))
 
     profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, blank=True, null=True)
@@ -484,33 +485,35 @@ class Mail(models.Model):
         verbose_name_plural = 'e-mails'
 
     @classmethod
-    def send_credentials_user_creation_admin(cls, request, cleaned_data, pass_generated):
-
+    def send_credentials_user_creation_admin(cls, cleaned_data):
         msg_on_create = """Bonjour, {last_name}, {first_name},
-Un compte vous a été créé sur la plateforme IDGO.
-Après votre première connexion, veuillez réinitializer votre mot de passe dans votre gestionnaire de profil.
-
+Un compte vous a été créé par les services d'administarion sur la plateforme IDGO .
 + Identifiant de connexion: {username}
-+ Mot de passe: {password}
+
+Veuillez initializer votre mot de passe en suivant le lien suivant.
 + Url de connexion: {url}
 
 Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
-        sub_on_create = "Un nouveau compte vous a été crée par le service d'administration de la plateforme Datasud"
+        sub_on_create = "Un nouveau compte vous a été crée sur la plateforme IDGO"
+
+        try:
+            from_email = settings.DEFAULT_FROM_EMAIL
+        except:
+            from_email = 'idgo@neogeo-technologies.fr'
 
         mail_template, created = cls.objects.get_or_create(
             template_name='credentials_user_creation_admin',
             defaults={
                 'message': msg_on_create,
                 'subject': sub_on_create,
-                'from_email': 'idgo@neogeo-technologies.fr'})
+                'from_email': from_email})
 
         fmt = PartialFormatter()
         data = {'first_name': cleaned_data.get('first_name'),
                 'last_name': cleaned_data.get('last_name').upper(),
                 'username': cleaned_data.get('username'),
-                'password': pass_generated}
-        redirection = redirect_to_login(reverse('idgo_admin:account_manager', kwargs={'process': 'update'}))
-        data['url'] = request.build_absolute_uri(redirection.url)
+                'url': cleaned_data.get('url')}
+
         message = fmt.format(mail_template.message, **data)
         send_mail(subject=mail_template.subject, message=message,
                   from_email=settings.DEFAULT_FROM_EMAIL, recipient_list=[cleaned_data.get('email')])
@@ -773,8 +776,8 @@ Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
                 'last_name': user.last_name,
                 'username': user.username,
                 'url': request.build_absolute_uri(
-                    reverse('idgo_admin:resetPassword',
-                            kwargs={'key': action.key}))}
+                    reverse('idgo_admin:password_manager',
+                            kwargs={'process': 'reset', 'key': action.key}))}
 
         message = fmt.format(mail_template.message, **data)
         send_mail(subject=mail_template.subject,

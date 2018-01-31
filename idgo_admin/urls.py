@@ -3,9 +3,10 @@ from django.conf.urls.static import static
 from django.conf import settings
 from idgo_admin.views.account import AccountManager
 from idgo_admin.views.account import delete_account
-from idgo_admin.views.account import forgotten_password
+# from idgo_admin.views.account import forgotten_password
 from idgo_admin.views.account import ReferentAccountManager
-from idgo_admin.views.account import reset_password
+# from idgo_admin.views.account import reset_password
+from idgo_admin.views.account import PasswordManager
 from idgo_admin.views.account import SignIn
 from idgo_admin.views.account import SignOut
 from idgo_admin.views.action import ActionsManager
@@ -45,8 +46,10 @@ urlpatterns = [
     url('^signin/?$', SignIn.as_view(), name='signIn'),
     url('^signout/?$', SignOut.as_view(), name='signOut'),
     url('^account/(?P<process>(create|update))/?$', AccountManager.as_view(), name='account_manager'),
-    url('^forgottenpassword/?$', forgotten_password, name='forgottenPassword'),
-    url('^resetpassword/(?P<key>.+)/?$', reset_password, name='resetPassword'),
+    # url('^forgottenpassword/?$', forgotten_password, name='forgottenPassword'),
+    # url('^resetpassword/(?P<key>.+)/?$', reset_password, name='resetPassword'),
+    url('^pwd/(?P<process>(forget))/?$', PasswordManager.as_view(), name='password_manager'),
+    url('^pwd/(?P<process>(initiate|reset))/(?P<key>(.+))/?$', PasswordManager.as_view(), name='password_manager'),
     url('^confirmation/email/(?P<key>.+)/?$', confirmation_mail, name='confirmation_mail'),
     url('^confirmation/createorganization/(?P<key>.+)/?$', confirm_new_orga, name='confirm_new_orga'),
     url('^confirmation/rattachment/(?P<key>.+)/?$', confirm_rattachement, name='confirm_rattachement'),

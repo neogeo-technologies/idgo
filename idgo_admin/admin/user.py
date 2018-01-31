@@ -1,3 +1,5 @@
+import string
+import random
 from django import forms
 from django.contrib import admin
 from django.conf.urls import url
@@ -15,6 +17,7 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 
 from idgo_admin.models import LiaisonsReferents
 
+from idgo_admin.models import AccountActions
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Dataset
@@ -58,11 +61,14 @@ class LiaisonReferentsInline(admin.TabularInline):
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    inlines = (LiaisonReferentsInline,)
+    inlines = (LiaisonReferentsInline, )
     models = Profile
-    list_display = ('full_name', 'username', 'is_admin')
+    list_display = ('full_name', 'username', 'is_admin', 'delete_account_action')
     search_fields = ('user__username', 'user__last_name')
     ordering = ('user__last_name', 'user__first_name')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def username(self, obj):
         return str(obj.user.username)
@@ -73,9 +79,6 @@ class ProfileAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def has_add_permission(self, request, obj=None):
-        return False
-
     def get_actions(self, request):
         actions = super(ProfileAdmin, self).get_actions(request)
         if 'delete_selected' in actions:
@@ -84,6 +87,103 @@ class ProfileAdmin(admin.ModelAdmin):
 
     username.short_description = "Nom d'utilisateur"
     full_name.short_description = "Nom et prénom"
+
+    def save_model(self, request, obj, form, change):
+        # A la creation uniquement
+        if not change:
+            obj.save()
+            user = obj.user
+            action = AccountActions.objects.create(profile=obj, action="set_password_admin")
+            url = request.build_absolute_uri(
+                reverse(
+                    "idgo_admin:password_manager",
+                    kwargs={'process': 'initiate', 'key': action.key}))
+            account_data = {
+                'last_name': user.last_name,
+                'first_name': user.first_name,
+                'username': user.username,
+                'email': user.email,
+                'url': url
+                }
+            Mail.send_credentials_user_creation_admin(account_data)
+        super().save_model(request, obj, form, change)
+
+    def process_action(self, request, profile_id, action_form, action_title):
+
+        profile = self.get_object(request, profile_id)
+        user = profile.user
+        related_datasets = Dataset.objects.filter(editor=user)
+
+        if request.method != 'POST':
+            form = action_form(
+                include={
+                    'user_id': user.id,
+                    'related_datasets': related_datasets
+                    }
+                )
+
+        else:
+            form = action_form(
+                request.POST,
+                include={
+                    'user_id': user.id,
+                    'related_datasets': related_datasets
+                    }
+                )
+            if form.is_valid():
+                try:
+                    form.delete_controller(user, form.cleaned_data.get("new_user"), related_datasets)
+                except ErrorOnDeleteAccount:
+                    raise
+
+                else:
+                    self.message_user(
+                        request,
+                        'Le compte utilisateur a bien été supprimé'
+                        )
+                    url = reverse(
+                        'admin:idgo_admin_profile_changelist',
+                        current_app=self.admin_site.name
+                        )
+                    return HttpResponseRedirect(url)
+
+        context = self.admin_site.each_context(request)
+        context['opts'] = self.model._meta
+        context['form'] = form
+        context['user'] = user
+        context['title'] = action_title
+        context['related_datasets'] = related_datasets
+
+        return TemplateResponse(
+            request,
+            'admin/idgo_admin/user_action.html',
+            context)
+
+    def process_deleting(self, request, profile_id, *args, **kwargs):
+        return self.process_action(
+            request=request,
+            profile_id=profile_id,
+            action_form=DeleteAdminForm,
+            action_title="Suppression d'un compte utilisateur")
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            url(
+                r'^(?P<profile_id>.+)/delete-account/$',
+                self.admin_site.admin_view(self.process_deleting),
+                name='delete-account'
+                )
+            ]
+        return custom_urls + urls
+
+    def delete_account_action(self, obj):
+        return format_html(
+            '<a class="button" href="{}">Supprimer</a>&nbsp;',
+            reverse('admin:delete-account', args=[obj.pk]))
+
+    delete_account_action.short_description = 'Supprimer'
+    delete_account_action.allow_tags = True
 
 
 admin.site.register(Profile, ProfileAdmin)
@@ -96,7 +196,6 @@ class MyUserCreationForm(UserCreationForm):
         fields = ('first_name', 'last_name', 'email', 'username')
 
     def __init__(self, *args, **kwargs):
-        self._request = self.request
         super().__init__(*args, **kwargs)
         self.fields['email'].required = True
         self.fields['first_name'].required = True
@@ -110,8 +209,6 @@ class MyUserCreationForm(UserCreationForm):
         return self.cleaned_data
 
     def password_generator(self, N=8):
-        import string
-        import random
         return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(N))
 
     def clean_username(self):
@@ -132,32 +229,21 @@ class MyUserCreationForm(UserCreationForm):
     def save(self, commit=True, *args, **kwargs):
         user = super(UserCreationForm, self).save(commit=False)
         pass_generated = self.password_generator()
-        Mail.send_credentials_user_creation_admin(self._request, self.cleaned_data, pass_generated)
         try:
             ckan.add_user(user, pass_generated)
         except Exception as e:
-            ValidationError("L'ajout de l'utilisateur sur CKAN à echoué: {}".format(e))
+            ValidationError(
+                "L'ajout de l'utilisateur sur CKAN à echoué: {}".format(e)
+                )
         user.set_password(pass_generated)
         if commit:
             user.save()
         return user
 
 
-class UserProfileInline(admin.StackedInline):
-    model = Profile
-    max_num = 1
-
-    # def has_delete_permission(self, request, obj=None):
-    #     return False
-
-    # def has_add_permission(self, request, obj=None):
-    #     return False
-
-
 class UserAdmin(AuthUserAdmin):
-    inlines = [UserProfileInline]
     add_form = MyUserCreationForm
-    list_display = ('full_name', 'username', 'is_superuser', 'is_active', 'delete_account_action')
+    list_display = ('full_name', 'username', 'is_superuser', 'is_active')
     list_display_links = ('username', )
     ordering = ('last_name', 'first_name')
     prepopulated_fields = {'username': ('first_name', 'last_name',)}
@@ -171,8 +257,6 @@ class UserAdmin(AuthUserAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-    # def has_add_permission(self, request, obj=None):
-    #     return False
 
     def get_actions(self, request):
         actions = super(UserAdmin, self).get_actions(request)
@@ -180,91 +264,8 @@ class UserAdmin(AuthUserAdmin):
             del actions['delete_selected']
         return actions
 
-    # Necessaire pour ajouter la 'request' dans MyUserCreationForm.__init__
-    def get_form(self, request, obj=None, **kwargs):
-        add_form = super(UserAdmin, self).get_form(request, obj=obj, **kwargs)
-        add_form.request = request
-        return add_form
-
     def full_name(self, obj):
         return " ".join((obj.last_name.upper(), obj.first_name.capitalize()))
     full_name.short_description = "Nom et prénom"
-
-    def process_action(self, request, user_id, action_form, action_title):
-
-        user = self.get_object(request, user_id)
-        related_datasets = Dataset.objects.filter(editor=user)
-
-        if request.method != 'POST':
-            form = action_form(
-                include={
-                    'user_id': user_id,
-                    'related_datasets': related_datasets
-                    }
-                )
-
-        else:
-            form = action_form(
-                request.POST,
-                include={
-                    'user_id': user_id,
-                    'related_datasets': related_datasets
-                    }
-                )
-            if form.is_valid():
-                try:
-                    form.delete_controller(user, form.cleaned_data.get("new_user"), related_datasets)
-                except ErrorOnDeleteAccount:
-                    raise
-
-                else:
-                    self.message_user(
-                        request,
-                        'Le compte utilisateur a bien été supprimé'
-                        )
-                    url = reverse(
-                        'admin:auth_user_changelist',
-                        current_app=self.admin_site.name
-                        )
-                    return HttpResponseRedirect(url)
-
-        context = self.admin_site.each_context(request)
-        context['opts'] = self.model._meta
-        context['form'] = form
-        context['user'] = user
-        context['title'] = action_title
-        context['related_datasets'] = related_datasets
-
-        return TemplateResponse(
-            request,
-            'admin/idgo_admin/user_action.html',
-            context)
-
-    def process_deleting(self, request, user_id, *args, **kwargs):
-        return self.process_action(
-            request=request,
-            user_id=user_id,
-            action_form=DeleteAdminForm,
-            action_title="Suppression d'un compte utilisateur")
-
-    def get_urls(self):
-        urls = super().get_urls()
-        custom_urls = [
-            url(
-                r'^(?P<user_id>.+)/delete-account/$',
-                self.admin_site.admin_view(self.process_deleting),
-                name='delete-account'
-                )
-            ]
-        return custom_urls + urls
-
-    def delete_account_action(self, obj):
-        return format_html(
-            '<a class="button" href="{}">Supprimer</a>&nbsp;',
-            reverse('admin:delete-account', args=[obj.pk]))
-
-    delete_account_action.short_description = 'Supprimer'
-    delete_account_action.allow_tags = True
-
 
 admin.site.register(User, UserAdmin)
