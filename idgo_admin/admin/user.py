@@ -10,13 +10,14 @@ from django.contrib.auth.models import User
 from django.contrib.gis import admin as geo_admin
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
+from django.utils import timezone
 # from django.contrib import messages
 # from django.utils.text import slugify
 # from idgo_admin.ckan_module import CkanManagerHandler
 from idgo_admin.ckan_module import CkanHandler as ckan
 
 from idgo_admin.models import LiaisonsReferents
-
+from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
@@ -52,16 +53,35 @@ class CustomLiaisonsReferentsModelForm(forms.ModelForm):
         self.fields['organisation'].queryset = Organisation.objects.filter(is_active=True)
 
 
+class CustomLiaisonsContributeursModelForm(forms.ModelForm):
+
+    model = LiaisonsContributeurs
+    fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(CustomLiaisonsContributeursModelForm, self).__init__(*args, **kwargs)
+        self.fields['organisation'].queryset = Organisation.objects.filter(is_active=True)
+        self.fields['organisation'].initial = None
+
+
 class LiaisonReferentsInline(admin.TabularInline):
     model = LiaisonsReferents
     form = CustomLiaisonsReferentsModelForm
     extra = 0
-    verbose_name_plural = "Organisations pour lesquelles l'utilisateur est référent"
-    verbose_name = "Organisation"
+    verbose_name_plural = "organisations pour lesquelles l'utilisateur est référent"
+    verbose_name = "organisation"
+
+
+class LiaisonsContributeursInline(admin.TabularInline):
+    model = LiaisonsContributeurs
+    form = CustomLiaisonsContributeursModelForm
+    extra = 0
+    verbose_name_plural = "organisations pour lesquelles l'utilisateur est contributeur"
+    verbose_name = "organisation"
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    inlines = (LiaisonReferentsInline, )
+    inlines = (LiaisonReferentsInline, LiaisonsContributeursInline)
     models = Profile
     list_display = ('full_name', 'username', 'is_admin', 'delete_account_action')
     search_fields = ('user__username', 'user__last_name')
@@ -87,6 +107,33 @@ class ProfileAdmin(admin.ModelAdmin):
 
     username.short_description = "Nom d'utilisateur"
     full_name.short_description = "Nom et prénom"
+
+    def save_formset(self, request, form, formset, change):
+        # On crée une liaison contributeur pour chaque liaison référent demandé dans l'admin
+        if formset.form.__name__ == 'LiaisonsReferentsForm':
+            instances = formset.save(commit=False)
+            for obj in formset.deleted_objects:
+                obj.delete()
+            for instance in instances:
+                LiaisonsReferents.objects.get_or_create(
+                    organisation=instance.organisation,
+                    profile=form.instance,
+                    validated_on=timezone.now().date())
+                LiaisonsContributeurs.objects.get_or_create(
+                    organisation=instance.organisation,
+                    profile=form.instance,
+                    validated_on=timezone.now().date())
+
+        if formset.form.__name__ == 'LiaisonsContributeursForm':
+            instances = formset.save(commit=False)
+            for obj in formset.deleted_objects:
+                obj.delete()
+            for instance in instances:
+                LiaisonsContributeurs.objects.get_or_create(
+                    organisation=instance.organisation,
+                    profile=form.instance,
+                    validated_on=timezone.now().date())
+        formset.save_m2m()
 
     def save_model(self, request, obj, form, change):
         # A la creation uniquement
