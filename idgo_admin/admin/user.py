@@ -271,7 +271,6 @@ class MyUserCreationForm(UserCreationForm):
                 )
 
     def save(self, commit=True, *args, **kwargs):
-        import pdb; pdb.set_trace()
         user = super(UserCreationForm, self).save(commit=False)
         pass_generated = self.password_generator()
         try:
