@@ -55,12 +55,12 @@
 			{% if is_admin %}
 			<div class="panel-title">Liste de toutes les organisations</div>
 			{% else %}
-			<div class="panel-title">Organisations pour lesquelles vous êtes référents</div>
+			<div class="panel-title">Organisations pour lesquelles vous êtes référent technique</div>
 			{% endif %}
 		</div>
 		<div class="panel-body">
 			{% if awaiting_subordinates %}
-			<div class="alert alert-info">Demande(s) de statut de référent en attente de validation pour : {% for organization in awaiting_subordinates %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
+			<div class="alert alert-info">Demande(s) de statut de référent technique en attente de validation pour : {% for organization in awaiting_subordinates %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
 			{% endif %}
 			<div id="table-subordinates" class="table-responsive"></div>
 			<nav aria-label="Page navigation" style="text-align: center;">
@@ -68,8 +68,8 @@
 			</nav>
 			{% if not is_admin %}
 			<div class="buttons-on-the-right-side">
-				<button name="unsubscribe" class="btn btn-sm btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus être référent</span></button>
-				<a class="btn btn-sm btn-default" href="{% url "idgo_admin:referent" %}">Nouvelle demande de statut de référent</a>
+				<button name="unsubscribe" class="btn btn-sm btn-danger disabled" data-toggle="modal" data-target="#modal" disabled="disabled">Ne plus être référent technique</span></button>
+				<a class="btn btn-sm btn-default" href="{% url "idgo_admin:referent" %}">Nouvelle demande de statut de référent technique</a>
 			</div>
 			{% endif %}
 		</div>
@@ -146,7 +146,7 @@ $(function() {
 					.prop('type', 'button')
 					.prop('class', 'btn btn-danger disabled')
 					.prop('disabled', true)
-					.text('Oui, je ne souhaite plus être référent pour cette organisation')
+					.text('Oui, je ne souhaite plus être référent technique pour cette organisation')
 					.on('click', function(e) {
 						e.preventDefault();
 						closeAllModalDialog();
@@ -282,7 +282,7 @@ $(function() {
 		};
 
 		if (data.length == 0 && {{ awaiting_subordinates|safe }}.length == 0) {
-			$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes référent d\'aucune organisation.<div/>');
+			$containerId.after('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes référent technique d\'aucune organisation.<div/>');
 		};
 	};
 

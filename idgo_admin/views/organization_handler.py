@@ -174,7 +174,7 @@ class Referents(View):
             profile=profile, organisation__id=id)
         my_subordinates.delete()
 
-        message = ("Vous n'êtes plus référent pour l'organisation "
+        message = ("Vous n'êtes plus référent technique pour l'organisation "
                    "<strong>{0}</strong>").format(organization.name)
 
         messages.success(request, message)
