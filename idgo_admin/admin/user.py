@@ -274,6 +274,7 @@ class MyUserCreationForm(UserCreationForm):
                 )
 
     def save(self, commit=True, *args, **kwargs):
+        import pdb; pdb.set_trace()
         user = super(UserCreationForm, self).save(commit=False)
         pass_generated = self.password_generator()
         try:
@@ -314,5 +315,6 @@ class UserAdmin(AuthUserAdmin):
     def full_name(self, obj):
         return " ".join((obj.last_name.upper(), obj.first_name.capitalize()))
     full_name.short_description = "Nom et prénom"
+
 
 admin.site.register(User, UserAdmin)

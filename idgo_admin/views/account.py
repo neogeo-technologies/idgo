@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
@@ -424,7 +425,7 @@ class PasswordManager(View):
             template = 'idgo_admin/initiatepassword.html'
             form = UserResetPassword(data=request.POST)
             action = "set_password_admin"
-            message_error = ("Une erreur s'est produite lors de l'initilaisation "
+            message_error = ("Une erreur s'est produite lors de l'initialisation "
                              "de votre mot de passe")
             message_success = 'Votre compte utilisateur a été initialisé.'
 
@@ -432,8 +433,9 @@ class PasswordManager(View):
             template = 'idgo_admin/resetpassword.html'
             form = UserResetPassword(data=request.POST)
             action = "reset_password"
-            message_error = ("Une erreur s'est produite lors de l'initilaisation "
-                             "de votre mot de passe")
+            message_error = ("Une erreur s'est produite lors de la réinitialisation "
+                             "de votre mot de passe. Le jeton de réinitialisation "
+                             "semble obsolète.")
             message_success = 'Votre mot de passe a été réinitialisé.'
 
         try:
@@ -448,7 +450,8 @@ class PasswordManager(View):
         try:
             generic_action = AccountActions.objects.get(
                 key=key, action=action,
-                profile__user__username=form.cleaned_data.get('username'))
+                profile__user__username=form.cleaned_data.get('username'),
+                closed=None)
         except Exception:
             message = message_error
 
@@ -460,7 +463,7 @@ class PasswordManager(View):
         try:
             with transaction.atomic():
                 user = form.save(request, user)
-                generic_action.closed = datetime.now()
+                generic_action.closed = timezone.now()
                 generic_action.save()
         except ValidationError:
             return render(request, template, {'form': form})
