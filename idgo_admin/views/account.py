@@ -429,8 +429,8 @@ def reset_password(request, key):
             key=key, action="reset_password",
             profile__user__username=form.cleaned_data.get('username'))
     except Exception:
-        message = ("Une erreur s'est produite lors de la réinitilaisation "
-                   "de votre mot de pass")
+        message = ("Une erreur s'est produite lors de la "
+                   'réinitialisation de votre mot de passe')
 
         status = 400
         return render(request, 'idgo_admin/message.html',
