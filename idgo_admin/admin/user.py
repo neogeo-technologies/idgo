@@ -11,9 +11,6 @@ from django.contrib.gis import admin as geo_admin
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.utils import timezone
-# from django.contrib import messages
-# from django.utils.text import slugify
-# from idgo_admin.ckan_module import CkanManagerHandler
 from idgo_admin.ckan_module import CkanHandler as ckan
 
 from idgo_admin.models import LiaisonsReferents
