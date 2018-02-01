@@ -1000,7 +1000,8 @@ class Dataset(models.Model):
 
 @receiver(pre_save, sender=Dataset)
 def pre_save_dataset(sender, instance, **kwargs):
-    instance.ckan_slug = slugify(instance.name)
+    if not instance.ckan_slug:
+        instance.ckan_slug = slugify(instance.name)
 
 
 @receiver(post_save, sender=Resource)

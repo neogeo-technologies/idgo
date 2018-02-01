@@ -24,11 +24,19 @@
 	</div>
 
 	{% csrf_token %}
+
+	<div class="row">
+		<div class="col-xs-12">
+			{% bootstrap_field form.ckan_slug %}
+		</div>
+	</div>
+
 	<div class="row">
 		<div class="col-xs-12">
 			{% bootstrap_field form.name %}
 		</div>
 	</div>
+
 	<!-- <div class="row">
 		<div class="col-xs-12">
 			{# bootstrap_field form.thumbnail #}
@@ -142,6 +150,13 @@ $(function() {
 
 	$('form[name="dataset"] input[checked=""], form[name="dataset"] input[checked="checked"]').each(function() {
 		$('label[for="' + this.id + '"]').addClass('active');
+	});
+
+	const ckanSlugValue = '{{ dataset_ckan_slug | yesno:"true,false,null" }}'
+	const $ckanSlug = $('input[name="{{ form.ckan_slug.name }}"]')
+	$('input[name="{{ form.name.name }}"]').on('input', function() {
+		// TODO: Lorsque le ckan_slug n'est pas déclaré, mettre à jour la valeur
+		// de l'input avec window.slugify()
 	});
 
 	function extractor(query) {

@@ -23,6 +23,7 @@ from uuid import UUID
 
 
 GEONETWORK_URL = settings.GEONETWORK_URL
+CKAN_URL = settings.CKAN_URL
 
 
 _today = timezone.now().date()
@@ -98,6 +99,15 @@ class DatasetForm(forms.ModelForm):
     name = forms.CharField(
         label='Titre*',
         required=True)
+
+    ckan_slug = forms.CharField(
+        label='URL du jeux de données',
+        required=False,
+        widget=forms.TextInput(
+            attrs={'addon_before': '{}/dataset/'.format(CKAN_URL),
+                   'autocomplete': 'off',
+                   # 'pattern': '^[a-z0-9\-]{1,100}$',  # Déplacé dans la function 'clean'
+                   'placeholder': ''}))
 
     description = forms.CharField(
         label='Description',
@@ -217,7 +227,8 @@ class DatasetForm(forms.ModelForm):
                   'support',
                   # 'thumbnail',
                   'update_freq',
-                  'name',)
+                  'name',
+                  'ckan_slug')
 
     def __init__(self, *args, **kwargs):
 
@@ -243,6 +254,11 @@ class DatasetForm(forms.ModelForm):
     def clean(self):
 
         name = self.cleaned_data.get('name')
+
+        if not re.match('^[a-z0-9\-]{1,100}$', self.cleaned_data.get('ckan_slug')):
+            self.add_error('ckan_slug', "Seuls les caractères alphanumériques et le tiret sont autorisés (100 caractères maximum).")
+            raise ValidationError('KeywordsError')
+
         # organisation = self.cleand_data.get('organisation', None)
         # if organisation:
         #     self.fields['license'].initial = organisation.license
@@ -286,6 +302,7 @@ class DatasetForm(forms.ModelForm):
 
         data = self.cleaned_data
         params = {
+            'ckan_slug': data['ckan_slug'],
             'date_creation': data['date_creation'],
             'date_modification': data['date_modification'],
             'date_publication': data['date_publication'],
