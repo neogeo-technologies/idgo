@@ -179,7 +179,6 @@ class ProfileForm(forms.ModelForm):
     description = forms.CharField(
         required=False,
         label='Description',
-        max_length=1024,
         widget=forms.Textarea(
             attrs={'placeholder': 'Description'}))
 
