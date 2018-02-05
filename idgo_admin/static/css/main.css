@@ -2,7 +2,7 @@
 
 /*
  * red    #ff554f
- * green  #14d47f
+ * green  #12be72
  * blue   #002880
  * yellow #ffba13
  */
@@ -530,10 +530,12 @@ a:focus {
 .alert {
     border-radius: 4px;
     border-width: 0;
+    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+            box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
 }
 
 .alert a {
-    color: inherit;
+    color: #fff;
 }
 
 .alert .btn-primary,
@@ -543,8 +545,8 @@ a:focus {
 }
 
 .alert-success {
-    color: #fff;
-    background-color: #14d47f;
+    color: #d0f6e5;
+    background-color: #12be72;
 }
 
 .alert-info {
@@ -558,33 +560,28 @@ a:focus {
 }
 
 .alert-danger {
-    color: #fff;
+    color: #fcedec;
     background-color: #ff554f;
 }
 
 .danger {
-    color: #fff;
+    color: #fcedec;
     background-color: #ff554f;
 }
 
 .success {
-    color: #fff;
-    background-color: #14d47f;
+    color: #d0f6e5;
+    background-color: #12be72;
 }
 
 .info {
-    color: #fff;
-    background-color: #002880;
+    color: #333;
+    background-color: #b4d8f7;
 }
 
 .warning {
     color: #333;
     background-color: #ffba13;
-}
-
-.danger {
-    color: #fff;
-    background-color: #ff554f;
 }
 
 .well>.close {

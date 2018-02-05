@@ -1,16 +1,6 @@
 {% load bootstrap3 %}
 
-{% if messages %}
-	{% for message in messages %}
-		{% if message.tags == 'success' %}
-			<div name='message-tags' class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
-		{% elif message.tags == 'error' %}
-			<div name='message-tags' class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
-		{% elif message.tags == 'info' %}
-			<div name='message-tags' class="alert alert-info" role="alert">{{ message | escape | safe }}</div>
-		{% endif %}
-	{% endfor %}
-{% endif %}
+{% include "idgo_admin/alert_messages.html" %}
 
 <div class="panel well">
 	<div class="panel-heading">
