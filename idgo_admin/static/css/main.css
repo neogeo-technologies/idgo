@@ -535,7 +535,7 @@ a:focus {
 }
 
 .alert a {
-    color: #fff;
+    color: inherit;
 }
 
 .alert .btn-primary,
@@ -545,8 +545,9 @@ a:focus {
 }
 
 .alert-success {
-    color: #d0f6e5;
-    background-color: #12be72;
+    color: #0c854f;
+    background-color: #a0e5c6;
+    border: 1px solid #12be72;
 }
 
 .alert-info {
