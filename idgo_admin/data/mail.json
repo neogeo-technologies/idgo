@@ -4,7 +4,7 @@
     "fields": {
         "subject": "Confirmation de votre rattachement \u00e0 une organisation",
         "message": "Bonjour,\r\n\r\nVotre demande de rattachement \u00e0 l'organisation {organisation_name} a \u00e9t\u00e9 valid\u00e9e.\r\n\r\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
     }
 }, {
     "model": "idgo_admin.mail",
@@ -12,7 +12,7 @@
     "fields": {
         "subject": "Confirmation de la suppression d'un jeu de donn\u00e9es",
         "message": "Bonjour,\r\n\r\nNous vous confirmons la suppression d'un jeu de donn\u00e9e dont vous avez la responsabilit\u00e9:\r\n+ Nom du jeu de donn\u00e9e supprim\u00e9: {dataset_name}\r\n\r\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
     }
 }, {
     "model": "idgo_admin.mail",
@@ -20,7 +20,7 @@
     "fields": {
         "subject": "Confirmation de votre d\u00e9sinscription au service IDGO",
         "message": "Bonjour {first_name} {last_name} ({username}),\n\nNous confirmons votre d\u00e9sinscription du site IDGO.\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
     }
 }, {
     "model": "idgo_admin.mail",
@@ -28,7 +28,7 @@
     "fields": {
         "subject": "Confirmation de la suppression d'une ressource",
         "message": "Bonjour,\r\n\r\nNous vous confirmons la suppression d'une ressource dont vous avez la responsabilit\u00e9:\r\n+ Nom du jeu de donn\u00e9e auquel appartient la resource: {dataset_name}\r\n+ Nom de la ressource supprim\u00e9e: {resource_name}\r\n\r\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
     }
 }, {
     "model": "idgo_admin.mail",
@@ -36,7 +36,7 @@
     "fields": {
         "subject": "Confirmation de votre inscription sur le site IDGO",
         "message": "Bonjour {first_name} {last_name} ({username}),\n\nNous confirmons votre inscription sur le site IDGO.\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
     }
 }, {
     "model": "idgo_admin.mail",
@@ -44,7 +44,7 @@
     "fields": {
         "subject": "Confirmation de votre inscription en tant que contributeur pour une organisation.",
         "message": "Bonjour,\n\nVotre demande de contribution pour l'organisation {organisation_name} a \u00e9t\u00e9 valid\u00e9e.\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
     }
 }, {
     "model": "idgo_admin.mail",
@@ -52,7 +52,7 @@
     "fields": {
         "subject": "Un utilisateur requiert un statut de contributeur pour une organisation.",
         "message": "Bonjour,\n\nUn utilisateur ({first_name} {last_name}, {username}, {user_mail}) a fait une demande\nde contribution pour l'organisation {organisation_name} {website}.\n\nVeuillez cliquer sur le lien suivant pour valider sa demande : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
     }
 }, {
     "model": "idgo_admin.mail",
@@ -60,7 +60,7 @@
     "fields": {
         "subject": "Un utilisateur demande la cr\u00e9ation d'une nouvelle organisation",
         "message": "Bonjour,\n\nUn nouvel utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le rattachement\n\u00e0 une nouvelle organisation qu'il a \u00e9galement cr\u00e9\u00e9e:\n\nVeuillez v\u00e9rifier les donn\u00e9es renseign\u00e9es avant de valider son inscription:\n*   Nom de l'organisation : {organisation_name}\n*   Adresse URL de l'organisation : {website}\n\nVeuillez cliquer sur le lien suivant afin de valider cette demande de cr\u00e9ation:\n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
     }
 }, {
     "model": "idgo_admin.mail",
@@ -68,7 +68,7 @@
     "fields": {
         "subject": "Un utilisateur demande son rattachement \u00e0 une organisation",
         "message": "Bonjour,\n\nUn nouvel utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le rattachement \u00e0\nl'organisation : {organisation_name}, {website}.\n\nVeuillez cliquer sur ce lien afin de valider cette demande : \n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
     }
 }, {
     "model": "idgo_admin.mail",
@@ -76,7 +76,7 @@
     "fields": {
         "subject": "Un utilisateur requiert un statut de r\u00e9f\u00e9rent pour une organisation.",
         "message": "Bonjour,\n\nUn nouvel utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le r\u00f4le de r\u00e9f\u00e9rent pour {organisation_name}.\n\nVeuillez cliquer sur le lien suivant pour valider sa demande : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
     }
 }, {
     "model": "idgo_admin.mail",
@@ -84,7 +84,15 @@
     "fields": {
         "subject": "Un utilisateur demande son rattachement \u00e0 une organisation",
         "message": "Bonjour,\n\nUn utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le rattachement \u00e0\nl'organisation : {organisation_name}, {website}.\n\nVeuillez cliquer sur ce lien afin de valider cette demande : \n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
+    }
+}, {
+    "model": "idgo_admin.mail",
+    "pk": "credentials_user_creation_admin",
+    "fields": {
+        "subject": "Un nouveau compte vous a \u00e9t\u00e9 cr\u00e9e par le service d'administration de la plateforme IDGO",
+        "message": "Bonjour, {last_name}, {first_name},\n\nUn compte vous a \u00e9t\u00e9 cr\u00e9\u00e9 par les services d'administration sur la plateforme IDGO .\n+ Identifiant de connexion: {username}\n\nVeuillez initialiser votre mot de passe en suivant le lien suivant.\n+ Url de connexion: {url}\n\nCe message est envoy\u00e9 automatiquement. Veuillez ne pas r\u00e9pondre. ",
+        "from_email": "inscription@datasud.fr"
     }
 }, {
     "model": "idgo_admin.mail",
@@ -92,7 +100,7 @@
     "fields": {
         "subject": "R\u00e9initialisation de votre mot de passe pour le site IDGO",
         "message": "Bonjour {last_name} {first_name},\n\nUne demande de r\u00e9initialisation de mot de passe \u00e0 \u00e9t\u00e9 faite concernant votre compte IDGO {username}.\n\nSi vous \u00eates \u00e0 l'origine de cette demande,  veuillez suivre ce lien afin de changer votre mot de passe:\n\n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
     }
 }, {
     "model": "idgo_admin.mail",
@@ -100,14 +108,6 @@
     "fields": {
         "subject": "Validation de votre inscription sur le site IDGO",
         "message": "Bonjour {first_name} {last_name} ({username}),\n\nPour valider votre inscription, veuillez cliquer sur le lien suivant : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
-    }
-},{
-    "model": "idgo_admin.mail",
-    "pk": "credentials_user_creation_admin",
-    "fields": {
-        "subject": "Un nouveau compte vous a été crée par le service d'administration de la plateforme Datasud",
-        "message": "Bonjour {first_name} {last_name} ({username}),\n\nUn compte vous a été créé sur la plateforme IDGO.\n\nAprès votre première connexion, veuillez réinitializer votre mot de passe dans votre gestionnaire de profil.\n\n+ Identifiant de connexion: {username}\n\n+ Mot de passe: {password}\n\n+ Url de connexion:\n\n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "idgo@neogeo-technologies.fr"
+        "from_email": "inscription@datasud.fr"
     }
 }]

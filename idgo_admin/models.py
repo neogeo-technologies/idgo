@@ -496,17 +496,11 @@ Veuillez initializer votre mot de passe en suivant le lien suivant.
 Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
         sub_on_create = "Un nouveau compte vous a été crée sur la plateforme IDGO"
 
-        try:
-            from_email = settings.DEFAULT_FROM_EMAIL
-        except:
-            from_email = 'idgo@neogeo-technologies.fr'
-
         mail_template, created = cls.objects.get_or_create(
             template_name='credentials_user_creation_admin',
             defaults={
                 'message': msg_on_create,
-                'subject': sub_on_create,
-                'from_email': from_email})
+                'subject': sub_on_create})
 
         fmt = PartialFormatter()
         data = {'first_name': cleaned_data.get('first_name'),
