@@ -179,7 +179,6 @@ class ProfileForm(forms.ModelForm):
     description = forms.CharField(
         required=False,
         label='Description',
-        max_length=1024,
         widget=forms.Textarea(
             attrs={'placeholder': 'Description'}))
 
@@ -230,12 +229,12 @@ class ProfileForm(forms.ModelForm):
 
     referent_requested = forms.BooleanField(
         initial=False,
-        label="Je souhaite être <strong>référent</strong> de l'organisation",
+        label="Je souhaite être <strong>référent technique</strong> de l'organisation",
         required=False)
 
     referents = forms.ModelChoiceField(
         required=False,
-        label='Référent pour ces organisations',
+        label='Référent technique pour ces organisations',
         widget=forms.RadioSelect(),
         queryset=Organisation.objects.all())
 

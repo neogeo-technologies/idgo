@@ -76,7 +76,7 @@ def confirmation_mail(request, key):
     action.save()
     message = ("Merci d'avoir confirmé votre adresse e-mail. "
                'Toute demande de rattachement, contribution, '
-               'ou rôle de référent pour une organisation, '
+               'ou rôle de référent technique pour une organisation, '
                "ne sera effective qu'après validation "
                'par un administrateur.')
 
@@ -109,7 +109,7 @@ def confirm_new_orga(request, key):
         action.save()
         message = ("L'organisation <strong>{0}</strong> a bien été créée. "
                    "Des utilisateurs peuvent désormais y être rattachés, "
-                   "demander à en être contributeur ou référent. ").format(name)
+                   "demander à en être contributeur ou référent technique. ").format(name)
 
     return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=200)
@@ -181,7 +181,8 @@ def confirm_referent(request, key):
     if action.closed:
         status = 200
         message = (
-            "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
+            "Le rôle de référent technique de l'organisation "
+            '<strong>{organization_name}</strong> '
             "a déjà été confirmée pour <strong>{username}</strong>."
             ).format(organization_name=organisation.name,
                      username=user.username)
@@ -195,8 +196,8 @@ def confirm_referent(request, key):
         else:
             if not organisation.is_active:
                 message = (
-                    '<span class="text-is-red">Le statut de référent pour '
-                    "l'organisation <strong>{organization_name}</strong> "
+                    '<span class="text-is-red">Le statut de référent technique '
+                    "pour l'organisation <strong>{organization_name}</strong> "
                     "concernant <strong>{first_name} {last_name}</strong> "
                     '(<strong>{username}</strong>) ne peut être effectif que lorsque '
                     "la création de cette organisation a été confirmé par un administrateur</span>."
@@ -222,7 +223,8 @@ def confirm_referent(request, key):
 
                     status = 200
                     message = (
-                        "Le rôle de référent de l'organisation <strong>{organization_name}</strong> "
+                        "Le rôle de référent technique de l'organisation "
+                        '<strong>{organization_name}</strong> '
                         "a bien été confirmé pour <strong>{username}</strong>."
                         ).format(organization_name=organisation.name,
                                  username=user.username)

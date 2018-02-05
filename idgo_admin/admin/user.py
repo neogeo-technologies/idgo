@@ -65,7 +65,7 @@ class LiaisonReferentsInline(admin.TabularInline):
     model = LiaisonsReferents
     form = CustomLiaisonsReferentsModelForm
     extra = 0
-    verbose_name_plural = "organisations pour lesquelles l'utilisateur est référent"
+    verbose_name_plural = "organisations pour lesquelles l'utilisateur est référent technique"
     verbose_name = "organisation"
 
 
