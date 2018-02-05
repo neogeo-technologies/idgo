@@ -101,11 +101,15 @@ class DatasetForm(forms.ModelForm):
         required=True)
 
     ckan_slug = forms.CharField(
-        label='URL du jeux de données',
+        label='URL du jeu de données',
         required=False,
         widget=forms.TextInput(
             attrs={'addon_before': '{}/dataset/'.format(CKAN_URL),
+                   'addon_before_class': 'input-group-addon',
+                   'addon_after': '<button class="btn btn-default" type="button" />',
+                   'addon_after_class': 'input-group-btn',
                    'autocomplete': 'off',
+                   'readonly': True,
                    # 'pattern': '^[a-z0-9\-]{1,100}$',  # Déplacé dans la function 'clean'
                    'placeholder': ''}))
 
@@ -256,7 +260,9 @@ class DatasetForm(forms.ModelForm):
         name = self.cleaned_data.get('name')
 
         if not re.match('^[a-z0-9\-]{1,100}$', self.cleaned_data.get('ckan_slug')):
-            self.add_error('ckan_slug', "Seuls les caractères alphanumériques et le tiret sont autorisés (100 caractères maximum).")
+            self.add_error('ckan_slug', (
+                "Seuls les caractères alphanumériques et le tiret sont "
+                "autorisés (100 caractères maximum)."))
             raise ValidationError('KeywordsError')
 
         # organisation = self.cleand_data.get('organisation', None)

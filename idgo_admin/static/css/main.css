@@ -788,3 +788,15 @@ a.disabled {
 .footer a:hover {
     color: #fff;
 }
+
+.input-group-addon {
+    border-color: #999;
+}
+
+.input-group-btn .btn-default {
+    color: #555;
+    background-color: #fff;
+	border-color: #999;
+    -webkit-box-shadow: none;
+            box-shadow: none;
+}
