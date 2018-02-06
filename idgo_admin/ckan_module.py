@@ -282,11 +282,12 @@ class CkanManagerHandler(metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def deactivate_organization(self, id):
-        self.call_action('organization_update', id=id, state='deleted')
+        self.call_action('organization_delete', id=id)
 
-    @CkanExceptionsHandler()
-    def del_organization(self, id):
-        self.call_action('organization_purge', id=str(id))
+    def deactivate_ckan_organization_if_empty(self, id):
+        organization = self.get_organization(id)
+        if organization and int(organization.get('package_count')) < 1:
+            self.deactivate_organization(id)
 
     @CkanExceptionsHandler()
     def get_organizations_which_user_belongs(

@@ -6,7 +6,6 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Category
-from idgo_admin.models import create_organization_in_ckan
 from idgo_admin.models import Dataset
 from idgo_admin.models import DataType
 from idgo_admin.models import LiaisonsContributeurs
@@ -331,7 +330,7 @@ class DatasetForm(forms.ModelForm):
             dataset = Dataset.objects.get(pk=id)
             for key, value in params.items():
                 setattr(dataset, key, value)
-            dataset.save()
+            # dataset.save()
         else:  # Création d'un nouveau jeu de données
             created = True
             dataset = Dataset.objects.create(**params)
@@ -345,9 +344,15 @@ class DatasetForm(forms.ModelForm):
 
         dataset.data_type.set(data.get('data_type', []), clear=True)
 
-        if not ckan.get_organization(str(dataset.organisation.ckan_id)):
-            # Crée l'organisation une première fois
-            create_organization_in_ckan(dataset.organisation)
+        ckan_id = str(dataset.organisation.ckan_id)
+        ckan_orga = ckan.get_organization(ckan_id)
+        if not ckan_orga:
+            ckan.add_organization(dataset.organisation)
+        if ckan_orga.get('state') == 'deleted':
+            ckan.activate_organization(ckan_id)
+        for profile in LiaisonsContributeurs.get_contributors(dataset.organisation):
+            user = profile.user
+            ckan.add_user_to_organization(user.username, ckan_id)
 
         try:
             ckan_uuid = publish_dataset_to_ckan(user, dataset)

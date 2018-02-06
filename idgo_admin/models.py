@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
+from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
@@ -982,12 +983,16 @@ class Dataset(models.Model):
             validated_on__isnull=False).exists()
         return res
 
+    def save(self, *args, **kwargs):
+        previous = self.pk and Dataset.objects.get(pk=self.pk)
+        super().save(*args, **kwargs)
+        ckan.deactivate_ckan_organization_if_empty(str(previous.organisation.ckan_id))
+
     @classmethod
     def get_subordinated_datasets(cls, profile):
         return cls.objects.filter(
             organisation__in=LiaisonsReferents.get_subordinated_organizations(
                 profile=profile))
-
 
 # Triggers
 
@@ -996,6 +1001,11 @@ class Dataset(models.Model):
 def pre_save_dataset(sender, instance, **kwargs):
     if not instance.ckan_slug:
         instance.ckan_slug = slugify(instance.name)
+
+
+@receiver(post_delete, sender=Dataset)
+def post_delete_dataset(sender, instance, **kwargs):
+    ckan.deactivate_ckan_organization_if_empty(str(instance.organisation.ckan_id))
 
 
 @receiver(post_save, sender=Resource)
@@ -1037,20 +1047,10 @@ def pre_save_organisation(sender, instance, **kwargs):
 @receiver(pre_delete, sender=Organisation)
 def pre_delete_organisation(sender, instance, **kwargs):
     if ckan.is_organization_exists(str(instance.ckan_id)):
-        ckan.del_organization(str(instance.ckan_id))
+        ckan.purge_organization(str(instance.ckan_id))
 
 
 @receiver(pre_delete, sender=Category)
 def pre_delete_category(sender, instance, **kwargs):
     if ckan.is_group_exists(str(instance.ckan_id)):
         ckan.del_group(str(instance.ckan_id))
-
-
-# Others methods
-
-
-def create_organization_in_ckan(organization):
-    ckan.add_organization(organization)
-    for profile in LiaisonsContributeurs.get_contributors(organization):
-        user = profile.user
-        ckan.add_user_to_organization(user.username, str(organization.ckan_id))
