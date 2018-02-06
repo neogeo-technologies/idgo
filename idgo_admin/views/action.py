@@ -7,7 +7,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
-from idgo_admin.forms.dataset import publish_dataset_to_ckan
 from idgo_admin.models import Dataset
 from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
@@ -33,14 +32,7 @@ class ActionsManager(View):
                 Dataset, user, include={'id': dataset_id})
 
             dataset.published = not dataset.published
-
-            try:
-                ckan_uuid = publish_dataset_to_ckan(user, dataset)
-            except Exception as e:
-                raise e
-            else:
-                dataset.ckan_id = ckan_uuid
-                dataset.save()
+            dataset.save()
 
             message = (
                 'Le jeu de données <strong>{0}</strong> '

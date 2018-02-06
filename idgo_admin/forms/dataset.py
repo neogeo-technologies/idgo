@@ -3,13 +3,10 @@ from django.core.exceptions import ValidationError
 from django import forms
 # from django.utils.text import slugify
 from django.utils import timezone
-from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import DataType
 from idgo_admin.models import LiaisonsContributeurs
-from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
@@ -18,7 +15,6 @@ from idgo_admin.shortcuts import user_and_profile
 import re
 from taggit.forms import TagField
 from taggit.forms import TagWidget
-from uuid import UUID
 
 
 GEONETWORK_URL = settings.GEONETWORK_URL
@@ -27,70 +23,6 @@ CKAN_URL = settings.CKAN_URL
 
 _today = timezone.now().date()
 _today_str = _today.strftime('%d/%m/%Y')
-
-
-def publish_dataset_to_ckan(user, dataset):
-
-    ckan_params = {
-        'author': dataset.editor.username,
-        'author_email': dataset.editor.email,
-        'datatype': [obj.ckan_slug for obj in dataset.data_type.all()],
-        'dataset_creation_date':
-            str(dataset.date_creation) if dataset.date_creation else '',
-        'dataset_modification_date':
-            str(dataset.date_modification) if dataset.date_modification else '',
-        'dataset_publication_date':
-            str(dataset.date_publication) if dataset.date_publication else '',
-        'groups': [],
-        'geocover': dataset.geocover,
-        'last_modified':
-            str(dataset.date_modification) if dataset.date_modification else '',
-        'license_id': (
-            dataset.license.ckan_id
-            in [license['id'] for license in ckan.get_licenses()]
-            ) and dataset.license.ckan_id or '',
-        'maintainer': dataset.editor.username,
-        'maintainer_email': dataset.editor.email,
-        'notes': dataset.description,
-        'owner_org': dataset.organisation.ckan_slug,
-        'private': not dataset.published,
-        'state': 'active',
-        'support': dataset.support and dataset.support.ckan_slug,
-        'tags': [{'name': keyword.name} for keyword in dataset.keywords.all()],
-        'title': dataset.name,
-        'update_frequency': dataset.update_freq,
-        'url': ''}
-
-    if dataset.geonet_id:
-        ckan_params['inspire_url'] = \
-            '{0}srv/fre/catalog.search#/metadata/{1}'.format(
-                GEONETWORK_URL, dataset.geonet_id or '')
-
-    for category in dataset.categories.all():
-        ckan.add_user_to_group(user.username, str(category.ckan_id))
-        ckan_params['groups'].append({'name': category.ckan_slug})
-
-    # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-    # de données existant mais administrateur de données,
-    # alors l'admin Ckan édite le jeu de données..
-    profile = Profile.objects.get(user=user)
-    is_admin = profile.is_admin
-    is_referent = LiaisonsReferents.objects.filter(
-        profile=profile, organisation=dataset.organisation).exists()
-    is_editor = (user == dataset.editor)
-    if is_admin and not is_referent and not is_editor:
-        ckan_user = ckan_me(ckan.apikey)
-    else:
-        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
-    try:
-        ckan_dataset = ckan_user.publish_dataset(
-            dataset.ckan_slug, id=str(dataset.ckan_id), **ckan_params)
-    except Exception as e:
-        raise e
-    else:
-        return UUID(ckan_dataset['id'])
-    finally:
-        ckan_user.close()
 
 
 class DatasetForm(forms.ModelForm):
@@ -325,14 +257,11 @@ class DatasetForm(forms.ModelForm):
             'is_inspire': data['is_inspire']}
 
         if id:  # Mise à jour du jeu de données
-            created = False
             params.pop('editor', None)
             dataset = Dataset.objects.get(pk=id)
             for key, value in params.items():
                 setattr(dataset, key, value)
-            # dataset.save()
         else:  # Création d'un nouveau jeu de données
-            created = True
             dataset = Dataset.objects.create(**params)
 
         dataset.categories.set(data.get('categories', []), clear=True)
@@ -343,25 +272,6 @@ class DatasetForm(forms.ModelForm):
                 dataset.keywords.add(tag)
 
         dataset.data_type.set(data.get('data_type', []), clear=True)
-
-        ckan_id = str(dataset.organisation.ckan_id)
-        ckan_orga = ckan.get_organization(ckan_id)
-        if not ckan_orga:
-            ckan.add_organization(dataset.organisation)
-        elif ckan_orga.get('state') == 'deleted':
-            ckan.activate_organization(ckan_id)
-        for profile in LiaisonsContributeurs.get_contributors(dataset.organisation):
-            user = profile.user
-            ckan.add_user_to_organization(user.username, ckan_id)
-
-        try:
-            ckan_uuid = publish_dataset_to_ckan(user, dataset)
-        except Exception as e:
-            if created:
-                dataset.delete()
-            raise e
-        else:
-            dataset.ckan_id = ckan_uuid
-            dataset.save()
+        dataset.save(editor=user)
 
         return dataset

@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+# from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -12,7 +12,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
-from idgo_admin.forms.dataset import publish_dataset_to_ckan
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
@@ -248,13 +247,8 @@ class MDEdit(View):
                 geonet.publish(id)  # Toujours publier la fiche
                 dataset.geonet_id = UUID(id)
                 dataset.save()
-                try:
-                    publish_dataset_to_ckan(user, dataset)
-                except Exception:
-                    messages.error(request, 'Une erreur de synchronisation avec CKan est survenue.')
-                else:
-                    messages.success(
-                        request, 'La fiche de metadonnées a été créée avec succès.')
+                messages.success(
+                    request, 'La fiche de metadonnées a été créée avec succès.')
         else:
             try:
                 geonet.update_record(id, record)

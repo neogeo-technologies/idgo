@@ -894,6 +894,13 @@ class DataType(models.Model):
         verbose_name_plural = 'Types de données'
 
 
+from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from uuid import UUID
+
+
+GEONETWORK_URL = settings.GEONETWORK_URL
+
+
 class Dataset(models.Model):
 
     GEOCOVER_CHOICES = (
@@ -999,11 +1006,90 @@ class Dataset(models.Model):
         return res
 
     def save(self, *args, **kwargs):
+        # Cache avant sauvegarde
         previous = self.pk and Dataset.objects.get(pk=self.pk)
+        # L'éditeur doit toujours rester le créateur du jeu de données
+        self.editor = previous and previous.editor
+        # Synchronisation CKAN
+        self.publish_dataset_to_ckan(
+            editor='editor' in kwargs and kwargs.pop('editor') or None)
+
         super().save(*args, **kwargs)
+
         if previous and previous.organisation:
             ckan.deactivate_ckan_organization_if_empty(
                 str(previous.organisation.ckan_id))
+
+    def publish_dataset_to_ckan(self, editor=None):
+
+        ckan_params = {
+            'author': self.editor.username,
+            'author_email': self.editor.email,
+            'datatype': [obj.ckan_slug for obj in self.data_type.all()],
+            'dataset_creation_date':
+                str(self.date_creation) if self.date_creation else '',
+            'dataset_modification_date':
+                str(self.date_modification) if self.date_modification else '',
+            'dataset_publication_date':
+                str(self.date_publication) if self.date_publication else '',
+            'groups': [],
+            'geocover': self.geocover,
+            'last_modified':
+                str(self.date_modification) if self.date_modification else '',
+            'license_id': (
+                self.license.ckan_id
+                in [license['id'] for license in ckan.get_licenses()]
+                ) and self.license.ckan_id or '',
+            'maintainer': self.editor.username,
+            'maintainer_email': self.editor.email,
+            'notes': self.description,
+            'owner_org': self.organisation.ckan_slug,
+            'private': not self.published,
+            'state': 'active',
+            'support': self.support and self.support.ckan_slug,
+            'tags': [{'name': keyword.name} for keyword in self.keywords.all()],
+            'title': self.name,
+            'update_frequency': self.update_freq,
+            'url': ''}
+
+        if self.geonet_id:
+            ckan_params['inspire_url'] = \
+                '{0}srv/fre/catalog.search#/metadata/{1}'.format(
+                    GEONETWORK_URL, self.geonet_id or '')
+
+        user = editor or self.editor
+
+        for category in self.categories.all():
+            ckan.add_user_to_group(user.username, str(category.ckan_id))
+            ckan_params['groups'].append({'name': category.ckan_slug})
+
+        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+        # de données existant mais administrateur de données,
+        # alors l'admin Ckan édite le jeu de données..
+        is_admin = user.profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=user.profile, organisation=self.organisation).exists()
+        is_editor = (user == self.editor)
+        if is_admin and not is_referent and not is_editor:
+            ckan_user = ckan_me(ckan.apikey)
+        else:
+            ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+
+        # Synchronisation de l'organisation
+        organisation_ckan_id = str(self.organisation.ckan_id)
+        ckan_orga = ckan.get_organization(organisation_ckan_id)
+        if not ckan_orga:
+            ckan.add_organization(self.organisation)
+        elif ckan_orga.get('state') == 'deleted':
+            ckan.activate_organization(organisation_ckan_id)
+        for profile in LiaisonsContributeurs.get_contributors(self.organisation):
+            ckan.add_user_to_organization(profile.user.username, organisation_ckan_id)
+
+        ckan_dataset = ckan_user.publish_dataset(
+            self.ckan_slug, id=str(self.ckan_id), **ckan_params)
+
+        self.ckan_id = UUID(ckan_dataset['id'])
+        ckan_user.close()
 
     @classmethod
     def get_subordinated_datasets(cls, profile):
