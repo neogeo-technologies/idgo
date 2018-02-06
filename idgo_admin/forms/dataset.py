@@ -348,7 +348,7 @@ class DatasetForm(forms.ModelForm):
         ckan_orga = ckan.get_organization(ckan_id)
         if not ckan_orga:
             ckan.add_organization(dataset.organisation)
-        if ckan_orga.get('state') == 'deleted':
+        elif ckan_orga.get('state') == 'deleted':
             ckan.activate_organization(ckan_id)
         for profile in LiaisonsContributeurs.get_contributors(dataset.organisation):
             user = profile.user

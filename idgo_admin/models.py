@@ -18,7 +18,8 @@ import json
 import os
 from taggit.managers import TaggableManager
 import uuid
-from django.contrib.auth.views import redirect_to_login
+# from django.contrib.auth.views import redirect_to_login
+
 
 if settings.STATIC_ROOT:
     locales_path = os.path.join(settings.STATIC_ROOT, 'mdedit/config/locales/fr/locales.json')
@@ -347,6 +348,13 @@ class LiaisonsReferents(models.Model):
     class Meta(object):
         unique_together = (('profile', 'organisation'),)
 
+    def __str__(self):
+        return '{first_name} {last_name} ({username})--{organisation}'.format(
+            first_name=self.profile.user.first_name,
+            last_name=self.profile.user.last_name,
+            username=self.profile.user.username,
+            organisation=self.organisation.name)
+
     @classmethod
     def get_subordinated_organizations(cls, profile):
         if profile.is_admin:
@@ -372,6 +380,13 @@ class LiaisonsContributeurs(models.Model):
 
     class Meta(object):
         unique_together = (('profile', 'organisation'),)
+
+    def __str__(self):
+        return '{first_name} {last_name} ({username})--{organisation}'.format(
+            first_name=self.profile.user.first_name,
+            last_name=self.profile.user.last_name,
+            username=self.profile.user.username,
+            organisation=self.organisation.name)
 
     @classmethod
     def get_contribs(cls, profile):
@@ -933,7 +948,7 @@ class Dataset(models.Model):
     editor = models.ForeignKey(User)
 
     organisation = models.ForeignKey(
-        Organisation, blank=True, null=True,
+        Organisation, blank=True, null=True, on_delete=models.CASCADE,
         verbose_name="Organisation d'appartenance")
 
     license = models.ForeignKey(License, verbose_name="Licence d'utilisation")
@@ -986,13 +1001,16 @@ class Dataset(models.Model):
     def save(self, *args, **kwargs):
         previous = self.pk and Dataset.objects.get(pk=self.pk)
         super().save(*args, **kwargs)
-        ckan.deactivate_ckan_organization_if_empty(str(previous.organisation.ckan_id))
+        if previous and previous.organisation:
+            ckan.deactivate_ckan_organization_if_empty(
+                str(previous.organisation.ckan_id))
 
     @classmethod
     def get_subordinated_datasets(cls, profile):
         return cls.objects.filter(
             organisation__in=LiaisonsReferents.get_subordinated_organizations(
                 profile=profile))
+
 
 # Triggers
 
@@ -1003,7 +1021,12 @@ def pre_save_dataset(sender, instance, **kwargs):
         instance.ckan_slug = slugify(instance.name)
 
 
-@receiver(post_delete, sender=Dataset)
+@receiver(pre_delete, sender=Dataset)
+def pre_delete_dataset(sender, instance, **kwargs):
+    ckan.purge_dataset(str(instance.ckan_id))
+
+
+@receiver(pre_delete, sender=Dataset)
 def post_delete_dataset(sender, instance, **kwargs):
     ckan.deactivate_ckan_organization_if_empty(str(instance.organisation.ckan_id))
 
@@ -1044,8 +1067,8 @@ def pre_save_organisation(sender, instance, **kwargs):
         ckan.update_organization(instance)
 
 
-@receiver(pre_delete, sender=Organisation)
-def pre_delete_organisation(sender, instance, **kwargs):
+@receiver(post_delete, sender=Organisation)
+def post_delete_organisation(sender, instance, **kwargs):
     if ckan.is_organization_exists(str(instance.ckan_id)):
         ckan.purge_organization(str(instance.ckan_id))
 

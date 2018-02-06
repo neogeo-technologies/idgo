@@ -212,9 +212,9 @@ class DatasetManager(View):
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
             ckan_user.delete_dataset(ckan_id)
-            ckan.purge_dataset(ckan_id)
+            # ckan.purge_dataset(ckan_id)
         except CkanSyncingError as e:
-            if e.name == 'NotFound':
+            if e.name == 'NotFound':  # Ici un problème
                 instance.delete()
             status = 500
             message = 'Impossible de supprimer le jeu de données CKAN.'

@@ -9,6 +9,7 @@ geo_admin.GeoModelAdmin.default_zoom = 14
 
 
 class OrganisationAdmin(geo_admin.OSMGeoAdmin):
+    # actions = ['really_delete_selected']
     list_display = ('name', 'organisation_type')
     list_filter = ('organisation_type',)
     ordering = ('name',)
@@ -21,18 +22,25 @@ class OrganisationAdmin(geo_admin.OSMGeoAdmin):
         # else:
         #     return ['ckan_slug']
 
-    def has_delete_permission(self, request, obj=None):
-        return False
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
 
     # def has_add_permission(self, request, obj=None):
     #     return False
 
-    def get_actions(self, request):
-        actions = super(OrganisationAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
-
+    # def get_actions(self, request):
+    #     actions = super(OrganisationAdmin, self).get_actions(request)
+    #     if 'delete_selected' in actions:
+    #         del actions['delete_selected']
+    #     return actions
+    #
+    # def really_delete_selected(self, request, queryset):
+    #     for instance in queryset:
+    #         instance.delete()
+    #     message = "La ou les organisations sélectionnées ont été supprimées correctement."
+    #     self.message_user(request, message)
+    #
+    # really_delete_selected.short_description = "Supprimer les organisations sélectionnées"
 
 admin.site.register(Organisation, OrganisationAdmin)
 

@@ -55,11 +55,11 @@ class DatasetAdmin(admin.ModelAdmin):
     #         del actions['delete_selected']
     #     return actions
 
-    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
-        extra_context = extra_context or {}
-        extra_context['show_save_and_continue'] = False
-        extra_context['show_save'] = False
-        return super(DatasetAdmin, self).changeform_view(request, object_id, extra_context=extra_context)
+    # def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+    #     extra_context = extra_context or {}
+    #     extra_context['show_save_and_continue'] = False
+    #     extra_context['show_save'] = False
+    #     return super(DatasetAdmin, self).changeform_view(request, object_id, extra_context=extra_context)
 
     # def get_readonly_fields(self, request, obj=None):
     #     readonly_fields = list(set(
