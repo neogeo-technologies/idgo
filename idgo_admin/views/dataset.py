@@ -206,13 +206,13 @@ class DatasetManager(View):
         instance = get_object_or_404_extended(
             Dataset, user, include={'id': id})
 
-        organisation = instance.organisation
+        # organisation = instance.organisation
 
         ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
             ckan_user.delete_dataset(ckan_id)
-            # ckan.purge_dataset(ckan_id)
+            # ckan.purge_dataset(ckan_id)  # -> purge déplacé dans 'model'
         except CkanSyncingError as e:
             if e.name == 'NotFound':  # Ici un problème
                 instance.delete()
@@ -227,11 +227,11 @@ class DatasetManager(View):
         finally:
             ckan_user.close()
 
-        ckan_orga = ckan.get_organization(
-            str(organisation.ckan_id), include_datasets=True)
-        if (ckan_orga and len(ckan_orga['packages']) == 0) \
-                and not Dataset.objects.filter(organisation=organisation).exists():
-            ckan.purge_organization(str(organisation.ckan_id))
+        # ckan_orga = ckan.get_organization(
+        #     str(organisation.ckan_id), include_datasets=True)
+        # if (ckan_orga and len(ckan_orga['packages']) == 0) \
+        #         and not Dataset.objects.filter(organisation=organisation).exists():
+        #     ckan.purge_organization(str(organisation.ckan_id))
 
         Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
 
@@ -387,13 +387,13 @@ class ReferentDatasetManager(View):
         instance = get_object_or_404_extended(
             Dataset, user, include={'id': id})
 
-        organisation = instance.organisation
+        # organisation = instance.organisation
 
         ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
             ckan_user.delete_dataset(ckan_id)
-            ckan.purge_dataset(ckan_id)
+            # ckan.purge_dataset(ckan_id)  # -> purge déplacé dans 'model'
         except CkanSyncingError as e:
             if e.name == 'NotFound':
                 instance.delete()
@@ -408,11 +408,11 @@ class ReferentDatasetManager(View):
         finally:
             ckan_user.close()
 
-        ckan_orga = ckan.get_organization(
-            str(organisation.ckan_id), include_datasets=True)
-        if (ckan_orga and len(ckan_orga['packages']) == 0) \
-                and not Dataset.objects.filter(organisation=organisation).exists():
-            ckan.purge_organization(str(organisation.ckan_id))
+        # ckan_orga = ckan.get_organization(
+        #     str(organisation.ckan_id), include_datasets=True)
+        # if (ckan_orga and len(ckan_orga['packages']) == 0) \
+        #         and not Dataset.objects.filter(organisation=organisation).exists():
+        #     ckan.purge_organization(str(organisation.ckan_id))
 
         Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
 
