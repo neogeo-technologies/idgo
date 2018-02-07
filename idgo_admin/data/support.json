@@ -4,7 +4,8 @@
     "fields": {
         "name": "CRIGE PACA",
         "description": "Support technique du CRIGE PACA",
-        "ckan_slug": "crige-paca"
+        "ckan_slug": "crige-paca",
+        "email": "support.technique@crige-paca.org"
     }
 }, {
     "model": "idgo_admin.support",
@@ -12,6 +13,7 @@
     "fields": {
         "name": "Région PACA",
         "description": "Support technique de la région PACA",
-        "ckan_slug": "region-paca"
+        "ckan_slug": "region-paca",
+        "email": "openpaca@regionpaca.fr"
     }
 }]
