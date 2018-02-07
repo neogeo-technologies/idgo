@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.utils import PartialFormatter
 from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garder l'original
 import json
@@ -19,6 +20,9 @@ import os
 from taggit.managers import TaggableManager
 import uuid
 # from django.contrib.auth.views import redirect_to_login
+
+
+GEONETWORK_URL = settings.GEONETWORK_URL
 
 
 if settings.STATIC_ROOT:
@@ -893,14 +897,6 @@ class DataType(models.Model):
         verbose_name = 'Type de donnée'
         verbose_name_plural = 'Types de données'
 
-
-from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from uuid import UUID
-
-
-GEONETWORK_URL = settings.GEONETWORK_URL
-
-
 class Dataset(models.Model):
 
     GEOCOVER_CHOICES = (
@@ -1088,7 +1084,7 @@ class Dataset(models.Model):
         ckan_dataset = ckan_user.publish_dataset(
             self.ckan_slug, id=str(self.ckan_id), **ckan_params)
 
-        self.ckan_id = UUID(ckan_dataset['id'])
+        self.ckan_id = uuid.UUID(ckan_dataset['id'])
         ckan_user.close()
 
     @classmethod
