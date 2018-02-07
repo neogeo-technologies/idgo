@@ -26,9 +26,12 @@ GEONETWORK_URL = settings.GEONETWORK_URL
 
 
 if settings.STATIC_ROOT:
-    locales_path = os.path.join(settings.STATIC_ROOT, 'mdedit/config/locales/fr/locales.json')
+    locales_path = os.path.join(
+        settings.STATIC_ROOT, 'mdedit/config/locales/fr/locales.json')
 else:
-    locales_path = os.path.join(settings.BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')
+    locales_path = os.path.join(
+        settings.BASE_DIR,
+        'idgo_admin/static/mdedit/config/locales/fr/locales.json')
 
 try:
     with open(locales_path, 'r', encoding='utf-8') as f:
@@ -59,10 +62,12 @@ class ResourceFormats(models.Model):
         ('pdf_view', 'pdf_view'))
 
     extension = models.CharField('Format', max_length=30, unique=True)
-    ckan_view = models.CharField('Vue', max_length=100,
-                                 choices=CKAN_CHOICES, blank=True, null=True)
-    protocol = models.CharField('Protocole', max_length=100, blank=True,
-                                null=True, choices=PROTOCOL_CHOICES)
+
+    ckan_view = models.CharField(
+        'Vue', max_length=100, choices=CKAN_CHOICES, blank=True, null=True)
+
+    protocol = models.CharField(
+        'Protocole', max_length=100, blank=True, null=True, choices=PROTOCOL_CHOICES)
 
     class Meta(object):
         verbose_name = 'Format de ressource'
@@ -153,44 +158,52 @@ class Resource(models.Model):
     data_type = models.CharField(verbose_name='type de resources',
                                  choices=TYPE_CHOICES, max_length=10)
 
-    def __str__(self):
-        return self.name
-
     class Meta(object):
         verbose_name = 'Ressource'
 
-
-class Commune(models.Model):
-    code = models.CharField('Code INSEE', max_length=5)
-    name = models.CharField('Nom', max_length=100)
-    geom = models.MultiPolygonField(
-        'Geometrie', srid=2154, blank=True, null=True)
-    objects = models.GeoManager()
-
     def __str__(self):
         return self.name
 
+
+class Commune(models.Model):
+
+    code = models.CharField('Code INSEE', max_length=5)
+
+    name = models.CharField('Nom', max_length=100)
+
+    geom = models.MultiPolygonField(
+        'Geometrie', srid=2154, blank=True, null=True)
+
+    objects = models.GeoManager()
+
     class Meta(object):
         ordering = ['name']
+
+    def __str__(self):
+        return self.name
 
 
 class Jurisdiction(models.Model):
 
     code = models.CharField('Code INSEE', max_length=10)
-    name = models.CharField('Nom', max_length=100)
-    communes = models.ManyToManyField(Commune)
-    objects = models.GeoManager()
 
-    def __str__(self):
-        return self.name
+    name = models.CharField('Nom', max_length=100)
+
+    communes = models.ManyToManyField(Commune)
+
+    objects = models.GeoManager()
 
     class Meta(object):
         verbose_name = 'Territoire de compétence'
+
+    def __str__(self):
+        return self.name
 
 
 class Financier(models.Model):
 
     name = models.CharField('Nom du financeur', max_length=250)
+
     code = models.CharField('Code du financeur', max_length=250)
 
     class Meta(object):
@@ -205,6 +218,7 @@ class Financier(models.Model):
 class OrganisationType(models.Model):
 
     name = models.CharField("Type d'organisation", max_length=250)
+
     code = models.CharField("Code", max_length=250)
 
     class Meta(object):
@@ -264,7 +278,7 @@ class Organisation(models.Model):
 
     is_active = models.BooleanField('Organisation active', default=False)
 
-    class Meta:
+    class Meta(object):
         ordering = ['name']
 
     def __str__(self):
@@ -307,12 +321,12 @@ class Profile(models.Model):
         verbose_name="Administrateur IDGO",
         default=False)
 
-    def __str__(self):
-        return self.user.username
-
     class Meta(object):
         verbose_name = 'Profil utilisateur'
         verbose_name_plural = 'Profils des utilisateurs'
+
+    def __str__(self):
+        return self.user.username
 
     def nb_datasets(self, organisation):
         return Dataset.objects.filter(
@@ -343,8 +357,11 @@ class Profile(models.Model):
 class LiaisonsReferents(models.Model):
 
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+
     created_on = models.DateField(auto_now_add=True)
+
     validated_on = models.DateField(
         verbose_name="Date de validation de l'action", blank=True,
         null=True, default=timezone.now)
@@ -353,9 +370,8 @@ class LiaisonsReferents(models.Model):
         unique_together = (('profile', 'organisation'),)
 
     def __str__(self):
-        return '{first_name} {last_name} ({username})--{organisation}'.format(
-            first_name=self.profile.user.first_name,
-            last_name=self.profile.user.last_name,
+        return '{full_name} ({username})--{organisation}'.format(
+            full_name=self.profile.user.get_full_name(),
             username=self.profile.user.username,
             organisation=self.organisation.name)
 
@@ -377,8 +393,11 @@ class LiaisonsReferents(models.Model):
 class LiaisonsContributeurs(models.Model):
 
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+
     created_on = models.DateField(auto_now_add=True)
+
     validated_on = models.DateField(
         verbose_name="Date de validation de l'action", blank=True, null=True)
 
@@ -386,9 +405,8 @@ class LiaisonsContributeurs(models.Model):
         unique_together = (('profile', 'organisation'),)
 
     def __str__(self):
-        return '{first_name} {last_name} ({username})--{organisation}'.format(
-            first_name=self.profile.user.first_name,
-            last_name=self.profile.user.last_name,
+        return '{full_name} ({username})--{organisation}'.format(
+            full_name=self.profile.user.get_full_name(),
             username=self.profile.user.username,
             organisation=self.organisation.name)
 
@@ -414,8 +432,11 @@ class LiaisonsContributeurs(models.Model):
 class LiaisonsResources(models.Model):
 
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+
     resource = models.ForeignKey(Resource, on_delete=models.CASCADE)
+
     created_on = models.DateField(auto_now_add=True)
+
     validated_on = models.DateField(
         verbose_name="Date de validation de l'action", blank=True, null=True)
 
@@ -453,6 +474,25 @@ class AccountActions(models.Model):
 
 class Mail(models.Model):
 
+    template_name = models.CharField(
+        'Nom du model du message', primary_key=True, max_length=255)
+
+    subject = models.CharField(
+        'Objet', max_length=255, blank=True, null=True)
+
+    message = models.TextField(
+        'Corps du message', blank=True, null=True)
+
+    from_email = models.EmailField(
+        'Adresse expediteur', default=settings.DEFAULT_FROM_EMAIL)
+
+    class Meta(object):
+        verbose_name = 'e-mail'
+        verbose_name_plural = 'e-mails'
+
+    def __str__(self):
+        return self.template_name
+
     @classmethod
     def superuser_mails(cls, receip_list):
         receip_list = receip_list + [
@@ -484,25 +524,6 @@ class Mail(models.Model):
 
         # Pour retourner une liste de valeurs uniques
         return list(set(receip_list))
-
-    template_name = models.CharField(
-        'Nom du model du message', primary_key=True, max_length=255)
-
-    subject = models.CharField(
-        'Objet', max_length=255, blank=True, null=True)
-
-    message = models.TextField(
-        'Corps du message', blank=True, null=True)
-
-    from_email = models.EmailField(
-        'Adresse expediteur', default=settings.DEFAULT_FROM_EMAIL)
-
-    def __str__(self):
-        return self.template_name
-
-    class Meta(object):
-        verbose_name = 'e-mail'
-        verbose_name_plural = 'e-mails'
 
     @classmethod
     def send_credentials_user_creation_admin(cls, cleaned_data):
@@ -808,22 +829,27 @@ class Category(models.Model):
     # python manage.py sync_ckan_categories
 
     name = models.CharField('Nom', max_length=100)
+
     description = models.CharField('Description', max_length=1024)
+
     ckan_slug = models.SlugField(
         'Ckan slug', max_length=100, unique=True, db_index=True, blank=True)
+
     ckan_id = models.UUIDField(
         'Ckan UUID', default=uuid.uuid4, editable=False)
+
     iso_topic = models.CharField('Thème ISO', max_length=100,
                                  choices=ISO_TOPIC_CHOICES,
                                  blank=True, null=True)
+
     picto = models.ImageField(
         'Pictogramme', upload_to='logos/', blank=True, null=True)
 
-    def __str__(self):
-        return self.name
-
     class Meta(object):
         verbose_name = 'Catégorie'
+
+    def __str__(self):
+        return self.name
 
     def sync_ckan(self):
         if self.pk:
@@ -846,22 +872,30 @@ class License(models.Model):
     # le fichier /etc/ckan/default/licenses.json
 
     domain_content = models.BooleanField(default=False)
+
     domain_data = models.BooleanField(default=False)
+
     domain_software = models.BooleanField(default=False)
+
     status = models.CharField('Statut', max_length=30, default='active')
+
     maintainer = models.CharField('Maintainer', max_length=50, blank=True)
+
     od_conformance = models.CharField(
         'od_conformance', max_length=30, blank=True, default='approved')
+
     osd_conformance = models.CharField(
         'osd_conformance', max_length=30, blank=True, default='not reviewed')
-    title = models.CharField('Nom', max_length=100)
-    url = models.URLField('url', blank=True)
 
-    def __str__(self):
-        return self.title
+    title = models.CharField('Nom', max_length=100)
+
+    url = models.URLField('url', blank=True)
 
     class Meta(object):
         verbose_name = 'Licence'
+
+    def __str__(self):
+        return self.title
 
     @property
     def ckan_id(self):
@@ -894,16 +928,18 @@ class Support(models.Model):
 class DataType(models.Model):
 
     name = models.CharField('Nom', max_length=100)
+
     description = models.CharField('Description', max_length=1024)
+
     ckan_slug = models.SlugField(
         'Ckan_ID', max_length=100, unique=True, db_index=True, blank=True)
-
-    def __str__(self):
-        return self.name
 
     class Meta(object):
         verbose_name = 'Type de donnée'
         verbose_name_plural = 'Types de données'
+
+    def __str__(self):
+        return self.name
 
 
 class Dataset(models.Model):
@@ -930,6 +966,8 @@ class Dataset(models.Model):
     name = models.TextField(verbose_name='Titre', unique=True)  # unique=False est préférable...
 
     ckan_slug = models.SlugField(
+        error_messages={
+            'invalid': "Le label court ne peut contenir ni majuscule, ni caractères spéciaux à l'exception le tiret."},
         verbose_name='Label court', max_length=100,
         unique=True, db_index=True, blank=True, null=True)
 
@@ -1001,12 +1039,12 @@ class Dataset(models.Model):
     owner_email = models.EmailField(
         verbose_name='E-mail du producteur', blank=True, null=True)
 
-    def __str__(self):
-        return self.name
-
     class Meta(object):
         verbose_name = 'Jeu de données'
         verbose_name_plural = 'Jeux de données'
+
+    def __str__(self):
+        return self.name
 
     def is_contributor(self, profile):
         return LiaisonsContributeurs.objects.filter(
@@ -1017,6 +1055,11 @@ class Dataset(models.Model):
         return LiaisonsReferents.objects.filter(
             profile=profile, organisation=self.organisation,
             validated_on__isnull=False).exists()
+
+    def clean(self):
+        print(self.ckan_slug)
+        if slugify(self.ckan_slug) != self.ckan_slug:
+            raise ValidationError(self.ckan_slug.error_messages)
 
     def save(self, *args, **kwargs):
 

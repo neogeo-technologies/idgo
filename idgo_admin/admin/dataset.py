@@ -31,17 +31,18 @@ class ResourceInline(admin.StackedInline):
 
 
 class DatasetAdmin(admin.ModelAdmin):
-    list_display = ('name', 'full_name', 'organisation', 'nb_resources')
+
+    # list_display = ('name', 'full_name', 'organisation', 'nb_resources')
     inlines = [ResourceInline]
     ordering = ('name', )
 
-    def nb_resources(self, obj):
-        return Resource.objects.filter(dataset=obj).count()
-    nb_resources.short_description = "Nombre de ressources"
+    # def nb_resources(self, obj):
+    #     return Resource.objects.filter(dataset=obj).count()
+    # nb_resources.short_description = "Nombre de ressources"
 
-    def full_name(self, obj):
-        return obj.editor.get_full_name()
-    full_name.short_description = "Nom de l'éditeur"
+    # def full_name(self, obj):
+    #     return obj.editor.get_full_name()
+    # full_name.short_description = "Nom de l'éditeur"
 
     # def has_delete_permission(self, request, obj=None):
     #     return False
@@ -61,12 +62,14 @@ class DatasetAdmin(admin.ModelAdmin):
     #     extra_context['show_save'] = False
     #     return super(DatasetAdmin, self).changeform_view(request, object_id, extra_context=extra_context)
 
-    # def get_readonly_fields(self, request, obj=None):
-    #     readonly_fields = list(set(
-    #         [field.name for field in self.opts.local_fields] +
-    #         [field.name for field in self.opts.local_many_to_many]
-    #         ))
-    #     return readonly_fields
+    def get_readonly_fields(self, request, obj=None):
+        # readonly_fields = list(set(
+        #     [field.name for field in self.opts.local_fields] +
+        #     [field.name for field in self.opts.local_many_to_many]
+        #     ))
+        readonly_fields = (
+            'ckan_id', 'ckan_slug', 'geonet_id')
+        return readonly_fields
 
 
 admin.site.register(Dataset, DatasetAdmin)

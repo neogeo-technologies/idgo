@@ -1,8 +1,5 @@
-import string
-import random
-from django import forms
-from django.contrib import admin
 from django.conf.urls import url
+from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group
@@ -10,26 +7,25 @@ from django.contrib.auth.models import User
 from django.contrib.gis import admin as geo_admin
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django.utils import timezone
-from idgo_admin.ckan_module import CkanHandler as ckan
-
-from idgo_admin.models import LiaisonsReferents
-from idgo_admin.models import LiaisonsContributeurs
-from idgo_admin.models import AccountActions
-from idgo_admin.models import Mail
-from idgo_admin.models import Organisation
-from idgo_admin.models import Dataset
-
-from idgo_admin.models import Profile
-
-
-from taggit.admin import Tag
-
-from django.utils.html import format_html
+from django import forms
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
+from django.utils.html import format_html
+from django.utils import timezone
+from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.exceptions import ErrorOnDeleteAccount
 from idgo_admin.forms.account import DeleteAdminForm
+from idgo_admin.models import AccountActions
+from idgo_admin.models import Dataset
+from idgo_admin.models import LiaisonsContributeurs
+from idgo_admin.models import LiaisonsReferents
+from idgo_admin.models import Mail
+from idgo_admin.models import Organisation
+from idgo_admin.models import Profile
+import random
+import string
+from taggit.admin import Tag
+
 
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331

@@ -3,6 +3,7 @@ from django.contrib.gis import admin as geo_admin
 from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
 
+
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
 geo_admin.GeoModelAdmin.default_zoom = 14

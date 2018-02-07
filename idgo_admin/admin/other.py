@@ -1,8 +1,8 @@
 from django.contrib import admin
+from idgo_admin.models import Category
 from idgo_admin.models import Financier
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
-from idgo_admin.models import Category
 
 
 class JurisdictionAdmin(admin.ModelAdmin):
