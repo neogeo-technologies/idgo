@@ -917,94 +917,99 @@ class Dataset(models.Model):
         ('continue', 'Continue'),
         ('realtime', 'Temps réel'))
 
-    name = models.CharField('Nom', max_length=100, unique=True)
-
-    description = models.TextField('Description', blank=True, null=True)
+    # Mandatory
+    name = models.CharField(verbose_name='Titre', max_length=100, unique=True)
 
     ckan_slug = models.SlugField(
-        'Ckan_ID', max_length=100, unique=True,
-        db_index=True, blank=True, null=True)
+        verbose_name='Label court', max_length=100,
+        unique=True, db_index=True, blank=True, null=True)
 
     ckan_id = models.UUIDField(
-        'Ckan UUID', unique=True, db_index=True, blank=True, null=True)
+        verbose_name='Identifiant CKAN', unique=True,
+        db_index=True, blank=True, null=True)
 
-    is_inspire = models.BooleanField("L'URL Inspire est valide", default=False)
-
-    geocover = models.CharField(
-        'Couverture géographique', blank=True, null=True,
-        default='regionale', max_length=30, choices=GEOCOVER_CHOICES)
-
-    keywords = TaggableManager('Mots-clés', blank=True)
-
-    date_creation = models.DateField(
-        verbose_name='Date de création du jeu de données',
-        blank=True, null=True)
-
-    date_publication = models.DateField(
-        verbose_name='Date de publication du jeu de données',
-        blank=True, null=True)
-
-    date_modification = models.DateField(
-        verbose_name='Date de dernière modification du jeu de données',
-        blank=True, null=True)
-
-    editor = models.ForeignKey(User)
-
-    organisation = models.ForeignKey(
-        Organisation, blank=True, null=True, on_delete=models.CASCADE,
-        verbose_name="Organisation d'appartenance")
-
-    license = models.ForeignKey(License, verbose_name="Licence d'utilisation")
-
-    categories = models.ManyToManyField(
-        Category, verbose_name="Catégories d'appartenance")
-
-    update_freq = models.CharField(
-        'Fréquence de mise à jour', default='never',
-        max_length=30, choices=FREQUENCY_CHOICES)
-
-    owner_email = models.EmailField(
-        'E-mail du producteur de la donnée', blank=True, null=True)
-
-    published = models.BooleanField(
-        'Etat du jeu de donnée', default=False)
-
-    geonet_id = models.UUIDField(
-        'Metadonnées UUID', unique=True, db_index=True,
-        blank=True, null=True)
-
-    support = models.ForeignKey(
-        Support, verbose_name="Support technique", null=True, blank=True)
-
-    data_type = models.ManyToManyField(
-        DataType, verbose_name="Type de données")
+    description = models.TextField(
+        verbose_name='Description', blank=True, null=True)
 
     thumbnail = models.ImageField(
+        verbose_name='Illustration',
         upload_to='thumbnails/', blank=True, null=True)
+
+    keywords = TaggableManager('Liste de mots-clés', blank=True)
+
+    categories = models.ManyToManyField(
+        Category, verbose_name="Catégories d'appartenance", blank=True)
+
+    date_creation = models.DateField(
+        verbose_name='Date de création', blank=True, null=True)
+
+    date_modification = models.DateField(
+        verbose_name='Date de dernière modification', blank=True, null=True)
+
+    date_publication = models.DateField(
+        verbose_name='Date de publication', blank=True, null=True)
+
+    update_freq = models.CharField(
+        verbose_name='Fréquence de mise à jour', default='never',
+        max_length=30, choices=FREQUENCY_CHOICES)
+
+    geocover = models.CharField(
+        verbose_name='Couverture géographique', blank=True, null=True,
+        default='regionale', max_length=30, choices=GEOCOVER_CHOICES)
+
+    # Mandatory
+    organisation = models.ForeignKey(
+        Organisation,
+        verbose_name="Organisation à laquelle est rattaché ce jeu de données",
+        blank=True, null=True, on_delete=models.CASCADE)
+
+    # Mandatory
+    license = models.ForeignKey(License, verbose_name='Licence')
+
+    support = models.ForeignKey(
+        Support, verbose_name='Support technique', null=True, blank=True)
+
+    data_type = models.ManyToManyField(
+        DataType, verbose_name='Type de données', blank=True)
+
+    published = models.BooleanField(
+        verbose_name='Publier le jeu de données', default=False)
+
+    is_inspire = models.BooleanField(
+        verbose_name='Le jeu de données est soumis à la règlementation INSPIRE',
+        default=False)
+
+    geonet_id = models.UUIDField(
+        verbose_name='UUID de la métadonnées', unique=True,
+        db_index=True, blank=True, null=True)
+
+    editor = models.ForeignKey(User, verbose_name='Producteur (propriétaire)')
+
+    # ??? -> pourquoi ce champ si editor.email
+    owner_email = models.EmailField(
+        verbose_name='E-mail du producteur', blank=True, null=True)
 
     def __str__(self):
         return self.name
 
     class Meta(object):
-        verbose_name = "Jeu de données"
-        verbose_name_plural = "Jeux de données"
+        verbose_name = 'Jeu de données'
+        verbose_name_plural = 'Jeux de données'
 
     def is_contributor(self, profile):
-        res = LiaisonsContributeurs.objects.filter(
+        return LiaisonsContributeurs.objects.filter(
             profile=profile, organisation=self.organisation,
             validated_on__isnull=False).exists()
-        return res
 
     def is_referent(self, profile):
-        res = LiaisonsReferents.objects.filter(
+        return LiaisonsReferents.objects.filter(
             profile=profile, organisation=self.organisation,
             validated_on__isnull=False).exists()
-        return res
 
     def save(self, *args, **kwargs):
         # Cache avant sauvegarde
         previous = self.pk and Dataset.objects.get(pk=self.pk)
-        # L'éditeur doit toujours rester le créateur du jeu de données
+        # Le producteur/propriétaire doit toujours rester le créateur du jeu de données
         self.editor = previous and previous.editor
         # Synchronisation CKAN
         self.publish_dataset_to_ckan(
