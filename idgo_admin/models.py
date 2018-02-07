@@ -105,47 +105,54 @@ class Resource(models.Model):
         ('3', 'Utilisateurs de cette organisations uniquements'),
         ('4', 'Organisations spécifiées'))
 
-    name = models.CharField('Nom', max_length=150)
+    name = models.CharField(
+        verbose_name='Nom', max_length=150)
 
     ckan_id = models.UUIDField(
-        'Ckan UUID', default=uuid.uuid4, editable=False)
+        verbose_name='Ckan UUID', default=uuid.uuid4, editable=False)
 
-    description = models.TextField('Description', blank=True, null=True)
+    description = models.TextField(
+        verbose_name='Description', blank=True, null=True)
 
     referenced_url = models.URLField(
-        'Référencer une URL', max_length=2000, blank=True, null=True)
+        verbose_name='Référencer une URL',
+        max_length=2000, blank=True, null=True)
 
     dl_url = models.URLField(
-        'Télécharger depuis une URL', max_length=2000, blank=True, null=True)
+        verbose_name='Télécharger depuis une URL',
+        max_length=2000, blank=True, null=True)
 
     up_file = models.FileField(
-        'Téléverser un ou plusieurs fichiers',
+        verbose_name='Téléverser un ou plusieurs fichiers',
         blank=True, null=True, upload_to=upload_resource)
 
     lang = models.CharField(
-        'Langue', choices=LANG_CHOICES, default='french', max_length=10)
+        verbose_name='Langue', choices=LANG_CHOICES,
+        default='french', max_length=10)
 
-    format_type = models.ForeignKey(ResourceFormats, default=0)
+    format_type = models.ForeignKey(
+        ResourceFormats, verbose_name='Format', default=0)
 
     restricted_level = models.CharField(
-        "Restriction d'accès", choices=LEVEL_CHOICES,
+        verbose_name="Restriction d'accès", choices=LEVEL_CHOICES,
         default='0', max_length=20, blank=True, null=True)
 
     profiles_allowed = models.ManyToManyField(
-        'Profile', verbose_name='Utilisateurs autorisés', blank=True)
+        to='Profile', verbose_name='Utilisateurs autorisés', blank=True)
 
     organisations_allowed = models.ManyToManyField(
-        'Organisation', verbose_name='Organisations autorisées', blank=True)
+        to='Organisation', verbose_name='Organisations autorisées', blank=True)
 
     dataset = models.ForeignKey(
-        'Dataset', on_delete=models.CASCADE, blank=True, null=True)
+        to='Dataset', verbose_name='Jeu de données',
+        on_delete=models.CASCADE, blank=True, null=True)
 
     bbox = models.PolygonField(
-        'Rectangle englobant', blank=True, null=True)
+        verbose_name='Rectangle englobant', blank=True, null=True)
 
     # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
     geo_restriction = models.BooleanField(
-        'Restriction géographique', default=False)
+        verbose_name='Restriction géographique', default=False)
 
     created_on = models.DateTimeField(
         verbose_name='Date de création de la resource',
@@ -155,8 +162,9 @@ class Resource(models.Model):
         verbose_name='Date de dernière modification de la resource',
         blank=True, null=True)
 
-    data_type = models.CharField(verbose_name='type de resources',
-                                 choices=TYPE_CHOICES, max_length=10)
+    data_type = models.CharField(
+        verbose_name='type de resources',
+        choices=TYPE_CHOICES, max_length=10)
 
     class Meta(object):
         verbose_name = 'Ressource'
@@ -167,12 +175,14 @@ class Resource(models.Model):
 
 class Commune(models.Model):
 
-    code = models.CharField('Code INSEE', max_length=5)
+    code = models.CharField(
+        verbose_name='Code INSEE', max_length=5)
 
-    name = models.CharField('Nom', max_length=100)
+    name = models.CharField(
+        verbose_name='Nom', max_length=100)
 
     geom = models.MultiPolygonField(
-        'Geometrie', srid=2154, blank=True, null=True)
+        verbose_name='Geometrie', srid=2154, blank=True, null=True)
 
     objects = models.GeoManager()
 
@@ -185,11 +195,11 @@ class Commune(models.Model):
 
 class Jurisdiction(models.Model):
 
-    code = models.CharField('Code INSEE', max_length=10)
+    code = models.CharField(verbose_name='Code INSEE', max_length=10)
 
-    name = models.CharField('Nom', max_length=100)
+    name = models.CharField(verbose_name='Nom', max_length=100)
 
-    communes = models.ManyToManyField(Commune)
+    communes = models.ManyToManyField(to='Commune')
 
     objects = models.GeoManager()
 
@@ -217,9 +227,9 @@ class Financier(models.Model):
 
 class OrganisationType(models.Model):
 
-    name = models.CharField("Type d'organisation", max_length=250)
+    name = models.CharField(verbose_name="Type d'organisation", max_length=250)
 
-    code = models.CharField("Code", max_length=250)
+    code = models.CharField(verbose_name="Code", max_length=250)
 
     class Meta(object):
         verbose_name = "Type d'organisation"
@@ -232,49 +242,54 @@ class OrganisationType(models.Model):
 
 class Organisation(models.Model):
 
-    name = models.CharField('Nom', max_length=150, unique=True, db_index=True)
+    name = models.CharField(
+        verbose_name='Nom', max_length=150, unique=True, db_index=True)
 
     organisation_type = models.ForeignKey(
-        OrganisationType, verbose_name="Type d'organisation",
+        to='OrganisationType', verbose_name="Type d'organisation",
         default='1', blank=True, null=True, on_delete=models.SET_NULL)
 
     # Territoire de compétence
-    jurisdiction = models.ForeignKey(Jurisdiction, blank=True, null=True,
-                                     verbose_name="Territoire de compétence")
+    jurisdiction = models.ForeignKey(
+        to='Jurisdiction', blank=True, null=True,
+        verbose_name="Territoire de compétence")
 
     ckan_slug = models.SlugField(
-        'CKAN ID', max_length=150, unique=True, db_index=True)
+        verbose_name='CKAN ID', max_length=150, unique=True, db_index=True)
 
     ckan_id = models.UUIDField(
-        'Ckan UUID', default=uuid.uuid4, editable=False)
+        verbose_name='Ckan UUID', default=uuid.uuid4, editable=False)
 
-    website = models.URLField('Site web', blank=True)
+    website = models.URLField(verbose_name='Site web', blank=True)
 
     email = models.EmailField(
         verbose_name="Adresse mail de l'organisation", blank=True, null=True)
 
     description = models.TextField(
-        'Description', blank=True, null=True)  # Description CKAN
+        verbose_name='Description', blank=True, null=True)
 
     logo = models.ImageField(
-        'Logo', upload_to='logos/', blank=True, null=True)
+        verbose_name='Logo', upload_to='logos/', blank=True, null=True)
 
     address = models.CharField(
-        'Adresse', max_length=100, blank=True, null=True)
+        verbose_name='Adresse', max_length=100, blank=True, null=True)
 
     postcode = models.CharField(
-        'Code postal', max_length=100, blank=True, null=True)
+        verbose_name='Code postal', max_length=100, blank=True, null=True)
 
-    city = models.CharField('Ville', max_length=100, blank=True, null=True)
+    city = models.CharField(
+        verbose_name='Ville', max_length=100, blank=True, null=True)
 
     org_phone = models.CharField(
-        'Téléphone', max_length=10, blank=True, null=True)
+        verbose_name='Téléphone', max_length=10, blank=True, null=True)
 
     license = models.ForeignKey(
-        'License', on_delete=models.CASCADE, blank=True, null=True)
+        to='License', on_delete=models.CASCADE,
+        verbose_name='Licence', blank=True, null=True)
 
     financier = models.ForeignKey(
-        Financier, blank=True, null=True, on_delete=models.SET_NULL)
+        to='Financier', on_delete=models.SET_NULL,
+        verbose_name="Financeur", blank=True, null=True)
 
     is_active = models.BooleanField('Organisation active', default=False)
 
@@ -290,28 +305,30 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     organisation = models.ForeignKey(
-        Organisation, blank=True, null=True, on_delete=models.SET_NULL,
-        verbose_name="Organisation d'appartenance")
+        to='Organisation', on_delete=models.SET_NULL,
+        verbose_name="Organisation d'appartenance", blank=True, null=True)
 
     referents = models.ManyToManyField(
-        Organisation, through='LiaisonsReferents',
+        to='Organisation', through='LiaisonsReferents',
         verbose_name="Organisations dont l'utiliateur est réferent",
         related_name='profile_referents')
 
     contributions = models.ManyToManyField(
-        Organisation, through='LiaisonsContributeurs',
+        to='Organisation', through='LiaisonsContributeurs',
         verbose_name="Organisations dont l'utiliateur est contributeur",
         related_name='profile_contributions')
 
     resources = models.ManyToManyField(
-        Resource, through='LiaisonsResources',
+        to='Resource', through='LiaisonsResources',
         verbose_name="Resources publiées par l'utilisateur",
         related_name='profile_resources')
 
-    phone = models.CharField('Téléphone', max_length=10, blank=True, null=True)
+    phone = models.CharField(
+        verbose_name='Téléphone', max_length=10, blank=True, null=True)
 
     is_active = models.BooleanField(
-        'Validation suite à confirmation mail par utilisateur', default=False)
+        verbose_name='Validation suite à confirmation mail par utilisateur',
+        default=False)
 
     membership = models.BooleanField(
         verbose_name="Etat de rattachement profile-organisation d'appartenance",
@@ -356,15 +373,19 @@ class Profile(models.Model):
 
 class LiaisonsReferents(models.Model):
 
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    profile = models.ForeignKey(
+        to='Profile', on_delete=models.CASCADE,
+        verbose_name='Profil')
 
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(
+        to='Organisation', on_delete=models.CASCADE,
+        verbose_name='Organisation')
 
     created_on = models.DateField(auto_now_add=True)
 
     validated_on = models.DateField(
-        verbose_name="Date de validation de l'action", blank=True,
-        null=True, default=timezone.now)
+        verbose_name="Date de validation de l'action",
+        blank=True, null=True, default=timezone.now)
 
     class Meta(object):
         unique_together = (('profile', 'organisation'),)
@@ -392,9 +413,11 @@ class LiaisonsReferents(models.Model):
 
 class LiaisonsContributeurs(models.Model):
 
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    profile = models.ForeignKey(
+        to='Profile', on_delete=models.CASCADE)
 
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(
+        to='Organisation', on_delete=models.CASCADE)
 
     created_on = models.DateField(auto_now_add=True)
 
@@ -431,9 +454,9 @@ class LiaisonsContributeurs(models.Model):
 
 class LiaisonsResources(models.Model):
 
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    profile = models.ForeignKey(to='Profile', on_delete=models.CASCADE)
 
-    resource = models.ForeignKey(Resource, on_delete=models.CASCADE)
+    resource = models.ForeignKey(to='Resource', on_delete=models.CASCADE)
 
     created_on = models.DateField(auto_now_add=True)
 
@@ -453,16 +476,16 @@ class AccountActions(models.Model):
         ('set_password_admin', "Initialisation du mot de passe suite à une inscription par un administrateur"))
 
     profile = models.ForeignKey(
-        Profile, on_delete=models.CASCADE, blank=True, null=True)
+        to='Profile', on_delete=models.CASCADE, blank=True, null=True)
 
     # Pour pouvoir reutiliser AccountActions pour demandes post-inscription
     org_extras = models.ForeignKey(
-        Organisation, on_delete=models.CASCADE, blank=True, null=True)
+        to='Organisation', on_delete=models.CASCADE, blank=True, null=True)
 
     key = models.UUIDField(default=uuid.uuid4, editable=False)
 
     action = models.CharField(
-        'Action de gestion de profile', blank=True, null=True,
+        verbose_name='Action de gestion de profile', blank=True, null=True,
         default='confirm_mail', max_length=250, choices=ACTION_CHOICES)
 
     created_on = models.DateTimeField(auto_now_add=True, blank=True, null=True)
@@ -475,16 +498,18 @@ class AccountActions(models.Model):
 class Mail(models.Model):
 
     template_name = models.CharField(
-        'Nom du model du message', primary_key=True, max_length=255)
+        verbose_name='Nom du model du message',
+        primary_key=True, max_length=255)
 
     subject = models.CharField(
-        'Objet', max_length=255, blank=True, null=True)
+        verbose_name='Objet', max_length=255, blank=True, null=True)
 
     message = models.TextField(
-        'Corps du message', blank=True, null=True)
+        verbose_name='Corps du message', blank=True, null=True)
 
     from_email = models.EmailField(
-        'Adresse expediteur', default=settings.DEFAULT_FROM_EMAIL)
+        verbose_name='Adresse expediteur',
+        default=settings.DEFAULT_FROM_EMAIL)
 
     class Meta(object):
         verbose_name = 'e-mail'
@@ -828,22 +853,26 @@ class Category(models.Model):
     # A chaque déploiement
     # python manage.py sync_ckan_categories
 
-    name = models.CharField('Nom', max_length=100)
+    name = models.CharField(
+        verbose_name='Nom', max_length=100)
 
-    description = models.CharField('Description', max_length=1024)
+    description = models.CharField(
+        verbose_name='Description', max_length=1024)
 
     ckan_slug = models.SlugField(
-        'Ckan slug', max_length=100, unique=True, db_index=True, blank=True)
+        verbose_name='Ckan slug', max_length=100,
+        unique=True, db_index=True, blank=True)
 
     ckan_id = models.UUIDField(
-        'Ckan UUID', default=uuid.uuid4, editable=False)
+        verbose_name='Ckan UUID', default=uuid.uuid4, editable=False)
 
-    iso_topic = models.CharField('Thème ISO', max_length=100,
-                                 choices=ISO_TOPIC_CHOICES,
-                                 blank=True, null=True)
+    iso_topic = models.CharField(
+        verbose_name='Thème ISO', max_length=100,
+        choices=ISO_TOPIC_CHOICES, blank=True, null=True)
 
     picto = models.ImageField(
-        'Pictogramme', upload_to='logos/', blank=True, null=True)
+        verbose_name='Pictogramme', upload_to='logos/',
+        blank=True, null=True)
 
     class Meta(object):
         verbose_name = 'Catégorie'
@@ -877,19 +906,23 @@ class License(models.Model):
 
     domain_software = models.BooleanField(default=False)
 
-    status = models.CharField('Statut', max_length=30, default='active')
+    status = models.CharField(
+        verbose_name='Statut', max_length=30, default='active')
 
-    maintainer = models.CharField('Maintainer', max_length=50, blank=True)
+    maintainer = models.CharField(
+        verbose_name='Maintainer', max_length=50, blank=True)
 
     od_conformance = models.CharField(
-        'od_conformance', max_length=30, blank=True, default='approved')
+        verbose_name='od_conformance', max_length=30,
+        blank=True, default='approved')
 
     osd_conformance = models.CharField(
-        'osd_conformance', max_length=30, blank=True, default='not reviewed')
+        verbose_name='osd_conformance', max_length=30,
+        blank=True, default='not reviewed')
 
-    title = models.CharField('Nom', max_length=100)
+    title = models.CharField(verbose_name='Nom', max_length=100)
 
-    url = models.URLField('url', blank=True)
+    url = models.URLField(verbose_name='url', blank=True)
 
     class Meta(object):
         verbose_name = 'Licence'
@@ -927,12 +960,13 @@ class Support(models.Model):
 
 class DataType(models.Model):
 
-    name = models.CharField('Nom', max_length=100)
+    name = models.CharField(verbose_name='Nom', max_length=100)
 
-    description = models.CharField('Description', max_length=1024)
+    description = models.CharField(verbose_name='Description', max_length=1024)
 
     ckan_slug = models.SlugField(
-        'Ckan_ID', max_length=100, unique=True, db_index=True, blank=True)
+        verbose_name='Ckan_ID', max_length=100,
+        unique=True, db_index=True, blank=True)
 
     class Meta(object):
         verbose_name = 'Type de donnée'
@@ -985,7 +1019,7 @@ class Dataset(models.Model):
     keywords = TaggableManager('Liste de mots-clés', blank=True)
 
     categories = models.ManyToManyField(
-        Category, verbose_name="Catégories d'appartenance", blank=True)
+        to='Category', verbose_name="Catégories d'appartenance", blank=True)
 
     date_creation = models.DateField(
         verbose_name='Date de création', blank=True, null=True)
@@ -1006,7 +1040,7 @@ class Dataset(models.Model):
 
     # Mandatory
     organisation = models.ForeignKey(
-        Organisation,
+        to='Organisation',
         verbose_name="Organisation à laquelle est rattaché ce jeu de données",
         blank=True, null=True, on_delete=models.CASCADE)
 
@@ -1014,10 +1048,10 @@ class Dataset(models.Model):
     license = models.ForeignKey(License, verbose_name='Licence')
 
     support = models.ForeignKey(
-        Support, verbose_name='Support technique', null=True, blank=True)
+        to='Support', verbose_name='Support technique', null=True, blank=True)
 
     data_type = models.ManyToManyField(
-        DataType, verbose_name='Type de données', blank=True)
+        to='DataType', verbose_name='Type de données', blank=True)
 
     published = models.BooleanField(
         verbose_name='Publier le jeu de données', default=False)
@@ -1030,7 +1064,8 @@ class Dataset(models.Model):
         verbose_name='UUID de la métadonnées', unique=True,
         db_index=True, blank=True, null=True)
 
-    editor = models.ForeignKey(User, verbose_name='Producteur (propriétaire)')
+    editor = models.ForeignKey(
+        User, verbose_name='Producteur (propriétaire)')
 
     owner_name = models.CharField(
         verbose_name='Nom du producteur',
