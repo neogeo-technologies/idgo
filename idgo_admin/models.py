@@ -918,7 +918,7 @@ class Dataset(models.Model):
         ('realtime', 'Temps réel'))
 
     # Mandatory
-    name = models.CharField(verbose_name='Titre', max_length=100, unique=True)
+    name = models.TextField(verbose_name='Titre', unique=True)  # unique=False est préférable...
 
     ckan_slug = models.SlugField(
         verbose_name='Label court', max_length=100,
@@ -985,7 +985,10 @@ class Dataset(models.Model):
 
     editor = models.ForeignKey(User, verbose_name='Producteur (propriétaire)')
 
-    # ??? -> pourquoi ce champ si editor.email
+    owner_name = models.CharField(
+        verbose_name='Nom du producteur',
+        max_length=100, blank=True, null=True)
+
     owner_email = models.EmailField(
         verbose_name='E-mail du producteur', blank=True, null=True)
 
