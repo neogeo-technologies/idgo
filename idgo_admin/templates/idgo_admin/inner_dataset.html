@@ -115,12 +115,23 @@
 			{% bootstrap_field form.is_inspire %}
 		</div>
 	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			{% bootstrap_field form.owner_name %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			{% bootstrap_field form.owner_email %}
+		</div>
+	</div>
 	<br />
 	<div class="row">
 		<div class="col-xs-12">
 			<p>* Les champs marqués d'un astérisque sont obligatoires.</p>
 		</div>
 	</div>
+	<br />
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:datasets" %}">Annuler</a>
 		<button type="submit" name="continue" class="btn btn-primary">Enregistrer et continuer les modifications</button>

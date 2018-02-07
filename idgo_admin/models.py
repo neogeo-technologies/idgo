@@ -870,10 +870,18 @@ class License(models.Model):
 
 class Support(models.Model):
 
-    name = models.CharField('Nom', max_length=100)
-    description = models.CharField('Description', max_length=1024)
+    name = models.CharField(
+        verbose_name='Nom', max_length=100)
+
+    description = models.CharField(
+        verbose_name='Description', max_length=1024)
+
     ckan_slug = models.SlugField(
-        'Ckan_ID', max_length=100, unique=True, db_index=True, blank=True)
+        verbose_name='Label court', max_length=100,
+        unique=True, db_index=True, blank=True)
+
+    email = models.EmailField(
+        verbose_name='E-mail', blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -896,6 +904,7 @@ class DataType(models.Model):
     class Meta(object):
         verbose_name = 'Type de donnée'
         verbose_name_plural = 'Types de données'
+
 
 class Dataset(models.Model):
 
@@ -1010,10 +1019,18 @@ class Dataset(models.Model):
             validated_on__isnull=False).exists()
 
     def save(self, *args, **kwargs):
+
+        if not self.owner_name:
+            self.owner_name = self.editor.get_full_name()
+        if not self.owner_email:
+            self.owner_email = self.editor.email
+
         # Cache avant sauvegarde
         previous = self.pk and Dataset.objects.get(pk=self.pk)
+
         # Le producteur/propriétaire doit toujours rester le créateur du jeu de données
-        self.editor = previous and previous.editor
+        # self.editor = previous and previous.editor
+
         # Synchronisation CKAN
         self.publish_dataset_to_ckan(
             editor='editor' in kwargs and kwargs.pop('editor') or None)
@@ -1027,8 +1044,8 @@ class Dataset(models.Model):
     def publish_dataset_to_ckan(self, editor=None):
 
         ckan_params = {
-            'author': self.editor.username,
-            'author_email': self.editor.email,
+            'author': self.owner_name,
+            'author_email': self.owner_email,
             'datatype': [obj.ckan_slug for obj in self.data_type.all()],
             'dataset_creation_date':
                 str(self.date_creation) if self.date_creation else '',
@@ -1044,17 +1061,20 @@ class Dataset(models.Model):
                 self.license.ckan_id
                 in [license['id'] for license in ckan.get_licenses()]
                 ) and self.license.ckan_id or '',
-            'maintainer': self.editor.username,
-            'maintainer_email': self.editor.email,
+            'maintainer':
+                self.support and self.support.name or 'Plateforme DataSud',
+            'maintainer_email':
+                self.support and self.support.email or 'contact@datasud.fr',
             'notes': self.description,
             'owner_org': self.organisation.ckan_slug,
             'private': not self.published,
             'state': 'active',
             'support': self.support and self.support.ckan_slug,
-            'tags': [{'name': keyword.name} for keyword in self.keywords.all()],
+            'tags':
+                [{'name': keyword.name} for keyword in self.keywords.all()],
             'title': self.name,
             'update_frequency': self.update_freq,
-            'url': ''}
+            'url': ''}  # Laissez vide
 
         if self.geonet_id:
             ckan_params['inspire_url'] = \
@@ -1123,7 +1143,7 @@ def post_delete_dataset(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Resource)
 def post_save_resource(sender, instance, **kwargs):
-    instance.dataset.date_modification = timezone.now()
+    instance.dataset.date_modification = timezone.now().date()
     instance.dataset.save()
 
 

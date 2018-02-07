@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core import validators
 from django import forms
-# from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
@@ -27,9 +27,33 @@ _today_str = _today.strftime('%d/%m/%Y')
 
 class DatasetForm(forms.ModelForm):
 
+    class Meta(object):
+        model = Dataset
+        fields = ('categories',
+                  'data_type',
+                  'date_creation',
+                  'date_modification',
+                  'date_publication',
+                  'description',
+                  'geocover',
+                  'is_inspire',
+                  'keywords',
+                  'license',
+                  'organisation',
+                  'owner_email',
+                  'owner_name',
+                  'published',
+                  'support',
+                  # 'thumbnail',
+                  'update_freq',
+                  'name',
+                  'ckan_slug')
+
     name = forms.CharField(
         label='Titre*',
-        required=True)
+        required=True,
+        widget=forms.Textarea(
+            attrs={'placeholder': 'Titre du jeu de données', 'rows': 1}))
 
     ckan_slug = forms.CharField(
         label='URL du jeu de données',
@@ -49,6 +73,8 @@ class DatasetForm(forms.ModelForm):
         required=False,
         widget=forms.Textarea(
             attrs={'placeholder': 'Vous pouvez utiliser le langage Markdown ici'}))
+
+    # thumbnail = forms.ImageField(label='Vignette', required=False)
 
     keywords = TagField(
         label='Liste de mots-clés',
@@ -119,13 +145,9 @@ class DatasetForm(forms.ModelForm):
         required=True,
         empty_label='Sélectionnez une licence')
 
-    # owner_email = forms.EmailField(
-    #     label='Adresse e-mail du producteur',
-    #     error_messages={'invalid': "L'adresse e-mail est invalide."},
-    #     required=False,
-    #     validators=[validators.validate_email],
-    #     widget=forms.EmailInput(
-    #         attrs={'placeholder': 'Adresse e-mail'}))
+    owner_name = forms.CharField(required=False)
+
+    owner_email = forms.EmailField(required=False)
 
     published = forms.BooleanField(
         initial=True,
@@ -138,53 +160,43 @@ class DatasetForm(forms.ModelForm):
         required=False,
         empty_label='Aucun')
 
-    # thumbnail = forms.ImageField(label='Vignette', required=False)
-
     is_inspire = forms.BooleanField(
         initial=False,
         label='Le jeu de données est soumis à la règlementation INSPIRE',
         required=False)
 
-    class Meta(object):
-        model = Dataset
-        fields = ('categories',
-                  'data_type',
-                  'date_creation',
-                  'date_modification',
-                  'date_publication',
-                  'description',
-                  'geocover',
-                  'is_inspire',
-                  'keywords',
-                  'license',
-                  'organisation',
-                  'published',
-                  'support',
-                  # 'thumbnail',
-                  'update_freq',
-                  'name',
-                  'ckan_slug')
-
     def __init__(self, *args, **kwargs):
-
         self.include_args = kwargs.pop('include', {})
-
         super().__init__(*args, **kwargs)
 
-        # if Profile.objects.get(user=self.include_args['user']).is_referent:
-        #     self.fields['organisation'].queryset = \
-        #         Organisation.objects.all()
+        user = self.include_args.get('user')
+        instance = self.include_args.get('instance')
 
-        instance = kwargs.get('instance')
-        if instance and not instance.editor == self.include_args.get('user'):
+        if instance and not instance.editor == user:
             self.fields['organisation'].queryset = \
                 Organisation.objects.filter(pk=instance.organisation.pk)
         else:
             self.fields['organisation'].queryset = \
                 Organisation.objects.filter(
-                    pk__in=[o.pk for o in LiaisonsContributeurs.get_contribs(
-                            profile=Profile.objects.get(
-                                user=self.include_args['user']))])
+                    pk__in=[
+                        o.pk for o in LiaisonsContributeurs.get_contribs(
+                            profile=Profile.objects.get(user=user))])
+
+        owner = instance and instance.editor or user
+
+        self.fields['owner_name'] = forms.CharField(
+            label='Nom du producteur',
+            required=False,
+            widget=forms.TextInput(
+                attrs={'placeholder': owner.get_full_name()}))
+
+        self.fields['owner_email'] = forms.EmailField(
+            error_messages={'invalid': "L'adresse e-mail est invalide."},
+            label='Adresse e-mail du producteur',
+            required=False,
+            validators=[validators.validate_email],
+            widget=forms.EmailInput(
+                attrs={'placeholder': owner.email}))
 
     def clean(self):
 

@@ -1,12 +1,11 @@
-from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django import forms
 from django.utils.text import slugify
-
 from idgo_admin.forms import common_fields
 from idgo_admin.models import Dataset
 from idgo_admin.models import Jurisdiction
