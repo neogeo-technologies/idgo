@@ -18,9 +18,6 @@ import json
 from pathlib import Path
 
 
-_today = timezone.now().date()
-
-
 try:
     DOWNLOAD_SIZE_LIMIT = settings.DOWNLOAD_SIZE_LIMIT
 except AttributeError:
@@ -240,7 +237,7 @@ class ResourceForm(forms.ModelForm):
                 resource.delete()
             raise e
         else:
-            resource.last_update = _today
+            resource.last_update = timezone.now().date()
             resource.save()
         finally:
             ckan_user.close()

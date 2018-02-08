@@ -1,15 +1,12 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core import validators
 from django import forms
 from django.utils import timezone
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import DataType
-from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
-from idgo_admin.models import Profile
 from idgo_admin.models import Support
 from idgo_admin.shortcuts import user_and_profile
 import re
@@ -21,8 +18,8 @@ GEONETWORK_URL = settings.GEONETWORK_URL
 CKAN_URL = settings.CKAN_URL
 
 
-_today = timezone.now().date()
-_today_str = _today.strftime('%d/%m/%Y')
+TODAY = timezone.now().date()
+TODAY_STR = TODAY.strftime('%d/%m/%Y')
 
 
 class DatasetForm(forms.ModelForm):
@@ -103,7 +100,7 @@ class DatasetForm(forms.ModelForm):
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
-                'placeholder': '{0} (valeur par défaut)'.format(_today_str)}))
+                'placeholder': '{0} (valeur par défaut)'.format(TODAY_STR)}))
 
     date_modification = forms.DateField(
         label='Date de dernière modification',
@@ -112,7 +109,7 @@ class DatasetForm(forms.ModelForm):
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
-                'placeholder': '{0} (valeur par défaut)'.format(_today_str)}))
+                'placeholder': '{0} (valeur par défaut)'.format(TODAY_STR)}))
 
     date_publication = forms.DateField(
         label='Date de publication',
@@ -121,7 +118,7 @@ class DatasetForm(forms.ModelForm):
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
-                'placeholder': '{0} (valeur par défaut)'.format(_today_str)}))
+                'placeholder': '{0} (valeur par défaut)'.format(TODAY_STR)}))
 
     update_freq = forms.ChoiceField(
         choices=Dataset.FREQUENCY_CHOICES,
@@ -185,6 +182,10 @@ class DatasetForm(forms.ModelForm):
         self.fields['organisation'].queryset = Organisation.objects.filter(
             liaisonscontributeurs__profile=owner.profile,
             liaisonscontributeurs__validated_on__isnull=False)
+        self.fields['owner_name'].widget = forms.TextInput(
+            attrs={'placeholder': '{} (valeur par défaut)'.format(owner.get_full_name())})
+        self.fields['owner_email'].widget = forms.TextInput(
+            attrs={'placeholder': '{} (valeur par défaut)'.format(owner.email)})
         self.fields['owner_name'].value = owner.get_full_name()
         self.fields['owner_email'].value = owner.email
         # self.fields['broadcaster_name'].value = ''
@@ -216,14 +217,14 @@ class DatasetForm(forms.ModelForm):
             self.add_error('name', 'Le jeu de données "{0}" existe déjà'.format(name))
             raise ValidationError("Dataset '{0}' already exists".format(name))
 
-        if not self.cleaned_data.get('date_creation'):
-            self.cleaned_data['date_creation'] = _today
+        # if not self.cleaned_data.get('date_creation'):
+        #     self.cleaned_data['date_creation'] = TODAY
 
-        if not self.cleaned_data.get('date_modification'):
-            self.cleaned_data['date_modification'] = _today
+        # if not self.cleaned_data.get('date_modification'):
+        #     self.cleaned_data['date_modification'] = TODAY
 
-        if not self.cleaned_data.get('date_publication'):
-            self.cleaned_data['date_publication'] = _today
+        # if not self.cleaned_data.get('date_publication'):
+        #     self.cleaned_data['date_publication'] = TODAY
 
         kwords = self.cleaned_data.get('keywords')
         if kwords:

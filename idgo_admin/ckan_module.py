@@ -120,8 +120,8 @@ class CkanUserHandler(object):
         kwargs['description'] = kwargs['description'] \
             if 'description' in kwargs else 'Aperçu du jeu de données'
 
-        views = \
-            self.call_action('resource_view_list', id=kwargs['resource_id'])
+        views = self.call_action(
+            'resource_view_list', id=kwargs['resource_id'])
         for view in views:
             if view['view_type'] == kwargs['view_type']:
                 return self.call_action(
@@ -136,11 +136,11 @@ class CkanUserHandler(object):
     def publish_dataset(self, name, id=None, resources=None, **kwargs):
         kwargs['name'] = name
         if id and self.is_package_exists(id):
-            package = \
-                self.call_action(
-                    'package_update', **{**self.get_package(id), **kwargs})
+            package = self.call_action(
+                'package_update', **{**self.get_package(id), **kwargs})
         else:
-            package = self.call_action('package_create', **kwargs)
+            package = self.call_action(
+                'package_create', **{**{'id': id}, **kwargs})
         return package
 
     @CkanExceptionsHandler()

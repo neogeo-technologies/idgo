@@ -22,6 +22,7 @@ import uuid
 # from django.contrib.auth.views import redirect_to_login
 
 
+TODAY = timezone.now().date()
 GEONETWORK_URL = settings.GEONETWORK_URL
 
 
@@ -1007,7 +1008,8 @@ class Dataset(models.Model):
 
     ckan_id = models.UUIDField(
         verbose_name='Identifiant CKAN', unique=True,
-        db_index=True, blank=True, null=True)
+        db_index=True, default=uuid.uuid4, editable=False,
+        blank=True, null=True)
 
     description = models.TextField(
         verbose_name='Description', blank=True, null=True)
@@ -1099,24 +1101,32 @@ class Dataset(models.Model):
                     self.editor.username, self.organisation.name))
 
     def save(self, *args, **kwargs):
+        editor = 'editor' in kwargs and kwargs.pop('editor') or None
 
+        if not self.date_creation:
+            self.date_creation = TODAY
+        if not self.date_modification:
+            self.date_modification = TODAY
+        if not self.date_publication:
+            self.date_publication = TODAY
         if not self.owner_name:
             self.owner_name = self.editor.get_full_name()
         if not self.owner_email:
             self.owner_email = self.editor.email
+        # if not self.broadcaster_name:
+        #     self.broadcaster_name = \
+        #         self.support and self.support.name or 'Plateforme DataSud'
+        # if not self.broadcaster_email:
+        #     self.broadcaster_email = \
+        #         self.support and self.support.email or 'contact@datasud.fr'
 
         # Cache avant sauvegarde
         previous = self.pk and Dataset.objects.get(pk=self.pk)
 
-        # Le producteur/propriétaire doit toujours rester le créateur du jeu de données
-        # self.editor = previous and previous.editor
+        super().save(*args, **kwargs)
+        self.publish_dataset_to_ckan(editor=editor)
 
         # Synchronisation CKAN
-        self.publish_dataset_to_ckan(
-            editor='editor' in kwargs and kwargs.pop('editor') or None)
-
-        super().save(*args, **kwargs)
-
         if previous and previous.organisation:
             ckan.deactivate_ckan_organization_if_empty(
                 str(previous.organisation.ckan_id))
@@ -1126,7 +1136,7 @@ class Dataset(models.Model):
         ckan_params = {
             'author': self.owner_name,
             'author_email': self.owner_email,
-            'datatype': [obj.ckan_slug for obj in self.data_type.all()],
+            'datatype': [item.ckan_slug for item in self.data_type.all()],
             'dataset_creation_date':
                 str(self.date_creation) if self.date_creation else '',
             'dataset_modification_date':
@@ -1150,11 +1160,11 @@ class Dataset(models.Model):
             'private': not self.published,
             'state': 'active',
             'support': self.support and self.support.ckan_slug,
-            'tags':
-                [{'name': keyword.name} for keyword in self.keywords.all()],
+            'tags': [
+                {'name': keyword.name} for keyword in self.keywords.all()],
             'title': self.name,
             'update_frequency': self.update_freq,
-            'url': ''}  # Laissez vide
+            'url': ''}  # Laisser vide
 
         if self.geonet_id:
             ckan_params['inspire_url'] = \
@@ -1186,13 +1196,14 @@ class Dataset(models.Model):
             ckan.add_organization(self.organisation)
         elif ckan_orga.get('state') == 'deleted':
             ckan.activate_organization(organisation_ckan_id)
-        for profile in LiaisonsContributeurs.get_contributors(self.organisation):
-            ckan.add_user_to_organization(profile.user.username, organisation_ckan_id)
+        for profile \
+                in LiaisonsContributeurs.get_contributors(self.organisation):
+            ckan.add_user_to_organization(
+                profile.user.username, organisation_ckan_id)
 
-        ckan_dataset = ckan_user.publish_dataset(
+        ckan_user.publish_dataset(
             self.ckan_slug, id=str(self.ckan_id), **ckan_params)
 
-        self.ckan_id = uuid.UUID(ckan_dataset['id'])
         ckan_user.close()
 
     @classmethod
