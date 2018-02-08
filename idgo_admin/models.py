@@ -1092,9 +1092,11 @@ class Dataset(models.Model):
             validated_on__isnull=False).exists()
 
     def clean(self):
-        print(self.ckan_slug)
-        if slugify(self.ckan_slug) != self.ckan_slug:
-            raise ValidationError(self.ckan_slug.error_messages)
+        if not self.is_contributor(self.editor.profile):
+            raise ValidationError((
+                "L'utilisateur « {0} » n'est pas contributeur "
+                "de l'organisation « {1} »").format(
+                    self.editor.username, self.organisation.name))
 
     def save(self, *args, **kwargs):
 

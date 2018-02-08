@@ -145,9 +145,19 @@ class DatasetForm(forms.ModelForm):
         required=True,
         empty_label='Sélectionnez une licence')
 
-    owner_name = forms.CharField(required=False)
+    owner_name = forms.CharField(
+        label='Nom du producteur', required=False)
 
-    owner_email = forms.EmailField(required=False)
+    owner_email = forms.EmailField(
+        error_messages={'invalid': "L'adresse e-mail est invalide."},
+        label='Adresse e-mail du producteur', required=False)
+
+    # broadcaster_name = forms.CharField(
+    #     label='Nom du diffuseur', required=False)
+
+    # broadcaster_email = forms.EmailField(
+    #     error_messages={'invalid': "L'adresse e-mail est invalide."},
+    #     label='Adresse e-mail du diffuseur', required=False)
 
     published = forms.BooleanField(
         initial=True,
@@ -169,34 +179,16 @@ class DatasetForm(forms.ModelForm):
         self.include_args = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
 
-        user = self.include_args.get('user')
-        instance = self.include_args.get('instance')
+        instance = kwargs.get('instance', None)
+        owner = instance and instance.editor or self.include_args.get('user')
 
-        if instance and not instance.editor == user:
-            self.fields['organisation'].queryset = \
-                Organisation.objects.filter(pk=instance.organisation.pk)
-        else:
-            self.fields['organisation'].queryset = \
-                Organisation.objects.filter(
-                    pk__in=[
-                        o.pk for o in LiaisonsContributeurs.get_contribs(
-                            profile=Profile.objects.get(user=user))])
-
-        owner = instance and instance.editor or user
-
-        self.fields['owner_name'] = forms.CharField(
-            label='Nom du producteur',
-            required=False,
-            widget=forms.TextInput(
-                attrs={'placeholder': owner.get_full_name()}))
-
-        self.fields['owner_email'] = forms.EmailField(
-            error_messages={'invalid': "L'adresse e-mail est invalide."},
-            label='Adresse e-mail du producteur',
-            required=False,
-            validators=[validators.validate_email],
-            widget=forms.EmailInput(
-                attrs={'placeholder': owner.email}))
+        self.fields['organisation'].queryset = Organisation.objects.filter(
+            liaisonscontributeurs__profile=owner.profile,
+            liaisonscontributeurs__validated_on__isnull=False)
+        self.fields['owner_name'].value = owner.get_full_name()
+        self.fields['owner_email'].value = owner.email
+        # self.fields['broadcaster_name'].value = ''
+        # self.fields['broadcaster_email'].value = ''
 
     def clean(self):
 
