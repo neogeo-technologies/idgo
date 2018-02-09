@@ -59,7 +59,7 @@ def render_with_info_profile(
         'first_name': user.first_name,
         'last_name': user.last_name,
         'is_membership': profile.membership,
-        'is_referent': profile.get_roles()["is_referent"],
+        'is_referent': profile.get_roles()['is_referent'],
         'is_contributor': len(contributions) > 0,
         'is_admin': profile.is_admin,
         'organization': organization and organization.name,

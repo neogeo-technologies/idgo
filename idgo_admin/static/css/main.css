@@ -30,6 +30,10 @@ img {
             user-select: none;
 }
 
+.tab-pane-content {
+    margin-top: 15px;
+}
+
 .text-is-red {
     color: #ff554f;
 }
@@ -488,17 +492,36 @@ a:focus {
 }
 
 .scrolling-box {
-    overflow: auto;
+    overflow-y: scroll;
+    overflow-x: hidden;
     border: 1px solid #999;
     background-color: #fafafa;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+	white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .scrolling-box .btn-radio {
     text-align: left;
     border: none;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 0;
     border-radius: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.scrolling-box .btn-radio .badge {
+    /* position: absolute; */
+    /* right: 12px; */
+    /* top: 6px; */
+    width: 20px;
+    height: 20px;
+    padding: 3px;
+    background-color: #ffba13;
+    color: #fff;
+    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+            box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
 }
 
 .scrolling-box .btn-radio:first-child:not(:last-child) {
@@ -790,6 +813,10 @@ a.disabled {
     color: #fff;
 }
 
+.input-group {
+    margin-bottom: 15px;
+}
+
 .input-group-addon {
     border-color: #999;
 }
@@ -802,8 +829,7 @@ a.disabled {
             box-shadow: none;
 }
 
-
 input.form-control.datepicker {
     padding: 6px 12px;
-	border-radius: 4px;
+    border-radius: 4px;
 }

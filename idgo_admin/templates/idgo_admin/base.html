@@ -106,12 +106,15 @@
 							<li role="presentation">
 								<a href="{% url "idgo_admin:all_datasets" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
 							</li>
-							<li role="presentation">
-								<a href="{% url "idgo_admin:all_members" %}" aria-controls="all-members" role="tab">Utilisateurs<span></a>
-							</li>
+							<!-- <li role="presentation">
+								<a href="{% url "idgo_admin:all_members" %}" aria-controls="all-members" role="tab">Utilisateurs (BAK)<span></a>
+							</li> -->
 							{% endif %}
 							<li role="presentation">
-								<a href="{% url "idgo_admin:organizations" %}" aria-controls="organizations" role="tab">Mes organisations</a>
+								<a href="{% url "idgo_admin:organizations" %}" aria-controls="organizations" role="tab">Mes organisations (BAK)</a>
+							</li>
+							<li role="presentation">
+								<a href="{% url "idgo_admin:all_organizations" %}" aria-controls="all-organizations" role="tab">Organisations</a>
 							</li>
 							{% block nav_content_extra %}
 							{% endblock nav_content_extra %}

@@ -358,9 +358,9 @@ $(function() {
 	);
 
 	$(window).bind('hashchange', function(e) {
-		selectRowByDataId(location.hash.split('/')[1]);
+		selectRowByDataId(window.location.hash.split('/')[1]);
 	});
-	selectRowByDataId(location.hash.split('/')[1]);
+	selectRowByDataId(window.location.hash.split('/')[1]);
 
 });
 </script>

@@ -1,0 +1,68 @@
+{% load bootstrap3 %}
+
+{% include "idgo_admin/alert_messages.html" %}
+
+<form method="post" action="" enctype="multipart/form-data">
+	<div class="row">
+		<div class="col-sm-8">
+			{% bootstrap_field form.name show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-12">
+			{% bootstrap_field form.logo %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-8">
+			{% bootstrap_field form.address show_label=False %}
+		</div>
+		<div class="row">
+		</div>
+		<div class="col-sm-2">
+			{% bootstrap_field form.postcode show_label=False %}
+		</div>
+		<div class="col-sm-4">
+			{% bootstrap_field form.city show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-4">
+			{% bootstrap_field form.phone show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-4">
+			{% bootstrap_field form.email show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-4">
+			{% bootstrap_field form.website show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-12">
+			{% bootstrap_field form.description show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-6">
+			{# bootstrap_field form.jurisdiction #}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-6">
+			{# bootstrap_field form.organisation_type #}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-6">
+			{# bootstrap_field form.license #}
+		</div>
+	</div>
+	<div class="buttons-on-the-right-side">
+		<a class="btn btn-default" href="{% url "idgo_admin:all_organizations" %}#{{ id }}">Annuler</a>
+		<button type="submit" class="btn btn-default">Valider</button>
+	</div>
+</form>
