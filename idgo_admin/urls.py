@@ -22,7 +22,9 @@ from idgo_admin.views.mailer import confirm_referent
 from idgo_admin.views.mailer import confirmation_mail
 from idgo_admin.views.mdedit import MDEdit
 from idgo_admin.views.mdedit import MDEditTplEdit
+
 from idgo_admin.views.organization import AllOrganisations
+from idgo_admin.views.organization import CreateOrganisation
 from idgo_admin.views.organization import EditThisOrganisation
 from idgo_admin.views.organization import ThisOrganisation
 
@@ -69,6 +71,7 @@ urlpatterns = [
     url('^organizations/?$', OrganisationDisplay.as_view(), name='organizations'),
 
     url('^organization/all/?$', AllOrganisations.as_view(), name='all_organizations'),
+    url('^organization/create/?$', CreateOrganisation.as_view(), name='create_organization'),
     url('^organization/(?P<id>(\d+))/?$', ThisOrganisation.as_view(), name='organization'),
     url('^organization/(?P<id>(\d+))/edit/?$', EditThisOrganisation.as_view(), name='edit_organization'),
 
