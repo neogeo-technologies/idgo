@@ -1,17 +1,16 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import Http404
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.organization import OrganizationForm as Form
+from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Organisation
@@ -47,21 +46,53 @@ class ThisOrganisation(View):
             'email': instance.email,
             'description': instance.description,
             'members': [{
-                'username': profile.user.username,
-                'full_name': profile.user.get_full_name(),
+                'username': item.user.username,
+                'full_name': item.user.get_full_name(),
+                'is_member': item.organisation.id == id and True or False,
                 'is_contributor': LiaisonsContributeurs.objects.filter(
-                    profile=profile, organisation__id=id) and True or False,
+                    profile=item, organisation__id=id) and True or False,
                 'is_referent': LiaisonsReferents.objects.filter(
-                    profile=profile, organisation__id=id) and True or False,
-                'datasets_count': 0,
+                    profile=item, organisation__id=id) and True or False,
+                'datasets_count': len(Dataset.objects.filter(organisation=id, editor=item.user)),
                 'profile_id': profile.id
-                } for profile in Profile.objects.filter(
-                    organisation=id,
-                    liaisonscontributeurs__organisation=id,
-                    liaisonsreferents__organisation=id)]}
+                } for item in Profile.objects.filter(
+                    Q(organisation=id),
+                    Q(liaisonscontributeurs__organisation=id),
+                    Q(liaisonsreferents__organisation=id))]}
 
         return JsonResponse(data=data, safe=False)
 
+
+@method_decorator(decorators, name='dispatch')
+class CreateOrganisation(View):
+
+    template = 'idgo_admin/editorganization.html'
+    namespace = 'idgo_admin:edit_organization'
+
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    def get(self, request):
+        user, profile = user_and_profile(request)
+
+        context = {'form': Form(include={'user': user})}
+
+        return render_with_info_profile(
+            request, self.template, context=context)
+
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    def post(self, request):
+        user, profile = user_and_profile(request)
+
+        form = Form(request.POST, request.FILES,
+                    include={'user': user})
+
+        if not form.is_valid():
+            raise Exception
+
+        context = {'form': form}
+
+        form.handle_me(request)
+
+        return render_with_info_profile(request, self.template, context=context)
 
 @method_decorator(decorators, name='dispatch')
 class EditThisOrganisation(View):

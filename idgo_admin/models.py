@@ -218,7 +218,7 @@ class Financier(models.Model):
     code = models.CharField('Code du financeur', max_length=250)
 
     class Meta(object):
-        verbose_name = "Financeur d'une organisation"
+        verbose_name = "Financeur d'une ation"
         verbose_name_plural = "Financeurs"
         ordering = ('name', )
 
@@ -1156,7 +1156,7 @@ class Dataset(models.Model):
             'maintainer_email':
                 self.support and self.support.email or 'contact@datasud.fr',
             'notes': self.description,
-            'owner_org': self.organisation.ckan_slug,
+            'owner_org': str(self.organisation.ckan_id),
             'private': not self.published,
             'state': 'active',
             'support': self.support and self.support.ckan_slug,
