@@ -7,69 +7,54 @@ from idgo_admin.models import ResourceFormats
 class ResourceFormatsAdmin(admin.ModelAdmin):
     ordering = ("extension", )
 
+    def __init__(self, *args, **kwargs):
+        super(ResourceFormatsAdmin, self).__init__(*args, **kwargs)
+
+    def has_add_permission(self, request):
+        return True
+
+    class Meta:
+        model = Resource
+
 
 admin.site.register(ResourceFormats, ResourceFormatsAdmin)
 
 
 class ResourceInline(admin.StackedInline):
     model = Resource
-    max_num = 5
+    extra = 0
     can_delete = True
 
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-    def get_readonly_fields(self, request, obj=None):
-        readonly_fields = list(set(
-            [field.name for field in self.opts.local_fields] +
-            [field.name for field in self.opts.local_many_to_many]
-            ))
-        return readonly_fields
+    fieldsets = (
+        ('Synchronisation distante', {
+            'classes': ('collapse',),
+            'fields': ('synchronisation', 'sync_frequency', 'custom_frequency', ),
+            }),
+        (None, {
+            'classes': ('wide', ),
+            'fields': (
+                ('name', 'description'),
+                ('referenced_url', 'dl_url', 'up_file'),
+                'lang',
+                'format_type', 'restricted_level', 'profiles_allowed',
+                'organisations_allowed', 'bbox', 'geo_restriction',
+                'created_on', 'last_update',)
+            }),
+        )
 
 
 class DatasetAdmin(admin.ModelAdmin):
 
-    # list_display = ('name', 'full_name', 'organisation', 'nb_resources')
-    inlines = [ResourceInline]
+    list_display = ('name', 'nb_resources', )
+    inlines = (ResourceInline, )
     ordering = ('name', )
+    can_add_related = True
+    can_delete_related = True
+    readonly_fields = ('ckan_id', 'ckan_slug', 'geonet_id')
 
-    # def nb_resources(self, obj):
-    #     return Resource.objects.filter(dataset=obj).count()
-    # nb_resources.short_description = "Nombre de ressources"
-
-    # def full_name(self, obj):
-    #     return obj.editor.get_full_name()
-    # full_name.short_description = "Nom de l'éditeur"
-
-    # def has_delete_permission(self, request, obj=None):
-    #     return False
-    #
-    # def has_add_permission(self, request, obj=None):
-    #     return False
-    #
-    # def get_actions(self, request):
-    #     actions = super(DatasetAdmin, self).get_actions(request)
-    #     if 'delete_selected' in actions:
-    #         del actions['delete_selected']
-    #     return actions
-
-    # def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
-    #     extra_context = extra_context or {}
-    #     extra_context['show_save_and_continue'] = False
-    #     extra_context['show_save'] = False
-    #     return super(DatasetAdmin, self).changeform_view(request, object_id, extra_context=extra_context)
-
-    def get_readonly_fields(self, request, obj=None):
-        # readonly_fields = list(set(
-        #     [field.name for field in self.opts.local_fields] +
-        #     [field.name for field in self.opts.local_many_to_many]
-        #     ))
-        readonly_fields = (
-            'ckan_id', 'ckan_slug', 'geonet_id')
-        return readonly_fields
+    def nb_resources(self, obj):
+        return Resource.objects.filter(dataset=obj).count()
+    nb_resources.short_description = "Nombre de ressources"
 
 
 admin.site.register(Dataset, DatasetAdmin)

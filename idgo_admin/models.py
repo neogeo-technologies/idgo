@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db.models.signals import post_delete
@@ -88,6 +89,14 @@ class Resource(models.Model):
     # AVEC LE STRUCTURE DECRITE DANS CKAN
     # cf. /usr/lib/ckan/default/lib/python2.7/site-packages/ckanext/scheming/ckan_dataset.json
 
+    FREQUENCY_CHOICES = (
+        ('never', 'Jamais'),
+        ('daily', 'Quotidienne'),
+        ('weekly', 'Hebdomadaire'),
+        ('monthly', 'Mensuelle'),
+        ('quarterly', 'Trimestrielle'),
+        ('customized', 'Période à déterminer'))
+
     LANG_CHOICES = (
         ('french', 'Français'),
         ('english', 'Anglais'),
@@ -95,16 +104,17 @@ class Resource(models.Model):
         ('german', 'Allemand'),
         ('other', 'Autre'))
 
-    TYPE_CHOICES = (
-        ('data', 'Données'),
-        ('resource', 'Resources'))
-
     LEVEL_CHOICES = (
         ('0', 'Tous les utilisateurs'),
         ('1', 'Utilisateurs authentifiés'),
         ('2', 'Utilisateurs authentifiés avec droits spécifiques'),
         ('3', 'Utilisateurs de cette organisations uniquements'),
         ('4', 'Organisations spécifiées'))
+
+    TYPE_CHOICES = (
+        ('N/A', 'N/A'),
+        ('data', 'Données'),
+        ('resource', 'Resources'))
 
     name = models.CharField(
         verbose_name='Nom', max_length=150)
@@ -165,7 +175,21 @@ class Resource(models.Model):
 
     data_type = models.CharField(
         verbose_name='type de resources',
-        choices=TYPE_CHOICES, max_length=10)
+        choices=TYPE_CHOICES, max_length=10, default='N/A')
+
+    synchronisation = models.BooleanField(
+        "Synchronisation de données distante. ",
+        default=False)
+
+    sync_frequency = models.CharField(
+        "Fréquence de synchronisation",
+        max_length=20,
+        choices=FREQUENCY_CHOICES,
+        default='never')
+
+    custom_frequency = models.PositiveIntegerField(
+        "Nombre de jours entre chaque synchronisations",
+        default=0, blank=True, null=True)
 
     class Meta(object):
         verbose_name = 'Ressource'
@@ -554,14 +578,14 @@ class Mail(models.Model):
     @classmethod
     def send_credentials_user_creation_admin(cls, cleaned_data):
         msg_on_create = """Bonjour, {last_name}, {first_name},
-Un compte vous a été créé par les services d'administarion sur la plateforme IDGO .
+Un compte vous a été créé par les services d'administration sur la plateforme Datasud .
 + Identifiant de connexion: {username}
 
 Veuillez initializer votre mot de passe en suivant le lien suivant.
 + Url de connexion: {url}
 
 Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
-        sub_on_create = "Un nouveau compte vous a été crée sur la plateforme IDGO"
+        sub_on_create = "Un nouveau compte vous a été crée sur la plateforme Datasud"
 
         mail_template, created = cls.objects.get_or_create(
             template_name='credentials_user_creation_admin',
@@ -1093,8 +1117,16 @@ class Dataset(models.Model):
             profile=profile, organisation=self.organisation,
             validated_on__isnull=False).exists()
 
+    @property
+    def editor_profile(self):
+        try:
+            profile = Profile.objects.get(user=self.editor)
+        except Profile.DoesNotExist:
+            return None
+        return profile
+
     def clean(self):
-        if not self.is_contributor(self.editor.profile):
+        if self.editor_profile and not self.is_contributor(self.editor_profile):
             raise ValidationError((
                 "L'utilisateur « {0} » n'est pas contributeur "
                 "de l'organisation « {1} »").format(
@@ -1180,10 +1212,17 @@ class Dataset(models.Model):
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
         # de données existant mais administrateur de données,
         # alors l'admin Ckan édite le jeu de données..
-        is_admin = user.profile.is_admin
-        is_referent = LiaisonsReferents.objects.filter(
-            profile=user.profile, organisation=self.organisation).exists()
+
+        # user.profile: Relation inverse,
+        # retourne une erreur si profile supprimé ou non défini.
+        profile = self.editor_profile
+        is_admin, is_referent = False, False
         is_editor = (user == self.editor)
+
+        if profile:
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation=self.organisation).exists()
         if is_admin and not is_referent and not is_editor:
             ckan_user = ckan_me(ckan.apikey)
         else:
@@ -1211,6 +1250,34 @@ class Dataset(models.Model):
         return cls.objects.filter(
             organisation__in=LiaisonsReferents.get_subordinated_organizations(
                 profile=profile))
+
+
+class Task(models.Model):
+
+    STATE_CHOICES = (
+        ('succesful', "Tâche terminée avec succés"),
+        ('failed', "Echec de la tâche"),
+        ('running', "Tâche en cours de traitement"),
+        )
+
+    action = models.TextField("Action", blank=True, null=True)
+
+    extras = JSONField("Extras", blank=True, null=True)
+
+    state = models.CharField(
+        verbose_name='Etat de traitement', default='running',
+        max_length=20, choices=STATE_CHOICES)
+
+    starting = models.DateTimeField(
+        verbose_name="Timestamp de début de traitement",
+        auto_now_add=True)
+
+    end = models.DateTimeField(
+        verbose_name="Timestamp de fin de traitement",
+        blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Tâche de synchronisation'
 
 
 # Triggers

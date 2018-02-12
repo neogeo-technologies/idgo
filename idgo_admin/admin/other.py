@@ -3,6 +3,7 @@ from idgo_admin.models import Category
 from idgo_admin.models import Financier
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
+from idgo_admin.models import Task
 
 
 class JurisdictionAdmin(admin.ModelAdmin):
@@ -44,3 +45,12 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Category, CategoryAdmin)
+
+
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ('action', 'state', 'starting', 'end')
+    ordering = ('starting', )
+    readonly_fields = ('starting', )
+
+
+admin.site.register(Task, TaskAdmin)
