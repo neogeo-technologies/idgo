@@ -244,7 +244,7 @@ class OrganisationType(models.Model):
 class Organisation(models.Model):
 
     name = models.CharField(
-        verbose_name='Nom', max_length=150, unique=True, db_index=True)
+        verbose_name='Nom', max_length=100, unique=True, db_index=True)
 
     organisation_type = models.ForeignKey(
         to='OrganisationType', verbose_name="Type d'organisation",
@@ -256,7 +256,7 @@ class Organisation(models.Model):
         verbose_name="Territoire de compétence")
 
     ckan_slug = models.SlugField(
-        verbose_name='CKAN ID', max_length=150, unique=True, db_index=True)
+        verbose_name='CKAN ID', max_length=100, unique=True, db_index=True)
 
     ckan_id = models.UUIDField(
         verbose_name='Ckan UUID', default=uuid.uuid4, editable=False)

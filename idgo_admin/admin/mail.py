@@ -5,7 +5,7 @@ from idgo_admin.models import Mail
 class MailAdmin(admin.ModelAdmin):
     model = Mail
     ordering = ('subject',)
-    
+
     # Vue dev:
     # list_display = ('template_name', 'subject', )
     # fieldsets = (

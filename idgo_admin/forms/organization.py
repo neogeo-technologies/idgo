@@ -22,7 +22,7 @@ class OrganizationForm(forms.ModelForm):
     name = forms.CharField(
         error_messages={"Nom de l'organisation invalide": 'invalid'},
         label="Nom de l'organisation",
-        max_length=255,
+        max_length=100,
         min_length=3,
         required=False,
         widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisation"}))

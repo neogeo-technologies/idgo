@@ -200,7 +200,7 @@ class ProfileForm(forms.ModelForm):
     new_orga = forms.CharField(
         error_messages={"Nom de l'organisation invalide": 'invalid'},
         label="Nom de l'organisation",
-        max_length=255,
+        max_length=100,
         min_length=3,
         required=False,
         widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisation"}))
@@ -281,6 +281,7 @@ class ProfileForm(forms.ModelForm):
                 Organisation.objects.exclude(is_active=False)
 
     def clean(self):
+
         params = ['address', 'city', 'description',
                   'jurisdiction', 'license', 'logo',
                   'organisation_type', 'org_phone', 'postcode',
@@ -291,7 +292,7 @@ class ProfileForm(forms.ModelForm):
         if self.cleaned_data.get('contribution_requested') and not self.cleaned_data.get('referent_requested'):
             self.cleaned_data['contribution_requested'] = True
 
-        if self.cleaned_data['new_orga']:
+        if self.cleaned_data.get('new_orga'):
             self.cleaned_data['organisation'] = None
 
             # On vérifie si l'organisation n'existe pas déjà auquel cas on retourne une erreur.
