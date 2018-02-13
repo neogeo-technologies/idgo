@@ -29,6 +29,8 @@ import operator
 from urllib.parse import urljoin
 
 
+CKAN_URL = settings.CKAN_URL
+
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 

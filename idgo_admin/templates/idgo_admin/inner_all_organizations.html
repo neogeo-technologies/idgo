@@ -71,6 +71,7 @@
 						<ul id="table-members-paginator" class="pagination pagination-sm"></ul>
 					</nav>
 					<div class="buttons-on-the-right-side">
+						<button role="button" name="ckan-card" class="btn btn-default">Ouvrir la fiche Ckan</button>
 						<div class="btn-group">
 							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 								Supprimer un statut <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
@@ -157,14 +158,13 @@
 
 $(window).ready(function(e) {
 	const hash = window.location.hash.substring(1)
-	// TODO:
+	// TODO
 
 })
 
 $(function() {
 
 	const openModalDelete = function(organizationId, username, target) {
-
 		const $button = $('<button/>')
 			.prop('type', 'button')
 			.prop('class', 'btn btn-danger disabled')
@@ -199,7 +199,6 @@ $(function() {
 			});
 
 		$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
-
 		$modal.find('.modal-body')
 			.append(
 				$('<form/>')
@@ -236,12 +235,14 @@ $(function() {
 
 		if (data.members.length > 0) {
 
+			const $ckanUserCard = $($organizationWell.find('button[name="ckan-card"]'));
 			const $btnGroup = $($organizationWell.find('#members .btn-group'));
 			const $dropdownButton = $($organizationWell.find('#members .btn-group>button.dropdown-toggle'));
 			const $deleteMember = $($btnGroup.find('a[name="delete-member"]'));
 			const $deleteContributor = $($btnGroup.find('a[name="delete-contributor"]'));
 			const $deleteReferent = $($btnGroup.find('a[name="delete-referent"]'));
 
+			deactivateButton($ckanUserCard);
 			deactivateButton($dropdownButton);
 			deactivateButton($deleteMember);
 			deactivateButton($deleteReferent);
@@ -264,39 +265,46 @@ $(function() {
 				grid.rowSelected = function(pRowIdx, nRowIdx) {
 					$(grid.getRow(pRowIdx)).removeClass('selected');
 
-					const data = grid.getRowValues(nRowIdx);
-					const USERNAME = data.username;
-					const IS_MEMBER = data.is_member;
-					const IS_CONTRIBUTOR = data.is_contributor;
-					const IS_REFERENT = data.is_referent;
-
-					$deleteMember.on('click', function(e) {
-						e.preventDefault();
-						openModalDelete(ORGANIZATION_ID, USERNAME, 'members');
-					});
 					deactivateButton($deleteMember);
-
-					$deleteContributor.on('click', function(e) {
-						e.preventDefault();
-						openModalDelete(ORGANIZATION_ID, USERNAME, 'contributors');
-					});
+					deactivateButton($deleteMember);
 					deactivateButton($deleteContributor);
-
-					$deleteReferent.on('click', function(e) {
-						e.preventDefault();
-						openModalDelete(ORGANIZATION_ID, USERNAME, 'referents');
-					});
 					deactivateButton($deleteReferent);
 					deactivateButton($dropdownButton);
 
-					if (pRowIdx != nRowIdx && !data.is_referent) {
-						$(this.getRow(nRowIdx)).addClass('selected');
-						IS_MEMBER ? activateButton($deleteMember) : deactivateButton($deleteMember);
-						IS_CONTRIBUTOR ? activateButton($deleteContributor) : deactivateButton($deleteContributor);
-						IS_REFERENT ?  activateButton($deleteReferent) : deactivateButton($deleteReferent);
-						(IS_MEMBER || IS_CONTRIBUTOR || IS_REFERENT) ? activateButton($dropdownButton) : deactivateButton($dropdownButton);
-					};
+					const data = grid.getRowValues(nRowIdx);
 
+					if (nRowIdx > -1) {
+
+						$ckanUserCard.off('click').on('click', function(e) {
+							targetBlank('{{ ckan_url }}/user/' + data.username);
+						});
+
+						$deleteMember.off('click').on('click', function(e) {
+							openModalDelete(ORGANIZATION_ID, data.username, 'members');
+						});
+
+						$deleteContributor.off('click').on('click', function(e) {
+							openModalDelete(ORGANIZATION_ID, data.username, 'contributors');
+						});
+
+						$deleteReferent.off('click').on('click', function(e) {
+							openModalDelete(ORGANIZATION_ID, data.username, 'referents');
+						});
+
+
+						if (pRowIdx != nRowIdx) {
+							$(this.getRow(nRowIdx)).addClass('selected');
+							activateButton($ckanUserCard);
+
+							if (!data.is_referent || {{ is_admin | yesno:'true,false,null' }}) {
+								data.is_member ? activateButton($deleteMember) : deactivateButton($deleteMember);
+								data.is_contributor ? activateButton($deleteContributor) : deactivateButton($deleteContributor);
+								data.is_referent ?  activateButton($deleteReferent) : deactivateButton($deleteReferent);
+								(data.is_member || data.is_contributor || data.is_referent) ? activateButton($dropdownButton) : deactivateButton($dropdownButton);
+							};
+						};
+
+					};
 				};
 
 				const booleanRender = function(cell, value) {
@@ -439,7 +447,7 @@ $(function() {
 		// selectRowByDataId(window.location.hash.substring(1));
 	});
 
-	selectRowByDataId(window.location.hash.substring(1));  // TODO -> Avant de charger la page
+	window.location.hash.substring(1) && selectRowByDataId(window.location.hash.substring(1));  // TODO -> Avant de charger la page
 
 });
 </script>
