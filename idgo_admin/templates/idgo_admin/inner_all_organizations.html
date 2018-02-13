@@ -87,9 +87,16 @@
 			</div>
 
 			<div role="tabpanel" class="tab-pane" id="me">
-
+				<div class="tab-pane-content">
+					<div class="row">
+						<div class="col-sm-offset-2 col-sm-8">
+							<button role="button" name="switch-member" class="btn btn-default btn-block">Je souhaite devenir membre</button>
+							<button role="button" name="switch-contributor" class="btn btn-default btn-block">Je souhaite devenir contributeur</button>
+							<button role="button" name="switch-referent" class="btn btn-default btn-block">Je souhaite devenir référent technique</button>
+						</div>
+					</div>
+				</div>
 			</div>
-
 		</div>
 	</div>
 
@@ -98,7 +105,7 @@
 <div id="allorganizations">
 
 	{% if awaiting_rattachement %}
-	<div class="alert alert-info">Demande(s) de rattachement à l'organisation « <strong>{{ awaiting_rattachement }}</strong> » en attente.</div>
+	<div class="alert alert-info">Demande(s) de rattachement à l'organisation « <strong>{{ awaiting_rattachement.1 }}</strong> » en attente de validation.</div>
 	{% endif %}
 	{% if awaiting_contributions %}
 	<div class="alert alert-info">Demande(s) de statut de contributeur en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
@@ -291,7 +298,6 @@ $(function() {
 							openModalDelete(ORGANIZATION_ID, data.username, 'referents');
 						});
 
-
 						if (pRowIdx != nRowIdx) {
 							$(this.getRow(nRowIdx)).addClass('selected');
 							activateButton($ckanUserCard);
@@ -388,9 +394,52 @@ $(function() {
 			$organizationWell.find('#members .tab-pane-content').prepend('<div role="alert" class="alert alert-info">Aucun utilisateur.<div/>');
 		};
 
-		{% for item in subordinates %}
+		$switchMember = $($organizationWell.find('#me [name="switch-member"]')).on('click', function(e) {
+			alert('TODO');
+		});
+
+		$switchContributor = $($organizationWell.find('#me [name="switch-contributor"]')).on('click', function(e) {
+			alert('TODO');
+		});
+
+		$switchReferent = $($organizationWell.find('#me [name="switch-referent"]')).on('click', function(e) {
+			alert('TODO');
+		});
+
+		if ({{ awaiting_rattachement | safe }}) {
+			deactivateButton($switchMember.off('click'));
+		} else if (data['id'] == {{ organization_id }}) {
+			$switchMember.off('click').on('click', function(e) {
+				alert('TODO');
+			}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être membre')
+		};
+
+		{% for item in awaiting_subordinates %}
 		if (data['id'] == {{ item.0 }}) {
-			$('#organization_well .tab-pane#info').append('<div class="buttons-on-the-right-side"><a href="{% url "idgo_admin:edit_organization" id=item.0 %}" name="edit" type="button" class="btn btn-default">Editer</a></div>');
+			deactivateButton($switchReferent.off('click'));
+		} else {
+			{% for jtem in subordinates %}
+			if (data['id'] == {{ jtem.0 }}) {
+				$('#organization_well .tab-pane#info').append('<div class="buttons-on-the-right-side"><a href="{% url "idgo_admin:edit_organization" id=item.0 %}" name="edit" type="button" class="btn btn-default">Editer</a></div>');
+				$switchReferent.off('click').on('click', function(e) {
+					alert('TODO');
+				}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être référent technique')
+			};
+			{% endfor %}
+		};
+		{% endfor %}
+
+		{% for item in awaiting_subordinates %}
+		if (data['id'] == {{ item.0 }}) {
+			deactivateButton($switchContributor.off('click'));
+		} else {
+			{% for jtem in contributions %}
+			if (data['id'] == {{ jtem.0 }}) {
+				$switchContributor.off('click').on('click', function(e) {
+					alert('TODO');
+				}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être contributeur');
+			};
+			{% endfor %}
 		};
 		{% endfor %}
 
