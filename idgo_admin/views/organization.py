@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+import functools
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.organization import OrganizationForm as Form
@@ -24,6 +25,7 @@ from idgo_admin.models import Profile
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
+import operator
 from urllib.parse import urljoin
 
 
@@ -99,17 +101,20 @@ class ThisOrganisation(View):
             'members': [{
                 'username': member.user.username,
                 'full_name': member.user.get_full_name(),
-                'is_member': member.organisation.id == id and True or False,
+                'is_member': Profile.objects.filter(
+                    organisation=id, id=member.id) and True or False,
                 'is_contributor': LiaisonsContributeurs.objects.filter(
                     profile=member, organisation__id=id) and True or False,
                 'is_referent': LiaisonsReferents.objects.filter(
                     profile=member, organisation__id=id) and True or False,
-                'datasets_count': len(Dataset.objects.filter(organisation=id, editor=member.user)),
+                'datasets_count': len(Dataset.objects.filter(
+                    organisation=id, editor=member.user)),
                 'profile_id': member.id
-                } for member in Profile.objects.filter(  # member->profile instance
-                    Q(organisation=id),
-                    Q(liaisonscontributeurs__organisation=id),
-                    Q(liaisonsreferents__organisation=id))]}
+                } for member in Profile.objects.filter(
+                    functools.reduce(operator.or_, [
+                        Q(organisation=id),
+                        Q(liaisonscontributeurs__organisation=id),
+                        Q(liaisonsreferents__organisation=id)])).distinct()]}
 
         try:
             data['logo'] = urljoin(settings.DOMAIN_NAME, instance.logo.url)
