@@ -62,23 +62,50 @@
 					</div>
 				</div>
 			</div>
+
 			<div role="tabpanel" class="tab-pane" id="members">
+
 				<div class="tab-pane-content">
 					<div id="table-members" class="table-responsive"></div>
 					<nav aria-label="Page navigation" style="text-align: center;">
 						<ul id="table-members-paginator" class="pagination pagination-sm"></ul>
 					</nav>
+					<div class="buttons-on-the-right-side">
+						<div class="btn-group">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								Supprimer un statut <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
+							</button>
+							<ul class="dropdown-menu dropdown-menu-right">
+								<li><a role="button" name="delete-member" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de membre</a></li>
+								<li><a role="button" name="delete-contributor" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de contributeur</a></li>
+								<li><a role="button" name="delete-referent" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de référent technique</a></li>
+							</ul>
+						</div>
+					</div>
 				</div>
 			</div>
+
 			<div role="tabpanel" class="tab-pane" id="me">
 
 			</div>
+
 		</div>
 	</div>
+
 </template>
 
+<div id="allorganizations">
 
-<div id="allorganizations" style="height: 5OOpx;">
+	{% if awaiting_rattachement %}
+	<div class="alert alert-info">Demande(s) de rattachement à l'organisation « <strong>{{ awaiting_rattachement }}</strong> » en attente.</div>
+	{% endif %}
+	{% if awaiting_contributions %}
+	<div class="alert alert-info">Demande(s) de statut de contributeur en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
+	{% endif %}
+	{% if awaiting_subordinates %}
+	<div class="alert alert-info">Demande(s) de statut de référent technique en attente de validation pour : {% for organization in awaiting_subordinates %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
+	{% endif %}
+
 	<div class="row">
 		<div class="col-md-4">
 			{% if organizations|length > 10 %}
@@ -115,70 +142,175 @@
 				{% endfor %}
 			</div>
 		</div>
-		<div class="buttons-on-the-right-side">
-			<a href='{% url "idgo_admin:create_organization" %}' class="btn btn-primary">Ajouter une organisation</a>
+		<div class="col-md-8">
+			<div class="buttons-on-the-right-side">
+				<a href='{% url "idgo_admin:create_organization" %}' class="btn btn-primary">Ajouter une organisation</a>
+			</div>
+			<div id='organization_well' class="well">
+				<!-- template -->
+			</div>
 		</div>
-		<div id='organization_well' class="col-md-8 well" style="min-height: 1OO%;"></div>
 	</div>
 </div>
 
 <script>
+
+$(window).ready(function(e) {
+	const hash = window.location.hash.substring(1)
+	// TODO:
+
+})
+
 $(function() {
 
-	const tableId = 'table-members';
-	const grid = new EditableGrid('Members', {pageSize: 10});
+	const openModalDelete = function(organizationId, username, target) {
 
-	grid.initializeGrid = function() {
-		with (this) {
-			tableRendered = function(tableId, className) {
-				rowSelected(-1, -1);
-				updatePaginator(this);
-			}.bind(this);
-			rowSelected = function(pRowIdx, nRowIdx) {
-				const data = this.getRowValues(nRowIdx);
-				USERNAME = data.username;
-				$(grid.getRow(pRowIdx)).removeClass('selected');
-				// deactivateButton($button);
-				if (pRowIdx != nRowIdx && !data.is_referent) {
-					$(this.getRow(nRowIdx)).addClass('selected');
-					activateButton($button);
+		const $button = $('<button/>')
+			.prop('type', 'button')
+			.prop('class', 'btn btn-danger disabled')
+			.prop('disabled', true)
+			.text('Oui, je confirme')
+			.on('click', function(e) {
+				e.preventDefault();
+				closeAllModalDialog();
+				$.ajax({
+					type: 'DELETE',
+					url: '{% url "idgo_admin:all_members" %}?organization=' + organizationId + '&username=' + username + '&target=' + target
+				})
+				.done(function(response, textStatus, jqXHR) {
+					location.reload();
+				})
+				.fail(function(jqXHR, textStatus, errorThrown) {
+					location.reload();
+				});
+				e.stopPropagation();
+			});
+
+		const $input = $('<input/>')
+			.prop('type', 'text')
+			.prop('class', 'form-control')
+			.prop('placeholder', 'Nom du compte de l\'utilisateur')
+			.on('input', function(e) {
+				if ($(this).val() === username) {
+					$button.removeClass('disabled').prop('disabled', false);
+				} else {
+					$button.addClass('disabled').prop('disabled', true);
 				};
-			}.bind(this);
-			const booleanRender = function(cell, value) {
-				cell.style.textAlign = 'center';
-				cell.style.width = '32px';
-				cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
-			};
-			setCellRenderer('is_member', new CellRenderer({render: booleanRender}));
-			setCellRenderer('is_contributor', new CellRenderer({render: booleanRender}));
-			setCellRenderer('is_referent', new CellRenderer({render: booleanRender}));
-		};
+			});
+
+		$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
+
+		$modal.find('.modal-body')
+			.append(
+				$('<form/>')
+					.append(
+						$('<div/>').prop('class', 'form-group')
+							.append('<p>Pour confirmer, veuillez réécrire le nom du compte de l\'utilisateur.</p>')
+							.append($input))
+					.append(
+						$('<div class="buttons-on-the-right-side">')
+							.append($button)
+							.append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
+
+		$modal.modal('show');
 	};
 
 
-	$('a[data-toggle="tab"][href="#members"]').on('hide.bs.tab', function(e) {
-		rowId = grid.lastSelectedRowIndex;
-		grid.rowSelected(rowId, rowId);
-	});
-
-
 	const displayOrganisation = function(data) {
+
+		const ORGANIZATION_ID = data.id;
+
 		const $template = $('#organization_well_template');
 		const $content = $($template.prop('content')).clone();
 		const $organizationWell = $('#organization_well').empty()
 
-
 		for (const k in data) {
-			$content.find('[name="' + k + '"]').text(data[k]);
+			if (k == 'logo') {
+				$content.find('[name="' + k + '"]').prop('src', data[k]);
+			} else {
+				$content.find('[name="' + k + '"]').text(data[k]);
+			};
 		};
 
 		$organizationWell.append($content);
 
-		let $table = $('#' + tableId);
-		let $parent = $($table.parent());
-
 		if (data.members.length > 0) {
-			grid.load({
+
+			const $btnGroup = $($organizationWell.find('#members .btn-group'));
+			const $dropdownButton = $($organizationWell.find('#members .btn-group>button.dropdown-toggle'));
+			const $deleteMember = $($btnGroup.find('a[name="delete-member"]'));
+			const $deleteContributor = $($btnGroup.find('a[name="delete-contributor"]'));
+			const $deleteReferent = $($btnGroup.find('a[name="delete-referent"]'));
+
+			deactivateButton($dropdownButton);
+			deactivateButton($deleteMember);
+			deactivateButton($deleteReferent);
+			deactivateButton($deleteContributor);
+
+			const membersGrid = new EditableGrid('Members', {pageSize: 10});
+
+			const tableId = 'table-members';
+			const $table = $('#' + tableId);
+			const $parent = $($table.parent());
+
+			membersGrid.initializeGrid = function() {
+				const grid = this;
+
+				grid.tableRendered = function(tableId, className) {
+					grid.rowSelected(-1, -1);
+					grid.updatePaginator(this);
+				};
+
+				grid.rowSelected = function(pRowIdx, nRowIdx) {
+					$(grid.getRow(pRowIdx)).removeClass('selected');
+
+					const data = grid.getRowValues(nRowIdx);
+					const USERNAME = data.username;
+					const IS_MEMBER = data.is_member;
+					const IS_CONTRIBUTOR = data.is_contributor;
+					const IS_REFERENT = data.is_referent;
+
+					$deleteMember.on('click', function(e) {
+						e.preventDefault();
+						openModalDelete(ORGANIZATION_ID, USERNAME, 'members');
+					});
+					deactivateButton($deleteMember);
+
+					$deleteContributor.on('click', function(e) {
+						e.preventDefault();
+						openModalDelete(ORGANIZATION_ID, USERNAME, 'contributors');
+					});
+					deactivateButton($deleteContributor);
+
+					$deleteReferent.on('click', function(e) {
+						e.preventDefault();
+						openModalDelete(ORGANIZATION_ID, USERNAME, 'referents');
+					});
+					deactivateButton($deleteReferent);
+					deactivateButton($dropdownButton);
+
+					if (pRowIdx != nRowIdx && !data.is_referent) {
+						$(this.getRow(nRowIdx)).addClass('selected');
+						IS_MEMBER ? activateButton($deleteMember) : deactivateButton($deleteMember);
+						IS_CONTRIBUTOR ? activateButton($deleteContributor) : deactivateButton($deleteContributor);
+						IS_REFERENT ?  activateButton($deleteReferent) : deactivateButton($deleteReferent);
+						(IS_MEMBER || IS_CONTRIBUTOR || IS_REFERENT) ? activateButton($dropdownButton) : deactivateButton($dropdownButton);
+					};
+
+				};
+
+				const booleanRender = function(cell, value) {
+					cell.style.textAlign = 'center';
+					cell.style.width = '32px';
+					cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
+				};
+
+				grid.setCellRenderer('is_member', new CellRenderer({render: booleanRender}));
+				grid.setCellRenderer('is_contributor', new CellRenderer({render: booleanRender}));
+				grid.setCellRenderer('is_referent', new CellRenderer({render: booleanRender}));
+			};
+
+			membersGrid.load({
 				'metadata': [
 					{
 						name: 'username',
@@ -236,12 +368,16 @@ $(function() {
 					return m;
 				})(data.members)
 			});
-			grid.renderGrid(tableId, 'table table-striped table-bordered table-hover table-condensed');
-			grid.initializeGrid();
-			grid.refreshGrid();
+
+			membersGrid.renderGrid(tableId, 'table table-striped table-bordered table-hover table-condensed');
+			membersGrid.initializeGrid();
+			membersGrid.refreshGrid();
+
 			$table.show();
+
 		} else {
-			// $table.hide();
+			$organizationWell.find('#members .tab-pane-content .buttons-on-the-right-side').hide();
+			$organizationWell.find('#members .tab-pane-content').prepend('<div role="alert" class="alert alert-info">Aucun utilisateur.<div/>');
 		};
 
 		{% for item in subordinates %}
@@ -249,6 +385,7 @@ $(function() {
 			$('#organization_well .tab-pane#info').append('<div class="buttons-on-the-right-side"><a href="{% url "idgo_admin:edit_organization" id=item.0 %}" name="edit" type="button" class="btn btn-default">Editer</a></div>');
 		};
 		{% endfor %}
+
 	};
 
 	const getOrganization = function(id) {
@@ -257,7 +394,7 @@ $(function() {
 			success: function(data, status, xhr) {
 				displayOrganisation(data);
 			},
-			error : function(resultat, statut, erreur){
+			error : function(resultat, statut, erreur) {
 				$('.tab-pane#info').empty();
 				$('.tab-pane#info').append("Impossible d'obtenir les informations");
 			}
@@ -299,9 +436,10 @@ $(function() {
 	};
 
 	$(window).bind('hashchange', function(e) {
-		selectRowByDataId(window.location.hash.substring(1));
+		// selectRowByDataId(window.location.hash.substring(1));
 	});
-	selectRowByDataId(window.location.hash.substring(1));  // TODO->Avant de charger la page
+
+	selectRowByDataId(window.location.hash.substring(1));  // TODO -> Avant de charger la page
 
 });
 </script>

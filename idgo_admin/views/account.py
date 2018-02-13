@@ -576,4 +576,6 @@ class ReferentAccountManager(View):
             message = "L'utilisateur <strong>{0}</strong> n'est plus contributeur de cette organisation. ".format(username)
             messages.success(request, message)
 
+        # TODO referent
+
         return HttpResponse(status=200)

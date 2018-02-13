@@ -154,8 +154,8 @@ $(function() {
 		$('label[for="' + this.id + '"]').addClass('active');
 	});
 
-	const $name = $('input[name="{{ form.name.name }}"]')
-	const $ckanSlug = $('input[name="{{ form.ckan_slug.name }}"]').prop('readonly', true);
+	const $name = $('[name="{{ form.name.name }}"]')
+	const $ckanSlug = $('[name="{{ form.ckan_slug.name }}"]').prop('readonly', true);
 
 	const btnText = 'Modifier le chemin';
 	$ckanSlug.siblings().find('button').text(btnText).click(function(e) {
@@ -166,7 +166,7 @@ $(function() {
 		} else {
 			$(this).text('Annuler la saisie');
 			$ckanSlug.prop('readonly', false);
-		}
+		};
 	});
 
 	{% if not dataset_ckan_slug %}
