@@ -25,7 +25,7 @@ from idgo_admin.models import Profile
 import random
 import string
 from taggit.admin import Tag
-
+from django.utils.safestring import mark_safe
 
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
@@ -73,12 +73,56 @@ class LiaisonsContributeursInline(admin.TabularInline):
     verbose_name = "organisation"
 
 
+class AccountActionsInline(admin.TabularInline):
+    model = AccountActions
+    verbose_name_plural = "actions de validation"
+    verbose_name = "actions de validation"
+    ordering = ('closed', 'created_on', )
+    can_delete = False
+    extra = 0
+    fields = (
+        'action',
+        'orga_name',
+        'created_on',
+        'closed',
+        'change_link',
+        )
+    readonly_fields = (
+        'action',
+        'change_link',
+        'closed',
+        'created_on',
+        'orga_name'
+        )
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def change_link(self, obj):
+        # Si extra != 0 les instances supplémentaires se voient attribuer une url
+        # par sécurité on empeche d'afficher un lien si pas d'instance.
+        if obj.pk:
+            return mark_safe('<a href="{}">Valider l\'action</a>'.format(obj.get_path()))
+    change_link.short_description = "Lien de validation"
+
+
 class ProfileAdmin(admin.ModelAdmin):
-    inlines = (LiaisonReferentsInline, LiaisonsContributeursInline)
+    inlines = (LiaisonReferentsInline, LiaisonsContributeursInline, AccountActionsInline)
     models = Profile
-    list_display = ('full_name', 'username', 'is_admin', 'delete_account_action')
-    search_fields = ('user__username', 'user__last_name')
-    ordering = ('user__last_name', 'user__first_name')
+    list_display = (
+        'full_name',
+        'username',
+        'is_admin',
+        'delete_account_action'
+        )
+    search_fields = (
+        'user__username',
+        'user__last_name'
+        )
+    ordering = (
+        'user__last_name',
+        'user__first_name'
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -283,15 +327,34 @@ class MyUserCreationForm(UserCreationForm):
 
 class UserAdmin(AuthUserAdmin):
     add_form = MyUserCreationForm
-    list_display = ('full_name', 'username', 'is_superuser', 'is_active')
-    list_display_links = ('username', )
-    ordering = ('last_name', 'first_name')
-    prepopulated_fields = {'username': ('first_name', 'last_name',)}
+    list_display = (
+        'full_name',
+        'username',
+        'is_superuser',
+        'is_active'
+        )
+    list_display_links = (
+        'username',
+        )
+    ordering = (
+        'last_name',
+        'first_name'
+        )
+    prepopulated_fields = {
+        'username': (
+            'first_name',
+            'last_name',
+            )
+        }
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('first_name', 'last_name', 'username',
-                       'email'),
+            'fields': (
+                'first_name',
+                'last_name',
+                'username',
+                'email'
+                ),
             }),
         )
 

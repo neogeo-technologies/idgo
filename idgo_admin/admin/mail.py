@@ -16,8 +16,11 @@ class MailAdmin(admin.ModelAdmin):
     # Vue client:
     list_display = ('subject', )
     fieldsets = (
-        ('Personnalisation des messages automatiques',
-         {'fields': ('subject', 'message', )}),)
+        ('Personnalisation des messages automatiques', {
+            'classes': ('wide', ),
+            'fields': ('subject', 'message', )
+            }),
+        )
 
     def has_delete_permission(self, request, obj=None):
         return False

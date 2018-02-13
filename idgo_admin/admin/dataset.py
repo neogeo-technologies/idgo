@@ -10,9 +10,6 @@ class ResourceFormatsAdmin(admin.ModelAdmin):
     def __init__(self, *args, **kwargs):
         super(ResourceFormatsAdmin, self).__init__(*args, **kwargs)
 
-    def has_add_permission(self, request):
-        return True
-
     class Meta:
         model = Resource
 

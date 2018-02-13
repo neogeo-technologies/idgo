@@ -242,7 +242,7 @@ class Financier(models.Model):
     code = models.CharField('Code du financeur', max_length=250)
 
     class Meta(object):
-        verbose_name = "Financeur d'une ation"
+        verbose_name = "Financeur d'une action"
         verbose_name_plural = "Financeurs"
         ordering = ('name', )
 
@@ -494,9 +494,9 @@ class AccountActions(models.Model):
     ACTION_CHOICES = (
         ('confirm_mail', "Confirmation de l'email par l'utilisateur"),
         ('confirm_new_organisation', "Confirmation par un administrateur de la création d'une organisation par l'utilisateur"),
-        ('confirm_rattachement', "Rattachement d'un utilisateur à une organsiation par un administrateur"),
-        ('confirm_referent', "Confirmation du rôle de réferent d'une organisation pour un utilisatur par un administrateur"),
-        ('confirm_contribution', "Confirmation du rôle de contributeur d'une organisation pour un utilisatur par un administrateur"),
+        ('confirm_rattachement', "Rattachement d'un utilisateur à une organisation par un administrateur"),
+        ('confirm_referent', "Confirmation du rôle de réferent d'une organisation pour un utilisateur par un administrateur"),
+        ('confirm_contribution', "Confirmation du rôle de contributeur d'une organisation pour un utilisateur par un administrateur"),
         ('reset_password', "Réinitialisation du mot de passe"),
         ('set_password_admin', "Initialisation du mot de passe suite à une inscription par un administrateur"))
 
@@ -518,6 +518,29 @@ class AccountActions(models.Model):
     closed = models.DateTimeField(
         verbose_name="Date de validation de l'action",
         blank=True, null=True)
+
+    # Utilisées dans admin/user.py
+    def orga_name(self):
+        disp = str('N/A')
+        if self.action in ('confirm_new_organisation', ) and self.profile:
+            disp = str(self.profile.organisation.name)
+        if self.action in ('confirm_rattachement', 'confirm_referent', 'confirm_contribution') and self.org_extras:
+            disp = str(self.org_extras.name)
+        return disp
+    orga_name.short_description = "Nom de l'organsiation concernée"
+
+    def get_path(self):
+        choices = {
+            'confirm_mail': ('confirmation_mail', {'key': self.key}),
+            'confirm_new_organisation': ('confirm_new_orga', {'key': self.key}),
+            'confirm_rattachement': ('confirm_rattachement', {'key': self.key}),
+            'confirm_referent': ('confirm_referent', {'key': self.key}),
+            'confirm_contribution': ('confirm_contribution', {'key': self.key}),
+            'reset_password': ('password_manager', {'key': self.key, 'process': 'reset'}),
+            'set_password_admin': ('password_manager', {'key': self.key, 'process': 'initiate'}),
+            }
+        return reverse('idgo_admin:{action}'.format(action=choices[self.action][0]), kwargs=choices[self.action][1])
+    get_path.short_description = "Adresse de validation"
 
 
 class Mail(models.Model):
