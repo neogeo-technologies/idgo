@@ -116,7 +116,8 @@ class ThisOrganisation(View):
                     functools.reduce(operator.or_, [
                         Q(organisation=id),
                         Q(liaisonscontributeurs__organisation=id),
-                        Q(liaisonsreferents__organisation=id)])).distinct()]}
+                        Q(liaisonsreferents__organisation=id)])
+                    ).distinct().order_by('user__username')]}
 
         try:
             data['logo'] = urljoin(settings.DOMAIN_NAME, instance.logo.url)
@@ -158,7 +159,7 @@ class CreateOrganisation(View):
             return render_with_info_profile(
                 request, self.template, context={'form': form})
 
-        creation_process(request, profile)  # PROFILE ???
+        creation_process(request, profile)  # à revoir car cela ne fonctionne plus dans ce nouveau context
 
         # TODO: Factoriser
         form.cleaned_data.get('rattachement_process', False) \
@@ -225,6 +226,10 @@ class AllOrganisations(View):
             'contributeur': item in Organisation.objects.filter(liaisonscontributeurs__profile=profile),
             'subordinates': item in Organisation.objects.filter(liaisonsreferents__profile=profile),
             } for item in Organisation.objects.all()]
+
+        organizations.sort(key=operator.itemgetter('contributeur'), reverse=True)
+        organizations.sort(key=operator.itemgetter('subordinates'), reverse=True)
+        organizations.sort(key=operator.itemgetter('rattachement'), reverse=True)
 
         return render_with_info_profile(
             request, 'idgo_admin/all_organizations.html',

@@ -411,7 +411,7 @@ $(function() {
 		} else if (data['id'] == {{ organization_id }}) {
 			$switchMember.off('click').on('click', function(e) {
 				alert('TODO');
-			}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être membre')
+			}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être membre');
 		};
 
 		{% for item in awaiting_subordinates %}
@@ -423,7 +423,7 @@ $(function() {
 				$('#organization_well .tab-pane#info').append('<div class="buttons-on-the-right-side"><a href="{% url "idgo_admin:edit_organization" id=item.0 %}" name="edit" type="button" class="btn btn-default">Editer</a></div>');
 				$switchReferent.off('click').on('click', function(e) {
 					alert('TODO');
-				}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être référent technique')
+				}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être référent technique');
 			};
 			{% endfor %}
 		};
@@ -431,6 +431,7 @@ $(function() {
 
 		{% for item in awaiting_subordinates %}
 		if (data['id'] == {{ item.0 }}) {
+			console.log(1)
 			deactivateButton($switchContributor.off('click'));
 		} else {
 			{% for jtem in contributions %}
