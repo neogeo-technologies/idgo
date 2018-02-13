@@ -28,7 +28,7 @@
 	</div>
 	<div class="row">
 		<div class="col-sm-4">
-			{% bootstrap_field form.phone show_label=False %}
+			{% bootstrap_field form.org_phone show_label=False %}
 		</div>
 	</div>
 	<div class="row">
@@ -48,21 +48,35 @@
 	</div>
 	<div class="row">
 		<div class="col-sm-6">
-			{# bootstrap_field form.jurisdiction #}
+			{% bootstrap_field form.jurisdiction %}
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-sm-6">
-			{# bootstrap_field form.organisation_type #}
+			{% bootstrap_field form.organisation_type %}
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-sm-6">
-			{# bootstrap_field form.license #}
+			{% bootstrap_field form.license %}
 		</div>
 	</div>
+	{% bootstrap_field form.rattachement_process show_label=False %}
+	{% bootstrap_field form.contributor_process show_label=False %}
+	{% bootstrap_field form.referent_process show_label=False %}
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:all_organizations" %}#{{ id }}">Annuler</a>
 		<button type="submit" class="btn btn-default">Valider</button>
 	</div>
 </form>
+
+<script>
+$(function() {
+	const $inputMember = $('input[name="{{ form.member_requested.name }}"]').prop('checked', false);
+	const $inputContribution = $('input[name="{{ form.contribution_requested.name }}"]').prop('checked', false);
+	const $inputReferent = $('input[name="{{ form.referent_requested.name }}"]').prop('checked', false).change(function() {
+		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
+	});
+});
+
+</script>

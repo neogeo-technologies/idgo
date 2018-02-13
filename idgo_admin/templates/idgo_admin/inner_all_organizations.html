@@ -62,23 +62,49 @@
 					</div>
 				</div>
 			</div>
+
 			<div role="tabpanel" class="tab-pane" id="members">
 				<div class="tab-pane-content">
 					<div id="table-members" class="table-responsive"></div>
 					<nav aria-label="Page navigation" style="text-align: center;">
 						<ul id="table-members-paginator" class="pagination pagination-sm"></ul>
 					</nav>
+					<div class="buttons-on-the-right-side">
+						<div class="btn-group">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								Supprimer <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
+							</button>
+							<ul class="dropdown-menu dropdown-menu-right">
+								<li><a role="button" name="delete-member" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le status de membre</a></li>
+								<li><a role="button" name="delete-contributor" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le status de contributeur</a></li>
+								<li><a role="button" name="delete-referent" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le status de référent technique</a></li>
+							</ul>
+						</div>
+					</div>
 				</div>
 			</div>
+
 			<div role="tabpanel" class="tab-pane" id="me">
 
 			</div>
+
 		</div>
 	</div>
+
 </template>
 
+<div id="allorganizations">
 
-<div id="allorganizations" style="height: 5OOpx;">
+	{% if awaiting_rattachement %}
+	<div class="alert alert-info">Demande(s) de rattachement à l'organisation « <strong>{{ awaiting_rattachement }}</strong> » en attente.</div>
+	{% endif %}
+	{% if awaiting_contributions %}
+	<div class="alert alert-info">Demande(s) de statut de contributeur en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
+	{% endif %}
+	{% if awaiting_subordinates %}
+	<div class="alert alert-info">Demande(s) de statut de référent technique en attente de validation pour : {% for organization in awaiting_subordinates %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
+	{% endif %}
+
 	<div class="row">
 		<div class="col-md-4">
 			{% if organizations|length > 10 %}
@@ -115,10 +141,14 @@
 				{% endfor %}
 			</div>
 		</div>
-		<div class="buttons-on-the-right-side">
-			<a href='{% url "idgo_admin:create_organization" %}' class="btn btn-primary">Ajouter une organisation</a>
+		<div class="col-md-8">
+			<div class="buttons-on-the-right-side">
+				<a href='{% url "idgo_admin:create_organization" %}' class="btn btn-primary">Ajouter une organisation</a>
+			</div>
+			<div id='organization_well' class="well">
+				<!-- template -->
+			</div>
 		</div>
-		<div id='organization_well' class="col-md-8 well" style="min-height: 1OO%;"></div>
 	</div>
 </div>
 
@@ -167,9 +197,12 @@ $(function() {
 		const $content = $($template.prop('content')).clone();
 		const $organizationWell = $('#organization_well').empty()
 
-
 		for (const k in data) {
-			$content.find('[name="' + k + '"]').text(data[k]);
+			if (k == 'logo') {
+				$content.find('[name="' + k + '"]').prop('src', data[k]);
+			} else {
+				$content.find('[name="' + k + '"]').text(data[k]);
+			};
 		};
 
 		$organizationWell.append($content);
@@ -241,7 +274,8 @@ $(function() {
 			grid.refreshGrid();
 			$table.show();
 		} else {
-			// $table.hide();
+			$parent.prepend('<div role="alert" class="alert alert-info">Aucun utilisateur.<div/>');
+			$parent.find('.buttons-on-the-right-side').hide();
 		};
 
 		{% for item in subordinates %}
@@ -302,6 +336,63 @@ $(function() {
 		selectRowByDataId(window.location.hash.substring(1));
 	});
 	selectRowByDataId(window.location.hash.substring(1));  // TODO->Avant de charger la page
+
+
+	const $button = $('button[name="delete"]')
+		.on('click', function(e) {
+			e.preventDefault();
+
+			const $button = $('<button/>')
+				.prop('type', 'button')
+				.prop('class', 'btn btn-danger disabled')
+				.prop('disabled', true)
+				.text('Oui, je confirme')
+				.on('click', function(e) {
+					e.preventDefault();
+					closeAllModalDialog();
+					$.ajax({
+						type: 'DELETE',
+						url: '{% url "idgo_admin:all_members" %}?organization=' + ORGANIZATION_ID + '&username=' + USERNAME + '&target=' + $('li[role="presentation"].active a[data-toggle="tab"]').attr('href').substring(1)
+					})
+					.done(function(response, textStatus, jqXHR) {
+						location.reload();
+					})
+					.fail(function(jqXHR, textStatus, errorThrown) {
+						location.reload();
+					});
+					e.stopPropagation();
+				});
+
+			const $input = $('<input/>')
+				.prop('type', 'text')
+				.prop('class', 'form-control')
+				.prop('placeholder', 'Nom du compte de l\'utilisateur')
+				.on('input', function(e) {
+					if ($(this).val() === USERNAME) {
+						$button.removeClass('disabled').prop('disabled', false);
+					} else {
+						$button.addClass('disabled').prop('disabled', true);
+					};
+				});
+
+			$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
+
+			$modal.find('.modal-body')
+				.append(
+					$('<form/>')
+						.append(
+							$('<div/>').prop('class', 'form-group')
+								.append('<p>Pour confirmer, veuillez réécrire le nom du compte de l\'utilisateur.</p>')
+								.append($input))
+						.append(
+							$('<div class="buttons-on-the-right-side">')
+								.append($button)
+								.append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
+
+			$modal.modal('show');
+
+			e.stopPropagation();
+		});
 
 });
 </script>

@@ -645,14 +645,14 @@ Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
                   recipient_list=[user.email])
 
     @classmethod
-    def confirm_new_organisation(cls, request, action):
+    def confirm_new_organisation(cls, request, action):  # A revoir complétement !
         """E-mail de validation.
 
         E-mail permettant de valider la création d'une nouvelle organisation
         suite à une inscription.
         """
         user = action.profile.user
-        organisation = action.profile.organisation
+        organisation = action.profile.organisation  # ???
         website = organisation.website or '- adresse url manquante -'
         mail_template = \
             Mail.objects.get(template_name='confirm_new_organisation')
