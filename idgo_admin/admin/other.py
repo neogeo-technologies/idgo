@@ -48,7 +48,12 @@ admin.site.register(Category, CategoryAdmin)
 
 
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ('action', 'state', 'starting', 'end')
+    list_display = (
+        'action',
+        'state',
+        'starting',
+        'end'
+        )
     ordering = ('starting', )
     readonly_fields = ('starting', )
 

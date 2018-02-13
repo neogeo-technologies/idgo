@@ -10,38 +10,20 @@ geo_admin.GeoModelAdmin.default_zoom = 14
 
 
 class OrganisationAdmin(geo_admin.OSMGeoAdmin):
-    # actions = ['really_delete_selected']
+
     list_display = ('name', 'organisation_type')
     list_filter = ('organisation_type',)
     ordering = ('name',)
+    readonly_fields = ('ckan_slug', )
 
-    # Permet d'empecher la modification du nom et du slug d'une organisation aprés sa création
-    def get_readonly_fields(self, request, obj=None):
-        return ['ckan_slug']
-        # if obj:
-        #     return ['name', 'ckan_slug']
-        # else:
-        #     return ['ckan_slug']
+    # Champ name modifiable lors du /add
+    # Champs name et ckan_slug NON modifiables lors du /change
+    # def get_readonly_fields(self, request, obj=None):
+    #     if obj:
+    #         return ['name', 'ckan_slug']
+    #     else:
+    #         return ['ckan_slug']
 
-    # def has_delete_permission(self, request, obj=None):
-    #     return False
-
-    # def has_add_permission(self, request, obj=None):
-    #     return False
-
-    # def get_actions(self, request):
-    #     actions = super(OrganisationAdmin, self).get_actions(request)
-    #     if 'delete_selected' in actions:
-    #         del actions['delete_selected']
-    #     return actions
-    #
-    # def really_delete_selected(self, request, queryset):
-    #     for instance in queryset:
-    #         instance.delete()
-    #     message = "La ou les organisations sélectionnées ont été supprimées correctement."
-    #     self.message_user(request, message)
-    #
-    # really_delete_selected.short_description = "Supprimer les organisations sélectionnées"
 
 admin.site.register(Organisation, OrganisationAdmin)
 
