@@ -64,6 +64,7 @@
 			</div>
 
 			<div role="tabpanel" class="tab-pane" id="members">
+
 				<div class="tab-pane-content">
 					<div id="table-members" class="table-responsive"></div>
 					<nav aria-label="Page navigation" style="text-align: center;">
@@ -155,11 +156,6 @@
 <script>
 $(function() {
 
-	// $('a[data-toggle="tab"][href="#members"]').on('hide.bs.tab', function(e) {
-	// 	rowId = membersGrid.lastSelectedRowIndex;
-	// 	membersGrid.rowSelected(rowId, rowId);
-	// });
-
 	const openModalDelete = function(organizationId, username, target) {
 
 		const $button = $('<button/>')
@@ -214,6 +210,7 @@ $(function() {
 
 
 	const displayOrganisation = function(data) {
+
 		const ORGANIZATION_ID = data.id;
 
 		const $template = $('#organization_well_template');
@@ -251,6 +248,7 @@ $(function() {
 
 			membersGrid.initializeGrid = function() {
 				const grid = this;
+
 				grid.tableRendered = function(tableId, className) {
 					grid.rowSelected(-1, -1);
 					grid.updatePaginator(this);
@@ -269,27 +267,27 @@ $(function() {
 						e.preventDefault();
 						openModalDelete(ORGANIZATION_ID, USERNAME, 'members');
 					});
+					deactivateButton($deleteMember);
 
 					$deleteContributor.on('click', function(e) {
 						e.preventDefault();
 						openModalDelete(ORGANIZATION_ID, USERNAME, 'contributors');
 					});
+					deactivateButton($deleteContributor);
 
 					$deleteReferent.on('click', function(e) {
 						e.preventDefault();
 						openModalDelete(ORGANIZATION_ID, USERNAME, 'referents');
 					});
-
-					IS_MEMBER && activateButton($deleteMember);
-					IS_CONTRIBUTOR && activateButton($deleteContributor);
-					IS_REFERENT && activateButton($deleteReferent);
-					(IS_MEMBER || IS_CONTRIBUTOR || IS_REFERENT) && activateButton($dropdownButton);
-
+					deactivateButton($deleteReferent);
 					deactivateButton($dropdownButton);
 
 					if (pRowIdx != nRowIdx && !data.is_referent) {
 						$(this.getRow(nRowIdx)).addClass('selected');
-						activateButton($dropdownButton);
+						IS_MEMBER ? activateButton($deleteMember) : deactivateButton($deleteMember);
+						IS_CONTRIBUTOR ? activateButton($deleteContributor) : deactivateButton($deleteContributor);
+						IS_REFERENT ?  activateButton($deleteReferent) : deactivateButton($deleteReferent);
+						(IS_MEMBER || IS_CONTRIBUTOR || IS_REFERENT) ? activateButton($dropdownButton) : deactivateButton($dropdownButton);
 					};
 
 				};
@@ -303,7 +301,6 @@ $(function() {
 				grid.setCellRenderer('is_member', new CellRenderer({render: booleanRender}));
 				grid.setCellRenderer('is_contributor', new CellRenderer({render: booleanRender}));
 				grid.setCellRenderer('is_referent', new CellRenderer({render: booleanRender}));
-
 			};
 
 			membersGrid.load({
@@ -372,10 +369,8 @@ $(function() {
 			$table.show();
 
 		} else {
-
-			$parent.prepend('<div role="alert" class="alert alert-info">Aucun utilisateur.<div/>');
-			$parent.find('.buttons-on-the-right-side').hide();
-
+			$organizationWell.find('#members .tab-pane-content .buttons-on-the-right-side').hide();
+			$organizationWell.find('#members .tab-pane-content').prepend('<div role="alert" class="alert alert-info">Aucun utilisateur.<div/>');
 		};
 
 		{% for item in subordinates %}
@@ -392,7 +387,7 @@ $(function() {
 			success: function(data, status, xhr) {
 				displayOrganisation(data);
 			},
-			error : function(resultat, statut, erreur){
+			error : function(resultat, statut, erreur) {
 				$('.tab-pane#info').empty();
 				$('.tab-pane#info').append("Impossible d'obtenir les informations");
 			}
@@ -423,7 +418,11 @@ $(function() {
 	});
 
 	const selectRowByDataId = function(value) {
+		const cache = $organizations.val();
 		$organizations.val([value]);
+		if ($organizations.val() == cache) {  // UGLY!
+			return false;
+		};
 		const $entry = $('input[type=radio][name=organizations][value=' + value + ']').parent();
 		const $container = $('div.scrolling-box');
 		$container.animate({
@@ -436,7 +435,8 @@ $(function() {
 	$(window).bind('hashchange', function(e) {
 		selectRowByDataId(window.location.hash.substring(1));
 	});
-	selectRowByDataId(window.location.hash.substring(1));  // TODO->Avant de charger la page
+
+	selectRowByDataId(window.location.hash.substring(1));  // TODO -> Avant de charger la page
 
 });
 </script>

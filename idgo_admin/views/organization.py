@@ -87,7 +87,7 @@ class ThisOrganisation(View):
         data = {
             'id': instance.id,
             'name': instance.name,
-            # 'logo'
+            # logo -> see below
             'type': instance.organisation_type,
             'jurisdiction':
                 instance.jurisdiction and instance.jurisdiction.name or '',
