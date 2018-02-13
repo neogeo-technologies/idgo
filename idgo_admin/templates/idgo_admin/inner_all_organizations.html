@@ -154,6 +154,13 @@
 </div>
 
 <script>
+
+$(window).ready(function(e) {
+	const hash = window.location.hash.substring(1)
+	// TODO:
+
+})
+
 $(function() {
 
 	const openModalDelete = function(organizationId, username, target) {
@@ -418,11 +425,7 @@ $(function() {
 	});
 
 	const selectRowByDataId = function(value) {
-		const cache = $organizations.val();
 		$organizations.val([value]);
-		if ($organizations.val() == cache) {  // UGLY!
-			return false;
-		};
 		const $entry = $('input[type=radio][name=organizations][value=' + value + ']').parent();
 		const $container = $('div.scrolling-box');
 		$container.animate({
@@ -433,7 +436,7 @@ $(function() {
 	};
 
 	$(window).bind('hashchange', function(e) {
-		selectRowByDataId(window.location.hash.substring(1));
+		// selectRowByDataId(window.location.hash.substring(1));
 	});
 
 	selectRowByDataId(window.location.hash.substring(1));  // TODO -> Avant de charger la page
