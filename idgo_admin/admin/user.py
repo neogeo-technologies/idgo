@@ -129,9 +129,11 @@ class ProfileAdmin(admin.ModelAdmin):
 
     def username(self, obj):
         return str(obj.user.username)
+    username.short_description = "Nom d'utilisateur"
 
     def full_name(self, obj):
         return " ".join((obj.user.last_name.upper(), obj.user.first_name.capitalize()))
+    full_name.short_description = "Nom et prénom"
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -142,34 +144,35 @@ class ProfileAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
-    username.short_description = "Nom d'utilisateur"
-    full_name.short_description = "Nom et prénom"
-
     def save_formset(self, request, form, formset, change):
+
+        # Si les TabularInlines ne concernent pas les Liaisons Orga
+        if formset.model not in (LiaisonsReferents, LiaisonsContributeurs, ):
+            return super(ProfileAdmin, self).save_formset(request, form, formset, change)
+
         # On crée une liaison contributeur pour chaque liaison référent demandé dans l'admin
-        if formset.form.__name__ == 'LiaisonsReferentsForm':
+        if formset.model is LiaisonsReferents:
             instances = formset.save(commit=False)
             for obj in formset.deleted_objects:
                 obj.delete()
             for instance in instances:
-                LiaisonsReferents.objects.get_or_create(
-                    organisation=instance.organisation,
-                    profile=form.instance,
-                    validated_on=timezone.now().date())
+                instance.profile = form.instance
+                instance.validated_on = timezone.now().date()
+                instance.save()
                 LiaisonsContributeurs.objects.get_or_create(
                     organisation=instance.organisation,
                     profile=form.instance,
                     validated_on=timezone.now().date())
 
-        if formset.form.__name__ == 'LiaisonsContributeursForm':
+        if formset.model is LiaisonsContributeurs:
             instances = formset.save(commit=False)
             for obj in formset.deleted_objects:
                 obj.delete()
             for instance in instances:
-                LiaisonsContributeurs.objects.get_or_create(
-                    organisation=instance.organisation,
-                    profile=form.instance,
-                    validated_on=timezone.now().date())
+                instance.profile = form.instance
+                instance.validated_on = timezone.now().date()
+                instance.save()
+
         formset.save_m2m()
 
     def save_model(self, request, obj, form, change):
