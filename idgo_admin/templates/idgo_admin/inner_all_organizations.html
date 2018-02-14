@@ -9,69 +9,68 @@
 			<li role="presentation">
 				<a href="#members" aria-controls="members" role="tab" data-toggle="tab">Utilisateurs</a>
 			</li>
-			<li role="presentation">
-				<a href="#me" aria-controls="me" role="tab" data-toggle="tab">Moi et l'organisation</a>
-			</li>
 		</ul>
 		<div class="tab-content">
 			<div role="tabpanel" class="tab-pane active" id="info">
-			  <div class="tab-pane-content">
-			    <div class="row">
-			      <div class="col-sm-9">
-			        <h3 name="name"></h3>
-			      </div>
-			      <div class="col-sm-3">
-			        <img name="logo" alt="" src="/static/img/logo_paca.jpg"></img>
-			      </div>
-			    </div>
-			    <div class="row">
-			      <div class="col-sm-12">
-			        <p name="description"></p>
-			      </div>
-			    </div>
-			    <div class="row">
-			      <div class="col-sm-8">
-			        <div class="row">
-			          <div class="col-sm-12 contact">
-			            <div>CONTACT</div>
-			            <hr>
-			          </div>
-			        </div>
-			        <div class="row">
-			          <div class="col-sm-12">
-			            <div class="row">
-			              <div class="col-md-12">
-			                <span class="glyphicon glyphicon-home" aria-hidden="true"></span> <span name="address"></span>
-			              </div>
-			            </div>
-			            <div class="row">
-			              <div class="col-md-12">
-			                <span class="glyphicon glyphicon-home" style="color:#fcfcfc;" aria-hidden="true"></span> <span name="postcode"></span> <span name="city"></span>
-			              </div>
-			            </div>
-			          </div>
-			        </div>
-			        <div class="row">
-			          <div class="col-sm-12">
-			            <span class="glyphicon glyphicon-earphone" aria-hidden="true"></span> <span name="phone"></span>
-			          </div>
-			        </div>
-			        <div class="row">
-			          <div class="col-sm-12">
-			            <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span> <span name="email"></span>
-			          </div>
-			        </div>
-			        <div class="row">
-			          <div class="col-sm-12">
-			            <span class="glyphicon glyphicon-globe" aria-hidden="true"></span> <a target="_blank" name="website"></a></span>
-			          </div>
-			        </div>
-			      </div>
-			      <div class="col-sm-4">
-
-			      </div>
-			    </div>
-			  </div>
+				<div class="tab-pane-content">
+					<div class="row">
+						<div class="col-sm-9">
+							<h3 name="name"></h3>
+						</div>
+						<div class="col-sm-3">
+							<img name="logo" alt="" src="/static/img/logo_paca.jpg"></img>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-12">
+							<p name="description"></p>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-12 contact">
+							<div>CONTACT</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6 col-lg-7">
+							<hr />
+							<div class="row">
+								<div class="col-sm-12">
+									<div class="row">
+										<div class="col-md-12">
+											<span class="glyphicon glyphicon-home" aria-hidden="true"></span> <span name="address"></span>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-md-12">
+											<span class="glyphicon glyphicon-home" style="color:#fcfcfc;" aria-hidden="true"></span> <span name="postcode"></span> <span name="city"></span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-sm-12">
+									<span class="glyphicon glyphicon-earphone" aria-hidden="true"></span> <span name="phone"></span>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-sm-12">
+									<span class="glyphicon glyphicon-envelope" aria-hidden="true"></span> <span name="email"></span>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-sm-12">
+									<span class="glyphicon glyphicon-globe" aria-hidden="true"></span> <a target="_blank" name="website"></a></span>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-6 col-lg-5">
+							<button role="button" name="switch-member" class="btn btn-default btn-block">Je souhaite devenir membre</button>
+							<button role="button" name="switch-contributor" class="btn btn-default btn-block">Je souhaite devenir contributeur</button>
+							{% if not is_admin %}<button role="button" name="switch-referent" class="btn btn-default btn-block">Je souhaite devenir référent technique</button>{% endif %}
+						</div>
+					</div>
+				</div>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="members">
 				<div class="tab-pane-content">
@@ -90,17 +89,6 @@
 								<li><a role="button" name="delete-contributor" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de contributeur</a></li>
 								<li><a role="button" name="delete-referent" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de référent technique</a></li>
 							</ul>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div role="tabpanel" class="tab-pane" id="me">
-				<div class="tab-pane-content">
-					<div class="row">
-						<div class="col-sm-offset-2 col-sm-8">
-							<button role="button" name="switch-member" class="btn btn-default btn-block">Je souhaite devenir membre</button>
-							<button role="button" name="switch-contributor" class="btn btn-default btn-block">Je souhaite devenir contributeur</button>
-							<button role="button" name="switch-referent" class="btn btn-default btn-block">Je souhaite devenir référent technique</button>
 						</div>
 					</div>
 				</div>
@@ -435,7 +423,7 @@ $(function() {
 			$organizationWell.find('#members .tab-pane-content').prepend('<div role="alert" class="alert alert-info">Aucun utilisateur.<div/>');
 		};
 
-		$switchMember = $($organizationWell.find('#me [name="switch-member"]')).on('click', function(e) {
+		$switchMember = $($organizationWell.find('#info [name="switch-member"]')).on('click', function(e) {
 			openModalChangeStatus('{% url "idgo_admin:subscription" status="member" subscription="subscribe" %}', ORGANIZATION_ID);
 		});
 		if ({{ awaiting_rattachement | length }} > 0) {
@@ -446,7 +434,7 @@ $(function() {
 			}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être membre');
 		};
 
-		$switchContributor = $($organizationWell.find('#me [name="switch-contributor"]')).on('click', function(e) {
+		$switchContributor = $($organizationWell.find('#info [name="switch-contributor"]')).on('click', function(e) {
 			openModalChangeStatus('{% url "idgo_admin:subscription" status="contributor" subscription="subscribe" %}', ORGANIZATION_ID);
 		});
 
@@ -468,14 +456,15 @@ $(function() {
 		buttonContributorStatus();
 		{% endif %}
 
-		$switchReferent = $($organizationWell.find('#me [name="switch-referent"]')).on('click', function(e) {
+		$switchReferent = $($organizationWell.find('#info [name="switch-referent"]')).on('click', function(e) {
 			openModalChangeStatus('{% url "idgo_admin:subscription" status="referent" subscription="subscribe" %}', ORGANIZATION_ID);
 		});
 
+		{% if not is_admin %}
 		const buttonReferentStatus = function() {
 			{% for item in subordinates %}
 			if (data['id'] == {{ item.0 }}) {
-				$('#organization_well .tab-pane#info').append('<div class="buttons-on-the-right-side"><a href="{% url "idgo_admin:edit_organization" id=item.0 %}" name="edit" type="button" class="btn btn-default">Editer</a></div>');
+				$('#organization_well .tab-pane#info').prepend('<div class="buttons-on-the-right-side"><a href="{% url "idgo_admin:edit_organization" id=item.0 %}" name="edit" type="button" class="btn btn-default">Editer l\'organisation</a></div>');
 				$switchReferent.off('click').on('click', function(e) {
 					openModalChangeStatus('{% url "idgo_admin:subscription" status="referent" subscription="unsubscribe" %}', ORGANIZATION_ID);
 				}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être référent technique');
@@ -483,12 +472,20 @@ $(function() {
 			{% endfor %}
 		};
 
-		{% if awaiting_subordinates %}
-			{% for item in awaiting_subordinates %}
-		data['id'] == {{ item.0 }}) ? deactivateButton($switchReferent.off('click')) : buttonReferentStatus();
-			{% endfor %}
-		{% else %}
+			{% if awaiting_subordinates %}
+				{% for item in awaiting_subordinates %}
+		data['id'] == {{ item.0 }} ? deactivateButton($switchReferent.off('click')) : buttonReferentStatus();
+				{% endfor %}
+			{% else %}
 		buttonReferentStatus();
+			{% endif %}
+		{% endif %}
+
+		{% if is_admin %}
+			{% for item in subordinates %}
+			if (data['id'] == {{ item.0 }}) {
+				$('#organization_well').prepend('<div class="floating-buttons-on-the-right-side"><a href="{% url "idgo_admin:edit_organization" id=item.0 %}" name="edit" type="button" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Editer l\'organisation</a></div>');			};
+			{% endfor %}
 		{% endif %}
 
 	};
@@ -510,7 +507,7 @@ $(function() {
 		source: (function() {
 			let arr = [];
 			{% for item in organizations %}
-			arr.push({id: {{ item.pk }}, 'name': '{{ item.name }}'})
+			arr.push({'id': {{ item.pk }}, 'name': '{{ item.name }}'});
 			{% endfor %}
 			return arr;
 		})(),
@@ -530,8 +527,11 @@ $(function() {
 	});
 
 	const selectRowByDataId = function(value) {
+		const previous = $('input[type=radio][name=organizations]:checked').val()
+		$('input[type=radio][name=organizations][value=' + previous + ']').parent().removeClass('active');
+
 		$organizations.val([value]);
-		const $entry = $('input[type=radio][name=organizations][value=' + value + ']').parent();
+		const $entry = $('input[type=radio][name=organizations][value=' + value + ']').parent().addClass('active');
 		const $container = $('div.scrolling-box');
 		$container.animate({
 			scrollTop: $entry.offset().top - $container.offset().top + $container.scrollTop() - 7

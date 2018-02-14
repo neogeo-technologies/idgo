@@ -546,6 +546,11 @@ a:focus {
     margin-bottom: 10px;
 }
 
+.floating-buttons-on-the-right-side {
+    float: right;
+    text-align: right;
+}
+
 .buttons-on-the-right-side>.btn {
     margin-left: 5px;
 }
@@ -866,7 +871,7 @@ input.form-control.datepicker {
   margin-top: 25px;
   color: #afafaf;
 }
-#organization_well #info .contact hr {
+#organization_well #info hr {
   margin-top: 0;
   margin-bottom: 10px;
   border-color: #afafaf;

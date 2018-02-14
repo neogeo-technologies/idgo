@@ -48,8 +48,10 @@ def member_subscribe_process(request, profile, organisation, mail=True):
 
 
 def member_unsubscribe_process(request, profile, organisation):
-    # TODO
-    raise Exception('TODO')
+    if profile.organisation != organisation:
+        raise Exception('TODO')
+    profile.organisation = None
+    profile.save()
 
 
 def contributor_subscribe_process(request, profile, organisation, mail=True):
@@ -114,17 +116,21 @@ class ThisOrganisation(View):
                 'is_member': Profile.objects.filter(
                     organisation=id, id=member.id) and True or False,
                 'is_contributor': LiaisonsContributeurs.objects.filter(
-                    profile=member, organisation__id=id) and True or False,
+                    profile=member, organisation__id=id, validated_on__isnull=False) and True or False,
                 'is_referent': LiaisonsReferents.objects.filter(
-                    profile=member, organisation__id=id) and True or False,
+                    profile=member, organisation__id=id, validated_on__isnull=False) and True or False,
                 'datasets_count': len(Dataset.objects.filter(
                     organisation=id, editor=member.user)),
                 'profile_id': member.id
                 } for member in Profile.objects.filter(
                     functools.reduce(operator.or_, [
                         Q(organisation=id),
-                        Q(liaisonscontributeurs__organisation=id),
-                        Q(liaisonsreferents__organisation=id)])
+                        functools.reduce(operator.and_, [
+                            Q(liaisonscontributeurs__organisation=id),
+                            Q(liaisonscontributeurs__validated_on__isnull=False)]),
+                        functools.reduce(operator.and_, [
+                            Q(liaisonsreferents__organisation=id),
+                            Q(liaisonsreferents__validated_on__isnull=False)])])
                     ).distinct().order_by('user__username')]}
 
         try:
@@ -239,10 +245,12 @@ class AllOrganisations(View):
             'rattachement': item == profile.organisation,
             'contributeur':
                 item in Organisation.objects.filter(
-                    liaisonscontributeurs__profile=profile),
+                    liaisonscontributeurs__profile=profile,
+                    liaisonscontributeurs__validated_on__isnull=False),
             'subordinates':
-                item in Organisation.objects.filter(
-                    liaisonsreferents__profile=profile),
+                profile.is_admin and True or item in Organisation.objects.filter(
+                    liaisonsreferents__profile=profile,
+                    liaisonscontributeurs__validated_on__isnull=False),
             } for item in Organisation.objects.all()]
 
         organizations.sort(key=operator.itemgetter('contributeur'), reverse=True)

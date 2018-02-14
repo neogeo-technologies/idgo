@@ -19,7 +19,7 @@
 (idgo_venv) /idgo_venv> pip install --upgrade pip
 (idgo_venv) /idgo_venv> pip install --upgrade setuptools
 (idgo_venv) /idgo_venv> pip install psycopg2
-(idgo_venv) /idgo_venv> pip install django==1.11
+(idgo_venv) /idgo_venv> pip install 'django=>1.11,<1.12'
 (idgo_venv) /idgo_venv> pip install django-taggit
 (idgo_venv) /idgo_venv> pip install django-bootstrap3
 (idgo_venv) /idgo_venv> pip install django-mama-cas
