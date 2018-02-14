@@ -41,7 +41,7 @@
 		deactivateButton = function($btn) {
 			$btn.addClass('disabled').prop('disabled', true);
 		};
-		slugify = function(str) {
+		slugify = function(str, len) {
 			const from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
 			const   to = "aaaaeeeeiiiioooouuuunc------";
 			str = str.replace(/^\s+|\s+$/g, '').toLowerCase();
@@ -51,7 +51,8 @@
 			return str
 				.replace(/[^a-z0-9 -]/g, '')
 				.replace(/\s+/g, '-')
-				.replace(/-+/g, '-');
+				.replace(/-+/g, '-')
+				.substring(0, len - 1);
 		};
 	};
 })();

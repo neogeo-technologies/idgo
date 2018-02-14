@@ -162,7 +162,7 @@ $(function() {
 		if (!$ckanSlug.prop('readonly')) {
 			$(this).text(btnText);
 			$ckanSlug.prop('readonly', true);
-			$ckanSlug.val({% if dataset_ckan_slug %}'{{ dataset_ckan_slug }}'{% else %}window.slugify($name.val()){% endif %});
+			$ckanSlug.val({% if dataset_ckan_slug %}'{{ dataset_ckan_slug }}'{% else %}window.slugify($name.val(), 100){% endif %});
 		} else {
 			$(this).text('Annuler la saisie');
 			$ckanSlug.prop('readonly', false);
@@ -171,7 +171,7 @@ $(function() {
 
 	{% if not dataset_ckan_slug %}
 	$name.on('input', function() {
-		$ckanSlug.val(window.slugify(this.value))
+		$ckanSlug.val(window.slugify(this.value, 100))
 	});
 	{% else %}
 		$ckanSlug.val('{{ dataset_ckan_slug }}')
