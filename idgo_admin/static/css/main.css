@@ -851,3 +851,23 @@ input.form-control.datepicker {
 #organization_well {
     min-height: 500px;
 }
+#organization_well #info img[name=logo] {
+  padding: 20px 10px;
+  max-height: 150px;
+  max-width: 100%;
+}
+#organization_well #info .col-sm-3 {
+  text-align: center;
+}
+#organization_well #info p[name=description] {
+  text-align: justify;
+}
+#organization_well #info .contact div {
+  margin-top: 25px;
+  color: #afafaf;
+}
+#organization_well #info .contact hr {
+  margin-top: 0;
+  margin-bottom: 10px;
+  border-color: #afafaf;
+}
