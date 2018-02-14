@@ -37,7 +37,7 @@ def render_with_info_profile(
             action='confirm_rattachement',
             profile=profile, closed__isnull=True)
     except Exception:
-        awaiting_rattachement = None
+        awaiting_rattachement = []
     else:
         awaiting_rattachement = action.org_extras \
             and [action.org_extras.id, action.org_extras.name]

@@ -425,16 +425,7 @@ $(function() {
 		$switchMember = $($organizationWell.find('#me [name="switch-member"]')).on('click', function(e) {
 			openModalChangeStatus('{% url "idgo_admin:subscription" status="member" subscription="subscribe" %}', ORGANIZATION_ID);
 		});
-
-		$switchContributor = $($organizationWell.find('#me [name="switch-contributor"]')).on('click', function(e) {
-			openModalChangeStatus('{% url "idgo_admin:subscription" status="contributor" subscription="subscribe" %}', ORGANIZATION_ID);
-		});
-
-		$switchReferent = $($organizationWell.find('#me [name="switch-referent"]')).on('click', function(e) {
-			openModalChangeStatus('{% url "idgo_admin:subscription" status="referent" subscription="subscribe" %}', ORGANIZATION_ID);
-		});
-
-		if ({{ awaiting_rattachement | safe }}) {
+		if ({{ awaiting_rattachement | length }} > 0) {
 			deactivateButton($switchMember.off('click'));
 		} else if (data['id'] == {{ organization_id }}) {
 			$switchMember.off('click').on('click', function(e) {
@@ -442,12 +433,35 @@ $(function() {
 			}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être membre');
 		};
 
-		{% for item in awaiting_subordinates %}
-		if (data['id'] == {{ item.0 }}) {
-			deactivateButton($switchReferent.off('click'));
-		} else {
-			{% for jtem in subordinates %}
-			if (data['id'] == {{ jtem.0 }}) {
+		$switchContributor = $($organizationWell.find('#me [name="switch-contributor"]')).on('click', function(e) {
+			openModalChangeStatus('{% url "idgo_admin:subscription" status="contributor" subscription="subscribe" %}', ORGANIZATION_ID);
+		});
+
+		const buttonContributorStatus = function() {
+			{% for item in contributions %}
+			if (data['id'] == {{ item.0 }}) {
+				$switchContributor.off('click').on('click', function(e) {
+					openModalChangeStatus('{% url "idgo_admin:subscription" status="contributor" subscription="unsubscribe" %}', ORGANIZATION_ID);
+				}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être contributeur');
+			};
+			{% endfor %}
+		};
+
+		{% if awaiting_contributions %}
+			{% for item in awaiting_contributions %}
+		data['id'] == {{ item.0 }} ? deactivateButton($switchContributor.off('click')) : buttonContributorStatus();
+			{% endfor %}
+		{% else %}
+		buttonContributorStatus();
+		{% endif %}
+
+		$switchReferent = $($organizationWell.find('#me [name="switch-referent"]')).on('click', function(e) {
+			openModalChangeStatus('{% url "idgo_admin:subscription" status="referent" subscription="subscribe" %}', ORGANIZATION_ID);
+		});
+
+		const buttonReferentStatus = function() {
+			{% for item in subordinates %}
+			if (data['id'] == {{ item.0 }}) {
 				$('#organization_well .tab-pane#info').append('<div class="buttons-on-the-right-side"><a href="{% url "idgo_admin:edit_organization" id=item.0 %}" name="edit" type="button" class="btn btn-default">Editer</a></div>');
 				$switchReferent.off('click').on('click', function(e) {
 					openModalChangeStatus('{% url "idgo_admin:subscription" status="referent" subscription="unsubscribe" %}', ORGANIZATION_ID);
@@ -455,22 +469,14 @@ $(function() {
 			};
 			{% endfor %}
 		};
-		{% endfor %}
 
-		{% for item in awaiting_subordinates %}
-		if (data['id'] == {{ item.0 }}) {
-			console.log(1)
-			deactivateButton($switchContributor.off('click'));
-		} else {
-			{% for jtem in contributions %}
-			if (data['id'] == {{ jtem.0 }}) {
-				$switchContributor.off('click').on('click', function(e) {
-					openModalChangeStatus('{% url "idgo_admin:subscription" status="contributor" subscription="unsubscribe" %}', ORGANIZATION_ID);
-				}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être contributeur');
-			};
+		{% if awaiting_subordinates %}
+			{% for item in awaiting_subordinates %}
+		data['id'] == {{ item.0 }}) ? deactivateButton($switchReferent.off('click')) : buttonReferentStatus();
 			{% endfor %}
-		};
-		{% endfor %}
+		{% else %}
+		buttonReferentStatus();
+		{% endif %}
 
 	};
 
