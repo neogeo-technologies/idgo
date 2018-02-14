@@ -506,9 +506,9 @@ a:focus {
     border: none;
     border-bottom: 0;
     border-radius: 0;
-    overflow: hidden;
+    /*overflow: hidden;
     white-space: nowrap;
-    text-overflow: ellipsis;
+    text-overflow: ellipsis;*/
 }
 
 .scrolling-box .btn-radio .badge {
@@ -832,4 +832,22 @@ a.disabled {
 input.form-control.datepicker {
     padding: 6px 12px;
     border-radius: 4px;
+}
+
+
+#allorganizations .btn-group-vertical {
+	max-height: 500px;
+}
+#allorganizations .dropdown-menu>li>a {
+    text-align: left;
+}
+#allorganizations span.label-name {
+    display: inline-block;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+#organization_well {
+    min-height: 500px;
 }
