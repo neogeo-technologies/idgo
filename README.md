@@ -151,6 +151,8 @@ CKAN_URL = 'http://ckan'
 CKAN_API_KEY = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
 CKAN_TIMEOUT = 36000
 
+WORDPRESS_URL = 'http://wordpress'
+
 DOWNLOAD_SIZE_LIMIT = 104857600  # octets (e.g. 100Mio)
 
 GEONETWORK_URL = 'http://geonetwork'

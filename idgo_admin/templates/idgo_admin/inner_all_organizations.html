@@ -55,7 +55,7 @@
 							</div>
 							<div class="row">
 								<div class="col-sm-12">
-									<span class="glyphicon glyphicon-envelope" aria-hidden="true"></span> <span name="email"></span>
+									<span class="glyphicon glyphicon-envelope" aria-hidden="true"></span> <a name="email"></a>
 								</div>
 							</div>
 							<div class="row">
@@ -260,6 +260,12 @@ $(function() {
 		const $organizationWell = $('#organization_well').empty()
 
 		for (const k in data) {
+			if (k == 'website') {
+				$content.find('[name="' + k + '"]').prop('href', data[k]);
+			};
+			if (k == 'email') {
+				$content.find('[name="' + k + '"]').prop('href', 'mailto:' + data[k] + '?subject=Datasud');
+			};
 			if (k == 'logo') {
 				$content.find('[name="' + k + '"]').prop('src', data[k]);
 			} else {

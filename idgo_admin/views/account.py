@@ -1,5 +1,4 @@
-from datetime import datetime
-from django.utils import timezone
+# from datetime import datetime
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
@@ -17,6 +16,7 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan

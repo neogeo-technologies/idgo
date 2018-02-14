@@ -14,6 +14,7 @@ from idgo_admin.models import Resource
 
 
 CKAN_URL = settings.CKAN_URL
+WORDPRESS_URL = settings.WORDPRESS_URL
 
 
 def on_profile_http404():
@@ -56,6 +57,7 @@ def render_with_info_profile(
             in LiaisonsReferents.get_pending(profile=profile)]
 
     context.update({
+        'wordpress_href': WORDPRESS_URL,
         'ckan_url': CKAN_URL,
         'first_name': user.first_name,
         'last_name': user.last_name,

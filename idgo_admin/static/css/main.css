@@ -1,5 +1,3 @@
-/* css/main.css */
-
 /*
  * red    #ff554f
  * green  #12be72
@@ -506,15 +504,9 @@ a:focus {
     border: none;
     border-bottom: 0;
     border-radius: 0;
-    /*overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;*/
 }
 
 .scrolling-box .btn-radio .badge {
-    /* position: absolute; */
-    /* right: 12px; */
-    /* top: 6px; */
     width: 20px;
     height: 20px;
     padding: 3px;
@@ -839,13 +831,14 @@ input.form-control.datepicker {
     border-radius: 4px;
 }
 
-
 #allorganizations .btn-group-vertical {
-	max-height: 500px;
+    max-height: 500px;
 }
+
 #allorganizations .dropdown-menu>li>a {
     text-align: left;
 }
+
 #allorganizations span.label-name {
     display: inline-block;
     text-overflow: ellipsis;
@@ -853,26 +846,32 @@ input.form-control.datepicker {
     white-space: nowrap;
     vertical-align: middle;
 }
+
 #organization_well {
     min-height: 500px;
 }
+
 #organization_well #info img[name=logo] {
-  padding: 20px 10px;
-  max-height: 150px;
-  max-width: 100%;
+    padding: 20px 10px;
+    max-height: 150px;
+    max-width: 100%;
 }
+
 #organization_well #info .col-sm-3 {
-  text-align: center;
+    text-align: center;
 }
+
 #organization_well #info p[name=description] {
-  text-align: justify;
+    text-align: justify;
 }
+
 #organization_well #info .contact div {
-  margin-top: 25px;
-  color: #afafaf;
+    margin-top: 25px;
+    color: #afafaf;
 }
+
 #organization_well #info hr {
-  margin-top: 0;
-  margin-bottom: 10px;
-  border-color: #afafaf;
+    margin-top: 0;
+    margin-bottom: 10px;
+    border-color: #afafaf;
 }

@@ -265,7 +265,7 @@ $(function() {
 				deactivateButton($(this));
 				$(this).hide();
 			});
-			$containerId.parent().before('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:contribute" %}">ajouter une organisation à laquelle contribuer</a>.');
+			$containerId.parent().before('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez ajouter une organisation à laquelle contribuer</a>.');
 		};
 
 		if (data.length == 0 && isContributor) {
