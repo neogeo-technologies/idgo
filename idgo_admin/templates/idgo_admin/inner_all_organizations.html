@@ -1,7 +1,5 @@
 {% load bootstrap3 %}
 
-{% include "idgo_admin/alert_messages.html" %}
-
 <template id="organization_well_template">
 	<div>
 		<ul class="nav nav-tabs" role="tablist">
@@ -62,9 +60,7 @@
 					</div>
 				</div>
 			</div>
-
 			<div role="tabpanel" class="tab-pane" id="members">
-
 				<div class="tab-pane-content">
 					<div id="table-members" class="table-responsive"></div>
 					<nav aria-label="Page navigation" style="text-align: center;">
@@ -85,7 +81,6 @@
 					</div>
 				</div>
 			</div>
-
 			<div role="tabpanel" class="tab-pane" id="me">
 				<div class="tab-pane-content">
 					<div class="row">
@@ -99,11 +94,11 @@
 			</div>
 		</div>
 	</div>
-
 </template>
 
-<div id="allorganizations">
+{% include "idgo_admin/alert_messages.html" %}
 
+<div id="allorganizations">
 	{% if awaiting_rattachement %}
 	<div class="alert alert-info">Demande(s) de rattachement à l'organisation « <strong>{{ awaiting_rattachement.1 }}</strong> » en attente de validation.</div>
 	{% endif %}
@@ -113,7 +108,6 @@
 	{% if awaiting_subordinates %}
 	<div class="alert alert-info">Demande(s) de statut de référent technique en attente de validation pour : {% for organization in awaiting_subordinates %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
 	{% endif %}
-
 	<div class="row">
 		<div class="col-md-4">
 			{% if organizations|length > 10 %}
@@ -207,16 +201,43 @@ $(function() {
 
 		$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
 		$modal.find('.modal-body')
-			.append(
-				$('<form/>')
-					.append(
-						$('<div/>').prop('class', 'form-group')
-							.append('<p>Pour confirmer, veuillez réécrire le nom du compte de l\'utilisateur.</p>')
-							.append($input))
-					.append(
-						$('<div class="buttons-on-the-right-side">')
-							.append($button)
-							.append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
+			.append($('<form/>')
+				.append($('<div/>').prop('class', 'form-group')
+					.append('<p>Pour confirmer, veuillez réécrire le nom du compte de l\'utilisateur.</p>').append($input))
+				.append($('<div class="buttons-on-the-right-side">')
+					.append($button).append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
+
+		$modal.modal('show');
+	};
+
+	const openModalChangeStatus = function(baseUrl, organizationId) {
+		const $button = $('<button/>')
+			.prop('type', 'button')
+			.prop('class', 'btn btn-primary')
+			.text('Oui, je confirme ma demande')
+			.one('click', function(e) {
+				e.preventDefault();
+				closeAllModalDialog();
+				$.ajax({
+					type: 'GET',
+					url: baseUrl + '?id=' + organizationId
+				})
+				.done(function(response, textStatus, jqXHR) {
+					location.reload();
+				})
+				.fail(function(jqXHR, textStatus, errorThrown) {
+					location.reload();
+				});
+				e.stopPropagation();
+			});
+
+			$modal.find('.modal-title').text('Confirmation de votre demande');
+			$modal.find('.modal-body')
+				.append($('<form/>')
+					.append($('<div/>').prop('class', 'form-group')
+						.append('<p>Pour confirmer, veuillez cliquer sur le bouton ci-dessous.</p>'))
+					.append($('<div class="buttons-on-the-right-side">')
+						.append($button).append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
 
 		$modal.modal('show');
 	};
@@ -395,22 +416,22 @@ $(function() {
 		};
 
 		$switchMember = $($organizationWell.find('#me [name="switch-member"]')).on('click', function(e) {
-			alert('TODO');
+			openModalChangeStatus('{% url "idgo_admin:subscription" status="member" subscription="subscribe" %}', ORGANIZATION_ID);
 		});
 
 		$switchContributor = $($organizationWell.find('#me [name="switch-contributor"]')).on('click', function(e) {
-			alert('TODO');
+			openModalChangeStatus('{% url "idgo_admin:subscription" status="contributor" subscription="subscribe" %}', ORGANIZATION_ID);
 		});
 
 		$switchReferent = $($organizationWell.find('#me [name="switch-referent"]')).on('click', function(e) {
-			alert('TODO');
+			openModalChangeStatus('{% url "idgo_admin:subscription" status="referent" subscription="subscribe" %}', ORGANIZATION_ID);
 		});
 
 		if ({{ awaiting_rattachement | safe }}) {
 			deactivateButton($switchMember.off('click'));
 		} else if (data['id'] == {{ organization_id }}) {
 			$switchMember.off('click').on('click', function(e) {
-				alert('TODO');
+				openModalChangeStatus('{% url "idgo_admin:subscription" status="member" subscription="unsubscribe" %}', ORGANIZATION_ID);
 			}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être membre');
 		};
 
@@ -422,7 +443,7 @@ $(function() {
 			if (data['id'] == {{ jtem.0 }}) {
 				$('#organization_well .tab-pane#info').append('<div class="buttons-on-the-right-side"><a href="{% url "idgo_admin:edit_organization" id=item.0 %}" name="edit" type="button" class="btn btn-default">Editer</a></div>');
 				$switchReferent.off('click').on('click', function(e) {
-					alert('TODO');
+					openModalChangeStatus('{% url "idgo_admin:subscription" status="referent" subscription="unsubscribe" %}', ORGANIZATION_ID);
 				}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être référent technique');
 			};
 			{% endfor %}
@@ -437,7 +458,7 @@ $(function() {
 			{% for jtem in contributions %}
 			if (data['id'] == {{ jtem.0 }}) {
 				$switchContributor.off('click').on('click', function(e) {
-					alert('TODO');
+					openModalChangeStatus('{% url "idgo_admin:subscription" status="contributor" subscription="unsubscribe" %}', ORGANIZATION_ID);
 				}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être contributeur');
 			};
 			{% endfor %}

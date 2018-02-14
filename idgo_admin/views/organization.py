@@ -35,52 +35,60 @@ decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
 def creation_process(request, profile, mail=True):
-
     action = AccountActions.objects.create(
         action='confirm_new_organisation', profile=profile)
-
     mail and Mail.confirm_new_organisation(request, action)
 
 
-def rattachement_process(request, profile, organisation, mail=True):
-
+def member_subscribe_process(request, profile, organisation, mail=True):
     action = AccountActions.objects.create(
         action='confirm_rattachement',
         org_extras=organisation, profile=profile)
-
     mail and Mail.confirm_updating_rattachement(request, action)
 
 
-def contributor_process(request, profile, organisation, mail=True):
+def member_unsubscribe_process(request, profile, organisation):
+    # TODO
+    raise Exception('TODO')
 
+
+def contributor_subscribe_process(request, profile, organisation, mail=True):
     LiaisonsContributeurs.objects.get_or_create(
         profile=profile, organisation=organisation)
-
     action = AccountActions.objects.create(
         action='confirm_contribution',
         org_extras=organisation, profile=profile)
-
     mail and Mail.confirm_contribution(request, action)
 
 
-def referent_process(request, profile, organisation, mail=True):
+def contributor_unsubscribe_process(request, profile, organisation):
+    LiaisonsContributeurs.objects.get(
+        organisation=organisation, profile=profile).delete()
+
+
+def referent_subscribe_process(request, profile, organisation, mail=True):
+    if LiaisonsContributeurs.objects.filter(
+            organisation=organisation, profile=profile):
+        contributor_subscribe_process(request, profile, organisation, mail=False)
 
     LiaisonsReferents.objects.get_or_create(
         organisation=organisation, profile=profile, validated_on=None)
-
-    contributor_process(request, profile, organisation, mail=False)
-
     action = AccountActions.objects.create(
         action='confirm_referent',
         org_extras=organisation, profile=profile)
-
     mail and Mail.confirm_referent(request, action)
+
+
+def referent_unsubscribe_process(request, profile, organisation):
+    LiaisonsReferents.objects.get(
+        organisation=organisation, profile=profile).delete()
 
 
 @method_decorator(decorators, name='dispatch')
 class ThisOrganisation(View):
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    @ExceptionsHandler(
+        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, id):
         user, profile = user_and_profile(request)
 
@@ -129,10 +137,12 @@ class ThisOrganisation(View):
 
 @method_decorator(decorators, name='dispatch')
 class CreateOrganisation(View):
+
     template = 'idgo_admin/editorganization.html'
     namespace = 'idgo_admin:edit_organization'
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    @ExceptionsHandler(
+        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request):
         user, profile = user_and_profile(request)
         context = {'form': Form(include={'user': user, 'extended': True})}
@@ -140,7 +150,8 @@ class CreateOrganisation(View):
         return render_with_info_profile(
             request, self.template, context=context)
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    @ExceptionsHandler(
+        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def post(self, request):
         user, profile = user_and_profile(request)
 
@@ -163,11 +174,11 @@ class CreateOrganisation(View):
 
         # TODO: Factoriser
         form.cleaned_data.get('rattachement_process', False) \
-            and rattachement_process(request, profile, organisation)
+            and member_subscribe_process(request, profile, organisation)
         form.cleaned_data.get('contributor_process', False) \
-            and contributor_process(request, profile, organisation)
+            and contributor_subscribe_process(request, profile, organisation)
         form.cleaned_data.get('referent_process', False) \
-            and referent_process(request, profile, organisation)
+            and referent_subscribe_process(request, profile, organisation)
 
         messages.success(request, 'La demande a bien été envoyée.')
 
@@ -179,7 +190,8 @@ class EditThisOrganisation(View):
     template = 'idgo_admin/editorganization.html'
     namespace = 'idgo_admin:edit_organization'
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    @ExceptionsHandler(
+        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, id):
         user, profile = user_and_profile(request)
 
@@ -192,7 +204,8 @@ class EditThisOrganisation(View):
         return render_with_info_profile(
             request, self.template, context=context)
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    @ExceptionsHandler(
+        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def post(self, request, id):
         user, profile = user_and_profile(request)
 
@@ -215,7 +228,8 @@ class EditThisOrganisation(View):
 @method_decorator(decorators, name='dispatch')
 class AllOrganisations(View):
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    @ExceptionsHandler(
+        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, *args, **kwargs):
         user, profile = user_and_profile(request)
 
@@ -223,8 +237,12 @@ class AllOrganisations(View):
             'pk': item.pk,
             'name': item.name,
             'rattachement': item == profile.organisation,
-            'contributeur': item in Organisation.objects.filter(liaisonscontributeurs__profile=profile),
-            'subordinates': item in Organisation.objects.filter(liaisonsreferents__profile=profile),
+            'contributeur':
+                item in Organisation.objects.filter(
+                    liaisonscontributeurs__profile=profile),
+            'subordinates':
+                item in Organisation.objects.filter(
+                    liaisonsreferents__profile=profile),
             } for item in Organisation.objects.all()]
 
         organizations.sort(key=operator.itemgetter('contributeur'), reverse=True)
@@ -234,3 +252,49 @@ class AllOrganisations(View):
         return render_with_info_profile(
             request, 'idgo_admin/all_organizations.html',
             context={'organizations': organizations})
+
+
+@method_decorator(decorators, name='dispatch')
+class Subscription(View):
+
+    namespace = 'all_organizations'
+
+    @ExceptionsHandler(
+        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    def get(self, request, status=None, subscription=None):
+
+        user, profile = user_and_profile(request)
+
+        organisation = get_object_or_404(
+            Organisation, id=request.GET.get('id'))
+
+        actions = {
+            'member': {
+                'subscribe': member_subscribe_process,
+                'unsubscribe': member_unsubscribe_process},
+            'contributor': {
+                'subscribe': contributor_subscribe_process,
+                'unsubscribe': contributor_unsubscribe_process},
+            'referent': {
+                'subscribe': referent_subscribe_process,
+                'unsubscribe': referent_unsubscribe_process}}
+
+        try:
+            actions[status][subscription](request, profile, organisation)
+        except Exception as e:
+            messages.error(request, str(e))
+        else:
+            if subscription == 'unsubscribe':
+                message = (
+                    "Vous n'êtes plus {0} de l'organisation <strong>{1}</strong>."
+                    ).format(status, organisation.name)
+            elif subscription == 'subscribe':
+                message = (
+                    "Votre demande de statut de {0} de l'organisation "
+                    '<strong>{0}</strong> est en cours de traitement. '
+                    "Celle-ci ne sera effective qu'après validation par "
+                    'un administrateur.').format(status, organisation.name)
+            messages.success(request, message)
+
+        return HttpResponseRedirect('{0}#{1}'.format(
+            reverse('idgo_admin:{0}'.format(self.namespace)), organisation.id))

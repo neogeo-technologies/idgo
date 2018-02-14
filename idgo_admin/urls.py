@@ -28,6 +28,8 @@ from idgo_admin.views.organization import CreateOrganisation
 from idgo_admin.views.organization import EditThisOrganisation
 from idgo_admin.views.organization import ThisOrganisation
 
+from idgo_admin.views.organization import Subscription
+
 
 from idgo_admin.views.organization_handler import contribution_request
 from idgo_admin.views.organization_handler import Contributions
@@ -62,18 +64,24 @@ urlpatterns = [
     url('^confirmation/rattachment/(?P<key>.+)/?$', confirm_rattachement, name='confirm_rattachement'),
     url('^confirmation/referent/(?P<key>.+)/?$', confirm_referent, name='confirm_referent'),
     url('^confirmation/contribute/(?P<key>.+)/?$', confirm_contribution, name='confirm_contribution'),
-    url('^unsuscribe/contribution/?$', Contributions.as_view(), name='unsuscribe_contribution'),
-    url('^unsuscribe/referent/?$', Referents.as_view(), name='unsuscribe_referent'),
+
+    # url('^unsuscribe/contribution/?$', Contributions.as_view(), name='unsuscribe_contribution'),
+    # url('^unsuscribe/referent/?$', Referents.as_view(), name='unsuscribe_referent'),
 
     url('^organizations/contribute/?$', contribution_request, name='contribute'),
     url('^organizations/referent/?$', referent_request, name='referent'),
+
     url('^organizations/(?P<process>(update_organization))/?$', AccountManager.as_view(), name='my_organization'),
     url('^organizations/?$', OrganisationDisplay.as_view(), name='organizations'),
 
     url('^organization/all/?$', AllOrganisations.as_view(), name='all_organizations'),
     url('^organization/create/?$', CreateOrganisation.as_view(), name='create_organization'),
+
     url('^organization/(?P<id>(\d+))/?$', ThisOrganisation.as_view(), name='organization'),
     url('^organization/(?P<id>(\d+))/edit/?$', EditThisOrganisation.as_view(), name='edit_organization'),
+
+    url('^organization/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
+
 
     url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
     url('^deleteaccount/?$', delete_account, name='deleteAccount')]
