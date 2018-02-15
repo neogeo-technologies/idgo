@@ -20,10 +20,11 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.exceptions import ExceptionsHandler
+# from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.account import ProfileForm
 from idgo_admin.forms.account import SignInForm
+from idgo_admin.forms.account import SignUpForm
 from idgo_admin.forms.account import UserDeleteForm
 from idgo_admin.forms.account import UserForgetPassword
 from idgo_admin.forms.account import UserForm
@@ -34,7 +35,7 @@ from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
-from idgo_admin.shortcuts import on_profile_http404
+# from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
 from mama_cas.compat import is_authenticated as mama_is_authenticated
@@ -272,7 +273,7 @@ class AccountManager(View):
                 {'uform': UserForm(include={'action': process}),
                  'pform': ProfileForm(include={'action': process})})
 
-        elif process in ("update", "update_organization"):
+        elif process == "update":
 
             try:
                 user, profile = user_and_profile(request)
@@ -283,6 +284,7 @@ class AccountManager(View):
                 request, self.contextual_template(process),
                 {'uform': UserForm(instance=user, include={'action': process}),
                  'pform': ProfileForm(instance=profile, include={'user': user, 'action': process})})
+
 
     @transaction.atomic
     def post(self, request, process):
@@ -513,41 +515,41 @@ def delete_account(request):
 @method_decorator(decorators, name='dispatch')
 class ReferentAccountManager(View):
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, *args, **kwargs):
-
-        user, profile = user_and_profile(request)
-
-        if not profile.referents.exists() and not profile.is_admin:
-            raise Http404
-
-        my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinated_organizations(profile=profile)
-
-        organizations = {}
-        for orga in my_subordinates:
-            organizations[str(orga.name)] = {'id': orga.id}
-            organizations[str(orga.name)]["members"] = [{
-                "profile_id": p.pk,
-                "is_referent": p.get_roles(organisation=orga)["is_referent"] and "true" or "false",
-                "first_name": p.user.first_name,
-                "last_name": p.user.last_name,
-                "username": p.user.username,
-                "nb_datasets": p.nb_datasets(orga)
-                } for p in Profile.objects.filter(organisation=orga, membership=True).order_by('user__last_name')]
-
-            organizations[str(orga.name)]["contributors"] = [{
-                "profile_id": lc.profile.pk,
-                "is_referent": lc.profile.get_roles(organisation=orga)["is_referent"] and "true" or "false",
-                "first_name": lc.profile.user.first_name,
-                "last_name": lc.profile.user.last_name,
-                "username": lc.profile.user.username,
-                "nb_datasets": lc.profile.nb_datasets(orga)
-                } for lc in LiaisonsContributeurs.objects.filter(
-                organisation=orga, validated_on__isnull=False).order_by('profile__user__last_name')]
-
-        return render_with_info_profile(
-            request, 'idgo_admin/all_members.html', status=200,
-            context={'organizations': organizations})
+    # @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    # def get(self, request, *args, **kwargs):
+    #
+    #     user, profile = user_and_profile(request)
+    #
+    #     if not profile.referents.exists() and not profile.is_admin:
+    #         raise Http404
+    #
+    #     my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinated_organizations(profile=profile)
+    #
+    #     organizations = {}
+    #     for orga in my_subordinates:
+    #         organizations[str(orga.name)] = {'id': orga.id}
+    #         organizations[str(orga.name)]["members"] = [{
+    #             "profile_id": p.pk,
+    #             "is_referent": p.get_roles(organisation=orga)["is_referent"] and "true" or "false",
+    #             "first_name": p.user.first_name,
+    #             "last_name": p.user.last_name,
+    #             "username": p.user.username,
+    #             "nb_datasets": p.nb_datasets(orga)
+    #             } for p in Profile.objects.filter(organisation=orga, membership=True).order_by('user__last_name')]
+    #
+    #         organizations[str(orga.name)]["contributors"] = [{
+    #             "profile_id": lc.profile.pk,
+    #             "is_referent": lc.profile.get_roles(organisation=orga)["is_referent"] and "true" or "false",
+    #             "first_name": lc.profile.user.first_name,
+    #             "last_name": lc.profile.user.last_name,
+    #             "username": lc.profile.user.username,
+    #             "nb_datasets": lc.profile.nb_datasets(orga)
+    #             } for lc in LiaisonsContributeurs.objects.filter(
+    #             organisation=orga, validated_on__isnull=False).order_by('profile__user__last_name')]
+    #
+    #     return render_with_info_profile(
+    #         request, 'idgo_admin/all_members.html', status=200,
+    #         context={'organizations': organizations})
 
     def delete(self, request, *args, **kwargs):
 
@@ -581,3 +583,17 @@ class ReferentAccountManager(View):
         # TODO referent
 
         return HttpResponse(status=200)
+
+
+@method_decorator(decorators[0], name='dispatch')
+class SignUp(View):
+
+    template = 'idgo_admin/signup.html'
+
+    def get(self, request):
+        print(0)
+        return render(request, self.template, {'form': SignUpForm()})
+
+    @transaction.atomic
+    def post(self, request):
+        pass

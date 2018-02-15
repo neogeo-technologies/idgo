@@ -52,22 +52,23 @@ class UserForm(forms.ModelForm):
                 widget=forms.PasswordInput(
                     attrs={'placeholder': 'Confirmez le nouveau mot de passe'}))
 
-        if self.include_args['action'] == "update_organization":
-            self.fields['username'].required = False
-            self.fields['last_name'].required = False
-            self.fields['first_name'].required = False
-            self.fields['email'].required = False
-            self.fields['password1'].required = False
-            self.fields['password2'].required = False
+        # if self.include_args['action'] == "update_organization":
+        #     self.fields['username'].required = False
+        #     self.fields['last_name'].required = False
+        #     self.fields['first_name'].required = False
+        #     self.fields['email'].required = False
+        #     self.fields['password1'].required = False
+        #     self.fields['password2'].required = False
 
     def clean(self):
-        if self.include_args['action'] == "update_organization":
-            self.cleaned_data['username'] = self.instance.username
-            self.cleaned_data['last_name'] = self.instance.last_name
-            self.cleaned_data['first_name'] = self.instance.first_name
-            self.cleaned_data['email'] = self.instance.email
-            self.cleaned_data['password'] = self.instance.password
-            return self.cleaned_data
+
+        # if self.include_args['action'] == "update_organization":
+        #     self.cleaned_data['username'] = self.instance.username
+        #     self.cleaned_data['last_name'] = self.instance.last_name
+        #     self.cleaned_data['first_name'] = self.instance.first_name
+        #     self.cleaned_data['email'] = self.instance.email
+        #     self.cleaned_data['password'] = self.instance.password
+        #     return self.cleaned_data
 
         username = self.cleaned_data.get('username', None)
         if username and username.lower() != username:
@@ -404,3 +405,22 @@ class DeleteAdminForm(forms.Form):
                 Dataset.objects.filter(editor=deleted_user).update(editor=new_user)
         # Profil supprimé en cascade
         deleted_user.delete()
+
+
+class SignUpForm(forms.ModelForm):
+
+    username = common_fields.USERNAME
+    password = common_fields.PASSWORD1
+
+    class Meta(object):
+        model = User
+        fields = (
+            'first_name', 'last_name', 'email', 'username'
+            )
+
+    def __init__(self, *args, **kwargs):
+        self.include_args = kwargs.pop('include', {})
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        return self.cleaned_data
