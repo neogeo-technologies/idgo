@@ -296,8 +296,8 @@ class Organisation(models.Model):
     logo = models.ImageField(
         verbose_name='Logo', upload_to='logos/', blank=True, null=True)
 
-    address = models.CharField(
-        verbose_name='Adresse', max_length=100, blank=True, null=True)
+    address = models.TextField(
+        verbose_name='Adresse', blank=True, null=True)
 
     postcode = models.CharField(
         verbose_name='Code postal', max_length=100, blank=True, null=True)

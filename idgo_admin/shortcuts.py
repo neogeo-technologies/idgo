@@ -59,6 +59,7 @@ def render_with_info_profile(
     context.update({
         'wordpress_href': WORDPRESS_URL,
         'ckan_url': CKAN_URL,
+        'username': user.username,
         'first_name': user.first_name,
         'last_name': user.last_name,
         'is_membership': profile.membership,

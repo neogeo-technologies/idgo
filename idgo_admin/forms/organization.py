@@ -4,7 +4,6 @@ from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
-# from idgo_admin.models import OrganisationType
 
 
 class OrganizationForm(forms.ModelForm):
@@ -33,6 +32,7 @@ class OrganizationForm(forms.ModelForm):
     name = forms.CharField(
         error_messages={"Nom de l'organisation invalide": 'invalid'},
         label="Nom de l'organisation",
+        max_length=100,
         required=False,
         widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisation"}))
 
@@ -43,17 +43,19 @@ class OrganizationForm(forms.ModelForm):
     address = forms.CharField(
         label='Adresse',
         required=False,
-        widget=forms.TextInput(
-            attrs={'placeholder': "Numéro de voirie et rue"}))
+        widget=forms.Textarea(
+            attrs={'placeholder': 'Numéro de voirie et rue', 'rows': 2}))
 
     city = forms.CharField(
         label='Ville',
+        max_length=100,
         required=False,
         widget=forms.TextInput(
-            attrs={'placeholder': "Ville"}))
+            attrs={'placeholder': 'Ville'}))
 
     postcode = forms.CharField(
         label='Code postal',
+        max_length=100,
         required=False,
         widget=forms.TextInput(
             attrs={'placeholder': 'Code postal'}))

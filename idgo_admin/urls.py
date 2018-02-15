@@ -20,44 +20,51 @@ from idgo_admin.views.mailer import confirm_referent
 from idgo_admin.views.mailer import confirmation_mail
 from idgo_admin.views.mdedit import MDEdit
 from idgo_admin.views.mdedit import MDEditTplEdit
-from idgo_admin.views.organization import AllOrganisations
+from idgo_admin.views.organization import all_organisations
 from idgo_admin.views.organization import CreateOrganisation
-from idgo_admin.views.organization import EditThisOrganisation
+from idgo_admin.views.organization import UpdateOrganisation
+from idgo_admin.views.organization import organisation
 from idgo_admin.views.organization import Subscription
-from idgo_admin.views.organization import ThisOrganisation
 from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
 
 
 urlpatterns = [
-    url('^$', datasets, name='datasets'),
-    url('^datasets/?$', datasets, name='datasets'),
-    url('^datasets/all/?$', all_datasets, name='all_datasets'),
+    url('^$', datasets, name='datasets'),  # TODO: Home Page
+
+    url('^signin/?$', SignIn.as_view(), name='signIn'),
+    url('^signout/?$', SignOut.as_view(), name='signOut'),
+
+    url('^account/(?P<process>(create|update))/?$', AccountManager.as_view(), name='account_manager'),
+    url('^deleteaccount/?$', delete_account, name='deleteAccount'),
+
     url('^dataset/?$', DatasetManager.as_view(), name='dataset'),
     url('^dataset/(?P<dataset_id>(\d+))/resources/?$', ResourceManager.as_view(), name='resource'),
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/?$', MDEdit.as_view(), name='mdedit'),
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/edit/?$', MDEditTplEdit.as_view(), name='mdedit_tpl_edit'),
+    url('^dataset/mine/?$', datasets, name='datasets'),
+    url('^dataset/all/?$', all_datasets, name='all_datasets'),
     url('^dataset/export/?$', export, name='export'),
-    url('^members/all/?$', ReferentAccountManager.as_view(), name='all_members'),
-    # url('^referent/dataset/edit?$', ReferentDatasetManager.as_view(), name='referent_dataset_edit'),  # ???
-    url('^action/$', ActionsManager.as_view(), name='action'),
-    url('^signin/?$', SignIn.as_view(), name='signIn'),
-    url('^signout/?$', SignOut.as_view(), name='signOut'),
-    url('^account/(?P<process>(create|update))/?$', AccountManager.as_view(), name='account_manager'),
-    url('^pwd/(?P<process>(forget))/?$', PasswordManager.as_view(), name='password_manager'),
-    url('^pwd/(?P<process>(initiate|reset))/(?P<key>(.+))/?$', PasswordManager.as_view(), name='password_manager'),
+
+    url('^member/all/?$', ReferentAccountManager.as_view(), name='all_members'),
+
+    url('^organization/all/?$', all_organisations, name='all_organizations'),
+    url('^organization/new/?$', CreateOrganisation.as_view(), name='create_organization'),
+    url('^organization/(?P<id>(\d+))/?$', organisation, name='organization'),
+    url('^organization/(?P<id>(\d+))/update/?$', UpdateOrganisation.as_view(), name='update_organization'),
+    url('^organization/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
+
+    url('^password/(?P<process>(forget))/?$', PasswordManager.as_view(), name='password_manager'),
+    url('^password/(?P<process>(initiate|reset))/(?P<key>(.+))/?$', PasswordManager.as_view(), name='password_manager'),
+
     url('^confirmation/email/(?P<key>.+)/?$', confirmation_mail, name='confirmation_mail'),
     url('^confirmation/createorganization/(?P<key>.+)/?$', confirm_new_orga, name='confirm_new_orga'),
     url('^confirmation/rattachment/(?P<key>.+)/?$', confirm_rattachement, name='confirm_rattachement'),
-    url('^confirmation/referent/(?P<key>.+)/?$', confirm_referent, name='confirm_referent'),
     url('^confirmation/contribute/(?P<key>.+)/?$', confirm_contribution, name='confirm_contribution'),
-    url('^organization/all/?$', AllOrganisations.as_view(), name='all_organizations'),
-    url('^organization/create/?$', CreateOrganisation.as_view(), name='create_organization'),
-    url('^organization/(?P<id>(\d+))/?$', ThisOrganisation.as_view(), name='organization'),
-    url('^organization/(?P<id>(\d+))/edit/?$', EditThisOrganisation.as_view(), name='edit_organization'),
-    url('^organization/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
-    url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
-    url('^deleteaccount/?$', delete_account, name='deleteAccount')]
+    url('^confirmation/referent/(?P<key>.+)/?$', confirm_referent, name='confirm_referent'),
+
+    url('^action/$', ActionsManager.as_view(), name='action'),
+    url('^licences/?$', DisplayLicenses.as_view(), name='licences')]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

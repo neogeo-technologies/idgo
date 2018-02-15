@@ -8,7 +8,7 @@
 </span>
 <div class="btn-group login">
 	<button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-		<span>{{ first_name}} {{ last_name }}</span>
+		<span>{{ first_name}} {{ last_name }}{% if is_admin %} <span class="label label-warning">admin</span>{% endif %}</span>
 		<span class="glyphicon glyphicon-user"></span>
 	</button>
 	<ul name="my-account-menu" class="dropdown-menu dropdown-menu-right">

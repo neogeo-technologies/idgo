@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
@@ -12,6 +13,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import functools
+from idgo_admin.ckan_module import CkanSyncingError
+from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.organization import OrganizationForm as Form
@@ -86,66 +89,96 @@ def referent_unsubscribe_process(request, profile, organisation):
         organisation=organisation, profile=profile).delete()
 
 
-@method_decorator(decorators, name='dispatch')
-class ThisOrganisation(View):
+@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def all_organisations(request, *args, **kwargs):
 
-    @ExceptionsHandler(
-        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, id):
-        user, profile = user_and_profile(request)
+    user, profile = user_and_profile(request)
 
-        instance = get_object_or_404(Organisation, id=id, is_active=True)
+    organizations = [{
+        'pk': item.pk,
+        'name': item.name,
+        'rattachement': item == profile.organisation,
+        'contributeur':
+            item in Organisation.objects.filter(
+                liaisonscontributeurs__profile=profile,
+                liaisonscontributeurs__validated_on__isnull=False),
+        'subordinates':
+            profile.is_admin and True or item in Organisation.objects.filter(
+                liaisonsreferents__profile=profile,
+                liaisonscontributeurs__validated_on__isnull=False),
+        } for item in Organisation.objects.all()]
 
-        data = {
-            'id': instance.id,
-            'name': instance.name,
-            # logo -> see below
-            'type': instance.organisation_type,
-            'jurisdiction':
-                instance.jurisdiction and instance.jurisdiction.name or '',
-            'address': instance.address,
-            'postcode': instance.postcode,
-            'city': instance.city,
-            'phone': instance.org_phone,
-            'website': instance.website,
-            'email': instance.email,
-            'description': instance.description,
-            'members': [{
-                'username': member.user.username,
-                'full_name': member.user.get_full_name(),
-                'is_member': Profile.objects.filter(
-                    organisation=id, id=member.id) and True or False,
-                'is_contributor': LiaisonsContributeurs.objects.filter(
-                    profile=member, organisation__id=id, validated_on__isnull=False) and True or False,
-                'is_referent': LiaisonsReferents.objects.filter(
-                    profile=member, organisation__id=id, validated_on__isnull=False) and True or False,
-                'datasets_count': len(Dataset.objects.filter(
-                    organisation=id, editor=member.user)),
-                'profile_id': member.id
-                } for member in Profile.objects.filter(
-                    functools.reduce(operator.or_, [
-                        Q(organisation=id),
-                        functools.reduce(operator.and_, [
-                            Q(liaisonscontributeurs__organisation=id),
-                            Q(liaisonscontributeurs__validated_on__isnull=False)]),
-                        functools.reduce(operator.and_, [
-                            Q(liaisonsreferents__organisation=id),
-                            Q(liaisonsreferents__validated_on__isnull=False)])])
-                    ).distinct().order_by('user__username')]}
+    organizations.sort(key=operator.itemgetter('contributeur'), reverse=True)
+    organizations.sort(key=operator.itemgetter('subordinates'), reverse=True)
+    organizations.sort(key=operator.itemgetter('rattachement'), reverse=True)
 
-        try:
-            data['logo'] = urljoin(settings.DOMAIN_NAME, instance.logo.url)
-        except ValueError:
-            pass
+    return render_with_info_profile(
+        request, 'idgo_admin/all_organizations.html',
+        context={'organizations': organizations})
 
-        return JsonResponse(data=data, safe=False)
+
+@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def organisation(request, id=None):
+
+    user, profile = user_and_profile(request)
+
+    instance = get_object_or_404(Organisation, id=id, is_active=True)
+
+    data = {
+        'id': instance.id,
+        'name': instance.name,
+        # logo -> see below
+        'type': instance.organisation_type,
+        'jurisdiction':
+            instance.jurisdiction and instance.jurisdiction.name or '',
+        'address': instance.address,
+        'postcode': instance.postcode,
+        'city': instance.city,
+        'phone': instance.org_phone,
+        'website': instance.website,
+        'email': instance.email,
+        'description': instance.description,
+        'members': [{
+            'username': member.user.username,
+            'full_name': member.user.get_full_name(),
+            'is_member': Profile.objects.filter(
+                organisation=id, id=member.id) and True or False,
+            'is_contributor': LiaisonsContributeurs.objects.filter(
+                profile=member, organisation__id=id, validated_on__isnull=False
+                ) and True or False,
+            'is_referent': LiaisonsReferents.objects.filter(
+                profile=member, organisation__id=id, validated_on__isnull=False
+                ) and True or False,
+            'datasets_count': len(Dataset.objects.filter(
+                organisation=id, editor=member.user)),
+            'profile_id': member.id
+            } for member in Profile.objects.filter(
+                functools.reduce(operator.or_, [
+                    Q(organisation=id),
+                    functools.reduce(operator.and_, [
+                        Q(liaisonscontributeurs__organisation=id),
+                        Q(liaisonscontributeurs__validated_on__isnull=False)]),
+                    functools.reduce(operator.and_, [
+                        Q(liaisonsreferents__organisation=id),
+                        Q(liaisonsreferents__validated_on__isnull=False)])])
+                ).distinct().order_by('user__username')]}
+
+    try:
+        data['logo'] = urljoin(settings.DOMAIN_NAME, instance.logo.url)
+    except ValueError:
+        pass
+
+    return JsonResponse(data=data, safe=False)
 
 
 @method_decorator(decorators, name='dispatch')
 class CreateOrganisation(View):
 
-    template = 'idgo_admin/editorganization.html'
-    namespace = 'idgo_admin:edit_organization'
+    template = 'idgo_admin/organization.html'
 
     @ExceptionsHandler(
         ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -170,7 +203,8 @@ class CreateOrganisation(View):
 
         try:
             organisation = Organisation.objects.create(**dict(
-                (item, form.cleaned_data[item]) for item in form.Meta.common_fields))
+                (item, form.cleaned_data[item])
+                for item in form.Meta.common_fields))
         except ValidationError as e:
             messages.error(request, str(e))
             return render_with_info_profile(
@@ -178,11 +212,12 @@ class CreateOrganisation(View):
 
         creation_process(request, profile)  # à revoir car cela ne fonctionne plus dans ce nouveau context
 
-        # TODO: Factoriser
         form.cleaned_data.get('rattachement_process', False) \
             and member_subscribe_process(request, profile, organisation)
+
         form.cleaned_data.get('contributor_process', False) \
             and contributor_subscribe_process(request, profile, organisation)
+
         form.cleaned_data.get('referent_process', False) \
             and referent_subscribe_process(request, profile, organisation)
 
@@ -192,13 +227,13 @@ class CreateOrganisation(View):
 
 
 @method_decorator(decorators, name='dispatch')
-class EditThisOrganisation(View):
-    template = 'idgo_admin/editorganization.html'
-    namespace = 'idgo_admin:edit_organization'
+class UpdateOrganisation(View):
+    template = 'idgo_admin/organization.html'
+    namespace = 'idgo_admin:update_organization'
 
     @ExceptionsHandler(
         ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, id):
+    def get(self, request, id=None):
         user, profile = user_and_profile(request)
 
         context = {
@@ -212,60 +247,43 @@ class EditThisOrganisation(View):
 
     @ExceptionsHandler(
         ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def post(self, request, id):
+    def post(self, request, id=None):
         user, profile = user_and_profile(request)
 
         instance = get_object_or_404(Organisation, id=id)
-
         form = Form(request.POST, request.FILES,
                     instance=instance, include={'user': user, 'id': id})
 
         if not form.is_valid():
-            raise Exception
+            return render_with_info_profile(
+                request, self.template, context={'id': id, 'form': form})
 
         for item in form.Meta.fields:
             setattr(instance, item, form.cleaned_data[item])
-        instance.save()
+        try:
+            with transaction.atomic():
+                instance.save()
+        except CkanSyncingError:
+            messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
+        except CkanTimeoutError:
+            messages.error(request, 'Impossible de joindre CKAN.')
+        else:
+            messages.success(
+                request, "L'organisation a été mise à jour avec succès.")
 
-        return render_with_info_profile(
-            request, self.template, context={'id': id, 'form': form})
+        if 'save' in request.POST:
+            return HttpResponseRedirect('{0}#{1}'.format(
+                reverse('idgo_admin:all_organizations'), instance.id))
 
-
-@method_decorator(decorators, name='dispatch')
-class AllOrganisations(View):
-
-    @ExceptionsHandler(
-        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, *args, **kwargs):
-        user, profile = user_and_profile(request)
-
-        organizations = [{
-            'pk': item.pk,
-            'name': item.name,
-            'rattachement': item == profile.organisation,
-            'contributeur':
-                item in Organisation.objects.filter(
-                    liaisonscontributeurs__profile=profile,
-                    liaisonscontributeurs__validated_on__isnull=False),
-            'subordinates':
-                profile.is_admin and True or item in Organisation.objects.filter(
-                    liaisonsreferents__profile=profile,
-                    liaisonscontributeurs__validated_on__isnull=False),
-            } for item in Organisation.objects.all()]
-
-        organizations.sort(key=operator.itemgetter('contributeur'), reverse=True)
-        organizations.sort(key=operator.itemgetter('subordinates'), reverse=True)
-        organizations.sort(key=operator.itemgetter('rattachement'), reverse=True)
-
-        return render_with_info_profile(
-            request, 'idgo_admin/all_organizations.html',
-            context={'organizations': organizations})
+        if 'continue' in request.POST:
+            return render_with_info_profile(
+                request, self.template, context={'id': id, 'form': form})
 
 
 @method_decorator(decorators, name='dispatch')
 class Subscription(View):
 
-    namespace = 'all_organizations'
+    namespace = 'idgo_admin:all_organizations'
 
     @ExceptionsHandler(
         ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -273,8 +291,7 @@ class Subscription(View):
 
         user, profile = user_and_profile(request)
 
-        organisation = get_object_or_404(
-            Organisation, id=request.GET.get('id'))
+        organisation = get_object_or_404(Organisation, id=request.GET.get('id'))
 
         actions = {
             'member': {
@@ -305,4 +322,4 @@ class Subscription(View):
             messages.success(request, message)
 
         return HttpResponseRedirect('{0}#{1}'.format(
-            reverse('idgo_admin:{0}'.format(self.namespace)), organisation.id))
+            reverse(self.namespace), organisation.id))
