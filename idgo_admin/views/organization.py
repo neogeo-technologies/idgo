@@ -231,7 +231,6 @@ class CreateOrganisation(View):
 @method_decorator(decorators, name='dispatch')
 class UpdateOrganisation(View):
     template = 'idgo_admin/organization.html'
-    namespace = 'idgo_admin:update_organization'
 
     @ExceptionsHandler(
         ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -273,13 +272,8 @@ class UpdateOrganisation(View):
             messages.success(
                 request, "L'organisation a été mise à jour avec succès.")
 
-        if 'save' in request.POST:
-            return HttpResponseRedirect('{0}#{1}'.format(
-                reverse('idgo_admin:all_organizations'), instance.id))
-
-        if 'continue' in request.POST:
-            return render_with_info_profile(
-                request, self.template, context={'id': id, 'form': form})
+        return HttpResponseRedirect('{0}#{1}'.format(
+            reverse('idgo_admin:all_organizations'), instance.id))
 
 
 @method_decorator(decorators, name='dispatch')

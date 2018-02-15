@@ -432,7 +432,7 @@ class SignUpForm(forms.Form):
             'jurisdiction',
             'license',
             'logo',
-            'name',
+            'new_orga',
             'organisation_type',
             'org_phone',
             'postcode',
@@ -591,23 +591,52 @@ class SignUpForm(forms.Form):
 
     # Extended fields
 
-    rattachement_process = forms.BooleanField(
-        initial=False,
-        label="Je souhaite être <strong>membre</strong> de l'organisation",
-        required=False)
-
     contributor_process = forms.BooleanField(
         initial=False,
-        label="Je souhaite être <strong>référent technique</strong> de l'organisation",
+        label="Je souhaite être <strong>contributeur</strong> de l'organisation",
         required=False)
 
     referent_process = forms.BooleanField(
         initial=False,
-        label="Je souhaite être <strong>contributeur</strong> de l'organisation",
+        label="Je souhaite être <strong>référent technique</strong> de l'organisation",
         required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def clean(self):
+        cleaned_data = super().clean()
+        cleaned_data['password'] = cleaned_data.pop('password1')
+        self.cleaned_data = cleaned_data
         return self.cleaned_data
+
+    @property
+    def rattachement_process(self):
+        return self.cleaned_data.get('organisation', False)
+
+    # @property
+    # def contributor_process(self):
+    #     return self.cleaned_data.get('contributor_process', False)
+
+    # @property
+    # def referent_process(self):
+    #     return self.cleaned_data.get('referent_process', False)
+
+    @property
+    def create_organisation(self):
+        return self.cleaned_data.get('new_orga', None)
+
+    @property
+    def cleaned_organisation_data(self):
+        return dict((item, self.cleaned_data[item])
+                    for item in self.Meta.organisation_fields)
+
+    @property
+    def cleaned_user_data(self):
+        return dict((item, self.cleaned_data[item])
+                    for item in self.Meta.user_fields)
+
+    @property
+    def cleaned_profile_data(self):
+        return dict((item, self.cleaned_data[item])
+                    for item in self.Meta.profile_fields)

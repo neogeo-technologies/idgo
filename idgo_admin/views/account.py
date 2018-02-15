@@ -587,7 +587,6 @@ class ReferentAccountManager(View):
 
 @method_decorator(decorators[0], name='dispatch')
 class SignUp(View):
-
     template = 'idgo_admin/signup.html'
 
     def get(self, request):
@@ -595,4 +594,35 @@ class SignUp(View):
 
     @transaction.atomic
     def post(self, request):
-        pass
+
+        form = SignUpForm(request.POST, request.FILES)
+
+        if not form.is_valid():
+            return render_with_info_profile(
+                request, self.template, context={'form': form})
+
+        if ckan.is_user_exists(form.cleaned_data['username']):
+            form.add_error('username', 'Cet identifiant de connexion est réservé.')
+            return self.render(request, self.template, {'form': form})
+
+        if form.create_organisation:
+            organisation = \
+                Organisation.objects.create(**form.cleaned_organisation_data)
+
+        user = User.objects.create_user(**form.cleaned_user_data)
+
+        profile = Profile.objects.create(
+            **{**{user: user}, **form.cleaned_profile_data})
+
+        # Créer l'utilisateur
+        # form.cleaned_user_data
+        # form.cleaned_profile_data
+
+        if form.rattachement_process:
+            pass
+
+        if form.contributor_process:
+            pass
+
+        if form.referent_process:
+            pass
