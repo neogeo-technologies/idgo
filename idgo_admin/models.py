@@ -1233,18 +1233,31 @@ class Dataset(models.Model):
 
         # user.profile: Relation inverse,
         # retourne une erreur si profile supprimé ou non défini.
-        profile = self.editor_profile
-        is_admin, is_referent = False, False
-        is_editor = (user == self.editor)
+        # profile = self.editor_profile
+        # is_admin, is_referent = False, False
+        # is_editor = (user == self.editor)
+        #
+        # # if profile:
+        # #     is_admin = profile.is_admin
+        # #     is_referent = LiaisonsReferents.objects.filter(
+        # #         profile=profile, organisation=self.organisation).exists()
+        # if is_editor:
+        #     ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+        #
+        # else:
+        #     ckan_user = ckan_me(ckan.apikey)
 
-        if profile:
-            is_admin = profile.is_admin
-            is_referent = LiaisonsReferents.objects.filter(
-                profile=profile, organisation=self.organisation).exists()
-        if is_admin and not is_referent and not is_editor:
-            ckan_user = ckan_me(ckan.apikey)
-        else:
+        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+        # de données existant mais administrateur de données,
+        # alors l'admin Ckan édite le jeu de données..
+        # is_admin = user.profile.is_admin
+        # is_referent = LiaisonsReferents.objects.filter(
+        #     profile=user.profile, organisation=self.organisation).exists()
+        is_editor = (user == self.editor)
+        if is_editor:
             ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+        else:
+            ckan_user = ckan_me(ckan.apikey)
 
         # Synchronisation de l'organisation
         organisation_ckan_id = str(self.organisation.ckan_id)

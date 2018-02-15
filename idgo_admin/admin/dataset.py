@@ -76,4 +76,8 @@ class DatasetAdmin(admin.ModelAdmin):
     name_editor.short_description = "Producteur (propriétaire)"
 
 
+    # def save(self, *args, **kwargs):
+    #     import ipdb; ipdb.set_trace()
+    #     super().save(*args, **kwargs)
+
 admin.site.register(Dataset, DatasetAdmin)
