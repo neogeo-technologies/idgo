@@ -108,7 +108,7 @@ def all_organisations(request, *args, **kwargs):
             profile.is_admin and True or item in Organisation.objects.filter(
                 liaisonsreferents__profile=profile,
                 liaisonscontributeurs__validated_on__isnull=False),
-        } for item in Organisation.objects.all()]
+        } for item in Organisation.objects.filter(is_active=True)]
 
     organizations.sort(key=operator.itemgetter('contributeur'), reverse=True)
     organizations.sort(key=operator.itemgetter('subordinates'), reverse=True)
