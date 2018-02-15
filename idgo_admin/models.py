@@ -94,8 +94,7 @@ class Resource(models.Model):
         ('daily', 'Quotidienne'),
         ('weekly', 'Hebdomadaire'),
         ('monthly', 'Mensuelle'),
-        ('quarterly', 'Trimestrielle'),
-        ('customized', 'Période à déterminer'))
+        ('quarterly', 'Trimestrielle'))
 
     LANG_CHOICES = (
         ('french', 'Français'),
@@ -186,10 +185,6 @@ class Resource(models.Model):
         max_length=20,
         choices=FREQUENCY_CHOICES,
         default='never')
-
-    custom_frequency = models.PositiveIntegerField(
-        "Nombre de jours entre chaque synchronisations",
-        default=0, blank=True, null=True)
 
     class Meta(object):
         verbose_name = 'Ressource'

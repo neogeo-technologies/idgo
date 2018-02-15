@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.forms.models import BaseInlineFormSet
+from django.forms import ValidationError
+
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
@@ -26,7 +29,7 @@ class ResourceInlineFormset(BaseInlineFormSet):
             frequency_not_set = form.cleaned_data.get('sync_frequency') == 'never'
             if is_sync_requested and frequency_not_set:
                 raise ValidationError(
-                    'Une période de synchronisation est nécessaire si vous choisissez de sychrniser les données distantes')
+                    'Une période de synchronisation est nécessaire si vous choisissez de sychroniser les données distantes')
 
 
 class ResourceInline(admin.StackedInline):
@@ -55,7 +58,7 @@ class ResourceInline(admin.StackedInline):
 
 class DatasetAdmin(admin.ModelAdmin):
 
-    list_display = ('name', 'nb_resources', )
+    list_display = ('name', 'name_editor', 'nb_resources', )
     inlines = (ResourceInline, )
     ordering = ('name', )
     can_add_related = True
@@ -65,6 +68,12 @@ class DatasetAdmin(admin.ModelAdmin):
     def nb_resources(self, obj):
         return Resource.objects.filter(dataset=obj).count()
     nb_resources.short_description = "Nombre de ressources"
+
+    def name_editor(self, obj):
+        first_name = obj.editor.first_name
+        last_name = obj.editor.last_name
+        return "{} {}".format(first_name, last_name.upper())
+    name_editor.short_description = "Producteur (propriétaire)"
 
 
 admin.site.register(Dataset, DatasetAdmin)
