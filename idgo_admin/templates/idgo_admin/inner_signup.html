@@ -9,31 +9,31 @@
 			{% csrf_token %}
 			<div class="row">
 				<div class="col-xs-12 col-sm-6">
-					{% bootstrap_field uform.first_name show_label=False %}
+					{% bootstrap_field form.first_name show_label=False %}
 				</div>
 				<div class="col-xs-12 col-sm-6">
-					{% bootstrap_field uform.last_name show_label=False %}
+					{% bootstrap_field form.last_name show_label=False %}
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-xs-12 col-sm-4">
-					{% bootstrap_field uform.username show_label=False %}
+					{% bootstrap_field form.username show_label=False %}
 				</div>
 				<div class="col-xs-12 col-sm-8">
-					{% bootstrap_field uform.email show_label=False %}
+					{% bootstrap_field form.email show_label=False %}
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-xs-3">
-					{% bootstrap_field pform.phone show_label=False %}
+					{% bootstrap_field form.phone show_label=False %}
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-xs-12 col-sm-6">
-					{% bootstrap_field uform.password1 show_label=False %}
+					{% bootstrap_field form.password1 show_label=False %}
 				</div>
 				<div class="col-xs-12 col-sm-6">
-					{% bootstrap_field uform.password2 show_label=False %}
+					{% bootstrap_field form.password2 show_label=False %}
 				</div>
 			</div>
 			<hr />
@@ -41,7 +41,7 @@
 				<p>Sélectionnez dans la liste ci-dessous votre organisation</p>
 				<div class="row">
 					<div class="col-sm-9">
-						{% bootstrap_field pform.organisation show_label=False %}
+						{% bootstrap_field form.organisation show_label=False %}
 					</div>
 				</div>
 				<p>Si celle-ci n'est pas dans la liste, vous pouvez <a name="open" type="button">indiquer une nouvelle organisation</a>. </p>
@@ -57,51 +57,51 @@
 					<br />
 					<div class="row">
 						<div class="col-sm-8">
-							{% bootstrap_field pform.new_orga show_label=False %}
+							{% bootstrap_field form.new_orga show_label=False %}
 						</div>
 					</div>
 					<div class="row">
 						<div class="col-sm-12">
-							{% bootstrap_field pform.logo %}
+							{% bootstrap_field form.logo %}
 						</div>
 					</div>
 					<div class="row">
 						<div class="col-sm-5">
-							{% bootstrap_field pform.address show_label=False %}
+							{% bootstrap_field form.address show_label=False %}
 						</div>
 						<div class="col-sm-3">
-							{% bootstrap_field pform.postcode show_label=False %}
+							{% bootstrap_field form.postcode show_label=False %}
 						</div>
 						<div class="col-sm-4">
-							{% bootstrap_field pform.city show_label=False %}
+							{% bootstrap_field form.city show_label=False %}
 						</div>
 					</div>
 					<div class="row">
 						<div class="col-sm-3">
-							{% bootstrap_field pform.org_phone show_label=False %}
+							{% bootstrap_field form.org_phone show_label=False %}
 						</div>
 						<div class="col-sm-6">
-							{% bootstrap_field pform.website show_label=False %}
+							{% bootstrap_field form.website show_label=False %}
 						</div>
 					</div>
 					<div class="row">
 						<div class="col-sm-12">
-							{% bootstrap_field pform.description show_label=False %}
+							{% bootstrap_field form.description show_label=False %}
 						</div>
 					</div>
 					<div class="row">
 						<div class="col-sm-6">
-							{% bootstrap_field pform.jurisdiction %}
+							{% bootstrap_field form.jurisdiction %}
 						</div>
 					</div>
 					<div class="row">
 						<div class="col-sm-6">
-							{% bootstrap_field pform.organisation_type %}
+							{% bootstrap_field form.organisation_type %}
 						</div>
 					</div>
 					<div class="row">
 						<div class="col-sm-6">
-							{% bootstrap_field pform.license %}
+							{% bootstrap_field form.license %}
 						</div>
 					</div>
 					<div class="buttons-on-the-right-side">
@@ -110,8 +110,8 @@
 				</div>
 			</div>
 			<div>
-				{% bootstrap_field pform.contribution_requested show_label=False %}
-				{% bootstrap_field pform.referent_requested show_label=False %}
+				{% bootstrap_field form.contributor_process show_label=False %}
+				{% bootstrap_field form.referent_process show_label=False %}
 			</div>
 			<br />
 			<div class="buttons-on-the-right-side">
@@ -152,14 +152,14 @@ $(function() {
 	};
 	{% endif %}
 
-	const $inputContribution = $('input[name="{{ pform.contribution_requested.name }}"]');
-	const $inputReferent = $('input[name="{{ pform.referent_requested.name }}"]').change(function() {
+	const $inputContribution = $('input[name="{{ form.contributor_process.name }}"]');
+	const $inputReferent = $('input[name="{{ form.referent_process.name }}"]').change(function() {
 		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
 	});
 
 	const toggleInputVisibility = function() {
 		let selected = parseInt($selectOrganization.val());
-		let value = {{ pform.organisation.value | yesno:'true,false,NaN' }};
+		let value = {{ form.organisation.value | yesno:'true,false,NaN' }};
 
 		selected = isNaN(selected) ? null : selected;
 		value = isNaN(value) ? null : value;
@@ -204,7 +204,7 @@ $(function() {
 	const $collapseTwo = $('#collapse-two').collapse({toggle: false})
 		.on('hide.bs.collapse', function() {
 			$inputReferent.prop('checked', false).trigger('change');
-			$selectOrganization.find('option[value="{{ pform.organisation.value | yesno:"true,false,NaN" }}"]').prop('selected', true);
+			$selectOrganization.find('option[value="{{ form.organisation.value | yesno:"true,false,NaN" }}"]').prop('selected', true);
 			$('#collapse-two input').each(function(i) {
 				$(this).val('');
 			});
@@ -221,6 +221,6 @@ $(function() {
 	$collapseOne.find('[name="open"]').click(toggleCollpase);
 	$collapseTwo.find('[name="close"]').click(toggleCollpase);
 
-	{% if pform.new_orga.value %} toggleCollpase(); {% endif %}
+	{% if form.new_orga.value %} toggleCollpase(); {% endif %}
 });
 </script>

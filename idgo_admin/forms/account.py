@@ -4,6 +4,7 @@ from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core import validators
 from django import forms
 from django.utils.text import slugify
 from idgo_admin.forms import common_fields
@@ -407,19 +408,205 @@ class DeleteAdminForm(forms.Form):
         deleted_user.delete()
 
 
-class SignUpForm(forms.ModelForm):
-
-    username = common_fields.USERNAME
-    password = common_fields.PASSWORD1
+class SignUpForm(forms.Form):
 
     class Meta(object):
-        model = User
-        fields = (
-            'first_name', 'last_name', 'email', 'username'
-            )
+
+        user_fields = (
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'password1',
+            'password2')
+
+        profile_fields = (
+            'phone',
+            'organisation')
+
+        organisation_fields = (
+            'address',
+            'city',
+            'description',
+            'email',
+            'jurisdiction',
+            'license',
+            'logo',
+            'name',
+            'organisation_type',
+            'org_phone',
+            'postcode',
+            'website')
+
+        extended_fields = (
+            'contributor_process',
+            'referent_process')
+
+        fields = user_fields + profile_fields + organisation_fields + extended_fields
+
+    # User fields
+
+    username = forms.CharField(
+        error_messages={'invalid': ('Seuls les caractères alpha-numériques '
+                                    'et le caractère « _ » sont autorisés.')},
+        label="Nom d'utilisateur",
+        max_length=255,
+        min_length=3,
+        validators=[validators.validate_slug],
+        widget=forms.TextInput(
+            attrs={'placeholder': "Nom d'utilisateur"}))
+
+    first_name = forms.CharField(
+        error_messages={'invalid': 'invalid'},
+        label='Prénom',
+        max_length=30,
+        min_length=1,
+        widget=forms.TextInput(
+            attrs={'placeholder': 'Prénom'}))
+
+    last_name = forms.CharField(
+        label='Nom',
+        max_length=30,
+        min_length=1,
+        widget=forms.TextInput(
+            attrs={'placeholder': 'Nom'}))
+
+    email = forms.EmailField(
+        error_messages={'invalid': "L'adresse e-mail est invalide."},
+        label='Adresse e-mail',
+        validators=[validators.validate_email],
+        widget=forms.EmailInput(
+            attrs={'placeholder': 'Adresse e-mail'}))
+
+    password1 = forms.CharField(
+        label='Mot de passe',
+        max_length=150,
+        min_length=6,
+        widget=forms.PasswordInput(
+            attrs={'placeholder': 'Mot de passe'}))
+
+    password2 = forms.CharField(
+        label='Confirmer le mot de passe',
+        max_length=150,
+        min_length=6,
+        widget=forms.PasswordInput(
+            attrs={'placeholder': 'Confirmer le mot de passe'}))
+
+    # Profile fields
+
+    phone = forms.CharField(
+        error_messages={'invalid': 'Le numéro est invalide.'},
+        required=False,
+        label='Téléphone',
+        max_length=30,
+        min_length=10,
+        widget=forms.TextInput(
+            attrs={'placeholder': 'Téléphone', 'class': 'phone'}))
+
+    organisation = forms.ModelChoiceField(
+        required=False,
+        label='Organisation',
+        queryset=Organisation.objects.filter(is_active=True),
+        empty_label="Je ne suis rattaché à aucune organisation")
+
+    # Organisation fields
+
+    new_orga = forms.CharField(
+        error_messages={"Nom de l'organisation invalide": 'invalid'},
+        label="Nom de l'organisation",
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisation"}))
+
+    logo = forms.ImageField(
+        label="Logo de l'organisation",
+        required=False)
+
+    address = forms.CharField(
+        label='Adresse',
+        required=False,
+        widget=forms.Textarea(
+            attrs={'placeholder': 'Numéro de voirie et rue', 'rows': 2}))
+
+    city = forms.CharField(
+        label='Ville',
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(
+            attrs={'placeholder': 'Ville'}))
+
+    postcode = forms.CharField(
+        label='Code postal',
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(
+            attrs={'placeholder': 'Code postal'}))
+
+    org_phone = forms.CharField(
+        error_messages={'invalid': 'Le numéro est invalide.'},
+        required=False,
+        label='Téléphone',
+        max_length=30,
+        min_length=10,
+        widget=forms.TextInput(
+            attrs={'placeholder': 'Téléphone', 'class': 'phone'}))
+
+    email = forms.EmailField(
+        error_messages={'invalid': "L'adresse e-mail est invalide."},
+        label='Adresse e-mail',
+        validators=[validators.validate_email],
+        required=False,
+        widget=forms.EmailInput(
+            attrs={'placeholder': 'Adresse e-mail'}))
+
+    website = forms.URLField(
+        error_messages={'invalid': "L'adresse URL est erronée. "},
+        label="URL du site internet de l'organisation",
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Site internet'}))
+
+    description = forms.CharField(
+        required=False,
+        label='Description',
+        widget=forms.Textarea(
+            attrs={'placeholder': 'Description'}))
+
+    jurisdiction = forms.ModelChoiceField(
+        empty_label='Aucun',
+        label='Territoire de compétence',
+        queryset=Jurisdiction.objects.all(),
+        required=False)
+
+    organisation_type = forms.ModelChoiceField(
+        empty_label="Sélectionnez un type d'organisation",
+        label="Type d'organisation",
+        queryset=OrganisationType.objects.all(),
+        required=False)
+
+    license = forms.ModelChoiceField(
+        empty_label="Sélectionnez une licence par défaut",
+        label='Licence par défaut pour tout nouveau jeu de données',
+        queryset=License.objects.all(),
+        required=False)
+
+    # Extended fields
+
+    rattachement_process = forms.BooleanField(
+        initial=False,
+        label="Je souhaite être <strong>membre</strong> de l'organisation",
+        required=False)
+
+    contributor_process = forms.BooleanField(
+        initial=False,
+        label="Je souhaite être <strong>référent technique</strong> de l'organisation",
+        required=False)
+
+    referent_process = forms.BooleanField(
+        initial=False,
+        label="Je souhaite être <strong>contributeur</strong> de l'organisation",
+        required=False)
 
     def __init__(self, *args, **kwargs):
-        self.include_args = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
 
     def clean(self):

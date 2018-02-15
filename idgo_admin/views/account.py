@@ -591,7 +591,6 @@ class SignUp(View):
     template = 'idgo_admin/signup.html'
 
     def get(self, request):
-        print(0)
         return render(request, self.template, {'form': SignUpForm()})
 
     @transaction.atomic
