@@ -17,15 +17,28 @@ class ResourceFormatsAdmin(admin.ModelAdmin):
 admin.site.register(ResourceFormats, ResourceFormatsAdmin)
 
 
+class ResourceInlineFormset(BaseInlineFormSet):
+
+    def clean(self, *args, **kwargs):
+        super().clean(*args, **kwargs)
+        for form in self.forms:
+            is_sync_requested = form.cleaned_data.get('synchronisation')
+            frequency_not_set = form.cleaned_data.get('sync_frequency') == 'never'
+            if is_sync_requested and frequency_not_set:
+                raise ValidationError(
+                    'Une période de synchronisation est nécessaire si vous choisissez de sychrniser les données distantes')
+
+
 class ResourceInline(admin.StackedInline):
     model = Resource
+    formset = ResourceInlineFormset
     extra = 0
     can_delete = True
 
     fieldsets = (
         ('Synchronisation distante', {
             'classes': ('collapse',),
-            'fields': ('synchronisation', 'sync_frequency', 'custom_frequency', ),
+            'fields': ('synchronisation', 'sync_frequency', ),
             }),
         (None, {
             'classes': ('wide', ),
