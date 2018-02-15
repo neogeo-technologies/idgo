@@ -37,16 +37,18 @@ CKAN_URL = settings.CKAN_URL
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
-def creation_process(request, profile, mail=True):
+def creation_process(request, profile, organisation, mail=True):
     action = AccountActions.objects.create(
-        action='confirm_new_organisation', profile=profile)
+        action='confirm_new_organisation',
+        organisation=organisation,
+        profile=profile)
     mail and Mail.confirm_new_organisation(request, action)
 
 
 def member_subscribe_process(request, profile, organisation, mail=True):
     action = AccountActions.objects.create(
         action='confirm_rattachement',
-        org_extras=organisation, profile=profile)
+        organisation=organisation, profile=profile)
     mail and Mail.confirm_updating_rattachement(request, action)
 
 
@@ -62,7 +64,7 @@ def contributor_subscribe_process(request, profile, organisation, mail=True):
         profile=profile, organisation=organisation)
     action = AccountActions.objects.create(
         action='confirm_contribution',
-        org_extras=organisation, profile=profile)
+        organisation=organisation, profile=profile)
     mail and Mail.confirm_contribution(request, action)
 
 
@@ -80,7 +82,7 @@ def referent_subscribe_process(request, profile, organisation, mail=True):
         organisation=organisation, profile=profile, validated_on=None)
     action = AccountActions.objects.create(
         action='confirm_referent',
-        org_extras=organisation, profile=profile)
+        organisation=organisation, profile=profile)
     mail and Mail.confirm_referent(request, action)
 
 
@@ -210,7 +212,7 @@ class CreateOrganisation(View):
             return render_with_info_profile(
                 request, self.template, context={'form': form})
 
-        creation_process(request, profile)  # à revoir car cela ne fonctionne plus dans ce nouveau context
+        creation_process(request, profile, organisation)  # à revoir car cela ne fonctionne plus dans ce nouveau context
 
         form.cleaned_data.get('rattachement_process', False) \
             and member_subscribe_process(request, profile, organisation)

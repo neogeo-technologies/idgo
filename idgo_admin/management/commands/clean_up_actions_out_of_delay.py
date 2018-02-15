@@ -44,16 +44,16 @@ class Command(BaseCommand):
 
             if act.action == 'confirm_contribution':
                 liaison = LiaisonsContributeurs.objects.get(
-                    profile=act.profile, organisation=act.org_extras)
+                    profile=act.profile, organisation=act.organisation)
                 print("clean_up_action contribution: {0}-{1}".format(
-                    pro_name, act.org_extras.name))
+                    pro_name, act.organisation.name))
                 liaison.delete()
 
             if act.action == 'confirm_referent':
                 liaison = LiaisonsReferents.objects.get(
-                    profile=act.profile, organisation=act.org_extras)
+                    profile=act.profile, organisation=act.organisation)
                 print("clean_up_action referent: {0}-{1}".format(
-                    pro_name, act.org_extras.name))
+                    pro_name, act.organisation.name))
                 liaison.delete()
 
             if act.action == 'reset_password':

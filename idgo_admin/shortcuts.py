@@ -40,8 +40,8 @@ def render_with_info_profile(
     except Exception:
         awaiting_rattachement = []
     else:
-        awaiting_rattachement = action.org_extras \
-            and [action.org_extras.id, action.org_extras.name]
+        awaiting_rattachement = action.organisation \
+            and [action.organisation.id, action.organisation.name]
 
     contributions = \
         [[c.id, c.name] for c

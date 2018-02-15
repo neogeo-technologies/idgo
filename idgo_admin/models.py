@@ -499,7 +499,7 @@ class AccountActions(models.Model):
         to='Profile', on_delete=models.CASCADE, blank=True, null=True)
 
     # Pour pouvoir reutiliser AccountActions pour demandes post-inscription
-    org_extras = models.ForeignKey(
+    organisation = models.ForeignKey(
         to='Organisation', on_delete=models.CASCADE, blank=True, null=True)
 
     key = models.UUIDField(default=uuid.uuid4, editable=False)
@@ -519,8 +519,8 @@ class AccountActions(models.Model):
         disp = str('N/A')
         if self.action in ('confirm_new_organisation', ) and self.profile:
             disp = str(self.profile.organisation.name)
-        if self.action in ('confirm_rattachement', 'confirm_referent', 'confirm_contribution') and self.org_extras:
-            disp = str(self.org_extras.name)
+        if self.action in ('confirm_rattachement', 'confirm_referent', 'confirm_contribution') and self.organisation:
+            disp = str(self.organisation.name)
         return disp
     orga_name.short_description = "Nom de l'organsiation concernée"
 
@@ -670,7 +670,7 @@ Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
         suite à une inscription.
         """
         user = action.profile.user
-        organisation = action.profile.organisation  # ???
+        organisation = action.organisation
         website = organisation.website or '- adresse url manquante -'
         mail_template = \
             Mail.objects.get(template_name='confirm_new_organisation')
@@ -721,7 +721,7 @@ Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
     def confirm_updating_rattachement(cls, request, action):
 
         user = action.profile.user
-        organisation = action.org_extras
+        organisation = action.organisation
         website = organisation.website or '- adresse url manquante -'
         mail_template = \
             Mail.objects.get(template_name="confirm_updating_rattachement")
@@ -746,7 +746,7 @@ Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
     @classmethod
     def confirm_referent(cls, request, action):
         user = action.profile.user
-        organisation = action.org_extras
+        organisation = action.organisation
         website = organisation.website or '- adresse url manquante -'
         mail_template = \
             Mail.objects.get(template_name="confirm_referent")
@@ -772,7 +772,7 @@ Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
     def confirm_contribution(cls, request, action):
 
         user = action.profile.user
-        organisation = action.org_extras
+        organisation = action.organisation
         website = organisation.website or '- adresse url manquante -'
         mail_template = \
             Mail.objects.get(template_name="confirm_contribution")
@@ -812,7 +812,7 @@ Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
     @classmethod
     def confirm_contrib_to_user(cls, action):
 
-        organisation = action.org_extras
+        organisation = action.organisation
         user = action.profile.user
 
         mail_template = \

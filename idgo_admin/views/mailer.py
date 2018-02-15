@@ -38,7 +38,9 @@ def confirmation_mail(request, key):
         # Demande de création d'une nouvelle organisation
         if not organisation.is_active:
             new_organisation_action = AccountActions.objects.get(
-                profile=profile, action='confirm_new_organisation')
+                action='confirm_new_organisation',
+                organisation=organisation,
+                profile=profile)
             Mail.confirm_new_organisation(request, new_organisation_action)
 
         # Demande de rattachement (Profile-Organisation)
@@ -55,7 +57,7 @@ def confirmation_mail(request, key):
         else:
             referent_action = AccountActions.objects.create(
                 profile=profile, action='confirm_referent',
-                org_extras=organisation)
+                organisation=organisation)
             Mail.confirm_referent(request, referent_action)
 
         # Demande de rôle de contributeur
@@ -67,7 +69,7 @@ def confirmation_mail(request, key):
         else:
             contribution_action = AccountActions.objects.create(
                 profile=profile, action='confirm_contribution',
-                org_extras=organisation)
+                organisation=organisation)
             Mail.confirm_contribution(request, contribution_action)
 
     Mail.confirmation_user_mail(user)
@@ -96,14 +98,14 @@ def confirm_new_orga(request, key):
     action = get_object_or_404(
         AccountActions, key=UUID(key), action='confirm_new_organisation')
 
-    name = action.profile.organisation.name
+    name = action.organisation.name
     if action.closed:
         message = \
             "La création de l'organisation <strong>{0}</strong> a déjà été confirmée.".format(name)
 
     else:
-        action.profile.organisation.is_active = True
-        action.profile.organisation.save()
+        action.organisation.is_active = True
+        action.organisation.save()
         # ckan.add_organization(action.profile.organisation)  # TODO À la création du premier dataset
         action.closed = timezone.now()
         action.save()
@@ -125,7 +127,7 @@ def confirm_rattachement(request, key):
     if action.closed:
         action.profile.membership = True
         action.profile.save()
-        name = action.org_extras.name
+        name = action.organisation.name
         user = action.profile.user
         message = (
             "Le rattachement de <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) "
@@ -135,9 +137,9 @@ def confirm_rattachement(request, key):
                      username=user.username,
                      organization_name=name)
     else:
-        name = action.org_extras.name
+        name = action.organisation.name
         user = action.profile.user
-        if not action.org_extras.is_active:
+        if not action.organisation.is_active:
             message = (
                 '<span class="text-is-red">Le rattachement de '
                 '<strong>{first_name} {last_name}</strong> '
@@ -153,7 +155,7 @@ def confirm_rattachement(request, key):
 
         else:
             action.profile.membership = True
-            action.profile.organisation = action.org_extras
+            action.profile.organisation = action.organisation
             action.profile.save()
             action.closed = timezone.now()
             action.save()
@@ -176,7 +178,7 @@ def confirm_referent(request, key):
     action = get_object_or_404(
         AccountActions, key=UUID(key), action='confirm_referent')
 
-    organisation = action.org_extras
+    organisation = action.organisation
     user = action.profile.user
     if action.closed:
         status = 200
@@ -239,7 +241,7 @@ def confirm_contribution(request, key):
 
     action = get_object_or_404(
         AccountActions, key=UUID(key), action='confirm_contribution')
-    organisation = action.org_extras
+    organisation = action.organisation
 
     if action.closed:
         message = (

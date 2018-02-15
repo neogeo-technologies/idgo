@@ -192,10 +192,12 @@ class AccountManager(View):
                                                       action="confirm_mail")
         Mail.validation_user_mail(request, signup_action)
 
-    def new_org_process(self, request, profile, process):
+    def new_org_process(self, request, profile, process, organisation):
         # Ajout clé uuid et envoi mail aux admin pour confirmations de création
         new_organisation_action = AccountActions.objects.create(
-            profile=profile, action='confirm_new_organisation')
+            action='confirm_new_organisation',
+            organisation=organisation,
+            profile=profile)
         if process in ("update", "update_organization"):
             Mail.confirm_new_organisation(request, new_organisation_action)
 
@@ -203,7 +205,7 @@ class AccountManager(View):
         # Demande de rattachement à l'organisation
         rattachement_action = AccountActions.objects.create(
             profile=profile, action='confirm_rattachement',
-            org_extras=organisation)
+            organisation=organisation)
         if process in ("update", "update_organization"):
             Mail.confirm_updating_rattachement(request, rattachement_action)
 
@@ -213,7 +215,7 @@ class AccountManager(View):
         if process in ("update", "update_organization"):
             referent_action = AccountActions.objects.create(
                 profile=profile, action='confirm_referent',
-                org_extras=organisation)
+                organisation=organisation)
             Mail.confirm_referent(request, referent_action)
         # Un referent est obligatoirement un contributeur
         self.contributor_process(request, profile, organisation, process, send_mail=False)
@@ -224,7 +226,7 @@ class AccountManager(View):
         if process in ("update", "update_organization") and send_mail:
             contribution_action = AccountActions.objects.create(
                 profile=profile, action='confirm_contribution',
-                org_extras=organisation)
+                organisation=organisation)
             Mail.confirm_contribution(request, contribution_action)
 
     def contextual_response(self, request, process):
@@ -349,7 +351,7 @@ class AccountManager(View):
 
         else:
             if org_created:
-                self.new_org_process(request, profile, process)
+                self.new_org_process(request, profile, process, organisation)
             if pform.cleaned_data['mode'] in ['change_organization', 'require_new_organization']:
                 self.rattachement_process(request, profile, organisation, process)
                 if pform.cleaned_data.get('referent_requested'):
