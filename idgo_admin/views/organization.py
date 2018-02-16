@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.db import transaction
+# from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
@@ -239,6 +239,7 @@ class UpdateOrganisation(View):
 
         context = {
             'id': id,
+            'update': True,
             'form': Form(
                 instance=get_object_or_404(Organisation, id=id),
                 include={'user': user, 'id': id})}
@@ -262,8 +263,7 @@ class UpdateOrganisation(View):
         for item in form.Meta.fields:
             setattr(instance, item, form.cleaned_data[item])
         try:
-            with transaction.atomic():
-                instance.save()
+            instance.save()
         except CkanSyncingError:
             messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
         except CkanTimeoutError:
@@ -271,6 +271,15 @@ class UpdateOrganisation(View):
         else:
             messages.success(
                 request, "L'organisation a été mise à jour avec succès.")
+
+        if 'continue' in request.POST:
+            context = {
+                'id': id,
+                'update': True,
+                'form': Form(
+                    instance=instance, include={'user': user, 'id': id})}
+            return render_with_info_profile(
+                request, self.template, context=context)
 
         return HttpResponseRedirect('{0}#{1}'.format(
             reverse('idgo_admin:all_organizations'), instance.id))

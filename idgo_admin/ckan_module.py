@@ -233,12 +233,12 @@ class CkanManagerHandler(metaclass=Singleton):
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
     def get_organization(self, id, **kwargs):
         try:
-            return self.call_action('organization_show', id=str(id), **kwargs)
+            return self.call_action('organization_show', id=id, **kwargs)
         except CkanError.NotFound:
             return None
 
-    def is_organization_exists(self, organization_id):
-        return self.get_organization(str(organization_id)) and True or False
+    def is_organization_exists(self, id):
+        return self.get_organization(id) and True or False
 
     @CkanExceptionsHandler(ignore=[ValueError])
     def add_organization(self, organization):
@@ -257,8 +257,8 @@ class CkanManagerHandler(metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def update_organization(self, organization):
-        ckan_organization = \
-            self.get_organization(str(organization.ckan_id), include_datasets=True)
+        ckan_organization = self.get_organization(
+            str(organization.ckan_id), include_datasets=True)
 
         ckan_organization.update({
             'title': organization.name,

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import F
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
@@ -479,7 +480,6 @@ def all_datasets(request, *args, **kwargs):
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def export(request, *args, **kwargs):
-    from django.db.models import F
     user, profile = user_and_profile(request)
 
     if profile.get_roles()["is_referent"] and request.GET.get('mode') == 'all':

@@ -1326,7 +1326,11 @@ def pre_delete_contribution(sender, instance, **kwargs):
 @receiver(pre_save, sender=Organisation)
 def pre_save_organisation(sender, instance, **kwargs):
     instance.ckan_slug = slugify(instance.name)
-    if instance.pk and ckan.is_organization_exists(instance.ckan_id):
+
+
+@receiver(post_save, sender=Organisation)
+def post_save_organisation(sender, instance, **kwargs):
+    if ckan.is_organization_exists(str(instance.ckan_id)):
         ckan.update_organization(instance)
 
 
