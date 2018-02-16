@@ -1135,6 +1135,10 @@ class Dataset(models.Model):
             profile=profile, organisation=self.organisation,
             validated_on__isnull=False).exists()
 
+    def clean(self):
+        if ckan_me(ckan.apikey).is_package_exists(slugify(self.name)):
+            raise ValidationError('Cette URL est déjà utilisée.')
+
     def save(self, *args, **kwargs):
 
         self._current_editor = 'editor' in kwargs \
@@ -1277,11 +1281,11 @@ def post_save_dataset(sender, instance, **kwargs):
         ckan.add_user_to_organization(
             profile.user.username, organisation_ckan_id)
 
-    ckan_dataset = ckan_user.publish_dataset(id=str(instance.ckan_id), **ckan_params)
-    ckan_user.close()
+    ckan_dataset = \
+        ckan_user.publish_dataset(id=str(instance.ckan_id), **ckan_params)
+    instance.ckan_id = uuid.UUID(ckan_dataset['id'])
 
-    ckan_id = uuid.UUID(ckan_dataset['id'])
-    Dataset.objects.filter(id=instance.id).update(ckan_id=ckan_id)
+    ckan_user.close()
 
 
 @receiver(pre_delete, sender=Dataset)

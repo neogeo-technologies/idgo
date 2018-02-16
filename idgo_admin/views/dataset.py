@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db.models import F
 from django.db import transaction
 from django.http import Http404
@@ -154,6 +155,8 @@ class DatasetManager(View):
             try:
                 with transaction.atomic():
                     form.handle_me(request, id=id)
+            except ValidationError as e:
+                messages.error(request, str(e))
             except CkanSyncingError:
                 messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
             except CkanTimeoutError:
@@ -174,21 +177,27 @@ class DatasetManager(View):
             context.update({'form': form})
             return render_with_info_profile(request, self.template, context)
 
-        with transaction.atomic():
+        try:
             instance = form.handle_me(request)
+        except CkanSyncingError:
+            messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
+        except CkanTimeoutError:
+            messages.error(request, 'Impossible de joindre CKAN.')
+        else:
+            messages.success(request, (
+                'Le jeu de données a été créé avec succès. Souhaitez-vous '
+                '<a href="{0}">créer un nouveau jeu de données</a> ? ou '
+                '<a href="{1}">ajouter une ressource</a> ? ou bien '
+                '<a href="{2}/dataset/{3}" target="_blank">voir le jeu de données '
+                'dans CKAN</a> ?'
+                ).format(reverse(self.namespace),
+                         reverse(self.namespace_resource,
+                                 kwargs={'dataset_id': instance.id}),
+                         CKAN_URL, instance.ckan_slug))
+            return http_redirect(instance)
 
-        messages.success(request, (
-            'Le jeu de données a été créé avec succès. Souhaitez-vous '
-            '<a href="{0}">créer un nouveau jeu de données</a> ? ou '
-            '<a href="{1}">ajouter une ressource</a> ? ou bien '
-            '<a href="{2}/dataset/{3}" target="_blank">voir le jeu de données '
-            'dans CKAN</a> ?'
-            ).format(reverse(self.namespace),
-                     reverse(self.namespace_resource,
-                             kwargs={'dataset_id': instance.id}),
-                     CKAN_URL, instance.ckan_slug))
-
-        return http_redirect(instance)
+        context.update({'form': form})
+        return render_with_info_profile(request, self.template, context)
 
     @ExceptionsHandler(ignore=[Http404, CkanSyncingError],
                        actions={ProfileHttp404: on_profile_http404})
