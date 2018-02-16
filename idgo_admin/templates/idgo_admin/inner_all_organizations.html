@@ -466,11 +466,15 @@ $(function() {
 			openModalChangeStatus('{% url "idgo_admin:subscription" status="referent" subscription="subscribe" %}', ORGANIZATION_ID);
 		});
 
+		const addUpdateButton = function(href) {
+			$('#organization_well').prepend('<div class="floating-buttons-on-the-right-side"><a href="' + href + '" name="edit" type="button" class="btn btn-default">Editer l\'organisation</a></div>');
+		};
+
 		{% if not is_admin %}
 		const buttonReferentStatus = function() {
 			{% for item in subordinates %}
 			if (data['id'] == {{ item.0 }}) {
-				$('#organization_well .tab-pane#info').prepend('<div class="buttons-on-the-right-side"><a href="{% url "idgo_admin:update_organization" id=item.0 %}" name="edit" type="button" class="btn btn-default">Editer l\'organisation</a></div>');
+				addUpdateButton('{% url "idgo_admin:update_organization" id=item.0 %}');
 				$switchReferent.off('click').on('click', function(e) {
 					openModalChangeStatus('{% url "idgo_admin:subscription" status="referent" subscription="unsubscribe" %}', ORGANIZATION_ID);
 				}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être référent technique');
@@ -490,7 +494,7 @@ $(function() {
 		{% if is_admin %}
 			{% for item in subordinates %}
 			if (data['id'] == {{ item.0 }}) {
-				$('#organization_well').prepend('<div class="floating-buttons-on-the-right-side"><a href="{% url "idgo_admin:update_organization" id=item.0 %}" name="edit" type="button" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Editer l\'organisation</a></div>');			};
+				addUpdateButton('{% url "idgo_admin:update_organization" id=item.0 %}');
 			{% endfor %}
 		{% endif %}
 

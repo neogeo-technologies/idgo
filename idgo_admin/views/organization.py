@@ -237,15 +237,19 @@ class UpdateOrganisation(View):
     def get(self, request, id=None):
         user, profile = user_and_profile(request)
 
-        context = {
-            'id': id,
-            'update': True,
-            'form': Form(
-                instance=get_object_or_404(Organisation, id=id),
-                include={'user': user, 'id': id})}
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation__id=id,
+            validated_on__isnull=False) and True or False
 
-        return render_with_info_profile(
-            request, self.template, context=context)
+        if is_referent or is_admin:
+            return render_with_info_profile(
+                request, self.template, context={
+                    'id': id, 'update': True, 'form': Form(
+                        instance=get_object_or_404(Organisation, id=id),
+                        include={'user': user, 'id': id})})
+
+        raise Http404()
 
     @ExceptionsHandler(
         ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
