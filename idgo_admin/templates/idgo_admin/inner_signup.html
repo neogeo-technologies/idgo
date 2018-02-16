@@ -1,5 +1,7 @@
 {% load bootstrap3 %}
 
+{% include "idgo_admin/alert_messages.html" %}
+
 <div class="panel">
 	<div class="panel-heading">
 		<h1 class="panel-title">Création d'un compte</h1>
@@ -110,8 +112,8 @@
 				</div>
 			</div>
 			<div>
-				{% bootstrap_field form.contributor_process show_label=False %}
-				{% bootstrap_field form.referent_process show_label=False %}
+				{% bootstrap_field form.contributor show_label=False %}
+				{% bootstrap_field form.referent show_label=False %}
 			</div>
 			<br />
 			<div class="buttons-on-the-right-side">
@@ -152,8 +154,8 @@ $(function() {
 	};
 	{% endif %}
 
-	const $inputContribution = $('input[name="{{ form.contributor_process.name }}"]');
-	const $inputReferent = $('input[name="{{ form.referent_process.name }}"]').change(function() {
+	const $inputContribution = $('input[name="{{ form.contributor.name }}"]');
+	const $inputReferent = $('input[name="{{ form.referent.name }}"]').change(function() {
 		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
 	});
 

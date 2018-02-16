@@ -38,6 +38,10 @@ from idgo_admin.models import Profile
 # from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
+from idgo_admin.views.organization import contributor_subscribe_process
+from idgo_admin.views.organization import creation_process
+from idgo_admin.views.organization import member_subscribe_process
+from idgo_admin.views.organization import referent_subscribe_process
 from mama_cas.compat import is_authenticated as mama_is_authenticated
 from mama_cas.models import ProxyGrantingTicket as MamaProxyGrantingTicket
 from mama_cas.models import ProxyTicket as MamaProxyTicket
@@ -47,6 +51,8 @@ from mama_cas.utils import to_bool as mama_to_bool
 from mama_cas.views import LoginView as MamaLoginView
 from mama_cas.views import LogoutView as MamaLogoutView
 import uuid
+
+
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -123,18 +129,18 @@ class SignOut(MamaLogoutView):
 @method_decorator(decorators[0], name='dispatch')
 class AccountManager(View):
 
-    def create_account(self, user_data, profile_data):
-        user = User.objects.create_user(
-            username=user_data['username'], password=user_data['password1'],
-            email=user_data['email'], first_name=user_data['first_name'],
-            last_name=user_data['last_name'],
-            is_staff=False, is_superuser=False, is_active=False)
-
-        profile = Profile.objects.create(
-            user=user, phone=profile_data['phone'],
-            membership=False, is_active=False)
-
-        return user, profile
+    # def create_account(self, user_data, profile_data):
+    #     user = User.objects.create_user(
+    #         username=user_data['username'], password=user_data['password1'],
+    #         email=user_data['email'], first_name=user_data['first_name'],
+    #         last_name=user_data['last_name'],
+    #         is_staff=False, is_superuser=False, is_active=False)
+    #
+    #     profile = Profile.objects.create(
+    #         user=user, phone=profile_data['phone'],
+    #         membership=False, is_active=False)
+    #
+    #     return user, profile
 
     def handle_me(self, request, user_data, profile_data, user, profile, process):
 
@@ -585,6 +591,15 @@ class ReferentAccountManager(View):
         return HttpResponse(status=200)
 
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+def sign_up_process(request, profile, mail=True):
+    action = \
+        AccountActions.objects.create(profile=profile, action='confirm_mail')
+    mail and Mail.validation_user_mail(request, action)
+
+
 @method_decorator(decorators[0], name='dispatch')
 class SignUp(View):
     template = 'idgo_admin/signup.html'
@@ -598,31 +613,54 @@ class SignUp(View):
         form = SignUpForm(request.POST, request.FILES)
 
         if not form.is_valid():
-            return render_with_info_profile(
-                request, self.template, context={'form': form})
+            return render(request, self.template, context={'form': form})
 
         if ckan.is_user_exists(form.cleaned_data['username']):
             form.add_error('username', 'Cet identifiant de connexion est réservé.')
-            return self.render(request, self.template, {'form': form})
+            return render(request, self.template, context={'form': form})
+
+        try:
+            with transaction.atomic():
+
+                profile_data = {
+                    **form.cleaned_profile_data,
+                    **{'user': User.objects.create_user(**form.cleaned_user_data)}}
+
+                organisation = form.create_organisation \
+                    and Organisation.objects.create(**form.cleaned_organisation_data) \
+                    or form.cleaned_profile_data['organisation']
+
+                profile_data['organisation'] = organisation
+                profile = Profile.objects.create(**profile_data)
+
+                ckan.add_user(profile.user, form.cleaned_user_data['password'])
+        except ValidationError:
+            return render(request, self.template, context={'form': form})
+
+        except Exception as e:
+            print('Error', str(e))
+            messages.error(request, 'Une erreur est survenue lors de la création de votre compte.')
+            return render(request, self.template, context={'form': form})
+
+        # else:
+        sign_up_process(request, profile)
 
         if form.create_organisation:
-            organisation = \
-                Organisation.objects.create(**form.cleaned_organisation_data)
+            creation_process(request, profile, organisation)
 
-        user = User.objects.create_user(**form.cleaned_user_data)
+        if form.is_member:
+            member_subscribe_process(request, profile, organisation)
 
-        profile = Profile.objects.create(
-            **{**{user: user}, **form.cleaned_profile_data})
+        if form.is_contributor:
+            contributor_subscribe_process(request, profile, organisation)
 
-        # Créer l'utilisateur
-        # form.cleaned_user_data
-        # form.cleaned_profile_data
+        if form.is_referent:
+            referent_subscribe_process(request, profile, organisation)
 
-        if form.rattachement_process:
-            pass
+        message = ('Votre compte a bien été créé. Vous recevrez un e-mail '
+                   "de confirmation d'ici quelques minutes. Pour activer "
+                   'votre compte, cliquez sur le lien qui vous sera indiqué '
+                   "dans les 48h après réception de l'e-mail.")
 
-        if form.contributor_process:
-            pass
-
-        if form.referent_process:
-            pass
+        return render(request, 'idgo_admin/message.html',
+                      context={'message': message}, status=200)

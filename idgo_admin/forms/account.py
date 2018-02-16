@@ -417,8 +417,7 @@ class SignUpForm(forms.Form):
             'first_name',
             'last_name',
             'email',
-            'password1',
-            'password2')
+            'password')
 
         profile_fields = (
             'phone',
@@ -439,8 +438,8 @@ class SignUpForm(forms.Form):
             'website')
 
         extended_fields = (
-            'contributor_process',
-            'referent_process')
+            'contributor',
+            'referent')
 
         fields = user_fields + profile_fields + organisation_fields + extended_fields
 
@@ -591,12 +590,12 @@ class SignUpForm(forms.Form):
 
     # Extended fields
 
-    contributor_process = forms.BooleanField(
+    contributor = forms.BooleanField(
         initial=False,
         label="Je souhaite être <strong>contributeur</strong> de l'organisation",
         required=False)
 
-    referent_process = forms.BooleanField(
+    referent = forms.BooleanField(
         initial=False,
         label="Je souhaite être <strong>référent technique</strong> de l'organisation",
         required=False)
@@ -611,16 +610,16 @@ class SignUpForm(forms.Form):
         return self.cleaned_data
 
     @property
-    def rattachement_process(self):
+    def is_member(self):
         return self.cleaned_data.get('organisation', False)
 
-    # @property
-    # def contributor_process(self):
-    #     return self.cleaned_data.get('contributor_process', False)
+    @property
+    def is_contributor(self):
+        return self.cleaned_data.get('contributor', False)
 
-    # @property
-    # def referent_process(self):
-    #     return self.cleaned_data.get('referent_process', False)
+    @property
+    def is_referent(self):
+        return self.cleaned_data.get('referent', False)
 
     @property
     def create_organisation(self):
@@ -628,8 +627,10 @@ class SignUpForm(forms.Form):
 
     @property
     def cleaned_organisation_data(self):
-        return dict((item, self.cleaned_data[item])
+        data = dict((item, self.cleaned_data[item])
                     for item in self.Meta.organisation_fields)
+        data['name'] = data.pop('new_orga')
+        return data
 
     @property
     def cleaned_user_data(self):
