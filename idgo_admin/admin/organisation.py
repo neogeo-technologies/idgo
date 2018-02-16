@@ -12,6 +12,7 @@ geo_admin.GeoModelAdmin.default_zoom = 14
 class OrganisationAdmin(geo_admin.OSMGeoAdmin):
 
     list_display = ('name', 'organisation_type')
+    search_fields = ('name', )
     list_filter = ('organisation_type',)
     ordering = ('name',)
     readonly_fields = ('ckan_slug', )
