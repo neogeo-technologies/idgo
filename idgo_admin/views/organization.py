@@ -56,6 +56,7 @@ def member_unsubscribe_process(request, profile, organisation):
     if profile.organisation != organisation:
         raise Exception('TODO')
     profile.organisation = None
+    profile.membership = False
     profile.save()
 
 

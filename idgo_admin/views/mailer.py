@@ -45,7 +45,9 @@ def confirmation_mail(request, key):
 
         # Demande de rattachement (Profile-Organisation)
         rattachement_action = AccountActions.objects.get(
-            profile=profile, action='confirm_rattachement')
+            action='confirm_rattachement',
+            organisation=organisation,
+            profile=profile)
         Mail.confirm_rattachement(request, rattachement_action)
 
         # Demande de rôle de référent
@@ -56,8 +58,9 @@ def confirmation_mail(request, key):
             pass
         else:
             referent_action = AccountActions.objects.create(
-                profile=profile, action='confirm_referent',
-                organisation=organisation)
+                action='confirm_referent',
+                organisation=organisation,
+                profile=profile)
             Mail.confirm_referent(request, referent_action)
 
         # Demande de rôle de contributeur
