@@ -17,7 +17,7 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
 from idgo_admin.models import Profile
 from mama_cas.forms import LoginForm as MamaLoginForm
-
+from idgo_admin.ckan_module import CkanHandler as ckan
 
 class UserForm(forms.ModelForm):
 
@@ -604,9 +604,21 @@ class SignUpForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def clean(self):
-        cleaned_data = super().clean()
-        cleaned_data['password'] = cleaned_data.pop('password1')
-        self.cleaned_data = cleaned_data
+
+        username = self.cleaned_data['username']
+        if User.objects.filter(username=username).exists() or ckan.is_user_exists(username):
+            self.add_error('username', "Ce nom d'utilisateur est reservé.")
+
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            self.add_error('email', "Ce courriel est reservé.")
+
+        password1 = self.cleaned_data.get("password1", None)
+        password2 = self.cleaned_data.get("password2", None)
+        if password1 and password2 and password1 != password2:
+            self.add_error('password2', "Vérifiez les mots de passes.")
+        self.cleaned_data['password'] = self.cleaned_data.pop('password1')
+
         return self.cleaned_data
 
     @property

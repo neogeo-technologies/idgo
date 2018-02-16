@@ -615,10 +615,6 @@ class SignUp(View):
         if not form.is_valid():
             return render(request, self.template, context={'form': form})
 
-        if ckan.is_user_exists(form.cleaned_data['username']):
-            form.add_error('username', 'Cet identifiant de connexion est réservé.')
-            return render(request, self.template, context={'form': form})
-
         try:
             with transaction.atomic():
 
