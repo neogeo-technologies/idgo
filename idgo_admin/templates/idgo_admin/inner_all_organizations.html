@@ -550,7 +550,7 @@ $(function() {
 		// selectRowByDataId(window.location.hash.substring(1));
 	});
 
-	window.location.hash.substring(1) && selectRowByDataId(window.location.hash.substring(1));  // TODO -> Avant de charger la page
+	window.location.hash.substring(1) ? selectRowByDataId(window.location.hash.substring(1)) : selectRowByDataId($organizations.first().val());  // TODO -> Avant de charger la page
 
 });
 </script>
