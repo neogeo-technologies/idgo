@@ -515,12 +515,7 @@ class AccountActions(models.Model):
 
     # Utilisées dans admin/user.py
     def orga_name(self):
-        disp = str('N/A')
-        if self.action in ('confirm_new_organisation', ) and self.profile:
-            disp = str(self.profile.organisation.name)
-        if self.action in ('confirm_rattachement', 'confirm_referent', 'confirm_contribution') and self.organisation:
-            disp = str(self.organisation.name)
-        return disp
+        return str(self.organisation.name) if self.organisation else str('N/A')
     orga_name.short_description = "Nom de l'organsiation concernée"
 
     def get_path(self):

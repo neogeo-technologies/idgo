@@ -106,9 +106,22 @@ class AccountActionsInline(admin.TabularInline):
     change_link.short_description = "Lien de validation"
 
 
+class ProfileForm(forms.ModelForm):
+
+    class Meta:
+        model = Profile
+        fields = '__all__'
+
+    def clean(self):
+        if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
+            raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé")
+        return self.cleaned_data
+
+
 class ProfileAdmin(admin.ModelAdmin):
     inlines = (LiaisonReferentsInline, LiaisonsContributeursInline, AccountActionsInline)
     models = Profile
+    form = ProfileForm
     list_display = (
         'full_name',
         'username',
