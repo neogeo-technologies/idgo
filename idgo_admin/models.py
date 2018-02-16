@@ -1290,7 +1290,8 @@ def post_save_dataset(sender, instance, **kwargs):
 
 @receiver(pre_delete, sender=Dataset)
 def pre_delete_dataset(sender, instance, **kwargs):
-    ckan.purge_dataset(str(instance.ckan_id))
+    # ckan.purge_dataset(str(instance.ckan_id))
+    ckan.purge_dataset(instance.ckan_slug)
 
 
 @receiver(pre_delete, sender=Dataset)
