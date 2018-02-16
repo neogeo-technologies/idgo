@@ -20,7 +20,6 @@ import json
 import os
 from taggit.managers import TaggableManager
 import uuid
-# from django.contrib.auth.views import redirect_to_login
 
 
 TODAY = timezone.now().date()
@@ -1021,6 +1020,8 @@ class DataType(models.Model):
 
 class Dataset(models.Model):
 
+    _current_editor = None
+
     GEOCOVER_CHOICES = (
         ('regionale', 'Régionale'),
         ('international', 'Internationale'),
@@ -1050,8 +1051,7 @@ class Dataset(models.Model):
 
     ckan_id = models.UUIDField(
         verbose_name='Identifiant CKAN', unique=True,
-        db_index=True, default=uuid.uuid4, editable=False,
-        blank=True, null=True)
+        db_index=True, editable=False, blank=True, null=True)
 
     description = models.TextField(
         verbose_name='Description', blank=True, null=True)
@@ -1135,23 +1135,12 @@ class Dataset(models.Model):
             profile=profile, organisation=self.organisation,
             validated_on__isnull=False).exists()
 
-    @property
-    def editor_profile(self):
-        try:
-            profile = Profile.objects.get(user=self.editor)
-        except Profile.DoesNotExist:
-            return None
-        return profile
-
-    def clean(self):
-        if self.editor_profile and not self.is_contributor(self.editor_profile):
-            raise ValidationError((
-                "L'utilisateur « {0} » n'est pas contributeur "
-                "de l'organisation « {1} »").format(
-                    self.editor.username, self.organisation.name))
-
     def save(self, *args, **kwargs):
-        editor = 'editor' in kwargs and kwargs.pop('editor') or None
+
+        self._current_editor = 'editor' in kwargs \
+            and kwargs.pop('editor') or None
+
+        previous = self.pk and Dataset.objects.get(pk=self.pk)
 
         if not self.date_creation:
             self.date_creation = TODAY
@@ -1170,111 +1159,11 @@ class Dataset(models.Model):
         #     self.broadcaster_email = \
         #         self.support and self.support.email or 'contact@datasud.fr'
 
-        # Cache avant sauvegarde
-        previous = self.pk and Dataset.objects.get(pk=self.pk)
-
         super().save(*args, **kwargs)
-        self.publish_dataset_to_ckan(editor=editor)
 
-        # Synchronisation CKAN
         if previous and previous.organisation:
             ckan.deactivate_ckan_organization_if_empty(
                 str(previous.organisation.ckan_id))
-
-    def publish_dataset_to_ckan(self, editor=None):
-
-        ckan_params = {
-            'author': self.owner_name,
-            'author_email': self.owner_email,
-            'datatype': [item.ckan_slug for item in self.data_type.all()],
-            'dataset_creation_date':
-                str(self.date_creation) if self.date_creation else '',
-            'dataset_modification_date':
-                str(self.date_modification) if self.date_modification else '',
-            'dataset_publication_date':
-                str(self.date_publication) if self.date_publication else '',
-            'groups': [],
-            'geocover': self.geocover,
-            'last_modified':
-                str(self.date_modification) if self.date_modification else '',
-            'license_id': (
-                self.license.ckan_id
-                in [license['id'] for license in ckan.get_licenses()]
-                ) and self.license.ckan_id or '',
-            'maintainer':
-                self.support and self.support.name or 'Plateforme DataSud',
-            'maintainer_email':
-                self.support and self.support.email or 'contact@datasud.fr',
-            'notes': self.description,
-            'owner_org': str(self.organisation.ckan_id),
-            'private': not self.published,
-            'state': 'active',
-            'support': self.support and self.support.ckan_slug,
-            'tags': [
-                {'name': keyword.name} for keyword in self.keywords.all()],
-            'title': self.name,
-            'update_frequency': self.update_freq,
-            'url': ''}  # Laisser vide
-
-        if self.geonet_id:
-            ckan_params['inspire_url'] = \
-                '{0}srv/fre/catalog.search#/metadata/{1}'.format(
-                    GEONETWORK_URL, self.geonet_id or '')
-
-        user = editor or self.editor
-
-        for category in self.categories.all():
-            ckan.add_user_to_group(user.username, str(category.ckan_id))
-            ckan_params['groups'].append({'name': category.ckan_slug})
-
-        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-        # de données existant mais administrateur de données,
-        # alors l'admin Ckan édite le jeu de données..
-
-        # user.profile: Relation inverse,
-        # retourne une erreur si profile supprimé ou non défini.
-        # profile = self.editor_profile
-        # is_admin, is_referent = False, False
-        # is_editor = (user == self.editor)
-        #
-        # # if profile:
-        # #     is_admin = profile.is_admin
-        # #     is_referent = LiaisonsReferents.objects.filter(
-        # #         profile=profile, organisation=self.organisation).exists()
-        # if is_editor:
-        #     ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
-        #
-        # else:
-        #     ckan_user = ckan_me(ckan.apikey)
-
-        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-        # de données existant mais administrateur de données,
-        # alors l'admin Ckan édite le jeu de données..
-        # is_admin = user.profile.is_admin
-        # is_referent = LiaisonsReferents.objects.filter(
-        #     profile=user.profile, organisation=self.organisation).exists()
-        is_editor = (user == self.editor)
-        if is_editor:
-            ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
-        else:
-            ckan_user = ckan_me(ckan.apikey)
-
-        # Synchronisation de l'organisation
-        organisation_ckan_id = str(self.organisation.ckan_id)
-        ckan_orga = ckan.get_organization(organisation_ckan_id)
-        if not ckan_orga:
-            ckan.add_organization(self.organisation)
-        elif ckan_orga.get('state') == 'deleted':
-            ckan.activate_organization(organisation_ckan_id)
-        for profile \
-                in LiaisonsContributeurs.get_contributors(self.organisation):
-            ckan.add_user_to_organization(
-                profile.user.username, organisation_ckan_id)
-
-        ckan_user.publish_dataset(
-            self.ckan_slug, id=str(self.ckan_id), **ckan_params)
-
-        ckan_user.close()
 
     @classmethod
     def get_subordinated_datasets(cls, profile):
@@ -1307,7 +1196,7 @@ class Task(models.Model):
         verbose_name="Timestamp de fin de traitement",
         blank=True, null=True)
 
-    class Meta:
+    class Meta(object):
         verbose_name = 'Tâche de synchronisation'
 
 
@@ -1318,6 +1207,81 @@ class Task(models.Model):
 def pre_save_dataset(sender, instance, **kwargs):
     if not instance.ckan_slug:
         instance.ckan_slug = slugify(instance.name)
+
+
+@receiver(post_save, sender=Dataset)
+def post_save_dataset(sender, instance, **kwargs):
+
+    ckan_params = {
+        'author': instance.owner_name,
+        'author_email': instance.owner_email,
+        'datatype': [item.ckan_slug for item in instance.data_type.all()],
+        'dataset_creation_date':
+            str(instance.date_creation) if instance.date_creation else '',
+        'dataset_modification_date':
+            str(instance.date_modification) if instance.date_modification else '',
+        'dataset_publication_date':
+            str(instance.date_publication) if instance.date_publication else '',
+        'groups': [],
+        'geocover': instance.geocover,
+        'last_modified':
+            str(instance.date_modification) if instance.date_modification else '',
+        'license_id': (
+            instance.license.ckan_id
+            in [license['id'] for license in ckan.get_licenses()]
+            ) and instance.license.ckan_id or '',
+        'maintainer':
+            instance.support and instance.support.name or 'Plateforme DataSud',
+        'maintainer_email':
+            instance.support and instance.support.email or 'contact@datasud.fr',
+        'name': instance.ckan_slug,
+        'notes': instance.description,
+        'owner_org': str(instance.organisation.ckan_id),
+        'private': not instance.published,
+        'state': 'active',
+        'support': instance.support and instance.support.ckan_slug,
+        'tags': [
+            {'name': keyword.name} for keyword in instance.keywords.all()],
+        'title': instance.name,
+        'update_frequency': instance.update_freq,
+        'url': ''}  # Laisser vide
+
+    if instance.geonet_id:
+        ckan_params['inspire_url'] = \
+            '{0}srv/fre/catalog.search#/metadata/{1}'.format(
+                GEONETWORK_URL, instance.geonet_id or '')
+
+    user = instance._current_editor or instance.editor
+
+    for category in instance.categories.all():
+        ckan.add_user_to_group(user.username, str(category.ckan_id))
+        ckan_params['groups'].append({'name': category.ckan_slug})
+
+    # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+    # de données existant mais administrateur ou un référent technique,
+    # alors l'admin Ckan édite le jeu de données..
+    if user == instance.editor:
+        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+    else:
+        ckan_user = ckan_me(ckan.apikey)
+
+    # Synchronisation de l'organisation
+    organisation_ckan_id = str(instance.organisation.ckan_id)
+    ckan_organization = ckan.get_organization(organisation_ckan_id)
+    if not ckan_organization:
+        ckan.add_organization(instance.organisation)
+    elif ckan_organization.get('state') == 'deleted':
+        ckan.activate_organization(organisation_ckan_id)
+
+    for profile in LiaisonsContributeurs.get_contributors(instance.organisation):
+        ckan.add_user_to_organization(
+            profile.user.username, organisation_ckan_id)
+
+    ckan_dataset = ckan_user.publish_dataset(id=str(instance.ckan_id), **ckan_params)
+    ckan_user.close()
+
+    ckan_id = uuid.UUID(ckan_dataset['id'])
+    Dataset.objects.filter(id=instance.id).update(ckan_id=ckan_id)
 
 
 @receiver(pre_delete, sender=Dataset)

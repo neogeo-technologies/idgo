@@ -55,6 +55,7 @@ class DatasetForm(forms.ModelForm):
     ckan_slug = forms.CharField(
         label='URL du jeu de données',
         required=False,
+        max_length=100,
         widget=forms.TextInput(
             attrs={'addon_before': '{}/dataset/'.format(CKAN_URL),
                    'addon_before_class': 'input-group-addon',

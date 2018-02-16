@@ -38,6 +38,11 @@ class CkanSyncingError(GenericException):
         super().__init__(*args, **kwargs)
 
 
+class CkanNotFoundError(GenericException):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
 class CkanTimeoutError(CkanSyncingError):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,6 +64,8 @@ class CkanExceptionsHandler(object):
                     raise CkanTimeoutError
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
+                if e.__str__() in ('Indisponible', 'Not Found'):
+                    raise CkanNotFoundError
                 raise CkanSyncingError(e.__str__())
         return wrapper
 
@@ -133,14 +140,12 @@ class CkanUserHandler(object):
             raise ConflictError('Dataset already exists')
 
     @CkanExceptionsHandler()
-    def publish_dataset(self, name, id=None, resources=None, **kwargs):
-        kwargs['name'] = name
+    def publish_dataset(self, id=None, resources=None, **kwargs):
         if id and self.is_package_exists(id):
             package = self.call_action(
                 'package_update', **{**self.get_package(id), **kwargs})
         else:
-            package = self.call_action(
-                'package_create', **{**{'id': id}, **kwargs})
+            package = self.call_action('package_create', **kwargs)
         return package
 
     @CkanExceptionsHandler()

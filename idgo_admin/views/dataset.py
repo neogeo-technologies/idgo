@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from djqscsv import render_to_csv_response
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanNotFoundError
 from idgo_admin.ckan_module import CkanSyncingError
 from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
@@ -210,9 +211,12 @@ class DatasetManager(View):
         try:
             ckan_user.delete_dataset(ckan_id)
             # ckan.purge_dataset(ckan_id)  # -> purge déplacé dans 'model'
-        except CkanSyncingError as e:
-            if e.name == 'NotFound':  # Ici un problème
-                instance.delete()
+        except CkanNotFoundError:
+            status = 500
+            message = 'Le jeu de données CKAN est indisponible.'
+            messages.error(request, message)
+            # instance.delete()
+        except CkanSyncingError:
             status = 500
             message = 'Impossible de supprimer le jeu de données CKAN.'
             messages.error(request, message)
