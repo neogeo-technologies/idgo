@@ -75,7 +75,7 @@ def contributor_unsubscribe_process(request, profile, organisation):
 
 def referent_subscribe_process(request, profile, organisation, mail=True):
     if LiaisonsContributeurs.objects.filter(
-            organisation=organisation, profile=profile):
+            organisation=organisation, profile=profile).exists():
         contributor_subscribe_process(request, profile, organisation, mail=False)
 
     LiaisonsReferents.objects.get_or_create(
@@ -148,13 +148,13 @@ def organisation(request, id=None):
             'username': member.user.username,
             'full_name': member.user.get_full_name(),
             'is_member': Profile.objects.filter(
-                organisation=id, id=member.id) and True or False,
+                organisation=id, id=member.id).exists(),
             'is_contributor': LiaisonsContributeurs.objects.filter(
                 profile=member, organisation__id=id, validated_on__isnull=False
-                ) and True or False,
+                ).exists(),
             'is_referent': LiaisonsReferents.objects.filter(
                 profile=member, organisation__id=id, validated_on__isnull=False
-                ) and True or False,
+                ).exists(),
             'datasets_count': len(Dataset.objects.filter(
                 organisation=id, editor=member.user)),
             'profile_id': member.id
