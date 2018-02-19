@@ -55,9 +55,7 @@ urlpatterns = [
 
     url('^account/create/?$', SignUp.as_view(), name='sign_up'),
     url('^account/update/?$', UpdateAccount.as_view(), name='update_account'),
-
-    # url('^account/(?P<process>(update))/?$', AccountManager.as_view(), name='account_manager'),
-    url('^deleteaccount/?$', delete_account, name='deleteAccount'),
+    url('^account/delete/?$', delete_account, name='deleteAccount'),
 
     url('^dataset/?$', DatasetManager.as_view(), name='dataset'),
     url('^dataset/(?P<dataset_id>(\d+))/resources/?$', ResourceManager.as_view(), name='resource'),
@@ -69,11 +67,11 @@ urlpatterns = [
 
     url('^member/all/?$', ReferentAccountManager.as_view(), name='all_members'),
 
-    url('^organization/all/?$', all_organisations, name='all_organizations'),
-    url('^organization/new/?$', CreateOrganisation.as_view(), name='create_organization'),
-    url('^organization/(?P<id>(\d+))/?$', organisation, name='organization'),
-    url('^organization/(?P<id>(\d+))/update/?$', UpdateOrganisation.as_view(), name='update_organization'),
-    url('^organization/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
+    url('^organisation/all/?$', all_organisations, name='all_organizations'),
+    url('^organisation/new/?$', CreateOrganisation.as_view(), name='create_organization'),
+    url('^organisation/(?P<id>(\d+))/?$', organisation, name='organization'),
+    url('^organisation/(?P<id>(\d+))/update/?$', UpdateOrganisation.as_view(), name='update_organization'),
+    url('^organisation/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
 
     url('^password/(?P<process>(forget))/?$', PasswordManager.as_view(), name='password_manager'),
     url('^password/(?P<process>(initiate|reset))/(?P<key>(.+))/?$', PasswordManager.as_view(), name='password_manager'),

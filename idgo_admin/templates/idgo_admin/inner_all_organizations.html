@@ -513,7 +513,7 @@ $(function() {
 
 	const getOrganization = function(id) {
 		$.ajax({
-			url: '/organization/' + id,
+			url: '{{ organization_base_url }}/' + id,
 			success: function(data, status, xhr) {
 				displayOrganisation(data);
 			},

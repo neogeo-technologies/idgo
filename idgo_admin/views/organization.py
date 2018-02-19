@@ -138,7 +138,9 @@ def all_organisations(request, *args, **kwargs):
 
     return render_with_info_profile(
         request, 'idgo_admin/all_organizations.html',
-        context={'organizations': organizations})
+        context={
+            'organization_base_url': '/organisation',  # Ugly
+            'organizations': organizations})
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
