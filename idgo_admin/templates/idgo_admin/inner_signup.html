@@ -125,34 +125,6 @@
 <script>
 $(function() {
 
-	const contributions = [];
-	{% if contributor %}
-	for (organization of {{ contributor | safe }}) {
-		contributions.push(organization[0]);
-	};
-	{% endif %}
-
-	const awaitingContributions = [];
-	{% if awaiting_contributor_status %}
-	for (organization of {{ awaiting_contributor_status | safe }}) {
-		awaitingContributions.push(organization[0]);
-	};
-	{% endif %}
-
-	const subordinates = [];
-	{% if referent %}
-	for (organization of {{ referent | safe }}) {
-		subordinates.push(organization[0]);
-	};
-	{% endif %}
-
-	const awaitingSubordinates = [];
-	{% if awaiting_referent_statut %}
-	for (organization of {{ awaiting_referent_statut | safe }}) {
-		awaitingSubordinates.push(organization[0]);
-	};
-	{% endif %}
-
 	const $inputContribution = $('input[name="{{ form.contributor.name }}"]');
 	const $inputReferent = $('input[name="{{ form.referent.name }}"]').change(function() {
 		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
@@ -173,13 +145,7 @@ $(function() {
 		} else {
 			$inputReferent.is(':checked') ? $inputContribution.prop('checked', true) : $inputContribution.prop('checked', false);
 			$inputContribution.parent().show();
-			if (awaitingContributions.indexOf(selected) > -1 || contributions.indexOf(selected) > -1) {
-				$inputContribution.parent().hide();
-			};
 			$inputReferent.parent().show();
-			if (awaitingSubordinates.indexOf(selected) > -1 || subordinates.indexOf(selected) > -1) {
-				$inputReferent.parent().hide();
-			};
 		};
 	};
 
