@@ -641,13 +641,15 @@ class SignUp(View):
             creation_process(request, profile, organisation)
 
         if form.is_member:
-            member_subscribe_process(request, profile, organisation)
+            member_subscribe_process(request, profile, organisation, mail=False)
 
-        if form.is_contributor:
-            contributor_subscribe_process(request, profile, organisation)
+        # Dans le cas ou seul le role de contributeur est demandé
+        if form.is_contributor and not form.is_referent:
+            contributor_subscribe_process(request, profile, organisation, mail=False)
 
+        # role de référent requis donc role de contributeur requis
         if form.is_referent:
-            referent_subscribe_process(request, profile, organisation)
+            referent_subscribe_process(request, profile, organisation, mail=False)
 
         message = ('Votre compte a bien été créé. Vous recevrez un e-mail '
                    "de confirmation d'ici quelques minutes. Pour activer "

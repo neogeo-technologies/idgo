@@ -16,19 +16,19 @@ from uuid import UUID
 @ExceptionsHandler(ignore=[Http404])
 @csrf_exempt
 def confirmation_mail(request, key):
-
+    import ipdb; ipdb.set_trace()
     action = get_object_or_404(
         AccountActions, key=UUID(key), action='confirm_mail')
-    if action.closed:
-        message = 'Vous avez déjà validé votre adresse e-mail.'
-        return render(
-            request, 'idgo_admin/message.html', {'message': message}, status=200)
+    # if action.closed:
+    #     message = 'Vous avez déjà validé votre adresse e-mail.'
+    #     return render(
+    #         request, 'idgo_admin/message.html', {'message': message}, status=200)
 
     user = action.profile.user
     profile = action.profile
-    organisation = action.profile.organisation
+    organisation = profile.organisation
 
-    ckan.activate_user(user.username)
+    # ckan.activate_user(user.username)
     user.is_active = True
     action.profile.is_active = True
 
@@ -37,42 +37,55 @@ def confirmation_mail(request, key):
     if organisation:
         # Demande de création d'une nouvelle organisation
         if not organisation.is_active:
-            new_organisation_action = AccountActions.objects.get(
+            new_organisation_action = get_object_or_404(
+                AccountActions,
                 action='confirm_new_organisation',
                 organisation=organisation,
-                profile=profile)
+                profile=profile,
+                closed=None)
             Mail.confirm_new_organisation(request, new_organisation_action)
 
         # Demande de rattachement (Profile-Organisation)
-        rattachement_action = AccountActions.objects.get(
+        rattachement_action = get_object_or_404(
+            AccountActions,
             action='confirm_rattachement',
             organisation=organisation,
-            profile=profile)
+            profile=profile,
+            closed=None)
         Mail.confirm_rattachement(request, rattachement_action)
 
-        # Demande de rôle de référent
+        # Demande de rôle de référent en attente de validation
         try:
             LiaisonsReferents.objects.get(
-                profile=profile, organisation=organisation)
+                organisation=organisation,
+                profile=profile,
+                validated_on=None)
         except Exception:
             pass
         else:
-            referent_action = AccountActions.objects.create(
+            referent_action = get_object_or_404(
+                AccountActions,
                 action='confirm_referent',
                 organisation=organisation,
-                profile=profile)
+                profile=profile,
+                closed=None)
             Mail.confirm_referent(request, referent_action)
 
-        # Demande de rôle de contributeur
+        # Demande de rôle de contributeur en attente de validation
         try:
             LiaisonsContributeurs.objects.get(
-                profile=profile, organisation=organisation)
+                profile=profile,
+                organisation=organisation,
+                validated_on=None)
         except Exception:
             pass
         else:
-            contribution_action = AccountActions.objects.create(
-                profile=profile, action='confirm_contribution',
-                organisation=organisation)
+            contribution_action = get_object_or_404(
+                AccountActions,
+                action='confirm_contribution',
+                organisation=organisation,
+                profile=profile,
+                closed=None)
             Mail.confirm_contribution(request, contribution_action)
 
     Mail.confirmation_user_mail(user)
