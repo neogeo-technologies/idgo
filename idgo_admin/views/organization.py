@@ -48,7 +48,8 @@ def creation_process(request, profile, organisation, mail=True):
 def member_subscribe_process(request, profile, organisation, mail=True):
     action = AccountActions.objects.create(
         action='confirm_rattachement',
-        organisation=organisation, profile=profile)
+        organisation=organisation,
+        profile=profile)
     mail and Mail.confirm_updating_rattachement(request, action)
 
 
@@ -62,10 +63,12 @@ def member_unsubscribe_process(request, profile, organisation):
 
 def contributor_subscribe_process(request, profile, organisation, mail=True):
     LiaisonsContributeurs.objects.get_or_create(
-        profile=profile, organisation=organisation)
+        profile=profile,
+        organisation=organisation)
     action = AccountActions.objects.create(
         action='confirm_contribution',
-        organisation=organisation, profile=profile)
+        organisation=organisation,
+        profile=profile)
     mail and Mail.confirm_contribution(request, action)
 
 

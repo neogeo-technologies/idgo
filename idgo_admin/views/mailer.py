@@ -16,19 +16,19 @@ from uuid import UUID
 @ExceptionsHandler(ignore=[Http404])
 @csrf_exempt
 def confirmation_mail(request, key):
-
+    import ipdb; ipdb.set_trace()
     action = get_object_or_404(
         AccountActions, key=UUID(key), action='confirm_mail')
-    if action.closed:
-        message = 'Vous avez déjà validé votre adresse e-mail.'
-        return render(
-            request, 'idgo_admin/message.html', {'message': message}, status=200)
+    # if action.closed:
+    #     message = 'Vous avez déjà validé votre adresse e-mail.'
+    #     return render(
+    #         request, 'idgo_admin/message.html', {'message': message}, status=200)
 
     user = action.profile.user
     profile = action.profile
     organisation = profile.organisation
 
-    ckan.activate_user(user.username)
+    # ckan.activate_user(user.username)
     user.is_active = True
     action.profile.is_active = True
 
@@ -54,10 +54,12 @@ def confirmation_mail(request, key):
             closed=None)
         Mail.confirm_rattachement(request, rattachement_action)
 
-        # Demande de rôle de référent
+        # Demande de rôle de référent en attente de validation
         try:
             LiaisonsReferents.objects.get(
-                profile=profile, organisation=organisation)
+                organisation=organisation,
+                profile=profile,
+                validated_on=None)
         except Exception:
             pass
         else:
@@ -69,10 +71,12 @@ def confirmation_mail(request, key):
                 closed=None)
             Mail.confirm_referent(request, referent_action)
 
-        # Demande de rôle de contributeur
+        # Demande de rôle de contributeur en attente de validation
         try:
             LiaisonsContributeurs.objects.get(
-                profile=profile, organisation=organisation)
+                profile=profile,
+                organisation=organisation,
+                validated_on=None)
         except Exception:
             pass
         else:
