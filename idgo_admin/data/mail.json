@@ -74,8 +74,8 @@
     "model": "idgo_admin.mail",
     "pk": "confirm_referent",
     "fields": {
-        "subject": "Un utilisateur requiert un statut de r\u00e9f\u00e9rent pour une organisation.",
-        "message": "Bonjour,\n\nUn nouvel utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le r\u00f4le de r\u00e9f\u00e9rent pour {organisation_name}.\n\nVeuillez cliquer sur le lien suivant pour valider sa demande : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
+        "subject": "Un utilisateur requiert un statut de r\u00e9f\u00e9rent technique pour une organisation.",
+        "message": "Bonjour,\n\nUn nouvel utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le r\u00f4le de r\u00e9f\u00e9rent technique pour {organisation_name}.\n\nVeuillez cliquer sur le lien suivant pour valider sa demande : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
         "from_email": "inscription@datasud.fr"
     }
 }, {
