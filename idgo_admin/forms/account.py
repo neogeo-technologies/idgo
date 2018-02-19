@@ -8,6 +8,7 @@ from django import forms
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.forms import common_fields
 from idgo_admin.models import Dataset
+from idgo_admin.models import Organisation
 from mama_cas.forms import LoginForm as MamaLoginForm
 
 
@@ -181,7 +182,11 @@ class SignUpForm(forms.Form):
 
     # Profile fields
     phone = common_fields.PHONE
-    organisation = common_fields.ORGANISATION
+    organisation = forms.ModelChoiceField(
+        required=False,
+        label='Organisation',
+        queryset=Organisation.objects.filter(is_active=True),
+        empty_label="Je ne suis rattaché à aucune organisation")
 
     # Organisation fields
     new_orga = common_fields.ORGANISATION_NAME

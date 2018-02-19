@@ -2,7 +2,7 @@ from django.core import validators
 from django import forms
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
-from idgo_admin.models import Organisation
+# from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
 from idgo_admin.utils import StaticClass
 
@@ -83,11 +83,11 @@ class CommonFields(metaclass=StaticClass):
         label="Je souhaite être <strong>membre</strong> de l'organisation",
         required=False)
 
-    ORGANISATION = forms.ModelChoiceField(
-        required=False,
-        label='Organisation',
-        queryset=Organisation.objects.filter(is_active=True),
-        empty_label="Je ne suis rattaché à aucune organisation")
+    # ORGANISATION = forms.ModelChoiceField(
+    #     required=False,
+    #     label='Organisation',
+    #     queryset=Organisation.objects.filter(is_active=True),
+    #     empty_label="Je ne suis rattaché à aucune organisation")
 
     ORGANISATION_NAME = forms.CharField(
         error_messages={"Nom de l'organisation invalide": 'invalid'},

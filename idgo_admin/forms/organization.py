@@ -45,8 +45,8 @@ class OrganizationForm(forms.ModelForm):
 
     # Extended fields
     rattachement_process = common_fields.MEMBER
-    contributor = common_fields.CONTRIBUTOR
-    referent = common_fields.REFERENT
+    contributor_process = common_fields.CONTRIBUTOR
+    referent_process = common_fields.REFERENT
 
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
