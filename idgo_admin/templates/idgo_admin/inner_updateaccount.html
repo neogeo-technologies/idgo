@@ -2,27 +2,22 @@
 
 {% include "idgo_admin/alert_messages.html" %}
 
-<form method="post" action="" enctype="multipart/form-data" class="well">
+<form method="post" class="well">
 	{% csrf_token %}
 	<div class="row">
-		<div class="col-xs-6">
-			{% bootstrap_field uform.username %}
-		</div>
-	</div>
-	<div class="row">
 		<div class="col-xs-4">
-			{% bootstrap_field uform.first_name %}
+			{% bootstrap_field form.first_name %}
 		</div>
 		<div class="col-xs-4">
-			{% bootstrap_field uform.last_name %}
+			{% bootstrap_field form.last_name %}
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-xs-5">
-			{% bootstrap_field uform.email %}
+			{% bootstrap_field form.email %}
 		</div>
 		<div class="col-xs-2">
-			{% bootstrap_field pform.phone %}
+			{% bootstrap_field form.phone %}
 		</div>
 	</div>
 	<div class="row">
@@ -31,19 +26,19 @@
 				<p>Entrez votre nouveau mot de passe ci-dessous si vous souhaitez le modifier.</p>
 				<div class="row">
 					<div class="col-xs-8">
-						{% bootstrap_field uform.password1 show_label=False %}
+						{% bootstrap_field form.password1 show_label=False %}
 					</div>
 				</div>
 				<div class="row">
 					<div class="col-xs-8">
-						{% bootstrap_field uform.password2 show_label=False %}
+						{% bootstrap_field form.password2 show_label=False %}
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 	<div class="buttons-on-the-right-side">
-		<a class="btn btn-default" href="{% url "idgo_admin:account_manager" process="update" %}">Annuler</a>
+		<a class="btn btn-default" href="{% url "idgo_admin:update_account" %}">Annuler</a>
 		<button type="submit" class="btn btn-default">Valider</button>
 	</div>
 </form>

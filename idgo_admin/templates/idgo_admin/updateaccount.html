@@ -1,0 +1,16 @@
+{% extends "idgo_admin/base.html" %}
+
+{% block nav_content_extra %}
+<li role="presentation" name="account">
+	<a href="{% url "idgo_admin:update_account" %}" role="tab">Mon profil</a>
+</li>
+{% endblock nav_content_extra %}
+
+{% block main_content %}
+{% include "idgo_admin/inner_updateaccount.html" %}
+<script>
+$(function() {
+	$('#menu a[href="{% url "idgo_admin:update_account" %}"]').parent().addClass('active');
+});
+</script>
+{% endblock main_content %}
