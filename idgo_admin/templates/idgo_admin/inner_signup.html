@@ -38,7 +38,6 @@
 					{% bootstrap_field form.password2 show_label=False %}
 				</div>
 			</div>
-			<hr />
 			<div id="collapse-one" class="collapse in">
 				<p>Sélectionnez dans la liste ci-dessous votre organisation</p>
 				<div class="row">
@@ -127,29 +126,29 @@
 $(function() {
 
 	const contributions = [];
-	{% if contributions %}
-	for (organization of {{ contributions | safe }}) {
+	{% if contributor %}
+	for (organization of {{ contributor | safe }}) {
 		contributions.push(organization[0]);
 	};
 	{% endif %}
 
 	const awaitingContributions = [];
-	{% if awaiting_contributions %}
-	for (organization of {{ awaiting_contributions | safe }}) {
+	{% if awaiting_contributor_status %}
+	for (organization of {{ awaiting_contributor_status | safe }}) {
 		awaitingContributions.push(organization[0]);
 	};
 	{% endif %}
 
 	const subordinates = [];
-	{% if subordinates %}
-	for (organization of {{ subordinates | safe }}) {
+	{% if referent %}
+	for (organization of {{ referent | safe }}) {
 		subordinates.push(organization[0]);
 	};
 	{% endif %}
 
 	const awaitingSubordinates = [];
-	{% if awaiting_subordinates %}
-	for (organization of {{ awaiting_subordinates | safe }}) {
+	{% if awaiting_referent_statut %}
+	for (organization of {{ awaiting_referent_statut | safe }}) {
 		awaitingSubordinates.push(organization[0]);
 	};
 	{% endif %}

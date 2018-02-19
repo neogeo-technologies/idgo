@@ -2,157 +2,237 @@ from django.core import validators
 from django import forms
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
-# from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
-from idgo_admin.utils import StaticClass
 
 
-class CommonFields(metaclass=StaticClass):
+class AddressField(forms.CharField):
 
-    ADDRESS = forms.CharField(
-        label='Adresse',
-        required=False,
-        widget=forms.Textarea(
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label', 'Adresse')
+        kwargs.setdefault('required', False)
+        kwargs.setdefault('widget', forms.Textarea(
             attrs={
                 'placeholder': 'Numéro de voirie et rue',
                 'rows': 2}))
 
-    CITY = forms.CharField(
-        label='Ville',
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(
+        super().__init__(*args, **kwargs)
+
+
+class CityField(forms.CharField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label', 'Ville')
+        kwargs.setdefault('max_length', 100)
+        kwargs.setdefault('required', False)
+        kwargs.setdefault('widget', forms.PasswordInput(
             attrs={
                 'placeholder': 'Ville'}))
 
-    CONTRIBUTOR = forms.BooleanField(
-        initial=False,
-        label="Je souhaite être <strong>contributeur</strong> de l'organisation",
-        required=False)
+        super().__init__(*args, **kwargs)
 
-    DESCRIPTION = forms.CharField(
-        required=False,
-        label='Description',
-        widget=forms.Textarea(
+
+class ContributorField(forms.BooleanField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('initial', False)
+        kwargs.setdefault('label', "Je souhaite être <strong>contributeur</strong> de l'organisation")
+        kwargs.setdefault('required', False)
+
+        super().__init__(*args, **kwargs)
+
+
+class DescriptionField(forms.CharField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label', 'Description')
+        kwargs.setdefault('required', False)
+        kwargs.setdefault('widget', forms.Textarea(
             attrs={
                 'placeholder': 'Description'}))
 
-    EMAIL = forms.EmailField(
-        error_messages={'invalid': "L'adresse e-mail est invalide."},
-        label='Adresse e-mail',
-        validators=[validators.validate_email],
-        widget=forms.EmailInput(
-            attrs={
-                'placeholder': 'Adresse e-mail'}))
+        super().__init__(*args, **kwargs)
 
-    FIRST_NAME = forms.CharField(
-        error_messages={'invalid': 'invalid'},
-        label='Prénom',
-        max_length=30,
-        min_length=1,
-        widget=forms.TextInput(
+
+class EMailField(forms.CharField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('error_messages', {'invalid': "L'adresse e-mail est invalide."})
+        kwargs.setdefault('label', 'Adresse e-mail')
+        kwargs.setdefault('validators', [validators.validate_email])
+        kwargs.setdefault('widget', forms.EmailInput(
+            attrs={'placeholder': 'Adresse e-mail'}))
+
+        super().__init__(*args, **kwargs)
+
+
+class FirstNameField(forms.CharField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label', 'Prénom')
+        kwargs.setdefault('max_length', 100)
+        kwargs.setdefault('min_length', 1)
+        kwargs.setdefault('widget', forms.TextInput(
             attrs={
                 'placeholder': 'Prénom'}))
 
-    JURISDICTION = forms.ModelChoiceField(
-        empty_label='Aucun',
-        label='Territoire de compétence',
-        queryset=Jurisdiction.objects.all(),
-        required=False)
+        super().__init__(*args, **kwargs)
 
-    LAST_NAME = forms.CharField(
-        label='Nom',
-        max_length=30,
-        min_length=1,
-        widget=forms.TextInput(
+
+class JurisdictionField(forms.ModelChoiceField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('empty_label', 'Aucun')
+        kwargs.setdefault('label', 'Territoire de compétence')
+        kwargs.setdefault('queryset', Jurisdiction.objects.all())
+        kwargs.setdefault('required', False)
+
+        super().__init__(*args, **kwargs)
+
+
+class LicenseField(forms.ModelChoiceField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('empty_label', 'Sélectionnez une licence par défaut')
+        kwargs.setdefault('label', 'Licence par défaut pour tout nouveau jeu de données')
+        kwargs.setdefault('queryset', License.objects.all())
+        kwargs.setdefault('required', False)
+
+        super().__init__(*args, **kwargs)
+
+
+class LastNameField(forms.CharField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label', 'Nom')
+        kwargs.setdefault('max_length', 100)
+        kwargs.setdefault('min_length', 1)
+        kwargs.setdefault('widget', forms.TextInput(
             attrs={
                 'placeholder': 'Nom'}))
 
-    LICENSE = forms.ModelChoiceField(
-        empty_label="Sélectionnez une licence par défaut",
-        label='Licence par défaut pour tout nouveau jeu de données',
-        queryset=License.objects.all(),
-        required=False)
+        super().__init__(*args, **kwargs)
 
-    ORGANISATION_LOGO = forms.ImageField(
-        label="Logo de l'organisation",
-        required=False)
 
-    MEMBER = forms.BooleanField(
-        initial=False,
-        label="Je souhaite être <strong>membre</strong> de l'organisation",
-        required=False)
+class OrganisationLogoField(forms.ImageField):
 
-    # ORGANISATION = forms.ModelChoiceField(
-    #     required=False,
-    #     label='Organisation',
-    #     queryset=Organisation.objects.filter(is_active=True),
-    #     empty_label="Je ne suis rattaché à aucune organisation")
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label', "Logo de l'organisation")
+        kwargs.setdefault('required', False)
 
-    ORGANISATION_NAME = forms.CharField(
-        error_messages={"Nom de l'organisation invalide": 'invalid'},
-        label="Nom de l'organisation",
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisation"}))
+        super().__init__(*args, **kwargs)
 
-    ORGANISATION_TYPE = forms.ModelChoiceField(
-        empty_label="Sélectionnez un type d'organisation",
-        label="Type d'organisation",
-        queryset=OrganisationType.objects.all(),
-        required=False)
 
-    PASSWORD = forms.CharField(
-        label='Nouveau mot de passe',
-        min_length=6,
-        max_length=150,
-        required=False,
-        widget=forms.PasswordInput(
+class OrganisatioNameField(forms.CharField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label', "Nom de l'organisation")
+        kwargs.setdefault('max_length', 100)
+        kwargs.setdefault('required', False)
+        kwargs.setdefault('widget', forms.TextInput(
             attrs={
-                'placeholder': 'Mot de passe'}))
+                'placeholder': "Nom de l'organisation"}))
 
-    PHONE = forms.CharField(
-        error_messages={'invalid': 'Le numéro est invalide.'},
-        required=False,
-        label='Téléphone',
-        max_length=30,
-        min_length=10,
-        widget=forms.TextInput(
+        super().__init__(*args, **kwargs)
+
+
+class OrganisationTypeField(forms.ModelChoiceField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('empty_label', "Sélectionnez un type d'organisation")
+        kwargs.setdefault('label', "Type d'organisation")
+        kwargs.setdefault('queryset', OrganisationType.objects.all())
+        kwargs.setdefault('required', False)
+
+        super().__init__(*args, **kwargs)
+
+
+class MemberField(forms.BooleanField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('initial', False)
+        kwargs.setdefault('label', "Je souhaite être <strong>membre</strong> de l'organisation")
+        kwargs.setdefault('required', False)
+
+        super().__init__(*args, **kwargs)
+
+
+class PasswordField(forms.CharField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label', 'Mot de passe')
+        kwargs.setdefault('max_length', 150)
+        kwargs.setdefault('min_length', 6)
+        kwargs.setdefault('required', False)
+        kwargs.setdefault('widget', forms.PasswordInput(
+            attrs={'placeholder': 'Mot de passe'}))
+
+        super().__init__(*args, **kwargs)
+
+
+class PhoneField(forms.CharField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('error_messages', {'invalid': 'Le numéro est invalide.'})
+        kwargs.setdefault('label', "Téléphone")
+        kwargs.setdefault('max_length', 30)
+        kwargs.setdefault('min_length', 10)
+        kwargs.setdefault('required', False)
+        kwargs.setdefault('widget', forms.TextInput(
             attrs={
                 'class': 'phone',
                 'placeholder': 'Téléphone'}))
 
-    POSTCODE = forms.CharField(
-        label='Code postal',
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(
+        super().__init__(*args, **kwargs)
+
+
+class PostcodeField(forms.CharField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('error_messages', {'invalid': 'Le numéro est invalide.'})
+        kwargs.setdefault('label', 'Code postal')
+        kwargs.setdefault('max_length', 100)
+        kwargs.setdefault('required', False)
+        kwargs.setdefault('widget', forms.TextInput(
             attrs={
                 'placeholder': 'Code postal'}))
 
-    REFERENT = forms.BooleanField(
-        initial=False,
-        label="Je souhaite être <strong>référent technique</strong> de l'organisation",
-        required=False)
+        super().__init__(*args, **kwargs)
 
-    USERNAME = forms.CharField(
-        error_messages={
-            'invalid': 'Seuls les caractères alpha-numériques et le caractère « _ » sont autorisés.'},
-        label="Nom d'utilisateur",
-        max_length=255,
-        min_length=3,
-        validators=[validators.validate_slug],
-        widget=forms.TextInput(
+
+class ReferentField(forms.BooleanField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('initial', False)
+        kwargs.setdefault('label', "Je souhaite être <strong>référent technique</strong> de l'organisation")
+        kwargs.setdefault('required', False)
+
+        super().__init__(*args, **kwargs)
+
+
+class UsernameField(forms.CharField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('error_messages', {'invalid': 'Seuls les caractères alpha-numériques et le caractère « _ » sont autorisés.'})
+        kwargs.setdefault('label', "Nom d'utilisateur")
+        kwargs.setdefault('max_length', 100)
+        kwargs.setdefault('min_length', 3)
+        kwargs.setdefault('required', True)
+        kwargs.setdefault('validators', [validators.validate_slug])
+        kwargs.setdefault('widget', forms.TextInput(
             attrs={
                 'placeholder': "Nom d'utilisateur"}))
 
-    WEBSITE = forms.URLField(
-        error_messages={'invalid': "L'adresse URL est erronée. "},
-        label="URL du site internet de l'organisation",
-        required=False,
-        widget=forms.TextInput(
+        super().__init__(*args, **kwargs)
+
+
+class WebsiteField(forms.URLField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('error_messages', {'invalid': "L'adresse URL est erronée."})
+        kwargs.setdefault('label', "URL du site internet de l'organisation")
+        kwargs.setdefault('required', False)
+        kwargs.setdefault('widget', forms.TextInput(
             attrs={
-                'placeholder': 'Site internet'}))
+                'placeholder': "Site internet"}))
 
-
-common_fields = CommonFields
+        super().__init__(*args, **kwargs)

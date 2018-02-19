@@ -100,14 +100,14 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <div id="allorganizations">
-	{% if awaiting_rattachement %}
-	<div class="alert alert-info">Demande(s) de rattachement à l'organisation « <strong>{{ awaiting_rattachement.1 }}</strong> » en attente de validation.</div>
+	{% if awaiting_member_status %}
+	<div class="alert alert-info">Demande(s) de rattachement à l'organisation « <strong>{{ awaiting_member_status.1 }}</strong> » en attente de validation.</div>
 	{% endif %}
-	{% if awaiting_contributions %}
-	<div class="alert alert-info">Demande(s) de statut de contributeur en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
+	{% if awaiting_contributor_status %}
+	<div class="alert alert-info">Demande(s) de statut de contributeur en attente de validation pour : {% for organization in awaiting_contributor_status %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
 	{% endif %}
-	{% if awaiting_subordinates %}
-	<div class="alert alert-info">Demande(s) de statut de référent technique en attente de validation pour : {% for organization in awaiting_subordinates %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
+	{% if awaiting_referent_statut %}
+	<div class="alert alert-info">Demande(s) de statut de référent technique en attente de validation pour : {% for organization in awaiting_referent_statut %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
 	{% endif %}
 	<div class="row">
 		<div class="col-md-4">
@@ -256,7 +256,7 @@ $(function() {
 		const ORGANIZATION_ID = data.id;
 
 		const isReferent = function() {
-			{% for item in subordinates %}
+			{% for item in referent %}
 			if (ORGANIZATION_ID == {{ item.0 }}) {
 				return true;
 			};
@@ -441,7 +441,7 @@ $(function() {
 		$switchMember = $($organizationWell.find('#info [name="switch-member"]')).on('click', function(e) {
 			openModalChangeStatus('{% url "idgo_admin:subscription" status="member" subscription="subscribe" %}', ORGANIZATION_ID);
 		});
-		if ({{ awaiting_rattachement | length }} > 0) {
+		if ({{ awaiting_member_status | length }} > 0) {
 			deactivateButton($switchMember.off('click'));
 		} else if (data['id'] == {{ organization_id }}) {
 			$switchMember.off('click').on('click', function(e) {
@@ -454,7 +454,7 @@ $(function() {
 		});
 
 		const buttonContributorStatus = function() {
-			{% for item in contributions %}
+			{% for item in contributor %}
 			if (data['id'] == {{ item.0 }}) {
 				$switchContributor.off('click').on('click', function(e) {
 					openModalChangeStatus('{% url "idgo_admin:subscription" status="contributor" subscription="unsubscribe" %}', ORGANIZATION_ID);
@@ -463,8 +463,8 @@ $(function() {
 			{% endfor %}
 		};
 
-		{% if awaiting_contributions %}
-			{% for item in awaiting_contributions %}
+		{% if awaiting_contributor_status %}
+			{% for item in awaiting_contributor_status %}
 		data['id'] == {{ item.0 }} ? deactivateButton($switchContributor.off('click')) : buttonContributorStatus();
 			{% endfor %}
 		{% else %}
@@ -482,7 +482,7 @@ $(function() {
 		{% if not is_admin %}
 
 		const buttonReferentStatus = function() {
-			{% for item in subordinates %}
+			{% for item in referent %}
 			if (data['id'] == {{ item.0 }}) {
 				addUpdateButton('{% url "idgo_admin:update_organization" id=item.0 %}');
 				$switchReferent.off('click').on('click', function(e) {
@@ -492,8 +492,8 @@ $(function() {
 			{% endfor %}
 		};
 
-			{% if awaiting_subordinates %}
-				{% for item in awaiting_subordinates %}
+			{% if awaiting_referent_statut %}
+				{% for item in awaiting_referent_statut %}
 		data['id'] == {{ item.0 }} ? deactivateButton($switchReferent.off('click')) : buttonReferentStatus();
 				{% endfor %}
 			{% else %}
@@ -502,7 +502,7 @@ $(function() {
 		{% endif %}
 
 		{% if is_admin %}
-			{% for item in subordinates %}
+			{% for item in referent %}
 			if (data['id'] == {{ item.0 }}) {
 				addUpdateButton('{% url "idgo_admin:update_organization" id=item.0 %}');
 			};

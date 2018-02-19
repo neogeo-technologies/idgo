@@ -6,7 +6,24 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django import forms
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.forms import common_fields
+from idgo_admin.forms import AddressField
+from idgo_admin.forms import CityField
+from idgo_admin.forms import ContributorField
+from idgo_admin.forms import DescriptionField
+from idgo_admin.forms import EMailField
+from idgo_admin.forms import FirstNameField
+from idgo_admin.forms import JurisdictionField
+from idgo_admin.forms import LastNameField
+from idgo_admin.forms import LicenseField
+from idgo_admin.forms import OrganisatioNameField
+from idgo_admin.forms import OrganisationLogoField
+from idgo_admin.forms import OrganisationTypeField
+from idgo_admin.forms import PasswordField
+from idgo_admin.forms import PhoneField
+from idgo_admin.forms import PostcodeField
+from idgo_admin.forms import ReferentField
+from idgo_admin.forms import UsernameField
+from idgo_admin.forms import WebsiteField
 from idgo_admin.models import Dataset
 from idgo_admin.models import Organisation
 from mama_cas.forms import LoginForm as MamaLoginForm
@@ -19,7 +36,7 @@ class UserForgetPassword(forms.Form):
         fields = (
             'email',)
 
-    email = common_fields.EMAIL
+    email = EMailField()
 
 
 class UserResetPassword(forms.Form):
@@ -30,17 +47,14 @@ class UserResetPassword(forms.Form):
             'username',
             'password')
 
-    username = common_fields.USERNAME
-    password1 = common_fields.PASSWORD
-    password2 = common_fields.PASSWORD
+    username = UsernameField()
+    password1 = PasswordField()
+    password2 = PasswordField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.fields['password1'].widget = forms.PasswordInput(
-            attrs={'placeholder': 'Nouveau mot de passe'})
-        self.fields['password2'].widget = forms.PasswordInput(
-            attrs={'placeholder': 'Confirmez le nouveau mot de passe'})
+        self.fields['password1'].widget.attrs['placeholder'] = 'Nouveau mot de passe'
+        self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le nouveau mot de passe'
 
     def clean(self):
         if self.cleaned_data['password1'] != self.cleaned_data['password2']:
@@ -64,8 +78,8 @@ class UserResetPassword(forms.Form):
 
 class SignInForm(MamaLoginForm):
 
-    username = common_fields.USERNAME
-    password = common_fields.PASSWORD
+    username = UsernameField()
+    password = PasswordField()
 
     def clean(self):
         username = self.cleaned_data.get('username')
@@ -98,8 +112,8 @@ class UserDeleteForm(AuthenticationForm):
             'username',
             'password')
 
-    username = common_fields.USERNAME
-    password = common_fields.PASSWORD
+    username = UsernameField()
+    password = PasswordField()
 
 
 class DeleteAdminForm(forms.Form):
@@ -173,15 +187,15 @@ class SignUpForm(forms.Form):
         fields = user_fields + profile_fields + organisation_fields + extended_fields
 
     # User fields
-    username = common_fields.USERNAME
-    first_name = common_fields.FIRST_NAME
-    last_name = common_fields.LAST_NAME
-    email = common_fields.EMAIL
-    password1 = common_fields.PASSWORD
-    password2 = common_fields.PASSWORD
+    username = UsernameField()
+    first_name = FirstNameField()
+    last_name = LastNameField()
+    email = EMailField()
+    password1 = PasswordField()
+    password2 = PasswordField()
 
     # Profile fields
-    phone = common_fields.PHONE
+    phone = PhoneField()
     organisation = forms.ModelChoiceField(
         required=False,
         label='Organisation',
@@ -189,30 +203,28 @@ class SignUpForm(forms.Form):
         empty_label="Je ne suis rattaché à aucune organisation")
 
     # Organisation fields
-    new_orga = common_fields.ORGANISATION_NAME
-    logo = common_fields.ORGANISATION_LOGO
-    address = common_fields.ADDRESS
-    city = common_fields.CITY
-    postcode = common_fields.POSTCODE
-    org_phone = common_fields.PHONE
-    email = common_fields.EMAIL
-    website = common_fields.WEBSITE
-    description = common_fields.DESCRIPTION
-    jurisdiction = common_fields.JURISDICTION
-    organisation_type = common_fields.ORGANISATION_TYPE
-    license = common_fields.LICENSE
+    new_orga = OrganisatioNameField()
+    logo = OrganisationLogoField()
+    address = AddressField()
+    city = CityField()
+    postcode = PostcodeField()
+    org_phone = PhoneField()
+    email = EMailField()
+    website = WebsiteField()
+    description = DescriptionField()
+    jurisdiction = JurisdictionField()
+    organisation_type = OrganisationTypeField()
+    license = LicenseField()
 
     # Extended fields
-    contributor = common_fields.CONTRIBUTOR
-    referent = common_fields.REFERENT
+    contributor = ContributorField()
+    referent = ReferentField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['password1'].widget = forms.PasswordInput(
-            attrs={'placeholder': 'Nouveau mot de passe'})
-        self.fields['password2'].widget = forms.PasswordInput(
-            attrs={'placeholder': 'Confirmez le nouveau mot de passe'})
+        self.fields['password1'].widget.attrs['placeholder'] = 'Mot de passe'
+        self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le mot de passe'
 
     def clean(self):
 
@@ -284,22 +296,20 @@ class UpdateAccountForm(forms.ModelForm):
     _instance = None
 
     # User fields
-    first_name = common_fields.FIRST_NAME
-    last_name = common_fields.LAST_NAME
-    email = common_fields.EMAIL
-    password1 = common_fields.PASSWORD
-    password2 = common_fields.PASSWORD
+    first_name = FirstNameField()
+    last_name = LastNameField()
+    email = EMailField()
+    password1 = PasswordField()
+    password2 = PasswordField()
 
     # Profile fields
-    phone = common_fields.PHONE
+    phone = PhoneField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['password1'].widget = forms.PasswordInput(
-            attrs={'placeholder': 'Nouveau mot de passe'})
-        self.fields['password2'].widget = forms.PasswordInput(
-            attrs={'placeholder': 'Confirmez le nouveau mot de passe'})
+        self.fields['password1'].widget.attrs['placeholder'] = 'Nouveau mot de passe'
+        self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le nouveau mot de passe'
 
         if 'instance' in kwargs:
             self._instance = kwargs['instance']

@@ -59,7 +59,7 @@ def render_with_info_profile(
         in LiaisonsReferents.get_pending(profile=profile)]
 
     context.update({
-        'wordpress_href': WORDPRESS_URL,
+        'wordpress_url': WORDPRESS_URL,
         'ckan_url': CKAN_URL,
         'username': user.username,
         'first_name': user.first_name,
@@ -70,11 +70,11 @@ def render_with_info_profile(
         'is_admin': profile.is_admin,
         'organization': organization and organization.name or None,
         'organization_id': organization and organization.id or -1,
-        'awaiting_rattachement': awaiting_member_status,
-        'contributions': contributor,
-        'awaiting_contributions': awaiting_contributor_status,
-        'subordinates': referent,
-        'awaiting_subordinates': awaiting_referent_statut})
+        'awaiting_member_status': awaiting_member_status,
+        'contributor': contributor,
+        'awaiting_contributor_status': awaiting_contributor_status,
+        'referent': referent,
+        'awaiting_referent_statut': awaiting_referent_statut})
 
     return render(request, template_name, context=context,
                   content_type=content_type, status=status, using=using)

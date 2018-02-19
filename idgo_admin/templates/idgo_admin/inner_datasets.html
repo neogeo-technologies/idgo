@@ -3,8 +3,8 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <div id="datasets">
-	{% if awaiting_contributions %}
-	<div class="alert alert-info" role="alert">Demande(s) de contribution en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
+	{% if awaiting_contributor_status %}
+	<div class="alert alert-info" role="alert">Demande(s) de contribution en attente de validation pour : {% for organization in awaiting_contributor_status %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
 	{% endif %}
 	<div class="buttons-on-the-right-side">
 		<a name="export-csv" class="btn btn-default">Exporter</a>

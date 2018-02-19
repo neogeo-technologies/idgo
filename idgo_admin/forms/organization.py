@@ -1,5 +1,19 @@
 from django import forms
-from idgo_admin.forms import common_fields
+from idgo_admin.forms import AddressField
+from idgo_admin.forms import CityField
+from idgo_admin.forms import ContributorField
+from idgo_admin.forms import DescriptionField
+from idgo_admin.forms import EMailField
+from idgo_admin.forms import JurisdictionField
+from idgo_admin.forms import LicenseField
+from idgo_admin.forms import MemberField
+from idgo_admin.forms import OrganisatioNameField
+from idgo_admin.forms import OrganisationLogoField
+from idgo_admin.forms import OrganisationTypeField
+from idgo_admin.forms import PhoneField
+from idgo_admin.forms import PostcodeField
+from idgo_admin.forms import ReferentField
+from idgo_admin.forms import WebsiteField
 from idgo_admin.models import Organisation
 
 
@@ -30,23 +44,23 @@ class OrganizationForm(forms.ModelForm):
         fields = organisation_fields + extended_fields
 
     # Organisation fields
-    name = common_fields.ORGANISATION_NAME
-    logo = common_fields.ORGANISATION_LOGO
-    address = common_fields.ADDRESS
-    city = common_fields.CITY
-    postcode = common_fields.POSTCODE
-    org_phone = common_fields.PHONE
-    email = common_fields.EMAIL
-    website = common_fields.WEBSITE
-    description = common_fields.DESCRIPTION
-    jurisdiction = common_fields.JURISDICTION
-    organisation_type = common_fields.ORGANISATION_TYPE
-    license = common_fields.LICENSE
+    name = OrganisatioNameField()
+    logo = OrganisationLogoField()
+    address = AddressField()
+    city = CityField()
+    postcode = PostcodeField()
+    org_phone = PhoneField()
+    email = EMailField()
+    website = WebsiteField()
+    description = DescriptionField()
+    jurisdiction = JurisdictionField()
+    organisation_type = OrganisationTypeField()
+    license = LicenseField()
 
     # Extended fields
-    rattachement_process = common_fields.MEMBER
-    contributor_process = common_fields.CONTRIBUTOR
-    referent_process = common_fields.REFERENT
+    rattachement_process = MemberField()
+    contributor_process = ContributorField()
+    referent_process = ReferentField()
 
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
