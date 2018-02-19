@@ -76,9 +76,12 @@ def confirmation_mail(request, key):
         except Exception:
             pass
         else:
-            contribution_action = AccountActions.objects.get(
-                profile=profile, action='confirm_contribution',
-                organisation=organisation)
+            contribution_action = get_object_or_404(
+                AccountActions,
+                action='confirm_contribution',
+                organisation=organisation,
+                profile=profile,
+                closed=None)
             Mail.confirm_contribution(request, contribution_action)
 
     Mail.confirmation_user_mail(user)
