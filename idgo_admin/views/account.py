@@ -645,13 +645,13 @@ class SignUp(View):
             creation_process(request, profile, organisation)
 
         if form.is_member:
-            member_subscribe_process(request, profile, organisation)
+            member_subscribe_process(request, profile, organisation, mail=False)
 
         if form.is_contributor:
-            contributor_subscribe_process(request, profile, organisation)
+            contributor_subscribe_process(request, profile, organisation, mail=False)
 
         if form.is_referent:
-            referent_subscribe_process(request, profile, organisation)
+            referent_subscribe_process(request, profile, organisation, mail=False)
 
         message = ('Votre compte a bien été créé. Vous recevrez un e-mail '
                    "de confirmation d'ici quelques minutes. Pour activer "
