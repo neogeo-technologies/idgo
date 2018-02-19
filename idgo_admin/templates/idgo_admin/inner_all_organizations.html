@@ -505,6 +505,7 @@ $(function() {
 			{% for item in subordinates %}
 			if (data['id'] == {{ item.0 }}) {
 				addUpdateButton('{% url "idgo_admin:update_organization" id=item.0 %}');
+			};
 			{% endfor %}
 		{% endif %}
 
