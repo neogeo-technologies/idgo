@@ -230,18 +230,14 @@ class DatasetManager(View):
         instance = get_object_or_404_extended(
             Dataset, user, include={'id': id})
 
-        # organisation = instance.organisation
-
         ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
-            ckan_user.delete_dataset(ckan_id)
-            # ckan.purge_dataset(ckan_id)  # -> purge déplacé dans 'model'
+            ckan_user.delete_dataset(ckan_id)  # purge réalisé au delete()
         except CkanNotFoundError:
             status = 500
             message = 'Le jeu de données CKAN est indisponible.'
             messages.error(request, message)
-            # instance.delete()
         except CkanSyncingError:
             status = 500
             message = 'Impossible de supprimer le jeu de données CKAN.'
@@ -253,12 +249,6 @@ class DatasetManager(View):
             messages.success(request, message)
         finally:
             ckan_user.close()
-
-        # ckan_orga = ckan.get_organization(
-        #     str(organisation.ckan_id), include_datasets=True)
-        # if (ckan_orga and len(ckan_orga['packages']) == 0) \
-        #         and not Dataset.objects.filter(organisation=organisation).exists():
-        #     ckan.purge_organization(str(organisation.ckan_id))
 
         Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
 
