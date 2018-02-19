@@ -26,7 +26,7 @@ def confirmation_mail(request, key):
 
     user = action.profile.user
     profile = action.profile
-    organisation = action.profile.organisation
+    organisation = profile.organisation
 
     ckan.activate_user(user.username)
     user.is_active = True
@@ -37,17 +37,21 @@ def confirmation_mail(request, key):
     if organisation:
         # Demande de création d'une nouvelle organisation
         if not organisation.is_active:
-            new_organisation_action = AccountActions.objects.get(
+            new_organisation_action = get_object_or_404(
+                AccountActions,
                 action='confirm_new_organisation',
                 organisation=organisation,
-                profile=profile)
+                profile=profile,
+                closed=None)
             Mail.confirm_new_organisation(request, new_organisation_action)
 
         # Demande de rattachement (Profile-Organisation)
-        rattachement_action = AccountActions.objects.get(
+        rattachement_action = get_object_or_404(
+            AccountActions,
             action='confirm_rattachement',
             organisation=organisation,
-            profile=profile)
+            profile=profile,
+            closed=None)
         Mail.confirm_rattachement(request, rattachement_action)
 
         # Demande de rôle de référent
@@ -57,10 +61,12 @@ def confirmation_mail(request, key):
         except Exception:
             pass
         else:
-            referent_action = AccountActions.objects.create(
+            referent_action = get_object_or_404(
+                AccountActions,
                 action='confirm_referent',
                 organisation=organisation,
-                profile=profile)
+                profile=profile,
+                closed=None)
             Mail.confirm_referent(request, referent_action)
 
         # Demande de rôle de contributeur
@@ -70,7 +76,7 @@ def confirmation_mail(request, key):
         except Exception:
             pass
         else:
-            contribution_action = AccountActions.objects.create(
+            contribution_action = AccountActions.objects.get(
                 profile=profile, action='confirm_contribution',
                 organisation=organisation)
             Mail.confirm_contribution(request, contribution_action)

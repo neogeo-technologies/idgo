@@ -647,9 +647,11 @@ class SignUp(View):
         if form.is_member:
             member_subscribe_process(request, profile, organisation, mail=False)
 
-        if form.is_contributor:
+        # Dans le cas ou seul le role de contributeur est demandé
+        if form.is_contributor and not form.is_referent:
             contributor_subscribe_process(request, profile, organisation, mail=False)
 
+        # role de référent requis donc role de contributeur requis
         if form.is_referent:
             referent_subscribe_process(request, profile, organisation, mail=False)
 

@@ -77,7 +77,7 @@ def contributor_unsubscribe_process(request, profile, organisation):
 def referent_subscribe_process(request, profile, organisation, mail=True):
     if not LiaisonsContributeurs.objects.filter(
             organisation=organisation, profile=profile).exists():
-        contributor_subscribe_process(request, profile, organisation)
+        contributor_subscribe_process(request, profile, organisation, mail=mail)
 
     LiaisonsReferents.objects.get_or_create(
         organisation=organisation, profile=profile, validated_on=None)
@@ -218,9 +218,12 @@ class CreateOrganisation(View):
         form.cleaned_data.get('rattachement_process', False) \
             and member_subscribe_process(request, profile, organisation)
 
+        # Dans le cas ou seul le role de contributeur est demandé
         form.cleaned_data.get('contributor_process', False) \
+            and not form.cleaned_data.get('referent_process', False) \
             and contributor_subscribe_process(request, profile, organisation)
 
+        # role de référent requis donc role de contributeur requis
         form.cleaned_data.get('referent_process', False) \
             and referent_subscribe_process(request, profile, organisation)
 
