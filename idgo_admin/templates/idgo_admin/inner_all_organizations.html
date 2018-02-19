@@ -255,6 +255,15 @@ $(function() {
 
 		const ORGANIZATION_ID = data.id;
 
+		const isReferent = function() {
+			{% for item in subordinates %}
+			if (ORGANIZATION_ID == {{ item.0 }}) {
+				return true;
+			};
+			{% endfor %}
+			return false;
+		};
+
 		const $template = $('#organization_well_template');
 		const $content = $($template.prop('content')).clone();
 		const $organizationWell = $('#organization_well').empty()
@@ -337,7 +346,7 @@ $(function() {
 							$(this.getRow(nRowIdx)).addClass('selected');
 							activateButton($ckanUserCard);
 
-							if (!data.is_referent || {{ is_admin | yesno:'true,false,null' }}) {
+							if (!data.is_referent && (isReferent() || {{ is_admin | yesno:'true,false,null' }})) {
 								data.is_member ? activateButton($deleteMember) : deactivateButton($deleteMember);
 								data.is_contributor ? activateButton($deleteContributor) : deactivateButton($deleteContributor);
 								data.is_referent ?  activateButton($deleteReferent) : deactivateButton($deleteReferent);
@@ -404,7 +413,7 @@ $(function() {
 						m.push({
 							id: i,
 							values: [
-								data[i].username == '{{ username }}' ? data[i].username + '*' : data[i].username,
+								data[i].username,
 								data[i].full_name,
 								data[i].is_member,
 								data[i].is_contributor,
@@ -471,6 +480,7 @@ $(function() {
 		};
 
 		{% if not is_admin %}
+
 		const buttonReferentStatus = function() {
 			{% for item in subordinates %}
 			if (data['id'] == {{ item.0 }}) {

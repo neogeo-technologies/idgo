@@ -35,26 +35,28 @@ def render_with_info_profile(
 
     try:
         action = AccountActions.objects.get(
-            action='confirm_rattachement',
-            profile=profile, closed__isnull=True)
+            action='confirm_rattachement', profile=profile, closed__isnull=True)
     except Exception:
-        awaiting_rattachement = []
+        awaiting_member_status = []
     else:
-        awaiting_rattachement = action.organisation \
+        awaiting_member_status = action.organisation \
             and [action.organisation.id, action.organisation.name]
 
-    contributions = \
-        [[c.id, c.name] for c
-            in LiaisonsContributeurs.get_contribs(profile=profile)]
-    awaiting_contributions = \
-        [[c.id, c.name] for c
-            in LiaisonsContributeurs.get_pending(profile=profile)]
-    subordinates = \
-        [[c.id, c.name] for c
-            in LiaisonsReferents.get_subordinated_organizations(profile=profile)]
-    awaiting_subordinates = \
-        [[c.id, c.name] for c
-            in LiaisonsReferents.get_pending(profile=profile)]
+    contributor = [
+        [c.id, c.name] for c
+        in LiaisonsContributeurs.get_contribs(profile=profile)]
+
+    awaiting_contributor_status = [
+        [c.id, c.name] for c
+        in LiaisonsContributeurs.get_pending(profile=profile)]
+
+    referent = [
+        [c.id, c.name] for c
+        in LiaisonsReferents.get_subordinated_organizations(profile=profile)]
+
+    awaiting_referent_statut = [
+        [c.id, c.name] for c
+        in LiaisonsReferents.get_pending(profile=profile)]
 
     context.update({
         'wordpress_href': WORDPRESS_URL,
@@ -64,15 +66,15 @@ def render_with_info_profile(
         'last_name': user.last_name,
         'is_membership': profile.membership,
         'is_referent': profile.get_roles()['is_referent'],
-        'is_contributor': len(contributions) > 0,
+        'is_contributor': len(contributor) > 0,
         'is_admin': profile.is_admin,
         'organization': organization and organization.name or None,
         'organization_id': organization and organization.id or -1,
-        'awaiting_rattachement': awaiting_rattachement,
-        'contributions': contributions,
-        'awaiting_contributions': awaiting_contributions,
-        'subordinates': subordinates,
-        'awaiting_subordinates': awaiting_subordinates})
+        'awaiting_rattachement': awaiting_member_status,
+        'contributions': contributor,
+        'awaiting_contributions': awaiting_contributor_status,
+        'subordinates': referent,
+        'awaiting_subordinates': awaiting_referent_statut})
 
     return render(request, template_name, context=context,
                   content_type=content_type, status=status, using=using)
