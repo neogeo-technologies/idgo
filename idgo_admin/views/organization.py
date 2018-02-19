@@ -210,7 +210,7 @@ class CreateOrganisation(View):
         try:
             organisation = Organisation.objects.create(**dict(
                 (item, form.cleaned_data[item])
-                for item in form.Meta.common_fields))
+                for item in form.Meta.organisation_fields))
         except ValidationError as e:
             messages.error(request, str(e))
             return render_with_info_profile(

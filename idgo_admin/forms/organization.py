@@ -1,16 +1,14 @@
-from django.core import validators
 from django import forms
-from idgo_admin.models import Jurisdiction
-from idgo_admin.models import License
+from idgo_admin.forms import common_fields
 from idgo_admin.models import Organisation
-from idgo_admin.models import OrganisationType
 
 
 class OrganizationForm(forms.ModelForm):
 
     class Meta(object):
         model = Organisation
-        common_fields = (
+
+        organisation_fields = (
             'address',
             'city',
             'description',
@@ -23,104 +21,32 @@ class OrganizationForm(forms.ModelForm):
             'org_phone',
             'postcode',
             'website')
+
         extended_fields = (
             'contributor_process',
             'rattachement_process',
             'referent_process')
-        fields = common_fields + extended_fields
 
-    name = forms.CharField(
-        error_messages={"Nom de l'organisation invalide": 'invalid'},
-        label="Nom de l'organisation",
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(attrs={'placeholder': "Nom de l'organisation"}))
+        fields = organisation_fields + extended_fields
 
-    logo = forms.ImageField(
-        label="Logo de l'organisation",
-        required=False)
+    # Organisation fields
+    name = common_fields.ORGANISATION_NAME
+    logo = common_fields.ORGANISATION_LOGO
+    address = common_fields.ADDRESS
+    city = common_fields.CITY
+    postcode = common_fields.POSTCODE
+    org_phone = common_fields.PHONE
+    email = common_fields.EMAIL
+    website = common_fields.WEBSITE
+    description = common_fields.DESCRIPTION
+    jurisdiction = common_fields.JURISDICTION
+    organisation_type = common_fields.ORGANISATION_TYPE
+    license = common_fields.LICENSE
 
-    address = forms.CharField(
-        label='Adresse',
-        required=False,
-        widget=forms.Textarea(
-            attrs={'placeholder': 'Numéro de voirie et rue', 'rows': 2}))
-
-    city = forms.CharField(
-        label='Ville',
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(
-            attrs={'placeholder': 'Ville'}))
-
-    postcode = forms.CharField(
-        label='Code postal',
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(
-            attrs={'placeholder': 'Code postal'}))
-
-    org_phone = forms.CharField(
-        error_messages={'invalid': 'Le numéro est invalide.'},
-        required=False,
-        label='Téléphone',
-        max_length=30,
-        min_length=10,
-        widget=forms.TextInput(
-            attrs={'placeholder': 'Téléphone', 'class': 'phone'}))
-
-    email = forms.EmailField(
-        error_messages={'invalid': "L'adresse e-mail est invalide."},
-        label='Adresse e-mail',
-        validators=[validators.validate_email],
-        required=False,
-        widget=forms.EmailInput(
-            attrs={'placeholder': 'Adresse e-mail'}))
-
-    website = forms.URLField(
-        error_messages={'invalid': "L'adresse URL est erronée. "},
-        label="URL du site internet de l'organisation",
-        required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Site internet'}))
-
-    description = forms.CharField(
-        required=False,
-        label='Description',
-        widget=forms.Textarea(
-            attrs={'placeholder': 'Description'}))
-
-    jurisdiction = forms.ModelChoiceField(
-        empty_label='Aucun',
-        label='Territoire de compétence',
-        queryset=Jurisdiction.objects.all(),
-        required=False)
-
-    organisation_type = forms.ModelChoiceField(
-        empty_label="Sélectionnez un type d'organisation",
-        label="Type d'organisation",
-        queryset=OrganisationType.objects.all(),
-        required=False)
-
-    license = forms.ModelChoiceField(
-        empty_label="Sélectionnez une licence par défaut",
-        label='Licence par défaut pour tout nouveau jeu de données',
-        queryset=License.objects.all(),
-        required=False)
-
-    rattachement_process = forms.BooleanField(
-        initial=False,
-        label="Je souhaite être <strong>membre</strong> de l'organisation",
-        required=False)
-
-    contributor_process = forms.BooleanField(
-        initial=False,
-        label="Je souhaite être <strong>référent technique</strong> de l'organisation",
-        required=False)
-
-    referent_process = forms.BooleanField(
-        initial=False,
-        label="Je souhaite être <strong>contributeur</strong> de l'organisation",
-        required=False)
+    # Extended fields
+    rattachement_process = common_fields.MEMBER
+    contributor = common_fields.CONTRIBUTOR
+    referent = common_fields.REFERENT
 
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
