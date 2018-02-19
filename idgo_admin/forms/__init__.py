@@ -24,7 +24,7 @@ class CityField(forms.CharField):
         kwargs.setdefault('label', 'Ville')
         kwargs.setdefault('max_length', 100)
         kwargs.setdefault('required', False)
-        kwargs.setdefault('widget', forms.PasswordInput(
+        kwargs.setdefault('widget', forms.TextInput(
             attrs={
                 'placeholder': 'Ville'}))
 
@@ -56,11 +56,13 @@ class DescriptionField(forms.CharField):
 class EMailField(forms.CharField):
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('error_messages', {'invalid': "L'adresse e-mail est invalide."})
+        kwargs.setdefault('error_messages', {
+            'invalid': "L'adresse e-mail est invalide."})
         kwargs.setdefault('label', 'Adresse e-mail')
         kwargs.setdefault('validators', [validators.validate_email])
         kwargs.setdefault('widget', forms.EmailInput(
-            attrs={'placeholder': 'Adresse e-mail'}))
+            attrs={
+                'placeholder': 'Adresse e-mail'}))
 
         super().__init__(*args, **kwargs)
 
@@ -164,7 +166,8 @@ class PasswordField(forms.CharField):
         kwargs.setdefault('min_length', 6)
         kwargs.setdefault('required', False)
         kwargs.setdefault('widget', forms.PasswordInput(
-            attrs={'placeholder': 'Mot de passe'}))
+            attrs={
+                'placeholder': 'Mot de passe'}))
 
         super().__init__(*args, **kwargs)
 
@@ -172,7 +175,8 @@ class PasswordField(forms.CharField):
 class PhoneField(forms.CharField):
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('error_messages', {'invalid': 'Le numéro est invalide.'})
+        kwargs.setdefault('error_messages', {
+            'invalid': 'Le numéro est invalide.'})
         kwargs.setdefault('label', "Téléphone")
         kwargs.setdefault('max_length', 30)
         kwargs.setdefault('min_length', 10)
@@ -188,7 +192,8 @@ class PhoneField(forms.CharField):
 class PostcodeField(forms.CharField):
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('error_messages', {'invalid': 'Le numéro est invalide.'})
+        kwargs.setdefault('error_messages', {
+            'invalid': 'Le numéro est invalide.'})
         kwargs.setdefault('label', 'Code postal')
         kwargs.setdefault('max_length', 100)
         kwargs.setdefault('required', False)
@@ -212,7 +217,8 @@ class ReferentField(forms.BooleanField):
 class UsernameField(forms.CharField):
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('error_messages', {'invalid': 'Seuls les caractères alpha-numériques et le caractère « _ » sont autorisés.'})
+        kwargs.setdefault('error_messages', {
+            'invalid': 'Seuls les caractères alpha-numériques et le caractère « _ » sont autorisés.'})
         kwargs.setdefault('label', "Nom d'utilisateur")
         kwargs.setdefault('max_length', 100)
         kwargs.setdefault('min_length', 3)
@@ -228,7 +234,8 @@ class UsernameField(forms.CharField):
 class WebsiteField(forms.URLField):
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('error_messages', {'invalid': "L'adresse URL est erronée."})
+        kwargs.setdefault('error_messages', {
+            'invalid': "L'adresse URL est erronée."})
         kwargs.setdefault('label', "URL du site internet de l'organisation")
         kwargs.setdefault('required', False)
         kwargs.setdefault('widget', forms.TextInput(
