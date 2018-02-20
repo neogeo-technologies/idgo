@@ -1,0 +1,48 @@
+{% extends "admin/change_form.html" %} {% load i18n admin_static admin_modify %} {% block content %}
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> -->
+<!-- <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<div id="content-main">
+
+	<form action="" method="POST">
+		{% csrf_token %} {% if form.non_field_errors|length > 0 %}
+		<p class="errornote">
+			"Ces éléments empêchent la suppression de cet utilisateur."
+		</p>
+		{{ form.non_field_errors }} {% endif %}
+		<div>
+			{% if related_datasets  %}
+			<div class="panel panel-warning">
+			  <div class="panel-heading">Choisissez un compte utilisateur pour réaffecter les jeux de donnés orphelins</div>
+			  <div class="panel-body">{{ form.new_user }}</div>
+			</div>
+			<div class="w3-panel w3-pale-red" style="width:30%">
+				<p>Attention: </p>
+				<p>Si vous ne choissez aucun compte de réaffectation, </p>
+				<p>les jeux de donnés suivant ainsi que les ressources qui y sont publiées </p>
+				<p>vont etre définitivement <strong>purgés</strong>. </p>
+				<ul class="w3-ul">
+				{% for dataset in related_datasets %}
+					<li>{{ dataset.name }}</li>
+				{% endfor %}
+				</ul>
+			</div>
+			{% endif %}
+			{{ form.confirm.label_tag }} {{ form.confirm }}
+		</div>
+		<div class="buttons-on-the-right-side">
+			<button type="submit" class="w3-btn w3-white w3-border w3-border-red w3-text-red w3-round-large">Supprimer le compte utilisateur</button>
+			<a class="btn btn-default" href="{% url "admin:auth_user_changelist" %}">Revenir</a>
+		</div>
+	</form>
+</div>
+
+{% endblock %}

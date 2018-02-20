@@ -1,4 +1,19 @@
-from datetime import datetime
+# Copyright (c) 2017-2018 Datasud.
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
@@ -16,26 +31,28 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
-from idgo_admin.forms.account import ProfileForm
 from idgo_admin.forms.account import SignInForm
+from idgo_admin.forms.account import SignUpForm
+from idgo_admin.forms.account import UpdateAccountForm
 from idgo_admin.forms.account import UserDeleteForm
 from idgo_admin.forms.account import UserForgetPassword
-from idgo_admin.forms.account import UserForm
 from idgo_admin.forms.account import UserResetPassword
 from idgo_admin.models import AccountActions
 from idgo_admin.models import LiaisonsContributeurs
-from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
-from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
+from idgo_admin.views.organization import contributor_subscribe_process
+from idgo_admin.views.organization import creation_process
+from idgo_admin.views.organization import member_subscribe_process
+from idgo_admin.views.organization import referent_subscribe_process
 from mama_cas.compat import is_authenticated as mama_is_authenticated
 from mama_cas.models import ProxyGrantingTicket as MamaProxyGrantingTicket
 from mama_cas.models import ProxyTicket as MamaProxyTicket
@@ -119,342 +136,121 @@ class SignOut(MamaLogoutView):
 
 
 @method_decorator(decorators[0], name='dispatch')
-class AccountManager(View):
+class PasswordManager(View):
 
-    def create_account(self, user_data, profile_data):
-        user = User.objects.create_user(
-            username=user_data['username'], password=user_data['password1'],
-            email=user_data['email'], first_name=user_data['first_name'],
-            last_name=user_data['last_name'],
-            is_staff=False, is_superuser=False, is_active=False)
+    def get(self, request, process, key=None):
+        if process == 'forget':
+            template = 'idgo_admin/forgottenpassword.html'
+            form = UserForgetPassword()
+        else:
+            try:
+                uuid.UUID(key)
+            except Exception:
+                raise Http404
 
-        profile = Profile.objects.create(
-            user=user, phone=profile_data['phone'],
-            membership=False, is_active=False)
+            if process == 'initiate':
+                template = 'idgo_admin/initiatepassword.html'
+                form = UserResetPassword()
 
-        return user, profile
+            if process == 'reset':
+                template = 'idgo_admin/resetpassword.html'
+                form = UserResetPassword()
 
-    def handle_me(self, request, user_data, profile_data, user, profile, process):
+        return render(request, template, {'form': form})
 
-        if process in ("update", "update_organization"):
-            user.first_name = user_data['first_name']
-            user.last_name = user_data['last_name']
-            user.username = user_data['username']
+    def post(self, request, process, key=None):
 
-            password = user_data.get('password1', None)
-            if password:
-                user.set_password(password)
-                user.save()
-                logout(request)
-                login(request, user,
-                      backend='django.contrib.auth.backends.ModelBackend')
-            user.save()
-
-            if profile_data['phone']:
-                profile.phone = profile_data['phone']
-
-        if profile_data['mode'] == 'nothing_to_do':
-            profile.save()
-            return user, profile, None, False
-
-        if profile_data['mode'] == 'no_organization_please':  # TODO?
-            profile.save()
-            return user, profile, None, False
-
-        if profile_data['mode'] == 'change_organization':
-            organisation = profile_data['organisation']
-            org_created = False
-
-        if profile_data['mode'] == 'require_new_organization':
-            organisation, org_created = \
-                Organisation.objects.get_or_create(
-                    name=profile_data['new_orga'],
-                    defaults={
-                        'address': profile_data['address'],
-                        'city': profile_data['city'],
-                        # 'code_insee': profile_data['code_insee'],
-                        'postcode': profile_data['postcode'],
-                        'description': profile_data['description'],
-                        'financier': profile_data['financier'],
-                        'jurisdiction': profile_data['jurisdiction'],
-                        'license': profile_data['license'],
-                        'logo': profile_data['logo'],
-                        'organisation_type': profile_data['organisation_type'],
-                        # 'parent': profile_data['parent'],
-                        # 'status': profile_data['status'],
-                        'website': profile_data['website'],
-                        'is_active': False})
-
-        profile.organisation = organisation
-        profile.membership = False
-        profile.save()
-        return user, profile, organisation, org_created
-
-    def signup_process(self, request, profile):
-        signup_action = AccountActions.objects.create(profile=profile,
-                                                      action="confirm_mail")
-        Mail.validation_user_mail(request, signup_action)
-
-    def new_org_process(self, request, profile, process):
-        # Ajout clé uuid et envoi mail aux admin pour confirmations de création
-        new_organisation_action = AccountActions.objects.create(
-            profile=profile, action='confirm_new_organisation')
-        if process in ("update", "update_organization"):
-            Mail.confirm_new_organisation(request, new_organisation_action)
-
-    def rattachement_process(self, request, profile, organisation, process):
-        # Demande de rattachement à l'organisation
-        rattachement_action = AccountActions.objects.create(
-            profile=profile, action='confirm_rattachement',
-            org_extras=organisation)
-        if process in ("update", "update_organization"):
-            Mail.confirm_updating_rattachement(request, rattachement_action)
-
-    def referent_process(self, request, profile, organisation, process):
-        LiaisonsReferents.objects.get_or_create(
-            profile=profile, organisation=organisation, validated_on=None)
-        if process in ("update", "update_organization"):
-            referent_action = AccountActions.objects.create(
-                profile=profile, action='confirm_referent',
-                org_extras=organisation)
-            Mail.confirm_referent(request, referent_action)
-        # Un referent est obligatoirement un contributeur
-        self.contributor_process(request, profile, organisation, process, send_mail=False)
-
-    def contributor_process(self, request, profile, organisation, process, send_mail=True):
-        LiaisonsContributeurs.objects.get_or_create(
-            profile=profile, organisation=organisation)
-        if process in ("update", "update_organization") and send_mail:
-            contribution_action = AccountActions.objects.create(
-                profile=profile, action='confirm_contribution',
-                org_extras=organisation)
-            Mail.confirm_contribution(request, contribution_action)
-
-    def contextual_response(self, request, process):
-        if process == "create":
-            message = ('Votre compte a bien été créé. Vous recevrez un e-mail '
-                       "de confirmation d'ici quelques minutes. Pour activer "
-                       'votre compte, cliquez sur le lien qui vous sera indiqué '
-                       "dans les 48h après réception de l'e-mail.")
-
-            return render(request, 'idgo_admin/message.html',
-                          {'message': message}, status=200)
-
-        if process == "update_organization":
-            messages.success(
-                request, 'Les informations de votre profil sont à jour.')
-            name_space = 'idgo_admin:my_organization'
-
-        if process == "update":
-            messages.success(
-                request, 'Les informations de votre profil sont à jour.')
-            name_space = 'idgo_admin:account_manager'
-
-        return HttpResponseRedirect(reverse(name_space,
-                                            kwargs={'process': process}))
-
-    def contextual_template(self, process):
-        return {'create': 'idgo_admin/signup.html',
-                'update': 'idgo_admin/modifyaccount.html',
-                'update_organization': 'idgo_admin/update_my_organization.html'}.get(process)
-
-    def render_on_error(self, request, html_template, uform, pform):
-        return render(request, html_template,
-                      {'uform': uform, 'pform': pform})
-
-    def rewind_ckan(self, username):
-        ckan.update_user(User.objects.get(username=username))
-
-    def get(self, request, process):
-
-        if process == "create":
-            return render(
-                request, self.contextual_template(process),
-                {'uform': UserForm(include={'action': process}),
-                 'pform': ProfileForm(include={'action': process})})
-
-        elif process in ("update", "update_organization"):
+        if process == 'forget':
+            template = 'idgo_admin/forgottenpassword.html'
+            form = UserForgetPassword(data=request.POST)
+            action = 'reset_password'
+            if not form.is_valid():
+                return render(request, template, {'form': form})
 
             try:
-                user, profile = user_and_profile(request)
-            except ProfileHttp404:
-                return HttpResponseRedirect(reverse('idgo_admin:signIn'))
-
-            return render_with_info_profile(
-                request, self.contextual_template(process),
-                {'uform': UserForm(instance=user, include={'action': process}),
-                 'pform': ProfileForm(instance=profile, include={'user': user, 'action': process})})
-
-    @transaction.atomic
-    def post(self, request, process):
-
-        if process == "create":
-            pform = ProfileForm(request.POST, request.FILES,
-                                include={'action': process})
-            uform = UserForm(data=request.POST, include={'action': process})
-
-        if process in ("update", "update_organization"):
-
+                profile = Profile.objects.get(
+                    user__email=form.cleaned_data["email"], is_active=True)
+            except Exception:
+                message = "Cette adresse n'est pas liée a un compte IDGO actif "
+                return render(request, 'idgo_admin/message.html',
+                              {'message': message}, status=200)
+            forget_action, created = AccountActions.objects.get_or_create(
+                profile=profile, action=action, closed=None)
             try:
-                user, profile = user_and_profile(request)
-            except ProfileHttp404:
-                return HttpResponseRedirect(reverse('idgo_admin:signIn'))
+                Mail.send_reset_password_link_to_user(request, forget_action)
+            except Exception as e:
+                message = ("Une erreur s'est produite lors de l'envoi du mail "
+                           "de réinitialisation: {error}".format(error=e))
 
-            pform = ProfileForm(request.POST, request.FILES,
-                                instance=profile,
-                                include={'user': user,
-                                         'action': process})
-            uform = UserForm(data=request.POST, instance=user, include={'action': process})
+                status = 400
+            else:
+                message = ('Vous recevrez un e-mail de réinitialisation '
+                           "de mot de passe d'ici quelques minutes. "
+                           'Pour changer votre mot de passe, '
+                           'cliquez sur le lien qui vous sera indiqué '
+                           "dans les 48h après réception de l'e-mail.")
+                status = 200
+            finally:
+                return render(request, 'idgo_admin/message.html',
+                              {'message': message}, status=status)
 
-        if not uform.is_valid() or not pform.is_valid():
-            if process == "create":
-                return render(
-                    request, self.contextual_template(process),
-                    {'uform': uform, 'pform': pform})
-            if process in ("update", "update_organization"):
-                return render_with_info_profile(
-                    request, self.contextual_template(process),
-                    {'uform': uform, 'pform': pform})
+        if process == 'initiate':
+            template = 'idgo_admin/initiatepassword.html'
+            form = UserResetPassword(data=request.POST)
+            action = "set_password_admin"
+            message_error = ("Une erreur s'est produite lors de l'initialisation "
+                             "de votre mot de passe")
+            message_success = 'Votre compte utilisateur a été initialisé.'
 
-        if process == "create":
-            if ckan.is_user_exists(uform.cleaned_data['username']):
-                uform.add_error('username',
-                                'Cet identifiant de connexion est réservé.')
-                return self.render_on_error(
-                    request, self.contextual_template(process), uform, pform)
-
-            user, profile = self.create_account(uform.cleaned_data,
-                                                pform.cleaned_data)
+        if process == 'reset':
+            template = 'idgo_admin/resetpassword.html'
+            form = UserResetPassword(data=request.POST)
+            action = "reset_password"
+            message_error = ("Une erreur s'est produite lors de la réinitialisation "
+                             "de votre mot de passe. Le jeton de réinitialisation "
+                             "semble obsolète.")
+            message_success = 'Votre mot de passe a été réinitialisé.'
 
         try:
+            uuid.UUID(key)
+        except Exception:
+            raise Http404
+
+        if not form.is_valid():
+            return render(request, template,
+                          {'form': form})
+
+        try:
+            generic_action = AccountActions.objects.get(
+                key=key, action=action,
+                profile__user__username=form.cleaned_data.get('username'),
+                closed=None)
+        except Exception:
+            message = message_error
+
+            status = 400
+            return render(request, 'idgo_admin/message.html',
+                          {'message': message}, status=status)
+
+        user = generic_action.profile.user
+        try:
             with transaction.atomic():
-                user, profile, organisation, org_created = self.handle_me(
-                    request,
-                    uform.cleaned_data,
-                    pform.cleaned_data, user, profile, process)
-                if process in ("update", "update_organization"):
-                    ckan.update_user(user)
-
-        except ValidationError as e:
-            if process in ("update", "update_organization"):
-                ckan.update_user(User.objects.get(username=user.username))
-                return render_with_info_profile(
-                    request, self.contextual_template(process),
-                    {'uform': uform, 'pform': pform})
-            raise e
-
-        except Exception as e:
-            if process in ("update", "update_organization"):
-                ckan.update_user(User.objects.get(username=user.username))
-                messages.error(
-                    request, 'Une erreur est survenue lors de la modification de votre compte.')
-            raise e
-
+                user = form.save(request, user)
+                generic_action.closed = timezone.now()
+                generic_action.save()
+        except ValidationError:
+            return render(request, template, {'form': form})
+        except IntegrityError:
+            logout(request)
+        except Exception:
+            messages.error(
+                request, message_error)
         else:
-            if org_created:
-                self.new_org_process(request, profile, process)
-            if pform.cleaned_data['mode'] in ['change_organization', 'require_new_organization']:
-                self.rattachement_process(request, profile, organisation, process)
-                if pform.cleaned_data.get('referent_requested'):
-                    self.referent_process(request, profile, organisation, process)
-                if pform.cleaned_data.get('contribution_requested'):
-                    self.contributor_process(request, profile, organisation, process)
-            if process == "create":
-                ckan.add_user(user, uform.cleaned_data['password1'])
-                self.signup_process(request, profile)
-            return self.contextual_response(request, process)
+            messages.success(
+                request, message_success)
 
-
-@csrf_exempt
-def forgotten_password(request):
-
-    if request.method == 'GET':
-        return render(request, 'idgo_admin/forgottenpassword.html',
-                      {'form': UserForgetPassword()})
-
-    form = UserForgetPassword(data=request.POST)
-
-    if not form.is_valid():
-        return render(request, 'idgo_admin/forgottenpassword.html',
-                      {'form': form})
-    try:
-        profile = Profile.objects.get(
-            user__email=form.cleaned_data["email"], is_active=True)
-    except Exception:
-        message = "Cette adresse n'est pas liée a un compte IDGO actif "
-        return render(request, 'idgo_admin/message.html',
-                      {'message': message}, status=200)
-
-    action, created = AccountActions.objects.get_or_create(
-        profile=profile, action='reset_password', closed=None)
-
-    try:
-        Mail.send_reset_password_link_to_user(request, action)
-    except Exception as e:
-        message = ("Une erreur s'est produite lors de l'envoi du mail "
-                   "de réinitialisation: {error}".format(error=e))
-
-        status = 400
-    else:
-        message = ('Vous recevrez un e-mail de réinitialisation '
-                   "de mot de passe d'ici quelques minutes. "
-                   'Pour changer votre mot de passe, '
-                   'cliquez sur le lien qui vous sera indiqué '
-                   "dans les 48h après réception de l'e-mail.")
-        status = 200
-    finally:
-        return render(request, 'idgo_admin/message.html',
-                      {'message': message}, status=status)
-
-
-@transaction.atomic
-@csrf_exempt
-def reset_password(request, key):
-
-    if request.method == 'GET':
-        return render(request, 'idgo_admin/resetpassword.html',
-                      {'form': UserResetPassword()})
-
-    form = UserResetPassword(data=request.POST)
-    if not form.is_valid():
-        return render(request, 'idgo_admin/resetpassword.html', {'form': form})
-
-    try:
-        uuid.UUID(key)
-    except Exception:
-        raise Http404
-
-    try:
-        reset_action = AccountActions.objects.get(
-            key=key, action="reset_password",
-            profile__user__username=form.cleaned_data.get('username'))
-    except Exception:
-        message = ("Une erreur s'est produite lors de la "
-                   'réinitialisation de votre mot de passe')
-
-        status = 400
-        return render(request, 'idgo_admin/message.html',
-                      {'message': message}, status=status)
-
-    user = reset_action.profile.user
-    try:
-        with transaction.atomic():
-            user = form.save(request, user)
-            reset_action.closed = datetime.now()
-            reset_action.save()
-    except ValidationError:
-        return render(request, 'idgo_admin/resetpassword.html', {'form': form})
-    except IntegrityError:
-        logout(request)
-    except Exception:
-        messages.error(
-            request, 'Une erreur est survenue lors de la modification de votre compte.')
-    else:
-        messages.success(
-            request, 'Votre mot de passe a été réinitialisé.')
-
-    return HttpResponseRedirect(
-        reverse('idgo_admin:account_manager', kwargs={'process': 'update'}))
+        return HttpResponseRedirect(
+            reverse('idgo_admin:account_manager', kwargs={'process': 'update'}))
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -488,41 +284,41 @@ def delete_account(request):
 @method_decorator(decorators, name='dispatch')
 class ReferentAccountManager(View):
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, *args, **kwargs):
-
-        user, profile = user_and_profile(request)
-
-        if not profile.referents.exists() and not profile.is_admin:
-            raise Http404
-
-        my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinated_organizations(profile=profile)
-
-        organizations = {}
-        for orga in my_subordinates:
-            organizations[str(orga.name)] = {'id': orga.id}
-            organizations[str(orga.name)]["members"] = [{
-                "profile_id": p.pk,
-                "is_referent": p.get_roles(organisation=orga)["is_referent"] and "true" or "false",
-                "first_name": p.user.first_name,
-                "last_name": p.user.last_name,
-                "username": p.user.username,
-                "nb_datasets": p.nb_datasets(orga)
-                } for p in Profile.objects.filter(organisation=orga, membership=True).order_by('user__last_name')]
-
-            organizations[str(orga.name)]["contributors"] = [{
-                "profile_id": lc.profile.pk,
-                "is_referent": lc.profile.get_roles(organisation=orga)["is_referent"] and "true" or "false",
-                "first_name": lc.profile.user.first_name,
-                "last_name": lc.profile.user.last_name,
-                "username": lc.profile.user.username,
-                "nb_datasets": lc.profile.nb_datasets(orga)
-                } for lc in LiaisonsContributeurs.objects.filter(
-                organisation=orga, validated_on__isnull=False).order_by('profile__user__last_name')]
-
-        return render_with_info_profile(
-            request, 'idgo_admin/all_members.html', status=200,
-            context={'organizations': organizations})
+    # @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    # def get(self, request, *args, **kwargs):
+    #
+    #     user, profile = user_and_profile(request)
+    #
+    #     if not profile.referents.exists() and not profile.is_admin:
+    #         raise Http404
+    #
+    #     my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinated_organizations(profile=profile)
+    #
+    #     organizations = {}
+    #     for orga in my_subordinates:
+    #         organizations[str(orga.name)] = {'id': orga.id}
+    #         organizations[str(orga.name)]["members"] = [{
+    #             "profile_id": p.pk,
+    #             "is_referent": p.get_roles(organisation=orga)["is_referent"] and "true" or "false",
+    #             "first_name": p.user.first_name,
+    #             "last_name": p.user.last_name,
+    #             "username": p.user.username,
+    #             "nb_datasets": p.nb_datasets(orga)
+    #             } for p in Profile.objects.filter(organisation=orga, membership=True).order_by('user__last_name')]
+    #
+    #         organizations[str(orga.name)]["contributors"] = [{
+    #             "profile_id": lc.profile.pk,
+    #             "is_referent": lc.profile.get_roles(organisation=orga)["is_referent"] and "true" or "false",
+    #             "first_name": lc.profile.user.first_name,
+    #             "last_name": lc.profile.user.last_name,
+    #             "username": lc.profile.user.username,
+    #             "nb_datasets": lc.profile.nb_datasets(orga)
+    #             } for lc in LiaisonsContributeurs.objects.filter(
+    #             organisation=orga, validated_on__isnull=False).order_by('profile__user__last_name')]
+    #
+    #     return render_with_info_profile(
+    #         request, 'idgo_admin/all_members.html', status=200,
+    #         context={'organizations': organizations})
 
     def delete(self, request, *args, **kwargs):
 
@@ -553,4 +349,139 @@ class ReferentAccountManager(View):
             message = "L'utilisateur <strong>{0}</strong> n'est plus contributeur de cette organisation. ".format(username)
             messages.success(request, message)
 
+        # TODO referent
+
         return HttpResponse(status=200)
+
+
+def sign_up_process(request, profile, mail=True):
+    action = \
+        AccountActions.objects.create(profile=profile, action='confirm_mail')
+    mail and Mail.validation_user_mail(request, action)
+
+
+@method_decorator(decorators[0], name='dispatch')
+class SignUp(View):
+    template = 'idgo_admin/signup.html'
+
+    def get(self, request):
+        return render(request, self.template, {'form': SignUpForm()})
+
+    @transaction.atomic
+    def post(self, request):
+
+        form = SignUpForm(request.POST, request.FILES)
+
+        if not form.is_valid():
+            return render(request, self.template, context={'form': form})
+
+        try:
+            with transaction.atomic():
+
+                profile_data = {
+                    **form.cleaned_profile_data,
+                    **{'user': User.objects.create_user(**form.cleaned_user_data)}}
+
+                organisation = form.create_organisation \
+                    and Organisation.objects.create(**form.cleaned_organisation_data) \
+                    or form.cleaned_profile_data['organisation']
+
+                profile_data['organisation'] = organisation
+                profile = Profile.objects.create(**profile_data)
+
+                ckan.add_user(profile.user, form.cleaned_user_data['password'])
+        except ValidationError:
+            return render(request, self.template, context={'form': form})
+
+        except Exception as e:
+            print('Error', str(e))
+            messages.error(request, 'Une erreur est survenue lors de la création de votre compte.')
+            return render(request, self.template, context={'form': form})
+
+        # else:
+        sign_up_process(request, profile)
+
+        if form.create_organisation:
+            creation_process(request, profile, organisation)
+
+        if form.is_member:
+            member_subscribe_process(request, profile, organisation, mail=False)
+
+        # Dans le cas ou seul le role de contributeur est demandé
+        if form.is_contributor and not form.is_referent:
+            contributor_subscribe_process(request, profile, organisation, mail=False)
+
+        # role de référent requis donc role de contributeur requis
+        if form.is_referent:
+            referent_subscribe_process(request, profile, organisation, mail=False)
+
+        message = ('Votre compte a bien été créé. Vous recevrez un e-mail '
+                   "de confirmation d'ici quelques minutes. Pour activer "
+                   'votre compte, cliquez sur le lien qui vous sera indiqué '
+                   "dans les 48h après réception de l'e-mail.")
+
+        return render(request, 'idgo_admin/message.html',
+                      context={'message': message}, status=200)
+
+
+@method_decorator(decorators[0], name='dispatch')
+class UpdateAccount(View):
+    template = 'idgo_admin/updateaccount.html'
+
+    def get(self, request):
+
+        try:
+            user, profile = user_and_profile(request)
+        except ProfileHttp404:
+            return HttpResponseRedirect(reverse('idgo_admin:signIn'))
+
+        return render_with_info_profile(
+            request, self.template, {'form': UpdateAccountForm(instance=user)})
+
+    @transaction.atomic
+    def post(self, request):
+
+        try:
+            user, profile = user_and_profile(request)
+        except ProfileHttp404:
+            return HttpResponseRedirect(reverse('idgo_admin:signIn'))
+
+        form = UpdateAccountForm(request.POST, instance=user)
+
+        if not form.is_valid():
+            return render_with_info_profile(
+                request, self.template, context={'form': form})
+
+        try:
+            with transaction.atomic():
+
+                if form.new_password:
+                    user.set_password(form.new_password)
+                    user.save()
+                    logout(request)
+                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
+                for field in form.Meta.profile_fields:
+                    setattr(profile, field, form.cleaned_data[field])
+                profile.save()
+
+                for field in form.Meta.user_fields:
+                    setattr(user, field, form.cleaned_data[field])
+                user.save()
+
+                ckan.update_user(user)
+
+        except ValidationError:
+            return render_with_info_profile(
+                request, self.template, context={'form': form})
+
+        except Exception as e:
+            print('Error', str(e))
+            messages.error(request, 'Une erreur est survenue lors de la mise à jour de votre compte.')
+            return render_with_info_profile(
+                request, self.template, context={'form': form})
+
+        messages.success(request, 'Votre compte a bien été mis à jour.')
+
+        return render_with_info_profile(
+            request, self.template, context={'form': form}, status=200)

@@ -19,7 +19,7 @@
 (idgo_venv) /idgo_venv> pip install --upgrade pip
 (idgo_venv) /idgo_venv> pip install --upgrade setuptools
 (idgo_venv) /idgo_venv> pip install psycopg2
-(idgo_venv) /idgo_venv> pip install django==1.11
+(idgo_venv) /idgo_venv> pip install 'django=>1.11,<1.12'
 (idgo_venv) /idgo_venv> pip install django-taggit
 (idgo_venv) /idgo_venv> pip install django-bootstrap3
 (idgo_venv) /idgo_venv> pip install django-mama-cas
@@ -150,6 +150,8 @@ MEDIA_ROOT = '/var/www/html/media/'
 CKAN_URL = 'http://ckan'
 CKAN_API_KEY = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
 CKAN_TIMEOUT = 36000
+
+WORDPRESS_URL = 'http://wordpress'
 
 DOWNLOAD_SIZE_LIMIT = 104857600  # octets (e.g. 100Mio)
 

@@ -1,16 +1,6 @@
 {% load bootstrap3 %}
 
-{% if messages %}
-	{% for message in messages %}
-		{% if message.tags == 'success' %}
-			<div name='message-tags' class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
-		{% elif message.tags == 'error' %}
-			<div name='message-tags' class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
-		{% elif message.tags == 'info' %}
-			<div name='message-tags' class="alert alert-info" role="alert">{{ message | escape | safe }}</div>
-		{% endif %}
-	{% endfor %}
-{% endif %}
+{% include "idgo_admin/alert_messages.html" %}
 
 <form name="dataset" method="post" action="" enctype="multipart/form-data">
 
@@ -24,9 +14,16 @@
 	</div>
 
 	{% csrf_token %}
+
 	<div class="row">
 		<div class="col-xs-12">
 			{% bootstrap_field form.name %}
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-xs-12">
+			{% bootstrap_field form.ckan_slug %}
 		</div>
 	</div>
 	<!-- <div class="row">
@@ -108,6 +105,17 @@
 		</div>
 	</div>
 	<div class="row">
+		<div class="col-xs-6">
+			{% bootstrap_field form.owner_name %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			{% bootstrap_field form.owner_email %}
+		</div>
+	</div>
+	<hr />
+	<div class="row">
 		<div class="col-xs-12">
 			{% bootstrap_field form.published %}
 		</div>
@@ -123,6 +131,7 @@
 			<p>* Les champs marqués d'un astérisque sont obligatoires.</p>
 		</div>
 	</div>
+	<br />
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:datasets" %}">Annuler</a>
 		<button type="submit" name="continue" class="btn btn-primary">Enregistrer et continuer les modifications</button>
@@ -143,6 +152,29 @@ $(function() {
 	$('form[name="dataset"] input[checked=""], form[name="dataset"] input[checked="checked"]').each(function() {
 		$('label[for="' + this.id + '"]').addClass('active');
 	});
+
+	const $name = $('[name="{{ form.name.name }}"]')
+	const $ckanSlug = $('[name="{{ form.ckan_slug.name }}"]').prop('readonly', true);
+
+	const btnText = 'Modifier le chemin';
+	$ckanSlug.siblings().find('button').text(btnText).click(function(e) {
+		if (!$ckanSlug.prop('readonly')) {
+			$(this).text(btnText);
+			$ckanSlug.prop('readonly', true);
+			$ckanSlug.val({% if dataset_ckan_slug %}'{{ dataset_ckan_slug }}'{% else %}window.slugify($name.val(), 100){% endif %});
+		} else {
+			$(this).text('Annuler la saisie');
+			$ckanSlug.prop('readonly', false);
+		};
+	});
+
+	{% if not dataset_ckan_slug %}
+	$name.on('input', function() {
+		$ckanSlug.val(window.slugify(this.value, 100))
+	});
+	{% else %}
+		$ckanSlug.val('{{ dataset_ckan_slug }}')
+	{% endif %}
 
 	function extractor(query) {
 		var result = /([^,]+)$/.exec(query);

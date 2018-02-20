@@ -1,20 +1,10 @@
 {% load bootstrap3 %}
 
-{% if messages %}
-	{% for message in messages %}
-		{% if message.tags == 'success' %}
-			<div name='message-tags' class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
-		{% elif message.tags == 'error' %}
-			<div name='message-tags' class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
-		{% elif message.tags == 'info' %}
-			<div name='message-tags' class="alert alert-info" role="alert">{{ message | escape | safe }}</div>
-		{% endif %}
-	{% endfor %}
-{% endif %}
+{% include "idgo_admin/alert_messages.html" %}
 
 <div id="datasets">
-	{% if awaiting_contributions %}
-	<div class="alert alert-info" role="alert">Demande(s) de contribution en attente de validation pour : {% for organization in awaiting_contributions %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
+	{% if awaiting_contributor_status|length > 0 %}
+	<div class="alert alert-info" role="alert">Demande(s) de contribution en attente de validation pour : {% for organization in awaiting_contributor_status %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
 	{% endif %}
 	<div class="buttons-on-the-right-side">
 		<a name="export-csv" class="btn btn-default">Exporter</a>
@@ -271,11 +261,13 @@ $(function() {
 		const isContributor = {{ is_contributor | yesno:"true,false,none" }};
 
 		if (!isContributor) {
+			// TODO -> $exportCSV visibilité avec Tableau
 			$parent.find('button.btn, a.btn').not($exportCSV).each(function() {
 				deactivateButton($(this));
 				$(this).hide();
 			});
-			$containerId.parent().before('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez <a href="{% url "idgo_admin:contribute" %}">ajouter une organisation à laquelle contribuer</a>.');
+			$containerId.parent().before('<div role="alert" class="alert alert-info"><p>Vous êtes un utilisateur enregistré. Pour profiter des fonctionnalités participatives de <strong>DataSud</strong>, vous pouvez parcourir le <a href="{{ ckan_url }}" target="_blank">catalogue</a>.');
+			$containerId.parent().before('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Dans le menu <a href="{% url "idgo_admin:all_organizations" %}">Les Organisations</a>, vous pouvez choisir une organisation à laquelle contribuer ou bien en créer <a href="{% url "idgo_admin:create_organization" %}">une nouvelle</a>.');
 		};
 
 		if (data.length == 0 && isContributor) {
@@ -368,9 +360,9 @@ $(function() {
 	);
 
 	$(window).bind('hashchange', function(e) {
-		selectRowByDataId(location.hash.split('/')[1]);
+		selectRowByDataId(window.location.hash.split('/')[1]);
 	});
-	selectRowByDataId(location.hash.split('/')[1]);
+	selectRowByDataId(window.location.hash.split('/')[1]);
 
 });
 </script>

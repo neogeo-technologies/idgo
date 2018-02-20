@@ -1,3 +1,19 @@
+# Copyright (c) 2017-2018 Datasud.
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
@@ -14,6 +30,7 @@ from idgo_admin.models import Resource
 
 
 CKAN_URL = settings.CKAN_URL
+WORDPRESS_URL = settings.WORDPRESS_URL
 
 
 def on_profile_http404():
@@ -34,41 +51,46 @@ def render_with_info_profile(
 
     try:
         action = AccountActions.objects.get(
-            action='confirm_rattachement',
-            profile=profile, closed__isnull=True)
+            action='confirm_rattachement', profile=profile, closed__isnull=True)
     except Exception:
-        awaiting_rattachement = None
+        awaiting_member_status = []
     else:
-        awaiting_rattachement = action.org_extras and action.org_extras.name
+        awaiting_member_status = action.organisation \
+            and [action.organisation.id, action.organisation.name]
 
-    contributions = \
-        [[c.id, c.name] for c
-            in LiaisonsContributeurs.get_contribs(profile=profile)]
-    awaiting_contributions = \
-        [[c.id, c.name] for c
-            in LiaisonsContributeurs.get_pending(profile=profile)]
-    subordinates = \
-        [[c.id, c.name] for c
-            in LiaisonsReferents.get_subordinated_organizations(profile=profile)]
-    awaiting_subordinates = \
-        [[c.id, c.name] for c
-            in LiaisonsReferents.get_pending(profile=profile)]
+    contributor = [
+        [c.id, c.name] for c
+        in LiaisonsContributeurs.get_contribs(profile=profile)]
+
+    awaiting_contributor_status = [
+        [c.id, c.name] for c
+        in LiaisonsContributeurs.get_pending(profile=profile)]
+
+    referent = [
+        [c.id, c.name] for c
+        in LiaisonsReferents.get_subordinated_organizations(profile=profile)]
+
+    awaiting_referent_statut = [
+        [c.id, c.name] for c
+        in LiaisonsReferents.get_pending(profile=profile)]
 
     context.update({
+        'wordpress_url': WORDPRESS_URL,
         'ckan_url': CKAN_URL,
+        'username': user.username,
         'first_name': user.first_name,
         'last_name': user.last_name,
         'is_membership': profile.membership,
-        'is_referent': profile.get_roles()["is_referent"],
-        'is_contributor': len(contributions) > 0,
+        'is_referent': profile.get_roles()['is_referent'],
+        'is_contributor': len(contributor) > 0,
         'is_admin': profile.is_admin,
-        'organization': organization and organization.name,
-        'organization_id': organization and organization.id,
-        'awaiting_rattachement': awaiting_rattachement,
-        'contributions': contributions,
-        'awaiting_contributions': awaiting_contributions,
-        'subordinates': subordinates,
-        'awaiting_subordinates': awaiting_subordinates})
+        'organization': organization and organization.name or None,
+        'organization_id': organization and organization.id or -1,
+        'awaiting_member_status': awaiting_member_status,
+        'contributor': contributor,
+        'awaiting_contributor_status': awaiting_contributor_status,
+        'referent': referent,
+        'awaiting_referent_statut': awaiting_referent_statut})
 
     return render(request, template_name, context=context,
                   content_type=content_type, status=status, using=using)

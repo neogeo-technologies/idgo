@@ -1,3 +1,19 @@
+# Copyright (c) 2017-2018 Datasud.
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+
 from ckanapi import errors as CkanError
 from ckanapi import RemoteCKAN
 from datetime import datetime
@@ -38,6 +54,11 @@ class CkanSyncingError(GenericException):
         super().__init__(*args, **kwargs)
 
 
+class CkanNotFoundError(GenericException):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
 class CkanTimeoutError(CkanSyncingError):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,6 +80,8 @@ class CkanExceptionsHandler(object):
                     raise CkanTimeoutError
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
+                if e.__str__() in ('Indisponible', 'Not Found'):
+                    raise CkanNotFoundError
                 raise CkanSyncingError(e.__str__())
         return wrapper
 
@@ -120,8 +143,8 @@ class CkanUserHandler(object):
         kwargs['description'] = kwargs['description'] \
             if 'description' in kwargs else 'Aperçu du jeu de données'
 
-        views = \
-            self.call_action('resource_view_list', id=kwargs['resource_id'])
+        views = self.call_action(
+            'resource_view_list', id=kwargs['resource_id'])
         for view in views:
             if view['view_type'] == kwargs['view_type']:
                 return self.call_action(
@@ -133,12 +156,10 @@ class CkanUserHandler(object):
             raise ConflictError('Dataset already exists')
 
     @CkanExceptionsHandler()
-    def publish_dataset(self, name, id=None, resources=None, **kwargs):
-        kwargs['name'] = name
+    def publish_dataset(self, id=None, resources=None, **kwargs):
         if id and self.is_package_exists(id):
-            package = \
-                self.call_action(
-                    'package_update', **{**self.get_package(id), **kwargs})
+            package = self.call_action(
+                'package_update', **{**self.get_package(id), **kwargs})
         else:
             package = self.call_action('package_create', **kwargs)
         return package
@@ -228,12 +249,12 @@ class CkanManagerHandler(metaclass=Singleton):
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
     def get_organization(self, id, **kwargs):
         try:
-            return self.call_action('organization_show', id=str(id), **kwargs)
+            return self.call_action('organization_show', id=id, **kwargs)
         except CkanError.NotFound:
             return None
 
-    def is_organization_exists(self, organization_id):
-        return self.get_organization(str(organization_id)) and True or False
+    def is_organization_exists(self, id):
+        return self.get_organization(id) and True or False
 
     @CkanExceptionsHandler(ignore=[ValueError])
     def add_organization(self, organization):
@@ -252,8 +273,8 @@ class CkanManagerHandler(metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def update_organization(self, organization):
-        ckan_organization = \
-            self.get_organization(str(organization.ckan_id), include_datasets=True)
+        ckan_organization = self.get_organization(
+            str(organization.ckan_id), include_datasets=True)
 
         ckan_organization.update({
             'title': organization.name,
@@ -282,11 +303,12 @@ class CkanManagerHandler(metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def deactivate_organization(self, id):
-        self.call_action('organization_update', id=id, state='deleted')
+        self.call_action('organization_delete', id=id)
 
-    @CkanExceptionsHandler()
-    def del_organization(self, id):
-        self.call_action('organization_purge', id=str(id))
+    def deactivate_ckan_organization_if_empty(self, id):
+        organization = self.get_organization(id)
+        if organization and int(organization.get('package_count')) < 1:
+            self.deactivate_organization(id)
 
     @CkanExceptionsHandler()
     def get_organizations_which_user_belongs(

@@ -1,0 +1,93 @@
+# Copyright (c) 2017-2018 Datasud.
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+
+from django.contrib import admin
+from django.forms.models import BaseInlineFormSet
+from django.forms import ValidationError
+from idgo_admin.models import Dataset
+from idgo_admin.models import Resource
+from idgo_admin.models import ResourceFormats
+
+
+class ResourceFormatsAdmin(admin.ModelAdmin):
+    ordering = ("extension", )
+
+    def __init__(self, *args, **kwargs):
+        super(ResourceFormatsAdmin, self).__init__(*args, **kwargs)
+
+    class Meta(object):
+        model = Resource
+
+
+admin.site.register(ResourceFormats, ResourceFormatsAdmin)
+
+
+class ResourceInlineFormset(BaseInlineFormSet):
+
+    def clean(self, *args, **kwargs):
+        super().clean(*args, **kwargs)
+        for form in self.forms:
+            is_sync_requested = form.cleaned_data.get('synchronisation')
+            frequency_not_set = form.cleaned_data.get('sync_frequency') == 'never'
+            if is_sync_requested and frequency_not_set:
+                raise ValidationError(
+                    'Une période de synchronisation est nécessaire si vous choisissez de sychroniser les données distantes')
+
+
+class ResourceInline(admin.StackedInline):
+    model = Resource
+    formset = ResourceInlineFormset
+    extra = 0
+    can_delete = True
+
+    fieldsets = (
+        ('Synchronisation distante', {
+            'classes': ('collapse',),
+            'fields': ('synchronisation', 'sync_frequency', ),
+            }),
+        (None, {
+            'classes': ('wide', ),
+            'fields': (
+                ('name', 'description'),
+                ('referenced_url', 'dl_url', 'up_file'),
+                'lang',
+                'format_type', 'restricted_level', 'profiles_allowed',
+                'organisations_allowed', 'bbox', 'geo_restriction',
+                'created_on', 'last_update',)
+            }),
+        )
+
+
+class DatasetAdmin(admin.ModelAdmin):
+
+    list_display = ('name', 'name_editor', 'nb_resources', )
+    inlines = (ResourceInline, )
+    ordering = ('name', )
+    can_add_related = True
+    can_delete_related = True
+    readonly_fields = ('ckan_id', 'ckan_slug', 'geonet_id')
+
+    def nb_resources(self, obj):
+        return Resource.objects.filter(dataset=obj).count()
+    nb_resources.short_description = "Nombre de ressources"
+
+    def name_editor(self, obj):
+        first_name = obj.editor.first_name
+        last_name = obj.editor.last_name
+        return "{} {}".format(first_name, last_name.upper())
+    name_editor.short_description = "Producteur (propriétaire)"
+
+admin.site.register(Dataset, DatasetAdmin)

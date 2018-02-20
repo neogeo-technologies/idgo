@@ -1,16 +1,6 @@
 {% load bootstrap3 %}
 
-{% if messages %}
-	{% for message in messages %}
-		{% if message.tags == 'success' %}
-			<div name='message-tags' class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
-		{% elif message.tags == 'error' %}
-			<div name='message-tags' class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
-		{% elif message.tags == 'info' %}
-			<div name='message-tags' class="alert alert-info" role="alert">{{ message | escape | safe }}</div>
-		{% endif %}
-	{% endfor %}
-{% endif %}
+{% include "idgo_admin/alert_messages.html" %}
 
 <form method="post" action="" enctype="multipart/form-data">
 	<div class="buttons-on-the-right-side">
@@ -45,14 +35,17 @@
 				</li>
 			</ul>
 			<div class="well tab-content" name="data-selector-panel">
-
 				<div role="tabpanel" class="tab-pane" id="up_file">
 					{% bootstrap_field form.up_file show_label=False %}
 				</div>
-
 				<div role="tabpanel" class="tab-pane" id="dl_url">
 					<p>Veuillez indiquer l'URL d'un fichier à télécharger : </p>
 					{% bootstrap_field form.dl_url show_label=False %}
+					<div class="row">
+						<div class="col-xs-5 col-sm-5 col-md-4">
+							{% bootstrap_field form.sync_frequency %}
+						</div>
+					</div>
 				</div>
 				<div role="tabpanel" class="tab-pane" id="referenced_url">
 					<p>Veuillez indiquer l'URL d'un jeu de données à référencer : </p>
@@ -117,28 +110,23 @@
 <script>
 $(function() {
 
-	var $permittedUsers = $('#permitted-users')
-		.collapse({
-			toggle: false
-		})
-		.on('hidden.bs.collapse', function() {
-			$('#collapse-restriction input').each(function(i) {
-				$(this).val('');
-			});
-		});
 
-	var $permittedOrganizations = $('#permitted-organizations')
-		.collapse({
-			toggle: false
-		})
-		.on('hidden.bs.collapse', function() {
-			$('#collapse-restriction input').each(function(i) {
-				$(this).val('');
-			});
-		});
+	$('button[name="continue,save"]').prop('type', 'button');
 
-	function getAccessSelectedOption($this) {
-		var value = $this.find('option:selected').val();
+	const $permittedUsers = $('#permitted-users').collapse({toggle: false}).on('hidden.bs.collapse', function() {
+		$('#collapse-restriction input').each(function(i) {
+			$(this).val('');
+		});
+	});
+
+	const $permittedOrganizations = $('#permitted-organizations').collapse({toggle: false}).on('hidden.bs.collapse', function() {
+		$('#collapse-restriction input').each(function(i) {
+			$(this).val('');
+		});
+	});
+
+	const getAccessSelectedOption = function($this) {
+		const value = $this.find('option:selected').val();
 		if (value === '2') {
 			$permittedOrganizations.collapse('hide');
 			$permittedUsers.collapse('show');
@@ -153,16 +141,16 @@ $(function() {
 		};
 	};
 
-	$selectAccess = $('select[name="{{ form.restricted_level.name }}"]')
-		.change(function() {
-			getAccessSelectedOption($(this));
-		});
+	$selectAccess = $('select[name="{{ form.restricted_level.name }}"]').change(function() {
+		getAccessSelectedOption($(this));
+	});
 
 	$(document).on('change', ':file', function() {
-		var $this = $(this);
-		var $files = $this.get(0).files;
-		var count = $files ? $files.length : 1;
-		if (count == 1) {
+		const $this = $(this);
+		const $files = $this.get(0).files;
+		const count = $files ? $files.length : 1;
+		if (count == 1) {  // TODO count > 1
+			$('input[name="{{ form.name.name }}"]').val($files[0].name);
 			if ($files[0].type && $files[0].extension) {
 				$('select[name="{{ form.format_type.name }}"] option').each(function() {
 					if ($files[0].extension.toLowerCase() == this.text.toLowerCase()) {
@@ -173,7 +161,7 @@ $(function() {
 		};
 	});
 
-	var $input = $('input[type="file"]').change(function(e) {
+	const $input = $('input[type="file"]').change(function(e) {
 		if ($input.val().length > 0) {
 			// TODO
 		};
@@ -182,5 +170,6 @@ $(function() {
 	$(document).ready(function() {
 		getAccessSelectedOption($('select[name="{{ form.restricted_level.name }}"]'));
 	});
+
 });
 </script>

@@ -1,6 +1,21 @@
+# Copyright (c) 2017-2018 Datasud.
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-
 from idgo_admin.models import AccountActions
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
@@ -44,16 +59,16 @@ class Command(BaseCommand):
 
             if act.action == 'confirm_contribution':
                 liaison = LiaisonsContributeurs.objects.get(
-                    profile=act.profile, organisation=act.org_extras)
+                    profile=act.profile, organisation=act.organisation)
                 print("clean_up_action contribution: {0}-{1}".format(
-                    pro_name, act.org_extras.name))
+                    pro_name, act.organisation.name))
                 liaison.delete()
 
             if act.action == 'confirm_referent':
                 liaison = LiaisonsReferents.objects.get(
-                    profile=act.profile, organisation=act.org_extras)
+                    profile=act.profile, organisation=act.organisation)
                 print("clean_up_action referent: {0}-{1}".format(
-                    pro_name, act.org_extras.name))
+                    pro_name, act.organisation.name))
                 liaison.delete()
 
             if act.action == 'reset_password':

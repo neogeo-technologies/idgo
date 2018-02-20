@@ -173,7 +173,7 @@ EditableGrid.prototype.editCell = function(rowIndex, columnIndex) {
 };
 
 EditableGrid.prototype.updatePaginator = function(grid) {
-	
+
 	var paginator = $('#' + this.currentContainerid + '-paginator').empty();
 	var navigator = paginator.parent().hide();
 	var pageCount = this.getPageCount();

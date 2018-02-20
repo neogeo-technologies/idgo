@@ -1,0 +1,82 @@
+{% load bootstrap3 %}
+
+{% include "idgo_admin/alert_messages.html" %}
+
+<form method="post" action="" enctype="multipart/form-data">
+	<div class="row">
+		<div class="col-sm-12">
+			{% bootstrap_field form.name show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-8">
+			{% bootstrap_field form.logo %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-10 col-md-6">
+			{% bootstrap_field form.address show_label=False %}
+		</div>
+		<div class="row">
+		</div>
+		<div class="col-xs-4 col-md-2">
+			{% bootstrap_field form.postcode show_label=False %}
+		</div>
+		<div class="col-xs-6 col-md-4">
+			{% bootstrap_field form.city show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-8 col-md-4">
+			{% bootstrap_field form.org_phone show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-8 col-md-4">
+			{% bootstrap_field form.email show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-8 col-md-4">
+			{% bootstrap_field form.website show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12">
+			{% bootstrap_field form.description show_label=False %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-10 col-sm-6">
+			{% bootstrap_field form.jurisdiction %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-10 col-sm-6">
+			{% bootstrap_field form.organisation_type %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-10 col-sm-6">
+			{% bootstrap_field form.license %}
+		</div>
+	</div>
+	{% bootstrap_field form.rattachement_process show_label=False %}
+	{% bootstrap_field form.contributor_process show_label=False %}
+	{% bootstrap_field form.referent_process show_label=False %}
+	<br />
+	<div class="buttons-on-the-right-side">
+		<a class="btn btn-default" href="{% url "idgo_admin:all_organizations" %}#{{ id }}">Annuler</a>
+		{% if update %}<button type="submit" name="continue" class="btn btn-primary">Enregistrer et continuer les modifications</button>{% endif %}
+		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
+	</div>
+</form>
+<script>
+$(function() {
+	const $inputMember = $('input[name="{{ form.member_requested.name }}"]').prop('checked', false);
+	const $inputContribution = $('input[name="{{ form.contribution_requested.name }}"]').prop('checked', false);
+	const $inputReferent = $('input[name="{{ form.referent_requested.name }}"]').prop('checked', false).change(function() {
+		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
+	});
+});
+</script>
