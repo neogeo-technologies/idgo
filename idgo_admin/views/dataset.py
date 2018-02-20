@@ -243,10 +243,9 @@ class DatasetManager(View):
         instance = get_object_or_404_extended(
             Dataset, user, include={'id': id})
 
-        ckan_id = str(instance.ckan_id)
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
-            ckan_user.delete_dataset(ckan_id)  # purge réalisé au delete()
+            ckan_user.delete_dataset(instance.ckan_slug)  # purge réalisé au delete()
         except CkanNotFoundError:
             status = 500
             message = 'Le jeu de données CKAN est indisponible.'

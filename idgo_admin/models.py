@@ -1152,7 +1152,6 @@ class Dataset(models.Model):
         if ckan_dataset \
                 and uuid.UUID(ckan_dataset.get('id')) != self.ckan_id \
                 and ckan_dataset.get('name') == slug:
-            print('Cette URL est déjà utilisée.')
             raise ValidationError('Cette URL est déjà utilisée.')
 
     def save(self, *args, **kwargs):
@@ -1298,14 +1297,15 @@ def post_save_dataset(sender, instance, **kwargs):
 
     ckan_dataset = \
         ckan_user.publish_dataset(id=str(instance.ckan_id), **ckan_params)
-    instance.ckan_id = uuid.UUID(ckan_dataset['id'])
 
     ckan_user.close()
+
+    ckan_id = uuid.UUID(ckan_dataset['id'])
+    Dataset.objects.filter(id=instance.id).update(ckan_id=ckan_id)  # Moche
 
 
 @receiver(pre_delete, sender=Dataset)
 def pre_delete_dataset(sender, instance, **kwargs):
-    # ckan.purge_dataset(str(instance.ckan_id))
     ckan.purge_dataset(instance.ckan_slug)
 
 
