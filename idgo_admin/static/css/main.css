@@ -558,7 +558,7 @@ a:focus {
     color: inherit;
 }
 
-.alert>.glyphicon {
+.alert .glyphicon {
     margin-right: 15px;
 }
 
@@ -568,24 +568,35 @@ a:focus {
     color: #fff;
 }
 
+.success {
+    color: #2f583c;
+    background-color: #84e0a2;
+}
+
 .alert-success {
     color: #2f583c;
     background-color: #84e0a2;
 }
 
-.alert-info {
-    color: #333;
-    background-color: #b4d8f7;
+.info {
+    color: #2f583c;
+    background-color: #b2e8f3;
 }
 
-.alert-warning {
-    color: #333;
+.alert-info {
+    color: #005a6c;
+    background-color: #b2e8f3;
+}
+
+
+.warning {
+    color: #664a07;
     background-color: #ffba13;
 }
 
-.alert-danger {
-    color: #fcedec;
-    background-color: #ff554f;
+.alert-warning {
+    color: #664a07;
+    background-color: #ffba13;
 }
 
 .danger {
@@ -593,19 +604,9 @@ a:focus {
     background-color: #ff554f;
 }
 
-.success {
-    color: #d0f6e5;
-    background-color: #12be72;
-}
-
-.info {
-    color: #333;
-    background-color: #b4d8f7;
-}
-
-.warning {
-    color: #333;
-    background-color: #ffba13;
+.alert-danger {
+    color: #fcedec;
+    background-color: #ff554f;
 }
 
 .well>.close {

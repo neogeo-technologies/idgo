@@ -119,27 +119,27 @@ def all_organisations(request, *args, **kwargs):
     user, profile = user_and_profile(request)
 
     organizations = [{
-        'pk': item.pk,
-        'name': item.name,
-        'rattachement': item == profile.organisation,
-        'contributeur':
+        'contributor':
             item in Organisation.objects.filter(
                 liaisonscontributeurs__profile=profile,
                 liaisonscontributeurs__validated_on__isnull=False),
-        'subordinates':
+        'name': item.name,
+        'member': item == profile.organisation,
+        'pk': item.pk,
+        'referent':
             profile.is_admin and True or item in Organisation.objects.filter(
                 liaisonsreferents__profile=profile,
-                liaisonscontributeurs__validated_on__isnull=False),
+                liaisonsreferents__validated_on__isnull=False),
         } for item in Organisation.objects.filter(is_active=True)]
 
-    organizations.sort(key=operator.itemgetter('contributeur'), reverse=True)
-    organizations.sort(key=operator.itemgetter('subordinates'), reverse=True)
-    organizations.sort(key=operator.itemgetter('rattachement'), reverse=True)
+    organizations.sort(key=operator.itemgetter('contributor'), reverse=True)
+    organizations.sort(key=operator.itemgetter('referent'), reverse=True)
+    organizations.sort(key=operator.itemgetter('member'), reverse=True)
 
     return render_with_info_profile(
         request, 'idgo_admin/all_organizations.html',
         context={
-            'organization_base_url': '/organisation',  # Ugly
+            'organization_base_url': '/organisation',  # Moche
             'organizations': organizations})
 
 
