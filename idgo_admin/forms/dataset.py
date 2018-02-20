@@ -201,14 +201,14 @@ class DatasetForm(forms.ModelForm):
         self.fields['organisation'].queryset = Organisation.objects.filter(
             liaisonscontributeurs__profile=owner.profile,
             liaisonscontributeurs__validated_on__isnull=False)
-        self.fields['owner_name'].widget = forms.TextInput(
-            attrs={'placeholder': '{} (valeur par défaut)'.format(owner.get_full_name())})
-        self.fields['owner_email'].widget = forms.TextInput(
-            attrs={'placeholder': '{} (valeur par défaut)'.format(owner.email)})
-        self.fields['owner_name'].value = owner.get_full_name()
-        self.fields['owner_email'].value = owner.email
-        # self.fields['broadcaster_name'].value = ''
-        # self.fields['broadcaster_email'].value = ''
+
+        self.fields['owner_name'].initial = owner.get_full_name()
+        self.fields['owner_name'].widget.attrs['placeholder'] = \
+            '{} (valeur par défaut)'.format(owner.get_full_name())
+
+        self.fields['owner_email'].initial = owner.email
+        self.fields['owner_email'].widget.attrs['placeholder'] = \
+            '{} (valeur par défaut)'.format(owner.email)
 
     def clean(self):
 
@@ -220,11 +220,6 @@ class DatasetForm(forms.ModelForm):
                 "autorisés (100 caractères maximum)."))
             raise ValidationError('KeywordsError')
 
-        # organisation = self.cleand_data.get('organisation', None)
-        # if organisation:
-        #     self.fields['license'].initial = organisation.license
-        #     self.fields['license'].queryset = License.objects.all()
-
         if self.include_args['identification']:
             dataset = Dataset.objects.get(id=self.include_args['id'])
             if name != dataset.name and Dataset.objects.filter(name=name).exists():
@@ -235,15 +230,6 @@ class DatasetForm(forms.ModelForm):
                 and Dataset.objects.filter(name=name).exists():
             self.add_error('name', 'Le jeu de données "{0}" existe déjà'.format(name))
             raise ValidationError("Dataset '{0}' already exists".format(name))
-
-        # if not self.cleaned_data.get('date_creation'):
-        #     self.cleaned_data['date_creation'] = TODAY
-
-        # if not self.cleaned_data.get('date_modification'):
-        #     self.cleaned_data['date_modification'] = TODAY
-
-        # if not self.cleaned_data.get('date_publication'):
-        #     self.cleaned_data['date_publication'] = TODAY
 
         kwords = self.cleaned_data.get('keywords')
         if kwords:
@@ -273,7 +259,8 @@ class DatasetForm(forms.ModelForm):
             'license': data['license'],
             'name': data['name'],
             'organisation': data['organisation'],
-            # 'owner_email': data['owner_email'],
+            'owner_name': data['owner_name'],
+            'owner_email': data['owner_email'],
             'update_freq': data['update_freq'],
             'published': data['published'],
             'support': data['support'],
@@ -287,6 +274,7 @@ class DatasetForm(forms.ModelForm):
                 setattr(dataset, key, value)
         else:  # Création d'un nouveau jeu de données
             dataset = Dataset.objects.create(**params)
+        dataset.save()
 
         dataset.categories.set(data.get('categories', []), clear=True)
 

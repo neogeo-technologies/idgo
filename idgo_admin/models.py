@@ -1155,11 +1155,10 @@ class Dataset(models.Model):
             raise ValidationError('Cette URL est déjà utilisée.')
 
     def save(self, *args, **kwargs):
+        previous = self.pk and Dataset.objects.get(pk=self.pk)
 
         self._current_editor = 'editor' in kwargs \
             and kwargs.pop('editor') or None
-
-        previous = self.pk and Dataset.objects.get(pk=self.pk)
 
         if not self.date_creation:
             self.date_creation = TODAY
@@ -1167,6 +1166,7 @@ class Dataset(models.Model):
             self.date_modification = TODAY
         if not self.date_publication:
             self.date_publication = TODAY
+
         if not self.owner_name:
             self.owner_name = self.editor.get_full_name()
         if not self.owner_email:
@@ -1301,7 +1301,8 @@ def post_save_dataset(sender, instance, **kwargs):
     ckan_user.close()
 
     ckan_id = uuid.UUID(ckan_dataset['id'])
-    Dataset.objects.filter(id=instance.id).update(ckan_id=ckan_id)  # Moche
+    instance.ckan_id = ckan_id
+    # Dataset.objects.filter(id=instance.id).update(ckan_id=ckan_id)  # Moche
 
 
 @receiver(pre_delete, sender=Dataset)
