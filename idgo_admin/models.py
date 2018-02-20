@@ -1147,7 +1147,12 @@ class Dataset(models.Model):
             validated_on__isnull=False).exists()
 
     def clean(self):
-        if ckan_me(ckan.apikey).is_package_exists(slugify(self.name)):
+        slug = self.ckan_slug or slugify(self.name)
+        ckan_dataset = ckan_me(ckan.apikey).get_package(slug)
+        if ckan_dataset \
+                and uuid.UUID(ckan_dataset.get('id')) != self.ckan_id \
+                and ckan_dataset.get('name') == slug:
+            print('Cette URL est déjà utilisée.')
             raise ValidationError('Cette URL est déjà utilisée.')
 
     def save(self, *args, **kwargs):
@@ -1192,8 +1197,7 @@ class Task(models.Model):
     STATE_CHOICES = (
         ('succesful', "Tâche terminée avec succés"),
         ('failed', "Echec de la tâche"),
-        ('running', "Tâche en cours de traitement"),
-        )
+        ('running', "Tâche en cours de traitement"))
 
     action = models.TextField("Action", blank=True, null=True)
 

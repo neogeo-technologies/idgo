@@ -3,7 +3,7 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <div id="datasets">
-	{% if awaiting_contributor_status %}
+	{% if awaiting_contributor_status|length > 0 %}
 	<div class="alert alert-info" role="alert">Demande(s) de contribution en attente de validation pour : {% for organization in awaiting_contributor_status %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</div>
 	{% endif %}
 	<div class="buttons-on-the-right-side">
@@ -261,11 +261,13 @@ $(function() {
 		const isContributor = {{ is_contributor | yesno:"true,false,none" }};
 
 		if (!isContributor) {
+			// TODO -> $exportCSV visibilité avec Tableau
 			$parent.find('button.btn, a.btn').not($exportCSV).each(function() {
 				deactivateButton($(this));
 				$(this).hide();
 			});
-			$containerId.parent().before('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Pour devenir contributeur, vous devez ajouter une organisation à laquelle contribuer</a>.');
+			$containerId.parent().before('<div role="alert" class="alert alert-info"><p>Vous êtes un utilisateur enregistré. Pour profiter des fonctionnalités participatives de <strong>DataSud</strong>, vous pouvez parcourir le <a href="{{ ckan_url }}" target="_blank">catalogue</a>.');
+			$containerId.parent().before('<div role="alert" class="alert alert-warning"><p>Vous n\'êtes contributeur d\'aucune organisation. Dans le menu <a href="{% url "idgo_admin:all_organizations" %}">Les Organisations</a>, vous pouvez choisir une organisation à laquelle contribuer ou bien en créer <a href="{% url "idgo_admin:create_organization" %}">une nouvelle</a>.');
 		};
 
 		if (data.length == 0 && isContributor) {

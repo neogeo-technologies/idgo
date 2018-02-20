@@ -65,7 +65,7 @@
 							</div>
 						</div>
 						<div class="col-sm-6">
-							<button role="button" name="switch-member" class="btn btn-default btn-block">Je souhaite devenir membre</button>
+							<button role="button" name="switch-member" class="btn btn-default btn-block">J'appartiens à l'organisation</button>
 							<button role="button" name="switch-contributor" class="btn btn-default btn-block">Je souhaite devenir contributeur</button>
 							{% if not is_admin %}<button role="button" name="switch-referent" class="btn btn-default btn-block">Je souhaite devenir référent technique</button>{% endif %}
 						</div>
@@ -446,7 +446,7 @@ $(function() {
 		} else if (data['id'] == {{ organization_id }}) {
 			$switchMember.off('click').on('click', function(e) {
 				openModalChangeStatus('{% url "idgo_admin:subscription" status="member" subscription="unsubscribe" %}', ORGANIZATION_ID);
-			}).html('Je <strong>ne</strong> souhaite <strong>plus</strong> être membre');
+			}).html('Je <strong>n</strong>\'appartiens <strong>plus</strong> à l\'organisation');
 		};
 
 		$switchContributor = $($organizationWell.find('#info [name="switch-contributor"]')).on('click', function(e) {

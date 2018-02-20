@@ -62,6 +62,8 @@ class DatasetForm(forms.ModelForm):
                   'name',
                   'ckan_slug')
 
+    _instance = None
+
     name = forms.CharField(
         label='Titre*',
         required=True,
@@ -193,8 +195,8 @@ class DatasetForm(forms.ModelForm):
         self.include_args = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
 
-        instance = kwargs.get('instance', None)
-        owner = instance and instance.editor or self.include_args.get('user')
+        self._instance = kwargs.get('instance', None)
+        owner = self._instance and self._instance.editor or self.include_args.get('user')
 
         self.fields['organisation'].queryset = Organisation.objects.filter(
             liaisonscontributeurs__profile=owner.profile,

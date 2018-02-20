@@ -68,6 +68,10 @@ class DatasetManager(View):
 
         user, profile = user_and_profile(request)
 
+        if not LiaisonsContributeurs.objects.filter(
+                profile=profile, validated_on__isnull=False).exists():
+            raise Http404
+
         form = Form(include={'user': user, 'identification': False, 'id': None})
         dataset_name = 'Nouveau'
         dataset_id = None
@@ -152,6 +156,10 @@ class DatasetManager(View):
                         include={'user': user, 'identification': True, 'id': id})
 
             if not form.is_valid():
+
+                errors = form._errors.get('__all__', [])
+                errors and messages.error(request, ' '.join(errors))
+
                 context.update({
                     'form': form,
                     'dataset_name': three_suspension_points(instance.name),
@@ -170,8 +178,10 @@ class DatasetManager(View):
 
             try:
                 with transaction.atomic():
+                    print(0)
                     form.handle_me(request, id=id)
             except ValidationError as e:
+                print(1)
                 messages.error(request, str(e))
             except CkanSyncingError:
                 messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
@@ -194,7 +204,12 @@ class DatasetManager(View):
             return render_with_info_profile(request, self.template, context)
 
         try:
-            instance = form.handle_me(request)
+            with transaction.atomic():
+                print(0)
+                instance = form.handle_me(request)
+        except ValidationError as e:
+            print(1)
+            messages.error(request, str(e))
         except CkanSyncingError:
             messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
         except CkanTimeoutError:

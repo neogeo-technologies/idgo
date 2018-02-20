@@ -96,7 +96,7 @@ def contributor_unsubscribe_process(request, profile, organisation):
 def referent_subscribe_process(request, profile, organisation, mail=True):
     if not LiaisonsContributeurs.objects.filter(
             organisation=organisation, profile=profile).exists():
-        contributor_subscribe_process(request, profile, organisation, mail=mail)
+        contributor_subscribe_process(request, profile, organisation, mail=False)
 
     LiaisonsReferents.objects.get_or_create(
         organisation=organisation, profile=profile, validated_on=None)
