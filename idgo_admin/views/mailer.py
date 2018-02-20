@@ -32,7 +32,7 @@ from uuid import UUID
 @ExceptionsHandler(ignore=[Http404])
 @csrf_exempt
 def confirmation_mail(request, key):
-    import ipdb; ipdb.set_trace()
+
     action = get_object_or_404(
         AccountActions, key=UUID(key), action='confirm_mail')
     # if action.closed:
