@@ -178,10 +178,8 @@ class DatasetManager(View):
 
             try:
                 with transaction.atomic():
-                    print(0)
                     form.handle_me(request, id=id)
             except ValidationError as e:
-                print(1)
                 messages.error(request, str(e))
             except CkanSyncingError:
                 messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
