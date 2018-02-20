@@ -42,53 +42,58 @@ class DatasetForm(forms.ModelForm):
 
     class Meta(object):
         model = Dataset
-        fields = ('categories',
-                  'data_type',
-                  'date_creation',
-                  'date_modification',
-                  'date_publication',
-                  'description',
-                  'geocover',
-                  'is_inspire',
-                  'keywords',
-                  'license',
-                  'organisation',
-                  'owner_email',
-                  'owner_name',
-                  'published',
-                  'support',
-                  # 'thumbnail',
-                  'update_freq',
-                  'name',
-                  'ckan_slug')
-
-    _instance = None
+        fields = (
+            # broadcaster_email,
+            # broadcaster_name,
+            'categories',
+            'data_type',
+            'date_creation',
+            'date_modification',
+            'date_publication',
+            'description',
+            'geocover',
+            'is_inspire',
+            'keywords',
+            'license',
+            'organisation',
+            'owner_email',
+            'owner_name',
+            'published',
+            'support',
+            # 'thumbnail',
+            'update_freq',
+            'name',
+            'ckan_slug')
 
     name = forms.CharField(
         label='Titre*',
         required=True,
         widget=forms.Textarea(
-            attrs={'placeholder': 'Titre du jeu de données', 'rows': 1}))
+            attrs={
+                'placeholder': 'Titre du jeu de données',
+                'rows': 1}))
 
     ckan_slug = forms.CharField(
         label='URL du jeu de données',
         required=False,
         max_length=100,
         widget=forms.TextInput(
-            attrs={'addon_before': '{}/dataset/'.format(CKAN_URL),
-                   'addon_before_class': 'input-group-addon',
-                   'addon_after': '<button class="btn btn-default" type="button" />',
-                   'addon_after_class': 'input-group-btn',
-                   'autocomplete': 'off',
-                   'readonly': True,
-                   # 'pattern': '^[a-z0-9\-]{1,100}$',  # Déplacé dans la function 'clean'
-                   'placeholder': ''}))
+            attrs={
+                'addon_before': '{}/dataset/'.format(CKAN_URL),
+                'addon_before_class': 'input-group-addon',
+                'addon_after': '<button class="btn btn-default" type="button" />',
+                'addon_after_class': 'input-group-btn',
+                'autocomplete': 'off',
+                'readonly': True,
+                # 'pattern': '^[a-z0-9\-]{1,100}$',  # Déplacé dans la function 'clean'
+                'placeholder': ''}))
 
     description = forms.CharField(
         label='Description',
         required=False,
         widget=forms.Textarea(
-            attrs={'placeholder': 'Vous pouvez utiliser le langage Markdown ici'}))
+            attrs={
+                'placeholder': 'Vous pouvez utiliser le langage Markdown ici'}))
 
     # thumbnail = forms.ImageField(label='Vignette', required=False)
 
@@ -96,9 +101,10 @@ class DatasetForm(forms.ModelForm):
         label='Liste de mots-clés',
         required=False,
         widget=TagWidget(
-            attrs={'autocomplete': 'off',
-                   'class': 'typeahead',
-                   'placeholder': 'Utilisez la virgule comme séparateur'}))
+            attrs={
+                'autocomplete': 'off',
+                'class': 'typeahead',
+                'placeholder': 'Utilisez la virgule comme séparateur'}))
 
     categories = forms.ModelMultipleChoiceField(
         label='Catégories associées',
@@ -165,14 +171,16 @@ class DatasetForm(forms.ModelForm):
         label='Nom du producteur', required=False)
 
     owner_email = forms.EmailField(
-        error_messages={'invalid': "L'adresse e-mail est invalide."},
+        error_messages={
+            'invalid': "L'adresse e-mail est invalide."},
         label='Adresse e-mail du producteur', required=False)
 
     # broadcaster_name = forms.CharField(
     #     label='Nom du diffuseur', required=False)
 
     # broadcaster_email = forms.EmailField(
-    #     error_messages={'invalid': "L'adresse e-mail est invalide."},
+    #     error_messages={
+    #     'invalid': "L'adresse e-mail est invalide."},
     #     label='Adresse e-mail du diffuseur', required=False)
 
     published = forms.BooleanField(
@@ -195,8 +203,9 @@ class DatasetForm(forms.ModelForm):
         self.include_args = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
 
-        self._instance = kwargs.get('instance', None)
-        owner = self._instance and self._instance.editor or self.include_args.get('user')
+        instance = kwargs.get('instance', None)
+        owner = instance \
+            and instance.editor or self.include_args.get('user')
 
         self.fields['organisation'].queryset = Organisation.objects.filter(
             liaisonscontributeurs__profile=owner.profile,
@@ -249,6 +258,8 @@ class DatasetForm(forms.ModelForm):
 
         data = self.cleaned_data
         params = {
+            # 'broadcaster_name': data['broadcaster_name'],
+            # 'broadcaster_email': data['broadcaster_email'],
             'ckan_slug': data['ckan_slug'],
             'date_creation': data['date_creation'],
             'date_modification': data['date_modification'],
@@ -259,8 +270,8 @@ class DatasetForm(forms.ModelForm):
             'license': data['license'],
             'name': data['name'],
             'organisation': data['organisation'],
-            'owner_name': data['owner_name'],
             'owner_email': data['owner_email'],
+            'owner_name': data['owner_name'],
             'update_freq': data['update_freq'],
             'published': data['published'],
             'support': data['support'],
@@ -274,7 +285,6 @@ class DatasetForm(forms.ModelForm):
                 setattr(dataset, key, value)
         else:  # Création d'un nouveau jeu de données
             dataset = Dataset.objects.create(**params)
-        dataset.save()
 
         dataset.categories.set(data.get('categories', []), clear=True)
 
@@ -284,6 +294,6 @@ class DatasetForm(forms.ModelForm):
                 dataset.keywords.add(tag)
 
         dataset.data_type.set(data.get('data_type', []), clear=True)
-        dataset.save(editor=user)
 
+        dataset.save(editor=user)
         return dataset

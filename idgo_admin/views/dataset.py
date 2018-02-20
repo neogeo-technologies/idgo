@@ -178,7 +178,7 @@ class DatasetManager(View):
 
             try:
                 with transaction.atomic():
-                    form.handle_me(request, id=id)
+                    instance = form.handle_me(request, id=id)
             except ValidationError as e:
                 messages.error(request, str(e))
             except CkanSyncingError:
@@ -198,6 +198,10 @@ class DatasetManager(View):
                     include={'user': user, 'identification': False, 'id': None})
 
         if not form.is_valid():
+
+            errors = form._errors.get('__all__', [])
+            errors and messages.error(request, ' '.join(errors))
+
             context.update({'form': form})
             return render_with_info_profile(request, self.template, context)
 
@@ -230,8 +234,6 @@ class DatasetManager(View):
                        actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, *args, **kwargs):
 
-        # TODO: factoriser
-
         user, profile = user_and_profile(request)
 
         id = request.POST.get('id', request.GET.get('id'))
@@ -257,14 +259,13 @@ class DatasetManager(View):
             status = 200
             message = 'Le jeu de données a été supprimé avec succès.'
             messages.success(request, message)
+            Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
         finally:
             ckan_user.close()
 
-        Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
-
         return HttpResponse(status=status)
 
-# ???
+
 # @method_decorator(decorators, name='dispatch')
 # class ReferentDatasetManager(View):
 #
@@ -402,8 +403,6 @@ class DatasetManager(View):
 #     @ExceptionsHandler(ignore=[Http404, CkanSyncingError],
 #                        actions={ProfileHttp404: on_profile_http404})
 #     def delete(self, request, *args, **kwargs):
-#
-#         # TODO: factoriser
 #
 #         user, profile = user_and_profile(request)
 #
