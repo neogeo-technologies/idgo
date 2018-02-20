@@ -55,7 +55,7 @@ class ResourceManager(View):
     namespace = 'idgo_admin:resource'
 
     @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, dataset_id, *args, **kwargs):
+    def get(self, request, dataset_id=None, *args, **kwargs):
 
         user, profile = user_and_profile(request)
 
@@ -92,7 +92,7 @@ class ResourceManager(View):
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     @transaction.atomic
-    def post(self, request, dataset_id, *args, **kwargs):
+    def post(self, request, dataset_id=None, *args, **kwargs):
 
         def get_uploaded_file(form):
             return form.is_multipart() and request.FILES.get('up_file')
@@ -195,7 +195,7 @@ class ResourceManager(View):
         return http_redirect(dataset_id, instance.id)
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def delete(self, request, dataset_id, *args, **kwargs):
+    def delete(self, request, dataset_id=None, *args, **kwargs):
 
         user, profile = user_and_profile(request)
 

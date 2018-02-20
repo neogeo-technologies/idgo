@@ -58,6 +58,20 @@ def file_size(value):
 
 class ResourceForm(forms.ModelForm):
 
+    class Meta(object):
+        model = Resource
+        fields = ('up_file',
+                  'dl_url',
+                  'referenced_url',
+                  'name',
+                  'description',
+                  'lang',
+                  'format_type',
+                  'restricted_level',
+                  'profiles_allowed',
+                  'organisations_allowed',
+                  'sync_frequency')
+
     class CustomClearableFileInput(forms.ClearableFileInput):
         template_name = 'idgo_admin/widgets/file_drop_zone.html'
 
@@ -67,10 +81,6 @@ class ResourceForm(forms.ModelForm):
         validators=[file_size],
         widget=CustomClearableFileInput(
             attrs={'max_size_info': DOWNLOAD_SIZE_LIMIT}))
-
-    # dl_url
-
-    # referenced_url
 
     name = forms.CharField(
         label='Titre*',
@@ -83,60 +93,29 @@ class ResourceForm(forms.ModelForm):
         widget=forms.Textarea(
             attrs={'placeholder': 'Vous pouvez utiliser le langage Markdown ici'}))
 
-    # lang
-
-    # data_format = forms.CharField(
-    #     label='Format',
-    #     widget=forms.TextInput(
-    #         attrs={'placeholder': 'CSV, XML, JSON, XLS... '}))
-
     format_type = forms.ModelChoiceField(
+        empty_label='Sélectionnez un format',
         label='Format*',
         queryset=ResourceFormats.objects.all(),
-        required=True,
-        empty_label="Sélectionnez un format")
-
-    # restricted_level
+        required=True)
 
     profiles_allowed = forms.ModelMultipleChoiceField(
         label='Utilisateurs autorisés',
         queryset=Profile.objects.filter(is_active=True),
         required=False,
-        to_field_name="pk")
+        to_field_name='pk')
 
     organisations_allowed = forms.ModelMultipleChoiceField(
         label='Organisations autorisées',
         queryset=Organisation.objects.filter(is_active=True),
         required=False,
-        to_field_name="pk")
-
-    class Meta(object):
-        model = Resource
-        fields = ('up_file',
-                  'dl_url',
-                  'referenced_url',
-                  'name',
-                  'description',
-                  'lang',
-                  'format_type',
-                  'restricted_level',
-                  'profiles_allowed',
-                  'organisations_allowed')
+        to_field_name='pk')
 
     def __init__(self, *args, **kwargs):
-
         self.include_args = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
 
-        # 12/10: On propose toute les organisations meme celle qui ne sont
-        # liées a un dataset
-        # ckan_orga = ckan.get_all_organizations()
-
-        self.fields['organisations_allowed'].queryset = \
-            Organisation.objects.filter(is_active=True)
-
-    def handle_me(
-            self, request, dataset, id=None, uploaded_file=None):
+    def handle_me(self, request, dataset, id=None, uploaded_file=None):
 
         user = request.user
         data = self.cleaned_data
