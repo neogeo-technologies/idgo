@@ -558,6 +558,10 @@ a:focus {
     color: inherit;
 }
 
+.alert>.glyphicon {
+    margin-right: 15px;
+}
+
 .alert .btn-primary,
 .alert .btn-danger,
 .alert .btn-danger {
@@ -565,9 +569,8 @@ a:focus {
 }
 
 .alert-success {
-    color: #0c854f;
-    background-color: #a0e5c6;
-    border: 1px solid #12be72;
+    color: #2f583c;
+    background-color: #84e0a2;
 }
 
 .alert-info {
