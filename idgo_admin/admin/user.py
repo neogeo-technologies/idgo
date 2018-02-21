@@ -354,6 +354,12 @@ class MyUserCreationForm(UserCreationForm):
             raise forms.ValidationError("Ce nom d'utilisateur est reservé")
         return username
 
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Cette adresse est reservée")
+        return email
+
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1", "new_password_will_be_generated")
         password2 = self.cleaned_data.get("password2", "new_password_will_be_generated")
