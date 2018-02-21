@@ -18,9 +18,11 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.core import serializers
 from django.db import transaction
 from django.http import Http404
 # from django.http import HttpResponseForbidden
+from django.http import JsonResponse
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -41,6 +43,7 @@ from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.utils import three_suspension_points
+import json
 
 
 CKAN_URL = settings.CKAN_URL
@@ -98,16 +101,14 @@ class ResourceManager(View):
             return form.is_multipart() and request.FILES.get('up_file')
 
         def http_redirect(dataset_id, resource_id):
-            if 'save' in request.POST:
-                return HttpResponseRedirect(
-                    '{0}?id={1}#resources/{2}'.format(
-                        reverse('idgo_admin:dataset'), dataset_id, resource_id))
+            response = HttpResponse(status=201)
             if 'continue' in request.POST:
-                return HttpResponseRedirect(
-                    '{0}?id={1}'.format(
-                        reverse(self.namespace,
-                                kwargs={'dataset_id': dataset_id}),
-                        resource_id))
+                href = '{0}?id={1}'.format(reverse(self.namespace, kwargs={'dataset_id': dataset_id}), resource_id)
+            else:
+                href = '{0}?id={1}#resources/{2}'.format(reverse('idgo_admin:dataset'), dataset_id, resource_id)
+
+            response['Content-Location'] = href
+            return response
 
         user, profile = user_and_profile(request)
 
@@ -140,25 +141,25 @@ class ResourceManager(View):
 
             form = Form(request.POST, request.FILES, instance=instance)
             if not form.is_valid():
-                context.update({'form': form})
-                return render_with_info_profile(request, self.template, context)
+                error = dict(
+                    [(k, [str(m) for m in v]) for k, v in form.errors.items()])
+                return JsonResponse(json.dumps({'error': error}), safe=False)
 
             try:
                 with transaction.atomic():
-                    form.handle_me(
+                    instance = form.handle_me(
                         request, dataset, id=id, uploaded_file=get_uploaded_file(form))
             except CkanSyncingError:
-                messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
-                context.update({'form': form})
-                return render_with_info_profile(request, self.template, context)
+                error = {'__all__': ['Une erreur de synchronisation avec CKAN est survenue.']}
+                return JsonResponse(json.dumps({'error': error}), safe=False)
             except CkanTimeoutError:
-                messages.error(request, 'Impossible de joindre CKAN.')
-                context.update({'form': form})
-                return render_with_info_profile(request, self.template, context)
+                error = {'__all__': ['Impossible de joindre CKAN.']}
+                return JsonResponse(json.dumps({'error': error}), safe=False)
             except ValidationError as e:
                 form.add_error(e.code, e.message)
-                context.update({'form': form})
-                return render_with_info_profile(request, self.template, context)
+                error = dict(
+                    [(k, [str(m) for m in v]) for k, v in form.errors.items()])
+                return JsonResponse(json.dumps({'error': error}), safe=False)
 
             messages.success(
                 request, (
@@ -171,17 +172,25 @@ class ResourceManager(View):
 
         form = Form(request.POST, request.FILES)
         if not form.is_valid():
-            context.update({'form': form})
-            return render_with_info_profile(request, self.template, context)
+            error = dict(
+                [(k, [str(m) for m in v]) for k, v in form.errors.items()])
+            return JsonResponse(json.dumps({'error': error}), safe=False)
 
         try:
             with transaction.atomic():
                 instance = form.handle_me(
                     request, dataset, uploaded_file=get_uploaded_file(form))
+        except CkanSyncingError:
+            error = {'__all__': ['Une erreur de synchronisation avec CKAN est survenue.']}
+            return JsonResponse(json.dumps({'error': error}), safe=False)
+        except CkanTimeoutError:
+            error = {'__all__': ['Impossible de joindre CKAN.']}
+            return JsonResponse(json.dumps({'error': error}), safe=False)
         except ValidationError as e:
             form.add_error(e.code, e.message)
-            context.update({'form': form})
-            return render_with_info_profile(request, self.template, context)
+            error = dict(
+                [(k, [str(m) for m in v]) for k, v in form.errors.items()])
+            return JsonResponse(json.dumps({'error': error}), safe=False)
 
         messages.success(request, (
             'La ressource a été créée avec succès. Souhaitez-vous '

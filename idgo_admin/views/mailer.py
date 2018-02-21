@@ -35,16 +35,16 @@ def confirmation_mail(request, key):
 
     action = get_object_or_404(
         AccountActions, key=UUID(key), action='confirm_mail')
-    # if action.closed:
-    #     message = 'Vous avez déjà validé votre adresse e-mail.'
-    #     return render(
-    #         request, 'idgo_admin/message.html', {'message': message}, status=200)
+    if action.closed:
+        message = 'Vous avez déjà validé votre adresse e-mail.'
+        return render(
+            request, 'idgo_admin/message.html', {'message': message}, status=200)
 
     user = action.profile.user
     profile = action.profile
     organisation = profile.organisation
 
-    # ckan.activate_user(user.username)
+    ckan.activate_user(user.username)
     user.is_active = True
     action.profile.is_active = True
 

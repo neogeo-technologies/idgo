@@ -9,6 +9,49 @@
 		<link rel="shortcut icon" href="{% static "img/DataSudIco.ico" %}" />
 
 		<script src="{% static "libs/jquery/jquery-3.2.1.min.js" %}"></script>
+		<script>
+$(document).ajaxSend(function(e, xhr, settings) {
+
+	function getCookie(name) {
+		let cookieValue = null;
+		if (document.cookie && document.cookie != '') {
+			const cookies = document.cookie.split(';');
+			for (let i = 0; i < cookies.length; i++) {
+				const cookie = jQuery.trim(cookies[i]);
+				// Does this cookie string begin with the name we want?
+				if (cookie.substring(0, name.length + 1) == (name + '=')) {
+					cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+					break;
+				}
+			}
+		}
+		return cookieValue;
+	};
+
+	function sameOrigin(url) {
+		// URL could be relative or scheme relative or absolute
+		const host = document.location.host; // host + port
+		const protocol = document.location.protocol;
+		const sr_origin = '//' + host;
+		const origin = protocol + sr_origin;
+
+		return // Allow absolute or scheme relative URLs to same origin
+			(url == origin || url.slice(0, origin.length + 1) == origin + '/')
+			|| (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/')
+			// Or any other URL that isn't scheme relative or absolute i.e relative.
+			|| !(/^(\/\/|http:|https:).*/.test(url));
+	};
+
+	function safeMethod(method) {
+		return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+	};
+
+	if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
+		xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+	};
+
+});
+		</script>
 		<script src="{% static "libs/jquery-plugins/ezdz/jquery.ezdz.js" %}"></script>
 
 		<script src="{% static "libs/bootstrap-typeahead/bootstrap3-typeahead.min.js" %}"></script>
@@ -66,6 +109,11 @@
 		{% block head_extras %}
 		{% endblock head_extras %}
 	</head>
+
+	<div class="progress progress-bar-on-top">
+		<div class="progress-bar progress-bar-striped active" role="progressbar"></div>
+	</div>
+
 	<body>
 		<div id="modal-dialog" class="modal fade" tabindex="-1" role="dialog">
 			<div class="modal-dialog" role="document">

@@ -4,10 +4,10 @@
 <div class="panel panel-default">
 	<div class="panel-heading">
 		<img src="{% static "img/logo_data_sud.jpg" %}"></img>
-		<h4>Saisissez vos identifiants</h4>
 	</div>
 	<div class="panel-body">
 		<form id="signin" method="post" action="">
+			<h4>Saisissez vos identifiants</h4>
 			{% csrf_token %}
 			{% bootstrap_field form.username show_label=False %}
 			{% bootstrap_field form.password show_label=False %}

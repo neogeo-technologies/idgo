@@ -18,6 +18,7 @@
 					{% bootstrap_field form.up_file %}
 				{% elif mode == 'dl_url' %}
 					{% bootstrap_field form.dl_url %}
+					{% bootstrap_field form.sync_frequency %}
 				{% elif mode == 'referenced_url' %}
 					{% bootstrap_field form.referenced_url %}
 				{% endif %}
@@ -110,7 +111,6 @@
 <script>
 $(function() {
 
-
 	$('button[name="continue,save"]').prop('type', 'button');
 
 	const $permittedUsers = $('#permitted-users').collapse({toggle: false}).on('hidden.bs.collapse', function() {
@@ -169,6 +169,59 @@ $(function() {
 
 	$(document).ready(function() {
 		getAccessSelectedOption($('select[name="{{ form.restricted_level.name }}"]'));
+	});
+
+	const refreshProgressBar = function(e) {
+		let value = 0;
+		if (e.lengthComputable) {
+			value = Math.round(e.loaded / e.total * 100);
+			$('.progress-bar').css('width', value + '%');
+		};
+	};
+
+	$('form').submit(function(e) {
+		e.preventDefault();
+		$.ajax({
+			type: 'POST',
+			url: '{% url "idgo_admin:resource" dataset_id=dataset_id %}',
+			data: new FormData(this),
+			contentType: false,
+			processData: false,
+			success: function(data, status, xhr) {
+				// Cf. done method
+			},
+			error: function(xhr) {
+				// Cf. done method
+			},
+			xhr: function() {
+				const xhr = new window.XMLHttpRequest();
+				xhr.upload.addEventListener('progress', refreshProgressBar, false);
+				xhr.addEventListener('progress', refreshProgressBar, false);
+				return xhr;
+			},
+		}).done(function(data, status, xhr) {
+			window.scrollTo(0, 0);
+			$('.container-message').empty();
+			$('.progress-bar').css('display', 'none');
+			$('.progress-bar').css('width', '0%');
+
+			if (xhr.status == 201) {
+				return window.location.href = xhr.getResponseHeader('Content-Location');
+			};
+
+			data = JSON.parse(data);
+			if (data.error) {
+				for (const key in data.error) {
+					const val = data[key].join();
+					if (key == '__all__') {
+						$('.container-message').append('<div name="message-tags" class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>' + val + '</div>');
+					} else {
+						$('#id_' + key).after('<div class="help-block">' + val + '</div>').parent('.form-group').addClass('has-error');
+					};
+				};
+			};
+
+		});
 	});
 
 });

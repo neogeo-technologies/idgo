@@ -156,7 +156,7 @@ def organisation(request, id=None):
         'id': instance.id,
         'name': instance.name,
         # logo -> see below
-        'type': instance.organisation_type,
+        'type': instance.organisation_type and instance.organisation_type.name or '',
         'jurisdiction':
             instance.jurisdiction and instance.jurisdiction.name or '',
         'address': instance.address,
