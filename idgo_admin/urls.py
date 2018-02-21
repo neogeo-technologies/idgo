@@ -58,7 +58,7 @@ urlpatterns = [
     url('^account/delete/?$', delete_account, name='deleteAccount'),
 
     url('^dataset/?$', DatasetManager.as_view(), name='dataset'),
-    url('^dataset/(?P<dataset_id>(\d+))/resources/?$', ResourceManager.as_view(), name='resource'),
+    url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
 
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/?$', MDEdit.as_view(), name='mdedit'),
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/edit/?$', MDEditTplEdit.as_view(), name='mdedit_tpl_edit'),

@@ -120,7 +120,7 @@ div.page-header {
     background-color: #fff;
     color: #002880;
     position: relative;
-    z-index: 999;
+    z-index: 998;
 }
 
 div.page-header .title {
@@ -729,7 +729,7 @@ div#categories.btn-group>label.btn.active:focus>span.badge {
 }
 
 .well[name="data-selector-panel"] {
-    z-index: 999;
+    z-index: 998;
     position: relative;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
@@ -894,4 +894,22 @@ input.form-control.datepicker {
 
 .container-signin .panel-body {
     padding: 15px 30px 30px 30px;
+}
+
+.progress-bar-on-top {
+    position: fixed;
+    width: 100%;
+    height: 8px;
+    z-index: 999;
+    margin-bottom: 0px;
+    overflow: hidden;
+    border-radius: 0px;
+    -webkit-box-shadow: none;
+            box-shadow: none;
+    background-color: transparent;
+}
+
+.progress-bar-on-top>.progress-bar {
+    background-color: #002880;
+    width: 0%;
 }
