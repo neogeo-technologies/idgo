@@ -18,6 +18,7 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 from django.contrib.gis import admin as geo_admin
@@ -123,18 +124,41 @@ class AccountActionsInline(admin.TabularInline):
     change_link.short_description = "Lien de validation"
 
 
-class ProfileForm(forms.ModelForm):
+class ProfileChangeForm(forms.ModelForm):
 
     class Meta(object):
         model = Profile
-        fields = '__all__'
+        fields = ('user', 'is_active', 'membership', 'phone')
+
+    def clean(self):
+        if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
+            raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé")
+        return self.cleaned_data
+
+
+class ProfileAddForm(forms.ModelForm):
+
+    class Meta(object):
+        model = Profile
+        fields = (
+            'user',
+            'organisation',
+            'phone',
+            'is_active',
+            'membership',
+            'is_admin'
+            )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Pour ne proposer que les users sans profile
-        self.fields['user'].queryset = User.objects.exclude(profile__in=Profile.objects.all())
+        existing_profiles = Profile.objects.all()
+        self.fields['user'].queryset = User.objects.exclude(profile__in=existing_profiles)
+        self.fields['is_active'].widget = forms.HiddenInput()
+        self.fields['membership'].widget = forms.HiddenInput()
 
     def clean(self):
+        self.cleaned_data.setdefault('is_active', True)
         if self.cleaned_data.get('organisation'):
             self.cleaned_data.setdefault('membership', True)
         if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
@@ -145,8 +169,7 @@ class ProfileForm(forms.ModelForm):
 class ProfileAdmin(admin.ModelAdmin):
     inlines = (LiaisonReferentsInline, LiaisonsContributeursInline, AccountActionsInline)
     models = Profile
-    form = ProfileForm
-
+    form = ProfileAddForm
     list_display = (
         'full_name',
         'username',
@@ -162,11 +185,11 @@ class ProfileAdmin(admin.ModelAdmin):
         'user__first_name'
         )
 
-    def get_readonly_fields(self, request, obj=None):
+    def get_form(self, request, obj=None, **kwargs):
         if obj:
-            return []
+            return ProfileChangeForm
         else:
-            return ['membership']
+            return super(ProfileAdmin, self).get_form(request, obj=None, **kwargs)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -326,6 +349,21 @@ class ProfileAdmin(admin.ModelAdmin):
 admin.site.register(Profile, ProfileAdmin)
 
 
+class MyUserChangeForm(UserChangeForm):
+
+    class Meta(object):
+        model = User
+        # fields = ('first_name', 'last_name', 'email', 'username')
+        fields = '__all__'
+
+    def clean(self):
+        if 'email' in self.changed_data:
+            email = self.cleaned_data['email']
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError("Cette adresse est reservée")
+        return email
+
+
 class MyUserCreationForm(UserCreationForm):
 
     class Meta(object):
@@ -386,6 +424,7 @@ class MyUserCreationForm(UserCreationForm):
 
 class UserAdmin(AuthUserAdmin):
     add_form = MyUserCreationForm
+    form = MyUserChangeForm
     list_display = (
         'full_name',
         'username',

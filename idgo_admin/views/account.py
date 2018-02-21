@@ -251,7 +251,7 @@ class PasswordManager(View):
                 request, message_success)
 
         return HttpResponseRedirect(
-            reverse('idgo_admin:account_manager', kwargs={'process': 'update'}))
+            reverse('idgo_admin:update_account'))
 
 
 @login_required(login_url=settings.LOGIN_URL)
