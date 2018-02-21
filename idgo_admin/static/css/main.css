@@ -15,8 +15,8 @@ html {
 }
 
 body {
-    background-color: #fff;
     color: #333;
+    background-color: #fefefe;
 }
 
 br {
@@ -274,7 +274,6 @@ div.nav-container {
 div.breadcrumb-container {
     margin-top: 30px;
     margin-bottom: 0px;
-    background-color: #fff;
     min-height: 50px;
 }
 
@@ -306,9 +305,6 @@ div.breadcrumb-container .breadcrumb a {
 }
 
 div.main-container {
-    background-color: #fff;
-    /*border-top: 1px solid #002880;*/
-    /*margin-top: -2px;*/
     padding-top: 30px;
     padding-bottom: 200px;
     bottom: 0;
@@ -878,4 +874,24 @@ input.form-control.datepicker {
     margin-top: 0;
     margin-bottom: 10px;
     border-color: #afafaf;
+}
+
+.container-signin {
+    width: 375px;
+}
+
+.container-signin .panel {
+    border: 1px solid #eeeeee;
+    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+            box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+}
+
+.container-signin .panel-heading {
+    border-bottom: none;
+    padding: 30px 30px 15px 30px;
+
+}
+
+.container-signin .panel-body {
+    padding: 15px 30px 30px 30px;
 }
