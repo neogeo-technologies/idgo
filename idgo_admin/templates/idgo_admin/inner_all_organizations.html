@@ -349,11 +349,10 @@ $(function() {
 						if (pRowIdx != nRowIdx) {
 							$(this.getRow(nRowIdx)).addClass('selected');
 							activateButton($ckanUserCard);
-
-							if (!data.is_referent && (isReferent() || {{ is_admin | yesno:'true,false,null' }})) {
+							if (!data.is_referent && (isReferent()) || {{ is_admin | yesno:'true,false,null' }})  {
 								data.is_member ? activateButton($deleteMember) : deactivateButton($deleteMember);
 								data.is_contributor ? activateButton($deleteContributor) : deactivateButton($deleteContributor);
-								data.is_referent ?  activateButton($deleteReferent) : deactivateButton($deleteReferent);
+								data.is_referent ? activateButton($deleteReferent) : deactivateButton($deleteReferent);
 								(data.is_member || data.is_contributor || data.is_referent) ? activateButton($dropdownButton) : deactivateButton($dropdownButton);
 							};
 						};
