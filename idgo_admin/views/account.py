@@ -44,6 +44,7 @@ from idgo_admin.forms.account import UserForgetPassword
 from idgo_admin.forms.account import UserResetPassword
 from idgo_admin.models import AccountActions
 from idgo_admin.models import LiaisonsContributeurs
+from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
@@ -322,15 +323,19 @@ class ReferentAccountManager(View):
 
     def delete(self, request, *args, **kwargs):
 
+        # TODO Better
+
+        user = request.user
+
         organization_id = request.GET.get('organization')
         username = request.GET.get('username')
         target = request.GET.get('target')
-        if not organization_id or not username or target not in ['members', 'contributors']:
+        if not organization_id or not username or target not in ['members', 'contributors', 'referents']:
             raise Http404
 
         profile = get_object_or_404(Profile, user__username=username)
         organisation = get_object_or_404(Organisation, id=organization_id)
-        if profile.get_roles(organisation=organisation)["is_referent"]:
+        if profile.get_roles(organisation=organisation)["is_referent"] and not user.profile.is_admin:
             return HttpResponseForbidden()
 
         if target == 'members':
@@ -340,16 +345,20 @@ class ReferentAccountManager(View):
             profile.organisation = None
             profile.membership = False
             profile.save()
-            message = "L'utilisateur <strong>{0}</strong> n'est plus membre de cette organidation. ".format(username)
+            message = "L'utilisateur <strong>{0}</strong> n'est plus membre de <strong>{1}</strong>.".format(username, organisation.name)
             messages.success(request, message)
 
         if target == 'contributors':
-            lc = get_object_or_404(LiaisonsContributeurs, profile=profile, organisation=organisation)
-            lc.delete()
-            message = "L'utilisateur <strong>{0}</strong> n'est plus contributeur de cette organisation. ".format(username)
+            instance = get_object_or_404(LiaisonsContributeurs, profile=profile, organisation=organisation)
+            instance.delete()
+            message = "L'utilisateur <strong>{0}</strong> n'est plus contributeur de <strong>{1}</strong>.".format(username, organisation.name)
             messages.success(request, message)
 
-        # TODO referent
+        if target == 'referents' and user.profile.is_admin:
+            instance = get_object_or_404(LiaisonsReferents, profile=profile, organisation=organisation)
+            instance.delete()
+            message = "L'utilisateur <strong>{0}</strong> n'est plus référent technique de <strong>{1}</strong>.".format(username, organisation.name)
+            messages.success(request, message)
 
         return HttpResponse(status=200)
 
