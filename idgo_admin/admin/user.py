@@ -129,7 +129,14 @@ class ProfileForm(forms.ModelForm):
         model = Profile
         fields = '__all__'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pour ne proposer que les users sans profile
+        self.fields['user'].queryset = User.objects.exclude(profile__in=Profile.objects.all())
+
     def clean(self):
+        if self.cleaned_data.get('organisation'):
+            self.cleaned_data.setdefault('membership', True)
         if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
             raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé")
         return self.cleaned_data
@@ -139,6 +146,7 @@ class ProfileAdmin(admin.ModelAdmin):
     inlines = (LiaisonReferentsInline, LiaisonsContributeursInline, AccountActionsInline)
     models = Profile
     form = ProfileForm
+
     list_display = (
         'full_name',
         'username',
@@ -153,6 +161,12 @@ class ProfileAdmin(admin.ModelAdmin):
         'user__last_name',
         'user__first_name'
         )
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return []
+        else:
+            return ['membership']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -175,10 +189,25 @@ class ProfileAdmin(admin.ModelAdmin):
         return actions
 
     def save_formset(self, request, form, formset, change):
-
         # Si les TabularInlines ne concernent pas les Liaisons Orga
         if formset.model not in (LiaisonsReferents, LiaisonsContributeurs, ):
             return super(ProfileAdmin, self).save_formset(request, form, formset, change)
+
+        # On s'occupe d'abord des Contributeur pour eviter les doublons
+        if formset.model is LiaisonsContributeurs:
+
+            instances = formset.save(commit=False)
+            for obj in formset.deleted_objects:
+                obj.delete()
+            for instance in instances:
+                _, created = LiaisonsContributeurs.objects.get_or_create(
+                    organisation=instance.organisation,
+                    profile=form.instance,
+                    validated_on=timezone.now().date())
+                if created:
+                    instance.profile = form.instance
+                    instance.validated_on = timezone.now().date()
+                    instance.save()
 
         # On crée une liaison contributeur pour chaque liaison référent demandé dans l'admin
         if formset.model is LiaisonsReferents:
@@ -193,15 +222,6 @@ class ProfileAdmin(admin.ModelAdmin):
                     organisation=instance.organisation,
                     profile=form.instance,
                     validated_on=timezone.now().date())
-
-        if formset.model is LiaisonsContributeurs:
-            instances = formset.save(commit=False)
-            for obj in formset.deleted_objects:
-                obj.delete()
-            for instance in instances:
-                instance.profile = form.instance
-                instance.validated_on = timezone.now().date()
-                instance.save()
 
         formset.save_m2m()
 
