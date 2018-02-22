@@ -66,7 +66,7 @@ class OrganizationForm(forms.ModelForm):
     city = CityField()
     postcode = PostcodeField()
     org_phone = PhoneField()
-    email = EMailField()
+    email = EMailField(required=False)
     website = WebsiteField()
     description = DescriptionField()
     jurisdiction = JurisdictionField()
