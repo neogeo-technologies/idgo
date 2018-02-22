@@ -135,7 +135,7 @@ class UserDeleteForm(AuthenticationForm):
 class DeleteAdminForm(forms.Form):
 
     new_user = forms.ModelChoiceField(
-        User.objects.all(),
+        User.objects.all().order_by('username'),
         empty_label="Selectionnez un utilisateur",
         label="Compte utilisateur pour réaffecter les jeux de donnés orphelins",
         required=False,
@@ -153,9 +153,9 @@ class DeleteAdminForm(forms.Form):
         self.included = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
         if self.included['user_id']:
-            self.fields['new_user'].queryset = User.objects.exclude(id=self.included['user_id']).exclude(is_active=False)
+            self.fields['new_user'].queryset = User.objects.exclude(id=self.included['user_id']).exclude(is_active=False).order_by('username')
         else:
-            self.fields['new_user'].queryset = User.objects.filter(is_active=True)
+            self.fields['new_user'].queryset = User.objects.filter(is_active=True).order_by('username')
 
     def delete_controller(self, deleted_user, new_user, related_datasets):
         if related_datasets:

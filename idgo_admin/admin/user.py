@@ -63,6 +63,10 @@ class CustomLiaisonsReferentsModelForm(forms.ModelForm):
         super(CustomLiaisonsReferentsModelForm, self).__init__(*args, **kwargs)
         self.fields['organisation'].queryset = Organisation.objects.filter(is_active=True)
 
+    def clean(self):
+        self.errors.pop('organisation', None)
+        return self.cleaned_data
+
 
 class CustomLiaisonsContributeursModelForm(forms.ModelForm):
 

@@ -15,8 +15,8 @@
 
 
 from django.contrib import admin
+from django import forms
 from django.forms.models import BaseInlineFormSet
-from django.forms import ValidationError
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
@@ -43,7 +43,7 @@ class ResourceInlineFormset(BaseInlineFormSet):
             is_sync_requested = form.cleaned_data.get('synchronisation')
             frequency_not_set = form.cleaned_data.get('sync_frequency') == 'never'
             if is_sync_requested and frequency_not_set:
-                raise ValidationError(
+                raise forms.ValidationError(
                     'Une période de synchronisation est nécessaire si vous choisissez de sychroniser les données distantes')
 
 
@@ -61,7 +61,7 @@ class ResourceInline(admin.StackedInline):
         (None, {
             'classes': ('wide', ),
             'fields': (
-                ('name', 'description'),
+                ('name', 'description', ),
                 ('referenced_url', 'dl_url', 'up_file'),
                 'lang',
                 'format_type', 'restricted_level', 'profiles_allowed',
@@ -71,14 +71,27 @@ class ResourceInline(admin.StackedInline):
         )
 
 
+class MyDataSetForm(forms.ModelForm):
+
+    class Meta(object):
+        model = Dataset
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['organisation'].required = True
+
+
 class DatasetAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'name_editor', 'nb_resources', )
     inlines = (ResourceInline, )
     ordering = ('name', )
+    form = MyDataSetForm
     can_add_related = True
     can_delete_related = True
     readonly_fields = ('ckan_id', 'ckan_slug', 'geonet_id')
+    search_fields = ('name', 'editor__username')
 
     def nb_resources(self, obj):
         return Resource.objects.filter(dataset=obj).count()
@@ -89,5 +102,6 @@ class DatasetAdmin(admin.ModelAdmin):
         last_name = obj.editor.last_name
         return "{} {}".format(first_name, last_name.upper())
     name_editor.short_description = "Producteur (propriétaire)"
+
 
 admin.site.register(Dataset, DatasetAdmin)
