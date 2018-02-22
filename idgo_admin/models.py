@@ -111,7 +111,7 @@ class Resource(models.Model):
         ('weekly', 'Hebdomadaire (tous les lundi)'),
         ('bimonthly ', 'Bimensuelle (1er et 15 de chaque mois)'),
         ('monthly', 'Mensuelle (1er de chaque mois)'),
-        ('quarterly', 'Trimestrielle (1er des mois de janvier, avril, juillet, octobre)')
+        ('quarterly', 'Trimestrielle (1er des mois de janvier, avril, juillet, octobre)'),
         ('biannual', 'Semestrielle (1er janvier et 1er juillet)'),
         ('monthly', 'Mensuelle (1er janvier)'))
 
