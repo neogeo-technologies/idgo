@@ -102,10 +102,14 @@ class ResourceManager(View):
 
         def http_redirect(dataset_id, resource_id):
             response = HttpResponse(status=201)
+
             if 'continue' in request.POST:
-                href = '{0}?id={1}'.format(reverse(self.namespace, kwargs={'dataset_id': dataset_id}), resource_id)
+                href = '{0}?id={1}'.format(
+                    reverse(self.namespace, kwargs={'dataset_id': dataset_id}),
+                    resource_id)
             else:
-                href = '{0}?id={1}#resources/{2}'.format(reverse('idgo_admin:dataset'), dataset_id, resource_id)
+                href = '{0}?id={1}#resources/{2}'.format(
+                    reverse('idgo_admin:dataset'), dataset_id, resource_id)
 
             response['Content-Location'] = href
             return response

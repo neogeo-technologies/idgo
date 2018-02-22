@@ -246,12 +246,12 @@ class ResourceForm(forms.ModelForm):
         referenced_url = self.cleaned_data.get('referenced_url', None)
         res_l = [up_file, dl_url, referenced_url]
         if all(v is None for v in res_l):
-            self.add_error('up_file', "Veuillez indiquer un type de ressource.")
-            self.add_error('dl_url', "Veuillez indiquer un type de ressource.")
-            self.add_error('referenced_url', "Veuillez indiquer un type de ressource.")
-            raise ValidationError('ResourceType')
+            self.add_error('up_file', 'Ce champ est obligatoire.')
+            self.add_error('dl_url', 'Ce champ est obligatoire.')
+            self.add_error('referenced_url', 'Ce champ est obligatoire.')
+
         if sum(v is not None for v in res_l) > 1:
-            self.add_error('up_file', "Un seul type de ressource n'est autorisé.")
-            self.add_error('dl_url', "Un seul type de ressource n'est autorisé.")
-            self.add_error('referenced_url', "Un seul type de ressource n'est autorisé.")
-            raise ValidationError('ResourceType')
+            error_msg = "Un seul type de ressource n'est autorisé."
+            up_file and self.add_error('up_file', error_msg)
+            dl_url and self.add_error('dl_url', error_msg)
+            referenced_url and self.add_error('referenced_url', error_msg)

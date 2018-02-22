@@ -8,7 +8,7 @@
 		<div class="progress">
 			<div class="progress-bar progress-bar-striped" role="progressbar"></div>
 		</div>
-		<div class="progress-status"></div>
+		<div class="progress-status">-</div>
 	</div>
 </template>
 
@@ -181,9 +181,11 @@ $(function() {
 		getAccessSelectedOption($('select[name="{{ form.restricted_level.name }}"]'));
 	});
 
-	$('form').submit(function(e) {
+	$('button[type="submit"]').click(function(e) {
 		e.preventDefault();
-		const that = this;
+		const data = new FormData($('form')[0]);
+		data.append(this.name, true);
+
 		const $progressBar = $($('#progressbar_template').prop('content')).clone();
 		$modal.addClass('progress-bar-modal');
 		$modal.find('.modal-header').remove();
@@ -193,7 +195,7 @@ $(function() {
 			$.ajax({
 				type: 'POST',
 				url: '{% url "idgo_admin:resource" dataset_id=dataset_id %}',
-				data: new FormData(that),
+				data: data,
 				contentType: false,
 				processData: false,
 				success: function(data, status, xhr) {
@@ -205,7 +207,6 @@ $(function() {
 				xhr: function() {
 					const $progressBar = $('.progress-bar');
 					const $progressStatus = $('.progress-status');
-
 					const xhr = new window.XMLHttpRequest();
 					xhr.upload.addEventListener('progress', function(e) {
 						let value = 0;
@@ -215,17 +216,14 @@ $(function() {
 							$progressStatus.html('<strong>' + value + '%</strong>');
 						};
 					}, false);
-
 					xhr.upload.addEventListener('loadend', function(e) {
 						$progressBar.addClass('active');
 						$progressStatus.html('En attente de la réponse du serveur');
 					}, false);
-
 					xhr.upload.addEventListener('timeout', function(e) {
 						$progressBar.removeClass('active');
 						$progressStatus.html('Erreur : Impossible de joindre le serveur. Veuillez réessayer plus tard.');
 					});
-
 					return xhr;
 				},
 			}).done(function(data, status, xhr) {
@@ -258,7 +256,6 @@ $(function() {
 							};
 						};
 					};
-
 				}).modal('hide');
 			});
 		});
