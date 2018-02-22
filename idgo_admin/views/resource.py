@@ -143,7 +143,7 @@ class ResourceManager(View):
 
             messages.success(
                 request, (
-                    'La ressource a été mise à jour avec succès.'
+                    'La ressource a été mise à jour avec succès. '
                     'Souhaitez-vous <a href="{0}/dataset/{1}/resource/{2}" '
                     'target="_blank">voir la ressource dans CKAN</a> ?'
                     ).format(CKAN_URL, dataset.ckan_slug, instance.ckan_id))
