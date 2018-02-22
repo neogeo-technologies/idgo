@@ -16,7 +16,6 @@ html {
 
 body {
     color: #333;
-    background-color: #fefefe;
 }
 
 br {
@@ -26,6 +25,11 @@ br {
 img {
     -webkit-user-select: none;
             user-select: none;
+}
+
+label:focus,
+label.focus {
+    outline: none !important;
 }
 
 .tab-pane-content {
@@ -233,7 +237,6 @@ ul.nav.nav-default>li.active>a:hover {
     background-color: #002880;
     border-left: 1px solid #002880;
     border-right: 1px solid #002880;
-    /*margin-bottom: 1px;*/
 }
 
 ul.nav.nav-default>li[name=account] {
@@ -647,8 +650,7 @@ div#categories.btn-group {
     border: 1px solid #aaa;
     border-radius: 4px;
     width: 100%;
-    padding-left: 9px;
-    padding-right: 9px;
+    margin: 0;
 }
 
 div#categories.btn-group>label.btn {
@@ -667,10 +669,7 @@ div#categories.btn-group>label.btn:hover {
     background-color: transparent;
     border: none;
     border-radius: 0;
-    margin-left: 0;
-    margin-right: 7px;
-    padding-left: 0;
-    padding-right: 0;
+    padding: 6px 12px;
 }
 
 div#categories.btn-group>label.btn>span.badge,
@@ -681,28 +680,33 @@ div#categories.btn-group>label.btn.focus>span.badge {
     font-size: inherit;
     font-weight: normal;
     top: 0px;
-    padding: 3px 7px;
-    margin-left: 0;
-    margin-right: 0;
     border: none;
-    border-radius: 5px;
+    padding: 0;
+    margin: 0;
+    border-radius: 10px;
 }
 
 
+div#categories.btn-group>label.btn:hover>span.badge,
+div#categories.btn-group>label.btn.active>span.badge,
+div#categories.btn-group>label.btn.active:hover>span.badge,
+div#categories.btn-group>label.btn.active:focus>span.badge {
+    padding: 4px 8px;
+    margin: -4px -8px;
+    color: #fff;
+}
+
 div#categories.btn-group>label.btn:hover>span.badge {
     background-color: #aaa;
-    color: #fff;
 }
 
 div#categories.btn-group>label.btn.active>span.badge {
     background-color: #002880;
-    color: #fff;
 }
 
 div#categories.btn-group>label.btn.active:hover>span.badge,
 div#categories.btn-group>label.btn.active:focus>span.badge {
     background-color: #002066;
-    color: #fff;
 }
 
 .nav[name="data-selector"] {
