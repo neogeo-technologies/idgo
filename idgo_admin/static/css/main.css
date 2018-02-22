@@ -2,7 +2,7 @@
  * red    #ff554f
  * green  #12be72
  * blue   #002880
- * yellow #ffba13
+ * yellow #ffce59
  */
 
 a.small-link {
@@ -152,36 +152,57 @@ div.page-header .login {
     transform: translateY(-50%);
     right: 15px;
     color: #aaa;
-    -webkit-transition: color .123s, border-color .123s;
-            transition: color .123s, border-color .123s;
+    border-color: #aaa;
 }
 
 div.page-header .login:hover {
     color: #002880;
 }
 
+div.page-header .login {
+    min-width: 160px;
+}
+
 div.page-header .login button,
 div.page-header .login button:focus {
+    width: 100%;
     padding: 12px;
-    background: transparent;
-    border: 1px solid transparent;
+    background: #fcfcfc;
+    border: 1px solid #ccc;
     border-radius: 4px;
-    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.25);;
-            box-shadow: 0 2px 1px 0 rgba(0,0,0,.25);;
+    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+            box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
 }
+
+div.page-header .login .dropdown-menu {
+    width: 100%;
+    border: 1px solid #ccc;
+    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+            box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+}
+
 
 div.page-header .login button:hover,
 div.page-header .login.open button,
 div.page-header .login.open button:hover {
     color: #002880;
-    /*-webkit-box-shadow: none;
-            box-shadow: none;*/
+}
+
+div.page-header .login button .label-warning {
+    font-size: 11px;
+    background-color: #ffce59;
+}
+
+div.page-header .login button:hover .label-warning,
+div.page-header .login.open button .label-warning,
+div.page-header .login.open button:hover .label-warning {
+    background-color: #ffba13;
 }
 
 div.page-header .login button > span {
     font-size: 1.111em;
     display:inline-block;
-    vertical-align:middle;
+    vertical-align: middle;
 }
 
 div.page-header .login button > span.glyphicon {
@@ -214,7 +235,6 @@ ul.nav.nav-default>li>a {
     color: #002880;
     font-weight: 400;
     text-transform: uppercase;
-    /*font-size: 1.333em;*/
     font-size: 16px;
     -webkit-box-shadow: 0 8px 0 0 #002880 inset;
             box-shadow: 0 8px 0 0 #002880 inset;
@@ -382,13 +402,11 @@ table tr.selected td:last-child {
 }
 
 .dropdown-menu>li>a {
-    text-align: right;
     color: #002880;
     padding: 5px 12px;
 }
 
 .dropdown-menu>li>a:hover {
-    text-align: right;
     background: #002880;
     color: #fff;
 }
@@ -494,7 +512,7 @@ a:focus {
     border: 1px solid #999;
     background-color: #fafafa;
     margin-bottom: 20px;
-	white-space: nowrap;
+    white-space: nowrap;
     text-overflow: ellipsis;
 }
 
@@ -590,12 +608,12 @@ a:focus {
 
 .warning {
     color: #664a07;
-    background-color: #ffba13;
+    background-color: #ffce59;
 }
 
 .alert-warning {
     color: #664a07;
-    background-color: #ffba13;
+    background-color: #ffce59;
 }
 
 .danger {
