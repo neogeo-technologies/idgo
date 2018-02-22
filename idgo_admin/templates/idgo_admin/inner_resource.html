@@ -184,6 +184,9 @@ $(function() {
 
 	$('button[type="submit"]').click(function(e) {
 		e.preventDefault();
+
+		window.scrollTo(0, 0);
+
 		const data = new FormData($('form')[0]);
 		data.append(this.name, true);
 
@@ -195,7 +198,7 @@ $(function() {
 			e.preventDefault();
 			$.ajax({
 				type: 'POST',
-				url: '{% url "idgo_admin:resource" dataset_id=dataset_id %}',
+				url: '{% url "idgo_admin:resource" dataset_id=dataset_id %}?id={{ resource_id }}',
 				data: data,
 				contentType: false,
 				processData: false,
@@ -232,8 +235,6 @@ $(function() {
 				$('.container-message').empty();
 				$('.help-block').remove();
 				$('.progress-bar-on-top .progress-bar').css('display', 'none').css('width', '0%');
-
-				window.scrollTo(0, 0);
 
 				$modal.one('hidden.bs.modal', function(e) {
 					e.preventDefault();

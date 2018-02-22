@@ -202,6 +202,8 @@ class Resource(models.Model):
     sync_frequency = models.CharField(
         "Fréquence de synchronisation",
         max_length=20,
+        blank=True,
+        null=True,
         choices=FREQUENCY_CHOICES,
         default='never')
 

@@ -72,6 +72,8 @@ class ResourceForm(forms.ModelForm):
                   'organisations_allowed',
                   'sync_frequency')
 
+    _instance = None
+
     class CustomClearableFileInput(forms.ClearableFileInput):
         template_name = 'idgo_admin/widgets/file_drop_zone.html'
 
@@ -114,6 +116,8 @@ class ResourceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
+
+        self._instance = kwargs.get('instance', None)
 
     def handle_me(self, request, dataset, id=None, uploaded_file=None):
 

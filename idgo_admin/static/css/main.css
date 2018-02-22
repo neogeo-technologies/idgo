@@ -916,7 +916,7 @@ input.form-control.datepicker {
 
 .container-progress .progress {
     height: 10px;
-    border-radius: 5px;
+    border-radius: 2px;
 }
 
 .container-progress .progress-bar {
@@ -926,12 +926,8 @@ input.form-control.datepicker {
     width: 0%;
 }
 
-.container-progress .progress-bar-striped {
-    background-size: 84px 84px;
-}
-
 .progress-bar-modal .modal-body {
-    padding: 80px 15px;
+    padding: 60px 30px;
 }
 
 .progress-bar-on-top {

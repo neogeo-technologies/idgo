@@ -18,13 +18,10 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.core import serializers
 from django.db import transaction
 from django.http import Http404
-# from django.http import HttpResponseForbidden
-from django.http import JsonResponse
 from django.http import HttpResponse
-from django.http import HttpResponseRedirect
+from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -77,16 +74,14 @@ class ResourceManager(View):
             instance = get_object_or_404_extended(
                 Resource, user, include={'id': id, 'dataset_id': dataset_id})
 
-            mode = None
-            if instance.up_file:
-                mode = 'up_file'
-            if instance.dl_url:
-                mode = 'dl_url'
-            if instance.referenced_url:
-                mode = 'referenced_url'
+            mode = instance.up_file and 'up_file' \
+                or instance.dl_url and 'dl_url' \
+                or instance.referenced_url and 'referenced_url' \
+                or None
 
             context.update({
                 'resource_name': three_suspension_points(instance.name),
+                'resource_id': instance.id,
                 'resource_ckan_id': instance.ckan_id,
                 'mode': mode,
                 'form': Form(instance=instance)})
@@ -119,29 +114,10 @@ class ResourceManager(View):
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
 
-        context = {'dataset_name': three_suspension_points(dataset.name),
-                   'dataset_id': dataset.id,
-                   'dataset_ckan_slug': dataset.ckan_slug,
-                   'mode': None,
-                   'resource_name': 'Nouvelle ressource',
-                   'resource_ckan_id': None}
-
         id = request.POST.get('id', request.GET.get('id'))
         if id:
             instance = get_object_or_404_extended(
                 Resource, user, include={'id': id, 'dataset': dataset})
-
-            mode = None
-            if instance.up_file:
-                mode = 'up_file'
-            if instance.dl_url:
-                mode = 'dl_url'
-            if instance.referenced_url:
-                mode = 'referenced_url'
-
-            context.update({
-                'mode': mode,
-                'resource_name': three_suspension_points(instance.name)})
 
             form = Form(request.POST, request.FILES, instance=instance)
             if not form.is_valid():
