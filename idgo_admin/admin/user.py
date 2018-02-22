@@ -128,7 +128,14 @@ class ProfileChangeForm(forms.ModelForm):
 
     class Meta(object):
         model = Profile
-        fields = ('user', 'is_active', 'membership', 'phone')
+        fields = (
+            'user',
+            'phone',
+            'organisation',
+            'membership',
+            'is_active',
+            'is_admin',
+            )
 
     def clean(self):
         if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
@@ -142,8 +149,8 @@ class ProfileAddForm(forms.ModelForm):
         model = Profile
         fields = (
             'user',
-            'organisation',
             'phone',
+            'organisation',
             'is_active',
             'membership',
             'is_admin'
@@ -154,13 +161,14 @@ class ProfileAddForm(forms.ModelForm):
         # Pour ne proposer que les users sans profile
         existing_profiles = Profile.objects.all()
         self.fields['user'].queryset = User.objects.exclude(profile__in=existing_profiles)
+
         self.fields['is_active'].widget = forms.HiddenInput()
         self.fields['membership'].widget = forms.HiddenInput()
 
     def clean(self):
-        self.cleaned_data.setdefault('is_active', True)
+        self.cleaned_data.update(is_active=True)
         if self.cleaned_data.get('organisation'):
-            self.cleaned_data.setdefault('membership', True)
+            self.cleaned_data.update(membership=True)
         if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
             raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé")
         return self.cleaned_data
@@ -211,6 +219,29 @@ class ProfileAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
+    def create_related_liason_contrib(self, instance):
+        try:
+            LiaisonsContributeurs.objects.get(
+                organisation=instance.organisation,
+                profile=instance.profile
+                )
+        except LiaisonsContributeurs.DoesNotExist:
+            LiaisonsContributeurs.objects.create(
+                organisation=instance.organisation,
+                profile=instance.profile,
+                validated_on=timezone.now().date()
+                )
+
+    def current_instance_is_new(self, instance):
+        try:
+            LiaisonsContributeurs.objects.get(
+                organisation=instance.organisation,
+                profile=instance.profile
+                )
+        except LiaisonsContributeurs.DoesNotExist:
+            return True
+        return False
+
     def save_formset(self, request, form, formset, change):
         # Si les TabularInlines ne concernent pas les Liaisons Orga
         if formset.model not in (LiaisonsReferents, LiaisonsContributeurs, ):
@@ -218,16 +249,11 @@ class ProfileAdmin(admin.ModelAdmin):
 
         # On s'occupe d'abord des Contributeur pour eviter les doublons
         if formset.model is LiaisonsContributeurs:
-
             instances = formset.save(commit=False)
             for obj in formset.deleted_objects:
                 obj.delete()
             for instance in instances:
-                _, created = LiaisonsContributeurs.objects.get_or_create(
-                    organisation=instance.organisation,
-                    profile=form.instance,
-                    validated_on=timezone.now().date())
-                if created:
+                if self.current_instance_is_new(instance):
                     instance.profile = form.instance
                     instance.validated_on = timezone.now().date()
                     instance.save()
@@ -241,10 +267,7 @@ class ProfileAdmin(admin.ModelAdmin):
                 instance.profile = form.instance
                 instance.validated_on = timezone.now().date()
                 instance.save()
-                LiaisonsContributeurs.objects.get_or_create(
-                    organisation=instance.organisation,
-                    profile=form.instance,
-                    validated_on=timezone.now().date())
+                self.create_related_liason_contrib(instance)
 
         formset.save_m2m()
 
