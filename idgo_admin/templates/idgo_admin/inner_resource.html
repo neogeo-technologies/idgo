@@ -188,7 +188,7 @@ $(function() {
 		$modal.addClass('progress-bar-modal');
 		$modal.find('.modal-header').remove();
 		$modal.find('.modal-body').append($progressBar);
-		$modal.modal('show').off('shown.bs.modal').on('shown.bs.modal', function(e) {
+		$modal.modal('show').one('shown.bs.modal', function(e) {
 			e.preventDefault();
 			$.ajax({
 				type: 'POST',
@@ -203,52 +203,63 @@ $(function() {
 					// Cf. done method
 				},
 				xhr: function() {
-					const xhr = new window.XMLHttpRequest();
+					const $progressBar = $('.progress-bar');
+					const $progressStatus = $('.progress-status');
 
+					const xhr = new window.XMLHttpRequest();
 					xhr.upload.addEventListener('progress', function(e) {
 						let value = 0;
 						if (e.lengthComputable) {
 							value = Math.round(e.loaded / e.total * 100);
-							$('.progress-bar').css('width', value + '%');
-							$('.progress-status').html('<strong>' + value + '%</strong>');
+							$progressBar.css('width', value + '%');
+							$progressStatus.html('<strong>' + value + '%</strong>');
 						};
 					}, false);
 
 					xhr.upload.addEventListener('loadend', function(e) {
-						$('.progress-bar').addClass('active');
-						$('.progress-status').html('En attente de la réponse du serveur.');
+						$progressBar.addClass('active');
+						$progressStatus.html('En attente de la réponse du serveur');
 					}, false);
 
 					xhr.upload.addEventListener('timeout', function(e) {
-						$('.progress-bar').removeClass('active');
-						$('.progress-status').html('Erreur : Impossible de joindre le serveur. Veuillez réessayer plus tard.');
+						$progressBar.removeClass('active');
+						$progressStatus.html('Erreur : Impossible de joindre le serveur. Veuillez réessayer plus tard.');
 					});
 
 					return xhr;
 				},
 			}).done(function(data, status, xhr) {
-				window.scrollTo(0, 0);
+
 				$('.container-message').empty();
-				$('.progress-bar-on-top .progress-bar').css('display', 'none');
-				$('.progress-bar-on-top .progress-bar').css('width', '0%');
-				if (xhr.status == 201) {
-					return window.location.href = xhr.getResponseHeader('Content-Location');
-				};
-				$modal.off('shown.bs.modal').modal('hide').one('hidden.bs.modal', function(e) {
+				$('.help-block').remove();
+				$('.progress-bar-on-top .progress-bar').css('display', 'none').css('width', '0%');
+
+				window.scrollTo(0, 0);
+
+				$modal.one('hidden.bs.modal', function(e) {
 					e.preventDefault();
-					data = JSON.parse(data);
-					if (data.error) {
-						for (const key in data.error) {
-							console.log()
-							const val = data.error[key].join();
-							if (key == '__all__') {
-								$('.container-message').append('<div name="message-tags" class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>' + val + '</div>');
-							} else {
-								$('#id_' + key).after('<div class="help-block">' + val + '</div>').parent('.form-group').addClass('has-error');
+					if (xhr.status == 201) {
+						return window.location.href = xhr.getResponseHeader('Content-Location');
+					}
+					else if (xhr.status == 200) {
+						data = JSON.parse(data);
+						if (data.error) {
+							for (const key in data.error) {
+								const val = data.error[key].join();
+								if (key == '__all__') {
+									$('.container-message').append('<div name="message-tags" class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>' + val + '</div>');
+								} else {
+									if (key == '{{ form.up_file.name }}') {
+										$('#id_' + key).closest('.ezdz-dropzone').after('<div class="help-block">' + val + '</div>').closest('.form-group').addClass('has-error');
+									} else {
+										$('#id_' + key).after('<div class="help-block">' + val + '</div>').closest('.form-group').addClass('has-error');
+									}
+								};
 							};
 						};
 					};
-				});
+
+				}).modal('hide');
 			});
 		});
 	});
