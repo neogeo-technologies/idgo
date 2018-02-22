@@ -105,18 +105,15 @@ class Resource(models.Model):
     # cf. /usr/lib/ckan/default/lib/python2.7/site-packages/ckanext/scheming/ckan_dataset.json
 
     FREQUENCY_CHOICES = (
-        ('asneeded', 'Lorsque nécessaire'),
-        ('never', 'Non planifiée'),
-        ('intermittently', 'Irrégulière'),
-        ('continuously', 'Continue'),
-        ('realtime', 'Temps réel'),
-        ('daily', 'Journalière'),
-        ('weekly', 'Hebdomadaire'),
-        ('monthly', 'Mensuelle'),
-        ('quarterly', 'Trimestrielle'),
-        ('semiannual', 'Bi-annuelle'),
-        ('annual', 'Annuelle'),
-        ('Unknow', 'Inconnue'))
+        ('never', 'Jamais'),
+        ('hourly', 'Toutes les heures'),
+        ('daily', 'Quotidienne (tous les jours à minuit)'),
+        ('weekly', 'Hebdomadaire (tous les lundi)'),
+        ('bimonthly ', 'Bimensuelle (1er et 15 de chaque mois)'),
+        ('monthly', 'Mensuelle (1er de chaque mois)'),
+        ('quarterly', 'Trimestrielle (1er des mois de janvier, avril, juillet, octobre)')
+        ('biannual', 'Semestrielle (1er janvier et 1er juillet)'),
+        ('monthly', 'Mensuelle (1er janvier)'))
 
     LANG_CHOICES = (
         ('french', 'Français'),
@@ -1050,13 +1047,18 @@ class Dataset(models.Model):
         ('communal', 'Communale'))
 
     FREQUENCY_CHOICES = (
-        ('never', 'Jamais'),
-        ('annualy', 'Annuelle'),
-        ('monthly', 'Mensuelle'),
+        ('asneeded', 'Lorsque nécessaire'),
+        ('never', 'Non planifiée'),
+        ('intermittently', 'Irrégulière'),
+        ('continuously', 'Continue'),
+        ('realtime', 'Temps réel'),
+        ('daily', 'Journalière'),
         ('weekly', 'Hebdomadaire'),
-        ('daily', 'Quotidienne'),
-        ('continue', 'Continue'),
-        ('realtime', 'Temps réel'))
+        ('monthly', 'Mensuelle'),
+        ('quarterly', 'Trimestrielle'),
+        ('semiannual', 'Bi-annuelle'),
+        ('annual', 'Annuelle'),
+        ('Unknow', 'Inconnue'))
 
     # Mandatory
     name = models.TextField(verbose_name='Titre', unique=True)  # unique=False est préférable...
