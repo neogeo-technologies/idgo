@@ -14,12 +14,14 @@
 # under the License.
 
 
+from django.contrib.auth.models import User
 from django.contrib import admin
 from django import forms
 from django.forms.models import BaseInlineFormSet
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
+from idgo_admin.models import Profile
 
 
 class ResourceFormatsAdmin(admin.ModelAdmin):
@@ -80,6 +82,9 @@ class MyDataSetForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['organisation'].required = True
+        self.fields['editor'].queryset = User.objects.filter(
+            profile__in=Profile.objects.all(),
+            is_active=True).order_by('username')
 
 
 class DatasetAdmin(admin.ModelAdmin):
