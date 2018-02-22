@@ -105,11 +105,18 @@ class Resource(models.Model):
     # cf. /usr/lib/ckan/default/lib/python2.7/site-packages/ckanext/scheming/ckan_dataset.json
 
     FREQUENCY_CHOICES = (
-        ('never', 'Jamais'),
-        ('daily', 'Quotidienne'),
+        ('asneeded', 'Lorsque nécessaire'),
+        ('never', 'Non planifiée'),
+        ('intermittently', 'Irrégulière'),
+        ('continuously', 'Continue'),
+        ('realtime', 'Temps réel'),
+        ('daily', 'Journalière'),
         ('weekly', 'Hebdomadaire'),
         ('monthly', 'Mensuelle'),
-        ('quarterly', 'Trimestrielle'))
+        ('quarterly', 'Trimestrielle'),
+        ('semiannual', 'Bi-annuelle'),
+        ('annual', 'Annuelle'),
+        ('Unknow', 'Inconnue'))
 
     LANG_CHOICES = (
         ('french', 'Français'),
