@@ -8,10 +8,11 @@
 </span>
 <div class="btn-group login">
 	<button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-		<span>{{ first_name}} {{ last_name }}{% if is_admin %} <span class="label label-warning">admin</span>{% endif %}</span>
+		<span name='full-name'>{{ first_name}} {{ last_name }}</span>
+		{% if is_admin %}<span class="label label-warning">admin</span>{% endif %}
 		<span class="glyphicon glyphicon-user"></span>
 	</button>
-	<ul name="my-account-menu" class="dropdown-menu dropdown-menu-right">
+	<ul name="my-account-menu" class="dropdown-menu">
 		<li style="text-align: left"><a href="{% url "idgo_admin:update_account" %}">Mon profil</a></li>
 		<li style="text-align: left"><a href="{% url "idgo_admin:signOut" %}">Me déconnecter</a></li>
 	</ul>
