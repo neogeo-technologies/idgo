@@ -178,7 +178,6 @@ class ProfileAdmin(admin.ModelAdmin):
     inlines = (LiaisonReferentsInline, LiaisonsContributeursInline, AccountActionsInline)
     models = Profile
     form = ProfileAddForm
-    change_form = ProfileChangeForm
     list_display = (
         'full_name',
         'username',
