@@ -18,11 +18,22 @@ from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
 from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
-
+from django import forms
 
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
 geo_admin.GeoModelAdmin.default_zoom = 14
+
+
+class MyOrganisationForm(forms.ModelForm):
+
+    class Meta(object):
+        model = Organisation
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['is_active'].initial = True
 
 
 class OrganisationAdmin(geo_admin.OSMGeoAdmin):
@@ -32,6 +43,7 @@ class OrganisationAdmin(geo_admin.OSMGeoAdmin):
     list_filter = ('organisation_type',)
     ordering = ('name',)
     readonly_fields = ('ckan_slug', )
+    form = MyOrganisationForm
 
     # Champ name modifiable lors du /add
     # Champs name et ckan_slug NON modifiables lors du /change

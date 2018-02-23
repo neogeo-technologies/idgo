@@ -63,10 +63,6 @@ class CustomLiaisonsReferentsModelForm(forms.ModelForm):
         super(CustomLiaisonsReferentsModelForm, self).__init__(*args, **kwargs)
         self.fields['organisation'].queryset = Organisation.objects.filter(is_active=True)
 
-    def clean(self):
-        self.errors.pop('organisation', None)
-        return self.cleaned_data
-
 
 class CustomLiaisonsContributeursModelForm(forms.ModelForm):
 
@@ -128,25 +124,6 @@ class AccountActionsInline(admin.TabularInline):
     change_link.short_description = "Lien de validation"
 
 
-class ProfileChangeForm(forms.ModelForm):
-
-    class Meta(object):
-        model = Profile
-        fields = (
-            'user',
-            'phone',
-            'organisation',
-            'membership',
-            'is_active',
-            'is_admin',
-            )
-
-    def clean(self):
-        if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
-            raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé")
-        return self.cleaned_data
-
-
 class ProfileAddForm(forms.ModelForm):
 
     class Meta(object):
@@ -178,10 +155,30 @@ class ProfileAddForm(forms.ModelForm):
         return self.cleaned_data
 
 
+class ProfileChangeForm(forms.ModelForm):
+
+    class Meta(object):
+        model = Profile
+        fields = (
+            'user',
+            'phone',
+            'organisation',
+            'membership',
+            'is_active',
+            'is_admin',
+            )
+
+    def clean(self):
+        if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
+            raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé")
+        return self.cleaned_data
+
+
 class ProfileAdmin(admin.ModelAdmin):
     inlines = (LiaisonReferentsInline, LiaisonsContributeursInline, AccountActionsInline)
     models = Profile
     form = ProfileAddForm
+    change_form = ProfileChangeForm
     list_display = (
         'full_name',
         'username',
