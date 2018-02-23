@@ -244,7 +244,7 @@ def confirm_referent(request, key):
                 # Fix confirmation referent == confirmation LiaisonContributeur
                 try:
                     contrib_me = LiaisonsContributeurs.objects.get(profile=action.profile, organisation=organisation)
-                except:
+                except Exception:
                     status = 400
                     message = ("Erreur lors de la confirmation du rôle de contributeur")
                 else:

@@ -100,10 +100,6 @@ def upload_resource(instance, filename):
 
 class Resource(models.Model):
 
-    # PENSER A SYNCHRONISER CETTE LISTE DES LANGUES
-    # AVEC LE STRUCTURE DECRITE DANS CKAN
-    # cf. /usr/lib/ckan/default/lib/python2.7/site-packages/ckanext/scheming/ckan_dataset.json
-
     FREQUENCY_CHOICES = (
         ('never', 'Jamais'),
         ('hourly', 'Toutes les heures'),
@@ -196,11 +192,11 @@ class Resource(models.Model):
         choices=TYPE_CHOICES, max_length=10, default='N/A')
 
     synchronisation = models.BooleanField(
-        "Synchronisation de données distante. ",
+        verbose_name='Synchronisation de données distante',
         default=False)
 
     sync_frequency = models.CharField(
-        "Fréquence de synchronisation",
+        verbose_name='Fréquence de synchronisation',
         max_length=20,
         blank=True,
         null=True,

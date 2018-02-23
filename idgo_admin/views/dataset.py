@@ -156,7 +156,6 @@ class DatasetManager(View):
                         include={'user': user, 'identification': True, 'id': id})
 
             if not form.is_valid():
-
                 errors = form._errors.get('__all__', [])
                 errors and messages.error(request, ' '.join(errors))
 
@@ -181,10 +180,12 @@ class DatasetManager(View):
                     instance = form.handle_me(request, id=id)
             except ValidationError as e:
                 messages.error(request, str(e))
-            except CkanSyncingError:
-                messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
-            except CkanTimeoutError:
-                messages.error(request, 'Impossible de joindre CKAN.')
+            except CkanSyncingError as e:
+                form.add_error('__all__', e.__str__())
+                messages.error(request, e.__str__())
+            except CkanTimeoutError as e:
+                form.add_error('__all__', e.__str__())
+                messages.error(request, e.__str__())
             else:
                 messages.success(request, (
                     'Le jeu de données a été mis à jour avec succès. '
@@ -209,11 +210,13 @@ class DatasetManager(View):
             with transaction.atomic():
                 instance = form.handle_me(request)
         except ValidationError as e:
-            messages.error(request, str(e))
-        except CkanSyncingError:
-            messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
-        except CkanTimeoutError:
-            messages.error(request, 'Impossible de joindre CKAN.')
+            messages.error(request, e.__str__())
+        except CkanSyncingError as e:
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
+        except CkanTimeoutError as e:
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
         else:
             messages.success(request, (
                 'Le jeu de données a été créé avec succès. Souhaitez-vous '
@@ -246,14 +249,12 @@ class DatasetManager(View):
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
             ckan_user.delete_dataset(instance.ckan_slug)  # purge réalisé au delete()
-        except CkanNotFoundError:
+        except CkanNotFoundError as e:
             status = 500
-            message = 'Le jeu de données CKAN est indisponible.'
-            messages.error(request, message)
-        except CkanSyncingError:
+            messages.error(request, e.__str__())
+        except CkanSyncingError as e:
             status = 500
-            message = 'Impossible de supprimer le jeu de données CKAN.'
-            messages.error(request, message)
+            messages.error(request, e.__str__())
         else:
             instance.delete()
             status = 200
@@ -264,185 +265,6 @@ class DatasetManager(View):
             ckan_user.close()
 
         return HttpResponse(status=status)
-
-
-# @method_decorator(decorators, name='dispatch')
-# class ReferentDatasetManager(View):
-#
-#     template = 'idgo_admin/dataset.html'
-#     namespace = 'idgo_admin:dataset'
-#     namespace_resource = 'idgo_admin:resource'
-#
-#     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-#     def get(self, request, *args, **kwargs):
-#
-#         user, profile = user_and_profile(request)
-#
-#         form = Form(include={'user': user, 'identification': False, 'id': None})
-#         dataset_name = 'Nouveau'
-#         dataset_id = None
-#         dataset_ckan_slug = None
-#         resources = []
-#
-#         # Ugly
-#         ckan_slug = request.GET.get('ckan_slug')
-#         if ckan_slug:
-#             instance = get_object_or_404(
-#                 Dataset, ckan_slug=ckan_slug, editor=user)
-#             return redirect(
-#                 reverse(self.namespace) + '?id={0}'.format(instance.pk))
-#
-#         id = request.GET.get('id')
-#         if id:
-#             instance = get_object_or_404_extended(
-#                 Dataset, user, include={'id': id})
-#
-#             form = Form(instance=instance,
-#                         include={'user': user, 'identification': True, 'id': id})
-#             dataset_name = instance.name
-#             dataset_id = instance.id
-#             dataset_ckan_slug = instance.ckan_slug
-#             resources = [(
-#                 o.pk,
-#                 o.name,
-#                 o.format_type.extension,
-#                 o.created_on.isoformat() if o.created_on else None,
-#                 o.last_update.isoformat() if o.last_update else None,
-#                 o.get_restricted_level_display(),
-#                 str(o.ckan_id)
-#                 ) for o in Resource.objects.filter(dataset=instance)]
-#
-#         context = {'form': form,
-#                    'dataset_name': three_suspension_points(dataset_name),
-#                    'dataset_id': dataset_id,
-#                    'dataset_ckan_slug': dataset_ckan_slug,
-#                    'licenses': dict(
-#                        (o.pk, o.license.pk) for o
-#                        in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
-#                    'resources': json.dumps(resources),
-#                    'tags': json.dumps(ckan.get_tags())}
-#
-#         return render_with_info_profile(request, self.template, context=context)
-#
-#     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-#     @transaction.atomic
-#     def post(self, request, *args, **kwargs):
-#
-#         def http_redirect(dataset_id):
-#             return HttpResponseRedirect(
-#                 reverse(self.namespace) + '?id={0}'.format(dataset_id))
-#
-#         user, profile = user_and_profile(request)
-#
-#         context = {
-#             'form': None,
-#             'first_name': user.first_name,
-#             'last_name': user.last_name,
-#             'dataset_name': 'Nouveau',
-#             'dataset_id': None,
-#             'licenses': dict(
-#                 (o.pk, o.license.pk) for o
-#                 in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
-#             'resources': [],
-#             'tags': json.dumps(ckan.get_tags())}
-#
-#         id = request.POST.get('id', request.GET.get('id'))
-#         if id:
-#
-#             instance = get_object_or_404_extended(
-#                 Dataset, user, include={'id': id})
-#
-#             form = Form(data=request.POST, instance=instance,
-#                         include={'user': user, 'identification': True, 'id': id})
-#
-#             if not form.is_valid():
-#                 context.update({
-#                     'form': form,
-#                     'dataset_name': three_suspension_points(instance.name),
-#                     'dataset_ckan_slug': instance.ckan_slug,
-#                     'dataset_id': instance.id,
-#                     'resources': json.dumps([(
-#                         o.pk,
-#                         o.name,
-#                         o.format_type.extension,
-#                         o.created_on.isoformat() if o.created_on else None,
-#                         o.last_update.isoformat() if o.last_update else None,
-#                         o.get_restricted_level_display(),
-#                         str(o.ckan_id)
-#                         ) for o in Resource.objects.filter(dataset=instance)])})
-#                 return render_with_info_profile(request, self.template, context)
-#
-#             with transaction.atomic():
-#                 form.handle_me(request, id=id)
-#
-#             messages.success(
-#                 request, 'Le jeu de données a été mis à jour avec succès.')
-#
-#             return http_redirect(instance.id)
-#
-#         form = Form(data=request.POST,
-#                     include={'user': user, 'identification': False, 'id': None})
-#
-#         if not form.is_valid():
-#             context.update({'form': form})
-#             return render_with_info_profile(request, self.template, context)
-#
-#         with transaction.atomic():
-#             instance = form.handle_me(request)
-#
-#         messages.success(request, (
-#             'Le jeu de données a été créé avec succès. '
-#             'Souhaitez-vous <a href="{0}">créer un nouveau jeu de '
-#             'données ?</a> ou <a href="{1}">ajouter une ressource ?</a>'
-#             ).format(reverse(self.namespace),
-#                      reverse(self.namespace_resource,
-#                              kwargs={'dataset_id': instance.id})))
-#
-#         return http_redirect(instance.id)
-#
-#     @ExceptionsHandler(ignore=[Http404, CkanSyncingError],
-#                        actions={ProfileHttp404: on_profile_http404})
-#     def delete(self, request, *args, **kwargs):
-#
-#         user, profile = user_and_profile(request)
-#
-#         id = request.POST.get('id', request.GET.get('id'))
-#         if not id:
-#             raise Http404
-#
-#         instance = get_object_or_404_extended(
-#             Dataset, user, include={'id': id})
-#
-#         # organisation = instance.organisation
-#
-#         ckan_id = str(instance.ckan_id)
-#         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
-#         try:
-#             ckan_user.delete_dataset(ckan_id)
-#             # ckan.purge_dataset(ckan_id)  # -> purge déplacé dans 'model'
-#         except CkanSyncingError as e:
-#             if e.name == 'NotFound':
-#                 instance.delete()
-#             status = 500
-#             message = 'Impossible de supprimer le jeu de données Ckan.'
-#             messages.error(request, message)
-#         else:
-#             instance.delete()
-#             status = 200
-#             message = 'Le jeu de données a été supprimé avec succès.'
-#             messages.success(request, message)
-#         finally:
-#             ckan_user.close()
-#
-#         # ckan_orga = ckan.get_organization(
-#         #     str(organisation.ckan_id), include_datasets=True)
-#         # if (ckan_orga and len(ckan_orga['packages']) == 0) \
-#         #         and not Dataset.objects.filter(organisation=organisation).exists():
-#         #     ckan.purge_organization(str(organisation.ckan_id))
-#
-#         Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
-#
-#         return HttpResponse(status=status)
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -477,6 +299,7 @@ def datasets(request, *args, **kwargs):
 def all_datasets(request, *args, **kwargs):
 
     user, profile = user_and_profile(request)
+
     roles = profile.get_roles()
     if not roles["is_referent"] and not roles["is_admin"]:
         raise Http404
@@ -504,6 +327,7 @@ def all_datasets(request, *args, **kwargs):
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def export(request, *args, **kwargs):
+
     user, profile = user_and_profile(request)
 
     if profile.get_roles()["is_referent"] and request.GET.get('mode') == 'all':

@@ -14,6 +14,7 @@
 # under the License.
 
 
+import ast
 from ckanapi import errors as CkanError
 from ckanapi import RemoteCKAN
 from datetime import datetime
@@ -51,6 +52,14 @@ def timeout(fun):
 
 class CkanSyncingError(GenericException):
     def __init__(self, *args, **kwargs):
+        for item in self.args:
+            try:
+                m = ast.literal_eval(item)
+            except Exception:
+                continue
+            if isinstance(m, dict):
+                kwargs.update(**m)
+            # else: TODO
         super().__init__(*args, **kwargs)
 
 
@@ -75,7 +84,6 @@ class CkanExceptionsHandler(object):
             try:
                 return f(*args, **kwargs)
             except Exception as e:
-                print('Error', e.__str__())
                 if isinstance(e, timeout_decorator.TimeoutError):
                     raise CkanTimeoutError
                 if self.is_ignored(e):

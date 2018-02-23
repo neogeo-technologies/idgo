@@ -27,6 +27,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanNotFoundError
 from idgo_admin.ckan_module import CkanSyncingError
 from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
@@ -129,11 +130,11 @@ class ResourceManager(View):
                 with transaction.atomic():
                     instance = form.handle_me(
                         request, dataset, id=id, uploaded_file=get_uploaded_file(form))
-            except CkanSyncingError:
-                error = {'__all__': ['Une erreur de synchronisation avec CKAN est survenue.']}
+            except CkanSyncingError as e:
+                error = {'__all__': e.__str__()}
                 return JsonResponse(json.dumps({'error': error}), safe=False)
             except CkanTimeoutError:
-                error = {'__all__': ['Impossible de joindre CKAN.']}
+                error = {'__all__': e.__str__()}
                 return JsonResponse(json.dumps({'error': error}), safe=False)
             except ValidationError as e:
                 form.add_error(e.code, e.message)
@@ -161,10 +162,10 @@ class ResourceManager(View):
                 instance = form.handle_me(
                     request, dataset, uploaded_file=get_uploaded_file(form))
         except CkanSyncingError:
-            error = {'__all__': ['Une erreur de synchronisation avec CKAN est survenue.']}
+            error = {'__all__': e.__str__()}
             return JsonResponse(json.dumps({'error': error}), safe=False)
         except CkanTimeoutError:
-            error = {'__all__': ['Impossible de joindre CKAN.']}
+            error = {'__all__': e.__str__()}
             return JsonResponse(json.dumps({'error': error}), safe=False)
         except ValidationError as e:
             form.add_error(e.code, e.message)
@@ -202,12 +203,12 @@ class ResourceManager(View):
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
             ckan_user.delete_resource(ckan_id)
-        except CkanSyncingError as e:
-            if e.name == 'NotFound':
-                instance.delete()
+        except CkanNotFoundError as e:
             status = 500
-            message = 'Impossible de supprimer la ressource CKAN.'
-            messages.error(request, message)
+            messages.error(request, e.__str__())
+        except CkanSyncingError as e:
+            status = 500
+            messages.error(request, e.__str__())
         else:
             instance.delete()
             status = 200

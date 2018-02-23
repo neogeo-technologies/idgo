@@ -35,6 +35,8 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanSyncingError
+from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.account import SignInForm
 from idgo_admin.forms.account import SignUpForm
@@ -285,42 +287,6 @@ def delete_account(request):
 @method_decorator(decorators, name='dispatch')
 class ReferentAccountManager(View):
 
-    # @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    # def get(self, request, *args, **kwargs):
-    #
-    #     user, profile = user_and_profile(request)
-    #
-    #     if not profile.referents.exists() and not profile.is_admin:
-    #         raise Http404
-    #
-    #     my_subordinates = profile.is_admin and Organisation.objects.filter(is_active=True) or LiaisonsReferents.get_subordinated_organizations(profile=profile)
-    #
-    #     organizations = {}
-    #     for orga in my_subordinates:
-    #         organizations[str(orga.name)] = {'id': orga.id}
-    #         organizations[str(orga.name)]["members"] = [{
-    #             "profile_id": p.pk,
-    #             "is_referent": p.get_roles(organisation=orga)["is_referent"] and "true" or "false",
-    #             "first_name": p.user.first_name,
-    #             "last_name": p.user.last_name,
-    #             "username": p.user.username,
-    #             "nb_datasets": p.nb_datasets(orga)
-    #             } for p in Profile.objects.filter(organisation=orga, membership=True).order_by('user__last_name')]
-    #
-    #         organizations[str(orga.name)]["contributors"] = [{
-    #             "profile_id": lc.profile.pk,
-    #             "is_referent": lc.profile.get_roles(organisation=orga)["is_referent"] and "true" or "false",
-    #             "first_name": lc.profile.user.first_name,
-    #             "last_name": lc.profile.user.last_name,
-    #             "username": lc.profile.user.username,
-    #             "nb_datasets": lc.profile.nb_datasets(orga)
-    #             } for lc in LiaisonsContributeurs.objects.filter(
-    #             organisation=orga, validated_on__isnull=False).order_by('profile__user__last_name')]
-    #
-    #     return render_with_info_profile(
-    #         request, 'idgo_admin/all_members.html', status=200,
-    #         context={'organizations': organizations})
-
     def delete(self, request, *args, **kwargs):
 
         # TODO Better
@@ -399,12 +365,16 @@ class SignUp(View):
                 profile = Profile.objects.create(**profile_data)
 
                 ckan.add_user(profile.user, form.cleaned_user_data['password'])
-        except ValidationError:
+        except ValidationError as e:
+            messages.error(request, e.__str__())
             return render(request, self.template, context={'form': form})
-
-        except Exception as e:
-            print('Error', str(e))
-            messages.error(request, 'Une erreur est survenue lors de la création de votre compte.')
+        except CkanSyncingError as e:
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
+            return render(request, self.template, context={'form': form})
+        except CkanTimeoutError as e:
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
             return render(request, self.template, context={'form': form})
 
         # else:
@@ -480,13 +450,18 @@ class UpdateAccount(View):
 
                 ckan.update_user(user)
 
-        except ValidationError:
+        except ValidationError as e:
+            messages.error(request, e.__str__())
             return render_with_info_profile(
                 request, self.template, context={'form': form})
-
-        except Exception as e:
-            print('Error', str(e))
-            messages.error(request, 'Une erreur est survenue lors de la mise à jour de votre compte.')
+        except CkanSyncingError as e:
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
+            return render_with_info_profile(
+                request, self.template, context={'form': form})
+        except CkanTimeoutError as e:
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
             return render_with_info_profile(
                 request, self.template, context={'form': form})
 

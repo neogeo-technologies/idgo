@@ -70,6 +70,7 @@ class ResourceForm(forms.ModelForm):
                   'restricted_level',
                   'profiles_allowed',
                   'organisations_allowed',
+                  'synchronisation',
                   'sync_frequency')
 
     _instance = None
@@ -112,6 +113,16 @@ class ResourceForm(forms.ModelForm):
         queryset=Organisation.objects.filter(is_active=True),
         required=False,
         to_field_name='pk')
+
+    synchronisation = forms.BooleanField(
+        initial=False,
+        label='Synchroniser les données',
+        required=False)
+
+    sync_frequency = forms.ChoiceField(
+        label='Fréquence de synchronisation',
+        choices=Meta.model.FREQUENCY_CHOICES,
+        required=False)
 
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
@@ -219,7 +230,6 @@ class ResourceForm(forms.ModelForm):
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
         # de données existant mais administrateur de données,
         # alors l'admin Ckan édite le jeu de données..
-        # TODO: Factoriser avec form/dataset.py
         profile = Profile.objects.get(user=user)
         is_admin = profile.is_admin
         is_referent = LiaisonsReferents.objects.filter(

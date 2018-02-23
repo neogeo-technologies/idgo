@@ -19,7 +19,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-# from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
@@ -29,10 +28,12 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import functools
+from idgo_admin.ckan_module import CkanNotFoundError
 from idgo_admin.ckan_module import CkanSyncingError
 from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
+from idgo_admin.exceptions import UnexpectedError
 from idgo_admin.forms.organization import OrganizationForm as Form
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
@@ -71,7 +72,7 @@ def member_subscribe_process(request, profile, organisation, mail=True):
 
 def member_unsubscribe_process(request, profile, organisation):
     if profile.organisation != organisation:
-        raise Exception('TODO')
+        raise UnexpectedError('Echec')
     profile.organisation = None
     profile.membership = False
     profile.save()
@@ -230,7 +231,7 @@ class CreateOrganisation(View):
                 (item, form.cleaned_data[item])
                 for item in form.Meta.organisation_fields))
         except ValidationError as e:
-            messages.error(request, str(e))
+            messages.error(request, e.__str__())
             return render_with_info_profile(
                 request, self.template, context={'form': form})
 
@@ -293,10 +294,17 @@ class UpdateOrganisation(View):
             setattr(instance, item, form.cleaned_data[item])
         try:
             instance.save()
-        except CkanSyncingError:
-            messages.error(request, 'Une erreur de synchronisation avec CKAN est survenue.')
-        except CkanTimeoutError:
-            messages.error(request, 'Impossible de joindre CKAN.')
+        except ValidationError as e:
+            messages.error(request, e.__str__())
+        except CkanNotFoundError as e:
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
+        except CkanSyncingError as e:
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
+        except CkanTimeoutError as e:
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
         else:
             messages.success(
                 request, "L'organisation a été mise à jour avec succès.")

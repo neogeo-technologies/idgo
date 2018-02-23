@@ -14,7 +14,6 @@
 # under the License.
 
 
-from django.core.handlers.wsgi import WSGIRequest
 from django.http import Http404
 from functools import wraps
 
@@ -24,32 +23,47 @@ class ProfileHttp404(Http404):
 
 
 class GenericException(Exception):
+
+    # TODO: Logger __dict__
+
+    message = (
+        "Une erreur s'est produite, si le problème persiste "
+        "veuillez contacter l'administrateur du site.")
+
     def __init__(self, *args, **kwargs):
         self.args = args
         for k, v in kwargs.items():
             setattr(self, k, v)
 
     def __str__(self):
-        return str(self.args)
+        return self.message
+
+
+class UnexpectedError(GenericException):
+    pass
 
 
 class CriticalException(GenericException):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    pass
 
 
 class ConflictError(GenericException):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    pass
 
 
 class FakeError(GenericException):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    pass
 
 
 class SizeLimitExceededError(GenericException):
+
+    message = 'La taille de la pièce jointe dépasse la limite autorisée.'
+
     def __init__(self, *args, **kwargs):
+        self.message, = \
+            kwargs.get('max_size') \
+            and '{0} La taille est limité à {1}o'.format(
+                self.message, kwargs['max_size'])
         super().__init__(*args, **kwargs)
 
 
@@ -59,24 +73,18 @@ class ErrorOnDeleteAccount(Exception):
 
 class ExceptionsHandler(object):
 
-    template_html_500 = 'idgo_admin/servererror.html'
-
-    MESSAGES = {
-        'CkanTimeoutError': 'Impossible de joindre le serveur CKAN.'}
-
     def __init__(self, ignore=None, actions=None):
         self.ignore = ignore or []
         self.actions = actions or {}
 
     def __call__(self, f):
-
         @wraps(f)
         def wrapper(*args, **kwargs):
-            request = None
+            # request = None
             args = list(args)
-            for arg in args:
-                if isinstance(arg, WSGIRequest):
-                    request = arg
+            # for arg in args:
+            #     if isinstance(arg, WSGIRequest):
+            #         request = arg
             try:
                 return f(*args, **kwargs)
             except Exception as e:
@@ -87,15 +95,6 @@ class ExceptionsHandler(object):
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
                 raise e
-                # qualname = e.__class__.__qualname__
-                # context = {
-                #     'message': self.MESSAGES.get(qualname)}
-                #
-                # if request:
-                #     return render(request, self.template_html_500,
-                #                   context=context, status=500)
-                # return HttpResponseServerError()
-
         return wrapper
 
     def is_ignored(self, exception):

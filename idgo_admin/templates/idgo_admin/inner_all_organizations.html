@@ -164,16 +164,7 @@
 </div>
 
 <script>
-
-$(window).ready(function(e) {
-	const hash = window.location.hash.substring(1)
-	// TODO
-	// Label name (list) : auto width
-	$.each($('.label-name'), function(){
-		var span_badges_width = ($(this).next( ".label-badges" ).width())+5;
-		$(this).width("calc(100% - "+span_badges_width+"px)");
-	})
-})
+const hash = window.location.hash.substring(1);
 
 $(function() {
 
@@ -544,6 +535,10 @@ $(function() {
 	$('.typeahead button').click(function(e) {
 		alert('TODO');
 	});
+
+	$.each($('.label-name'), function(){
+		$(this).width("calc(100% - " + ($(this).next('.label-badges').width() + 5) + "px)");
+	})
 
 	const $organizations = $('input[type=radio][name=organizations]').change(function(e) {
 		window.location.hash = this.value;

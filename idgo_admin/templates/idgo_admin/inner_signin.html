@@ -7,19 +7,19 @@
 	</div>
 	<div class="panel-body">
 		<form id="signin" method="post" action="">
-			<h4>Saisissez vos identifiants</h4>
+			<label>Saisissez vos identifiants</label>
 			{% csrf_token %}
 			{% bootstrap_field form.username show_label=False %}
 			{% bootstrap_field form.password show_label=False %}
 			<div class="row">
-				<div class="col-md-7">
+				<div class="col-xs-7">
 					<div class="checkbox">
 						<label>
 							<input name="remember-me" type="checkbox"></input> Se souvenir de moi
 						</label>
 					</div>
 				</div>
-				<div class="col-md-5">
+				<div class="col-xs-5">
 					<button type="submit" class="btn btn-block btn-primary">Se connecter</button>
 				</div>
 			</div>

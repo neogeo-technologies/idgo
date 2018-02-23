@@ -903,9 +903,10 @@ input.form-control.datepicker {
 }
 
 .container-signin .panel {
-    border: 1px solid #eeeeee;
-    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
-            box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    -webkit-box-shadow: 0 1px 1px 0 rgba(0,0,0,.123);
+            box-shadow: 0 1px 1px 0 rgba(0,0,0,.123);
 }
 
 .container-signin .panel-heading {

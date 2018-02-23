@@ -54,7 +54,12 @@
 					{% bootstrap_field form.dl_url show_label=False %}
 					<div class="row">
 						<div class="col-xs-5 col-sm-5 col-md-4">
-							{% bootstrap_field form.sync_frequency %}
+							{% bootstrap_field form.synchronisation %}
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-5 col-sm-5 col-md-4">
+							{% bootstrap_field form.sync_frequency show_label=False %}
 						</div>
 					</div>
 				</div>
@@ -155,6 +160,11 @@ $(function() {
 	$selectAccess = $('select[name="{{ form.restricted_level.name }}"]').change(function() {
 		getAccessSelectedOption($(this));
 	});
+
+	const triggerSyncFrequency = function(e) {
+		$('select[name="{{ form.sync_frequency.name }}"]').prop('disabled', !this.checked);
+	};
+	$inputSynchronisation = $('input[name="{{ form.synchronisation.name }}"]').ready(triggerSyncFrequency).change(triggerSyncFrequency);
 
 	$(document).on('change', ':file', function() {
 		const $this = $(this);
