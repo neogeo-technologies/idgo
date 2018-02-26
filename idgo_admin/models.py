@@ -289,7 +289,7 @@ class Resource(models.Model):
             ckan_params['resource_type'] = Path(filename).name
 
         # if uploaded_file:
-        if self.up_file:
+        if self.up_file and file_extras:
             ckan_params['upload'] = self.up_file.file
             ckan_params.update(file_extras)
 

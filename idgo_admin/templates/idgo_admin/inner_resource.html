@@ -170,10 +170,17 @@ $(function() {
 		getAccessSelectedOption($(this));
 	});
 
-	const triggerSyncFrequency = function(e) {
-		$('select[name="{{ form.sync_frequency.name }}"]').prop('disabled', !this.checked);
+	const disableSyncFrequency = function(value) {
+		$('select[name="{{ form.sync_frequency.name }}"]').prop('disabled', value);
 	};
-	$inputSynchronisation = $('input[name="{{ form.synchronisation.name }}"]').ready(triggerSyncFrequency).change(triggerSyncFrequency);
+
+	$inputSynchronisation = $('input[name="{{ form.synchronisation.name }}"]').change(function(e) {
+		e.preventDefault();
+		disableSyncFrequency(!this.checked);
+	});
+	{% if form.synchronisation.value %}
+	disableSyncFrequency(false);
+	{% endif %}
 
 	$(document).on('change', ':file', function() {
 		const $this = $(this);
@@ -228,8 +235,6 @@ $(function() {
 
 					$modal.one('hidden.bs.modal', function(e) {
 						e.preventDefault();
-						console.log(xhr)
-
 						if (xhr.status == 302) {
 							return window.location.href = xhr.getResponseHeader('Location');
 						} else if (xhr.status == 201) {
