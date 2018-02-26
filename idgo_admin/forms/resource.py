@@ -40,13 +40,6 @@ except AttributeError:
     DOWNLOAD_SIZE_LIMIT = 104857600  # 100Mio
 
 
-def get_all_users_for_organizations(list_id):
-    return [
-        profile.user.username
-        for profile in Profile.objects.filter(
-            organisation__in=list_id, organisation__is_active=True)]
-
-
 def file_size(value):
     size_limit = DOWNLOAD_SIZE_LIMIT
     if value.size > size_limit:
@@ -73,7 +66,8 @@ class ResourceForm(forms.ModelForm):
                   'synchronisation',
                   'sync_frequency')
 
-    _instance = None
+    # _instance = None
+    _dataset = None
 
     class CustomClearableFileInput(forms.ClearableFileInput):
         template_name = 'idgo_admin/widgets/file_drop_zone.html'
@@ -126,146 +120,66 @@ class ResourceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
+        self._dataset = kwargs.pop('dataset', None)
+
         super().__init__(*args, **kwargs)
-
-        self._instance = kwargs.get('instance', None)
-
-    def handle_me(self, request, dataset, id=None, uploaded_file=None):
-
-        user = request.user
-        data = self.cleaned_data
-        restricted_level = data['restricted_level']
-        profiles_allowed = data['profiles_allowed']
-        organizations_allowed = data['organisations_allowed']
-
-        params = {'name': data['name'],
-                  'description': data['description'],
-                  'dl_url': data['dl_url'],
-                  'referenced_url': data['referenced_url'],
-                  'lang': data['lang'],
-                  'format_type': data['format_type'],
-                  'restricted_level': restricted_level,
-                  'up_file': data['up_file'],
-                  'dataset': dataset}
-
-        if id:  # Mise à jour de la ressource
-            created = False
-            resource = Resource.objects.get(pk=id)
-            for key, value in params.items():
-                setattr(resource, key, value)
-        else:  # Création d'une nouvelle ressource
-            created = True
-            resource = Resource.objects.create(**params)
-
-        ckan_params = {
-            'name': resource.name,
-            'description': resource.description,
-            'format': resource.format_type.extension,
-            'view_type': resource.format_type.ckan_view,
-            'id': str(resource.ckan_id),
-            'lang': resource.lang,
-            'url': ''}
-
-        if restricted_level == '0':  # Public
-            resource.profiles_allowed = profiles_allowed
-            ckan_params['restricted'] = json.dumps({'level': 'public'})
-
-        if restricted_level == '1':  # Registered users
-            resource.profiles_allowed = profiles_allowed
-            ckan_params['restricted'] = json.dumps({'level': 'registered'})
-
-        if restricted_level == '2':  # Only allowed users
-            resource.profiles_allowed = profiles_allowed
-            ckan_params['restricted'] = json.dumps({
-                'allowed_users': ','.join([p.user.username for p in profiles_allowed]),
-                'level': 'only_allowed_users'})
-
-        if restricted_level == '3':  # This organization
-            resource.organisations_allowed = [dataset.organisation]
-            ckan_params['restricted'] = json.dumps({
-                'allowed_users': ','.join(
-                    get_all_users_for_organizations([dataset.organisation])),
-                'level': 'only_allowed_users'})
-
-        if restricted_level == '4':  # Any organization
-            resource.organisations_allowed = organizations_allowed
-            ckan_params['restricted'] = json.dumps({
-                'allowed_users': ','.join(
-                    get_all_users_for_organizations(organizations_allowed)),
-                'level': 'only_allowed_users'})
-
-        if resource.referenced_url:
-            ckan_params['url'] = resource.referenced_url
-            ckan_params['resource_type'] = \
-                '{0}.{1}'.format(resource.name, resource.format_type.ckan_view)
-
-        if resource.dl_url:
-            try:
-                filename, content_type = download(
-                    resource.dl_url, settings.MEDIA_ROOT,
-                    max_size=DOWNLOAD_SIZE_LIMIT)
-            except SizeLimitExceededError as e:
-                l = len(str(e.max_size))
-                if l > 6:
-                    m = '{0} mo'.format(Decimal(int(e.max_size) / 1024 / 1024))
-                elif l > 3:
-                    m = '{0} ko'.format(Decimal(int(e.max_size) / 1024))
-                else:
-                    m = '{0} octets'.format(int(e.max_size))
-                raise ValidationError(
-                    "La taille du fichier dépasse la limite autorisée : {0}.".format(m), code='dl_url')
-
-            downloaded_file = File(open(filename, 'rb'))
-            ckan_params['upload'] = downloaded_file
-            ckan_params['size'] = downloaded_file.size
-            ckan_params['mimetype'] = content_type
-            ckan_params['resource_type'] = Path(filename).name
-
-        if uploaded_file:
-            ckan_params['upload'] = resource.up_file.file
-            ckan_params['size'] = uploaded_file.size
-            ckan_params['mimetype'] = uploaded_file.content_type
-            ckan_params['resource_type'] = uploaded_file.name
-
-        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-        # de données existant mais administrateur de données,
-        # alors l'admin Ckan édite le jeu de données..
-        profile = Profile.objects.get(user=user)
-        is_admin = profile.is_admin
-        is_referent = LiaisonsReferents.objects.filter(
-            profile=profile, organisation=dataset.organisation).exists()
-        is_editor = (user == dataset.editor)
-        if is_admin and not is_referent and not is_editor:
-            ckan_user = ckan_me(ckan.apikey)
-        else:
-            ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
-        try:
-            ckan_user.publish_resource(str(dataset.ckan_id), **ckan_params)
-        except Exception as e:
-            if created:
-                resource.delete()
-            raise e
-        else:
-            resource.last_update = timezone.now().date()
-            resource.save()
-        finally:
-            ckan_user.close()
-
-        return resource
 
     def clean(self):
 
         up_file = self.cleaned_data.get('up_file', None)
         dl_url = self.cleaned_data.get('dl_url', None)
         referenced_url = self.cleaned_data.get('referenced_url', None)
+
         res_l = [up_file, dl_url, referenced_url]
         if all(v is None for v in res_l):
-            self.add_error('up_file', 'Ce champ est obligatoire.')
-            self.add_error('dl_url', 'Ce champ est obligatoire.')
-            self.add_error('referenced_url', 'Ce champ est obligatoire.')
+            for field in ('up_file', 'dl_url', 'referenced_url'):
+                self.add_error(field, 'Ce champ est obligatoire.')
 
         if sum(v is not None for v in res_l) > 1:
             error_msg = "Un seul type de ressource n'est autorisé."
             up_file and self.add_error('up_file', error_msg)
             dl_url and self.add_error('dl_url', error_msg)
             referenced_url and self.add_error('referenced_url', error_msg)
+
+        self.cleaned_data['organisations_allowed'] = [self._dataset.organisation]
+        self.cleaned_data['last_update'] = timezone.now().date()
+
+    def handle_me(self, request, dataset, id=None):
+
+        user = request.user
+
+        memory_up_file = request.FILES.get('up_file')
+        file_extras = memory_up_file and {
+            'mimetype': memory_up_file.content_type,
+            'resource_type': memory_up_file.name,
+            'size': memory_up_file.size} or None
+
+        data = self.cleaned_data
+        params = {'dataset': dataset,
+                  'description': data['description'],
+                  'dl_url': data['dl_url'],
+                  'format_type': data['format_type'],
+                  'lang': data['lang'],
+                  'last_update': data['last_update'],
+                  'name': data['name'],
+                  # 'organizations_allowed': None,
+                  # 'profiles_allowed': None,
+                  'referenced_url': data['referenced_url'],
+                  'restricted_level': data['restricted_level'],
+                  'sync_frequency': data['sync_frequency'],
+                  'synchronisation': data['synchronisation'],
+                  'up_file': data['up_file']}
+
+        if id:  # Mise à jour de la ressource
+            resource = Resource.objects.get(pk=id)
+            for key, value in params.items():
+                setattr(resource, key, value)
+            resource.save(editor=user, file_extras=file_extras)
+        else:  # Création d'une nouvelle ressource
+            resource = Resource.objects.create(**params)
+
+        resource.organizations_allowed = data['organisations_allowed']
+        resource.profiles_allowed = data['profiles_allowed']
+        resource.save(editor=user, file_extras=file_extras, sync_ckan=True)
+
+        return resource

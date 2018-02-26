@@ -93,65 +93,18 @@ class ResourceManager(View):
     @transaction.atomic
     def post(self, request, dataset_id=None, *args, **kwargs):
 
-        def get_uploaded_file(form):
-            return form.is_multipart() and request.FILES.get('up_file')
-
-        def http_redirect(dataset_id, resource_id):
-            response = HttpResponse(status=201)
-
-            if 'continue' in request.POST:
-                href = '{0}?id={1}'.format(
-                    reverse(self.namespace, kwargs={'dataset_id': dataset_id}),
-                    resource_id)
-            else:
-                href = '{0}?id={1}#resources/{2}'.format(
-                    reverse('idgo_admin:dataset'), dataset_id, resource_id)
-
-            response['Content-Location'] = href
-            return response
-
         user, profile = user_and_profile(request)
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
 
         id = request.POST.get('id', request.GET.get('id'))
-        if id:
-            instance = get_object_or_404_extended(
-                Resource, user, include={'id': id, 'dataset': dataset})
+        instance = id and get_object_or_404_extended(
+            Resource, user, include={'id': id, 'dataset': dataset}) or None
 
-            form = Form(request.POST, request.FILES, instance=instance)
-            if not form.is_valid():
-                error = dict(
-                    [(k, [str(m) for m in v]) for k, v in form.errors.items()])
-                return JsonResponse(json.dumps({'error': error}), safe=False)
+        form = Form(
+            request.POST, request.FILES, instance=instance, dataset=dataset)
 
-            try:
-                with transaction.atomic():
-                    instance = form.handle_me(
-                        request, dataset, id=id, uploaded_file=get_uploaded_file(form))
-            except CkanSyncingError as e:
-                error = {'__all__': e.__str__()}
-                return JsonResponse(json.dumps({'error': error}), safe=False)
-            except CkanTimeoutError:
-                error = {'__all__': e.__str__()}
-                return JsonResponse(json.dumps({'error': error}), safe=False)
-            except ValidationError as e:
-                form.add_error(e.code, e.message)
-                error = dict(
-                    [(k, [str(m) for m in v]) for k, v in form.errors.items()])
-                return JsonResponse(json.dumps({'error': error}), safe=False)
-
-            messages.success(
-                request, (
-                    'La ressource a été mise à jour avec succès. '
-                    'Souhaitez-vous <a href="{0}/dataset/{1}/resource/{2}" '
-                    'target="_blank">voir la ressource dans CKAN</a> ?'
-                    ).format(CKAN_URL, dataset.ckan_slug, instance.ckan_id))
-
-            return http_redirect(dataset_id, instance.id)
-
-        form = Form(request.POST, request.FILES)
         if not form.is_valid():
             error = dict(
                 [(k, [str(m) for m in v]) for k, v in form.errors.items()])
@@ -159,30 +112,43 @@ class ResourceManager(View):
 
         try:
             with transaction.atomic():
-                instance = form.handle_me(
-                    request, dataset, uploaded_file=get_uploaded_file(form))
-        except CkanSyncingError:
+                instance = form.handle_me(request, dataset, id=id)
+
+        except CkanSyncingError as e:
             error = {'__all__': e.__str__()}
-            return JsonResponse(json.dumps({'error': error}), safe=False)
+
         except CkanTimeoutError:
             error = {'__all__': e.__str__()}
-            return JsonResponse(json.dumps({'error': error}), safe=False)
+
         except ValidationError as e:
             form.add_error(e.code, e.message)
             error = dict(
                 [(k, [str(m) for m in v]) for k, v in form.errors.items()])
-            return JsonResponse(json.dumps({'error': error}), safe=False)
 
-        messages.success(request, (
-            'La ressource a été créée avec succès. Souhaitez-vous '
-            '<a href="{0}">ajouter une nouvelle ressource</a> ? ou bien '
-            '<a href="{1}/dataset/{2}/resource/{3}" target="_blank">'
-            'voir la ressource dans CKAN</a> ?'
-            ).format(
-                reverse(self.namespace, kwargs={'dataset_id': dataset_id}),
+        else:
+            dataset_href = reverse(
+                self.namespace, kwargs={'dataset_id': dataset_id})
+
+            messages.success(request, (
+                'La ressource a été {0} avec succès. Souhaitez-vous '
+                '<a href="{1}">ajouter une nouvelle ressource</a> ? ou bien '
+                '<a href="{2}/dataset/{3}/resource/{4}" target="_blank">'
+                'voir la ressource dans CKAN</a> ?').format(
+                id and 'mise à jour' or 'créée', dataset_href,
                 CKAN_URL, dataset.ckan_slug, instance.ckan_id))
 
-        return http_redirect(dataset_id, instance.id)
+            response = HttpResponse(status=201)  # Ugly hack
+
+            if 'continue' in request.POST:
+                href = '{0}?id={1}'.format(dataset_href, instance.id)
+            else:
+                href = '{0}?id={1}#resources/{2}'.format(
+                    reverse('idgo_admin:dataset'), dataset_id, instance.id)
+
+            response['Content-Location'] = href
+            return response
+
+        return JsonResponse(json.dumps({'error': error}), safe=False)
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, dataset_id=None, *args, **kwargs):

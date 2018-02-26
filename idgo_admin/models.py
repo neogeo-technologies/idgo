@@ -14,11 +14,13 @@
 # under the License.
 
 
+from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
+from django.core.files import File
 from django.core.mail import send_mail
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
@@ -30,16 +32,23 @@ from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.exceptions import SizeLimitExceededError
+from idgo_admin.utils import download
 from idgo_admin.utils import PartialFormatter
 from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garder l'original
 import json
 import os
+from pathlib import Path
 from taggit.managers import TaggableManager
 import uuid
 
 
 TODAY = timezone.now().date()
 GEONETWORK_URL = settings.GEONETWORK_URL
+try:
+    DOWNLOAD_SIZE_LIMIT = settings.DOWNLOAD_SIZE_LIMIT
+except AttributeError:
+    DOWNLOAD_SIZE_LIMIT = 104857600  # 100Mio
 
 
 if settings.STATIC_ROOT:
@@ -102,14 +111,13 @@ class Resource(models.Model):
 
     FREQUENCY_CHOICES = (
         ('never', 'Jamais'),
-        ('hourly', 'Toutes les heures'),
         ('daily', 'Quotidienne (tous les jours à minuit)'),
         ('weekly', 'Hebdomadaire (tous les lundi)'),
         ('bimonthly ', 'Bimensuelle (1er et 15 de chaque mois)'),
         ('monthly', 'Mensuelle (1er de chaque mois)'),
         ('quarterly', 'Trimestrielle (1er des mois de janvier, avril, juillet, octobre)'),
         ('biannual', 'Semestrielle (1er janvier et 1er juillet)'),
-        ('monthly', 'Mensuelle (1er janvier)'))
+        ('annual', 'Annuelle (1er janvier)'))
 
     LANG_CHOICES = (
         ('french', 'Français'),
@@ -209,6 +217,92 @@ class Resource(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+
+        sync_ckan = 'sync_ckan' in kwargs and kwargs.pop('sync_ckan') or False
+        file_extras = 'file_extras' in kwargs and kwargs.pop('file_extras') or None
+        editor = 'editor' in kwargs and kwargs.pop('editor') or None
+
+        super().save(*args, **kwargs)
+
+        if not sync_ckan:
+            return
+
+        ckan_params = {
+            'name': self.name,
+            'description': self.description,
+            'format': self.format_type.extension,
+            'view_type': self.format_type.ckan_view,
+            'id': str(self.ckan_id),
+            'lang': self.lang,
+            'url': ''}
+
+        if self.restricted_level == '0':  # Public
+            ckan_params['restricted'] = json.dumps({'level': 'public'})
+
+        if self.restricted_level == '1':  # Registered users
+            ckan_params['restricted'] = json.dumps({'level': 'registered'})
+
+        if self.restricted_level == '2':  # Only allowed users
+            ckan_params['restricted'] = json.dumps({
+                'allowed_users': ','.join(
+                    [p.user.username for p in self.profiles_allowed]),
+                'level': 'only_allowed_users'})
+
+        if self.restricted_level == '3':  # This organization
+            ckan_params['restricted'] = json.dumps({
+                'allowed_users': ','.join(
+                    get_all_users_for_organizations(self.organisations_allowed)),
+                'level': 'only_allowed_users'})
+
+        if self.restricted_level == '4':  # Any organization
+            ckan_params['restricted'] = json.dumps({
+                'allowed_users': ','.join(
+                    get_all_users_for_organizations(self.organizations_allowed)),
+                'level': 'only_allowed_users'})
+
+        if self.referenced_url:
+            ckan_params['url'] = self.referenced_url
+            ckan_params['resource_type'] = '{0}.{1}'.format(
+                self.name, self.format_type.ckan_view)
+
+        if self.dl_url:
+            try:
+                filename, content_type = download(
+                    self.dl_url, settings.MEDIA_ROOT,
+                    max_size=DOWNLOAD_SIZE_LIMIT)
+            except SizeLimitExceededError as e:
+                l = len(str(e.max_size))
+                if l > 6:
+                    m = '{0} mo'.format(Decimal(int(e.max_size) / 1024 / 1024))
+                elif l > 3:
+                    m = '{0} ko'.format(Decimal(int(e.max_size) / 1024))
+                else:
+                    m = '{0} octets'.format(int(e.max_size))
+                raise ValidationError(
+                    "La taille du fichier dépasse la limite autorisée : {0}.".format(m), code='dl_url')
+
+            downloaded_file = File(open(filename, 'rb'))
+            ckan_params['upload'] = downloaded_file
+            ckan_params['size'] = downloaded_file.size
+            ckan_params['mimetype'] = content_type
+            ckan_params['resource_type'] = Path(filename).name
+
+        # if uploaded_file:
+        if self.up_file:
+            ckan_params['upload'] = self.up_file.file
+            ckan_params.update(file_extras)
+
+        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+        # de données existant mais administrateur ou un référent technique,
+        # alors l'admin Ckan édite le jeu de données..
+        if editor == self.dataset.editor:
+            ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
+        else:
+            ckan_user = ckan_me(ckan.apikey)
+        ckan_user.publish_resource(str(self.dataset.ckan_id), **ckan_params)
+        ckan_user.close()
+
 
 class Commune(models.Model):
 
@@ -275,6 +369,13 @@ class OrganisationType(models.Model):
 
     def __str__(self):
         return self.name
+
+
+def get_all_users_for_organizations(list_id):
+    return [
+        profile.user.username
+        for profile in Profile.objects.filter(
+            organisation__in=list_id, organisation__is_active=True)]
 
 
 class Organisation(models.Model):

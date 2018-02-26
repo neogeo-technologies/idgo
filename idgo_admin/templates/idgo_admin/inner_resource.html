@@ -28,7 +28,16 @@
 					{% bootstrap_field form.up_file %}
 				{% elif mode == 'dl_url' %}
 					{% bootstrap_field form.dl_url %}
-					{% bootstrap_field form.sync_frequency %}
+					<div class="row">
+						<div class="col-xs-5 col-sm-5 col-md-4">
+							{% bootstrap_field form.synchronisation %}
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-5 col-sm-5 col-md-4">
+							{% bootstrap_field form.sync_frequency show_label=False %}
+						</div>
+					</div>
 				{% elif mode == 'referenced_url' %}
 					{% bootstrap_field form.referenced_url %}
 				{% endif %}
@@ -213,10 +222,51 @@ $(function() {
 				contentType: false,
 				processData: false,
 				success: function(data, status, xhr) {
-					// Cf. done method
+					$('.container-message').empty();
+					$('.help-block').remove();
+					$('.progress-bar-on-top .progress-bar').css('display', 'none').css('width', '0%');
+
+					$modal.one('hidden.bs.modal', function(e) {
+						e.preventDefault();
+						console.log(xhr)
+
+						if (xhr.status == 302) {
+							return window.location.href = xhr.getResponseHeader('Location');
+						} else if (xhr.status == 201) {
+							return window.location.href = xhr.getResponseHeader('Content-Location');
+						} else if (xhr.status == 200) {
+							try {
+								data = JSON.parse(data);
+							} catch (e) {
+								data = undefined;
+							};
+							if (data.error) {
+								for (const key in data.error) {
+									const val = data.error[key].join();
+									if (key == '__all__') {
+										$('.container-message').append('<div name="message-tags" class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>' + val + '</div>');
+									} else {
+										if (key == '{{ form.up_file.name }}') {
+											$('#id_' + key).closest('.ezdz-dropzone').after('<div class="help-block">' + val + '</div>').closest('.form-group').addClass('has-error');
+										} else {
+											$('#id_' + key).after('<div class="help-block">' + val + '</div>').closest('.form-group').addClass('has-error');
+										};
+									};
+								};
+							};
+						};
+					}).modal('hide');
 				},
 				error: function(xhr) {
-					// Cf. done method
+					$('.container-message').empty();
+					$('.help-block').remove();
+					$('.progress-bar-on-top .progress-bar').css('display', 'none').css('width', '0%');
+					$modal.one('hidden.bs.modal', function(e) {
+						e.preventDefault();
+						if (xhr.status == 500) {
+							$('.container-message').append('<div name="message-tags" class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>Une erreur s\'est produite, si le problème persiste veuillez contacter l\'administrateur du site</div>');
+						};
+					}).modal('hide');
 				},
 				xhr: function() {
 					const $progressBar = $('.progress-bar');
@@ -240,35 +290,6 @@ $(function() {
 					});
 					return xhr;
 				},
-			}).done(function(data, status, xhr) {
-
-				$('.container-message').empty();
-				$('.help-block').remove();
-				$('.progress-bar-on-top .progress-bar').css('display', 'none').css('width', '0%');
-
-				$modal.one('hidden.bs.modal', function(e) {
-					e.preventDefault();
-					if (xhr.status == 201) {
-						return window.location.href = xhr.getResponseHeader('Content-Location');
-					}
-					else if (xhr.status == 200) {
-						data = JSON.parse(data);
-						if (data.error) {
-							for (const key in data.error) {
-								const val = data.error[key].join();
-								if (key == '__all__') {
-									$('.container-message').append('<div name="message-tags" class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>' + val + '</div>');
-								} else {
-									if (key == '{{ form.up_file.name }}') {
-										$('#id_' + key).closest('.ezdz-dropzone').after('<div class="help-block">' + val + '</div>').closest('.form-group').addClass('has-error');
-									} else {
-										$('#id_' + key).after('<div class="help-block">' + val + '</div>').closest('.form-group').addClass('has-error');
-									}
-								};
-							};
-						};
-					};
-				}).modal('hide');
 			});
 		});
 	});

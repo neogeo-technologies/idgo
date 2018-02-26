@@ -17,7 +17,7 @@
 from django.core.management.base import BaseCommand
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.forms.resource import get_all_users_for_organizations
+from idgo_admin.models import get_all_users_for_organizations
 from idgo_admin.models import Resource
 import json
 
