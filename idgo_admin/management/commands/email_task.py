@@ -42,21 +42,23 @@ class Command(BaseCommand):
             starting__gte=datetime.fromtimestamp(
                 time.mktime(time.strptime(monday, '%Y %W %w'))))
 
-        data = [
-            ('state', 'starting', 'end', 'dataset', 'resource', 'error')]
+        data = [('state', 'starting', 'end', 'dataset_id', 'dataset_name',
+                 'resource_id', 'resource_name', 'error')]
         for item in query:
             resource = Resource.objects.get(id=item.extras['resource'])
             dataset = resource.dataset
             data.append((
                 item.state, item.starting.isoformat(),
-                item.end.isoformat(), dataset.name, resource.name,
-                item.extras.get('errors', None)))
+                item.end.isoformat(), dataset.id, dataset.name,
+                resource.id, resource.name, item.extras.get('errors', None)))
 
         f = StringIO()
         csv.writer(f).writerows(data)
 
         mail_instance = Mail.objects.get(template_name='email_task')
 
-        mail = EmailMessage(mail_instance.subject, mail_instance.message, mail_instance.from_email, Mail.admin_mails([]))
+        mail = EmailMessage(
+            mail_instance.subject, mail_instance.message,
+            mail_instance.from_email, Mail.admin_mails([]))
         mail.attach('log.csv', f.getvalue(), 'text/csv')
         mail.send()

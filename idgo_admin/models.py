@@ -1237,6 +1237,13 @@ class Dataset(models.Model):
     owner_email = models.EmailField(
         verbose_name='E-mail du producteur', blank=True, null=True)
 
+    broadcaster_name = models.CharField(
+        verbose_name='Nom du diffuseur',
+        max_length=100, blank=True, null=True)
+
+    broadcaster_email = models.EmailField(
+        verbose_name='E-mail du diffuseur', blank=True, null=True)
+
     class Meta(object):
         verbose_name = 'Jeu de données'
         verbose_name_plural = 'Jeux de données'
@@ -1279,12 +1286,14 @@ class Dataset(models.Model):
             self.owner_name = self.editor.get_full_name()
         if not self.owner_email:
             self.owner_email = self.editor.email
-        # if not self.broadcaster_name:
-        #     self.broadcaster_name = \
-        #         self.support and self.support.name or 'Plateforme DataSud'
-        # if not self.broadcaster_email:
-        #     self.broadcaster_email = \
-        #         self.support and self.support.email or 'contact@datasud.fr'
+
+        if not self.broadcaster_name:
+            self.broadcaster_name = \
+                self.support and self.support.name or 'Plateforme DataSud'
+
+        if not self.broadcaster_email:
+            self.broadcaster_email = \
+                self.support and self.support.email or 'contact@datasud.fr'
 
         super().save(*args, **kwargs)
 
@@ -1313,10 +1322,8 @@ class Dataset(models.Model):
                 self.license.ckan_id
                 in [license['id'] for license in ckan.get_licenses()]
                 ) and self.license.ckan_id or '',
-            'maintainer':
-                self.support and self.support.name or 'Plateforme DataSud',
-            'maintainer_email':
-                self.support and self.support.email or 'contact@datasud.fr',
+            'maintainer': self.broadcaster_name,
+            'maintainer_email': self.broadcaster_email,
             'name': self.ckan_slug,
             'notes': self.description,
             'owner_org': str(self.organisation.ckan_id),

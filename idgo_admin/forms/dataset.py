@@ -43,8 +43,8 @@ class DatasetForm(forms.ModelForm):
     class Meta(object):
         model = Dataset
         fields = (
-            # broadcaster_email,
-            # broadcaster_name,
+            'broadcaster_email',
+            'broadcaster_name',
             'categories',
             'data_type',
             'date_creation',
@@ -175,13 +175,13 @@ class DatasetForm(forms.ModelForm):
             'invalid': "L'adresse e-mail est invalide."},
         label='Adresse e-mail du producteur', required=False)
 
-    # broadcaster_name = forms.CharField(
-    #     label='Nom du diffuseur', required=False)
+    broadcaster_name = forms.CharField(
+        label='Nom du diffuseur', required=False)
 
-    # broadcaster_email = forms.EmailField(
-    #     error_messages={
-    #     'invalid': "L'adresse e-mail est invalide."},
-    #     label='Adresse e-mail du diffuseur', required=False)
+    broadcaster_email = forms.EmailField(
+        error_messages={
+            'invalid': "L'adresse e-mail est invalide."},
+        label='Adresse e-mail du diffuseur', required=False)
 
     published = forms.BooleanField(
         initial=True,
@@ -218,6 +218,12 @@ class DatasetForm(forms.ModelForm):
         self.fields['owner_email'].initial = owner.email
         self.fields['owner_email'].widget.attrs['placeholder'] = \
             '{} (valeur par défaut)'.format(owner.email)
+
+        self.fields['broadcaster_name'].widget.attrs['placeholder'] = \
+            'Laissez vide pour appliquer la valeur par défaut'.format(owner.get_full_name())
+
+        self.fields['broadcaster_email'].widget.attrs['placeholder'] = \
+            'Laissez vide pour appliquer la valeur par défaut'.format(owner.email)
 
     def clean(self):
 
@@ -258,8 +264,8 @@ class DatasetForm(forms.ModelForm):
 
         data = self.cleaned_data
         params = {
-            # 'broadcaster_name': data['broadcaster_name'],
-            # 'broadcaster_email': data['broadcaster_email'],
+            'broadcaster_name': data['broadcaster_name'],
+            'broadcaster_email': data['broadcaster_email'],
             'ckan_slug': data['ckan_slug'],
             'date_creation': data['date_creation'],
             'date_modification': data['date_modification'],

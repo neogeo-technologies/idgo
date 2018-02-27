@@ -110,4 +110,12 @@
         "message": "Bonjour {first_name} {last_name} ({username}),\n\nPour valider votre inscription, veuillez cliquer sur le lien suivant : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
         "from_email": "inscription@datasud.fr"
     }
+}, {
+    "model": "idgo_admin.mail",
+    "pk": "email_task",
+    "fields": {
+        "subject": "Synchronisation des données distantes",
+        "message": "Bonjour,\n\nCi-joint, la liste des tâches effectuées cette semaine.\n\nCeci est un message automatique. Merci de ne pas y répondre.",
+        "from_email": "inscription@datasud.fr"
+    }
 }]
