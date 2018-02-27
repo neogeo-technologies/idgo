@@ -135,7 +135,7 @@ $(function() {
 			e.stopPropagation();
 		});
 
-	let $publishDataset = $('#alldatasets a[name="publish-dataset"]')
+	var $publishDataset = $('#alldatasets a[name="publish-dataset"]')
 		.on('click', function(e) {
 			e.preventDefault();
 			closeAllModalDialog();
@@ -160,8 +160,8 @@ $(function() {
 		});
 
 	tableGrid.initializeGrid = function() {
-		let grid = tableGrid;
-		let $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button,a[role="button"]');
+		var grid = tableGrid;
+		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button,a[role="button"]');
 
 		with (this) {
 			tableRendered = function(containerId, className) {
@@ -237,8 +237,8 @@ $(function() {
 	};
 
 	function updateGrid(grid, containerId, metadata, data) {
-		let $containerId = $('#' + containerId);
-		let $parent = $($containerId.parent().get(0));
+		var $containerId = $('#' + containerId);
+		var $parent = $($containerId.parent().get(0));
 		$parent.find('div[role="alert"]not:div[name="message-tags"]').remove();
 		$parent.find('button').each(function() {
 			deactivateButton($(this));
@@ -318,7 +318,7 @@ $(function() {
 		],
 		(function(data) {
 			const m = [];
-			for (let i = 0; i < data.length; i ++) {
+			for (var i = 0; i < data.length; i ++) {
 				m.push({
 					id: i,
 					values: [

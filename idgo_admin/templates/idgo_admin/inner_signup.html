@@ -131,8 +131,8 @@ $(function() {
 	});
 
 	const toggleInputVisibility = function() {
-		let selected = parseInt($selectOrganization.val());
-		let value = {{ form.organisation.value | yesno:'true,false,NaN' }};
+		var selected = parseInt($selectOrganization.val());
+		var value = {{ form.organisation.value | yesno:'true,false,NaN' }};
 
 		selected = isNaN(selected) ? null : selected;
 		value = isNaN(value) ? null : value;

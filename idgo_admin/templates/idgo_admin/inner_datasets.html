@@ -129,33 +129,32 @@ $(function() {
 			e.stopPropagation();
 		});
 
-	let $publishDataset = $('#datasets a[name="publish-dataset"]')
-		.on('click', function(e) {
-			e.preventDefault();
-			closeAllModalDialog();
-			$.ajax({
-				type: 'GET',
-				// success: function() {},
-				url: '{% url "idgo_admin:action" %}?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id'] + '&publish=toggle'
-			})
-			.done(function(response, textStatus, jqXHR) {
-				// $modal.find('.close').remove();
-				$modal.find('.modal-title').text('Information');
-				$modal.find('.modal-body').append(jqXHR.responseText);
-				$modal.modal('show');
-			})
-			.fail(function(jqXHR, textStatus, errorThrown) {
-				// $modal.find('.close').remove();
-				$modal.find('.modal-title').text("L'opération a échouée");
-				$modal.find('.modal-body').append(jqXHR.responseText);
-				$modal.modal('show');
-			});
-			e.stopPropagation();
+	const $publishDataset = $('#datasets a[name="publish-dataset"]').on('click', function(e) {
+		e.preventDefault();
+		closeAllModalDialog();
+		$.ajax({
+			type: 'GET',
+			// success: function() {},
+			url: '{% url "idgo_admin:action" %}?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id'] + '&publish=toggle'
+		})
+		.done(function(response, textStatus, jqXHR) {
+			// $modal.find('.close').remove();
+			$modal.find('.modal-title').text('Information');
+			$modal.find('.modal-body').append(jqXHR.responseText);
+			$modal.modal('show');
+		})
+		.fail(function(jqXHR, textStatus, errorThrown) {
+			// $modal.find('.close').remove();
+			$modal.find('.modal-title').text("L'opération a échouée");
+			$modal.find('.modal-body').append(jqXHR.responseText);
+			$modal.modal('show');
 		});
+		e.stopPropagation();
+	});
 
 	tableGrid.initializeGrid = function() {
-		let grid = tableGrid;
-		let $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button,a[role="button"]');
+		var grid = tableGrid;
+		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button,a[role="button"]');
 		with (this) {
 			tableRendered = function(containerId, className) {
 				rowSelected(-1, -1);
@@ -240,8 +239,8 @@ $(function() {
 	};
 
 	function updateGrid(grid, containerId, metadata, data) {
-		let $containerId = $('#' + containerId);
-		let $parent = $($containerId.parent().get(0));
+		var $containerId = $('#' + containerId);
+		var $parent = $($containerId.parent().get(0));
 		$parent.find('div[role="alert"]not:div[name="message-tags"]').remove();
 		$parent.find('button').each(function() {
 			deactivateButton($(this));
@@ -338,7 +337,7 @@ $(function() {
 		],
 		(function(data) {
 			const m = [];
-			for (let i = 0; i < data.length; i ++) {
+			for (var i = 0; i < data.length; i ++) {
 				m.push({
 					id: i,
 					values: [

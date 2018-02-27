@@ -403,7 +403,7 @@ $(function() {
 				],
 				'data': (function(data) {
 					const m = [];
-					for (let i in data) {
+					for (var i in data) {
 						m.push({
 							id: i,
 							values: [
@@ -520,7 +520,7 @@ $(function() {
 
 	$('.typeahead[name="organization"]').typeahead({
 		source: (function() {
-			let arr = [];
+			var arr = [];
 			{% for item in organizations %}
 			arr.push({'id': {{ item.pk }}, 'name': '{{ item.name }}'});
 			{% endfor %}

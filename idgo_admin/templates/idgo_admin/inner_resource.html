@@ -278,7 +278,7 @@ $(function() {
 					const $progressStatus = $('.progress-status');
 					const xhr = new window.XMLHttpRequest();
 					xhr.upload.addEventListener('progress', function(e) {
-						let value = 0;
+						var value = 0;
 						if (e.lengthComputable) {
 							value = Math.round(e.loaded / e.total * 100);
 							$progressBar.css('width', value + '%');
