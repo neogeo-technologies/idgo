@@ -125,17 +125,7 @@ class DatasetManager(View):
 
         user, profile = user_and_profile(request)
 
-        def http_redirect(dataset):
-            if 'save' in request.POST:
-                namespace = dataset.editor == profile.user and 'datasets' or 'all_datasets'
-                return HttpResponseRedirect('{0}#datasets/{1}'.format(
-                    reverse('idgo_admin:{0}'.format(namespace)), dataset.id))
-            if 'continue' in request.POST:
-                return HttpResponseRedirect('{0}?id={1}'.format(
-                    reverse(self.namespace), dataset.id))
-
         context = {
-            'form': None,
             'first_name': user.first_name,
             'last_name': user.last_name,
             'dataset_name': 'Nouveau',
@@ -147,24 +137,26 @@ class DatasetManager(View):
             'tags': json.dumps(ckan.get_tags())}
 
         id = request.POST.get('id', request.GET.get('id'))
-        if id:
+        instance = id and get_object_or_404_extended(
+            Dataset, user, include={'id': id}) or None
 
-            instance = get_object_or_404_extended(
-                Dataset, user, include={'id': id})
+        form = Form(
+            request.POST, request.FILES, instance=instance,
+            include={'user': user, 'id': id,
+                     'identification': id and True or False})
 
-            form = Form(request.POST, request.FILES, instance=instance,
-                        include={'user': user, 'identification': True, 'id': id})
+        context.update(form=form)
 
-            if not form.is_valid():
-                errors = form._errors.get('__all__', [])
-                errors and messages.error(request, ' '.join(errors))
+        if not form.is_valid():
+            errors = form._errors.get('__all__', [])
+            errors and messages.error(request, ' '.join(errors))
 
-                context.update({
-                    'form': form,
-                    'dataset_name': three_suspension_points(instance.name),
-                    'dataset_ckan_slug': instance.ckan_slug,
-                    'dataset_id': instance.id,
-                    'resources': json.dumps([(
+            if instance:
+                context.update(
+                    dataset_name=three_suspension_points(instance.name),
+                    dataset_ckan_slug=instance.ckan_slug,
+                    dataset_id=instance.id,
+                    resources=json.dumps([(
                         o.pk,
                         o.name,
                         o.format_type.extension,
@@ -172,45 +164,15 @@ class DatasetManager(View):
                         o.last_update.isoformat() if o.last_update else None,
                         o.get_restricted_level_display(),
                         str(o.ckan_id)
-                        ) for o in Resource.objects.filter(dataset=instance)])})
-                return render_with_info_profile(request, self.template, context)
+                        ) for o in Resource.objects.filter(dataset=instance)]))
 
-            try:
-                with transaction.atomic():
-                    instance = form.handle_me(request, id=id)
-            except ValidationError as e:
-                messages.error(request, str(e))
-            except CkanSyncingError as e:
-                form.add_error('__all__', e.__str__())
-                messages.error(request, e.__str__())
-            except CkanTimeoutError as e:
-                form.add_error('__all__', e.__str__())
-                messages.error(request, e.__str__())
-            else:
-                messages.success(request, (
-                    'Le jeu de données a été mis à jour avec succès. '
-                    'Souhaitez-vous <a href="{0}/dataset/{1}" target="_blank">'
-                    'voir le jeu de données dans CKAN</a> ?'
-                    ).format(CKAN_URL, instance.ckan_slug))
-
-            return http_redirect(instance)
-
-        form = Form(request.POST, request.FILES,
-                    include={'user': user, 'identification': False, 'id': None})
-
-        if not form.is_valid():
-
-            errors = form._errors.get('__all__', [])
-            errors and messages.error(request, ' '.join(errors))
-
-            context.update({'form': form})
             return render_with_info_profile(request, self.template, context)
 
         try:
             with transaction.atomic():
-                instance = form.handle_me(request)
+                instance = form.handle_me(request, id=id)
         except ValidationError as e:
-            messages.error(request, e.__str__())
+            messages.error(request, str(e))
         except CkanSyncingError as e:
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
@@ -219,18 +181,25 @@ class DatasetManager(View):
             messages.error(request, e.__str__())
         else:
             messages.success(request, (
-                'Le jeu de données a été créé avec succès. Souhaitez-vous '
+                'Le jeu de données a été {0} avec succès. Souhaitez-vous '
                 '<a href="{0}">créer un nouveau jeu de données</a> ? ou '
                 '<a href="{1}">ajouter une ressource</a> ? ou bien '
-                '<a href="{2}/dataset/{3}" target="_blank">voir le jeu de données '
-                'dans CKAN</a> ?'
-                ).format(reverse(self.namespace),
-                         reverse(self.namespace_resource,
-                                 kwargs={'dataset_id': instance.id}),
-                         CKAN_URL, instance.ckan_slug))
-            return http_redirect(instance)
+                '<a href="{2}/dataset/{3}" target="_blank">voir le jeu '
+                'de données dans CKAN</a> ?').format(
+                    id and 'mis à jour' or 'créé',
+                    reverse(self.namespace),
+                    reverse(self.namespace_resource,
+                            kwargs={'dataset_id': instance.id}),
+                    CKAN_URL, instance.ckan_slug))
 
-        context.update({'form': form})
+            if 'continue' in request.POST:
+                return HttpResponseRedirect('{0}?id={1}'.format(
+                    reverse(self.namespace), instance.id))
+
+            namespace = instance.editor == profile.user and 'datasets' or 'all_datasets'
+            return HttpResponseRedirect('{0}#datasets/{1}'.format(
+                reverse('idgo_admin:{0}'.format(namespace)), instance.id))
+
         return render_with_info_profile(request, self.template, context)
 
     @ExceptionsHandler(ignore=[Http404, CkanSyncingError],
