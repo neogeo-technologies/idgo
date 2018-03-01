@@ -146,33 +146,31 @@ class DatasetManager(View):
                      'identification': id and True or False})
 
         context.update(form=form)
+        if instance:
+            context.update(
+                dataset_name=three_suspension_points(instance.name),
+                dataset_ckan_slug=instance.ckan_slug,
+                dataset_id=instance.id,
+                resources=json.dumps([(
+                    o.pk,
+                    o.name,
+                    o.format_type.extension,
+                    o.created_on.isoformat() if o.created_on else None,
+                    o.last_update.isoformat() if o.last_update else None,
+                    o.get_restricted_level_display(),
+                    str(o.ckan_id)
+                    ) for o in Resource.objects.filter(dataset=instance)]))
 
         if not form.is_valid():
             errors = form._errors.get('__all__', [])
             errors and messages.error(request, ' '.join(errors))
-
-            if instance:
-                context.update(
-                    dataset_name=three_suspension_points(instance.name),
-                    dataset_ckan_slug=instance.ckan_slug,
-                    dataset_id=instance.id,
-                    resources=json.dumps([(
-                        o.pk,
-                        o.name,
-                        o.format_type.extension,
-                        o.created_on.isoformat() if o.created_on else None,
-                        o.last_update.isoformat() if o.last_update else None,
-                        o.get_restricted_level_display(),
-                        str(o.ckan_id)
-                        ) for o in Resource.objects.filter(dataset=instance)]))
-
             return render_with_info_profile(request, self.template, context)
 
         try:
             with transaction.atomic():
                 instance = form.handle_me(request, id=id)
         except ValidationError as e:
-            messages.error(request, str(e))
+            messages.error(request, ' '.join(e))
         except CkanSyncingError as e:
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
