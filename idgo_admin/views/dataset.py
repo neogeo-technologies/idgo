@@ -180,15 +180,16 @@ class DatasetManager(View):
         else:
             messages.success(request, (
                 'Le jeu de données a été {0} avec succès. Souhaitez-vous '
-                '<a href="{0}">créer un nouveau jeu de données</a> ? ou '
-                '<a href="{1}">ajouter une ressource</a> ? ou bien '
-                '<a href="{2}/dataset/{3}" target="_blank">voir le jeu '
+                '<a href="{1}">créer un nouveau jeu de données</a> ? ou '
+                '<a href="{2}">ajouter une ressource</a> ? ou bien '
+                '<a href="{3}/dataset/{4}" target="_blank">voir le jeu '
                 'de données dans CKAN</a> ?').format(
                     id and 'mis à jour' or 'créé',
                     reverse(self.namespace),
                     reverse(self.namespace_resource,
                             kwargs={'dataset_id': instance.id}),
-                    CKAN_URL, instance.ckan_slug))
+                    CKAN_URL,
+                    instance.ckan_slug))
 
             if 'continue' in request.POST:
                 return HttpResponseRedirect('{0}?id={1}'.format(
