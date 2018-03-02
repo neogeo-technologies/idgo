@@ -246,19 +246,20 @@ class Resource(models.Model):
         if self.restricted_level == '2':  # Only allowed users
             ckan_params['restricted'] = json.dumps({
                 'allowed_users': ','.join(
-                    [p.user.username for p in self.profiles_allowed]),
+                    self.profiles_allowed.exists() and [
+                        p.user.username for p in self.profiles_allowed.all()] or []),
                 'level': 'only_allowed_users'})
 
         if self.restricted_level == '3':  # This organization
             ckan_params['restricted'] = json.dumps({
                 'allowed_users': ','.join(
-                    get_all_users_for_organizations(self.organisations_allowed)),
+                    get_all_users_for_organizations(self.organisations_allowed.all())),
                 'level': 'only_allowed_users'})
 
         if self.restricted_level == '4':  # Any organization
             ckan_params['restricted'] = json.dumps({
                 'allowed_users': ','.join(
-                    get_all_users_for_organizations(self.organizations_allowed)),
+                    get_all_users_for_organizations(self.organizations_allowed.all())),
                 'level': 'only_allowed_users'})
 
         if self.referenced_url:
