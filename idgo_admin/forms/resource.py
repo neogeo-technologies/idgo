@@ -14,24 +14,15 @@
 # under the License.
 
 
-from decimal import Decimal
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.files import File
 from django import forms
 from django.utils import timezone
-from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.exceptions import SizeLimitExceededError
-from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
-from idgo_admin.utils import download
 from idgo_admin.utils import readable_file_size
-import json
-from pathlib import Path
 
 
 try:

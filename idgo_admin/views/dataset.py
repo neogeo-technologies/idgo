@@ -42,6 +42,7 @@ from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
+from idgo_admin.models import Support
 from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
@@ -52,6 +53,10 @@ import json
 
 CKAN_URL = settings.CKAN_URL
 READTHEDOC_URL = settings.READTHEDOC_URL
+
+SUPPORTS = dict(
+    (item.pk, {'name': item.name, 'email': item.email})
+    for item in Support.objects.all())
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
@@ -115,6 +120,7 @@ class DatasetManager(View):
                        (o.pk, o.license.pk) for o
                        in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
                    'resources': json.dumps(resources),
+                   'supports': json.dumps(SUPPORTS),
                    'tags': json.dumps(ckan.get_tags())}
 
         return render_with_info_profile(request, self.template, context=context)
@@ -126,6 +132,7 @@ class DatasetManager(View):
         user, profile = user_and_profile(request)
 
         context = {
+            'supports': json.dumps(SUPPORTS),
             'first_name': user.first_name,
             'last_name': user.last_name,
             'dataset_name': 'Nouveau',

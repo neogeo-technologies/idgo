@@ -163,6 +163,23 @@ $(function() {
 		$('label[for="' + this.id + '"]').addClass('active');
 	});
 
+	const supports = {{ supports | safe }}
+
+	$('select[name="{{ form.support.name }}"]').change(function(e) {
+		let name;
+		let email;
+		if (supports[this.value]) {
+			name = supports[this.value]['name'];
+			email = supports[this.value]['email'];
+		} else {
+			name = 'Plateforme DataSud';
+			email = 'contact@datasud.fr';
+		};
+		$('input[name="{{ form.broadcaster_name.name }}"]').prop('placeholder', name)
+		$('input[name="{{ form.broadcaster_email.name }}"]').prop('placeholder', email)
+	});
+
+
 	const $name = $('[name="{{ form.name.name }}"]')
 	const $ckanSlug = $('[name="{{ form.ckan_slug.name }}"]').prop('readonly', true);
 

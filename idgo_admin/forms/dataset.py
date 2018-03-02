@@ -220,10 +220,9 @@ class DatasetForm(forms.ModelForm):
             '{} (valeur par défaut)'.format(owner.email)
 
         self.fields['broadcaster_name'].widget.attrs['placeholder'] = \
-            'Laissez vide pour appliquer la valeur par défaut'.format(owner.get_full_name())
-
+            instance and instance.support and instance.support.name or 'Plateforme DataSud'
         self.fields['broadcaster_email'].widget.attrs['placeholder'] = \
-            'Laissez vide pour appliquer la valeur par défaut'.format(owner.email)
+            instance and instance.support and instance.support.email or 'contact@datasud.fr'
 
     def clean(self):
 
