@@ -54,10 +54,6 @@ import json
 CKAN_URL = settings.CKAN_URL
 READTHEDOC_URL = settings.READTHEDOC_URL
 
-SUPPORTS = dict(
-    (item.pk, {'name': item.name, 'email': item.email})
-    for item in Support.objects.all())
-
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
@@ -120,7 +116,9 @@ class DatasetManager(View):
                        (o.pk, o.license.pk) for o
                        in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
                    'resources': json.dumps(resources),
-                   'supports': json.dumps(SUPPORTS),
+                   'supports': json.dumps(dict(
+                       (item.pk, {'name': item.name, 'email': item.email})
+                       for item in Support.objects.all())),
                    'tags': json.dumps(ckan.get_tags())}
 
         return render_with_info_profile(request, self.template, context=context)
@@ -132,7 +130,9 @@ class DatasetManager(View):
         user, profile = user_and_profile(request)
 
         context = {
-            'supports': json.dumps(SUPPORTS),
+            'supports': json.dumps(dict(
+                (item.pk, {'name': item.name, 'email': item.email})
+                for item in Support.objects.all())),
             'first_name': user.first_name,
             'last_name': user.last_name,
             'dataset_name': 'Nouveau',
