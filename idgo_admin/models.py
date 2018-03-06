@@ -1367,7 +1367,8 @@ class Dataset(models.Model):
                 profile.user.username, organisation_ckan_id)
 
         ckan_dataset = \
-            ckan_user.publish_dataset(id=str(self.ckan_id), **ckan_params)
+            ckan_user.publish_dataset(
+                id=self.ckan_id and str(self.ckan_id), **ckan_params)
 
         ckan_user.close()
 
