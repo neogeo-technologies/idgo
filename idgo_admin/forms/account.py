@@ -100,22 +100,25 @@ class SignInForm(MamaLoginForm):
     def clean(self):
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
-
         if username and password:
             try:
                 self.user = authenticate(
                     request=self.request, username=username, password=password)
-            except Exception:
-                raise ValidationError("Erreur interne d'authentification")
+            except Exception as e:
+                raise ValidationError(e.__str__())
 
             if self.user is None:
                 self.add_error('username', "Vérifiez votre nom d'utilisateur")
                 self.add_error('password', 'Vérifiez votre mot de passe')
-                raise ValidationError('error')
+                raise ValidationError('User is not found')
             else:
+                ckan_user = ckan.get_user(username)
+                if ckan_user and ckan_user['state'] == 'deleted':
+                    self.add_error('username', "Erreur interne d'authentification")
+                    raise ValidationError('CKAN user is deleted')
                 if not self.user.is_active:
                     self.add_error('username', "Ce compte n'est pas activé")
-                    raise ValidationError('error')
+                    raise ValidationError('User is not activate')
 
         return self.cleaned_data
 
