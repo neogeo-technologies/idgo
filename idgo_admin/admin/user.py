@@ -386,6 +386,16 @@ class MyUserChangeForm(UserChangeForm):
                 raise forms.ValidationError("Cette adresse est reservée")
         return email
 
+    def save(self, commit=True, *args, **kwargs):
+        user = super(UserCreationForm, self).save(commit=False)
+        try:
+            ckan.update_user(user)
+        except Exception as e:
+            raise forms.ValidationError("La modification de l'utilisateur sur CKAN a échoué: {}".format(e))
+        if commit:
+            user.save()
+        return user
+
 
 class MyUserCreationForm(UserCreationForm):
 
@@ -436,8 +446,8 @@ class MyUserCreationForm(UserCreationForm):
         try:
             ckan.add_user(user, pass_generated)
         except Exception as e:
-            ValidationError(
-                "L'ajout de l'utilisateur sur CKAN à echoué: {}".format(e)
+            raise ValidationError(
+                "L'ajout de l'utilisateur sur CKAN a échoué: {}".format(e)
                 )
         user.set_password(pass_generated)
         if commit:

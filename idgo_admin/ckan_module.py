@@ -290,8 +290,9 @@ class CkanManagerHandler(metaclass=Singleton):
             'description': organization.description})
 
         try:
-            ckan_organization['image_url'] = \
-                urljoin(settings.DOMAIN_NAME, organization.logo.url)
+            if organization.logo:
+                ckan_organization['image_url'] = \
+                    urljoin(settings.DOMAIN_NAME, organization.logo.url)
         except ValueError:
             pass
 
