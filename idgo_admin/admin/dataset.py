@@ -14,14 +14,14 @@
 # under the License.
 
 
-from django.contrib.auth.models import User
 from django.contrib import admin
+from django.contrib.auth.models import User
 from django import forms
 from django.forms.models import BaseInlineFormSet
 from idgo_admin.models import Dataset
+from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
-from idgo_admin.models import Profile
 
 
 class ResourceFormatsAdmin(admin.ModelAdmin):
