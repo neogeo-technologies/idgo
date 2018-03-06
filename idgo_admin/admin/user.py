@@ -444,7 +444,7 @@ class MyUserCreationForm(UserCreationForm):
         user = super(UserCreationForm, self).save(commit=False)
         pass_generated = self.password_generator()
         try:
-            ckan.add_user(user, pass_generated)
+            ckan.add_user(user, pass_generated, state='active')
         except Exception as e:
             raise ValidationError(
                 "L'ajout de l'utilisateur sur CKAN a échoué: {}".format(e)

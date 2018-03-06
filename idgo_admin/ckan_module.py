@@ -217,13 +217,13 @@ class CkanManagerHandler(metaclass=Singleton):
         return self.get_user(username) and True or False
 
     @CkanExceptionsHandler()
-    def add_user(self, user, password):
+    def add_user(self, user, password, state='deleted'):
         params = {'email': user.email,
                   'fullname': user.get_full_name(),
                   'name': user.username,
                   'password': password,
                   'activity_streams_email_notifications': True,
-                  'state': 'deleted'}
+                  'state': state}
         user = self.call_action('user_create', **params)
 
     @CkanExceptionsHandler()
