@@ -116,10 +116,10 @@
 	<div class="row">
 		<div class="col-md-4">
 			{% if organizations|length > 10 %}
-			<div class="input-group">
-				<input name="organization" type="text" class="form-control typeahead" placeholder="Rechercher l'organisation...">
+			<div class="input-group typeahead">
+				<input name="organization" type="text" class="form-control" placeholder="Rechercher l'organisation..."></input>
 				<span class="input-group-btn">
-					<button type="button" class="btn btn-primary">
+					<button type="button" class="btn btn-primary disabled" disabled>
 						<span class="glyphicon glyphicon-search"></span>
 					</button>
 				</span>
@@ -518,22 +518,29 @@ $(function() {
 		});
 	};
 
-	$('.typeahead[name="organization"]').typeahead({
-		source: (function() {
-			var arr = [];
-			{% for item in organizations %}
-			arr.push({'id': {{ item.pk }}, 'name': '{{ item.name }}'});
-			{% endfor %}
-			return arr;
-		})(),
-		autoSelect: true,
-		afterSelect: function(val) {
-			selectRowByDataId(val.id);
-		}
-	});
+	const $typeahead = $('.typeahead input[name="organization"]')
+		.on('input', function(e) {
+			this.value.length > 0 ? activateButton($typeaheadButton) : deactivateButton($typeaheadButton);
+		})
+		.typeahead({
+			source: (function() {
+				var arr = [];
+				{% for item in organizations %}
+				arr.push({'id': {{ item.pk }}, 'name': '{{ item.name }}'});
+				{% endfor %}
+				return arr;
+			})(),
+			autoSelect: true,
+			fitToElement: true,
+			afterSelect: function(val) {
+				deactivateButton($typeaheadButton);
+				selectRowByDataId(val.id);
+			}
+		});
 
-	$('.typeahead button').click(function(e) {
-		alert('TODO');
+	const $typeaheadButton = $('.typeahead button').click(function(e) {
+		const selected = $typeahead.typeahead("getActive");
+		selected && selectRowByDataId(selected['id']);
 	});
 
 	$.each($('.label-name'), function(){
