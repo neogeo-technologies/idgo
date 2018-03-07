@@ -17,8 +17,8 @@
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import UserChangeForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 from django.contrib.gis import admin as geo_admin
@@ -60,7 +60,7 @@ class CustomLiaisonsReferentsModelForm(forms.ModelForm):
     fields = '__all__'
 
     def __init__(self, *args, **kwargs):
-        super(CustomLiaisonsReferentsModelForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['organisation'].queryset = Organisation.objects.filter(is_active=True)
 
 
@@ -70,7 +70,7 @@ class CustomLiaisonsContributeursModelForm(forms.ModelForm):
     fields = '__all__'
 
     def __init__(self, *args, **kwargs):
-        super(CustomLiaisonsContributeursModelForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['organisation'].queryset = Organisation.objects.filter(is_active=True)
         self.fields['organisation'].initial = None
 
@@ -79,22 +79,22 @@ class LiaisonReferentsInline(admin.TabularInline):
     model = LiaisonsReferents
     form = CustomLiaisonsReferentsModelForm
     extra = 0
-    verbose_name_plural = "organisations pour lesquelles l'utilisateur est référent technique"
-    verbose_name = "organisation"
+    verbose_name_plural = "Organisations pour lesquelles l'utilisateur est référent technique"
+    verbose_name = "Organisation"
 
 
 class LiaisonsContributeursInline(admin.TabularInline):
     model = LiaisonsContributeurs
     form = CustomLiaisonsContributeursModelForm
     extra = 0
-    verbose_name_plural = "organisations pour lesquelles l'utilisateur est contributeur"
-    verbose_name = "organisation"
+    verbose_name_plural = "Organisations pour lesquelles l'utilisateur est contributeur"
+    verbose_name = "Organisation"
 
 
 class AccountActionsInline(admin.TabularInline):
     model = AccountActions
-    verbose_name_plural = "actions de validation"
-    verbose_name = "actions de validation"
+    verbose_name_plural = "Actions de validation"
+    verbose_name = "Action de validation"
     ordering = ('closed', 'created_on', )
     can_delete = False
     extra = 0
@@ -151,7 +151,7 @@ class ProfileAddForm(forms.ModelForm):
         if self.cleaned_data.get('organisation'):
             self.cleaned_data.update(membership=True)
         if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
-            raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé")
+            raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé.")
         return self.cleaned_data
 
 
@@ -170,7 +170,7 @@ class ProfileChangeForm(forms.ModelForm):
 
     def clean(self):
         if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
-            raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé")
+            raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé.")
         return self.cleaned_data
 
 
@@ -197,7 +197,7 @@ class ProfileAdmin(admin.ModelAdmin):
         if obj:
             return ProfileChangeForm
         else:
-            return super(ProfileAdmin, self).get_form(request, obj=None, **kwargs)
+            return super().get_form(request, obj=None, **kwargs)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -214,7 +214,7 @@ class ProfileAdmin(admin.ModelAdmin):
         return False
 
     def get_actions(self, request):
-        actions = super(ProfileAdmin, self).get_actions(request)
+        actions = super().get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
@@ -245,7 +245,7 @@ class ProfileAdmin(admin.ModelAdmin):
     def save_formset(self, request, form, formset, change):
         # Si les TabularInlines ne concernent pas les Liaisons Orga
         if formset.model not in (LiaisonsReferents, LiaisonsContributeurs, ):
-            return super(ProfileAdmin, self).save_formset(request, form, formset, change)
+            return super().save_formset(request, form, formset, change)
 
         # On s'occupe d'abord des Contributeur pour eviter les doublons
         if formset.model is LiaisonsContributeurs:
@@ -322,7 +322,7 @@ class ProfileAdmin(admin.ModelAdmin):
                 else:
                     self.message_user(
                         request,
-                        'Le compte utilisateur a bien été supprimé'
+                        'Le compte utilisateur a bien été supprimé.'
                         )
                     url = reverse(
                         'admin:idgo_admin_profile_changelist',
@@ -383,15 +383,15 @@ class MyUserChangeForm(UserChangeForm):
         if 'email' in self.changed_data:
             email = self.cleaned_data['email']
             if User.objects.filter(email=email).exists():
-                raise forms.ValidationError("Cette adresse est reservée")
+                raise forms.ValidationError("Cette adresse est reservée.")
         return email
 
     def save(self, commit=True, *args, **kwargs):
-        user = super(UserCreationForm, self).save(commit=False)
+        user = super().save(commit=False)
         try:
             ckan.update_user(user)
         except Exception as e:
-            raise forms.ValidationError("La modification de l'utilisateur sur CKAN a échoué: {}".format(e))
+            raise forms.ValidationError("La modification de l'utilisateur sur CKAN a échoué: {}.".format(e))
         if commit:
             user.save()
         return user
@@ -422,7 +422,7 @@ class MyUserCreationForm(UserCreationForm):
     def clean_username(self):
         username = self.cleaned_data['username']
         if User.objects.filter(username=username).exists() or ckan.is_user_exists(username):
-            raise forms.ValidationError("Ce nom d'utilisateur est reservé")
+            raise forms.ValidationError("Ce nom d'utilisateur est reservé.")
         return username
 
     def clean_email(self):
@@ -441,13 +441,13 @@ class MyUserCreationForm(UserCreationForm):
                 )
 
     def save(self, commit=True, *args, **kwargs):
-        user = super(UserCreationForm, self).save(commit=False)
+        user = super().save(commit=False)
         pass_generated = self.password_generator()
         try:
-            ckan.add_user(user, pass_generated)
+            ckan.add_user(user, pass_generated, state='active')
         except Exception as e:
             raise ValidationError(
-                "L'ajout de l'utilisateur sur CKAN a échoué: {}".format(e)
+                "L'ajout de l'utilisateur sur CKAN a échoué: {}.".format(e)
                 )
         user.set_password(pass_generated)
         if commit:
@@ -493,7 +493,7 @@ class UserAdmin(AuthUserAdmin):
         return False
 
     def get_actions(self, request):
-        actions = super(UserAdmin, self).get_actions(request)
+        actions = super().get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions

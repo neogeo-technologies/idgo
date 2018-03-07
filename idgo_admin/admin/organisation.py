@@ -16,9 +16,10 @@
 
 from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
+from django import forms
 from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
-from django import forms
+
 
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
