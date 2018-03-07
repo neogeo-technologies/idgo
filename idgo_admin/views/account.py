@@ -99,7 +99,6 @@ class SignIn(MamaLoginView):
     def form_valid(self, form):
         login(self.request, form.user)
 
-
         if form.cleaned_data.get('warn'):
             self.request.session['warn'] = True
 
