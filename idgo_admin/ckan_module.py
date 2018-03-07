@@ -84,6 +84,7 @@ class CkanExceptionsHandler(object):
             try:
                 return f(*args, **kwargs)
             except Exception as e:
+                print(e.__str__())
                 if isinstance(e, timeout_decorator.TimeoutError):
                     raise CkanTimeoutError
                 if self.is_ignored(e):
