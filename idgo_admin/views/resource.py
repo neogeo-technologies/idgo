@@ -115,10 +115,10 @@ class ResourceManager(View):
                 instance = form.handle_me(request, dataset, id=id)
 
         except CkanSyncingError as e:
-            error = {'__all__': e.__str__()}
+            error = {'__all__': [e.__str__()]}
 
         except CkanTimeoutError:
-            error = {'__all__': e.__str__()}
+            error = {'__all__': [e.__str__()]}
 
         except ValidationError as e:
             form.add_error(e.code, e.message)
