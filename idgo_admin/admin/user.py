@@ -384,7 +384,7 @@ class MyUserChangeForm(UserChangeForm):
             email = self.cleaned_data['email']
             if User.objects.filter(email=email).exists():
                 raise forms.ValidationError("Cette adresse est reservée.")
-        return email
+        return self.cleaned_data
 
     def save(self, commit=True, *args, **kwargs):
         user = super().save(commit=False)
