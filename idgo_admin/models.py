@@ -1154,9 +1154,10 @@ class Dataset(models.Model):
         ('realtime', 'Temps réel'),
         ('daily', 'Journalière'),
         ('weekly', 'Hebdomadaire'),
+        ('bimonthly ', 'Bi-mensuelle'),
         ('monthly', 'Mensuelle'),
         ('quarterly', 'Trimestrielle'),
-        ('semiannual', 'Bi-annuelle'),
+        ('biannual', 'Bi-annuelle'),
         ('annual', 'Annuelle'),
         ('Unknow', 'Inconnue'))
 
