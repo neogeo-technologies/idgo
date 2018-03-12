@@ -272,6 +272,13 @@ class CkanManagerHandler(metaclass=Singleton):
             'name': organization.ckan_slug,
             'title': organization.name,
             'description': organization.description,
+            'extras': [
+                {'key': 'email', 'value': organization.email or ''},
+                {'key': 'phone', 'value': organization.org_phone or ''},
+                {'key': 'website', 'value': organization.website or ''},
+                {'key': 'address', 'value': organization.address or ''},
+                {'key': 'postcode', 'value': organization.postcode or ''},
+                {'key': 'city', 'value': organization.city or ''}],
             'state': 'active'}
         try:
             params['image_url'] = \
@@ -288,7 +295,14 @@ class CkanManagerHandler(metaclass=Singleton):
         ckan_organization.update({
             'title': organization.name,
             'name': organization.ckan_slug,
-            'description': organization.description})
+            'description': organization.description,
+            'extras': [
+                {'key': 'email', 'value': organization.email or ''},
+                {'key': 'phone', 'value': organization.org_phone or ''},
+                {'key': 'website', 'value': organization.website or ''},
+                {'key': 'address', 'value': organization.address or ''},
+                {'key': 'postcode', 'value': organization.postcode or ''},
+                {'key': 'city', 'value': organization.city or ''}]})
 
         try:
             if organization.logo:
