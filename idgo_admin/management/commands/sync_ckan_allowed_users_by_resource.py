@@ -24,7 +24,8 @@ import json
 
 class Command(BaseCommand):
 
-    help = "Synchronisation des droits des utilisateur sur les ressources par organisations"
+    help = """Synchronisation des droits des utilisateur
+              sur les ressources par organisations."""
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)

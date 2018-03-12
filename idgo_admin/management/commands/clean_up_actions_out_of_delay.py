@@ -23,7 +23,7 @@ from idgo_admin.models import LiaisonsReferents
 
 class Command(BaseCommand):
 
-    help = 'Nettoyer les demandes obsoletes'
+    help = 'Nettoyer les demandes obsolètes.'
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)

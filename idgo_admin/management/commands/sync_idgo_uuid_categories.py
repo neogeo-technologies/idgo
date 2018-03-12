@@ -21,7 +21,7 @@ from idgo_admin.models import Category
 
 class Command(BaseCommand):
 
-    help = 'Synchroniser les catégories CKAN avec IDGO'
+    help = 'Synchroniser les catégories CKAN avec IDGO.'
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)

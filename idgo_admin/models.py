@@ -294,6 +294,9 @@ class Resource(models.Model):
             ckan_params['upload'] = self.up_file.file
             ckan_params.update(file_extras)
 
+            print(ckan_params['upload'])
+            print(file_extras)
+
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
         # de données existant mais administrateur ou un référent technique,
         # alors l'admin Ckan édite le jeu de données..

@@ -30,7 +30,9 @@ ISO_CALENDAR = datetime.now().isocalendar()
 
 class Command(BaseCommand):
 
-    help = 'Envoyer un e-mail contenant les dernières Task.'
+    help = """Envoyer un e-mail contenant les dernières Tasks exécutées ;
+              par exemple suite un une synchronisation des ressources exécutée
+              avec le script `sync_resources`."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

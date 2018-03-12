@@ -21,7 +21,7 @@ from idgo_admin.models import Organisation
 
 class Command(BaseCommand):
 
-    help = "Supprimer les organisations CKAN qui n'ont aucun jeux de données."
+    help = "Supprimer les organisations CKAN qui n'ont aucun jeu de données."
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)

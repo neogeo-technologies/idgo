@@ -25,7 +25,9 @@ NOW = timezone.now()
 
 class Command(BaseCommand):
 
-    help = 'Synchroniser les ressources'
+    help = """Synchroniser les ressources en fonction de la fréquence de
+              mise à jour de chacune (pour celles dont le champ 'dl_url'
+              est renseigné)."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

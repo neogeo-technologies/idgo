@@ -22,7 +22,7 @@ from idgo_admin.models import Support
 
 class Command(BaseCommand):
 
-    help = 'Synchroniser les tags IDGO avec CKAN'
+    help = 'Synchroniser les tags IDGO avec CKAN.'
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
