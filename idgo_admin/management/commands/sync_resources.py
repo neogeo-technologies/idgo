@@ -47,10 +47,11 @@ class Command(BaseCommand):
                     except Exception as e:
                         task.extras = {**extras, **{'error': e.__str__()}}
                         task.state = 'failed'
-                    finally:
-                        task.end = timezone.now()
+                    else:
                         task.extras = extras
                         task.state = 'succesful'
+                    finally:
+                        task.end = timezone.now()
                         task.save()
 
     def is_to_synchronized(self, instance):

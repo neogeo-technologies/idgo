@@ -15,17 +15,19 @@
 
 
 import csv
-from datetime import datetime
+# from datetime import datetime
 from django.core.mail import EmailMessage
 from django.core.management.base import BaseCommand
+from django.utils.timezone import datetime as tzdatetime
 from idgo_admin.models import Mail
 from idgo_admin.models import Resource
 from idgo_admin.models import Task
 from io import StringIO
-import time
+# import time
 
 
-ISO_CALENDAR = datetime.now().isocalendar()
+TODAY = tzdatetime.today().date()
+# ISO_CALENDAR = datetime.now().isocalendar()
 
 
 class Command(BaseCommand):
@@ -39,10 +41,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        monday = '{} {} 1'.format(ISO_CALENDAR[0], ISO_CALENDAR[1])
-        query = Task.objects.filter(
-            starting__gte=datetime.fromtimestamp(
-                time.mktime(time.strptime(monday, '%Y %W %w'))))
+        # monday = '{} {} 1'.format(ISO_CALENDAR[0], ISO_CALENDAR[1])
+        # query = Task.objects.filter(
+        #     starting__gte=datetime.fromtimestamp(
+        #         time.mktime(time.strptime(monday, '%Y %W %w'))))
+        query = Task.objects.filter(starting__gte=TODAY)
 
         data = [('state', 'starting', 'end', 'dataset_id', 'dataset_name',
                  'resource_id', 'resource_name', 'error')]
