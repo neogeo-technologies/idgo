@@ -300,5 +300,5 @@ class DatasetForm(forms.ModelForm):
 
         dataset.data_type.set(data.get('data_type', []), clear=True)
 
-        dataset.save(editor=user)
+        dataset.save(editor=user, sync_ckan=True)
         return dataset

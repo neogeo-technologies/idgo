@@ -113,7 +113,7 @@ class Resource(models.Model):
         ('never', 'Jamais'),
         ('daily', 'Quotidienne (tous les jours à minuit)'),
         ('weekly', 'Hebdomadaire (tous les lundi)'),
-        ('bimonthly ', 'Bimensuelle (1er et 15 de chaque mois)'),
+        ('bimonthly', 'Bimensuelle (1er et 15 de chaque mois)'),
         ('monthly', 'Mensuelle (1er de chaque mois)'),
         ('quarterly', 'Trimestrielle (1er des mois de janvier, avril, juillet, octobre)'),
         ('biannual', 'Semestrielle (1er janvier et 1er juillet)'),
@@ -1154,12 +1154,12 @@ class Dataset(models.Model):
         ('realtime', 'Temps réel'),
         ('daily', 'Journalière'),
         ('weekly', 'Hebdomadaire'),
-        ('bimonthly ', 'Bi-mensuelle'),
+        ('bimonthly', 'Bi-mensuelle'),
         ('monthly', 'Mensuelle'),
         ('quarterly', 'Trimestrielle'),
         ('biannual', 'Bi-annuelle'),
         ('annual', 'Annuelle'),
-        ('Unknow', 'Inconnue'))
+        ('unknow', 'Inconnue'))
 
     # Mandatory
     name = models.TextField(verbose_name='Titre', unique=True)  # unique=False est préférable...
@@ -1271,7 +1271,7 @@ class Dataset(models.Model):
                 and ckan_dataset.get('name') == slug:
             raise ValidationError("L'URL du jeu de données est réservé.")
 
-    def save(self, *args, sync_ckan=True, **kwargs):
+    def save(self, *args, sync_ckan=False, **kwargs):
         previous = self.pk and Dataset.objects.get(pk=self.pk)
 
         self._current_editor = 'editor' in kwargs \
@@ -1417,6 +1417,7 @@ class Task(models.Model):
 def pre_save_dataset(sender, instance, **kwargs):
     if not instance.ckan_slug:
         instance.ckan_slug = slugify(instance.name)
+
 
 @receiver(pre_delete, sender=Dataset)
 def pre_delete_dataset(sender, instance, **kwargs):
