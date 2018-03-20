@@ -39,6 +39,14 @@ class GenericException(Exception):
         return self.message
 
 
+class NotSupportedError(GenericException):
+    pass
+
+
+class NotOGRError(GenericException):
+    pass
+
+
 class UnexpectedError(GenericException):
     pass
 

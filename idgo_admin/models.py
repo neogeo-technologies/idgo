@@ -32,6 +32,9 @@ from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.datagis import ogr_opener
+from idgo_admin.exceptions import NotOGRError
+from idgo_admin.exceptions import NotSupportedError
 from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin.utils import download
 from idgo_admin.utils import PartialFormatter
@@ -293,6 +296,18 @@ class Resource(models.Model):
         if self.up_file and file_extras:
             ckan_params['upload'] = self.up_file.file
             ckan_params.update(file_extras)
+
+        if self.format_type.extension.lower() == 'zip':
+            try:
+                ogr_opener(self.up_file.file.name)
+            except NotSupportedError as e:
+                print(e.__class__.__qualname__)
+                pass
+            except NotOGRError as e:
+                print(e.__class__.__qualname__)
+                pass
+            except Exception as e:
+                raise e
 
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
         # de données existant mais administrateur ou un référent technique,

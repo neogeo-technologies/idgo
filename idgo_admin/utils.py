@@ -29,6 +29,7 @@ import string
 import unicodedata
 from urllib.parse import urlparse
 from uuid import uuid4
+from zipfile import ZipFile
 
 
 STATIC_ROOT = settings.STATIC_ROOT
@@ -198,3 +199,9 @@ def slugify(value, allow_unicode=False, exclude_dot=True):
         exclude_dot and r'[^\w\s-]' or r'[^\.\w\s-]', '', value).strip().lower()
 
     return mark_safe(re.sub(r'[-\s]+', '-', value))
+
+
+def unzip_zipped(zipped, target_dir=None):
+    with ZipFile(zipped) as zf:
+        print(zf)
+        # return zf.extractall(target_dir)
