@@ -1271,7 +1271,7 @@ class Dataset(models.Model):
                 and ckan_dataset.get('name') == slug:
             raise ValidationError("L'URL du jeu de données est réservé.")
 
-    def save(self, *args, sync_ckan=False, **kwargs):
+    def save(self, *args, sync_ckan=True, **kwargs):
         previous = self.pk and Dataset.objects.get(pk=self.pk)
 
         self._current_editor = 'editor' in kwargs \
