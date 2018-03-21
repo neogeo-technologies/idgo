@@ -38,6 +38,10 @@ class GenericException(Exception):
     def __str__(self):
         return self.message
 
+    @property
+    def error(self):
+        return ' '.join(self.args)
+
 
 class NotSupportedError(GenericException):
     pass

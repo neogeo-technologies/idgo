@@ -123,7 +123,16 @@ DATABASES = {
         'USER': 'username',
         'PASSWORD': 'password',
         'HOST':'hostname',
-        'PORT':'5432'}}
+        'PORT':'5432'},
+    'datagis': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'dbname_datagis',
+        'USER': 'username',
+        'PASSWORD': 'password',
+        'HOST': 'hostname',
+        'PORT': '5432'}}
+
+DATAGIS_DB = 'datagis'
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -179,6 +188,8 @@ MAMA_CAS_SERVICES = [{
         'mama_cas.callbacks.user_model_attributes'],
     'LOGOUT_ALLOW': True,
     'LOGOUT_URL': 'http://localhost/signout'}]
+
+PROJ4_EPSG_FILENAME = '/path/to/proj/epsg'
 
 ```
 

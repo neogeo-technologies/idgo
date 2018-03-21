@@ -18,6 +18,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -32,7 +33,8 @@ from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.datagis import ogr_opener
+from idgo_admin.datagis import drop_table
+from idgo_admin.datagis import ogr2postgis
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedError
 from idgo_admin.exceptions import SizeLimitExceededError
@@ -146,6 +148,10 @@ class Resource(models.Model):
 
     ckan_id = models.UUIDField(
         verbose_name='Ckan UUID', default=uuid.uuid4, editable=False)
+
+    datagis_id = ArrayField(
+        models.UUIDField(), verbose_name='DataGIS Table UUID',
+        blank=True, null=True, editable=False)
 
     description = models.TextField(
         verbose_name='Description', blank=True, null=True)
@@ -297,17 +303,23 @@ class Resource(models.Model):
             ckan_params['upload'] = self.up_file.file
             ckan_params.update(file_extras)
 
-        if self.format_type.extension.lower() == 'zip':
-            try:
-                ogr_opener(self.up_file.file.name)
-            except NotSupportedError as e:
-                print(e.__class__.__qualname__)
-                pass
-            except NotOGRError as e:
-                print(e.__class__.__qualname__)
-                pass
-            except Exception as e:
-                raise e
+            extension = self.format_type.extension.lower()
+            if extension in ('zip', 'tar'):
+                try:
+                    datagis_id = ogr2postgis(
+                        self.up_file.file.name, extension=extension)
+                except (NotSupportedError, NotOGRError) as e:
+                    print('>> ERROR: {}'.format(e.error))
+                except Exception as e:
+                    raise e
+
+                backup = self.datagis_id
+                self.datagis_id = list(datagis_id)
+                self.save(sync_ckan=False)
+
+                if backup:  # Supprimer les anciennes tables GIS
+                    for table_id in backup:
+                        drop_table(str(table_id))
 
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
         # de données existant mais administrateur ou un référent technique,
@@ -1448,6 +1460,12 @@ def post_delete_dataset(sender, instance, **kwargs):
 def post_save_resource(sender, instance, **kwargs):
     instance.dataset.date_modification = timezone.now().date()
     instance.dataset.save()
+
+
+@receiver(post_delete, sender=Resource)
+def post_delete_resource(sender, instance, **kwargs):
+    for datagis_id in instance.datagis_id:
+        drop_table(str(datagis_id))
 
 
 @receiver(pre_delete, sender=User)
