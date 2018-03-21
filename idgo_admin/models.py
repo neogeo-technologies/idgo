@@ -298,28 +298,28 @@ class Resource(models.Model):
             ckan_params['mimetype'] = content_type
             ckan_params['resource_type'] = Path(filename).name
 
-        # if uploaded_file:
-        if self.up_file and file_extras:
+        if self.up_file and file_extras:  # Si nouveau fichier (uploaded)
             ckan_params['upload'] = self.up_file.file
             ckan_params.update(file_extras)
 
+            datagis_id_backup = self.datagis_id
             extension = self.format_type.extension.lower()
             if extension in ('zip', 'tar'):
                 try:
                     datagis_id = ogr2postgis(
                         self.up_file.file.name, extension=extension)
                 except (NotSupportedError, NotOGRError) as e:
-                    print('>> ERROR: {}'.format(e.error))
-                except Exception as e:
-                    raise e
+                    pass
+                else:
+                    self.datagis_id = list(datagis_id)
+                    # TODO: ici contruire le service avec mapscript
+            else:
+                self.datagis_id = None
+            self.save(sync_ckan=False)
 
-                backup = self.datagis_id
-                self.datagis_id = list(datagis_id)
-                self.save(sync_ckan=False)
-
-                if backup:  # Supprimer les anciennes tables GIS
-                    for table_id in backup:
-                        drop_table(str(table_id))
+            if datagis_id_backup:  # Supprimer les anciennes tables GIS
+                for table_id in datagis_id_backup:
+                    drop_table(str(table_id))
 
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
         # de données existant mais administrateur ou un référent technique,
