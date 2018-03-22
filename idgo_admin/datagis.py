@@ -90,9 +90,10 @@ class OgrLayer(object):
 
     _epsg = None
     _l = None
-    _uuid = uuid4()
+    _uuid = None
 
     def __init__(self, l):
+        self._uuid = uuid4()
         self._l = l
         self._epsg = retreive_epsg(self._l.GetSpatialRef())
         if not self._epsg:
@@ -161,7 +162,7 @@ CREATE_TABLE = '''
 CREATE TABLE {schema}."{table}" (
   fid serial NOT NULL,
   {attrs},
-  {the_geom} geometry({geometry}, {epsg}),
+  {the_geom} geometry({geometry}, 4326),
   CONSTRAINT "{table}_pkey" PRIMARY KEY (fid)) WITH (OIDS=FALSE);
 ALTER TABLE {schema}."{table}" OWNER TO {owner};
 COMMENT ON TABLE {schema}."{table}" IS '{description}';
@@ -171,7 +172,7 @@ CREATE INDEX "{table}_gix" ON {schema}."{table}" USING GIST ({the_geom});'''
 
 INSERT_INTO = '''
 INSERT INTO {schema}."{table}" ({attrs_name}, {the_geom})
-VALUES ({attrs_value}, ST_GeomFromtext('{wkt}', {epsg}));'''
+VALUES ({attrs_value}, ST_Transform(ST_GeomFromtext('{wkt}', {epsg}), 4326));'''
 
 
 def ogr2postgis(filename, extension='zip'):
@@ -186,7 +187,7 @@ def ogr2postgis(filename, extension='zip'):
             attrs=',\n  '.join(
                 ['{} {}'.format(item[0], item[1]) for item in layer.columns]),
             description=layer.description,
-            epsg=layer.epsg,
+            # epsg=layer.epsg,
             geometry=layer.geometry,
             owner=OWNER,
             schema=SCHEMA,

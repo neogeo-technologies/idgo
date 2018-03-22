@@ -38,6 +38,7 @@ from idgo_admin.datagis import ogr2postgis
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedError
 from idgo_admin.exceptions import SizeLimitExceededError
+from idgo_admin.exceptions import UnexpectedError
 from idgo_admin.utils import download
 from idgo_admin.utils import PartialFormatter
 from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garder l'original
@@ -302,20 +303,21 @@ class Resource(models.Model):
             ckan_params['upload'] = self.up_file.file
             ckan_params.update(file_extras)
 
+            filename = self.up_file.file.name
+
+        if self.dl_url or (self.up_file and file_extras):
             datagis_id_backup = self.datagis_id
             extension = self.format_type.extension.lower()
             if extension in ('zip', 'tar'):
                 try:
-                    datagis_id = ogr2postgis(
-                        self.up_file.file.name, extension=extension)
+                    datagis_id = ogr2postgis(filename, extension=extension)
                 except (NotSupportedError, NotOGRError) as e:
                     pass
                 else:
                     self.datagis_id = list(datagis_id)
-                    # TODO: ici contruire le service avec mapscript
             else:
                 self.datagis_id = None
-            self.save(sync_ckan=False)
+            super().save(*args, **kwargs)
 
             if datagis_id_backup:  # Supprimer les anciennes tables GIS
                 for table_id in datagis_id_backup:
@@ -1401,7 +1403,7 @@ class Dataset(models.Model):
         ckan_user.close()
 
         self.ckan_id = uuid.UUID(ckan_dataset['id'])
-        self.save(sync_ckan=False)
+        super().save(*args, **kwargs)  # self.save(sync_ckan=False)
 
     @classmethod
     def get_subordinated_datasets(cls, profile):
