@@ -41,6 +41,7 @@ def retreive_epsg_through_proj4(proj4):
                 res = re.search('<(\d+)>', line)
                 if res:
                     return res.group(1)
+    raise NotSupportedError('SRS Not found')
 
 
 class OgrOpener(object):
@@ -115,6 +116,8 @@ def ogr2postgis(filename, extension='zip'):
 
         try:
             epsg = layer.srs.identify_epsg()
+            if not epsg:
+                raise SRSException
         except SRSException:
             epsg = retreive_epsg_through_proj4(layer.srs.proj4)
 
