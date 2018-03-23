@@ -25,6 +25,7 @@ from idgo_admin.exceptions import ConflictError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.utils import Singleton
 import timeout_decorator
+import unicodedata
 from urllib.parse import urljoin
 
 
@@ -219,8 +220,14 @@ class CkanManagerHandler(metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def add_user(self, user, password, state='deleted'):
+
+        # CKAN retourne une erreur 500
+        fullname = unicodedata.normalize(
+            'NFKD', user.get_full_name()).encode(
+                'ascii', 'ignore').decode('ascii')
+
         params = {'email': user.email,
-                  'fullname': user.get_full_name(),
+                  'fullname': fullname,
                   'name': user.username,
                   'password': password,
                   'activity_streams_email_notifications': True,
