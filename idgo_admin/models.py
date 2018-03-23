@@ -1466,8 +1466,9 @@ def post_save_resource(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Resource)
 def post_delete_resource(sender, instance, **kwargs):
-    for datagis_id in instance.datagis_id:
-        drop_table(str(datagis_id))
+    if instance.datagis_id:
+        for datagis_id in instance.datagis_id:
+            drop_table(str(datagis_id))
 
 
 @receiver(pre_delete, sender=User)
