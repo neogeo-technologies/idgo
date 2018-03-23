@@ -14,11 +14,13 @@
 # under the License.
 
 
+import datetime
 from django.conf import settings
+from django.contrib.gis.gdal import DataSource
+from django.contrib.gis.gdal.error import SRSException
 from django.db import connections
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedError
-from osgeo import ogr
 import re
 from uuid import uuid4
 
@@ -32,103 +34,13 @@ THE_GEOM = 'the_geom'
 PROJ4_EPSG_FILENAME = settings.PROJ4_EPSG_FILENAME
 
 
-def retreive_epsg(srs):
-    if srs.IsGeographic() == 1:
-        cs_type = 'GEOGCS'
-    elif srs.IsProjected() == 1:
-        cs_type = 'PROJCS'
-
-    authority_name = srs.GetAuthorityName(cs_type)
-    authority_code = srs.GetAuthorityCode(cs_type)
-    if authority_name == 'EPSG' and authority_code:
-        return authority_code
-
-    as_proj4 = srs.ExportToProj4()
-    if as_proj4:
-        with open(settings.PROJ4_EPSG_FILENAME) as stream:
-            for line in stream:
-                if line.find(as_proj4) > -1:
-                    res = re.search('<(\d+)>', line)
-                    if res:
-                        return res.group(1)
-
-
-class OgrFeature(object):
-
-    _ft = None
-
-    def __init__(self, ft):
-        self._ft = ft
-
-    @property
-    def fields(self):
-        fields = {}
-        for i in range(self._ft.GetFieldCount()):
-            fld = self._ft.GetFieldDefnRef(i)
-            fields[fld.GetName()] = self._ft.GetField(i)
-        return fields
-
-    @property
-    def wkt(self):
-        return self._ft.GetGeometryRef().ExportToWkt()
-
-
-class OgrLayer(object):
-
-    COLUMN_TYPE = (  # TODO
-        (4, 'text'),)
-
-    GEOMETRY_TYPE = (
-        # (0, 'Unknown'),
-        (1, 'Point'),
-        (2, 'LineString'),
-        (3, 'Polygon'),
-        (4, 'MultiPoint'),
-        (5, 'MULTILINESTRING'),
-        (6, 'MultiPolygon'),
-        (7, 'GeometryCollection'))
-
-    _epsg = None
-    _l = None
-    _uuid = None
-
-    def __init__(self, l):
-        self._uuid = uuid4()
-        self._l = l
-        self._epsg = retreive_epsg(self._l.GetSpatialRef())
-        if not self._epsg:
-            raise NotSupportedError('SRS is not supported.')
-
-    @property
-    def columns(self):
-        ldefn = self._l.GetLayerDefn()
-        arr = []
-        for k in range(ldefn.GetFieldCount()):
-            fdefn = ldefn.GetFieldDefn(k)
-            arr.append((
-                fdefn.GetName(),
-                dict(self.COLUMN_TYPE).get(fdefn.GetType(), 'text')))
-        return tuple(arr)
-
-    @property
-    def description(self):
-        return self._l.GetDescription()
-
-    @property
-    def epsg(self):
-        return self._epsg
-
-    @property
-    def geometry(self):
-        return dict(self.GEOMETRY_TYPE).get(self._l.GetGeomType(), 'GEOMETRY')
-
-    @property
-    def table_id(self):
-        return self._uuid
-
-    def get_features(self):
-        for i in range(self._l.GetFeatureCount()):
-            yield OgrFeature(self._l.GetFeature(i))
+def retreive_epsg_through_proj4(proj4):
+    with open(settings.PROJ4_EPSG_FILENAME) as stream:
+        for line in stream:
+            if line.find(proj4) > -1:
+                res = re.search('<(\d+)>', line)
+                if res:
+                    return res.group(1)
 
 
 class OgrOpener(object):
@@ -146,7 +58,7 @@ class OgrOpener(object):
             raise NotSupportedError(
                 "The format '{}' is not supported.".format(extension))
 
-        ds = ogr.Open('/{}/{}'.format(vsi, filename))
+        ds = DataSource('/{}/{}'.format(vsi, filename))
         if not ds:
             raise NotOGRError(
                 'The file received is not recognized as being a GIS data.')
@@ -154,8 +66,7 @@ class OgrOpener(object):
         self._datastore = ds
 
     def get_layers(self):
-        for i in range(self._datastore.GetLayerCount()):
-            yield OgrLayer(self._datastore.GetLayer(i))
+        yield from self._datastore
 
 
 CREATE_TABLE = '''
@@ -175,37 +86,81 @@ INSERT INTO {schema}."{table}" ({attrs_name}, {the_geom})
 VALUES ({attrs_value}, ST_Transform(ST_GeomFromtext('{wkt}', {epsg}), 4326));'''
 
 
+def ogr_field_2_pg(k, n=None, p=None):
+    return {
+        'OFTInteger': 'integer',
+        'OFTIntegerList': 'integer[]',
+        'OFTReal': 'numeric({n}, {p})',
+        'OFTRealList': 'numeric({n}, {p})[]',
+        'OFTString': 'varchar({n})',
+        'OFTStringList': 'varchar({n})[]',
+        'OFTWideString': 'text',
+        'OFTWideStringList': 'text[]',
+        'OFTBinary': 'bytea',
+        'OFTDate': 'date',
+        'OFTTime': 'time',
+        'OFTDateTime': 'datetime',
+        'OFTInteger64': 'integer',
+        'OFTInteger64List': 'integer[]'}.get(k, 'text').format(n=n, p=p)
+
+
 def ogr2postgis(filename, extension='zip'):
     ds = OgrOpener(filename, extension='zip')
-    sql = []
 
+    sql = []
     table_ids = []
     for layer in ds.get_layers():
-        table_ids.append(layer.table_id)
+        table_id = uuid4()
+        table_ids.append(table_id)
+
+        try:
+            epsg = layer.srs.identify_epsg()
+        except SRSException:
+            epsg = retreive_epsg_through_proj4(layer.srs.proj4)
+
+        attrs = {}
+        for i, k in enumerate(layer.fields):
+            t = ogr_field_2_pg(
+                layer.field_types[i].__qualname__,
+                n=layer.field_widths[i],
+                p=layer.field_precisions[i])
+            attrs[k] = t
 
         sql.append(CREATE_TABLE.format(
             attrs=',\n  '.join(
-                ['{} {}'.format(item[0], item[1]) for item in layer.columns]),
-            description=layer.description,
-            # epsg=layer.epsg,
-            geometry=layer.geometry,
+                ['{} {}'.format(k, v) for k, v in attrs.items()]),
+            description=layer.name,
+            epsg=epsg,
+            geometry=layer.geom_type,
             owner=OWNER,
             schema=SCHEMA,
-            table=layer.table_id,
+            table=str(table_id),
             the_geom=THE_GEOM))
 
-        for feature in layer.get_features():
+        for feature in layer:
+
+            attrs = {}
+            for field in feature.fields:
+                k = field.decode()
+                v = feature.get(k)
+                if isinstance(v, type(None)):
+                    attrs[k] = 'null'
+                elif isinstance(v, (datetime.date, datetime.time, datetime.datetime)):
+                    attrs[k] = "'{}'".format(v.isoformat())
+                elif isinstance(v, str):
+                    attrs[k] = "'{}'".format(v.replace("'", "''"))
+                else:
+                    attrs[k] = "{}".format(v)
+
             sql.append(INSERT_INTO.format(
-                attrs_name=', '.join(feature.fields.keys()),
-                attrs_value=', '.join([
-                    val and "'{}'".format(val.replace("'", "''")) or 'null'
-                    for val in feature.fields.values()]),
-                epsg=layer.epsg,
+                attrs_name=', '.join(attrs.keys()),
+                attrs_value=', '.join(attrs.values()),
+                epsg=epsg,
                 owner=OWNER,
                 schema=SCHEMA,
-                table=layer.table_id,
+                table=str(table_id),
                 the_geom=THE_GEOM,
-                wkt=feature.wkt))
+                wkt=feature.geom))
 
     with connections[DATABASE].cursor() as cursor:
         for q in sql:
