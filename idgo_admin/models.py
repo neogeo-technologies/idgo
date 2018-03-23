@@ -1424,7 +1424,7 @@ def pre_delete_dataset(sender, instance, **kwargs):
     ckan.purge_dataset(instance.ckan_slug)
 
 
-@receiver(pre_delete, sender=Dataset)
+@receiver(post_delete, sender=Dataset)
 def post_delete_dataset(sender, instance, **kwargs):
     ckan.deactivate_ckan_organization_if_empty(str(instance.organisation.ckan_id))
 
