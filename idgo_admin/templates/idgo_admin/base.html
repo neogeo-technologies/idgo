@@ -197,7 +197,7 @@ $(document).ajaxSend(function(e, xhr, settings) {
 			<div class="container">
 				<div class="row">
 					<div class="col-xs-12">
-						<p>© 2017 - Région Provence-Alpes-Côte d'Azur et CRIGE PACA | Tous droits réservés | Propulsé par <a href='http://www.neogeo.fr' target="blank">Neogeo-Technologies</a></p>
+						<p>© <span name="current-year"></span> - Région Provence-Alpes-Côte d'Azur et CRIGE PACA | Tous droits réservés | Propulsé par <a href='http://www.neogeo.fr' target="blank">Neogeo-Technologies</a></p>
 					</div>
 				</div>
 			</div>
@@ -279,6 +279,7 @@ $(function() {
 	});
 	const fragments = window.location.hash.split('/');
 	$('a[href="' + ((HASH_MENU.indexOf(fragments[0]) === -1) ? HASH_MENU[0] : fragments[0]) + '"]').tab('show');
+	$('[name="current-year"]').text((new Date()).getFullYear());
 });
 	</script>
 </html>

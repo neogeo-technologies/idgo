@@ -73,14 +73,14 @@ class UserResetPassword(forms.Form):
         self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le nouveau mot de passe'
 
     def clean(self):
-        if self.cleaned_data['password1'] != self.cleaned_data['password2']:
+        if self.cleaned_data.get('password1') != self.cleaned_data.get('password2'):
             self.add_error('password1', 'Vérifiez les mots de passe')
             self.add_error('password2', '')
             raise ValidationError('Les mots de passe ne sont pas identiques.')
         return self.cleaned_data
 
     def save(self, request, user):
-        password = self.cleaned_data['password1']
+        password = self.cleaned_data.get('password1')
         if password:
             user.set_password(password)
             user.save()
@@ -247,18 +247,18 @@ class SignUpForm(forms.Form):
 
     def clean(self):
 
-        username = self.cleaned_data['username']
+        username = self.cleaned_data.get('username')
         if User.objects.filter(username=username).exists() or ckan.is_user_exists(username):
             self.add_error('username', "Ce nom d'utilisateur est reservé.")
 
-        email = self.cleaned_data['email']
+        email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
-            self.add_error('email', "Ce courriel est reservé.")
+            self.add_error('email', 'Ce courriel est reservé.')
 
-        password1 = self.cleaned_data.get("password1", None)
-        password2 = self.cleaned_data.get("password2", None)
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
         if password1 and password2 and password1 != password2:
-            self.add_error('password2', "Vérifiez les mots de passes.")
+            self.add_error('password2', 'Vérifiez les mots de passes.')
         self.cleaned_data['password'] = self.cleaned_data.pop('password1')
 
         return self.cleaned_data
@@ -277,23 +277,23 @@ class SignUpForm(forms.Form):
 
     @property
     def create_organisation(self):
-        return self.cleaned_data.get('new_orga', None)
+        return self.cleaned_data.get('new_orga')
 
     @property
     def cleaned_organisation_data(self):
-        data = dict((item, self.cleaned_data[item])
+        data = dict((item, self.cleaned_data.get(item))
                     for item in self.Meta.organisation_fields)
         data['name'] = data.pop('new_orga')
         return data
 
     @property
     def cleaned_user_data(self):
-        return dict((item, self.cleaned_data[item])
+        return dict((item, self.cleaned_data.get(item))
                     for item in self.Meta.user_fields)
 
     @property
     def cleaned_profile_data(self):
-        return dict((item, self.cleaned_data[item])
+        return dict((item, self.cleaned_data.get(item))
                     for item in self.Meta.profile_fields)
 
 
@@ -335,9 +335,9 @@ class UpdateAccountForm(forms.ModelForm):
             self.fields['phone'].initial = self._instance.profile.phone
 
     def clean(self):
-        email = self.cleaned_data['email']
+        email = self.cleaned_data.get('email')
         if email != self._instance.email and User.objects.filter(email=email).exists():
-            self.add_error('email', "Ce courriel est reservé.")
+            self.add_error('email', 'Ce courriel est reservé.')
 
         password = self.cleaned_data.pop('password1')
         if password != self.cleaned_data.pop('password2'):
@@ -350,4 +350,4 @@ class UpdateAccountForm(forms.ModelForm):
 
     @property
     def new_password(self):
-        return self.cleaned_data.get('password', None)
+        return self.cleaned_data.get('password')
