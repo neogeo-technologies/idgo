@@ -38,7 +38,6 @@ from idgo_admin.datagis import ogr2postgis
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedError
 from idgo_admin.exceptions import SizeLimitExceededError
-from idgo_admin.exceptions import UnexpectedError
 from idgo_admin.utils import download
 from idgo_admin.utils import PartialFormatter
 from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garder l'original
@@ -188,7 +187,7 @@ class Resource(models.Model):
 
     dataset = models.ForeignKey(
         to='Dataset', verbose_name='Jeu de données',
-        on_delete=models.CASCADE, blank=True, null=True)
+        on_delete=models.SET_NULL, blank=True, null=True)
 
     bbox = models.PolygonField(
         verbose_name='Rectangle englobant', blank=True, null=True)
@@ -317,7 +316,7 @@ class Resource(models.Model):
                     self.datagis_id = list(datagis_id)
             else:
                 self.datagis_id = None
-            super().save(*args, **kwargs)
+            super().save()
 
             if datagis_id_backup:  # Supprimer les anciennes tables GIS
                 for table_id in datagis_id_backup:
@@ -1403,7 +1402,7 @@ class Dataset(models.Model):
         ckan_user.close()
 
         self.ckan_id = uuid.UUID(ckan_dataset['id'])
-        super().save(*args, **kwargs)  # self.save(sync_ckan=False)
+        super().save()  # self.save(sync_ckan=False)
 
     @classmethod
     def get_subordinated_datasets(cls, profile):
@@ -1450,6 +1449,7 @@ def pre_save_dataset(sender, instance, **kwargs):
 
 @receiver(pre_delete, sender=Dataset)
 def pre_delete_dataset(sender, instance, **kwargs):
+    Resource.objects.filter(dataset=instance).delete()
     ckan.purge_dataset(instance.ckan_slug)
 
 
