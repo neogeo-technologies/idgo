@@ -121,7 +121,7 @@ class DatasetForm(forms.ModelForm):
     date_creation = forms.DateField(
         label='Date de création',
         required=False,
-        widget=forms.TextInput(
+        widget=forms.DateInput(
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
@@ -130,7 +130,7 @@ class DatasetForm(forms.ModelForm):
     date_modification = forms.DateField(
         label='Date de dernière modification',
         required=False,
-        widget=forms.TextInput(
+        widget=forms.DateInput(
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
@@ -139,7 +139,7 @@ class DatasetForm(forms.ModelForm):
     date_publication = forms.DateField(
         label='Date de publication',
         required=False,
-        widget=forms.TextInput(
+        widget=forms.DateInput(
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
