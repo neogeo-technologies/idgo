@@ -19,6 +19,7 @@ from ckanapi import errors as CkanError
 from ckanapi import RemoteCKAN
 from datetime import datetime
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from functools import wraps
 from idgo_admin.exceptions import ConflictError
@@ -90,6 +91,16 @@ class CkanExceptionsHandler(object):
                     raise CkanTimeoutError
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
+                if e.__class__.__qualname__ == 'ValidationError':
+                    try:
+                        err = e.error_dict
+                        del err['__type']
+                        msg = ', '.join([
+                            '"{0}" {1}'.format(k, ', '.join(v))
+                            for k, v in err.items()])
+                    except Exception:
+                        msg = e.__str__()
+                    raise ValidationError(msg)
                 if e.__str__() in ('Indisponible', 'Not Found'):
                     raise CkanNotFoundError
                 raise CkanSyncingError(e.__str__())

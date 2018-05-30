@@ -366,7 +366,7 @@ class SignUp(View):
 
                 ckan.add_user(profile.user, form.cleaned_user_data['password'])
         except ValidationError as e:
-            messages.error(request, e.__str__())
+            messages.error(request, e.message)
             return render(request, self.template, context={'form': form})
         except CkanSyncingError as e:
             form.add_error('__all__', e.__str__())
@@ -451,7 +451,7 @@ class UpdateAccount(View):
                 ckan.update_user(user)
 
         except ValidationError as e:
-            messages.error(request, e.__str__())
+            messages.error(request, e.message)
             return render_with_info_profile(
                 request, self.template, context={'form': form})
         except CkanSyncingError as e:
