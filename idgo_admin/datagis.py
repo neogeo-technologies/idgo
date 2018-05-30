@@ -27,6 +27,7 @@ from uuid import uuid4
 
 DATABASE = settings.DATAGIS_DB
 OWNER = settings.DATABASES[DATABASE]['USER']
+MRA_DATAGIS_USER = settings.MRA['DATAGIS_DB_USER']
 
 SCHEMA = 'public'
 THE_GEOM = 'the_geom'
@@ -79,7 +80,9 @@ CREATE TABLE {schema}."{table}" (
 ALTER TABLE {schema}."{table}" OWNER TO {owner};
 COMMENT ON TABLE {schema}."{table}" IS '{description}';
 CREATE UNIQUE INDEX "{table}_fid" ON {schema}."{table}" USING btree (fid);
-CREATE INDEX "{table}_gix" ON {schema}."{table}" USING GIST ({the_geom});'''
+CREATE INDEX "{table}_gix" ON {schema}."{table}" USING GIST ({the_geom});
+GRANT SELECT ON TABLE  {schema}."{table}" TO {mra_datagis_user};
+'''
 
 
 INSERT_INTO = '''
@@ -136,6 +139,7 @@ def ogr2postgis(filename, extension='zip'):
             epsg=epsg,
             geometry=layer.geom_type,
             owner=OWNER,
+            mra_datagis_user=MRA_DATAGIS_USER,
             schema=SCHEMA,
             table=str(table_id),
             the_geom=THE_GEOM))

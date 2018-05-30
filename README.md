@@ -134,6 +134,12 @@ DATABASES = {
 
 DATAGIS_DB = 'datagis'
 
+MRA = {
+    'URL': 'http://127.0.0.1/mra',
+    'USERNAME': 'username',
+    'PASSWORD': 'password',
+    'DATAGIS_DB_USER': 'username'}
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},

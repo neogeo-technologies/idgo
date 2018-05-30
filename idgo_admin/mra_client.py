@@ -19,15 +19,15 @@ from django.conf import settings
 from functools import reduce
 from functools import wraps
 from idgo_admin.exceptions import GenericException
-from requests.exceptions import HTTPError
+from idgo_admin.utils import Singleton
 from requests import request
 import timeout_decorator
 from urllib.parse import urljoin
 
 
 MRA = settings.MRA
-MRA_TIMEOUT = settings.MRA.get('TIMEOUT', 3600)
-
+MRA_TIMEOUT = MRA.get('TIMEOUT', 3600)
+MRA_DATAGIS_USER = MRA['DATAGIS_DB_USER']
 DB_SETTINGS = settings.DATABASES[settings.DATAGIS_DB]
 
 
@@ -58,6 +58,11 @@ class MRASyncingError(GenericException):
         super().__init__(*args, **kwargs)
 
 
+class MRANotFoundError(GenericException):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
 class MRATimeoutError(MRASyncingError):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -74,12 +79,16 @@ class MRAExceptionsHandler(object):
             try:
                 return f(*args, **kwargs)
             except Exception as e:
-                print(e.__str__())
+                if self.is_ignored(e):
+                    return f(*args, **kwargs)
+                if e.__class__.__qualname__ == 'HTTPError':
+                    if e.response.status_code == 404:
+                        raise MRANotFoundError
                 if isinstance(e, timeout_decorator.TimeoutError):
                     raise MRATimeoutError
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
-
+                print(e)
                 raise MRASyncingError(e.__str__())
         return wrapper
 
@@ -94,104 +103,138 @@ class MRAClient(object):
         self.auth = (username and password) and (username, password)
 
     @timeout
-    def _req(self, method, url, params, **kwargs):
+    def _req(self, method, url, **kwargs):
         kwargs.setdefault('allow_redirects', True)
+        kwargs.setdefault('headers', {'content-type': 'application/json'})
+        # TODO pretty:
+        url = '{}.json'.format(
+            reduce(urljoin, (self.base_url,) + tuple(m + '/' for m in url))[:-1])
+        print(url)
 
-        print(reduce(urljoin, self.base_url + url))
-
-        r = request(
-            method, reduce(urljoin, self.base_url + url),
-            params=params, auth=self.auth, **kwargs)
-
-        try:
-            self.raise_for_status()
-        except HTTPError as e:
-            raise MRASyncingError(e.__str__())
+        r = request(method, url, auth=self.auth, **kwargs)
+        r.raise_for_status()
         return r
 
-    def get(self, *url, **params):
-        return self._req('get', url, params)
+    def get(self, *url, **kwargs):
+        return self._req('get', url, **kwargs)
 
-    def post(self, *url, **params):
-        return self._req('post', url, params)
+    def post(self, *url, **kwargs):
+        return self._req('post', url, **kwargs)
 
-    def put(self, *url, **params):
-        return self._req('put', url, params)
+    def put(self, *url, **kwargs):
+        return self._req('put', url, **kwargs)
 
-    def delete(self, *url, **params):
-        return self._req('delete', url, params)
+    def delete(self, *url, **kwargs):
+        return self._req('delete', url, **kwargs)
 
 
-class MRAHandler(object):
+class MRAHandler(metaclass=Singleton):
 
     def __init__(self, *args, **kwargs):
-        self.remote = MRAClient(MRA['URL'])
+        self.remote = MRAClient(
+            MRA['URL'], username=MRA['USERNAME'], password=MRA['PASSWORD'])
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def get_workspace(self, ws_name):
+        return self.remote.get('workspaces', ws_name)
+
+    @MRAExceptionsHandler()
+    def del_workspace(self, ws_name):
+        self.remote.delete('workspaces', ws_name)
+
+    @MRAExceptionsHandler()
+    def create_workspace(self, ws_name):
+        json = {
+            'workspace': {
+                'name': ws_name}}
+
+        self.remote.post('workspaces', json=json)
+
+        return self.get_workspace(ws_name)
 
     def get_or_create_workspace(self, ws_name):
         try:
-            return self.remote.get('workspaces', ws_name)
-        except DoesNotExists as e:
+            return self.get_workspace(ws_name)
+        except MRANotFoundError:
             pass
-        body = {'workspace': {'name': ws_name}}
-        self.remote.post('workspaces', ws_name, body=body)
+        return self.create_workspace(ws_name)
 
-        self.add_datastore(ws_name, 'public')
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def get_datastore(self, ws_name, ds_name):
+        return self.remote.get('workspaces', ws_name,
+                               'datastores', ds_name)
 
-    def add_datastore(self, ws_name, ds_name):
-        body = {
+    @MRAExceptionsHandler()
+    def del_datastore(self, ws_name, ds_name):
+        self.remote.delete('workspaces', ws_name,
+                           'datastores', ds_name)
+
+    @MRAExceptionsHandler()
+    def create_datastore(self, ws_name, ds_name):
+        json = {
             'dataStore': {
                 'name': ds_name,
-                'enabled': True,
                 'connectionParameters': {
                     'host': DB_SETTINGS['HOST'],
-                    'user': DB_SETTINGS['USER'],
+                    'user': MRA_DATAGIS_USER,
                     'database': DB_SETTINGS['NAME'],
                     'dbtype': DB_SETTINGS['ENGINE'].split('.')[-1],
                     'password': DB_SETTINGS['PASSWORD'],
                     'port': DB_SETTINGS['PORT']}}}
-        self.remote.post(
-            'workspaces', ws_name, 'datastores', ds_name, body=body)
 
-    def del_workspace(self, ws_name):
-        self.remote.delete('workspaces', ws_name)
+        self.remote.post('workspaces', ws_name,
+                         'datastores', json=json)
+
+        return self.get_datastore(ws_name, ds_name)
+
+    def get_or_create_datastore(self, ws_name, ds_name):
+        try:
+            return self.get_datastore(ws_name, ds_name)
+        except MRANotFoundError:
+            pass
+        return self.create_datastore(ws_name, ds_name)
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def get_featuretype(self, ws_name, ds_name, ft_name):
+        return self.remote.get('workspaces', ws_name,
+                               'datastores', ds_name,
+                               'featuretypes', ft_name)
+
+    @MRAExceptionsHandler()
+    def del_featuretype(self, ws_name, ds_name, ft_name):
+        self.remote.delete('workspaces', ws_name,
+                           'datastores', ds_name,
+                           'featuretypes', ft_name)
+
+    @MRAExceptionsHandler()
+    def create_featuretype(self, ws_name, ds_name, ft_name):
+        json = {
+            'featureType': {
+                'name': ft_name}}
+
+        self.remote.post('workspaces', ws_name,
+                         'datastores', ds_name,
+                         'featuretypes', json=json)
+
+        return self.get_featuretype(ws_name, ds_name, ft_name)
+
+    def get_or_create_featuretype(self, ws_name, ds_name, ft_name):
+        try:
+            return self.get_featuretype(ws_name, ds_name, ft_name)
+        except MRANotFoundError:
+            pass
+        return self.create_featuretype(ws_name, ds_name, ft_name)
 
     def publish_layers_resource(self, resource):
 
         ws_name = resource.dataset.organisation.ckan_slug
+        self.get_or_create_workspace(ws_name)
+
         ds_name = 'public'
-
-        layers = []
-        for data_id in resource.datagis_id:
-            try:
-                self.remote.get('workspaces', ws_name, 'datastores',
-                                ds_name, 'featuretypes', data_id)
-            except DoesNotExists:
-                self.remote.post('workspaces', ws_name, 'datastores',
-                                 ds_name, 'featuretypes', data_id,
-                                 body={'featureType': {'name': data_id}})
-
-            layers.append(self.remote.get('layers', data_id))
-
-        return layers
-
-    def del_layers_resource(self, resource):
-
-        ws_name = resource.dataset.organisation.ckan_slug
-        ds_name = 'public'
+        self.get_or_create_datastore(ws_name, ds_name)
 
         for data_id in resource.datagis_id:
-            self.remote.delete('layer', data_id)
-            self.remote.delete('workspaces', ws_name, 'datastores',
-                               ds_name, 'featuretypes', data_id)
+            self.get_or_create_featuretype(ws_name, ds_name, str(data_id))
 
-    def get_all_styles_for_layer(self, l_name):
-        return self.remote.get('layers', l_name, 'styles')
 
-    def add_style_for_layer(self, l_name, s_name, sld):
-        return self.remote.post('layers', l_name, 'styles', s_name, '.sld?name=', s_name, body=sld)
-
-    def update_style_layer(self, l_name, s_name, sld):
-        return self.remote.put('layers', l_name, 'styles', s_name, '.sld?name=', s_name, body=sld)
-
-    def del_style_layer(self, l_name, s_name):
-        return self.remote.delete('layers', l_name, 'styles', s_name, '.sld')
+MRAHandler = MRAHandler()

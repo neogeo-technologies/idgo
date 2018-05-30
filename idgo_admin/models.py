@@ -319,9 +319,11 @@ class Resource(models.Model):
                 else:
                     self.datagis_id = list(datagis_id)
                     try:
-                        MRAHandler.publish_resource(self)
+                        MRAHandler.publish_layers_resource(self)
                     except Exception as e:
-                        raise ValidationError(e.__str__())
+                        for table_id in datagis_id:
+                            drop_table(str(table_id))
+                        raise e
             else:
                 self.datagis_id = None
             super().save()

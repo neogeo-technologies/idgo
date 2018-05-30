@@ -35,6 +35,10 @@ class GenericException(Exception):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+        import inspect
+        stack = inspect.stack()
+        print(stack[0][0].f_locals['self'].__class__.__qualname__)
+
     def __str__(self):
         return self.message
 
