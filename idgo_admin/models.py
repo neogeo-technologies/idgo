@@ -38,6 +38,7 @@ from idgo_admin.datagis import ogr2postgis
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedError
 from idgo_admin.exceptions import SizeLimitExceededError
+from idgo_admin.mra_client import MRAHandler
 from idgo_admin.utils import download
 from idgo_admin.utils import PartialFormatter
 from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garder l'original
@@ -307,6 +308,9 @@ class Resource(models.Model):
         if self.dl_url or (self.up_file and file_extras):
             datagis_id_backup = self.datagis_id
             extension = self.format_type.extension.lower()
+            # Pour les archives, toujours vérifier si contient des données SIG.
+            # Si c'est le cas, monter les données dans la base PostGIS dédiée,
+            # puis ajouter au service OGC:WxS de l'organisation.
             if extension in ('zip', 'tar'):
                 try:
                     datagis_id = ogr2postgis(filename, extension=extension)
@@ -314,6 +318,10 @@ class Resource(models.Model):
                     pass
                 else:
                     self.datagis_id = list(datagis_id)
+                    try:
+                        MRAHandler.publish_resource(self)
+                    except Exception as e:
+                        raise ValidationError(e.__str__())
             else:
                 self.datagis_id = None
             super().save()
