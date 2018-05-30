@@ -1477,8 +1477,12 @@ def post_save_resource(sender, instance, **kwargs):
 @receiver(post_delete, sender=Resource)
 def post_delete_resource(sender, instance, **kwargs):
     if instance.datagis_id:
+        ws_name = instance.dataset.organisation.ckan_slug
         for datagis_id in instance.datagis_id:
-            drop_table(str(datagis_id))
+            ft_name = str(datagis_id)
+            MRAHandler.del_layer(ft_name)
+            MRAHandler.del_featuretype(ws_name, 'public', ft_name)
+            drop_table(ft_name)
 
 
 @receiver(pre_delete, sender=User)

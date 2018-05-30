@@ -109,7 +109,6 @@ class MRAClient(object):
         # TODO pretty:
         url = '{}.json'.format(
             reduce(urljoin, (self.base_url,) + tuple(m + '/' for m in url))[:-1])
-        print(url)
 
         r = request(method, url, auth=self.auth, **kwargs)
         r.raise_for_status()
@@ -138,7 +137,7 @@ class MRAHandler(metaclass=Singleton):
     def get_workspace(self, ws_name):
         return self.remote.get('workspaces', ws_name)
 
-    @MRAExceptionsHandler()
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def del_workspace(self, ws_name):
         self.remote.delete('workspaces', ws_name)
 
@@ -164,7 +163,7 @@ class MRAHandler(metaclass=Singleton):
         return self.remote.get('workspaces', ws_name,
                                'datastores', ds_name)
 
-    @MRAExceptionsHandler()
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def del_datastore(self, ws_name, ds_name):
         self.remote.delete('workspaces', ws_name,
                            'datastores', ds_name)
@@ -200,7 +199,7 @@ class MRAHandler(metaclass=Singleton):
                                'datastores', ds_name,
                                'featuretypes', ft_name)
 
-    @MRAExceptionsHandler()
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def del_featuretype(self, ws_name, ds_name, ft_name):
         self.remote.delete('workspaces', ws_name,
                            'datastores', ds_name,
@@ -224,6 +223,14 @@ class MRAHandler(metaclass=Singleton):
         except MRANotFoundError:
             pass
         return self.create_featuretype(ws_name, ds_name, ft_name)
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def get_layer(self, l_name):
+        return self.remote.get('layers', l_name)
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def del_layer(self, l_name):
+        self.remote.delete('layers', l_name)
 
     def publish_layers_resource(self, resource):
 
