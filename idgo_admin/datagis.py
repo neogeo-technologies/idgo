@@ -18,6 +18,7 @@ import datetime
 from django.conf import settings
 from django.contrib.gis.gdal import DataSource
 from django.db import connections
+from idgo_admin.exceptions import CriticalException
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedError
 import re
@@ -136,12 +137,30 @@ def ogr2postgis(filename, extension='zip'):
                 p=layer.field_precisions[i])
             attrs[k] = t
 
+        # Erreur dans Django
+        # Lorsqu'un 'layer' est composé de 'feature' de géométrie différente,
+        # `ft.geom.__class__.__qualname__ == feat.geom_type.name is False`
+        #
+        #   > django/contrib/gis/gdal/feature.py
+        #   @property
+        #       def geom_type(self):
+        #           "Return the OGR Geometry Type for this Feture."
+        #           return OGRGeomType(capi.get_fd_geom_type(self._layer._ldefn))
+        #
+        # La fonction est incorrecte puisqu'elle se base sur le 'layer' et non
+        # sur le 'feature'
+        #
+        # Donc dans ce cas on définit le type de géométrie de la couche
+        # comme générique (soit 'Geometry')
+        test = len(set(feat.geom.__class__.__qualname__ for feat in layer))
+        geometry = test and 'Geometry' or layer.geom_type
+
         sql.append(CREATE_TABLE.format(
             attrs=',\n  '.join(
                 ['{} {}'.format(k, v) for k, v in attrs.items()]),
             description=layer.name,
             epsg=epsg,
-            geometry=layer.geom_type,
+            geometry=geometry,
             owner=OWNER,
             mra_datagis_user=MRA_DATAGIS_USER,
             schema=SCHEMA,
@@ -180,7 +199,7 @@ def ogr2postgis(filename, extension='zip'):
             except Exception as e:
                 for table_id in table_ids:
                     drop_table(table_id)
-                raise e
+                raise CriticalException(e.__str__())
         cursor.close()
 
     return tuple(table_ids)
