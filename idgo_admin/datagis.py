@@ -119,10 +119,10 @@ def ogr2postgis(filename, extension='zip'):
         epsg = layer.srs.identify_epsg()
         if not epsg:
             if layer.srs.projected \
-                    and layer.srs.auth_name('PROJCS').lower() == 'epsg':
+                    and layer.srs.auth_name('PROJCS') == 'EPSG':
                 epsg = layer.srs.auth_code('PROJCS')
             if layer.srs.geographic \
-                    and layer.srs.auth_name('GEOGCS').lower() == 'epsg':
+                    and layer.srs.auth_name('GEOGCS') == 'EPSG':
                 epsg = layer.srs.auth_code('GEOGCS')
         if not epsg:
             epsg = retreive_epsg_through_proj4(layer.srs.proj4)
