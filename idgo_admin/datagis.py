@@ -17,7 +17,6 @@
 import datetime
 from django.conf import settings
 from django.contrib.gis.gdal import DataSource
-from django.contrib.gis.gdal.error import SRSException
 from django.db import connections
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedError
@@ -42,7 +41,6 @@ def retreive_epsg_through_proj4(proj4):
                 res = re.search('<(\d+)>', line)
                 if res:
                     return res.group(1)
-    raise NotSupportedError('SRS Not found')
 
 
 class OgrOpener(object):
@@ -117,12 +115,18 @@ def ogr2postgis(filename, extension='zip'):
         table_id = uuid4()
         table_ids.append(table_id)
 
-        try:
-            epsg = layer.srs.identify_epsg()
-            if not epsg:
-                raise SRSException
-        except SRSException:
+        epsg = layer.srs.identify_epsg()
+        if not epsg:
+            if layer.srs.projected \
+                    and layer.srs.auth_name('PROJCS').lower() == 'epsg':
+                epsg = layer.srs.auth_code('PROJCS')
+            if layer.srs.geographic \
+                    and layer.srs.auth_name('GEOGCS').lower() == 'epsg':
+                epsg = layer.srs.auth_code('GEOGCS')
+        if not epsg:
             epsg = retreive_epsg_through_proj4(layer.srs.proj4)
+        if not epsg:
+            raise NotSupportedError('SRS Not found')
 
         attrs = {}
         for i, k in enumerate(layer.fields):
