@@ -18,8 +18,10 @@ import ast
 from django.conf import settings
 from functools import reduce
 from functools import wraps
+from idgo_admin.datagis import get_description
 from idgo_admin.exceptions import GenericException
 from idgo_admin.utils import Singleton
+from idgo_admin.utils import slugify
 from requests import request
 import timeout_decorator
 from urllib.parse import urljoin
@@ -232,6 +234,26 @@ class MRAHandler(metaclass=Singleton):
     def del_layer(self, l_name):
         self.remote.delete('layers', l_name)
 
+    @MRAExceptionsHandler()
+    def enable_wms(self):
+        self.remote.put('services', 'wms', 'settings',
+                        json={'wms': {'enabled': True}})
+
+    @MRAExceptionsHandler()
+    def disable_wms(self):
+        self.remote.put('services', 'wms', 'settings',
+                        json={'wms': {'enabled': False}})
+
+    @MRAExceptionsHandler()
+    def enable_wfs(self):
+        self.remote.put('services', 'wfs', 'settings',
+                        json={'wfs': {'enabled': True}})
+
+    @MRAExceptionsHandler()
+    def disable_wfs(self):
+        self.remote.put('services', 'wfs', 'settings',
+                        json={'wfs': {'enabled': False}})
+
     def publish_layers_resource(self, resource):
 
         ws_name = resource.dataset.organisation.ckan_slug
@@ -240,8 +262,10 @@ class MRAHandler(metaclass=Singleton):
         ds_name = 'public'
         self.get_or_create_datastore(ws_name, ds_name)
 
-        for data_id in resource.datagis_id:
-            self.get_or_create_featuretype(ws_name, ds_name, str(data_id))
+        for datagis_id in resource.datagis_id:
+            self.get_or_create_featuretype(ws_name, ds_name, str(datagis_id))
 
+        self.enable_wms()
+        self.enable_wfs()
 
 MRAHandler = MRAHandler()

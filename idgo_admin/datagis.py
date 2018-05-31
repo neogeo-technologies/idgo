@@ -141,8 +141,8 @@ def ogr2postgis(filename, extension='zip'):
         # Lorsqu'un 'layer' est composé de 'feature' de géométrie différente,
         # `ft.geom.__class__.__qualname__ == feat.geom_type.name is False`
         #
-        #   > django/contrib/gis/gdal/feature.py
-        #   @property
+        #       > django/contrib/gis/gdal/feature.py
+        #       @property
         #       def geom_type(self):
         #           "Return the OGR Geometry Type for this Feture."
         #           return OGRGeomType(capi.get_fd_geom_type(self._layer._ldefn))
@@ -203,6 +203,29 @@ def ogr2postgis(filename, extension='zip'):
         cursor.close()
 
     return tuple(table_ids)
+
+
+def get_description(table, schema='public'):
+
+    sql = '''
+SELECT description FROM pg_description
+JOIN pg_class ON pg_description.objoid = pg_class.oid
+JOIN pg_namespace ON pg_class.relnamespace = pg_namespace.oid
+WHERE relname = '{table}' AND nspname = '{schema}';
+'''.format(table=table, schema=schema)
+
+    with connections[DATABASE].cursor() as cursor:
+        try:
+            cursor.execute(sql)
+        except Exception as e:
+            if e.__class__.__qualname__ != 'ProgrammingError':
+                raise e
+        records = cursor.fetchall()
+        cursor.close()
+    try:
+        return records[0][0]
+    except Exception:
+        return None
 
 
 def drop_table(table, schema=SCHEMA):

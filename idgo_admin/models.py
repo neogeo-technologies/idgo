@@ -315,7 +315,7 @@ class Resource(models.Model):
                 try:
                     datagis_id = ogr2postgis(filename, extension=extension)
                 except (NotSupportedError, NotOGRError) as e:
-                    pass
+                    raise ValidationError(e.__str__())
                 else:
                     self.datagis_id = list(datagis_id)
                     try:
@@ -1479,9 +1479,10 @@ def post_delete_resource(sender, instance, **kwargs):
     if instance.datagis_id:
         ws_name = instance.dataset.organisation.ckan_slug
         for datagis_id in instance.datagis_id:
+            ds_name = 'public'
             ft_name = str(datagis_id)
             MRAHandler.del_layer(ft_name)
-            MRAHandler.del_featuretype(ws_name, 'public', ft_name)
+            MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
             drop_table(ft_name)
 
 
