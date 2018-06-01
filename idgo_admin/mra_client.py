@@ -18,10 +18,8 @@ import ast
 from django.conf import settings
 from functools import reduce
 from functools import wraps
-from idgo_admin.datagis import get_description
 from idgo_admin.exceptions import GenericException
 from idgo_admin.utils import Singleton
-from idgo_admin.utils import slugify
 from requests import request
 import timeout_decorator
 from urllib.parse import urljoin
@@ -235,23 +233,23 @@ class MRAHandler(metaclass=Singleton):
         self.remote.delete('layers', l_name)
 
     @MRAExceptionsHandler()
-    def enable_wms(self):
-        self.remote.put('services', 'wms', 'settings',
+    def enable_wms(self, ws_name=None):
+        self.remote.put('services', 'workspaces', ws_name, 'wms', 'settings',
                         json={'wms': {'enabled': True}})
 
     @MRAExceptionsHandler()
-    def disable_wms(self):
-        self.remote.put('services', 'wms', 'settings',
+    def disable_wms(self, ws_name=None):
+        self.remote.put('services', 'workspaces', ws_name, 'wms', 'settings',
                         json={'wms': {'enabled': False}})
 
     @MRAExceptionsHandler()
-    def enable_wfs(self):
-        self.remote.put('services', 'wfs', 'settings',
+    def enable_wfs(self, ws_name=None):
+        self.remote.put('services', 'workspaces', ws_name, 'wfs', 'settings',
                         json={'wfs': {'enabled': True}})
 
     @MRAExceptionsHandler()
-    def disable_wfs(self):
-        self.remote.put('services', 'wfs', 'settings',
+    def disable_wfs(self, ws_name=None):
+        self.remote.put('services', 'workspaces', ws_name, 'wfs', 'settings',
                         json={'wfs': {'enabled': False}})
 
     def publish_layers_resource(self, resource):
@@ -265,7 +263,7 @@ class MRAHandler(metaclass=Singleton):
         for datagis_id in resource.datagis_id:
             self.get_or_create_featuretype(ws_name, ds_name, str(datagis_id))
 
-        self.enable_wms()
-        self.enable_wfs()
+        self.enable_wms(ws_name=ws_name)
+        self.enable_wfs(ws_name=ws_name)
 
 MRAHandler = MRAHandler()

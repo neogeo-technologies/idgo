@@ -82,6 +82,9 @@ except Exception:
     AUTHORIZED_PROTOCOL = ''
 
 
+OWS_URL_PATTERN = settings.OWS_URL_PATTERN
+
+
 class ResourceFormats(models.Model):
 
     PROTOCOL_CHOICES = AUTHORIZED_PROTOCOL
@@ -339,7 +342,25 @@ class Resource(models.Model):
             ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
         else:
             ckan_user = ckan_me(ckan.apikey)
-        ckan_user.publish_resource(str(self.dataset.ckan_id), **ckan_params)
+
+        ckan_package = ckan_user.get_package(str(self.dataset.ckan_id))
+        ckan_user.publish_resource(ckan_package, **ckan_params)
+
+        # TODO pour tester (WIP)
+        for datagis_id in self.datagis_id:
+            service_url = OWS_URL_PATTERN.format(
+                organisation=self.dataset.organisation.ckan_slug)
+            ckan_params = {
+                'id': str(datagis_id),
+                'name': 'Service cartographique OGC:WMS',
+                'description': 'Visualiseur cartographique',
+                'lang': self.lang,
+                'format': 'WMS',
+                'url': '{0}#{1}'.format(service_url, str(datagis_id)),
+                'view_type': 'geo_view'}
+            ckan_user.publish_resource(ckan_package, **ckan_params)
+        # TODO pour tester (WIP)
+
         ckan_user.close()
 
 

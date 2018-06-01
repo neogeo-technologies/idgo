@@ -85,7 +85,6 @@ class CkanExceptionsHandler(object):
             try:
                 return f(*args, **kwargs)
             except Exception as e:
-                print(e.__str__())
                 if isinstance(e, timeout_decorator.TimeoutError):
                     raise CkanTimeoutError
                 if self.is_ignored(e):
@@ -175,13 +174,13 @@ class CkanUserHandler(object):
         return package
 
     @CkanExceptionsHandler()
-    def publish_resource(self, dataset_id, **kwargs):
-        resource_view_type = kwargs['view_type'] or None
-        del kwargs['view_type']
-        resource = self.push_resource(self.get_package(dataset_id), **kwargs)
+    def publish_resource(self, package, **kwargs):
+        resource_view_type = kwargs.pop('view_type')
+        resource = self.push_resource(package, **kwargs)
         if resource_view_type:
             self.push_resource_view(
                 resource_id=resource['id'], view_type=resource_view_type)
+        return resource
 
     @CkanExceptionsHandler()
     def delete_resource(self, id):
