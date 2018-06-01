@@ -270,7 +270,7 @@ class Resource(models.Model):
         if self.dl_url:
             try:
                 filename, content_type = download(
-                    self.dl_url, settings.MEDIA_ROOT,
+                    self.dl_url, os.path.join(settings.MEDIA_ROOT, 'sync_temp'),
                     max_size=DOWNLOAD_SIZE_LIMIT)
             except SizeLimitExceededError as e:
                 l = len(str(e.max_size))
