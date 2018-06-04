@@ -231,6 +231,7 @@ class Resource(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
+        previous = self.pk and Resource.objects.get(pk=self.pk)
 
         sync_ckan = 'sync_ckan' in kwargs and kwargs.pop('sync_ckan') or False
         file_extras = 'file_extras' in kwargs and kwargs.pop('file_extras') or None
@@ -309,7 +310,6 @@ class Resource(models.Model):
             filename = self.up_file.file.name
 
         if self.dl_url or (self.up_file and file_extras):
-            datagis_id_backup = self.datagis_id
             extension = self.format_type.extension.lower()
             # Pour les archives, toujours vérifier si contient des données SIG.
             # Si c'est le cas, monter les données dans la base PostGIS dédiée,
@@ -331,10 +331,6 @@ class Resource(models.Model):
                 self.datagis_id = None
             super().save()
 
-            if datagis_id_backup:  # Supprimer les anciennes tables GIS
-                for table_id in datagis_id_backup:
-                    drop_table(str(table_id))
-
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
         # de données existant mais administrateur ou un référent technique,
         # alors l'admin Ckan édite le jeu de données..
@@ -343,23 +339,40 @@ class Resource(models.Model):
         else:
             ckan_user = ckan_me(ckan.apikey)
 
+        ws_name = self.dataset.organisation.ckan_slug
+        ds_name = 'public'
+
+        # TODO Gérer les erreurs
+
+        if previous.datagis_id:
+            # Nettoyer les anciennes resources SIG..
+            for datagis_id in previous.datagis_id:
+                ft_name = str(datagis_id)
+                # Supprimer les objects MRA  (TODO en cascade dans MRA)
+                MRAHandler.del_layer(ft_name)
+                MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
+                # Supprimer la ressource CKAN
+                ckan_user.delete_resource(ft_name)
+                # Supprimer les anciennes tables GIS
+                drop_table(ft_name)
+
         ckan_package = ckan_user.get_package(str(self.dataset.ckan_id))
         ckan_user.publish_resource(ckan_package, **ckan_params)
 
-        # TODO pour tester (WIP)
-        for datagis_id in self.datagis_id:
-            service_url = OWS_URL_PATTERN.format(
-                organisation=self.dataset.organisation.ckan_slug)
-            ckan_params = {
-                'id': str(datagis_id),
-                'name': 'Service cartographique OGC:WMS',
-                'description': 'Visualiseur cartographique',
-                'lang': self.lang,
-                'format': 'WMS',
-                'url': '{0}#{1}'.format(service_url, str(datagis_id)),
-                'view_type': 'geo_view'}
-            ckan_user.publish_resource(ckan_package, **ckan_params)
-        # TODO pour tester (WIP)
+        if self.datagis_id:
+            # Publier les nouvelles resources SIG..
+            for datagis_id in self.datagis_id:
+                ft_name = str(datagis_id)
+                ckan_params = {
+                    'id': ft_name,
+                    'name': 'Service cartographique OGC:WMS',
+                    'description': 'Visualiseur cartographique',
+                    'lang': self.lang,
+                    'format': 'WMS',
+                    'url': '{0}#{1}'.format(
+                        OWS_URL_PATTERN.format(organisation=ws_name), ft_name),
+                    'view_type': 'geo_view'}
+                ckan_user.publish_resource(ckan_package, **ckan_params)
 
         ckan_user.close()
 
@@ -1497,13 +1510,18 @@ def post_save_resource(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Resource)
 def post_delete_resource(sender, instance, **kwargs):
+    ckan_user = ckan_me(ckan.get_user(instance.dataset.editor.username)['apikey'])
+    ws_name = instance.dataset.organisation.ckan_slug
+    ds_name = 'public'
     if instance.datagis_id:
-        ws_name = instance.dataset.organisation.ckan_slug
         for datagis_id in instance.datagis_id:
-            ds_name = 'public'
             ft_name = str(datagis_id)
+            # Supprimer les objects MRA  (TODO en cascade dans MRA)
             MRAHandler.del_layer(ft_name)
             MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
+            # Supprimer la ressource CKAN
+            ckan_user.delete_resource(ft_name)
+            # Supprimer les anciennes tables GIS
             drop_table(ft_name)
 
 
