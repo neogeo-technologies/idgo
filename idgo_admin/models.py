@@ -38,7 +38,9 @@ from idgo_admin.datagis import ogr2postgis
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedError
 from idgo_admin.exceptions import SizeLimitExceededError
+from idgo_admin.mra_client import MRAConflictError
 from idgo_admin.mra_client import MRAHandler
+from idgo_admin.mra_client import MRANotFoundError
 from idgo_admin.utils import download
 from idgo_admin.utils import PartialFormatter
 from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garder l'original
@@ -342,15 +344,18 @@ class Resource(models.Model):
         ws_name = self.dataset.organisation.ckan_slug
         ds_name = 'public'
 
-        # TODO Gérer les erreurs
+        # TODO Gérer les erreurs + factoriser
 
         if previous.datagis_id:
             # Nettoyer les anciennes resources SIG..
             for datagis_id in previous.datagis_id:
                 ft_name = str(datagis_id)
                 # Supprimer les objects MRA  (TODO en cascade dans MRA)
-                MRAHandler.del_layer(ft_name)
-                MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
+                try:
+                    MRAHandler.del_layer(ft_name)
+                    MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
+                except MRANotFoundError:
+                    pass
                 # Supprimer la ressource CKAN
                 ckan_user.delete_resource(ft_name)
                 # Supprimer les anciennes tables GIS
@@ -365,7 +370,7 @@ class Resource(models.Model):
                 ft_name = str(datagis_id)
                 ckan_params = {
                     'id': ft_name,
-                    'name': 'Service cartographique OGC:WMS',
+                    'name': '{} (OGC:WMS)'.format(self.name),
                     'description': 'Visualiseur cartographique',
                     'lang': self.lang,
                     'format': 'WMS',
@@ -1445,6 +1450,30 @@ class Dataset(models.Model):
 
         ckan_user.close()
 
+        # Si l'organisation change
+        if previous and previous.organisation != self.organisation:
+            resources = Resource.objects.filter(dataset=previous)
+            prev_ws_name = previous.organisation.ckan_slug
+            ws_name = self.organisation.ckan_slug
+            ds_name = 'public'
+            for resource in resources:
+                if resource.datagis_id:
+                    for datagis_id in resource.datagis_id:
+                        ft_name = str(datagis_id)
+                        try:
+                            MRAHandler.del_layer(ft_name)
+                            MRAHandler.del_featuretype(prev_ws_name, ds_name, ft_name)
+                        except MRANotFoundError:
+                            pass
+                        try:
+                            MRAHandler.publish_layers_resource(resource)
+                        except MRAConflictError:
+                            pass
+                        ckan_user.update_resource(
+                            ft_name,
+                            url='{0}#{1}'.format(
+                                OWS_URL_PATTERN.format(organisation=ws_name), ft_name))
+
         self.ckan_id = uuid.UUID(ckan_dataset['id'])
         super().save()  # self.save(sync_ckan=False)
 
@@ -1517,8 +1546,11 @@ def post_delete_resource(sender, instance, **kwargs):
         for datagis_id in instance.datagis_id:
             ft_name = str(datagis_id)
             # Supprimer les objects MRA  (TODO en cascade dans MRA)
-            MRAHandler.del_layer(ft_name)
-            MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
+            try:
+                MRAHandler.del_layer(ft_name)
+                MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
+            except MRANotFoundError:
+                pass
             # Supprimer la ressource CKAN
             ckan_user.delete_resource(ft_name)
             # Supprimer les anciennes tables GIS

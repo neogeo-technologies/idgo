@@ -18,8 +18,10 @@ import ast
 from django.conf import settings
 from functools import reduce
 from functools import wraps
+from idgo_admin.datagis import get_description
 from idgo_admin.exceptions import GenericException
 from idgo_admin.utils import Singleton
+from idgo_admin.utils import slugify
 from requests import request
 import timeout_decorator
 from urllib.parse import urljoin
@@ -63,6 +65,11 @@ class MRANotFoundError(GenericException):
         super().__init__(*args, **kwargs)
 
 
+class MRAConflictError(GenericException):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
 class MRATimeoutError(MRASyncingError):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -84,6 +91,8 @@ class MRAExceptionsHandler(object):
                 if e.__class__.__qualname__ == 'HTTPError':
                     if e.response.status_code == 404:
                         raise MRANotFoundError
+                    if e.response.status_code == 409:
+                        raise MRAConflictError
                 if isinstance(e, timeout_decorator.TimeoutError):
                     raise MRATimeoutError
                 if self.is_ignored(e):
@@ -206,7 +215,8 @@ class MRAHandler(metaclass=Singleton):
                            'featuretypes', ft_name)
 
     @MRAExceptionsHandler()
-    def create_featuretype(self, ws_name, ds_name, ft_name):
+    def create_featuretype(self, ws_name, ds_name, ft_name, l_name=None):
+        l_name = l_name or ft_name  # TODO
         json = {
             'featureType': {
                 'name': ft_name}}
@@ -217,12 +227,12 @@ class MRAHandler(metaclass=Singleton):
 
         return self.get_featuretype(ws_name, ds_name, ft_name)
 
-    def get_or_create_featuretype(self, ws_name, ds_name, ft_name):
+    def get_or_create_featuretype(self, ws_name, ds_name, ft_name, l_name=None):
         try:
             return self.get_featuretype(ws_name, ds_name, ft_name)
         except MRANotFoundError:
             pass
-        return self.create_featuretype(ws_name, ds_name, ft_name)
+        return self.create_featuretype(ws_name, ds_name, ft_name, l_name=l_name)
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_layer(self, l_name):
@@ -261,7 +271,10 @@ class MRAHandler(metaclass=Singleton):
         self.get_or_create_datastore(ws_name, ds_name)
 
         for datagis_id in resource.datagis_id:
-            self.get_or_create_featuretype(ws_name, ds_name, str(datagis_id))
+            ft_name = str(datagis_id)
+            self.get_or_create_featuretype(
+                ws_name, ds_name, ft_name,
+                l_name=slugify(get_description(ft_name)))
 
         self.enable_wms(ws_name=ws_name)
         self.enable_wfs(ws_name=ws_name)

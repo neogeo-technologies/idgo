@@ -160,6 +160,12 @@ class CkanUserHandler(object):
                     'resource_view_update', id=view['id'], **kwargs)
         return self.call_action('resource_view_create', **kwargs)
 
+    @CkanExceptionsHandler()
+    def update_resource(self, id, **kwargs):
+        resource = self.call_action('resource_show', id=id)
+        resource.update(kwargs)
+        return self.call_action('resource_update', **resource)
+
     def check_dataset_integrity(self, name):
         if self.is_package_name_already_used(name):
             raise ConflictError('Dataset already exists')
@@ -177,10 +183,13 @@ class CkanUserHandler(object):
     def publish_resource(self, package, **kwargs):
         resource_view_type = kwargs.pop('view_type')
         resource = self.push_resource(package, **kwargs)
+
+        view = None
         if resource_view_type:
-            self.push_resource_view(
+            view = self.push_resource_view(
                 resource_id=resource['id'], view_type=resource_view_type)
-        return resource
+
+        return resource, view
 
     @CkanExceptionsHandler()
     def delete_resource(self, id):
