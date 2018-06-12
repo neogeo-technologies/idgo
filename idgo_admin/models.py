@@ -526,12 +526,12 @@ class Profile(models.Model):
 
     referents = models.ManyToManyField(
         to='Organisation', through='LiaisonsReferents',
-        verbose_name="Organisations dont l'utiliateur est réferent",
+        verbose_name="Organisations dont l'utilisateur est réferent",
         related_name='profile_referents')
 
     contributions = models.ManyToManyField(
         to='Organisation', through='LiaisonsContributeurs',
-        verbose_name="Organisations dont l'utiliateur est contributeur",
+        verbose_name="Organisations dont l'utilisateur est contributeur",
         related_name='profile_contributions')
 
     resources = models.ManyToManyField(

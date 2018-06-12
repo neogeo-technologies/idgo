@@ -112,16 +112,20 @@ class MRAClient(object):
         self.auth = (username and password) and (username, password)
 
     @timeout
-    def _req(self, method, url, **kwargs):
+    def _req(self, method, url, extension='json', **kwargs):
         kwargs.setdefault('allow_redirects', True)
         kwargs.setdefault('headers', {'content-type': 'application/json'})
         # TODO pretty:
-        url = '{}.json'.format(
-            reduce(urljoin, (self.base_url,) + tuple(m + '/' for m in url))[:-1])
+        url = '{0}.{1}'.format(
+            reduce(urljoin, (self.base_url,) + tuple(m + '/' for m in url))[:-1],
+            extension)
 
         r = request(method, url, auth=self.auth, **kwargs)
         r.raise_for_status()
-        return r
+        if r.status_code == 200:
+            if extension == 'json':
+                return r.json()
+            return r.text
 
     def get(self, *url, **kwargs):
         return self._req('get', url, **kwargs)
@@ -235,8 +239,13 @@ class MRAHandler(metaclass=Singleton):
         return self.create_featuretype(ws_name, ds_name, ft_name, l_name=l_name)
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def get_style(self, s_name, as_sld=True):
+        return self.remote.get('styles', s_name, extension='sld',
+                               headers={'content-type': 'application/json'})
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_layer(self, l_name):
-        return self.remote.get('layers', l_name)
+        return self.remote.get('layers', l_name)['layer']
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def del_layer(self, l_name):

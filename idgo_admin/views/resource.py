@@ -34,8 +34,10 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.resource import ResourceForm as Form
+# from idgo_admin.forms.resource import ResourceOgcForm as OgcForm
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
+from idgo_admin.mra_client import MRAHandler
 from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
@@ -47,6 +49,8 @@ import json
 CKAN_URL = settings.CKAN_URL
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+
+OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 
 
 @method_decorator(decorators, name='dispatch')
@@ -184,3 +188,77 @@ class ResourceManager(View):
             ckan_user.close()
 
         return HttpResponse(status=status)
+
+
+@method_decorator(decorators, name='dispatch')
+class ResourceOgcManager(View):
+
+    template = 'idgo_admin/resources_ogc.html'
+    namespace = 'idgo_admin:resources_ogc'
+
+    @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
+    def get(self, request, dataset_id=None, *args, **kwargs):
+        id = request.GET.get('id')
+        if not id:
+            return Http404
+
+        user, profile = user_and_profile(request)
+
+        instance = get_object_or_404_extended(
+            Resource, user, include={'id': id, 'dataset_id': dataset_id})
+
+        dataset = instance.dataset
+
+        ows_url = OWS_URL_PATTERN.format(organisation=dataset.organisation.ckan_slug)
+
+        layers = []
+        for datagis_id in instance.datagis_id:
+            ft_name = str(datagis_id)
+
+            layer = MRAHandler.get_layer(ft_name)
+            ft = MRAHandler.get_featuretype(instance.dataset.organisation.ckan_slug, 'public', ft_name)
+
+            ll = ft['featureType']['latLonBoundingBox']
+            bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
+            attributes = [item['name'] for item in ft['featureType']['attributes']]
+
+            default_style_name = layer['defaultStyle']['name']
+
+            import xml.etree.ElementTree as ET
+            root = ET.fromstring(MRAHandler.get_style(layer['defaultStyle']['name']))
+            sld = ET.tostring(root, encoding='utf8')
+
+            styles = [{
+                'name': layer['defaultStyle']['name'],
+                'url': layer['defaultStyle']['href'].replace('json', 'sld'),
+                'sld': sld.decode('utf-8')}]
+
+            if layer.get('styles'):
+                for style in layer.get('styles')['style']:
+                    styles.append({
+                        'name': style['name'],
+                        'url': style['href'].replace('json', 'sld'),
+                        'sld': MRAHandler.get_style(style['name'])})
+
+            row = (
+                ft_name,
+                layer['name'],
+                layer['title'],
+                layer['type'],
+                layer['enabled'],
+                bbox,
+                attributes,
+                {'default': default_style_name, 'styles': styles})
+
+            layers.append(row)
+
+        context = {'dataset_name': three_suspension_points(dataset.name),
+                   'dataset_id': dataset.id,
+                   'ows_url': ows_url,
+                   'dataset_ckan_slug': dataset.ckan_slug,
+                   'resource_name': three_suspension_points(instance.name),
+                   'resource_id': instance.id,
+                   'resource_ckan_id': instance.ckan_id,
+                   'layers': json.dumps(layers)}
+
+        return render_with_info_profile(request, self.template, context)

@@ -100,6 +100,34 @@ $(document).ajaxSend(function(e, xhr, settings) {
 	};
 })();
 		</script>
+		<script>
+(function() {
+	var cache = {};
+	this.templator = function _itself(str, data) {
+		var fun;
+		if (/\W/.test(str)) {
+			var js =
+				"var _p = []; " +
+				"with (obj) { _p.push('" +
+				str
+					.replace(/[\r\t\n]/g, " ")
+					.replace(/'(?=[^%]*%>)/g,"\t")
+					.replace(/\r|\*="/g, ' ')
+					.split("'").join("\\'")
+					.split("\t").join("'")
+					.replace(/<%=(.+?)%>/g, "',$1,'")
+					.split("<%").join("');")
+					.split("%>").join("_p.push('")
+				+ "');}return _p.join('');";
+			js = js.replace(/\&amp;/g, '&');  // Ugly..
+			fun = new Function('obj', js);
+		} else {
+			fun = (cache[str] = cache[str]) || _itself(document.getElementById(str).innerHTML);
+		};
+		return data ? fun(data) : fun;
+	};
+})();
+		</script>
 		<link rel="stylesheet" href="{% static "libs/jquery-plugins/ezdz/jquery.ezdz.css" %}"/>
 		<link rel="stylesheet" href="{% static "libs/bootstrap/css/bootstrap.min.css" %}"/>
 		<link rel="stylesheet" href="{% static "libs/bootstrap-tagsinput/bootstrap-tagsinput.css" %}"/>

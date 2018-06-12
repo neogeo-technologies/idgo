@@ -174,3 +174,12 @@ class ResourceForm(forms.ModelForm):
         resource.save(editor=user, file_extras=file_extras, sync_ckan=True)
 
         return resource
+
+
+class ResourceOgcForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        pass

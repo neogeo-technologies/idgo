@@ -101,6 +101,7 @@ class DatasetManager(View):
                 o.pk,
                 o.name,
                 o.format_type.extension,
+                o.datagis_id and True or False,
                 o.created_on.isoformat() if o.created_on else None,
                 o.last_update.isoformat() if o.last_update else None,
                 o.get_restricted_level_display(),

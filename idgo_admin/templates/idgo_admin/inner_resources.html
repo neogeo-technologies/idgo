@@ -12,6 +12,7 @@
 <div class="buttons-on-the-right-side">
 	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
 	<button name="edit-resource" class="btn btn-default">Editer</button>
+	<button name="edit-ows" class="btn btn-default">Editer le service OGC</button>
 	<button name="delete-resource" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 </div>
 
@@ -19,6 +20,7 @@
 $(function() {
 	var CKAN_URL = '{{ ckan_url }}';
 	var RESOURCE_URL = '{% url "idgo_admin:resource" dataset_id=dataset_id %}';
+	var RESOURCE_OGC_URL = '{% url "idgo_admin:resources_ogc" dataset_id=dataset_id %}';
 	var RESOURCES = {{ resources | safe }};
 	var RESOURCES_CONTAINER = 'table-resources';
 	var RESOURCES_METADATA = [
@@ -32,6 +34,11 @@ $(function() {
 			label: 'Format',
 			editable: false,
 			datatype: 'string'
+		}, {
+			name: 'ows',
+			label: 'OWS',
+			editable: false,
+			datatype: 'boolean'
 		}, {
 			name: 'date_creation',
 			label: 'Date de création',
@@ -139,6 +146,13 @@ $(function() {
 			e.stopPropagation();
 		});
 
+	$('#resources button[name="edit-ows"]')
+		.on('click', function(e) {
+			e.preventDefault();
+			redirect(RESOURCE_OGC_URL + '?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
+			e.stopPropagation();
+		});
+
 	tableGrid.initializeGrid = function() {
 		var grid = tableGrid;
 		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
@@ -156,7 +170,11 @@ $(function() {
 					window.location = '#resources/' + getRowValues(nRowIdx).id;
 					$(grid.getRow(nRowIdx)).addClass('selected');
 					$buttons.each(function() {
-						activateButton($(this));
+						if (this.name == 'edit-ows' && !getRowValues(nRowIdx).ows) {
+							deactivateButton($(this));
+						} else {
+							activateButton($(this));
+						};
 					});
 				};
 			};
@@ -174,6 +192,13 @@ $(function() {
 			setCellRenderer('restrictions', new CellRenderer({
 				render: function(cell, value) {
 					cell.innerHTML = value ? value : '-';
+				}
+			}));
+			setCellRenderer('ows', new CellRenderer({
+				render: function(cell, value) {
+					cell.style.textAlign = 'center';
+					cell.style.width = '32px';
+					cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
 				}
 			}));
 		};
@@ -236,10 +261,11 @@ $(function() {
 					values: [
 						data[i][1],  // title
 						data[i][2],  // format
-						data[i][3],  // date_creation
-						data[i][4],  // last_modification
-						data[i][5],  // restrictions
-						data[i][6],  // ckan_id
+						data[i][3],  // if datagis_id (ows)
+						data[i][4],  // date_creation
+						data[i][5],  // last_modification
+						data[i][6],  // restrictions
+						data[i][7],  // ckan_id
 						data[i][0]   // id
 					]
 				});
