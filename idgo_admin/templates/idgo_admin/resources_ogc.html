@@ -6,7 +6,7 @@
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">{{ dataset_name }}</a></li>
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">ressources</a></li>
 	<li><a href="{% url "idgo_admin:resource" dataset_id=dataset_id %}?id={{ resource_id }}">{{ resource_name }}</a></li>
-	<li class="active">Couche de données SIG</li>
+	<li class="active"><a href="{% url "idgo_admin:resources_ogc" dataset_id=dataset_id %}?id={{ resource_id }}">Couche de données SIG</a></li>
 </ol>
 {% endblock breadcrumb_content %}
 {% block main_content %}

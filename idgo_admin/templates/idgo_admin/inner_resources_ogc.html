@@ -24,25 +24,34 @@
 			<div role="tabpanel" class="tab-pane active" id="configuration">
 				<div class="tab-pane-content">
 					<form name="layer" method="post">
-						<div class="form-group">
-							<label for="name">Nom de la couche</label>
-							<input class="form-control" id="name" disabled></input>
+						<div class="row">
+							<div class="col-xs-8">
+								<div class="form-group">
+									<label for="name">Nom de la couche</label>
+									<input class="form-control" id="name" disabled></input>
+								</div>
+							</div>
 						</div>
-						<div class="form-group">
-							<label for="title">Titre</label>
-							<input class="form-control" id="title"></input>
+						<div class="row">
+							<div class="col-xs-8">
+								<div class="form-group">
+									<label for="title">Titre</label>
+									<input class="form-control" id="title" disabled></input>
+								</div>
+							</div>
 						</div>
-						<div class="form-group">
-							<label for="type">Type</label>
-							<input class="form-control" id="type"></input>
+						<div class="row">
+							<div class="col-xs-4">
+								<div class="form-group">
+									<label for="type">Type</label>
+									<input class="form-control" id="type" disabled></input>
+								</div>
+							</div>
 						</div>
 						<div class="checkbox">
 							<label>
 								<input id="enabled" type="checkbox"> Active
 							</label>
-						</div>
-						<div class="buttons-on-the-right-side">
-							<button type="submit" name="save" class="btn btn-default">Sauvegarder <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 						</div>
 					</form>
 				</div>
@@ -50,13 +59,18 @@
 			<div role="tabpanel" class="tab-pane" id="styles">
 				<div class="tab-pane-content">
 					<div class="row">
-						<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
-							<div id="map_well"></div>
-						</div>
-						<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
+						<div class="col-xs-offset-4 col-sm-offset-5 col-md-offset-6 col-lg-offset-7 col-xs-8 col-sm-7 col-md-6 col-lg-5">
 							<div class="form-group">
 								<select class="form-control input-sm" name="styles"></select>
 							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
+							<div id="map_well"></div>
+						</div>
+
+						<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
 							<!--
 							<div class="checkbox">
 								<label>
@@ -64,7 +78,7 @@
 								</label>
 							</div>
 							-->
-							<form name="layer" method="post" class="well" style="height: 605px">
+							<div name="form" class="well" style="height: 650px">
 								<div class="form-group">
 									<label for="classes">Règles de représentation</label>
 									<div class="row">
@@ -85,7 +99,10 @@
 								<div id="class_well">
 									<!-- class_well_template -->
 								</div>
-							</form>
+								<div class="buttons-on-the-right-side" style="position: absolute; bottom: 0; right: 0; margin: 0 35px 40px 0;">
+									<button type="button" name="save" class="btn btn-default">Enregistrer</button>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -95,9 +112,13 @@
 </template>
 
 <template id="class_well_template">
-	<div class="form-group">
-		<label for="rule-name" class="control-label">Nom</label>
-		<input class="form-control input-sm" id="rule-name"></input>
+	<div class="row">
+		<div class="col-xs-10">
+			<div class="form-group">
+				<label for="rule-name" class="control-label">Nom</label>
+				<input class="form-control input-sm" id="rule-name"></input>
+			</div>
+		</div>
 	</div>
 	<ul class="nav nav-tabs nav-tabs-sm nav-justified" role="tablist">
 		<li role="presentation" class="active">
@@ -496,7 +517,6 @@ $(function() {
 		displayStyleForm($content, $sld, layer, data, function($content) {
 			$well.append($content);
 		});
-
 	};
 
 	const displayStyleForm = function($container, $sld, layer, params, callback) {
@@ -599,7 +619,6 @@ $(function() {
 
 		glob.overviewingStyle = function() {
 			const sldBody = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
-			console.log(sldBody)
 			layer.remove();
 			layer = new L.NonTiledLayer.WMS('{{ ows_url }}', {
 				format: 'image/png',
@@ -608,8 +627,15 @@ $(function() {
 				transparent: true
 			});
 			glob.addtoMap(layer);
-		};
 
+			$('button[name="save"]').click(function(e) {
+				e.preventDefault();
+				const $form = $('form').attr('method', 'POST');
+				$form.append($('<input type="text"/>').prop('name', 'layerName').val(params['name']));
+				$form.append($('<input type="text"/>').prop('name', 'sldBody').val(sldBody));
+				$form.submit();
+			});
+		};
 	};
 
 	$.fn.getChildrenOrCreate = function(name, attrs) {
@@ -664,7 +690,9 @@ $(function() {
 		const $well = $container.find('#symbolizer_well');
 		const $symbolizer = $rule.getChildrenOrCreate('PolygonSymbolizer').last();
 		declareParameter($content, $symbolizer, 'Fill', 'CssParameter', 'fill', '#ffffff');
-		declareParameter($content, $symbolizer, 'Fill', 'CssParameter', 'fill-opacity', '1').slider();
+		const $fillOpacity = declareParameter($content, $symbolizer, 'Fill', 'CssParameter', 'fill-opacity', '1');
+		const fillOpacityValue = $fillOpacity.val();
+		$fillOpacity.slider().slider('setValue', fillOpacityValue);
 		declareParameter($content, $symbolizer, 'Stroke', 'CssParameter', 'stroke', '#000000');
 		declareParameter($content, $symbolizer, 'Stroke', 'CssParameter', 'stroke-width', 1);
 		$well.append($content);

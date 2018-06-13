@@ -42,15 +42,18 @@ from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
+from idgo_admin.utils import clean_xml
 from idgo_admin.utils import three_suspension_points
 import json
+from uuid import UUID
 
 
 CKAN_URL = settings.CKAN_URL
+MRA = settings.MRA
+OWS_URL_PATTERN = settings.OWS_URL_PATTERN
+
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
-
-OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 
 
 @method_decorator(decorators, name='dispatch')
@@ -190,6 +193,49 @@ class ResourceManager(View):
         return HttpResponse(status=status)
 
 
+def get_layers(resource):
+
+    layers = []
+    for datagis_id in resource.datagis_id:
+        ft_name = str(datagis_id)
+
+        layer = MRAHandler.get_layer(ft_name)
+        ft = MRAHandler.get_featuretype(resource.dataset.organisation.ckan_slug, 'public', ft_name)
+
+        ll = ft['featureType']['latLonBoundingBox']
+        bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
+        attributes = [item['name'] for item in ft['featureType']['attributes']]
+
+        default_style_name = layer['defaultStyle']['name']
+
+        sld = clean_xml(MRAHandler.get_style(layer['defaultStyle']['name']))
+
+        styles = [{
+            'name': layer['defaultStyle']['name'],
+            'url': layer['defaultStyle']['href'].replace('json', 'sld'),
+            'sld': sld.decode('utf-8')}]
+
+        if layer.get('styles'):
+            for style in layer.get('styles')['style']:
+                styles.append({
+                    'name': style['name'],
+                    'url': style['href'].replace('json', 'sld'),
+                    'sld': MRAHandler.get_style(style['name'])})
+
+        row = (
+            ft_name,
+            layer['name'],
+            layer['title'],
+            layer['type'],
+            layer['enabled'],
+            bbox,
+            attributes,
+            {'default': default_style_name, 'styles': styles})
+
+        layers.append(row)
+    return(layers)
+
+
 @method_decorator(decorators, name='dispatch')
 class ResourceOgcManager(View):
 
@@ -211,46 +257,36 @@ class ResourceOgcManager(View):
 
         ows_url = OWS_URL_PATTERN.format(organisation=dataset.organisation.ckan_slug)
 
-        layers = []
-        for datagis_id in instance.datagis_id:
-            ft_name = str(datagis_id)
+        context = {'dataset_name': three_suspension_points(dataset.name),
+                   'dataset_id': dataset.id,
+                   'ows_url': ows_url,
+                   'dataset_ckan_slug': dataset.ckan_slug,
+                   'resource_name': three_suspension_points(instance.name),
+                   'resource_id': instance.id,
+                   'resource_ckan_id': instance.ckan_id,
+                   'layers': json.dumps(get_layers(instance))}
 
-            layer = MRAHandler.get_layer(ft_name)
-            ft = MRAHandler.get_featuretype(instance.dataset.organisation.ckan_slug, 'public', ft_name)
+        return render_with_info_profile(request, self.template, context)
 
-            ll = ft['featureType']['latLonBoundingBox']
-            bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
-            attributes = [item['name'] for item in ft['featureType']['attributes']]
+    @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
+    def post(self, request, dataset_id=None, *args, **kwargs):
 
-            default_style_name = layer['defaultStyle']['name']
+        id = request.GET.get('id')
+        if not id:
+            return Http404
 
-            import xml.etree.ElementTree as ET
-            root = ET.fromstring(MRAHandler.get_style(layer['defaultStyle']['name']))
-            sld = ET.tostring(root, encoding='utf8')
+        user, profile = user_and_profile(request)
 
-            styles = [{
-                'name': layer['defaultStyle']['name'],
-                'url': layer['defaultStyle']['href'].replace('json', 'sld'),
-                'sld': sld.decode('utf-8')}]
+        instance = get_object_or_404_extended(
+            Resource, user, include={'id': id, 'dataset_id': dataset_id})
 
-            if layer.get('styles'):
-                for style in layer.get('styles')['style']:
-                    styles.append({
-                        'name': style['name'],
-                        'url': style['href'].replace('json', 'sld'),
-                        'sld': MRAHandler.get_style(style['name'])})
+        layer = request.POST.get('layerName')
+        sld = request.POST.get('sldBody')
+        if not layer or (UUID(layer) not in instance.datagis_id):
+            return Http404
 
-            row = (
-                ft_name,
-                layer['name'],
-                layer['title'],
-                layer['type'],
-                layer['enabled'],
-                bbox,
-                attributes,
-                {'default': default_style_name, 'styles': styles})
-
-            layers.append(row)
+        dataset = instance.dataset
+        ows_url = OWS_URL_PATTERN.format(organisation=dataset.organisation.ckan_slug)
 
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
@@ -259,6 +295,18 @@ class ResourceOgcManager(View):
                    'resource_name': three_suspension_points(instance.name),
                    'resource_id': instance.id,
                    'resource_ckan_id': instance.ckan_id,
-                   'layers': json.dumps(layers)}
+                   'layers': json.dumps(get_layers(instance))}
+
+        try:
+            sld = clean_xml(sld)
+            MRAHandler.create_or_update_style(layer, data=sld.decode('utf8'))
+            MRAHandler.update_layer_defaultstyle(layer, layer)
+        except ValidationError as e:
+            messages.error(request, ' '.join(e))
+        except Exception as e:
+            messages.error(request, e.__str__())
+        else:
+            message = 'Le style a été mis à jour avec succès.'
+            messages.success(request, message)
 
         return render_with_info_profile(request, self.template, context)

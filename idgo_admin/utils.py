@@ -16,6 +16,7 @@
 
 from decimal import Decimal
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils.functional import keep_lazy
 from django.utils.safestring import mark_safe
 from django.utils.safestring import SafeText
@@ -29,6 +30,7 @@ import string
 import unicodedata
 from urllib.parse import urlparse
 from uuid import uuid4
+import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
 
@@ -205,3 +207,10 @@ def unzip_zipped(zipped, target_dir=None):
     with ZipFile(zipped) as zf:
         print(zf)
         # return zf.extractall(target_dir)
+
+
+def clean_xml(body):
+    try:
+        return ET.tostring(ET.fromstring(body), encoding='utf8')
+    except Exception as e:
+        raise ValidationError('Malformed XML: {}.'.format(e.__str__()))

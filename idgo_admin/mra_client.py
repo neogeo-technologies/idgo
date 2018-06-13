@@ -119,12 +119,16 @@ class MRAClient(object):
         url = '{0}.{1}'.format(
             reduce(urljoin, (self.base_url,) + tuple(m + '/' for m in url))[:-1],
             extension)
-
         r = request(method, url, auth=self.auth, **kwargs)
         r.raise_for_status()
         if r.status_code == 200:
             if extension == 'json':
-                return r.json()
+                try:
+                    return r.json()
+                except Exception as e:
+                    if e.__class__.__qualname__ == 'JSONDecodeError':
+                        return {}
+                    raise e
             return r.text
 
     def get(self, *url, **kwargs):
@@ -241,11 +245,37 @@ class MRAHandler(metaclass=Singleton):
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_style(self, s_name, as_sld=True):
         return self.remote.get('styles', s_name, extension='sld',
-                               headers={'content-type': 'application/json'})
+                               headers={'content-type': 'application/vnd.ogc.sld+xml'})
+
+    @MRAExceptionsHandler()
+    def create_style(self, s_name, data):
+        return self.remote.post(
+            'styles', extension='sld', params={'name': s_name}, data=data,
+            headers={'content-type': 'application/vnd.ogc.sld+xml'})
+
+    @MRAExceptionsHandler()
+    def update_style(self, s_name, data):
+        return self.remote.put(
+            'styles', s_name, extension='sld', data=data,
+            headers={'content-type': 'application/vnd.ogc.sld+xml'})
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def create_or_update_style(self, s_name, data):
+        try:
+            self.update_style(s_name, data)
+        except MRANotFoundError:
+            self.create_style(s_name, data)
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_layer(self, l_name):
         return self.remote.get('layers', l_name)['layer']
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def update_layer_defaultstyle(self, l_name, s_name):
+        json = {'layer': self.get_layer(l_name)}
+        json['layer']['defaultStyle']['name'] = s_name
+        json['layer']['defaultStyle']['href'] = '{0}styles/{1}.json'.format(MRA['URL'], s_name)
+        return self.remote.put('layers', l_name, json=json)
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def del_layer(self, l_name):
