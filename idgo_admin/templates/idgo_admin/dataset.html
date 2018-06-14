@@ -3,7 +3,7 @@
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
 	<li>Jeu de données</li>
-	<li class="active">{{ dataset_name }}</li>
+	<li class="active"><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}">{{ dataset_name }}</a></li>
 </ol>
 {% endblock breadcrumb_content %}
 

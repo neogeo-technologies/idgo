@@ -48,20 +48,20 @@
 								</div>
 							</div>
 						</div>
-						<div class="checkbox">
+						<!-- <div class="checkbox">
 							<label>
 								<input id="enabled" type="checkbox"> Active
 							</label>
-						</div>
+						</div> -->
 					</form>
 				</div>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="styles">
 				<div class="tab-pane-content">
-					<div class="row">
+					<div class="row hide">
 						<div class="col-xs-offset-4 col-sm-offset-5 col-md-offset-6 col-lg-offset-7 col-xs-8 col-sm-7 col-md-6 col-lg-5">
 							<div class="form-group">
-								<select class="form-control input-sm" name="styles"></select>
+								<select class="form-control input-sm" name="styles" disabled></select>
 							</div>
 						</div>
 					</div>
@@ -100,7 +100,7 @@
 									<!-- class_well_template -->
 								</div>
 								<div class="buttons-on-the-right-side" style="position: absolute; bottom: 0; right: 0; margin: 0 35px 40px 0;">
-									<button type="button" name="save" class="btn btn-default">Enregistrer</button>
+									<button type="button" name="save" class="btn btn-primary">Enregistrer</button>
 								</div>
 							</div>
 						</div>
@@ -193,13 +193,13 @@
 	<div class="row">
 		<div class="col-xs-6">
 			<div class="form-group">
-				<label for="stroke" class="control-label">Couleur du trait</label>
+				<label for="stroke" class="control-label">Couleur du contour</label>
 				<input type="color" class="form-control input-sm" id="stroke" name="sld-handler"></input>
 			</div>
 		</div>
 		<div class="col-xs-6">
 			<div class="form-group">
-				<label for="stroke-width" class="control-label">Epaisseur du trait</label>
+				<label for="stroke-width" class="control-label">Epaisseur du contour</label>
 				<input class="form-control input-sm" id="stroke-width" name="sld-handler"></input>
 			</div>
 		</div>
@@ -245,7 +245,9 @@
 		<div class="col-xs-8">
 			<div class="form-group">
 				<label for="font-family" class="control-label">Police de caractère</label>
-				<input class="form-control input-sm" id="font-family" name="sld-handler" placeholder="Arial"></input>
+				<select class="form-control input-sm" id="font-family" name="sld-handler" placeholder="Arial">
+					<option value='' selected>Aucun</option>
+				</select>
 			</div>
 		</div>
 	</div>
@@ -256,24 +258,24 @@
 				<input type="color" class="form-control input-sm" id="fill" name="sld-handler" placeholder="#000000"></input>
 			</div>
 		</div>
-		<div class="col-xs-6">
+	</div>
+	<div class="row">
+		<div class="col-xs-2">
 			<div class="form-group">
 				<label for="font-size" class="control-label">Taille</label>
 				<input class="form-control input-sm" id="font-size" name="sld-handler" placeholder="10"></input>
 			</div>
 		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-6">
+		<div class="col-xs-4">
 			<div class="form-group">
 				<label for="font-style" class="control-label">Style</label>
-				<input class="form-control input-sm" id="font-style" name="sld-handler" placeholder="normal"></input>
+				<select class="form-control input-sm" id="font-style" name="sld-handler"></select>
 			</div>
 		</div>
-		<div class="col-xs-6">
+		<div class="col-xs-4">
 			<div class="form-group">
 				<label for="font-weight" class="control-label">Epaisseur</label>
-				<input class="form-control input-sm" id="font-weight" name="sld-handler" placeholder="normal"></input>
+				<select class="form-control input-sm" id="font-weight" name="sld-handler"></select>
 			</div>
 		</div>
 	</div>
@@ -382,8 +384,11 @@ $(function() {
 				if (pRowIdx != nRowIdx) {
 					window.location = '#resources/' + getRowValues(nRowIdx).id;
 					$(grid.getRow(nRowIdx)).addClass('selected');
+					displayLayerForm(grid.getRowValues(nRowIdx));
+				} else {
+					window.location = '#'
+					$('#layer_well').empty();
 				};
-				displayLayerForm(grid.getRowValues(nRowIdx));
 			};
 			setCellRenderer('enabled', new CellRenderer({
 				render: function(cell, value) {
@@ -395,7 +400,7 @@ $(function() {
 		};
 	};
 
-	const selectRowByDataId = function(dataId) {
+	const selectRowByDataId = function(dataId, callback) {
 		for (var i = 0; i < tableGrid.data.length; i ++) {
 			if (tableGrid.data[i].columns[tableGrid.getColumnIndex('id')] == dataId) {
 				tableGrid.setPageIndex(0);
@@ -494,10 +499,7 @@ $(function() {
 			transparent: true
 		});
 
-		$content.find('.nav a[href="#styles"]').click(function(e) {
-			e.preventDefault();
-			$(this).tab('show');
-		}).on('shown.bs.tab', function(e) {
+		$content.find('.nav a[href="#styles"]').on('shown.bs.tab', function(e) {
 			if (!$('#map_well').children('#map').length > 0) {
 				$('#map_well').append('<div id="map" style="height: 650px;"></div>');
 				const map = L.map('map').fitBounds(data['bbox']);
@@ -515,11 +517,42 @@ $(function() {
 		const $sld  = $(_sld).children('StyledLayerDescriptor').last();
 
 		displayStyleForm($content, $sld, layer, data, function($content) {
+
+			$content.find('.nav a').click(function(e) {
+				const backHash = location.hash;
+				const splited = backHash.split('/');
+				splited.length == 3 && splited.pop();
+
+				const hash = splited.join('/') + '/' + this.hash.substr(1);
+				$(this).on('shown.bs.tab', function(e) {
+					e.stopPropagation();
+					location.hash = hash;
+				}).tab('show');
+			});
+
 			$well.append($content);
 		});
+
 	};
 
 	const displayStyleForm = function($container, $sld, layer, params, callback) {
+
+		/* Utils */
+		var increment = function(value, m) {
+			if (m.indexOf(value) > -1) {
+				var str = m[m.indexOf(value)];
+				var i = parseInt(str.slice(-1)) || undefined;
+				if (i === undefined) {
+					str = str + ' 2';
+				} else {
+					str = str.substring(0, str.length - 1) + (i + 1);
+				};
+				return increment(str, m);
+			} else {
+				return value;
+			};
+		};
+		/* Utils */
 
 		const $featureTypeStyle = $sld.find('NamedLayer:last>UserStyle:last>FeatureTypeStyle:last');
 
@@ -540,13 +573,29 @@ $(function() {
 
 		const $addClass = $container.find('button[name="add"]').click(function(e) {
 			e.preventDefault();
-			const value = 'Nouvelle classe';
+			const m = []
+			for (var i = 0; i < $classes.children('option').length; i ++) {
+				m.push($($classes.children('option')[i]).val());
+			};
+			const value = increment('Nouvelle classe', m);
 			$featureTypeStyle.append($.parseXML('<Rule><Name>' + value + '</Name></Rule>').documentElement);
 			$classes.append($('<option>', {value: value, text : value}));
 		});
 
 		const $cloneClass = $container.find('button[name="clone"]').click(function(e) {
-		// TODO
+			e.preventDefault();
+			getSelectedClassRule(function($option, $rule) {
+				const m = []
+				for (var i = 0; i < $classes.children('option').length; i ++) {
+					m.push($($classes.children('option')[i]).val());
+				};
+				const value = increment($option.val(), m)
+				console.log(value)
+				// $classes.append($('<option>', {value: value, text : value}));
+				// $clone = $rule.clone();
+				// $rule.last().next().after($clone);
+			});
+
 		});
 
 		const $moveUpClass = $container.find('button[name="up"]').click(function(e) {
@@ -581,26 +630,26 @@ $(function() {
 					'operators': [
 						{
 							'value': 'PropertyIsEqualTo',
-							'text': 'égale à',
+							'text': 'Egal à (=)',
 							'attributes': {'matchCase': false}
 						}, {
 							'value': 'PropertyIsNotEqualTo',
-							'text': 'différent de'
+							'text': 'Différent de (≠)'
 						}, {
 							'value': 'PropertyIsLessThan',
-							'text': 'inférieur à'
+							'text': 'Inférieur à (<)'
 						}, {
 							'value': 'PropertyIsLessThanOrEqualTo',
-							'text': 'inférieur ou égale à'
+							'text': 'Inférieur ou égale à (≤)'
 						}, {
 							'value': 'PropertyIsGreaterThan',
-							'text': 'supérieur à'
+							'text': 'Supérieur à (>)'
 						}, {
 							'value': 'PropertyIsGreaterThanOrEqualTo',
-							'text': 'supérieur ou égale à'
+							'text': 'Supérieur ou égale à (≥)'
 						}, {
 							'value': 'PropertyIsLike',
-							'text': 'comme',
+							'text': 'Comme (« LIKE »)',
 							'attributes': {'wildCard': '*', 'singleChar': '.', 'escape': '!'}
 						}
 					]
@@ -615,7 +664,7 @@ $(function() {
 			$classes.append($('<option>', {value: value, text : value}));
 		});
 
-		callback($container)
+		callback($container);
 
 		glob.overviewingStyle = function() {
 			const sldBody = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
@@ -754,10 +803,10 @@ $(function() {
 		const $well = $container.find('#text_symbolizer_well');
 		const $symbolizer = $rule.getChildrenOrCreate('TextSymbolizer');
 		declareParameter($content, $symbolizer, 'Label', 'PropertyName', 'property-name', undefined, options.attributes);
-		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-family');
+		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-family', undefined, {{ fonts | safe }});
 		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-size');
-		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-style');
-		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-weight');
+		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-style', 'normal', ['normal', 'italic', 'oblique']);
+		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-weight', 'normal', ['normal', 'bold']);
 		declareParameter($content, $symbolizer, 'Fill', 'CssParameter', 'fill');
 		$well.append($content);
 	};
@@ -899,9 +948,23 @@ $(function() {
 	};
 
 	$(window).bind('hashchange', function(e) {
-		selectRowByDataId(location.hash.split('/')[1]);
+		const splited = location.hash.split('/');
+		if (splited.length == 3) {
+			$('a[href="#' + location.hash.split('/')[2] + '"]').tab('show');
+		} else if (splited.length < 3) {
+			selectRowByDataId(splited[1], function() {});
+		};
 	});
-	selectRowByDataId(location.hash.split('/')[1]);
+
+	const splited = location.hash.split('/');
+	if (splited.length == 3) {
+		selectRowByDataId(location.hash.split('/')[1])
+		// $('a[href="#' + location.hash.split('/')[2] + '"]').tab('show');
+	} else if (splited.length < 3) {
+		selectRowByDataId(location.hash.split('/')[1], function() {});
+	} else {
+		tableGrid.rowSelected(tableGrid.lastSelectedRowIndex, 0);
+	};
 
 });
 </script>

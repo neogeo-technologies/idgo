@@ -484,6 +484,32 @@ a:focus {
     border-color: #002066;
 }
 
+.btn-secondary {
+    background-color: #d0be91;
+    border-color: #d0be91;
+    color: #fff;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+    background-color: #bbab82;
+    border-color: #bbab82;
+	color: #ddd;
+}
+
+.btn-tertiary {
+    background-color: #c3d091;
+    border-color: #c3d091;
+    color: #fff;
+}
+
+.btn-tertiary:hover,
+.btn-tertiary:focus {
+    background-color: #c3d091;
+    border-color: #c3d091;
+	color: #ddd;
+}
+
 .btn-danger {
     background-color: #ff554f;
     border-color: #ff554f;

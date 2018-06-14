@@ -34,7 +34,6 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.resource import ResourceForm as Form
-# from idgo_admin.forms.resource import ResourceOgcForm as OgcForm
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
 from idgo_admin.mra_client import MRAHandler
@@ -91,6 +90,7 @@ class ResourceManager(View):
                 'resource_name': three_suspension_points(instance.name),
                 'resource_id': instance.id,
                 'resource_ckan_id': instance.ckan_id,
+                'ows': len(instance.datagis_id) > 0,
                 'mode': mode,
                 'form': Form(instance=instance)})
 
@@ -143,6 +143,15 @@ class ResourceManager(View):
                 'voir la ressource dans CKAN</a> ?').format(
                 id and 'mise à jour' or 'créée', dataset_href,
                 CKAN_URL, dataset.ckan_slug, instance.ckan_id))
+
+            if len(instance.datagis_id) > 0:
+                resources_ogc_href = reverse(
+                    'idgo_admin:resources_ogc',
+                    kwargs={'dataset_id': dataset_id})
+                messages.info(request, (
+                    'Des données géographiques ont été détectées. '
+                    'Souhaitez-vous <a href="{0}?id={1}">configurer '
+                    'le service OGC</a> ?').format(resources_ogc_href, instance.id))
 
             response = HttpResponse(status=201)  # Ugly hack
 
@@ -264,6 +273,7 @@ class ResourceOgcManager(View):
                    'resource_name': three_suspension_points(instance.name),
                    'resource_id': instance.id,
                    'resource_ckan_id': instance.ckan_id,
+                   'fonts': json.dumps(MRAHandler.get_fonts()),
                    'layers': json.dumps(get_layers(instance))}
 
         return render_with_info_profile(request, self.template, context)
@@ -295,6 +305,7 @@ class ResourceOgcManager(View):
                    'resource_name': three_suspension_points(instance.name),
                    'resource_id': instance.id,
                    'resource_ckan_id': instance.ckan_id,
+                   'fonts': json.dumps(MRAHandler.get_fonts()),
                    'layers': json.dumps(get_layers(instance))}
 
         try:

@@ -318,4 +318,8 @@ class MRAHandler(metaclass=Singleton):
         self.enable_wms(ws_name=ws_name)
         self.enable_wfs(ws_name=ws_name)
 
+    @MRAExceptionsHandler()
+    def get_fonts(self, ws_name=None):
+        return self.remote.get('fonts')['fonts']
+
 MRAHandler = MRAHandler()

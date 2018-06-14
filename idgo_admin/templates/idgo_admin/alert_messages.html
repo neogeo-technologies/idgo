@@ -12,7 +12,9 @@
 		<span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>{{ message | escape | safe }}
 	</div>
 		{% elif message.tags == 'info' %}
-	<div name='message-tags' class="alert alert-info" role="alert">{{ message | escape | safe }}</div>
+	<div name='message-tags' class="alert alert-info" role="alert">
+		<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>{{ message | escape | safe }}
+	</div>
 		{% endif %}
 	{% endfor %}
 {% endif %}
