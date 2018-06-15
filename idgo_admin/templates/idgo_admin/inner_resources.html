@@ -10,10 +10,16 @@
 	<ul id="table-resources-paginator" class="pagination pagination-sm"></ul>
 </nav>
 <div class="buttons-on-the-right-side">
-	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
 	<button name="edit-ows" class="btn btn-secondary">Configurer le service OGC</button>
-</div>
-<div class="buttons-on-the-right-side">
+	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
+	<div class="btn-group">
+		<button name="view-multiple-ckan" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			Ouvrir dans CKAN <span class="caret"></span>
+		</button>
+		<ul class="dropdown-menu dropdown-menu-right">
+			<li style="text-align: right;"><a role="button" name="view-ckan">Voir la ressource par défaut</a></li>
+		</ul>
+	</div>
 	<button name="edit-resource" class="btn btn-default">Editer</button>
 	<button name="delete-resource" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 </div>
@@ -62,6 +68,11 @@ $(function() {
 			editable: false,
 			datatype: 'string'
 		}, {
+			name: 'datagis_id',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'object'
+		}, {
 			name: 'id',
 			label: '_HIDDEN',  //->https://github.com/webismymind/editablegrid/issues/153
 			editable: false,
@@ -71,11 +82,13 @@ $(function() {
 
 	var tableGrid = new EditableGrid('Resources', {pageSize: 10});
 
-	$('#resources button[name="view-ckan"]').on('click', function(e) {
+	$('#resources [name="view-ckan"]').on('click', function(e) {
 		e.preventDefault();
 		targetBlank(CKAN_URL + '/dataset/{{ dataset_ckan_slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
 		e.stopPropagation();
 	});
+
+	const $multipleCkanView = $('#resources [name="view-multiple-ckan"]').hide();
 
 	$('#resources button[name="delete-resource"]')
 		.on('click', function(e) {
@@ -171,11 +184,25 @@ $(function() {
 				if (pRowIdx != nRowIdx) {
 					window.location = '#resources/' + getRowValues(nRowIdx).id;
 					$(grid.getRow(nRowIdx)).addClass('selected');
+
+					const datagisIds = getRowValues(nRowIdx).datagis_id;
+					$multipleCkanViewMenu = $multipleCkanView.siblings('.dropdown-menu');
+					$multipleCkanViewMenu.find('li:gt(0)').remove();
+					if (datagisIds) {
+						for (var i = 0; i < datagisIds.length; i ++) {
+							$multipleCkanViewMenu.append('<li style="text-align: right;"><a role="button" href="' + CKAN_URL + '/dataset/{{ dataset_ckan_slug }}/resource/' + datagisIds[i] + '" target="_blank">Voir la couche <strong>' + datagisIds[i] + '</strong></a></li>')
+						};
+					};
+
 					$buttons.each(function() {
-						if (this.name == 'edit-ows' && !getRowValues(nRowIdx).ows) {
+						if (this.name == 'view-ckan' && getRowValues(nRowIdx).ows) {
+							deactivateButton($(this).hide());
+						} else if (this.name == 'view-multiple-ckan' && !getRowValues(nRowIdx).ows) {
+							deactivateButton($(this).hide());
+						} else if (this.name == 'edit-ows' && !getRowValues(nRowIdx).ows) {
 							deactivateButton($(this));
 						} else {
-							activateButton($(this));
+							activateButton($(this).show());
 						};
 					});
 				};
@@ -268,6 +295,7 @@ $(function() {
 						data[i][5],  // last_modification
 						data[i][6],  // restrictions
 						data[i][7],  // ckan_id
+						data[i][8],  // datagis_id
 						data[i][0]   // id
 					]
 				});

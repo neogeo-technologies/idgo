@@ -90,7 +90,7 @@ class ResourceManager(View):
                 'resource_name': three_suspension_points(instance.name),
                 'resource_id': instance.id,
                 'resource_ckan_id': instance.ckan_id,
-                'ows': len(instance.datagis_id) > 0,
+                'ows': instance.datagis_id and len(instance.datagis_id) > 0,
                 'mode': mode,
                 'form': Form(instance=instance)})
 
@@ -144,7 +144,7 @@ class ResourceManager(View):
                 id and 'mise à jour' or 'créée', dataset_href,
                 CKAN_URL, dataset.ckan_slug, instance.ckan_id))
 
-            if len(instance.datagis_id) > 0:
+            if instance.datagis_id and len(instance.datagis_id) > 0:
                 resources_ogc_href = reverse(
                     'idgo_admin:resources_ogc',
                     kwargs={'dataset_id': dataset_id})
@@ -218,6 +218,7 @@ def get_layers(resource):
         default_style_name = layer['defaultStyle']['name']
 
         sld = clean_xml(MRAHandler.get_style(layer['defaultStyle']['name']))
+        print(sld)
 
         styles = [{
             'name': layer['defaultStyle']['name'],
@@ -298,16 +299,6 @@ class ResourceOgcManager(View):
         dataset = instance.dataset
         ows_url = OWS_URL_PATTERN.format(organisation=dataset.organisation.ckan_slug)
 
-        context = {'dataset_name': three_suspension_points(dataset.name),
-                   'dataset_id': dataset.id,
-                   'ows_url': ows_url,
-                   'dataset_ckan_slug': dataset.ckan_slug,
-                   'resource_name': three_suspension_points(instance.name),
-                   'resource_id': instance.id,
-                   'resource_ckan_id': instance.ckan_id,
-                   'fonts': json.dumps(MRAHandler.get_fonts()),
-                   'layers': json.dumps(get_layers(instance))}
-
         try:
             sld = clean_xml(sld)
             MRAHandler.create_or_update_style(layer, data=sld.decode('utf8'))
@@ -319,5 +310,15 @@ class ResourceOgcManager(View):
         else:
             message = 'Le style a été mis à jour avec succès.'
             messages.success(request, message)
+
+        context = {'dataset_name': three_suspension_points(dataset.name),
+                   'dataset_id': dataset.id,
+                   'ows_url': ows_url,
+                   'dataset_ckan_slug': dataset.ckan_slug,
+                   'resource_name': three_suspension_points(instance.name),
+                   'resource_id': instance.id,
+                   'resource_ckan_id': instance.ckan_id,
+                   'fonts': json.dumps(MRAHandler.get_fonts()),
+                   'layers': json.dumps(get_layers(instance))}
 
         return render_with_info_profile(request, self.template, context)

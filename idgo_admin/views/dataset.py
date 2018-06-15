@@ -105,7 +105,8 @@ class DatasetManager(View):
                 o.created_on.isoformat() if o.created_on else None,
                 o.last_update.isoformat() if o.last_update else None,
                 o.get_restricted_level_display(),
-                str(o.ckan_id)
+                str(o.ckan_id),
+                o.datagis_id and [str(uuid) for uuid in o.datagis_id] or []
                 ) for o in Resource.objects.filter(dataset=instance)]
 
         context = {'form': form,

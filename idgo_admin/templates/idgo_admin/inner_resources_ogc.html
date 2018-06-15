@@ -100,7 +100,7 @@
 									<!-- class_well_template -->
 								</div>
 								<div class="buttons-on-the-right-side" style="position: absolute; bottom: 0; right: 0; margin: 0 35px 40px 0;">
-									<button type="button" name="save" class="btn btn-primary">Enregistrer</button>
+									<button type="button" name="save" class="btn btn-primary disabled" disabled>Enregistrer</button>
 								</div>
 							</div>
 						</div>
@@ -677,13 +677,14 @@ $(function() {
 			});
 			glob.addtoMap(layer);
 
-			$('button[name="save"]').click(function(e) {
+			const $save = $('button[name="save"]').click(function(e) {
 				e.preventDefault();
 				const $form = $('form').attr('method', 'POST');
 				$form.append($('<input type="text"/>').prop('name', 'layerName').val(params['name']));
 				$form.append($('<input type="text"/>').prop('name', 'sldBody').val(sldBody));
 				$form.submit();
 			});
+			activateButton($save);
 		};
 	};
 
@@ -927,6 +928,7 @@ $(function() {
 			const value = ($(this).val());
 			$well.parent().find('#classes option[value="'+ $ruleName.text() +'"]').prop({'text': value, 'value': value});
 			$ruleName.text(value);
+			glob.overviewingStyle();
 		});
 
 		parseFilter($rule, $content, {
