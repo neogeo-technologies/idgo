@@ -19,7 +19,7 @@
 			</button>
 			<ul class="dropdown-menu dropdown-menu-right">
 				<li><a role="button" name="edit-dataset" style="text-align: right;">Editer le jeu de données</a></li>
-				<!-- TODO Editer les resources du jeu de données ou Ajouter une nouvelle resource au jeu de données -->
+				<li><a role="button" name="edit-resources" style="text-align: right;">Editer les ressources associées</a></li>
 				<li><a role="button" name="mdedit-dataset" style="text-align: right;">Editer la fiche de métadonnées INSPIRE</a></li>
 				<li role="separator" class="divider"></li>
 				<li><a role="button" name="publish-dataset" style="text-align: right;">Publier le jeu de données</a></li>
@@ -120,6 +120,13 @@ $(function() {
 		.on('click', function(e) {
 			e.preventDefault();
 			redirect(DATASET_URL + '?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
+			e.stopPropagation();
+		});
+
+	$('#datasets a[name="edit-resources"]')
+		.on('click', function(e) {
+			e.preventDefault();
+			redirect(DATASET_URL + '?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id'] + '#resources');
 			e.stopPropagation();
 		});
 
