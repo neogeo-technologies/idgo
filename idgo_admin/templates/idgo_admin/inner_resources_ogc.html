@@ -564,11 +564,13 @@ $(function() {
 
 		const $removeClass = $container.find('button[name="remove"]').click(function(e) {
 			e.preventDefault();
-			getSelectedClassRule(function($option, $rule) {
-				$option.remove();
-				$rule.remove();
-				glob.overviewingStyle();
-			});
+			if ($classes.find('option').length > 1) {
+				getSelectedClassRule(function($option, $rule) {
+					$option.remove();
+					$rule.remove();
+					glob.overviewingStyle();
+				});
+			};
 		});
 
 		const $addClass = $container.find('button[name="add"]').click(function(e) {
@@ -577,7 +579,7 @@ $(function() {
 			for (var i = 0; i < $classes.children('option').length; i ++) {
 				m.push($($classes.children('option')[i]).val());
 			};
-			const value = increment('Nouvelle classe', m);
+			const value = increment('Nouvelle classe 1', m);
 			$featureTypeStyle.append($.parseXML('<Rule><Name>' + value + '</Name></Rule>').documentElement);
 			$classes.append($('<option>', {value: value, text : value}));
 		});
@@ -656,6 +658,10 @@ $(function() {
 				});
 			};
 		});
+
+		$classes.children('option').change(function() {
+			console.log(0)
+		})
 
 		const $namedLayer = $sld.children('NamedLayer').last();
 		($namedLayer.children('Name').last() == params['name']) || $namedLayer.children('Name').last().text(params['name']);
