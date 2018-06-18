@@ -114,7 +114,7 @@ class MRAClient(object):
     @timeout
     def _req(self, method, url, extension='json', **kwargs):
         kwargs.setdefault('allow_redirects', True)
-        kwargs.setdefault('headers', {'content-type': 'application/json'})
+        kwargs.setdefault('headers', {'content-type': 'application/json; charset=utf-8'})
         # TODO pretty:
         url = '{0}.{1}'.format(
             reduce(urljoin, (self.base_url,) + tuple(m + '/' for m in url))[:-1],
@@ -245,19 +245,19 @@ class MRAHandler(metaclass=Singleton):
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_style(self, s_name, as_sld=True):
         return self.remote.get('styles', s_name, extension='sld',
-                               headers={'content-type': 'application/vnd.ogc.sld+xml'})
+                               headers={'content-type': 'application/vnd.ogc.sld+xml; charset=utf-8'})
 
     @MRAExceptionsHandler()
     def create_style(self, s_name, data):
         return self.remote.post(
             'styles', extension='sld', params={'name': s_name}, data=data,
-            headers={'content-type': 'application/vnd.ogc.sld+xml'})
+            headers={'content-type': 'application/vnd.ogc.sld+xml; charset=utf-8'})
 
     @MRAExceptionsHandler()
     def update_style(self, s_name, data):
         return self.remote.put(
             'styles', s_name, extension='sld', data=data,
-            headers={'content-type': 'application/vnd.ogc.sld+xml'})
+            headers={'content-type': 'application/vnd.ogc.sld+xml; charset=utf-8'})
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def create_or_update_style(self, s_name, data):

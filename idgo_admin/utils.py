@@ -211,6 +211,6 @@ def unzip_zipped(zipped, target_dir=None):
 
 def clean_xml(body):
     try:
-        return ET.tostring(ET.fromstring(body), encoding='utf8')
+        return ET.tostring(ET.fromstring(body), encoding='utf-8')
     except Exception as e:
         raise ValidationError('Malformed XML: {}.'.format(e.__str__()))

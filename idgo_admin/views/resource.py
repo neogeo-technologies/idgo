@@ -218,7 +218,6 @@ def get_layers(resource):
         default_style_name = layer['defaultStyle']['name']
 
         sld = clean_xml(MRAHandler.get_style(layer['defaultStyle']['name']))
-        print(sld)
 
         styles = [{
             'name': layer['defaultStyle']['name'],
@@ -300,8 +299,7 @@ class ResourceOgcManager(View):
         ows_url = OWS_URL_PATTERN.format(organisation=dataset.organisation.ckan_slug)
 
         try:
-            sld = clean_xml(sld)
-            MRAHandler.create_or_update_style(layer, data=sld.decode('utf8'))
+            MRAHandler.create_or_update_style(layer, data=sld.encode('utf-8'))
             MRAHandler.update_layer_defaultstyle(layer, layer)
         except ValidationError as e:
             messages.error(request, ' '.join(e))
