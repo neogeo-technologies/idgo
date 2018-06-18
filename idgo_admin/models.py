@@ -316,7 +316,7 @@ class Resource(models.Model):
             # Pour les archives, toujours vérifier si contient des données SIG.
             # Si c'est le cas, monter les données dans la base PostGIS dédiée,
             # puis ajouter au service OGC:WxS de l'organisation.
-            if extension in ('zip', 'tar'):
+            if extension in ('zip', 'tar', 'geojson'):
                 try:
                     datagis_id = ogr2postgis(filename, extension=extension)
                 except (NotSupportedError, NotOGRError) as e:

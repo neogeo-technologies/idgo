@@ -47,19 +47,20 @@ def retreive_epsg_through_proj4(proj4):
 class OgrOpener(object):
 
     VSI_PROTOCOLE = (
-        ('zip', 'vsizip'),
-        ('tar', 'vsitar'))
+        ('geojson', None),
+        ('tar', 'vsitar'),
+        ('zip', 'vsizip'))
 
     _datastore = None
 
     def __init__(self, filename, extension=None):
-        vsi = dict(self.VSI_PROTOCOLE).get(extension)
+        vsi = dict(self.VSI_PROTOCOLE).get(extension, False)
 
-        if not vsi:
+        if vsi is False:
             raise NotSupportedError(
                 "The format '{}' is not supported.".format(extension))
 
-        ds = DataSource('/{}/{}'.format(vsi, filename))
+        ds = DataSource(vsi and '/{}/{}'.format(vsi, filename) or filename)
         if not ds:
             raise NotOGRError(
                 'The file received is not recognized as being a GIS data.')
@@ -90,6 +91,10 @@ VALUES ({attrs_value}, ST_Transform(ST_GeomFromtext('{wkt}', {epsg}), 4326));'''
 
 
 def ogr_field_2_pg(k, n=None, p=None):
+
+    if k.startswith('OFTString') and not n:
+        k = k.replace(k, 'OFTWide')
+
     return {
         'OFTInteger': 'integer',
         'OFTIntegerList': 'integer[]',
@@ -108,7 +113,7 @@ def ogr_field_2_pg(k, n=None, p=None):
 
 
 def ogr2postgis(filename, extension='zip'):
-    ds = OgrOpener(filename, extension='zip')
+    ds = OgrOpener(filename, extension=extension)
 
     sql = []
     table_ids = []
@@ -153,7 +158,7 @@ def ogr2postgis(filename, extension='zip'):
         # Donc dans ce cas on définit le type de géométrie de la couche
         # comme générique (soit 'Geometry')
         test = len(set(feat.geom.__class__.__qualname__ for feat in layer))
-        geometry = test and 'Geometry' or layer.geom_type
+        geometry = test > 1 and 'Geometry' or layer.geom_type
 
         sql.append(CREATE_TABLE.format(
             attrs=',\n  '.join(
