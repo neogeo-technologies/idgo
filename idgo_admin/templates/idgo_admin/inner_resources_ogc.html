@@ -297,6 +297,12 @@ $(function() {
 
 	var glob = {};
 
+	$.expr[':'].textEquals = $.expr.createPseudo(function(arg) {
+		return function( elem ) {
+			return $(elem).text().match("^" + arg + "$");
+		};
+	});
+
 	const pullXml = function($xml) {
 		let xmlString = '';
 		$xml.children().each(function() {
@@ -558,7 +564,7 @@ $(function() {
 
 		const getSelectedClassRule = function(callback) {
 			const $option = $classes.find('option:selected');
-			const $rule = $featureTypeStyle.find('Rule>Name:contains("' + $option.val() + '")').parent();
+			const $rule = $featureTypeStyle.find('Rule>Name:textEquals("' + $option.val() + '")').parent();
 			callback($option, $rule);
 		};
 
@@ -579,7 +585,7 @@ $(function() {
 			for (var i = 0; i < $classes.children('option').length; i ++) {
 				m.push($($classes.children('option')[i]).val());
 			};
-			const value = increment('Nouvelle classe 1', m);
+			const value = increment('Nouvelle classe', m);
 			$featureTypeStyle.append($.parseXML('<Rule><Name>' + value + '</Name></Rule>').documentElement);
 			$classes.append($('<option>', {value: value, text : value}));
 		});
@@ -592,10 +598,10 @@ $(function() {
 					m.push($($classes.children('option')[i]).val());
 				};
 				const value = increment($option.val(), m)
-				console.log(value)
-				// $classes.append($('<option>', {value: value, text : value}));
-				// $clone = $rule.clone();
-				// $rule.last().next().after($clone);
+				$clone = $rule.clone();
+				$clone.children('Rule>Name').text(value);
+				$rule.parent().append($clone);
+				$classes.append($('<option>', {value: value, text : value}));
 			});
 
 		});
@@ -625,7 +631,7 @@ $(function() {
 		const $classes = $container.find('#classes').change(function(e) {
 			$('#class_well').empty();
 			if (this.value) {
-				const $rule = $featureTypeStyle.find('Rule>Name:contains("' + this.value + '")').parent();
+				const $rule = $featureTypeStyle.find('Rule>Name:textEquals("' + this.value + '")').parent();
 				displayRuleForm($container, $rule, {
 					'type': params['type'],
 					'attributes': params['attributes'],
