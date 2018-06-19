@@ -224,9 +224,54 @@
 </template>
 
 <template id="point_symbolizer_well_template">
-	<div class="form-horizontal">
-
-
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="wellknownname" class="control-label">Symbole</label>
+				<select class="form-control input-sm" id="wellknownname" name="sld-handler">
+				</select>
+			</div>
+		</div>
+		<div class="col-xs-3">
+			<div class="form-group">
+				<label for="size" class="control-label">Taille</label>
+				<input type="text" class="form-control input-sm" id="size" name="sld-handler"></input>
+			</div>
+		</div>
+		<div class="col-xs-3">
+			<div class="form-group">
+				<label for="rotation" class="control-label">Rotation</label>
+				<input type="text" class="form-control input-sm" id="rotation" name="sld-handler"></input>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="fill" class="control-label">Couleur du fond</label>
+				<input type="color" class="form-control input-sm" id="fill" name="sld-handler" placeholder="#000000"></input>
+			</div>
+		</div>
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="fill-opacity" class="control-label">Opacité du fond</label>
+				<input name="sld-handler" class="form-control" id="fill-opacity" data-slider-id='fill-opacity-slider' type="text" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1"/>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="stroke" class="control-label">Couleur du trait</label>
+				<input type="color" class="form-control input-sm" id="stroke" name="sld-handler"></input>
+			</div>
+		</div>
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="stroke-width" class="control-label">Epaisseur du trait</label>
+				<input class="form-control input-sm" id="stroke-width" name="sld-handler"></input>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -713,10 +758,15 @@ $(function() {
 		return this.children(attrList.length ? name + '[' + attrList.join() + ']' : name);
 	};
 
-	const declareParameter = function($container, $element, nodeName, parameterName, cssName, defaultValue, optionsList, callback) {
-		const $parameter = $element.getChildrenOrCreate(nodeName).getChildrenOrCreate(parameterName, cssName && {'name': cssName});
-		$parameter.text() || $parameter.text(defaultValue);
-		const $item = $container.find('#' + cssName);
+	const declareParameter = function($container, $element, nodeName, parameterName, attrName, defaultValue, optionsList, callback) {
+		var $parameter = $element.getChildrenOrCreate(nodeName);
+		if (parameterName && attrName) {
+			var $parameter = $parameter.getChildrenOrCreate(parameterName, attrName && {'name': attrName});
+		};
+		if ($parameter && !$parameter.text()) {
+			$parameter.text(defaultValue);
+		};
+		const $item = $container.find('#' + attrName);
 		$item.change(function(e) {
 			e.preventDefault();
 			const value = $(this).val();
@@ -781,15 +831,37 @@ $(function() {
 	const parsePointSymbolizer = function($rule, $container) {
 		/*
 		<PointSymbolizer>
-
+			<Graphic>
+				<Mark>
+					<WellKnownName>circle</WellKnownName>
+					<Fill>
+						<CssParameter name="fill">#FF0000</CssParameter>
+						<CssParameter name="fill-opacity">1</CssParameter>
+					</Fill>
+					<Stroke>
+						<CssParameter name="stroke">#000000</CssParameter>
+						<CssParameter name="stroke-width">2</CssParameter>
+					</Stroke>
+				</Mark>
+				<Size>6</Size>
+			</Graphic>
 		</PointSymbolizer>
 		*/
 		const $template = $('#point_symbolizer_well_template');
 		const $content = $($template.prop('content')).clone();
 		const $well = $container.find('#symbolizer_well'); //.empty();
 		const $symbolizer = $rule.getChildrenOrCreate('PointSymbolizer').last();
-
-		// TODO
+		const $graphic = $symbolizer.getChildrenOrCreate('Graphic').last();
+		const $mark = $graphic.getChildrenOrCreate('Mark').last();
+		declareParameter($content, $graphic, 'Size', undefined, 'size', 16);
+		declareParameter($content, $graphic, 'Rotation', undefined, 'rotation', 0);
+		declareParameter($content, $mark, 'WellKnownName', undefined, 'wellknownname', undefined, ['circle', 'square', 'star', 'cross', 'x', 'triangle']);
+		declareParameter($content, $mark, 'Fill', 'CssParameter', 'fill', '#ffffff');
+		const $fillOpacity = declareParameter($content, $mark, 'Fill', 'CssParameter', 'fill-opacity', '1');
+		const fillOpacityValue = $fillOpacity.val();
+		$fillOpacity.slider().slider('setValue', fillOpacityValue);
+		declareParameter($content, $mark, 'Stroke', 'CssParameter', 'stroke', '#000000');
+		declareParameter($content, $mark, 'Stroke', 'CssParameter', 'stroke-width', 1);
 
 		$well.append($content);
 	};
