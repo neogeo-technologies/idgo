@@ -41,7 +41,6 @@ from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
-from idgo_admin.utils import clean_xml
 from idgo_admin.utils import three_suspension_points
 import json
 from uuid import UUID
@@ -217,12 +216,10 @@ def get_layers(resource):
 
         default_style_name = layer['defaultStyle']['name']
 
-        sld = clean_xml(MRAHandler.get_style(layer['defaultStyle']['name']))
-
         styles = [{
             'name': layer['defaultStyle']['name'],
             'url': layer['defaultStyle']['href'].replace('json', 'sld'),
-            'sld': sld.decode('utf-8')}]
+            'sld': MRAHandler.get_style(layer['defaultStyle']['name'])}]
 
         if layer.get('styles'):
             for style in layer.get('styles')['style']:

@@ -30,7 +30,6 @@ import string
 import unicodedata
 from urllib.parse import urlparse
 from uuid import uuid4
-import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
 
@@ -207,10 +206,3 @@ def unzip_zipped(zipped, target_dir=None):
     with ZipFile(zipped) as zf:
         print(zf)
         # return zf.extractall(target_dir)
-
-
-def clean_xml(body):
-    try:
-        return ET.tostring(ET.fromstring(body), encoding='utf-8')
-    except Exception as e:
-        raise ValidationError('Malformed XML: {}.'.format(e.__str__()))
