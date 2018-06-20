@@ -615,7 +615,7 @@ $(function() {
 
 		const $removeClass = $container.find('button[name="remove"]').click(function(e) {
 			e.preventDefault();
-			if ($classes.find('option').length > 1) {
+			if ($classes.find('option').length > $classes.find('option:selected').length) {
 				getSelectedClassRule(function($option, $rule) {
 					$option.remove();
 					$rule.remove();
