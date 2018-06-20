@@ -17,6 +17,7 @@
 import datetime
 from django.conf import settings
 from django.contrib.gis.gdal import DataSource
+from django.contrib.gis.gdal.error import SRSException
 from django.db import connections
 from idgo_admin.exceptions import CriticalException
 from idgo_admin.exceptions import NotOGRError
@@ -35,13 +36,33 @@ THE_GEOM = 'the_geom'
 PROJ4_EPSG_FILENAME = settings.PROJ4_EPSG_FILENAME
 
 
+def get_proj4s():
+    sql = '''SELECT auth_srid, proj4text FROM public.spatial_ref_sys;'''
+    with connections[DATABASE].cursor() as cursor:
+        try:
+            cursor.execute(sql)
+        except Exception as e:
+            if e.__class__.__qualname__ != 'ProgrammingError':
+                raise e
+        records = cursor.fetchall()
+        cursor.close()
+    return records
+
+
 def retreive_epsg_through_proj4(proj4):
-    with open(settings.PROJ4_EPSG_FILENAME) as stream:
-        for line in stream:
-            if line.find(proj4) > -1:
-                res = re.search('<(\d+)>', line)
-                if res:
-                    return res.group(1)
+
+    def parse(line):
+        matches = re.finditer('\+(\w+)(=([a-zA-Z0-9\.\,]+))?', line)
+        return set(match.group(0) for match in matches)
+
+    parsed_proj4 = parse(proj4)
+    candidate = []
+    for row in get_proj4s():
+        tested = parse(row[1])
+        if not len(parsed_proj4 - tested) and len(tested - parsed_proj4) < 2:
+            candidate.append(row[0])
+    if len(candidate) == 1:
+        return candidate[0]
 
 
 class OgrOpener(object):
@@ -121,8 +142,12 @@ def ogr2postgis(filename, extension='zip'):
         table_id = uuid4()
         table_ids.append(table_id)
 
-        epsg = layer.srs.identify_epsg()
+        try:
+            epsg = layer.srs.identify_epsg()
+        except SRSException:
+            epsg = None
         if not epsg:
+            print(layer.srs.projected)
             if layer.srs.projected \
                     and layer.srs.auth_name('PROJCS') == 'EPSG':
                 epsg = layer.srs.auth_code('PROJCS')
