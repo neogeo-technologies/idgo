@@ -33,8 +33,6 @@ MRA_DATAGIS_USER = settings.MRA['DATAGIS_DB_USER']
 SCHEMA = 'public'
 THE_GEOM = 'the_geom'
 
-PROJ4_EPSG_FILENAME = settings.PROJ4_EPSG_FILENAME
-
 
 def get_proj4s():
     sql = '''SELECT auth_srid, proj4text FROM public.spatial_ref_sys;'''

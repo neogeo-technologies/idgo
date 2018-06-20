@@ -197,8 +197,6 @@ MAMA_CAS_SERVICES = [{
     'LOGOUT_ALLOW': True,
     'LOGOUT_URL': 'http://localhost/signout'}]
 
-PROJ4_EPSG_FILENAME = '/path/to/proj/epsg'
-
 ```
 
 Puis :
