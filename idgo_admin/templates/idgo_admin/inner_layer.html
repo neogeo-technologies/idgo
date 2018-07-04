@@ -10,107 +10,6 @@
 <link rel="stylesheet" href="{% static "libs/bootstrap-slider/css/bootstrap-slider.css" %}"/>
 {% endblock head_extras %}
 
-<template id="layer_well_template">
-	<div>
-		<ul class="nav nav-tabs" role="tablist">
-			<li role="presentation" class="active">
-				<a href="#configuration" aria-controls="configuration" role="tab" data-toggle="tab">Configuration générale</a>
-			</li>
-			<li role="presentation">
-				<a href="#styles" aria-controls="styles" role="tab" data-toggle="tab">Styles</a>
-			</li>
-		</ul>
-		<div class="tab-content">
-			<div role="tabpanel" class="tab-pane active" id="configuration">
-				<div class="tab-pane-content">
-					<form name="layer" method="post">
-						<div class="row">
-							<div class="col-xs-8">
-								<div class="form-group">
-									<label for="name">Nom de la couche</label>
-									<input class="form-control" id="name" disabled></input>
-								</div>
-							</div>
-						</div>
-						<div class="row">
-							<div class="col-xs-8">
-								<div class="form-group">
-									<label for="title">Titre</label>
-									<input class="form-control" id="title" disabled></input>
-								</div>
-							</div>
-						</div>
-						<div class="row">
-							<div class="col-xs-4">
-								<div class="form-group">
-									<label for="type">Type</label>
-									<input class="form-control" id="type" disabled></input>
-								</div>
-							</div>
-						</div>
-						<!-- <div class="checkbox">
-							<label>
-								<input id="enabled" type="checkbox"> Active
-							</label>
-						</div> -->
-					</form>
-				</div>
-			</div>
-			<div role="tabpanel" class="tab-pane" id="styles">
-				<div class="tab-pane-content">
-					<div class="row hide">
-						<div class="col-xs-offset-4 col-sm-offset-5 col-md-offset-6 col-lg-offset-7 col-xs-8 col-sm-7 col-md-6 col-lg-5">
-							<div class="form-group">
-								<select class="form-control input-sm" name="styles" disabled></select>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
-							<div id="map_well"></div>
-						</div>
-
-						<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
-							<!--
-							<div class="checkbox">
-								<label>
-									<input type="checkbox" name="is-default-style"></input> Style par défaut
-								</label>
-							</div>
-							-->
-							<div name="form" class="well" style="height: 650px">
-								<div class="form-group">
-									<label for="classes">Règles de représentation</label>
-									<div class="row">
-										<div class="col-xs-10">
-											<select class="form-control input-sm" id="classes" size="7" multiple style="height: 106px"></select>
-										</div>
-										<div class="col-xs-2">
-											<div class="btn-group-vertical" role="group">
-												<button type="button" name="up" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span></button>
-												<button type="button" name="down" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>
-												<button type="button" name="clone" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></button>
-												<button type="button" name="add" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
-												<button type="button" name="remove" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div id="class_well">
-									<!-- class_well_template -->
-								</div>
-								<div class="buttons-on-the-right-side" style="position: absolute; bottom: 0; right: 0; margin: 0 35px 40px 0;">
-									<button type="button" name="save" class="btn btn-primary disabled" disabled>Enregistrer</button>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-</template>
-
 <template id="class_well_template">
 	<div class="row">
 		<div class="col-xs-10">
@@ -328,13 +227,103 @@
 
 {% include "idgo_admin/alert_messages.html" %}
 
-<div id="table-layers" class="table-responsive"></div>
-<nav aria-label="Page navigation" style="text-align: center;">
-	<ul id="table-layers-paginator" class="pagination pagination-sm"></ul>
-</nav>
+<div id="layer-container">
+	<ul class="nav nav-tabs" role="tablist">
+		<li role="presentation" class="active">
+			<a href="#configuration" aria-controls="configuration" role="tab" data-toggle="tab">Configuration générale</a>
+		</li>
+		<li role="presentation">
+			<a href="#styles" aria-controls="styles" role="tab" data-toggle="tab">Styles</a>
+		</li>
+	</ul>
+	<div class="tab-content">
+		<div role="tabpanel" class="tab-pane active" id="configuration">
+			<div class="tab-pane-content">
+				<form name="layer" method="post">
+					<div class="row">
+						<div class="col-xs-8">
+							<div class="form-group">
+								<label for="name">Nom de la couche</label>
+								<input class="form-control" id="name" disabled></input>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-8">
+							<div class="form-group">
+								<label for="title">Titre</label>
+								<input class="form-control" id="title" disabled></input>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-4">
+							<div class="form-group">
+								<label for="type">Type</label>
+								<input class="form-control" id="type" disabled></input>
+							</div>
+						</div>
+					</div>
+					<!-- <div class="checkbox">
+						<label>
+							<input id="enabled" type="checkbox"> Active
+						</label>
+					</div> -->
+				</form>
+			</div>
+		</div>
+		<div role="tabpanel" class="tab-pane" id="styles">
+			<div class="tab-pane-content">
+				<div class="row hide">
+					<div class="col-xs-offset-4 col-sm-offset-5 col-md-offset-6 col-lg-offset-7 col-xs-8 col-sm-7 col-md-6 col-lg-5">
+						<div class="form-group">
+							<select class="form-control input-sm" name="styles" disabled></select>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
+						<div id="map_well"></div>
+					</div>
 
-<div>
-	<div id='layer_well'><!-- layer_well_template --></div>
+					<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
+						<!--
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" name="is-default-style"></input> Style par défaut
+							</label>
+						</div>
+						-->
+						<div name="form" class="well" style="height: 650px">
+							<div class="form-group">
+								<label for="classes">Règles de représentation</label>
+								<div class="row">
+									<div class="col-xs-10">
+										<select class="form-control input-sm" id="classes" size="7" multiple style="height: 106px"></select>
+									</div>
+									<div class="col-xs-2">
+										<div class="btn-group-vertical" role="group">
+											<button type="button" name="up" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span></button>
+											<button type="button" name="down" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>
+											<button type="button" name="clone" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></button>
+											<button type="button" name="add" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+											<button type="button" name="remove" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div id="class_well">
+								<!-- class_well_template -->
+							</div>
+							<div class="buttons-on-the-right-side" style="position: absolute; bottom: 0; right: 0; margin: 0 35px 40px 0;">
+								<button type="button" name="save" class="btn btn-primary disabled" disabled>Enregistrer</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 
 <script>
@@ -349,10 +338,10 @@ $(function() {
 	});
 
 	const pullXml = function($xml) {
-		let xmlString = '';
+		var xmlString = '';
 		$xml.children().each(function() {
-			let attrs = []
-			for (let att, i = 0, atts = this.attributes, n = atts.length; i < n; i ++) {
+			var attrs = []
+			for (var att, i = 0, atts = this.attributes, n = atts.length; i < n; i ++) {
 				att = atts[i];
 				attrs.push(att.nodeName + '="' + att.nodeValue + '"');
 			};
@@ -375,218 +364,10 @@ $(function() {
 		return xmlString;
 	};
 
-	var LAYERS = {{ layers | safe }};
-	var LAYERS_CONTAINER = 'table-layers';
-	var LAYERS_METADATA = [
-		{
-			name: 'name',
-			label: 'Name',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'title',
-			label: 'Titre',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'type',
-			label: 'Type',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'enabled',
-			label: 'Enabled',
-			editable: false,
-			datatype: 'boolean'
-		}, {
-			name: 'bbox',
-			label: '_HIDDEN',
-			editable: false,
-			datatype: 'object'
-		}, {
-			name: 'attributes',
-			label: '_HIDDEN',
-			editable: false,
-			datatype: 'object'
-		}, {
-			name: 'styles',
-			label: '_HIDDEN',
-			editable: false,
-			datatype: 'object'
-		}, {
-			name: 'id',
-			label: '_HIDDEN',
-			editable: false,
-			datatype: 'string'
-		}
-	];
+	var LAYER = {{ layer | safe }};
 
-	var tableGrid = new EditableGrid('Layers', {pageSize: 5});
 
-	tableGrid.initializeGrid = function() {
-		var grid = tableGrid;
-
-		with (this) {
-			tableRendered = function() {
-				this.updatePaginator(grid);
-			};
-			rowSelected = function(pRowIdx, nRowIdx) {
-				$(grid.getRow(pRowIdx)).removeClass('selected');
-				if (pRowIdx != nRowIdx) {
-					window.location = '#resources/' + getRowValues(nRowIdx).id;
-					$(grid.getRow(nRowIdx)).addClass('selected');
-					displayLayerForm(grid.getRowValues(nRowIdx));
-				} else {
-					window.location = '#'
-					$('#layer_well').empty();
-				};
-			};
-			setCellRenderer('enabled', new CellRenderer({
-				render: function(cell, value) {
-					cell.style.textAlign = 'center';
-					cell.style.width = '32px';
-					cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
-				}
-			}));
-		};
-	};
-
-	const selectRowByDataId = function(dataId, callback) {
-		for (var i = 0; i < tableGrid.data.length; i ++) {
-			if (tableGrid.data[i].columns[tableGrid.getColumnIndex('id')] == dataId) {
-				tableGrid.setPageIndex(0);
-				// TODO Pas good
-				while (tableGrid.currentPageIndex < tableGrid.getPageCount()) {
-					const rowIndex = tableGrid.getRowIndex(tableGrid.data[i].id);
-					if (tableGrid.getRow(rowIndex)) {
-						tableGrid.rowSelected(tableGrid.lastSelectedRowIndex, rowIndex);
-						tableGrid.lastSelectedRowIndex = rowIndex;
-						break;
-					};
-					tableGrid.setPageIndex(tableGrid.currentPageIndex + 1);
-				};
-			};
-		};
-	};
-
-	function updateTableGrid(grid, containerId, metadata, data, bbox) {
-		var $containerId = $('#' + containerId);
-		var $parent = $($containerId.parent().get(0));
-		$parent.find('div[role="alert"]not:div[name="message-tags"]').remove();
-		$parent.find('button').each(function() {
-			deactivateButton($(this));
-		});
-		if (data.length > 0) {
-			grid.load({'metadata': metadata, 'data': data});
-			grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
-			grid.initializeGrid();
-			grid.refreshGrid();
-			$containerId.show();
-		} else {
-			$containerId.hide();
-		};
-	};
-
-	updateTableGrid(
-		tableGrid,
-		LAYERS_CONTAINER,
-		LAYERS_METADATA,
-		(function(data) {
-			var m = [];
-			for (var i = 0; i < data.length; i ++) {
-				m.push({
-					id: i,
-					values: [
-						data[i][1],  // name
-						data[i][2],  // title
-						data[i][3],  // type
-						data[i][4],  // enabled
-						data[i][5],  // bbox
-						data[i][6],  // attributes
-						data[i][7],  // styles
-						data[i][0]   // id
-					]
-				});
-			};
-			return m;
-		})(LAYERS)
-	);
-
-	const displayLayerForm = function(data) {
-
-		const $template = $('#layer_well_template');
-		const $content = $($template.prop('content')).clone();
-		const $well = $('#layer_well').empty();
-
-		$content.find('#name').val(data['name']);
-		$content.find('#title').val(data['title']);
-		$content.find('#type').val(data['type']);
-		$content.find('#enabled').prop('checked', data['enabled']);
-
-		const $selectStyle = $content.find('select[name="styles"]');
-		const default_style = data['styles']['default'];
-
-		const styles = data['styles']['styles'];
-
-		const getSldByName = function(name) {
-			for (var i = 0; i < styles.length; i ++) {
-				if (styles[i]['name'] == name) {
-					return styles[i]['sld'];
-				};
-			};
-		};
-
-		for (var i = 0; i < styles.length; i ++) {
-			$selectStyle.append($('<option>', {
-				value: styles[i]['url'],
-				text: styles[i]['name']
-			}));
-		};
-
-		let layer = new L.NonTiledLayer.WMS('{{ ows_url }}', {
-			format: 'image/png',
-			layers: data['name'],
-			sld: $selectStyle.val(),
-			transparent: true
-		});
-
-		$content.find('.nav a[href="#styles"]').on('shown.bs.tab', function(e) {
-			if (!$('#map_well').children('#map').length > 0) {
-				$('#map_well').append('<div id="map" style="height: 650px;"></div>');
-				const map = L.map('map').fitBounds(data['bbox']);
-				L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
-					attribution: 'CartoDB',
-				}).addTo(map);
-				glob.addtoMap = function(l) {
-					map.addLayer(l);
-				};
-				glob.addtoMap(layer);
-			};
-		});
-
-		const _sld = $.parseXML(getSldByName($selectStyle.text()));
-		const $sld  = $(_sld).children('StyledLayerDescriptor').last();
-
-		displayStyleForm($content, $sld, layer, data, function($content) {
-
-			$content.find('.nav a').click(function(e) {
-				const backHash = location.hash;
-				const splited = backHash.split('/');
-				splited.length == 3 && splited.pop();
-
-				const hash = splited.join('/') + '/' + this.hash.substr(1);
-				$(this).on('shown.bs.tab', function(e) {
-					e.stopPropagation();
-					location.hash = hash;
-				}).tab('show');
-			});
-
-			$well.append($content);
-		});
-
-	};
-
-	const displayStyleForm = function($container, $sld, layer, params, callback) {
+	const displayStyleForm = function($container, $sld, layer, params) {
 
 		/* Utils */
 		var increment = function(value, m) {
@@ -615,7 +396,7 @@ $(function() {
 
 		const $removeClass = $container.find('button[name="remove"]').click(function(e) {
 			e.preventDefault();
-			if ($classes.find('option').length > $classes.find('option:selected').length) {
+			if ($classes.find('option').length > 1) {
 				getSelectedClassRule(function($option, $rule) {
 					$option.remove();
 					$rule.remove();
@@ -721,10 +502,9 @@ $(function() {
 			$classes.append($('<option>', {value: value, text : value}));
 		});
 
-		callback($container);
-
 		glob.overviewingStyle = function() {
-			const sldBody = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
+
+			var sldBody = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
 			layer.remove();
 			layer = new L.NonTiledLayer.WMS('{{ ows_url }}', {
 				format: 'image/png',
@@ -734,13 +514,15 @@ $(function() {
 			});
 			glob.addtoMap(layer);
 
-			const $save = $('button[name="save"]').click(function(e) {
+			console.log(sldBody)
+
+			var $save = $('button[name="save"]').click(function(e) {
 				e.preventDefault();
 				const $form = $('form').attr('method', 'POST');
-				$form.append($('<input type="text"/>').prop('name', 'layerName').val(params['name']));
 				$form.append($('<input type="text"/>').prop('name', 'sldBody').val(sldBody));
 				$form.submit();
 			});
+
 			activateButton($save);
 		};
 	};
@@ -908,7 +690,7 @@ $(function() {
 		const $well = $container.find('#filter_well')
 		const $filter = $rule.getChildrenOrCreate('Filter');
 
-		let $filterTagOperator = $filter.children().last();
+		var $filterTagOperator = $filter.children().last();
 		const tagName = ($filterTagOperator.length) ? $filterTagOperator.prop('tagName') : undefined;
 
 		const $filterOperator = $content.find('#filter-operator').change(function() {
@@ -1033,24 +815,59 @@ $(function() {
 		$well.append($content);
 	};
 
-	$(window).bind('hashchange', function(e) {
-		const splited = location.hash.split('/');
-		if (splited.length == 3) {
-			$('a[href="#' + location.hash.split('/')[2] + '"]').tab('show');
-		} else if (splited.length < 3) {
-			selectRowByDataId(splited[1], function() {});
+
+	var layerData = {{ layer | safe }};
+
+	$('#layer-container #name').val(layerData['name']);
+	$('#layer-container #title').val(layerData['title']);
+	$('#layer-container #type').val(layerData['type']);
+	$('#layer-container #enabled').prop('checked', layerData['enabled']);
+
+	const $selectStyle = $('#layer-container select[name="styles"]');
+	const default_style = layerData['styles']['default'];
+
+	const styles = layerData['styles']['styles'];
+
+	const getSldByName = function(name) {
+		for (var i = 0; i < styles.length; i ++) {
+			if (styles[i]['name'] == name) {
+				return styles[i]['sld'];
+			};
+		};
+	};
+
+	for (var i = 0; i < styles.length; i ++) {
+		$selectStyle.append($('<option>', {
+			value: styles[i]['url'],
+			text: styles[i]['name']
+		}));
+	};
+
+	var layer = new L.NonTiledLayer.WMS('{{ ows_url }}', {
+		format: 'image/png',
+		layers: layerData['name'],
+		sld: $selectStyle.val(),
+		transparent: true
+	});
+
+	$('#layer-container .nav a[href="#styles"]').on('shown.bs.tab', function(e) {
+		if (!$('#map_well').children('#map').length > 0) {
+			$('#map_well').append('<div id="map" style="height: 650px;"></div>');
+			const map = L.map('map').fitBounds(layerData['bbox']);
+			L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+				attribution: 'CartoDB',
+			}).addTo(map);
+			glob.addtoMap = function(l) {
+				map.addLayer(l);
+			};
+			glob.addtoMap(layer);
 		};
 	});
 
-	const splited = location.hash.split('/');
-	if (splited.length == 3) {
-		selectRowByDataId(location.hash.split('/')[1])
-		// $('a[href="#' + location.hash.split('/')[2] + '"]').tab('show');
-	} else if (splited.length < 3) {
-		selectRowByDataId(location.hash.split('/')[1], function() {});
-	} else {
-		tableGrid.rowSelected(tableGrid.lastSelectedRowIndex, 0);
-	};
+	const _sld = $.parseXML(getSldByName($selectStyle.text()));
+	const $sld  = $(_sld).children('StyledLayerDescriptor').last();
+
+	displayStyleForm($('#layer-container'), $sld, layer, layerData);
 
 });
 </script>

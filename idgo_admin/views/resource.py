@@ -22,6 +22,7 @@ from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -67,6 +68,15 @@ class ResourceManager(View):
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
+
+        # Ugly #
+        _resource = request.GET.get('resource')
+        _layer = request.GET.get('layer')
+        if _resource and _layer:
+            return redirect(
+                reverse('idgo_admin:layer', kwargs={
+                    'dataset_id': dataset_id, 'resource_id': _resource, 'layer_id': _layer}))
+        # Ugly #
 
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
@@ -143,15 +153,6 @@ class ResourceManager(View):
                 id and 'mise à jour' or 'créée', dataset_href,
                 CKAN_URL, dataset.ckan_slug, instance.ckan_id))
 
-            if instance.datagis_id and len(instance.datagis_id) > 0:
-                resources_ogc_href = reverse(
-                    'idgo_admin:resources_ogc',
-                    kwargs={'dataset_id': dataset_id})
-                messages.info(request, (
-                    'Des données géographiques ont été détectées. '
-                    'Souhaitez-vous <a href="{0}?id={1}">configurer '
-                    'le service OGC</a> ?').format(resources_ogc_href, instance.id))
-
             response = HttpResponse(status=201)  # Ugly hack
 
             if 'continue' in request.POST:
@@ -201,103 +202,111 @@ class ResourceManager(View):
         return HttpResponse(status=status)
 
 
-def get_layers(resource):
+def get_layer(resource, datagis_id):
+    if datagis_id not in resource.datagis_id:
+        raise Http404
 
+    datagis_id = str(datagis_id)
+    layer = MRAHandler.get_layer(datagis_id)
+    ft = MRAHandler.get_featuretype(resource.dataset.organisation.ckan_slug, 'public', datagis_id)
+
+    ll = ft['featureType']['latLonBoundingBox']
+    bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
+    attributes = [item['name'] for item in ft['featureType']['attributes']]
+
+    default_style_name = layer['defaultStyle']['name']
+
+    styles = [{
+        'name': layer['defaultStyle']['name'],
+        'url': layer['defaultStyle']['href'].replace('json', 'sld'),
+        'sld': MRAHandler.get_style(layer['defaultStyle']['name'])}]
+
+    if layer.get('styles'):
+        for style in layer.get('styles')['style']:
+            styles.append({
+                'name': style['name'],
+                'url': style['href'].replace('json', 'sld'),
+                'sld': MRAHandler.get_style(style['name'])})
+
+    return {
+        'id': datagis_id,
+        'name': layer['name'],
+        'title': layer['title'],
+        'type': layer['type'],
+        'enabled': layer['enabled'],
+        'bbox': bbox,
+        'attributes': attributes,
+        'styles': {'default': default_style_name, 'styles': styles}}
+
+
+def get_layers(resource):
     layers = []
     for datagis_id in resource.datagis_id:
-        ft_name = str(datagis_id)
-
-        layer = MRAHandler.get_layer(ft_name)
-        ft = MRAHandler.get_featuretype(resource.dataset.organisation.ckan_slug, 'public', ft_name)
-
-        ll = ft['featureType']['latLonBoundingBox']
-        bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
-        attributes = [item['name'] for item in ft['featureType']['attributes']]
-
-        default_style_name = layer['defaultStyle']['name']
-
-        styles = [{
-            'name': layer['defaultStyle']['name'],
-            'url': layer['defaultStyle']['href'].replace('json', 'sld'),
-            'sld': MRAHandler.get_style(layer['defaultStyle']['name'])}]
-
-        if layer.get('styles'):
-            for style in layer.get('styles')['style']:
-                styles.append({
-                    'name': style['name'],
-                    'url': style['href'].replace('json', 'sld'),
-                    'sld': MRAHandler.get_style(style['name'])})
-
-        row = (
-            ft_name,
-            layer['name'],
-            layer['title'],
-            layer['type'],
-            layer['enabled'],
-            bbox,
-            attributes,
-            {'default': default_style_name, 'styles': styles})
-
-        layers.append(row)
+        data = get_layer(resource, datagis_id)
+        layers.append([
+            data['id'],
+            data['name'],
+            data['title'],
+            data['type'],
+            data['enabled'],
+            data['bbox'],
+            data['attributes'],
+            data['styles']])
     return(layers)
 
 
 @method_decorator(decorators, name='dispatch')
-class ResourceOgcManager(View):
+class LayerManager(View):
 
-    template = 'idgo_admin/resources_ogc.html'
-    namespace = 'idgo_admin:resources_ogc'
+    template = 'idgo_admin/layer.html'
+    namespace = 'idgo_admin:layer'
 
     @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, dataset_id=None, *args, **kwargs):
-        id = request.GET.get('id')
-        if not id:
-            return Http404
+    def get(self, request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
 
         user, profile = user_and_profile(request)
 
         instance = get_object_or_404_extended(
-            Resource, user, include={'id': id, 'dataset_id': dataset_id})
+            Resource, user, include={'id': resource_id, 'dataset_id': dataset_id})
 
         dataset = instance.dataset
 
         ows_url = OWS_URL_PATTERN.format(organisation=dataset.organisation.ckan_slug)
 
+        layer = get_layer(instance, UUID(layer_id))
+
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
+                   'layer_title': layer['title'],
                    'ows_url': ows_url,
                    'dataset_ckan_slug': dataset.ckan_slug,
                    'resource_name': three_suspension_points(instance.name),
                    'resource_id': instance.id,
                    'resource_ckan_id': instance.ckan_id,
                    'fonts': json.dumps(MRAHandler.get_fonts()),
-                   'layers': json.dumps(get_layers(instance))}
+                   'layer': json.dumps(layer)}
 
         return render_with_info_profile(request, self.template, context)
 
     @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
-    def post(self, request, dataset_id=None, *args, **kwargs):
-
-        id = request.GET.get('id')
-        if not id:
-            return Http404
+    def post(self, request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
 
         user, profile = user_and_profile(request)
 
         instance = get_object_or_404_extended(
-            Resource, user, include={'id': id, 'dataset_id': dataset_id})
+            Resource, user, include={'id': resource_id, 'dataset_id': dataset_id})
 
-        layer = request.POST.get('layerName')
-        sld = request.POST.get('sldBody')
-        if not layer or (UUID(layer) not in instance.datagis_id):
+        if UUID(layer_id) not in instance.datagis_id:
             return Http404
 
         dataset = instance.dataset
+
+        sld = request.POST.get('sldBody')
         ows_url = OWS_URL_PATTERN.format(organisation=dataset.organisation.ckan_slug)
 
         try:
-            MRAHandler.create_or_update_style(layer, data=sld.encode('utf-8'))
-            MRAHandler.update_layer_defaultstyle(layer, layer)
+            MRAHandler.create_or_update_style(layer_id, data=sld.encode('utf-8'))
+            MRAHandler.update_layer_defaultstyle(layer_id, layer_id)
         except ValidationError as e:
             messages.error(request, ' '.join(e))
         except Exception as e:
@@ -306,14 +315,17 @@ class ResourceOgcManager(View):
             message = 'Le style a été mis à jour avec succès.'
             messages.success(request, message)
 
+        layer = get_layer(instance, UUID(layer_id))
+
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
+                   'layer_title': layer['title'],
                    'ows_url': ows_url,
                    'dataset_ckan_slug': dataset.ckan_slug,
                    'resource_name': three_suspension_points(instance.name),
                    'resource_id': instance.id,
                    'resource_ckan_id': instance.ckan_id,
                    'fonts': json.dumps(MRAHandler.get_fonts()),
-                   'layers': json.dumps(get_layers(instance))}
+                   'layer': json.dumps(layer)}
 
         return render_with_info_profile(request, self.template, context)

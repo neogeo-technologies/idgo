@@ -43,8 +43,8 @@ from idgo_admin.views.organization import CreateOrganisation
 from idgo_admin.views.organization import organisation
 from idgo_admin.views.organization import Subscription
 from idgo_admin.views.organization import UpdateOrganisation
+from idgo_admin.views.resource import LayerManager
 from idgo_admin.views.resource import ResourceManager
-from idgo_admin.views.resource import ResourceOgcManager
 from idgo_admin.views.stuffs import DisplayLicenses
 
 
@@ -60,7 +60,7 @@ urlpatterns = [
 
     url('^dataset/?$', DatasetManager.as_view(), name='dataset'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
-    url('^dataset/(?P<dataset_id>(\d+))/resource/ogc/?$', ResourceOgcManager.as_view(), name='resources_ogc'),
+    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-zA-Z0-9-]+))?$', LayerManager.as_view(), name='layer'),
 
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/?$', MDEdit.as_view(), name='mdedit'),
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/edit/?$', MDEditTplEdit.as_view(), name='mdedit_tpl_edit'),

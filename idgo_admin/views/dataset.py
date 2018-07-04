@@ -43,11 +43,13 @@ from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.models import Support
+from idgo_admin.mra_client import MRANotFoundError
 from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.utils import three_suspension_points
+from idgo_admin.views.resource import get_layers
 import json
 
 
@@ -79,13 +81,14 @@ class DatasetManager(View):
         dataset_ckan_slug = None
         resources = []
 
-        # Ugly
-        ckan_slug = request.GET.get('ckan_slug')
-        if ckan_slug:
+        # Ugly #
+        _ckan_slug = request.GET.get('ckan_slug')
+        if _ckan_slug:
             instance = get_object_or_404_extended(
-                Dataset, user, include={'ckan_slug': ckan_slug})
+                Dataset, user, include={'ckan_slug': _ckan_slug})
             return redirect(
                 reverse(self.namespace) + '?id={0}'.format(instance.pk))
+        # Ugly #
 
         id = request.GET.get('id')
         if id:
@@ -97,17 +100,29 @@ class DatasetManager(View):
             dataset_name = instance.name
             dataset_id = instance.id
             dataset_ckan_slug = instance.ckan_slug
-            resources = [(
-                o.pk,
-                o.name,
-                o.format_type.extension,
-                o.datagis_id and True or False,
-                o.created_on.isoformat() if o.created_on else None,
-                o.last_update.isoformat() if o.last_update else None,
-                o.get_restricted_level_display(),
-                str(o.ckan_id),
-                o.datagis_id and [str(uuid) for uuid in o.datagis_id] or []
-                ) for o in Resource.objects.filter(dataset=instance)]
+
+            resources = []
+            ogc_layers = []
+            for resource in Resource.objects.filter(dataset=instance):
+                resources.append((
+                    resource.pk,
+                    resource.name,
+                    resource.format_type.extension,
+                    resource.created_on.isoformat() if resource.created_on else None,
+                    resource.last_update.isoformat() if resource.last_update else None,
+                    resource.get_restricted_level_display(),
+                    str(resource.ckan_id),
+                    resource.datagis_id and [
+                        str(uuid) for uuid in resource.datagis_id] or []))
+
+                if resource.datagis_id:
+                    # UGLY UGLY UGLY
+                    try:
+                        ogc_layers += [
+                            [resource.pk, resource.name] + list(l)
+                            for l in get_layers(resource)]
+                    except MRANotFoundError:
+                        pass
 
         context = {'form': form,
                    'doc_url': READTHEDOC_URL,
@@ -117,6 +132,7 @@ class DatasetManager(View):
                    'licenses': dict(
                        (o.pk, o.license.pk) for o
                        in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
+                   'ogc_layers': json.dumps(ogc_layers),
                    'resources': json.dumps(resources),
                    'supports': json.dumps(dict(
                        (item.pk, {'name': item.name, 'email': item.email})

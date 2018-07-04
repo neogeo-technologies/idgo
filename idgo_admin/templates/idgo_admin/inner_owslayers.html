@@ -1,0 +1,198 @@
+{% load bootstrap3 %}
+
+{% include "idgo_admin/alert_messages.html" %}
+
+
+<div id="table-layers" class="table-responsive"></div>
+<nav aria-label="Page navigation" style="text-align: center;">
+	<ul id="table-resources-paginator" class="pagination pagination-sm"></ul>
+</nav>
+<div class="buttons-on-the-right-side">
+	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
+	<button name="edit-layer" class="btn btn-default">Editer</button>
+</div>
+
+<script>
+$(function() {
+	var LAYERS = {{ ogc_layers | safe }};
+	var LAYERS_CONTAINER = 'table-layers';
+	var LAYERS_METADATA = [
+		{
+			name: 'resource',
+			label: 'Titre de la ressource',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'title',
+			label: 'Titre de la couche',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'type',
+			label: 'Type de la géométrie',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'ogc_enabled',
+			label: 'Service OGC',
+			editable: false,
+			datatype: 'boolean'
+		}, {
+			name: 'extractor_enabled',
+			label: "Service d'extraction",
+			editable: false,
+			datatype: 'boolean'
+		}, {
+			name: 'bbox',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'object'
+		}, {
+			name: 'attributes',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'object'
+		}, {
+			name: 'styles',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'object'
+		}, {
+			name: 'resource_id',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'id',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'string'
+		}
+	];
+
+	$('button[name="view-ckan"]').on('click', function(e) {
+		e.preventDefault();
+		targetBlank('{{ ckan_url }}/dataset/{{ dataset_ckan_slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
+		e.stopPropagation();
+	});
+
+	$('button[name="edit-layer"]').on('click', function(e) {
+		e.preventDefault();
+		redirect('{% url "idgo_admin:resource" dataset_id=dataset_id %}?resource=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['resource_id'] + '&layer=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
+		e.stopPropagation();
+	});
+
+	var tableGrid = new EditableGrid('Layers', {pageSize: 5});
+
+	tableGrid.initializeGrid = function() {
+		var grid = tableGrid;
+		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
+
+		with (this) {
+			tableRendered = function() {
+				this.updatePaginator(grid);
+			};
+			rowSelected = function(pRowIdx, nRowIdx) {
+				$(grid.getRow(pRowIdx)).removeClass('selected');
+				$buttons.each(function() {
+					deactivateButton($(this));
+				});
+				if (pRowIdx != nRowIdx) {
+					window.location = '#owslayers/' + getRowValues(nRowIdx).id;
+					$(grid.getRow(nRowIdx)).addClass('selected');
+
+					$buttons.each(function() {
+						activateButton($(this));
+					});
+				};
+			};
+			const BooleanRenderer = function(cell, value) {
+				cell.style.textAlign = 'center';
+				cell.style.width = '32px';
+				cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
+			};
+			setCellRenderer('ogc_enabled', new CellRenderer({render: BooleanRenderer}));
+			setCellRenderer('extractor_enabled', new CellRenderer({render: BooleanRenderer}));
+		};
+	};
+
+	const selectRowByDataId = function(dataId) {
+		for (var i = 0; i < tableGrid.data.length; i ++) {
+			if (tableGrid.data[i].columns[tableGrid.getColumnIndex('id')] == dataId) {
+				tableGrid.setPageIndex(0);
+				// TODO Pas good
+				while (tableGrid.currentPageIndex < tableGrid.getPageCount()) {
+					const rowIndex = tableGrid.getRowIndex(tableGrid.data[i].id);
+					if (tableGrid.getRow(rowIndex)) {
+						tableGrid.rowSelected(tableGrid.lastSelectedRowIndex, rowIndex);
+						tableGrid.lastSelectedRowIndex = rowIndex;
+						break;
+					};
+					tableGrid.setPageIndex(tableGrid.currentPageIndex + 1);
+				};
+			};
+		};
+	};
+
+	function updateTableGrid(grid, containerId, metadata, data) {
+		var $containerId = $('#' + containerId);
+		var $parent = $($containerId.parent().get(0));
+		$parent.find('div[role="alert"]not:div[name="message-tags"]').remove();
+		$parent.find('button').each(function() {
+			deactivateButton($(this));
+		});
+		if (data.length > 0) {
+			grid.load({'metadata': metadata, 'data': data});
+			grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
+			grid.initializeGrid();
+			grid.refreshGrid();
+			$containerId.show();
+		} else {
+			$containerId.hide();
+		};
+
+		if (data.length == 0) {
+			$parent.find('button.btn, a.btn').each(function() {
+				deactivateButton($(this));
+				$(this).hide();
+			});
+			$containerId.before('<div role="alert" class="alert alert-warning"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n\'avez encore jamais ajouté de ressource. <a name="add-resource" href="{% url "idgo_admin:resource" dataset_id=dataset_id %}">Créer une nouvelle ressource</a> pour commencer.<div/>');
+		};
+
+	};
+
+	updateTableGrid(
+		tableGrid,
+		LAYERS_CONTAINER,
+		LAYERS_METADATA,
+		(function(data) {
+			var m = [];
+			for (var i = 0; i < data.length; i ++) {
+				m.push({
+					id: i,
+					values: [
+						data[i][1],  // resource_name
+						// data[i][3],  // name
+						data[i][4],  // title
+						data[i][5],  // type
+						data[i][6],  // ogc_enabled
+						data[i][7],  // extractor_enabled
+						data[i][8],  // bbox
+						data[i][9],  // attributes
+						data[i][10], // styles
+						data[i][0],  // resource_pk
+						data[i][2]   // datagis_id
+					]
+				});
+			};
+			return m;
+		})(LAYERS)
+	);
+
+	$(window).bind('hashchange', function(e) {
+		selectRowByDataId(location.hash.split('/')[1]);
+	});
+	selectRowByDataId(location.hash.split('/')[1]);
+
+});
+</script>

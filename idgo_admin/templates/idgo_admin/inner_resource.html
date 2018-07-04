@@ -14,9 +14,6 @@
 
 <form method="post" action="" enctype="multipart/form-data">
 	<div class="buttons-on-the-right-side">
-		{% if ows %}
-		<a class="btn btn-secondary" href="{% url "idgo_admin:resources_ogc" dataset_id=dataset_id %}?id={{ resource_id }}">Configurer le service OGC</a>
-		{% endif %}
 		{% if resource_ckan_id %}
 		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset_ckan_slug }}/resource/{{ resource_ckan_id }}">Ouvrir dans CKAN</a>
 		{% endif %}
@@ -131,14 +128,6 @@
 		<button type="submit" name="continue" class="btn btn-primary">Enregistrer et continuer les modifications</button>
 		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
 	</div>
-	<!-- <div class="buttons-on-the-right-side">
-		{% if ows %}
-		<a class="btn btn-secondary" href="{% url "idgo_admin:resources_ogc" dataset_id=dataset_id %}?id={{ resource_id }}">Configurer le service OGC</a>
-		{% endif %}
-		{% if resource_ckan_id %}
-		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset_ckan_slug }}/resource/{{ resource_ckan_id }}">Ouvrir dans CKAN</a>
-		{% endif %}
-	</div> -->
 </form>
 
 <script>
