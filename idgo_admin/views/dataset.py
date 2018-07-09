@@ -90,6 +90,9 @@ class DatasetManager(View):
                 reverse(self.namespace) + '?id={0}'.format(instance.pk))
         # Ugly #
 
+        resources = []
+        ogc_layers = []
+
         id = request.GET.get('id')
         if id:
             instance = get_object_or_404_extended(
@@ -101,8 +104,6 @@ class DatasetManager(View):
             dataset_id = instance.id
             dataset_ckan_slug = instance.ckan_slug
 
-            resources = []
-            ogc_layers = []
             for resource in Resource.objects.filter(dataset=instance):
                 resources.append((
                     resource.pk,
