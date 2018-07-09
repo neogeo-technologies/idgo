@@ -34,6 +34,11 @@ $(function() {
 			editable: false,
 			datatype: 'string'
 		}, {
+			name: 'type',
+			label: 'Type',
+			editable: false,
+			datatype: 'string'
+		}, {
 			name: 'date_creation',
 			label: 'Date de création',
 			editable: false,
@@ -244,11 +249,12 @@ $(function() {
 					values: [
 						data[i][1],  // title
 						data[i][2],  // format
-						data[i][3],  // date_creation
-						data[i][4],  // last_modification
-						data[i][5],  // restrictions
-						data[i][6],  // ckan_id
-						data[i][7],  // datagis_id
+						data[i][3],  // type
+						data[i][4],  // date_creation
+						data[i][5],  // last_modification
+						data[i][6],  // restrictions
+						data[i][7],  // ckan_id
+						data[i][8],  // datagis_id
 						data[i][0]   // id
 					]
 				});

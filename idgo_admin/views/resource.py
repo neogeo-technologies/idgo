@@ -45,7 +45,6 @@ from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.utils import three_suspension_points
 import json
-from uuid import UUID
 
 
 CKAN_URL = settings.CKAN_URL
@@ -156,7 +155,7 @@ class ResourceManager(View):
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
         except ValidationError as e:
-            form.add_error(e.code, e.message)
+            # form.add_error(e.code, e.message) # erreur ici
             messages.error(request, ' '.join(e))
             error = dict(
                 [(k, [str(m) for m in v]) for k, v in form.errors.items()])
@@ -244,7 +243,8 @@ def get_layer(resource, datagis_id):
     default_style_name = layer['defaultStyle']['name']
 
     styles = [{
-        'name': layer['defaultStyle']['name'],
+        'name': 'default',
+        'text': 'Style par défaut',
         'url': layer['defaultStyle']['href'].replace('json', 'sld'),
         'sld': MRAHandler.get_style(layer['defaultStyle']['name'])}]
 
@@ -252,6 +252,7 @@ def get_layer(resource, datagis_id):
         for style in layer.get('styles')['style']:
             styles.append({
                 'name': style['name'],
+                'text': style['name'],
                 'url': style['href'].replace('json', 'sld'),
                 'sld': MRAHandler.get_style(style['name'])})
 
@@ -300,7 +301,7 @@ class LayerManager(View):
 
         ows_url = OWS_URL_PATTERN.format(organisation=dataset.organisation.ckan_slug)
 
-        layer = get_layer(instance, UUID(layer_id))
+        layer = get_layer(instance, layer_id)
 
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
@@ -323,7 +324,7 @@ class LayerManager(View):
         instance = get_object_or_404_extended(
             Resource, user, include={'id': resource_id, 'dataset_id': dataset_id})
 
-        if UUID(layer_id) not in instance.datagis_id:
+        if layer_id not in instance.datagis_id:
             return Http404
 
         dataset = instance.dataset
@@ -342,7 +343,7 @@ class LayerManager(View):
             message = 'Le style a été mis à jour avec succès.'
             messages.success(request, message)
 
-        layer = get_layer(instance, UUID(layer_id))
+        layer = get_layer(instance, layer_id)
 
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,

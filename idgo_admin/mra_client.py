@@ -223,11 +223,10 @@ class MRAHandler(metaclass=Singleton):
                            'featuretypes', ft_name)
 
     @MRAExceptionsHandler()
-    def create_featuretype(self, ws_name, ds_name, ft_name, l_name=None):
-        l_name = l_name or ft_name  # TODO
+    def create_featuretype(self, ws_name, ds_name, ft_name):
         json = {
             'featureType': {
-                'name': ft_name}}
+                'name': ft_name, 'title': ft_name, 'abstract': ft_name}}
 
         self.remote.post('workspaces', ws_name,
                          'datastores', ds_name,
@@ -235,12 +234,12 @@ class MRAHandler(metaclass=Singleton):
 
         return self.get_featuretype(ws_name, ds_name, ft_name)
 
-    def get_or_create_featuretype(self, ws_name, ds_name, ft_name, l_name=None):
+    def get_or_create_featuretype(self, ws_name, ds_name, ft_name):
         try:
             return self.get_featuretype(ws_name, ds_name, ft_name)
         except MRANotFoundError:
             pass
-        return self.create_featuretype(ws_name, ds_name, ft_name, l_name=l_name)
+        return self.create_featuretype(ws_name, ds_name, ft_name)
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_style(self, s_name, as_sld=True):
@@ -310,10 +309,7 @@ class MRAHandler(metaclass=Singleton):
         self.get_or_create_datastore(ws_name, ds_name)
 
         for datagis_id in resource.datagis_id:
-            ft_name = str(datagis_id)
-            self.get_or_create_featuretype(
-                ws_name, ds_name, ft_name,
-                l_name=slugify(get_description(ft_name)))
+            self.get_or_create_featuretype(ws_name, ds_name, datagis_id)
 
         self.enable_wms(ws_name=ws_name)
         self.enable_wfs(ws_name=ws_name)

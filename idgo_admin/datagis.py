@@ -23,6 +23,7 @@ from django.db import connections
 from idgo_admin.exceptions import CriticalException
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedError
+from idgo_admin.utils import slugify
 import re
 from uuid import uuid4
 
@@ -140,7 +141,7 @@ def ogr2postgis(filename, extension='zip'):
     sql = []
     table_ids = []
     for layer in ds.get_layers():
-        table_id = uuid4()
+        table_id = '{0}_{1}'.format(slugify(layer.name), str(uuid4())[:7])
         table_ids.append(table_id)
 
         try:
@@ -148,7 +149,6 @@ def ogr2postgis(filename, extension='zip'):
         except SRSException:
             epsg = None
         if not epsg:
-            print(layer.srs.projected)
             if layer.srs.projected \
                     and layer.srs.auth_name('PROJCS') == 'EPSG':
                 epsg = layer.srs.auth_code('PROJCS')

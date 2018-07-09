@@ -109,6 +109,7 @@ class DatasetManager(View):
                     resource.pk,
                     resource.name,
                     resource.format_type.extension,
+                    resource.get_data_type_display(),
                     resource.created_on.isoformat() if resource.created_on else None,
                     resource.last_update.isoformat() if resource.last_update else None,
                     resource.get_restricted_level_display(),
@@ -117,11 +118,14 @@ class DatasetManager(View):
                         str(uuid) for uuid in resource.datagis_id] or []))
 
                 if resource.datagis_id:
-                    # UGLY UGLY UGLY
+                    common = [
+                        resource.pk, resource.name, resource.get_data_type_display(),
+                        resource.get_restricted_level_display(),
+                        resource.geo_restriction, resource.extractable,
+                        resource.ogc_services]
                     try:
                         ogc_layers += [
-                            [resource.pk, resource.name] + list(l)
-                            for l in get_layers(resource)]
+                            common + list(l) for l in get_layers(resource)]
                     except MRANotFoundError:
                         pass
 

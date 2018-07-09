@@ -230,10 +230,13 @@
 <div id="layer-container">
 	<ul class="nav nav-tabs" role="tablist">
 		<li role="presentation" class="active">
-			<a href="#configuration" aria-controls="configuration" role="tab" data-toggle="tab">Configuration générale</a>
+			<a href="#configuration" aria-controls="configuration" role="tab" data-toggle="tab">Configuration générale de la couche de données</a>
 		</li>
 		<li role="presentation">
-			<a href="#styles" aria-controls="styles" role="tab" data-toggle="tab">Styles</a>
+			<a href="#styles" aria-controls="styles" role="tab" data-toggle="tab">Gestion des styles</a>
+		</li>
+		<li role="presentation">
+			<a href="#editor" aria-controls="editor" role="tab" data-toggle="tab">Editeur de style</a>
 		</li>
 	</ul>
 	<div class="tab-content">
@@ -243,16 +246,8 @@
 					<div class="row">
 						<div class="col-xs-8">
 							<div class="form-group">
-								<label for="name">Nom de la couche</label>
+								<label for="name">Nom identifiant</label>
 								<input class="form-control" id="name" disabled></input>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-xs-8">
-							<div class="form-group">
-								<label for="title">Titre</label>
-								<input class="form-control" id="title" disabled></input>
 							</div>
 						</div>
 					</div>
@@ -264,20 +259,51 @@
 							</div>
 						</div>
 					</div>
-					<!-- <div class="checkbox">
-						<label>
-							<input id="enabled" type="checkbox"> Active
-						</label>
-					</div> -->
+					<div class="row">
+						<div class="col-xs-12">
+							<div class="form-group">
+								<label for="title">Titre de la couche</label>
+								<input class="form-control" id="title"></input>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-12">
+							<div class="form-group">
+								<label for="title">Description</label>
+								<textarea class="form-control" id="title" rows=4></textarea>
+							</div>
+						</div>
+					</div>
+					<div class="buttons-on-the-right-side">
+						<button type="button" name="save" class="btn btn-primary">Enregistrer</button>
+					</div>
 				</form>
 			</div>
 		</div>
 		<div role="tabpanel" class="tab-pane" id="styles">
 			<div class="tab-pane-content">
-				<div class="row hide">
+				<div class="buttons-on-the-right-side">
+					<a name="add-style" class="btn btn-default">Importer un SLD depuis une ressource</a>
+					<a name="create-style" class="btn btn-default">Créer un nouveau style</a>
+				</div>
+				<div id="table-styles" class="table-responsive"></div>
+				<nav aria-label="Page navigation" style="text-align: center;">
+					<ul id="table-styles-paginator" class="pagination pagination-sm"></ul>
+				</nav>
+				<div class="buttons-on-the-right-side">
+					<button name="is-default-style" class="btn btn-warning">Définir comme style par défaut</button>
+					<button name="edit-style" class="btn btn-default">Editer</button>
+					<button name="del-style" class="btn btn-danger">Supprimer</button>
+				</div>
+			</div>
+		</div>
+		<div role="tabpanel" class="tab-pane" id="editor">
+			<div class="tab-pane-content">
+				<div class="row">
 					<div class="col-xs-offset-4 col-sm-offset-5 col-md-offset-6 col-lg-offset-7 col-xs-8 col-sm-7 col-md-6 col-lg-5">
 						<div class="form-group">
-							<select class="form-control input-sm" name="styles" disabled></select>
+							<select class="form-control input-sm" name="styles"></select>
 						</div>
 					</div>
 				</div>
@@ -316,6 +342,7 @@
 								<!-- class_well_template -->
 							</div>
 							<div class="buttons-on-the-right-side" style="position: absolute; bottom: 0; right: 0; margin: 0 35px 40px 0;">
+								<button type="button" name="export" class="btn btn-default">Exporter le SLD</button>
 								<button type="button" name="save" class="btn btn-primary disabled" disabled>Enregistrer</button>
 							</div>
 						</div>
@@ -328,6 +355,109 @@
 
 <script>
 $(function() {
+
+	var LAYER = {{ layer | safe }};
+	var DEFAULT_STYLE = LAYER.styles.default;
+	var STYLES = LAYER.styles.styles;
+	var STYLES_CONTAINER = 'table-styles';
+	var STYLES_METADATA = [
+		{
+			name: 'name',
+			label: 'Nom',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'title',
+			label: 'Titre',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'default',
+			label: 'Style par défaut',
+			editable: false,
+			datatype: 'boolean'
+		}
+	];
+
+	$('button[name="edit-style"]').on('click', function(e) {
+		e.preventDefault();
+		var row = tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['name']
+		window.location = '#editor/' + (row.default ? 'default' : row.name);
+		e.stopPropagation();
+	});
+
+	var tableGrid = new EditableGrid('Styles', {pageSize: 5});
+
+	tableGrid.initializeGrid = function() {
+		var grid = tableGrid;
+		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
+
+		with (this) {
+			tableRendered = function() {
+				this.updatePaginator(grid);
+			};
+			rowSelected = function(pRowIdx, nRowIdx) {
+				$(grid.getRow(pRowIdx)).removeClass('selected');
+				$buttons.each(function() {
+					deactivateButton($(this));
+				});
+				if (pRowIdx != nRowIdx) {
+					window.location = '#styles/' + getRowValues(nRowIdx).name;
+					$(grid.getRow(nRowIdx)).addClass('selected');
+					$buttons.each(function() {
+						if (!((this.name == 'del-style' || this.name == 'is-default-style') && getRowValues(nRowIdx).default)) {
+							activateButton($(this));
+						};
+					});
+				};
+			};
+			const BooleanRenderer = function(cell, value) {
+				cell.style.textAlign = 'center';
+				cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
+			};
+			setCellRenderer('default', new CellRenderer({render: BooleanRenderer}));
+		};
+	};
+
+	function updateTableGrid(grid, containerId, metadata, data) {
+		var $containerId = $('#' + containerId);
+		var $parent = $($containerId.parent().get(0));
+		$parent.find('div[role="alert"]not:div[name="message-tags"]').remove();
+		$parent.find('button').each(function() {
+			deactivateButton($(this));
+		});
+		if (data.length > 0) {
+			grid.load({'metadata': metadata, 'data': data});
+			grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
+			grid.initializeGrid();
+			grid.refreshGrid();
+			$containerId.show();
+		} else {
+			$containerId.hide();
+		};
+	};
+
+	updateTableGrid(
+		tableGrid,
+		STYLES_CONTAINER,
+		STYLES_METADATA,
+		(function(data) {
+			var m = [];
+			for (var i = 0; i < data.length; i ++) {
+				m.push({
+					id: i,
+					values: [
+						data[i]['name'] == 'default' ? DEFAULT_STYLE : data[i]['name'],
+						data[i]['text'],
+						data[i]['name'] == 'default' ? true : false
+					]
+				});
+			};
+			return m;
+		})(STYLES)
+	);
+
+	//
 
 	var glob = {};
 
@@ -363,8 +493,6 @@ $(function() {
 		});
 		return xmlString;
 	};
-
-	var LAYER = {{ layer | safe }};
 
 
 	const displayStyleForm = function($container, $sld, layer, params) {
@@ -514,8 +642,6 @@ $(function() {
 			});
 			glob.addtoMap(layer);
 
-			console.log(sldBody)
-
 			var $save = $('button[name="save"]').click(function(e) {
 				e.preventDefault();
 				const $form = $('form').attr('method', 'POST');
@@ -525,6 +651,12 @@ $(function() {
 
 			activateButton($save);
 		};
+
+		var $export = $('button[name="export"]').click(function(e) {
+			e.preventDefault();
+			alert('TODO')
+		});
+
 	};
 
 	$.fn.getChildrenOrCreate = function(name, attrs) {
@@ -838,19 +970,19 @@ $(function() {
 
 	for (var i = 0; i < styles.length; i ++) {
 		$selectStyle.append($('<option>', {
-			value: styles[i]['url'],
-			text: styles[i]['name']
+			value: styles[i]['name'],
+			text: styles[i]['text']
 		}));
 	};
 
 	var layer = new L.NonTiledLayer.WMS('{{ ows_url }}', {
 		format: 'image/png',
 		layers: layerData['name'],
-		sld: $selectStyle.val(),
+		styles: $selectStyle.val(),
 		transparent: true
 	});
 
-	$('#layer-container .nav a[href="#styles"]').on('shown.bs.tab', function(e) {
+	$('#layer-container .nav a[href="#editor"]').on('shown.bs.tab', function(e) {
 		if (!$('#map_well').children('#map').length > 0) {
 			$('#map_well').append('<div id="map" style="height: 650px;"></div>');
 			const map = L.map('map').fitBounds(layerData['bbox']);
@@ -864,7 +996,7 @@ $(function() {
 		};
 	});
 
-	const _sld = $.parseXML(getSldByName($selectStyle.text()));
+	const _sld = $.parseXML(getSldByName($selectStyle.val()));
 	const $sld  = $(_sld).children('StyledLayerDescriptor').last();
 
 	displayStyleForm($('#layer-container'), $sld, layer, layerData);

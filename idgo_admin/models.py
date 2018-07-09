@@ -145,9 +145,9 @@ class Resource(models.Model):
         ('4', 'Organisations spécifiées'))
 
     TYPE_CHOICES = (
-        ('N/A', 'N/A'),
-        ('data', 'Données'),
-        ('resource', 'Resources'))
+        ('raw', 'Données brutes'),
+        ('annexe', 'Documentation associée'),
+        ('service', 'Service'))
 
     name = models.CharField(
         verbose_name='Nom', max_length=150)
@@ -156,8 +156,8 @@ class Resource(models.Model):
         verbose_name='Ckan UUID', default=uuid.uuid4, editable=False)
 
     datagis_id = ArrayField(
-        models.UUIDField(), verbose_name='DataGIS Table UUID',
-        blank=True, null=True, editable=False)
+        models.CharField(max_length=150),
+        verbose_name='DataGIS IDs', blank=True, null=True, editable=False)
 
     description = models.TextField(
         verbose_name='Description', blank=True, null=True)
@@ -202,6 +202,12 @@ class Resource(models.Model):
     geo_restriction = models.BooleanField(
         verbose_name='Restriction géographique', default=False)
 
+    extractable = models.BooleanField(
+        verbose_name='Extractible', default=True)
+
+    ogc_services = models.BooleanField(
+        verbose_name='Services OGC', default=True)
+
     created_on = models.DateTimeField(
         verbose_name='Date de création de la resource',
         blank=True, null=True, default=timezone.now)
@@ -211,8 +217,8 @@ class Resource(models.Model):
         blank=True, null=True)
 
     data_type = models.CharField(
-        verbose_name='type de resources',
-        choices=TYPE_CHOICES, max_length=10, default='N/A')
+        verbose_name='Type de la ressource',
+        choices=TYPE_CHOICES, max_length=10, default='raw')
 
     synchronisation = models.BooleanField(
         verbose_name='Synchronisation de données distante',

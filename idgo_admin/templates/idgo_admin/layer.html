@@ -6,7 +6,7 @@
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset/{{ dataset_id }}">{{ dataset_name }}</a></li>
 	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources/{{ resource_id }}">ressources</a></li>
 	<li><a href="{% url "idgo_admin:resource" dataset_id=dataset_id %}?id={{ resource_id }}">{{ resource_name }}</a></li>
-	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#owslayers/{{ layer_id }}">Données géographiques</a></li>
+	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#owslayers/{{ layer_id }}">Ressources géographiques</a></li>
 	<li class="active"><a href="{% url "idgo_admin:layer" dataset_id=dataset_id resource_id=resource_id layer_id=layer_id%}">{{ layer_title }}</a></li>
 </ol>
 {% endblock breadcrumb_content %}

@@ -5,7 +5,7 @@
 
 <div id="table-layers" class="table-responsive"></div>
 <nav aria-label="Page navigation" style="text-align: center;">
-	<ul id="table-resources-paginator" class="pagination pagination-sm"></ul>
+	<ul id="table-layers-paginator" class="pagination pagination-sm"></ul>
 </nav>
 <div class="buttons-on-the-right-side">
 	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
@@ -29,7 +29,7 @@ $(function() {
 			datatype: 'string'
 		}, {
 			name: 'type',
-			label: 'Type de la géométrie',
+			label: 'Type',
 			editable: false,
 			datatype: 'string'
 		}, {
@@ -40,6 +40,16 @@ $(function() {
 		}, {
 			name: 'extractor_enabled',
 			label: "Service d'extraction",
+			editable: false,
+			datatype: 'boolean'
+		}, {
+			name: 'restrictions',
+			label: "Restrictions d'accès",
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'geo_restrictions',
+			label: "Au territoire de compétence",
 			editable: false,
 			datatype: 'boolean'
 		}, {
@@ -108,11 +118,12 @@ $(function() {
 			};
 			const BooleanRenderer = function(cell, value) {
 				cell.style.textAlign = 'center';
-				cell.style.width = '32px';
+				// cell.style.width = '32px';
 				cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
 			};
 			setCellRenderer('ogc_enabled', new CellRenderer({render: BooleanRenderer}));
 			setCellRenderer('extractor_enabled', new CellRenderer({render: BooleanRenderer}));
+			setCellRenderer('geo_restrictions', new CellRenderer({render: BooleanRenderer}));
 		};
 	};
 
@@ -172,16 +183,18 @@ $(function() {
 					id: i,
 					values: [
 						data[i][1],  // resource_name
-						// data[i][3],  // name
-						data[i][4],  // title
-						data[i][5],  // type
+						// data[i][8],  // name
+						data[i][9],  // title
+						data[i][2],  // type
 						data[i][6],  // ogc_enabled
-						data[i][7],  // extractor_enabled
-						data[i][8],  // bbox
-						data[i][9],  // attributes
-						data[i][10], // styles
+						data[i][5],  // extractor_enabled
+						data[i][3],  // restrictions
+						data[i][4],  // geo_restrictions
+						data[i][11],  // bbox
+						data[i][12],  // attributes
+						data[i][13], // styles
 						data[i][0],  // resource_pk
-						data[i][2]   // datagis_id
+						data[i][7]   // datagis_id
 					]
 				});
 			};

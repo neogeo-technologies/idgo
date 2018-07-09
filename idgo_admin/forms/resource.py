@@ -55,7 +55,10 @@ class ResourceForm(forms.ModelForm):
                   'profiles_allowed',
                   'organisations_allowed',
                   'synchronisation',
-                  'sync_frequency')
+                  'sync_frequency',
+                  'geo_restriction',
+                  'extractable',
+                  'ogc_services')
 
     # _instance = None
     _dataset = None
@@ -87,6 +90,11 @@ class ResourceForm(forms.ModelForm):
         queryset=ResourceFormats.objects.all(),
         required=True)
 
+    data_type = forms.ChoiceField(
+        label='Type',
+        choices=Meta.model.TYPE_CHOICES,
+        required=False)
+
     profiles_allowed = forms.ModelMultipleChoiceField(
         label='Utilisateurs autorisés',
         queryset=Profile.objects.filter(is_active=True),
@@ -107,6 +115,21 @@ class ResourceForm(forms.ModelForm):
     sync_frequency = forms.ChoiceField(
         label='Fréquence de synchronisation',
         choices=Meta.model.FREQUENCY_CHOICES,
+        required=False)
+
+    geo_restriction = forms.BooleanField(
+        initial=False,
+        label="Restreindre l'accès au territoire de compétence",
+        required=False)
+
+    extractable = forms.BooleanField(
+        initial=False,
+        label="Activer le service d'extraction des données géographiques",
+        required=False)
+
+    ogc_services = forms.BooleanField(
+        initial=False,
+        label="Activer les services OGC associés",
         required=False)
 
     def __init__(self, *args, **kwargs):
