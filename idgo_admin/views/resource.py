@@ -21,6 +21,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -121,26 +122,44 @@ class ResourceManager(View):
         form = Form(
             request.POST, request.FILES, instance=instance, dataset=dataset)
 
+        context = {'dataset_name': three_suspension_points(dataset.name),
+                   'dataset_id': dataset.id,
+                   'dataset_ckan_slug': dataset.ckan_slug,
+                   'resource_name': instance and three_suspension_points(instance.name) or 'Nouvelle ressource',
+                   'resource_ckan_id': instance and instance.ckan_id or None,
+                   'resource_id': instance and instance.id or None,
+                   'ows': (instance and instance.datagis_id) and len(instance.datagis_id) > 0 or None,
+                   'mode': instance and (
+                       instance.up_file and 'up_file'
+                       or instance.dl_url and 'dl_url'
+                       or instance.referenced_url and 'referenced_url') or None,
+                   'form': form}
+
+        ajax = 'ajax' in request.POST
+        save_and_continue = 'continue' in request.POST
+
         if not form.is_valid():
-            error = dict(
-                [(k, [str(m) for m in v]) for k, v in form.errors.items()])
-            return JsonResponse(json.dumps({'error': error}), safe=False)
+            if ajax:
+                error = dict([(k, [str(m) for m in v]) for k, v in form.errors.items()])
+                return JsonResponse(json.dumps({'error': error}), safe=False)
+            return render_with_info_profile(request, self.template, context)
 
         try:
             with transaction.atomic():
                 instance = form.handle_me(request, dataset, id=id)
-
         except CkanSyncingError as e:
             error = {'__all__': [e.__str__()]}
-
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
         except CkanTimeoutError:
             error = {'__all__': [e.__str__()]}
-
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
         except ValidationError as e:
             form.add_error(e.code, e.message)
+            messages.error(request, ' '.join(e))
             error = dict(
                 [(k, [str(m) for m in v]) for k, v in form.errors.items()])
-
         else:
             dataset_href = reverse(
                 self.namespace, kwargs={'dataset_id': dataset_id})
@@ -153,18 +172,26 @@ class ResourceManager(View):
                 id and 'mise à jour' or 'créée', dataset_href,
                 CKAN_URL, dataset.ckan_slug, instance.ckan_id))
 
-            response = HttpResponse(status=201)  # Ugly hack
-
-            if 'continue' in request.POST:
-                href = '{0}?id={1}'.format(dataset_href, instance.id)
+            if ajax:
+                response = HttpResponse(status=201)  # Ugly hack
+                if save_and_continue:
+                    href = '{0}?id={1}'.format(dataset_href, instance.id)
+                else:
+                    href = '{0}?id={1}#resources/{2}'.format(
+                        reverse('idgo_admin:dataset'), dataset_id, instance.id)
+                response['Content-Location'] = href
+                return response
             else:
-                href = '{0}?id={1}#resources/{2}'.format(
-                    reverse('idgo_admin:dataset'), dataset_id, instance.id)
+                if save_and_continue:
+                    return HttpResponseRedirect(
+                        '{0}?id={1}'.format(dataset_href, instance.id))
 
-            response['Content-Location'] = href
-            return response
+                return HttpResponseRedirect('{0}?id={1}#resources/{2}'.format(
+                    reverse('idgo_admin:dataset'), dataset_id, instance.id))
 
-        return JsonResponse(json.dumps({'error': error}), safe=False)
+        if ajax:
+            return JsonResponse(json.dumps({'error': error}), safe=False)
+        return render_with_info_profile(request, self.template, context)
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, dataset_id=None, *args, **kwargs):
