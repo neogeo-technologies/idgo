@@ -211,9 +211,18 @@ $(function() {
 	$('button[type="submit"]').click(function(e) {
 		e.preventDefault();
 
+		const $form = $('form');
+
+		if ($('ul.nav[name="data-selector"] li.active a').attr('name') != '{{ form.up_file.name }}' || !$form.find('input[name="{{ form.up_file.name }}"][type="file"]').val()) {
+			e.stopPropagation();
+			$form.submit();
+			return;
+		}; // else {..
+
 		window.scrollTo(0, 0);
 
-		const data = new FormData($('form')[0]);
+		const data = new FormData($form[0]);
+		data.append('ajax', true);
 		data.append(this.name, true);
 
 		const $progressBar = $($('#progressbar_template').prop('content')).clone();
@@ -310,6 +319,7 @@ $(function() {
 				},
 			});
 		});
+
 	});
 
 });
