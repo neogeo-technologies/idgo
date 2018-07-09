@@ -17,6 +17,7 @@
 import datetime
 from django.conf import settings
 from django.contrib.gis.gdal import DataSource
+from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.gdal.error import SRSException
 from django.db import connections
 from idgo_admin.exceptions import CriticalException
@@ -78,8 +79,10 @@ class OgrOpener(object):
         if vsi is False:
             raise NotSupportedError(
                 "The format '{}' is not supported.".format(extension))
-
-        ds = DataSource(vsi and '/{}/{}'.format(vsi, filename) or filename)
+        try:
+            ds = DataSource(vsi and '/{}/{}'.format(vsi, filename) or filename)
+        except GDALException:
+            ds = None
         if not ds:
             raise NotOGRError(
                 'The file received is not recognized as being a GIS data.')
