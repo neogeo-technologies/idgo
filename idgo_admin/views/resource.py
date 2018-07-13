@@ -112,7 +112,6 @@ class ResourceManager(View):
                    'resource_name': instance and three_suspension_points(instance.name) or 'Nouvelle ressource',
                    'resource_ckan_id': instance and instance.ckan_id or None,
                    'resource_id': instance and instance.id or None,
-                   'ows': (instance and instance.datagis_id) and len(instance.datagis_id) > 0 or None,
                    'mode': instance and (
                        instance.up_file and 'up_file'
                        or instance.dl_url and 'dl_url'

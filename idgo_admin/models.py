@@ -284,6 +284,17 @@ class Resource(models.Model):
                     m = '{0} octets'.format(int(e.max_size))
                 raise ValidationError(
                     "La taille du fichier dépasse la limite autorisée : {0}.".format(m), code='dl_url')
+            except Exception as e:
+                if e.__class__.__name__ == 'HTTPError':
+                    if e.response.status_code == 404:
+                        msg = "La ressource distante ne semble pas exister. Assurez-vous que l'URL soit correcte."
+                    if e.response.status_code == 403:
+                        msg = "Vous n'avez pas l'autorisation pour accéder à la ressource."
+                    if e.response.status_code == 401:
+                        msg = "Une authentification est nécessaire pour accéder à la ressource."
+                else:
+                    msg = 'Le téléchargement du fichier a échoué.'
+                raise ValidationError(msg, code='dl_url')
 
             downloaded_file = File(open(filename, 'rb'))
             ckan_params['upload'] = downloaded_file
@@ -300,7 +311,7 @@ class Resource(models.Model):
         if self.dl_url:
             remove_dir(directory)
         if self.up_file and file_extras:
-            remove_file(filename)
+            remove_file(self.up_file.file.name)
 
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
         # de données existant mais administrateur ou un référent technique,
