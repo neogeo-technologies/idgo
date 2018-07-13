@@ -9,6 +9,9 @@
 			<li role="presentation">
 				<a href="#members" aria-controls="members" role="tab" data-toggle="tab">Utilisateurs</a>
 			</li>
+			<li role="presentation">
+				<a href="#service" aria-controls="service" role="tab" data-toggle="tab">Service OGC</a>
+			</li>
 		</ul>
 		<div class="tab-content">
 			<div role="tabpanel" class="tab-pane active" id="info">
@@ -90,6 +93,38 @@
 								<li><a role="button" name="delete-referent" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de référent technique</a></li>
 							</ul>
 						</div>
+					</div>
+				</div>
+			</div>
+			<div role="tabpanel" class="tab-pane" id="service">
+				<div class="tab-pane-content">
+					<div class="row">
+						<div class="col-xs-12">
+							<div class="form-group">
+								<label for="ows-title">Titre</label>
+								<input class="form-control" id="ows-title" value=Service OGC de Neogeo Technologies></input>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-12">
+							<div class="form-group">
+								<label for="ows-description">Description</label>
+								<textarea class="form-control" id="ows-description" rows=4></textarea>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-12">
+							<div class="form-group">
+								<label for="ows-onlineresource">URL du service</label>
+								<input class="form-control disabled" id="ows-onlineresource" disabled value="http://mapserver.dev.idgo.neogeo.fr/maps/neogeo-technologies?"></input>
+							</div>
+						</div>
+					</div>
+					<div class="buttons-on-the-right-side">
+						<button type="button" name="ows-meta" class="btn btn-default">Editer la fiche de métadonnées INSPIRE</button>
+						<button type="button" name="ows-save" class="btn btn-primary">Enregistrer</button>
 					</div>
 				</div>
 			</div>

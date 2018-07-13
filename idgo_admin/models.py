@@ -238,8 +238,18 @@ class Resource(models.Model):
     def __str__(self):
         return self.name
 
+    def disable_layers(self):
+        if self.datagis_id:
+            for l_name in self.datagis_id:
+                MRAHandler.disable_layer(l_name)
+
+    def enable_layers(self):
+        if self.datagis_id:
+            for l_name in self.datagis_id:
+                MRAHandler.enable_layer(l_name)
+
     def save(self, *args, **kwargs):
-        previous = self.pk and Resource.objects.get(pk=self.pk)
+        previous = self.pk and Resource.objects.get(pk=self.pk) or None
 
         sync_ckan = 'sync_ckan' in kwargs and kwargs.pop('sync_ckan') or False
         file_extras = 'file_extras' in kwargs and kwargs.pop('file_extras') or None
@@ -247,145 +257,152 @@ class Resource(models.Model):
 
         super().save(*args, **kwargs)
 
-        if not sync_ckan:
-            return
+        if sync_ckan:
 
-        ckan_params = {
-            'name': self.name,
-            'description': self.description,
-            'format': self.format_type.extension,
-            'view_type': self.format_type.ckan_view,
-            'id': str(self.ckan_id),
-            'lang': self.lang,
-            'url': ''}
+            ckan_params = {
+                'name': self.name,
+                'description': self.description,
+                'format': self.format_type.extension,
+                'view_type': self.format_type.ckan_view,
+                'id': str(self.ckan_id),
+                'lang': self.lang,
+                'url': ''}
 
-        if self.restricted_level == '0':  # Public
-            ckan_params['restricted'] = json.dumps({'level': 'public'})
+            if self.restricted_level == '0':  # Public
+                ckan_params['restricted'] = json.dumps({'level': 'public'})
 
-        if self.restricted_level == '1':  # Registered users
-            ckan_params['restricted'] = json.dumps({'level': 'registered'})
+            if self.restricted_level == '1':  # Registered users
+                ckan_params['restricted'] = json.dumps({'level': 'registered'})
 
-        if self.restricted_level == '2':  # Only allowed users
-            ckan_params['restricted'] = json.dumps({
-                'allowed_users': ','.join(
-                    self.profiles_allowed.exists() and [
-                        p.user.username for p in self.profiles_allowed.all()] or []),
-                'level': 'only_allowed_users'})
+            if self.restricted_level == '2':  # Only allowed users
+                ckan_params['restricted'] = json.dumps({
+                    'allowed_users': ','.join(
+                        self.profiles_allowed.exists() and [
+                            p.user.username for p in self.profiles_allowed.all()] or []),
+                    'level': 'only_allowed_users'})
 
-        if self.restricted_level == '3':  # This organization
-            ckan_params['restricted'] = json.dumps({
-                'allowed_users': ','.join(
-                    get_all_users_for_organizations(self.organisations_allowed)),
-                'level': 'only_allowed_users'})
+            if self.restricted_level == '3':  # This organization
+                ckan_params['restricted'] = json.dumps({
+                    'allowed_users': ','.join(
+                        get_all_users_for_organizations(self.organisations_allowed)),
+                    'level': 'only_allowed_users'})
 
-        if self.restricted_level == '4':  # Any organization
-            ckan_params['restricted'] = json.dumps({
-                'allowed_users': ','.join(
-                    get_all_users_for_organizations(self.organizations_allowed)),
-                'level': 'only_allowed_users'})
+            if self.restricted_level == '4':  # Any organization
+                ckan_params['restricted'] = json.dumps({
+                    'allowed_users': ','.join(
+                        get_all_users_for_organizations(self.organizations_allowed)),
+                    'level': 'only_allowed_users'})
 
-        if self.referenced_url:
-            ckan_params['url'] = self.referenced_url
-            ckan_params['resource_type'] = '{0}.{1}'.format(
-                self.name, self.format_type.ckan_view)
+            if self.referenced_url:
+                ckan_params['url'] = self.referenced_url
+                ckan_params['resource_type'] = '{0}.{1}'.format(
+                    self.name, self.format_type.ckan_view)
 
-        if self.dl_url:
-            try:
-                filename, content_type = download(
-                    self.dl_url, settings.MEDIA_ROOT,
-                    max_size=DOWNLOAD_SIZE_LIMIT)
-            except SizeLimitExceededError as e:
-                l = len(str(e.max_size))
-                if l > 6:
-                    m = '{0} mo'.format(Decimal(int(e.max_size) / 1024 / 1024))
-                elif l > 3:
-                    m = '{0} ko'.format(Decimal(int(e.max_size) / 1024))
-                else:
-                    m = '{0} octets'.format(int(e.max_size))
-                raise ValidationError(
-                    "La taille du fichier dépasse la limite autorisée : {0}.".format(m), code='dl_url')
-
-            downloaded_file = File(open(filename, 'rb'))
-            ckan_params['upload'] = downloaded_file
-            ckan_params['size'] = downloaded_file.size
-            ckan_params['mimetype'] = content_type
-            ckan_params['resource_type'] = Path(filename).name
-
-        if self.up_file and file_extras:  # Si nouveau fichier (uploaded)
-            ckan_params['upload'] = self.up_file.file
-            ckan_params.update(file_extras)
-
-            filename = self.up_file.file.name
-
-        if self.dl_url or (self.up_file and file_extras):
-            extension = self.format_type.extension.lower()
-            # Pour les archives, toujours vérifier si contient des données SIG.
-            # Si c'est le cas, monter les données dans la base PostGIS dédiée,
-            # puis ajouter au service OGC:WxS de l'organisation.
-            if extension in ('zip', 'tar', 'geojson'):
+            if self.dl_url:
                 try:
-                    datagis_id = ogr2postgis(filename, extension=extension)
-                except (NotSupportedError, NotOGRError) as e:
-                    raise ValidationError(e.__str__())
-                else:
-                    self.datagis_id = list(datagis_id)
+                    filename, content_type = download(
+                        self.dl_url, settings.MEDIA_ROOT,
+                        max_size=DOWNLOAD_SIZE_LIMIT)
+                except SizeLimitExceededError as e:
+                    l = len(str(e.max_size))
+                    if l > 6:
+                        m = '{0} mo'.format(Decimal(int(e.max_size) / 1024 / 1024))
+                    elif l > 3:
+                        m = '{0} ko'.format(Decimal(int(e.max_size) / 1024))
+                    else:
+                        m = '{0} octets'.format(int(e.max_size))
+                    raise ValidationError(
+                        "La taille du fichier dépasse la limite autorisée : {0}.".format(m), code='dl_url')
+
+                downloaded_file = File(open(filename, 'rb'))
+                ckan_params['upload'] = downloaded_file
+                ckan_params['size'] = downloaded_file.size
+                ckan_params['mimetype'] = content_type
+                ckan_params['resource_type'] = Path(filename).name
+
+            if self.up_file and file_extras:  # Si nouveau fichier (uploaded)
+                ckan_params['upload'] = self.up_file.file
+                ckan_params.update(file_extras)
+
+                filename = self.up_file.file.name
+
+            if self.dl_url or (self.up_file and file_extras):
+                extension = self.format_type.extension.lower()
+                # Pour les archives, toujours vérifier si contient des données SIG.
+                # Si c'est le cas, monter les données dans la base PostGIS dédiée,
+                # puis ajouter au service OGC:WxS de l'organisation.
+                if extension in ('zip', 'tar', 'geojson'):
                     try:
-                        MRAHandler.publish_layers_resource(self)
-                    except Exception as e:
-                        for table_id in datagis_id:
-                            drop_table(str(table_id))
-                        raise e
+                        datagis_id = ogr2postgis(filename, extension=extension)
+                    except (NotSupportedError, NotOGRError) as e:
+                        raise ValidationError(e.__str__())
+                    else:
+                        self.datagis_id = list(datagis_id)
+                        try:
+                            MRAHandler.publish_layers_resource(self)
+                        except Exception as e:
+                            for table_id in datagis_id:
+                                drop_table(str(table_id))
+                            raise e
+                else:
+                    self.datagis_id = None
+                super().save()
+
+            # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+            # de données existant mais administrateur ou un référent technique,
+            # alors l'admin Ckan édite le jeu de données..
+            if editor == self.dataset.editor:
+                ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
             else:
-                self.datagis_id = None
-            super().save()
+                ckan_user = ckan_me(ckan.apikey)
 
-        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-        # de données existant mais administrateur ou un référent technique,
-        # alors l'admin Ckan édite le jeu de données..
-        if editor == self.dataset.editor:
-            ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
-        else:
-            ckan_user = ckan_me(ckan.apikey)
+            ws_name = self.dataset.organisation.ckan_slug
+            ds_name = 'public'
 
-        ws_name = self.dataset.organisation.ckan_slug
-        ds_name = 'public'
+            # TODO Gérer les erreurs + factoriser
+            if previous and previous.datagis_id and \
+                    set(previous.datagis_id) != set(self.datagis_id):
+                # Nettoyer les anciennes resources SIG..
+                for datagis_id in previous.datagis_id:
+                    ft_name = str(datagis_id)
+                    # Supprimer les objects MRA  (TODO en cascade dans MRA)
+                    try:
+                        MRAHandler.del_layer(ft_name)
+                        MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
+                    except MRANotFoundError:
+                        pass
+                    # Supprimer la ressource CKAN
+                    ckan_user.delete_resource(ft_name)
+                    # Supprimer les anciennes tables GIS
+                    drop_table(ft_name)
 
-        # TODO Gérer les erreurs + factoriser
+            ckan_package = ckan_user.get_package(str(self.dataset.ckan_id))
+            ckan_user.publish_resource(ckan_package, **ckan_params)
 
-        if previous.datagis_id:
-            # Nettoyer les anciennes resources SIG..
-            for datagis_id in previous.datagis_id:
-                ft_name = str(datagis_id)
-                # Supprimer les objects MRA  (TODO en cascade dans MRA)
-                try:
-                    MRAHandler.del_layer(ft_name)
-                    MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
-                except MRANotFoundError:
-                    pass
-                # Supprimer la ressource CKAN
-                ckan_user.delete_resource(ft_name)
-                # Supprimer les anciennes tables GIS
-                drop_table(ft_name)
+            if self.datagis_id:
+                # Publier les nouvelles resources SIG..
+                for datagis_id in self.datagis_id:
+                    ft_name = str(datagis_id)
+                    ckan_params = {
+                        'id': ft_name,
+                        'name': '{} (OGC:WMS)'.format(self.name),
+                        'description': 'Visualiseur cartographique',
+                        'lang': self.lang,
+                        'format': 'WMS',
+                        'url': '{0}#{1}'.format(
+                            OWS_URL_PATTERN.format(organisation=ws_name), ft_name),
+                        'view_type': 'geo_view'}
+                    ckan_user.publish_resource(ckan_package, **ckan_params)
 
-        ckan_package = ckan_user.get_package(str(self.dataset.ckan_id))
-        ckan_user.publish_resource(ckan_package, **ckan_params)
+            ckan_user.close()
+            # Endif sync_ckan
 
-        if self.datagis_id:
-            # Publier les nouvelles resources SIG..
-            for datagis_id in self.datagis_id:
-                ft_name = str(datagis_id)
-                ckan_params = {
-                    'id': ft_name,
-                    'name': '{} (OGC:WMS)'.format(self.name),
-                    'description': 'Visualiseur cartographique',
-                    'lang': self.lang,
-                    'format': 'WMS',
-                    'url': '{0}#{1}'.format(
-                        OWS_URL_PATTERN.format(organisation=ws_name), ft_name),
-                    'view_type': 'geo_view'}
-                ckan_user.publish_resource(ckan_package, **ckan_params)
-
-        ckan_user.close()
+        if not previous or (
+                previous and previous.ogc_services != self.ogc_services):
+            if self.ogc_services:
+                self.enable_layers()
+            else:
+                self.disable_layers()
 
 
 class Commune(models.Model):

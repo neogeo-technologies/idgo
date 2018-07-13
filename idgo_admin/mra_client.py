@@ -223,10 +223,13 @@ class MRAHandler(metaclass=Singleton):
                            'featuretypes', ft_name)
 
     @MRAExceptionsHandler()
-    def create_featuretype(self, ws_name, ds_name, ft_name):
+    def create_featuretype(self, ws_name, ds_name, ft_name, enabled=True):
         json = {
             'featureType': {
-                'name': ft_name, 'title': ft_name, 'abstract': ft_name}}
+                'name': ft_name,
+                'title': ft_name,
+                'abstract': ft_name,
+                'enabled': enabled}}
 
         self.remote.post('workspaces', ws_name,
                          'datastores', ds_name,
@@ -234,12 +237,12 @@ class MRAHandler(metaclass=Singleton):
 
         return self.get_featuretype(ws_name, ds_name, ft_name)
 
-    def get_or_create_featuretype(self, ws_name, ds_name, ft_name):
+    def get_or_create_featuretype(self, ws_name, ds_name, ft_name, enabled=True):
         try:
             return self.get_featuretype(ws_name, ds_name, ft_name)
         except MRANotFoundError:
             pass
-        return self.create_featuretype(ws_name, ds_name, ft_name)
+        return self.create_featuretype(ws_name, ds_name, ft_name, enabled=enabled)
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_style(self, s_name, as_sld=True):
@@ -281,6 +284,18 @@ class MRAHandler(metaclass=Singleton):
         self.remote.delete('layers', l_name)
 
     @MRAExceptionsHandler()
+    def update_layer(self, l_name, data):
+        return self.remote.put('layers', l_name, json={'layer': data})
+
+    @MRAExceptionsHandler()
+    def enable_layer(self, l_name):
+        self.update_layer(l_name, {'enabled': True})
+
+    @MRAExceptionsHandler()
+    def disable_layer(self, l_name):
+        self.update_layer(l_name, {'enabled': False})
+
+    @MRAExceptionsHandler()
     def enable_wms(self, ws_name=None):
         self.remote.put('services', 'workspaces', ws_name, 'wms', 'settings',
                         json={'wms': {'enabled': True}})
@@ -308,8 +323,10 @@ class MRAHandler(metaclass=Singleton):
         ds_name = 'public'
         self.get_or_create_datastore(ws_name, ds_name)
 
+        enabled = resource.ogc_services
         for datagis_id in resource.datagis_id:
-            self.get_or_create_featuretype(ws_name, ds_name, datagis_id)
+            self.get_or_create_featuretype(
+                ws_name, ds_name, datagis_id, enabled=enabled)
 
         self.enable_wms(ws_name=ws_name)
         self.enable_wfs(ws_name=ws_name)
