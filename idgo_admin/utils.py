@@ -73,6 +73,12 @@ def remove_dir(directory):
     shutil.rmtree(directory)
 
 
+def remove_file(filename):
+    if not os.path.exists(filename):
+        return
+    os.remove(filename)
+
+
 def download(url, media_root, **kwargs):
 
     def get_content_header_param(txt, param):
@@ -118,7 +124,7 @@ def download(url, media_root, **kwargs):
                 remove_dir(directory)
                 raise SizeLimitExceededError(max_size=max_size)
 
-    return filename, r.headers['Content-Type']
+    return directory, filename, r.headers['Content-Type']
 
 
 class PartialFormatter(string.Formatter):

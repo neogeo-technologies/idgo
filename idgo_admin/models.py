@@ -35,6 +35,8 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin.utils import download
 from idgo_admin.utils import PartialFormatter
+from idgo_admin.utils import remove_dir
+from idgo_admin.utils import remove_file
 from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garder l'original
 import json
 import os
@@ -269,7 +271,7 @@ class Resource(models.Model):
 
         if self.dl_url:
             try:
-                filename, content_type = download(
+                directory, filename, content_type = download(
                     self.dl_url, os.path.join(settings.MEDIA_ROOT, 'sync_temp'),
                     max_size=DOWNLOAD_SIZE_LIMIT)
             except SizeLimitExceededError as e:
@@ -293,6 +295,12 @@ class Resource(models.Model):
         if self.up_file and file_extras:
             ckan_params['upload'] = self.up_file.file
             ckan_params.update(file_extras)
+
+        # Puis supprimer les données
+        if self.dl_url:
+            remove_dir(directory)
+        if self.up_file and file_extras:
+            remove_file(filename)
 
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
         # de données existant mais administrateur ou un référent technique,
