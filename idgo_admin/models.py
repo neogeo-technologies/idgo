@@ -36,7 +36,7 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import drop_table
 from idgo_admin.datagis import ogr2postgis
 from idgo_admin.exceptions import NotOGRError
-from idgo_admin.exceptions import NotSupportedError
+from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin.mra_client import MRAConflictError
 from idgo_admin.mra_client import MRAHandler
@@ -347,8 +347,12 @@ class Resource(models.Model):
                 if extension in ('zip', 'tar', 'geojson'):
                     try:
                         datagis_id = ogr2postgis(filename, extension=extension)
-                    except (NotSupportedError, NotOGRError) as e:
-                        raise ValidationError(e.__str__())
+                    except NotOGRError as e:
+                        msg = "Le fichier reçu n'est pas reconnu comme étant un jeu de données géographiques."
+                        raise ValidationError(msg, code='__all__')
+                    except NotSupportedSrsError as e:
+                        msg = "Le système de coordonnées n'est pas reconnu."
+                        raise ValidationError(e.__str__(), code='__all__')
                     else:
                         self.datagis_id = list(datagis_id)
                         try:

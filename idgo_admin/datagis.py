@@ -22,7 +22,7 @@ from django.contrib.gis.gdal.error import SRSException
 from django.db import connections
 from idgo_admin.exceptions import CriticalException
 from idgo_admin.exceptions import NotOGRError
-from idgo_admin.exceptions import NotSupportedError
+from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.utils import slugify
 import re
 from uuid import uuid4
@@ -78,7 +78,7 @@ class OgrOpener(object):
         vsi = dict(self.VSI_PROTOCOLE).get(extension, False)
 
         if vsi is False:
-            raise NotSupportedError(
+            raise NotOGRError(
                 "The format '{}' is not supported.".format(extension))
         try:
             ds = DataSource(vsi and '/{}/{}'.format(vsi, filename) or filename)
@@ -158,7 +158,7 @@ def ogr2postgis(filename, extension='zip'):
         if not epsg:
             epsg = retreive_epsg_through_proj4(layer.srs.proj4)
         if not epsg:
-            raise NotSupportedError('SRS Not found')
+            raise NotSupportedSrsError('SRS Not found')
 
         attrs = {}
         for i, k in enumerate(layer.fields):

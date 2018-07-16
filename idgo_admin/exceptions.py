@@ -43,7 +43,7 @@ class GenericException(Exception):
         return ' '.join(self.args)
 
 
-class NotSupportedError(GenericException):
+class NotSupportedSrsError(GenericException):
     pass
 
 
