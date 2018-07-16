@@ -155,7 +155,7 @@ class ResourceManager(View):
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
         except ValidationError as e:
-            # form.add_error(e.code, e.message) # erreur ici
+            form.add_error(e.code, e.message)
             messages.error(request, ' '.join(e))
             error = dict(
                 [(k, [str(m) for m in v]) for k, v in form.errors.items()])
