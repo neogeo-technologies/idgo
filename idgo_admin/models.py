@@ -234,6 +234,8 @@ class Resource(models.Model):
         choices=FREQUENCY_CHOICES,
         default='never')
 
+    crs = None
+
     class Meta(object):
         verbose_name = 'Ressource'
 
@@ -251,6 +253,7 @@ class Resource(models.Model):
                 MRAHandler.enable_layer(l_name)
 
     def save(self, *args, **kwargs):
+
         previous = self.pk and Resource.objects.get(pk=self.pk) or None
 
         sync_ckan = 'sync_ckan' in kwargs and kwargs.pop('sync_ckan') or False
@@ -346,13 +349,29 @@ class Resource(models.Model):
                 # puis ajouter au service OGC:WxS de l'organisation.
                 if extension in ('zip', 'tar', 'geojson'):
                     try:
-                        datagis_id = ogr2postgis(filename, extension=extension)
+                        datagis_id = ogr2postgis(filename, extension=extension, epsg=self.crs or None)
                     except NotOGRError as e:
+
+                        # Puis supprimer les données
+                        if self.dl_url:
+                            remove_dir(directory)
+                        if self.up_file and file_extras:
+                            remove_file(filename)
+                        # TODO FACTORISER
+
                         msg = "Le fichier reçu n'est pas reconnu comme étant un jeu de données géographiques."
                         raise ValidationError(msg, code='__all__')
                     except NotSupportedSrsError as e:
-                        msg = "Le système de coordonnées n'est pas reconnu."
-                        raise ValidationError(e.__str__(), code='__all__')
+
+                        # Puis supprimer les données
+                        if self.dl_url:
+                            remove_dir(directory)
+                        if self.up_file and file_extras:
+                            remove_file(filename)
+                        # TODO FACTORISER
+
+                        msg = "Le système de coordonnées n'est pas reconnu. Veuillez sélectionner le système de coordonnées de votre jeu de données."
+                        raise ValidationError(msg, code='crs')
                     else:
                         self.datagis_id = list(datagis_id)
                         try:
@@ -370,6 +389,7 @@ class Resource(models.Model):
                 remove_dir(directory)
             if self.up_file and file_extras:
                 remove_file(filename)
+            # TODO FACTORISER
 
             # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
             # de données existant mais administrateur ou un référent technique,

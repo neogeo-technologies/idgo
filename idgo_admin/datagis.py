@@ -36,6 +36,19 @@ SCHEMA = 'public'
 THE_GEOM = 'the_geom'
 
 
+def is_valid_epsg(code):
+    sql = '''SELECT * FROM public.spatial_ref_sys WHERE auth_srid = '{}';'''.format(code)
+    with connections[DATABASE].cursor() as cursor:
+        try:
+            cursor.execute(sql)
+        except Exception as e:
+            if e.__class__.__qualname__ != 'ProgrammingError':
+                raise e
+        records = cursor.fetchall()
+        cursor.close()
+    return len(records) == 1
+
+
 def get_proj4s():
     sql = '''SELECT auth_srid, proj4text FROM public.spatial_ref_sys;'''
     with connections[DATABASE].cursor() as cursor:
@@ -135,7 +148,7 @@ def ogr_field_2_pg(k, n=None, p=None):
         'OFTInteger64List': 'integer[]'}.get(k, 'text').format(n=n, p=p)
 
 
-def ogr2postgis(filename, extension='zip'):
+def ogr2postgis(filename, extension='zip', epsg=None):
     ds = OgrOpener(filename, extension=extension)
 
     sql = []
@@ -144,21 +157,25 @@ def ogr2postgis(filename, extension='zip'):
         table_id = '{0}_{1}'.format(slugify(layer.name), str(uuid4())[:7])
         table_ids.append(table_id)
 
-        try:
-            epsg = layer.srs.identify_epsg()
-        except SRSException:
-            epsg = None
-        if not epsg:
-            if layer.srs.projected \
-                    and layer.srs.auth_name('PROJCS') == 'EPSG':
-                epsg = layer.srs.auth_code('PROJCS')
-            if layer.srs.geographic \
-                    and layer.srs.auth_name('GEOGCS') == 'EPSG':
-                epsg = layer.srs.auth_code('GEOGCS')
-        if not epsg:
-            epsg = retreive_epsg_through_proj4(layer.srs.proj4)
-        if not epsg:
-            raise NotSupportedSrsError('SRS Not found')
+        if epsg and is_valid_epsg(epsg):
+            pass
+        else:
+            if layer.srs:
+                try:
+                    epsg = layer.srs.identify_epsg()
+                except SRSException:
+                    epsg = None
+                if not epsg:
+                    if layer.srs.projected \
+                            and layer.srs.auth_name('PROJCS') == 'EPSG':
+                        epsg = layer.srs.auth_code('PROJCS')
+                    if layer.srs.geographic \
+                            and layer.srs.auth_name('GEOGCS') == 'EPSG':
+                        epsg = layer.srs.auth_code('GEOGCS')
+                if not epsg:
+                    epsg = retreive_epsg_through_proj4(layer.srs.proj4)
+            if not epsg:
+                raise NotSupportedSrsError('SRS Not found')
 
         attrs = {}
         for i, k in enumerate(layer.fields):

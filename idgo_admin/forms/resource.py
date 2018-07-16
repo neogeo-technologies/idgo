@@ -58,7 +58,8 @@ class ResourceForm(forms.ModelForm):
                   'sync_frequency',
                   'geo_restriction',
                   'extractable',
-                  'ogc_services')
+                  'ogc_services',
+                  'crs')
 
     # _instance = None
     _dataset = None
@@ -132,6 +133,19 @@ class ResourceForm(forms.ModelForm):
         label="Activer les services OGC associés",
         required=False)
 
+    crs = forms.ChoiceField(
+        label='Système de coordonnées du jeu de données géographiques',
+        choices=(  # TODO déplacer dans Model
+            (None, 'Choisissez dans la liste'),
+            ('4171', 'RGF93'),
+            ('2154', 'RGF93 / Lambert 93'),
+            ('3943', 'RGF93 / CC43'),
+            ('3944', 'RGF93 / CC44'),
+            ('3945', 'RGF93 / CC45'),
+            ('4326', 'WGS84'),
+            ('3857', 'Virtual Mercator')),
+        required=False)
+
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
         self._dataset = kwargs.pop('dataset', None)
@@ -171,6 +185,7 @@ class ResourceForm(forms.ModelForm):
         data = self.cleaned_data
         params = {'dataset': dataset,
                   'description': data['description'],
+                  'crs': data['crs'],
                   'dl_url': data['dl_url'],
                   'extractable': data['extractable'],
                   'format_type': data['format_type'],

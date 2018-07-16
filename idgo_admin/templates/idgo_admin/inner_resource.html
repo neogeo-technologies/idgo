@@ -22,27 +22,32 @@
 	{% csrf_token %}
 	<div class="row">
 		<div class="col-xs-12">
-			{% if mode %}
-				<div class="well">
-				{% if mode == 'up_file' %}
-					{% bootstrap_field form.up_file %}
-				{% elif mode == 'dl_url' %}
-					{% bootstrap_field form.dl_url %}
-					<div class="row">
-						<div class="col-xs-5 col-sm-5 col-md-4">
-							{% bootstrap_field form.synchronisation %}
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-xs-5 col-sm-5 col-md-4">
-							{% bootstrap_field form.sync_frequency show_label=False %}
-						</div>
-					</div>
-				{% elif mode == 'referenced_url' %}
-					{% bootstrap_field form.referenced_url %}
-				{% endif %}
+		{% if mode %}
+			<div class="row">
+				<div class="col-xs-12">
+					{% bootstrap_field form.crs %}
 				</div>
-			{% else %}
+			</div>
+			<div class="well">
+			{% if mode == 'up_file' %}
+				{% bootstrap_field form.up_file %}
+			{% elif mode == 'dl_url' %}
+				{% bootstrap_field form.dl_url %}
+				<div class="row">
+					<div class="col-xs-5 col-sm-5 col-md-4">
+						{% bootstrap_field form.synchronisation %}
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-5 col-sm-5 col-md-4">
+						{% bootstrap_field form.sync_frequency show_label=False %}
+					</div>
+				</div>
+			{% elif mode == 'referenced_url' %}
+				{% bootstrap_field form.referenced_url %}
+			{% endif %}
+			</div>
+		{% else %}
 			<ul class="nav nav-tabs" name="data-selector" role="tablist">
 				<li role="presentation">
 					<a name="up_file" href="#up_file" aria-controls="up_file" role="tab" data-toggle="tab">Téléverser un fichier</a>
@@ -77,7 +82,7 @@
 					{% bootstrap_field form.referenced_url show_label=False %}
 				</div>
 			</div>
-			{% endif %}
+		{% endif %}
 		</div>
 	</div>
 	<div class="row">
@@ -157,6 +162,7 @@
 
 <script>
 $(function() {
+	$('[name={{ form.crs.name }}]').parent().hide();
 
 	$('button[name="continue,save"]').prop('type', 'button');
 
@@ -293,6 +299,9 @@ $(function() {
 								if (data.error) {
 									for (const key in data.error) {
 										const val = data.error[key].join();
+										if (key == '{{ form.crs.name }}') {
+											$('[name={{ form.crs.name }}]').parent().show();
+										};
 										if (key == '__all__') {
 											$('.container-message').append('<div name="message-tags" class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>' + val + '</div>');
 										} else {

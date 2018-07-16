@@ -155,13 +155,19 @@ class ResourceManager(View):
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
         except ValidationError as e:
-            form.add_error(e.code, e.message)
+            if e.code == 'crs':
+                form.add_error(e.code, '')
+                form.add_error('__all__', e.message)
+            else:
+                form.add_error(e.code, e.message)
             messages.error(request, ' '.join(e))
             error = dict(
                 [(k, [str(m) for m in v]) for k, v in form.errors.items()])
         else:
             dataset_href = reverse(
                 self.namespace, kwargs={'dataset_id': dataset_id})
+
+            print(form.__dict__)
 
             messages.success(request, (
                 'La ressource a été {0} avec succès. Souhaitez-vous '
