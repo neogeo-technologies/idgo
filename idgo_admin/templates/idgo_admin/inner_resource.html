@@ -235,7 +235,26 @@ $(function() {
 
 		const $form = $('form');
 		const modeName = $('ul.nav[name="data-selector"] li.active a').attr('name');
-		if (modeName == '{{ form.dl_url.name }}' || (modeName == '{{ form.up_file.name }}' && $form.find('input[name="{{ form.up_file.name }}"][type="file"]').val())) {
+
+		{% if mode %}
+			{% if mode == 'up_file' %}
+		const ajaxMode = $form.find('input[name="{{ form.up_file.name }}"][type="file"]').val() ? true : false;
+			{% elif mode == 'referenced_url' %}
+		const ajaxMode = true;
+			{% else %}
+		const ajaxMode = false;
+			{% endif %}
+		{% else %}
+		const ajaxMode = (
+			(
+				modeName == '{{ form.dl_url.name }}'  && $form.find('input[name="{{ form.dl_url.name }}"][type="url"]').val()
+			) || (
+				modeName == '{{ form.up_file.name }}' && $form.find('input[name="{{ form.up_file.name }}"][type="file"]').val())
+			) ? true : false;
+		{% endif %}
+
+		if (ajaxMode) {
+
 			window.scrollTo(0, 0);
 
 			const data = new FormData($form[0]);
