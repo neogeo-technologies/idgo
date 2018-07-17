@@ -109,6 +109,10 @@ class ResourceManager(View):
     @transaction.atomic
     def post(self, request, dataset_id=None, *args, **kwargs):
 
+        # Vider systèmatiquement les messages
+        storage = messages.get_messages(request)
+        storage.used = True
+
         user, profile = user_and_profile(request)
 
         dataset = get_object_or_404_extended(
@@ -204,6 +208,7 @@ class ResourceManager(View):
                     reverse('idgo_admin:dataset'), dataset_id, instance.id))
 
         if ajax:
+            form._errors = None
             return JsonResponse(json.dumps({'error': error}), safe=False)
         return render_with_info_profile(request, self.template, context)
 
