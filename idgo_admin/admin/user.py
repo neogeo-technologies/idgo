@@ -134,6 +134,7 @@ class ProfileAddForm(forms.ModelForm):
             'organisation',
             'is_active',
             'membership',
+            'crige_membership',
             'is_admin'
             )
 
@@ -164,6 +165,7 @@ class ProfileChangeForm(forms.ModelForm):
             'phone',
             'organisation',
             'membership',
+            'crige_membership',
             'is_active',
             'is_admin',
             )

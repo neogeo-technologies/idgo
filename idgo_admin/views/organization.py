@@ -73,6 +73,8 @@ def member_subscribe_process(request, profile, organisation, mail=True):
 def member_unsubscribe_process(request, profile, organisation):
     if profile.organisation != organisation:
         raise UnexpectedError('Echec')
+    if profile.organisation.is_crige_partner:
+        profile.crige_membership = False
     profile.organisation = None
     profile.membership = False
     profile.save()

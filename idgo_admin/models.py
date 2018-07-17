@@ -1684,6 +1684,12 @@ def pre_save_organisation(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Organisation)
 def post_save_organisation(sender, instance, **kwargs):
+    # Mettre à jour en cascade les profiles (utilisateurs)
+    for profile in Profile.objects.filter(organisation=instance):
+        profile.crige_membership = instance.is_crige_partner
+        profile.save()
+
+    # Synchroniser avec l'organisation CKAN
     if ckan.is_organization_exists(str(instance.ckan_id)):
         ckan.update_organization(instance)
 
