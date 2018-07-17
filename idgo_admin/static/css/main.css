@@ -79,6 +79,13 @@ select[multiple] {
             box-shadow: none;
 }
 
+.well-warning {
+    background-color: #fcfcfc;
+    border: 2px solid #ffce59;
+    -webkit-box-shadow: 0 2px 1px 0 rgba(255,206,89,.321));
+            box-shadow: 0 2px 1px 0 rgba(255,206,89,.321));
+}
+
 .checkbox, .radio {
     position: relative;
     display: block;

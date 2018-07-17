@@ -19,6 +19,7 @@ from idgo_admin.models import Category
 from idgo_admin.models import Financier
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
+from idgo_admin.models import SupportedCrs
 from idgo_admin.models import Task
 
 
@@ -61,6 +62,13 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Category, CategoryAdmin)
+
+
+class SupportedCrsAdmin(admin.ModelAdmin):
+    pass
+
+
+admin.site.register(SupportedCrs, SupportedCrsAdmin)
 
 
 class TaskAdmin(admin.ModelAdmin):

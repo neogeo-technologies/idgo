@@ -22,12 +22,17 @@
 	{% csrf_token %}
 	<div class="row">
 		<div class="col-xs-12">
-		{% if mode %}
+
+		<div id='{{ form.crs.name }}_container'>
 			<div class="row">
-				<div class="col-xs-12">
+				<div class="col-xs-8">
 					{% bootstrap_field form.crs %}
 				</div>
 			</div>
+			<br />
+		</div>
+
+		{% if mode %}
 			<div class="well">
 			{% if mode == 'up_file' %}
 				{% bootstrap_field form.up_file %}
@@ -162,7 +167,8 @@
 
 <script>
 $(function() {
-	$('[name={{ form.crs.name }}]').parent().hide();
+
+	const $crsInputContainer = $('#{{ form.crs.name }}_container').hide();
 
 	$('button[name="continue,save"]').prop('type', 'button');
 
@@ -286,6 +292,9 @@ $(function() {
 
 						$modal.one('hidden.bs.modal', function(e) {
 							e.preventDefault();
+							if (xhr.status == 278) {
+								window.location.href = xhr.getResponseHeader("Location");
+							};
 							if (xhr.status == 302) {
 								return window.location.href = xhr.getResponseHeader('Location');
 							} else if (xhr.status == 201) {
@@ -300,7 +309,7 @@ $(function() {
 									for (const key in data.error) {
 										const val = data.error[key].join();
 										if (key == '{{ form.crs.name }}') {
-											$('[name={{ form.crs.name }}]').parent().show();
+											$crsInputContainer.show();
 										};
 										if (key == '__all__') {
 											$('.container-message').append('<div name="message-tags" class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>' + val + '</div>');

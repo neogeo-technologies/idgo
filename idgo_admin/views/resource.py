@@ -121,6 +121,20 @@ class ResourceManager(View):
         form = Form(
             request.POST, request.FILES, instance=instance, dataset=dataset)
 
+        mode = None
+        if instance:
+            mode = (
+                instance.up_file and 'up_file'
+                or instance.dl_url and 'dl_url'
+                or instance.referenced_url and 'referenced_url'
+                or None)
+        elif form:
+            mode = (
+                form.data.get('up_file') and 'up_file'
+                or form.data.get('dl_url') and 'dl_url'
+                or form.data.get('referenced_url') and 'referenced_url'
+                or None)
+
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
                    'dataset_ckan_slug': dataset.ckan_slug,
@@ -128,10 +142,7 @@ class ResourceManager(View):
                    'resource_ckan_id': instance and instance.ckan_id or None,
                    'resource_id': instance and instance.id or None,
                    'ows': (instance and instance.datagis_id) and len(instance.datagis_id) > 0 or None,
-                   'mode': instance and (
-                       instance.up_file and 'up_file'
-                       or instance.dl_url and 'dl_url'
-                       or instance.referenced_url and 'referenced_url') or None,
+                   'mode': mode,
                    'form': form}
 
         ajax = 'ajax' in request.POST
@@ -166,8 +177,6 @@ class ResourceManager(View):
         else:
             dataset_href = reverse(
                 self.namespace, kwargs={'dataset_id': dataset_id})
-
-            print(form.__dict__)
 
             messages.success(request, (
                 'La ressource a été {0} avec succès. Souhaitez-vous '

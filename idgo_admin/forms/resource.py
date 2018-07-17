@@ -22,6 +22,7 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
+from idgo_admin.models import SupportedCrs
 from idgo_admin.utils import readable_file_size
 
 
@@ -133,18 +134,11 @@ class ResourceForm(forms.ModelForm):
         label="Activer les services OGC associés",
         required=False)
 
-    crs = forms.ChoiceField(
+    crs = forms.ModelChoiceField(
         label='Système de coordonnées du jeu de données géographiques',
-        choices=(  # TODO déplacer dans Model
-            (None, 'Choisissez dans la liste'),
-            ('4171', 'RGF93'),
-            ('2154', 'RGF93 / Lambert 93'),
-            ('3943', 'RGF93 / CC43'),
-            ('3944', 'RGF93 / CC44'),
-            ('3945', 'RGF93 / CC45'),
-            ('4326', 'WGS84'),
-            ('3857', 'Virtual Mercator')),
-        required=False)
+        queryset=SupportedCrs.objects.all(),
+        required=False,
+        to_field_name='auth_code')
 
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})

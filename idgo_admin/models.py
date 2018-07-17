@@ -89,6 +89,27 @@ except Exception:
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 
 
+class SupportedCrs(models.Model):
+
+    auth_name = models.CharField(
+        verbose_name='Authority Name', max_length=100, default='EPSG')
+
+    auth_code = models.CharField(
+        verbose_name='Authority Code', max_length=100)
+
+    description = models.TextField(
+        verbose_name='Description', blank=True, null=True)
+
+    class Meta(object):
+        db_table = 'supported_crs'
+        verbose_name = "CRS supporté par l'application"
+        verbose_name_plural = "CRS supportés par l'application"
+
+    def __str__(self):
+        return '{}:{} ({})'.format(
+            self.auth_name, self.auth_code, self.description)
+
+
 class ResourceFormats(models.Model):
 
     PROTOCOL_CHOICES = AUTHORIZED_PROTOCOL
@@ -234,7 +255,9 @@ class Resource(models.Model):
         choices=FREQUENCY_CHOICES,
         default='never')
 
-    crs = None
+    crs = models.ForeignKey(
+        to='SupportedCrs', verbose_name='CRS',
+        on_delete=models.SET_NULL, blank=True, null=True)
 
     class Meta(object):
         verbose_name = 'Ressource'
@@ -349,7 +372,9 @@ class Resource(models.Model):
                 # puis ajouter au service OGC:WxS de l'organisation.
                 if extension in ('zip', 'tar', 'geojson'):
                     try:
-                        datagis_id = ogr2postgis(filename, extension=extension, epsg=self.crs or None)
+                        datagis_id = ogr2postgis(
+                            filename, extension=extension,
+                            epsg=self.crs and self.crs.auth_code or None)
                     except NotOGRError as e:
 
                         # Puis supprimer les données
