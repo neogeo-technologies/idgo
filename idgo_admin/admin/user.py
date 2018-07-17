@@ -147,6 +147,9 @@ class ProfileAddForm(forms.ModelForm):
         self.fields['is_active'].widget = forms.HiddenInput()
         self.fields['membership'].widget = forms.HiddenInput()
 
+        if not self.instance.crige_membership:  # and self.instance.is_admin:
+            self.fields['crige_membership'].widget = forms.HiddenInput()
+
     def clean(self):
         self.cleaned_data.update(is_active=True)
         if self.cleaned_data.get('organisation'):
@@ -169,6 +172,12 @@ class ProfileChangeForm(forms.ModelForm):
             'is_active',
             'is_admin',
             )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if not self.instance.crige_membership:  # and self.instance.is_admin:
+            self.fields['crige_membership'].widget = forms.HiddenInput()
 
     def clean(self):
         if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
