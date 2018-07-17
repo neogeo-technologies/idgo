@@ -600,6 +600,9 @@ class Organisation(models.Model):
 
     is_active = models.BooleanField('Organisation active', default=False)
 
+    is_crige_partner = models.BooleanField(
+        verbose_name='Organisation partenaire du CRIGE', default=False)
+
     class Meta(object):
         ordering = ['name']
 
@@ -640,6 +643,9 @@ class Profile(models.Model):
     membership = models.BooleanField(
         verbose_name="Etat de rattachement profile-organisation d'appartenance",
         default=False)
+
+    crige_membership = models.BooleanField(
+        verbose_name='Utilisateur affilié au CRIGE', default=False)
 
     is_admin = models.BooleanField(
         verbose_name="Administrateur IDGO",
