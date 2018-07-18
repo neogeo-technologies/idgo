@@ -363,7 +363,14 @@ class Subscription(View):
                     '<strong>{0}</strong> est en cours de traitement. '
                     "Celle-ci ne sera effective qu'après validation par "
                     'un administrateur.').format(status, organisation.name)
+                # Spécial CRIGE
+                if status == 'member':
+                    messages.info(request, "L'organisation est partenaire du CRIGE.")
+                # Fin [Spécial CRIGE]
             messages.success(request, message)
 
-        return HttpResponseRedirect('{0}#{1}'.format(
-            reverse(self.namespace), organisation.id))
+        # TODO Revoir la gestion de l'AJAX sur la page des organisations
+
+        return JsonResponse(data={})  # Bidon
+        # return HttpResponseRedirect('{0}#{1}'.format(
+        #     reverse(self.namespace), organisation.id))
