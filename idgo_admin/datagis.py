@@ -21,7 +21,7 @@ from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.gdal.error import SRSException
 from django.db import connections
 from idgo_admin.exceptions import CriticalException
-from idgo_admin.exceptions import NotMoreOneLayerError
+from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.utils import slugify
@@ -149,15 +149,16 @@ def ogr_field_2_pg(k, n=None, p=None):
         'OFTInteger64List': 'integer[]'}.get(k, 'text').format(n=n, p=p)
 
 
-def ogr2postgis(filename, extension='zip', epsg=None):
+def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1):
     ds = OgrOpener(filename, extension=extension)
 
     sql = []
     table_ids = []
 
     layers = ds.get_layers()
-    if len(layers) > 1:
-        raise NotMoreOneLayerError()
+    if len(layers) > limit_to:
+        raise ExceedsMaximumLayerNumberFixedError(
+            count=len(layers), maximum=limit_to)
     # else:
     for layer in layers:
         table_id = '{0}_{1}'.format(slugify(layer.name), str(uuid4())[:7])

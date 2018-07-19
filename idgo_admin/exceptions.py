@@ -44,15 +44,26 @@ class GenericException(Exception):
 
 
 class NotOGRError(GenericException):
-    pass
+    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données géographiques."
 
 
-class NotMoreOneLayerError(GenericException):
-    pass
+class ExceedsMaximumLayerNumberFixedError(GenericException):
+    message = "Votre ficher contient plus de jeux de données que ne l'autorise l'application."
+
+    def __str__(self):
+        try:
+            sentences = [
+                "Le fichier contient {} jeu{} de données géographiques.".format(
+                    self.count, self.count > 1 and 'x' or ''),
+                "Vous ne pouvez pas ajouter plus de {} jeu{} de données.".format(
+                    self.maximum, self.maximum > 1 and 'x' or '')]
+        except Exception:
+            return super().__str__()
+        return ' '.join(sentences)
 
 
 class NotSupportedSrsError(GenericException):
-    pass
+    message = "Le système de coordonnées n'est pas reconnu."
 
 
 class UnexpectedError(GenericException):

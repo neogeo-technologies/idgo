@@ -35,6 +35,7 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import drop_table
 from idgo_admin.datagis import ogr2postgis
+from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.exceptions import SizeLimitExceededError
@@ -375,26 +376,13 @@ class Resource(models.Model):
                         datagis_id = ogr2postgis(
                             filename, extension=extension,
                             epsg=self.crs and self.crs.auth_code or None)
-                    except Exception as e:
-                        code = '__all__'
-                        if e.__class__.__name__ == 'NotMoreOneLayerError':
-                            msg = "Le fichier contient plus d'un jeu de données géographiques."
-                        elif e.__class__.__name__ == 'NotOGRError':
-                            msg = "Le fichier reçu n'est pas reconnu comme étant un jeu de données géographiques."
-                        elif e.__class__.__name__ == 'NotSupportedSrsError':
-                            msg = "Le système de coordonnées n'est pas reconnu. Veuillez sélectionner le système de coordonnées de votre jeu de données."
-                            code = 'crs'
-                        else:
-                            raise e
-
-                        # Supprimer les données
+                    except (ExceedsMaximumLayerNumberFixedError,
+                            NotOGRError, NotSupportedSrsError) as e:
                         if self.dl_url:
                             remove_dir(directory)
                         if self.up_file and file_extras:
                             remove_file(filename)
-
-                        # Puis..
-                        raise ValidationError(msg, code=code)
+                        raise ValidationError(e.__str__(), code='__all__')
                     else:
                         self.datagis_id = list(datagis_id)
                         try:
