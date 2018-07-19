@@ -375,28 +375,26 @@ class Resource(models.Model):
                         datagis_id = ogr2postgis(
                             filename, extension=extension,
                             epsg=self.crs and self.crs.auth_code or None)
-                    except NotOGRError as e:
+                    except Exception as e:
+                        code = '__all__'
+                        if e.__class__.__name__ == 'NotMoreOneLayerError':
+                            msg = "Le fichier contient plus d'un jeu de données géographiques."
+                        elif e.__class__.__name__ == 'NotOGRError':
+                            msg = "Le fichier reçu n'est pas reconnu comme étant un jeu de données géographiques."
+                        elif e.__class__.__name__ == 'NotSupportedSrsError':
+                            msg = "Le système de coordonnées n'est pas reconnu. Veuillez sélectionner le système de coordonnées de votre jeu de données."
+                            code = 'crs'
+                        else:
+                            raise e
 
-                        # Puis supprimer les données
+                        # Supprimer les données
                         if self.dl_url:
                             remove_dir(directory)
                         if self.up_file and file_extras:
                             remove_file(filename)
-                        # TODO FACTORISER
 
-                        msg = "Le fichier reçu n'est pas reconnu comme étant un jeu de données géographiques."
-                        raise ValidationError(msg, code='__all__')
-                    except NotSupportedSrsError as e:
-
-                        # Puis supprimer les données
-                        if self.dl_url:
-                            remove_dir(directory)
-                        if self.up_file and file_extras:
-                            remove_file(filename)
-                        # TODO FACTORISER
-
-                        msg = "Le système de coordonnées n'est pas reconnu. Veuillez sélectionner le système de coordonnées de votre jeu de données."
-                        raise ValidationError(msg, code='crs')
+                        # Puis..
+                        raise ValidationError(msg, code=code)
                     else:
                         self.datagis_id = list(datagis_id)
                         try:

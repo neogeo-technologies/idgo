@@ -21,6 +21,7 @@ from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.gdal.error import SRSException
 from django.db import connections
 from idgo_admin.exceptions import CriticalException
+from idgo_admin.exceptions import NotMoreOneLayerError
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.utils import slugify
@@ -104,7 +105,7 @@ class OgrOpener(object):
         self._datastore = ds
 
     def get_layers(self):
-        yield from self._datastore
+        return self._datastore
 
 
 CREATE_TABLE = '''
@@ -153,7 +154,12 @@ def ogr2postgis(filename, extension='zip', epsg=None):
 
     sql = []
     table_ids = []
-    for layer in ds.get_layers():
+
+    layers = ds.get_layers()
+    if len(layers) > 1:
+        raise NotMoreOneLayerError()
+    # else:
+    for layer in layers:
         table_id = '{0}_{1}'.format(slugify(layer.name), str(uuid4())[:7])
         table_ids.append(table_id)
 

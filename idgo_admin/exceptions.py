@@ -43,11 +43,15 @@ class GenericException(Exception):
         return ' '.join(self.args)
 
 
-class NotSupportedSrsError(GenericException):
+class NotOGRError(GenericException):
     pass
 
 
-class NotOGRError(GenericException):
+class NotMoreOneLayerError(GenericException):
+    pass
+
+
+class NotSupportedSrsError(GenericException):
     pass
 
 
