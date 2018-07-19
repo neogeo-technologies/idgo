@@ -1,6 +1,14 @@
 [
 {
 	"model": "idgo_admin.jurisdiction",
+	"pk": "93",
+	"fields":
+	{
+		"name": "R\u00e9gion SUD"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
 	"pk": "200000628",
 	"fields":
 	{
