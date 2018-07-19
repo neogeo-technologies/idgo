@@ -473,13 +473,32 @@ class Resource(models.Model):
                 self.disable_layers()
 
 
+# class Commune(models.Model):
+#
+#     code = models.CharField(
+#         verbose_name='Code INSEE', max_length=5)
+#
+#     name = models.CharField(
+#         verbose_name='Nom', max_length=100)
+#
+#     geom = models.MultiPolygonField(
+#         verbose_name='Geometrie', srid=2154, blank=True, null=True)
+#
+#     objects = models.GeoManager()
+#
+#     class Meta(object):
+#         ordering = ['name']
+#
+#     def __str__(self):
+#         return self.name
+
+
 class Commune(models.Model):
 
     code = models.CharField(
-        verbose_name='Code INSEE', max_length=5)
+        verbose_name='Code INSEE', max_length=5, primary_key=True)
 
-    name = models.CharField(
-        verbose_name='Nom', max_length=100)
+    name = models.CharField(verbose_name='Nom', max_length=100)
 
     geom = models.MultiPolygonField(
         verbose_name='Geometrie', srid=2154, blank=True, null=True)
@@ -487,6 +506,8 @@ class Commune(models.Model):
     objects = models.GeoManager()
 
     class Meta(object):
+        verbose_name = 'Commune'
+        verbose_name_plural = 'Communes'
         ordering = ['name']
 
     def __str__(self):
@@ -495,19 +516,44 @@ class Commune(models.Model):
 
 class Jurisdiction(models.Model):
 
-    code = models.CharField(verbose_name='Code INSEE', max_length=10)
+    code = models.CharField(
+        verbose_name='Code INSEE', max_length=10, primary_key=True)
 
     name = models.CharField(verbose_name='Nom', max_length=100)
-
-    communes = models.ManyToManyField(to='Commune')
 
     objects = models.GeoManager()
 
     class Meta(object):
         verbose_name = 'Territoire de compétence'
+        verbose_name_plural = 'Territoires de compétence'
 
     def __str__(self):
         return self.name
+
+
+class JurisdictionCommune(models.Model):
+
+    jurisdiction = models.ForeignKey(
+        to='Jurisdiction', on_delete=models.CASCADE,
+        verbose_name='Territoire de compétence', to_field='code')
+
+    commune = models.ForeignKey(
+        to='Commune', on_delete=models.CASCADE,
+        verbose_name='Commune', to_field='code')
+
+    created_on = models.DateField(auto_now_add=True)
+
+    created_by = models.ForeignKey(
+        to="Profile", null=True, on_delete=models.SET_NULL,
+        verbose_name="Profil de l'utilisateur",
+        related_name='creates_jurisdiction')
+
+    class Meta(object):
+        verbose_name = 'Territoire de compétence / Commune'
+        verbose_name_plural = 'Territoires de compétence / Communes'
+
+    def __str__(self):
+        return '{0}: {1}'.format(self.jurisdiction, self.commune)
 
 
 class Financier(models.Model):

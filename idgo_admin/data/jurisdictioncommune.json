@@ -1,0 +1,9511 @@
+[
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 1,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06081",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 2,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06003",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 3,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06002",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 4,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06063",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 5,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06140",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 6,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06095",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 7,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06045",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 8,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06058",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 9,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06116",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 10,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06154",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 11,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06024",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 12,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06134",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 13,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06084",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 14,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06108",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 15,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06087",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 16,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06090",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 17,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06118",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 18,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06007",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 19,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06069",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 20,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06028",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 21,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06137",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 22,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06026",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 23,
+	"fields":
+	{
+		"jurisdiction": "200039857",
+		"commune": "06130",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 24,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04158",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 25,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04152",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 26,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04242",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 27,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04186",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 28,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04063",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 29,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04156",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 30,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04230",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 31,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04189",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 32,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04094",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 33,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "83150",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 34,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04128",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 35,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04124",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 36,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04112",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 37,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04035",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 38,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04245",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 39,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04143",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 40,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04004",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 41,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04041",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 42,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04197",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 43,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04034",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 44,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04157",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 45,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04166",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 46,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04077",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 47,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04081",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 48,
+	"fields":
+	{
+		"jurisdiction": "200034700",
+		"commune": "04172",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 49,
+	"fields":
+	{
+		"jurisdiction": "248400236",
+		"commune": "84027",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 50,
+	"fields":
+	{
+		"jurisdiction": "248400236",
+		"commune": "84037",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 51,
+	"fields":
+	{
+		"jurisdiction": "248400236",
+		"commune": "84039",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 52,
+	"fields":
+	{
+		"jurisdiction": "248400236",
+		"commune": "84087",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 53,
+	"fields":
+	{
+		"jurisdiction": "248400236",
+		"commune": "84056",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 54,
+	"fields":
+	{
+		"jurisdiction": "200036077",
+		"commune": "83042",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 55,
+	"fields":
+	{
+		"jurisdiction": "200036077",
+		"commune": "83101",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 56,
+	"fields":
+	{
+		"jurisdiction": "200036077",
+		"commune": "83048",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 57,
+	"fields":
+	{
+		"jurisdiction": "200036077",
+		"commune": "83036",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 58,
+	"fields":
+	{
+		"jurisdiction": "200036077",
+		"commune": "83119",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 59,
+	"fields":
+	{
+		"jurisdiction": "200036077",
+		"commune": "83065",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 60,
+	"fields":
+	{
+		"jurisdiction": "200036077",
+		"commune": "83152",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 61,
+	"fields":
+	{
+		"jurisdiction": "200036077",
+		"commune": "83079",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 62,
+	"fields":
+	{
+		"jurisdiction": "200036077",
+		"commune": "83115",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 63,
+	"fields":
+	{
+		"jurisdiction": "200036077",
+		"commune": "83094",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 64,
+	"fields":
+	{
+		"jurisdiction": "200036077",
+		"commune": "83063",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 65,
+	"fields":
+	{
+		"jurisdiction": "200036077",
+		"commune": "83068",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 66,
+	"fields":
+	{
+		"jurisdiction": "200035723",
+		"commune": "84018",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 67,
+	"fields":
+	{
+		"jurisdiction": "200035723",
+		"commune": "84005",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 68,
+	"fields":
+	{
+		"jurisdiction": "200035723",
+		"commune": "84123",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 69,
+	"fields":
+	{
+		"jurisdiction": "200035723",
+		"commune": "84075",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 70,
+	"fields":
+	{
+		"jurisdiction": "200035723",
+		"commune": "84120",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 71,
+	"fields":
+	{
+		"jurisdiction": "200035723",
+		"commune": "84107",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 72,
+	"fields":
+	{
+		"jurisdiction": "200035723",
+		"commune": "84079",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 73,
+	"fields":
+	{
+		"jurisdiction": "200035723",
+		"commune": "84148",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 74,
+	"fields":
+	{
+		"jurisdiction": "200035723",
+		"commune": "84082",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 75,
+	"fields":
+	{
+		"jurisdiction": "200035723",
+		"commune": "84070",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 76,
+	"fields":
+	{
+		"jurisdiction": "248400160",
+		"commune": "84029",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 77,
+	"fields":
+	{
+		"jurisdiction": "248400160",
+		"commune": "84061",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 78,
+	"fields":
+	{
+		"jurisdiction": "248400160",
+		"commune": "84135",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 79,
+	"fields":
+	{
+		"jurisdiction": "248400160",
+		"commune": "84149",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 80,
+	"fields":
+	{
+		"jurisdiction": "248400160",
+		"commune": "84106",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 81,
+	"fields":
+	{
+		"jurisdiction": "248400160",
+		"commune": "84127",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 82,
+	"fields":
+	{
+		"jurisdiction": "248400160",
+		"commune": "84091",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 83,
+	"fields":
+	{
+		"jurisdiction": "248400160",
+		"commune": "84134",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 84,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83149",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 85,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83005",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 86,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83147",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 87,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83078",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 88,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83014",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 89,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83015",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 90,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83142",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 91,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83007",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 92,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83122",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 93,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83020",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 94,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83139",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 95,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83022",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 96,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83074",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 97,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83102",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 98,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83002",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 99,
+	"fields":
+	{
+		"jurisdiction": "200040210",
+		"commune": "83040",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 100,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83106",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 101,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83046",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 102,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83088",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 103,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83059",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 104,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83096",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 105,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83023",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 106,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83089",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 107,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83077",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 108,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83021",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 109,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83032",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 110,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83143",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 111,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83093",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 112,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83037",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 113,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83111",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 114,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83051",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 115,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83076",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 116,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83039",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 117,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83116",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 118,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83083",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 119,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83064",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 120,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83151",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 121,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83087",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 122,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83140",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 123,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83097",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 124,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83045",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 125,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83110",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 126,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83030",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 127,
+	"fields":
+	{
+		"jurisdiction": "200068104",
+		"commune": "83108",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 128,
+	"fields":
+	{
+		"jurisdiction": "241300375",
+		"commune": "13057",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 129,
+	"fields":
+	{
+		"jurisdiction": "241300375",
+		"commune": "13006",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 130,
+	"fields":
+	{
+		"jurisdiction": "241300375",
+		"commune": "13094",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 131,
+	"fields":
+	{
+		"jurisdiction": "241300375",
+		"commune": "13038",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 132,
+	"fields":
+	{
+		"jurisdiction": "241300375",
+		"commune": "13100",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 133,
+	"fields":
+	{
+		"jurisdiction": "241300375",
+		"commune": "13065",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 134,
+	"fields":
+	{
+		"jurisdiction": "241300375",
+		"commune": "13068",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 135,
+	"fields":
+	{
+		"jurisdiction": "241300375",
+		"commune": "13011",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 136,
+	"fields":
+	{
+		"jurisdiction": "241300375",
+		"commune": "13058",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 137,
+	"fields":
+	{
+		"jurisdiction": "241300375",
+		"commune": "13034",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 138,
+	"fields":
+	{
+		"jurisdiction": "248400319",
+		"commune": "84036",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 139,
+	"fields":
+	{
+		"jurisdiction": "248400319",
+		"commune": "84124",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 140,
+	"fields":
+	{
+		"jurisdiction": "248400319",
+		"commune": "84132",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 141,
+	"fields":
+	{
+		"jurisdiction": "248400319",
+		"commune": "84139",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 142,
+	"fields":
+	{
+		"jurisdiction": "248400319",
+		"commune": "84054",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 143,
+	"fields":
+	{
+		"jurisdiction": "200035319",
+		"commune": "83001",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 144,
+	"fields":
+	{
+		"jurisdiction": "200035319",
+		"commune": "83099",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 145,
+	"fields":
+	{
+		"jurisdiction": "200035319",
+		"commune": "83107",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 146,
+	"fields":
+	{
+		"jurisdiction": "200035319",
+		"commune": "83061",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 147,
+	"fields":
+	{
+		"jurisdiction": "200035319",
+		"commune": "83118",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 148,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05171",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 149,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05050",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 150,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05140",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 151,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05018",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 152,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05115",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 153,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05084",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 154,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05127",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 155,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05017",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 156,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "04150",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 157,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05121",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 158,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05022",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 159,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05113",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 160,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05176",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 161,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "04234",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 162,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05124",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 163,
+	"fields":
+	{
+		"jurisdiction": "200067320",
+		"commune": "05011",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 164,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06163",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 165,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06083",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 166,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06136",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 167,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06067",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 168,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06035",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 169,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06062",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 170,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06023",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 171,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06086",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 172,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06132",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 173,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06113",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 174,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06012",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 175,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06162",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 176,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06036",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 177,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06150",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 178,
+	"fields":
+	{
+		"jurisdiction": "240600551",
+		"commune": "06104",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 179,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04116",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 180,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04235",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 181,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04155",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 182,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04203",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 183,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04182",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 184,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04046",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 185,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04149",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 186,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04047",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 187,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04091",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 188,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04021",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 189,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04126",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 190,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04108",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 191,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04217",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 192,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04031",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 193,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04191",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 194,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04177",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 195,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04181",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 196,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04017",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 197,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04020",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 198,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04167",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 199,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04036",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 200,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04109",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 201,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04028",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 202,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04084",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 203,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04097",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 204,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04237",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 205,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04107",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 206,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04176",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 207,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04184",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 208,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04079",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 209,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04205",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 210,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04072",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 211,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04113",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 212,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04074",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 213,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04121",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 214,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04070",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 215,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04009",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 216,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04049",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 217,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04135",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 218,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04122",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 219,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04244",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 220,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04040",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 221,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04110",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 222,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04054",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 223,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04024",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 224,
+	"fields":
+	{
+		"jurisdiction": "200067437",
+		"commune": "04001",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 225,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06068",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 226,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06061",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 227,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06047",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 228,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06041",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 229,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06037",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 230,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06155",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 231,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06038",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 232,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06089",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 233,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06112",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 234,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06049",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 235,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06010",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 236,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06070",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 237,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06017",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 238,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06050",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 239,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06152",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 240,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06022",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 241,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06148",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 242,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06161",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 243,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06107",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 244,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06044",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 245,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06128",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 246,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06018",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 247,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06105",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 248,
+	"fields":
+	{
+		"jurisdiction": "240600585",
+		"commune": "06004",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 249,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05139",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 250,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05131",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 251,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05080",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 252,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05158",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 253,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05066",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 254,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05019",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 255,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05179",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 256,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05010",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 257,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05060",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 258,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05035",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 259,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05075",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 260,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05123",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 261,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05087",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 262,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05112",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 263,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05099",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 264,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05028",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 265,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05055",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 266,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05154",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 267,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05008",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 268,
+	"fields":
+	{
+		"jurisdiction": "200067445",
+		"commune": "05146",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 269,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84068",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 270,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84074",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 271,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84095",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 272,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84013",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 273,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84140",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 274,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84065",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 275,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84062",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 276,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84038",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 277,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84071",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 278,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84050",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 279,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84093",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 280,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84025",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 281,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84131",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 282,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84099",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 283,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84086",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 284,
+	"fields":
+	{
+		"jurisdiction": "200040442",
+		"commune": "84035",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 285,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84096",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 286,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84021",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 287,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84111",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 288,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84126",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 289,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84044",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 290,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84094",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 291,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84116",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 292,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84146",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 293,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84117",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 294,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84098",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 295,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84137",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 296,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84045",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 297,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84028",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 298,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84040",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 299,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84022",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 300,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84110",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 301,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84104",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 302,
+	"fields":
+	{
+		"jurisdiction": "248400335",
+		"commune": "84125",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 303,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84023",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 304,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84112",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 305,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84060",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 306,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84020",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 307,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84066",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 308,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84033",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 309,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84032",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 310,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84006",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 311,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84128",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 312,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84103",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 313,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84144",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 314,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84047",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 315,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84073",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 316,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84048",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 317,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84102",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 318,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84051",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 319,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84118",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 320,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84114",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 321,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84057",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 322,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84105",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 323,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "04045",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 324,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84058",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 325,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84003",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 326,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84085",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 327,
+	"fields":
+	{
+		"jurisdiction": "200040624",
+		"commune": "84145",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 328,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04162",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 329,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04160",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 330,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04201",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 331,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04208",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 332,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04132",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 333,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04142",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 334,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04175",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 335,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04068",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 336,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04018",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 337,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04095",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 338,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04129",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 339,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04192",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 340,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04169",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 341,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04190",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 342,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04227",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 343,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04188",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 344,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04012",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 345,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04241",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 346,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04163",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 347,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04159",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 348,
+	"fields":
+	{
+		"jurisdiction": "200071025",
+		"commune": "04111",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 349,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05108",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 350,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05106",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 351,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "04154",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 352,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05012",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 353,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05128",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 354,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05046",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 355,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05163",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 356,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05114",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 357,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05040",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 358,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05098",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 359,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05111",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 360,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05130",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 361,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05156",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 362,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05044",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 363,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05036",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 364,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05045",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 365,
+	"fields":
+	{
+		"jurisdiction": "200067742",
+		"commune": "05164",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 366,
+	"fields":
+	{
+		"jurisdiction": "248300550",
+		"commune": "83031",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 367,
+	"fields":
+	{
+		"jurisdiction": "248300550",
+		"commune": "83073",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 368,
+	"fields":
+	{
+		"jurisdiction": "248300550",
+		"commune": "83033",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 369,
+	"fields":
+	{
+		"jurisdiction": "248300550",
+		"commune": "83026",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 370,
+	"fields":
+	{
+		"jurisdiction": "248300550",
+		"commune": "83136",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 371,
+	"fields":
+	{
+		"jurisdiction": "248300550",
+		"commune": "83092",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 372,
+	"fields":
+	{
+		"jurisdiction": "248300550",
+		"commune": "83075",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 373,
+	"fields":
+	{
+		"jurisdiction": "248300550",
+		"commune": "83067",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 374,
+	"fields":
+	{
+		"jurisdiction": "248300550",
+		"commune": "83057",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 375,
+	"fields":
+	{
+		"jurisdiction": "248300550",
+		"commune": "83018",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 376,
+	"fields":
+	{
+		"jurisdiction": "248300550",
+		"commune": "83100",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 377,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04043",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 378,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04076",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 379,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04219",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 380,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04194",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 381,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04061",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 382,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04214",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 383,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04039",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 384,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04090",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 385,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04202",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 386,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04008",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 387,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04210",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 388,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04007",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 389,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04174",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 390,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04144",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 391,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04171",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 392,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04055",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 393,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04173",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 394,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04133",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 395,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04030",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 396,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04236",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 397,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04148",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 398,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04187",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 399,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04136",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 400,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04042",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 401,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04204",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 402,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04022",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 403,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04005",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 404,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04115",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 405,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04032",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 406,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04218",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 407,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04240",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 408,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04224",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 409,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04059",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 410,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04006",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 411,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04092",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 412,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04099",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 413,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04183",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 414,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04170",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 415,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04180",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 416,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04025",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 417,
+	"fields":
+	{
+		"jurisdiction": "200068625",
+		"commune": "04069",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 418,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06135",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 419,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06101",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 420,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06056",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 421,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06160",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 422,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06094",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 423,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06016",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 424,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06115",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 425,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06052",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 426,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06093",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 427,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06106",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 428,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06143",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 429,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06096",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 430,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06139",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 431,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06071",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 432,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06158",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 433,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06076",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 434,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06053",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 435,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06124",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 436,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06008",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 437,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06051",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 438,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06141",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 439,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06005",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 440,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06097",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 441,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06098",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 442,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06100",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 443,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06082",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 444,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06133",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 445,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06125",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 446,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06078",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 447,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06040",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 448,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06099",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 449,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06145",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 450,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06131",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 451,
+	"fields":
+	{
+		"jurisdiction": "200039931",
+		"commune": "06001",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 452,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83044",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 453,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83109",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 454,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83128",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 455,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83148",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 456,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83038",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 457,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83085",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 458,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83041",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 459,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83028",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 460,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83154",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 461,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83141",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 462,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83082",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 463,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83056",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 464,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83004",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 465,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83003",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 466,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83010",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 467,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83058",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 468,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83121",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 469,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83050",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 470,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83011",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 471,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83086",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 472,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83013",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 473,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83134",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 474,
+	"fields":
+	{
+		"jurisdiction": "248300493",
+		"commune": "83072",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 475,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13119",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 476,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13005",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 477,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13023",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 478,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13111",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 479,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13055",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 480,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13028",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 481,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13043",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 482,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13013",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 483,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13085",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 484,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13070",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 485,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13022",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 486,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13107",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 487,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13040",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 488,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13074",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 489,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13078",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 490,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13039",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 491,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13095",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 492,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13090",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 493,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13016",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 494,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13007",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 495,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13113",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 496,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13093",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 497,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13024",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 498,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13091",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 499,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13025",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 500,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13044",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 501,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13009",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 502,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13115",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 503,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13054",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 504,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13103",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 505,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13051",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 506,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13098",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 507,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13102",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 508,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13117",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 509,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13026",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 510,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13015",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 511,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13069",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 512,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13075",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 513,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13112",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 514,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13063",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 515,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13109",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 516,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13082",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 517,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13118",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 518,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13037",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 519,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13050",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 520,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13049",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 521,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13030",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 522,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13042",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 523,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13021",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 524,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13020",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 525,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13101",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 526,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "84089",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 527,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13079",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 528,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13073",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 529,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13048",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 530,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13099",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 531,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13105",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 532,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13059",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 533,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13080",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 534,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13035",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 535,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13087",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 536,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13092",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 537,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13084",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 538,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13106",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 539,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13114",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 540,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13003",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 541,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13001",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 542,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13008",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 543,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13053",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 544,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13060",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 545,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13077",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 546,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13081",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 547,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13041",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 548,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13056",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 549,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13019",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 550,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13047",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 551,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13033",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 552,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13032",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 553,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13002",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 554,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13029",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 555,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13088",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 556,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13031",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 557,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13046",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 558,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "83120",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 559,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13014",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 560,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13072",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 561,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13110",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 562,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13086",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 563,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13104",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 564,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13062",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 565,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13071",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 566,
+	"fields":
+	{
+		"jurisdiction": "200054807",
+		"commune": "13012",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 567,
+	"fields":
+	{
+		"jurisdiction": "200040681",
+		"commune": "84138",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 568,
+	"fields":
+	{
+		"jurisdiction": "200040681",
+		"commune": "84053",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 569,
+	"fields":
+	{
+		"jurisdiction": "200040681",
+		"commune": "84150",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 570,
+	"fields":
+	{
+		"jurisdiction": "200040681",
+		"commune": "84097",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 571,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05062",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 572,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05104",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 573,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05144",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 574,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05039",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 575,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05182",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 576,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05142",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 577,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05152",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 578,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05149",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 579,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05090",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 580,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05025",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 581,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05029",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 582,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05145",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 583,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05056",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 584,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05054",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 585,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05072",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 586,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05009",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 587,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05064",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 588,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05095",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 589,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05043",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 590,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05141",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 591,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05147",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 592,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05153",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 593,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05148",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 594,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05032",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 595,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05004",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 596,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05132",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 597,
+	"fields":
+	{
+		"jurisdiction": "200068096",
+		"commune": "05096",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 598,
+	"fields":
+	{
+		"jurisdiction": "241300417",
+		"commune": "13097",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 599,
+	"fields":
+	{
+		"jurisdiction": "241300417",
+		"commune": "13061",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 600,
+	"fields":
+	{
+		"jurisdiction": "241300417",
+		"commune": "13017",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 601,
+	"fields":
+	{
+		"jurisdiction": "241300417",
+		"commune": "13108",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 602,
+	"fields":
+	{
+		"jurisdiction": "241300417",
+		"commune": "13096",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 603,
+	"fields":
+	{
+		"jurisdiction": "241300417",
+		"commune": "13004",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 604,
+	"fields":
+	{
+		"jurisdiction": "248300410",
+		"commune": "83054",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 605,
+	"fields":
+	{
+		"jurisdiction": "248300410",
+		"commune": "83132",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 606,
+	"fields":
+	{
+		"jurisdiction": "248300410",
+		"commune": "83017",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 607,
+	"fields":
+	{
+		"jurisdiction": "248300410",
+		"commune": "83130",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 608,
+	"fields":
+	{
+		"jurisdiction": "248300410",
+		"commune": "83131",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 609,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06121",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 610,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06046",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 611,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06034",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 612,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06033",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 613,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06060",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 614,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06153",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 615,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06156",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 616,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06074",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 617,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06013",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 618,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06102",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 619,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06127",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 620,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06072",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 621,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06042",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 622,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06129",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 623,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06147",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 624,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06020",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 625,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06080",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 626,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06144",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 627,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06009",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 628,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06120",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 629,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06110",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 630,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06059",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 631,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06064",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 632,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06111",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 633,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06114",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 634,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06032",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 635,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06065",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 636,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06021",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 637,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06146",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 638,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06126",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 639,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06027",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 640,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06109",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 641,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06011",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 642,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06088",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 643,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06159",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 644,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06073",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 645,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06119",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 646,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06157",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 647,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06151",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 648,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06055",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 649,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06122",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 650,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06066",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 651,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06103",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 652,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06117",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 653,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06006",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 654,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06075",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 655,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06025",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 656,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06123",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 657,
+	"fields":
+	{
+		"jurisdiction": "200030195",
+		"commune": "06149",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 658,
+	"fields":
+	{
+		"jurisdiction": "200039915",
+		"commune": "06029",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 659,
+	"fields":
+	{
+		"jurisdiction": "200039915",
+		"commune": "06085",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 660,
+	"fields":
+	{
+		"jurisdiction": "200039915",
+		"commune": "06030",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 661,
+	"fields":
+	{
+		"jurisdiction": "200039915",
+		"commune": "06079",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 662,
+	"fields":
+	{
+		"jurisdiction": "200039915",
+		"commune": "06138",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 663,
+	"fields":
+	{
+		"jurisdiction": "200000628",
+		"commune": "84078",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 664,
+	"fields":
+	{
+		"jurisdiction": "200000628",
+		"commune": "84083",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 665,
+	"fields":
+	{
+		"jurisdiction": "200000628",
+		"commune": "84019",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 666,
+	"fields":
+	{
+		"jurisdiction": "200000628",
+		"commune": "84064",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 667,
+	"fields":
+	{
+		"jurisdiction": "200000628",
+		"commune": "84063",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 668,
+	"fields":
+	{
+		"jurisdiction": "248300394",
+		"commune": "83105",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 669,
+	"fields":
+	{
+		"jurisdiction": "248300394",
+		"commune": "83112",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 670,
+	"fields":
+	{
+		"jurisdiction": "248300394",
+		"commune": "83127",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 671,
+	"fields":
+	{
+		"jurisdiction": "248300394",
+		"commune": "83035",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 672,
+	"fields":
+	{
+		"jurisdiction": "248300394",
+		"commune": "83123",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 673,
+	"fields":
+	{
+		"jurisdiction": "248300394",
+		"commune": "83027",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 674,
+	"fields":
+	{
+		"jurisdiction": "248300394",
+		"commune": "83016",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 675,
+	"fields":
+	{
+		"jurisdiction": "248300394",
+		"commune": "83053",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 676,
+	"fields":
+	{
+		"jurisdiction": "248300394",
+		"commune": "83009",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 677,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84059",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 678,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84030",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 679,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84012",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 680,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84100",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 681,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84004",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 682,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84017",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 683,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84077",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 684,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84143",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 685,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84122",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 686,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84101",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 687,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84067",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 688,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84049",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 689,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84069",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 690,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84008",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 691,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84072",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 692,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84011",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 693,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84046",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 694,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84015",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 695,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84031",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 696,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84108",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 697,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84041",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 698,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84115",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 699,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84109",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 700,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84130",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 701,
+	"fields":
+	{
+		"jurisdiction": "248400053",
+		"commune": "84136",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 702,
+	"fields":
+	{
+		"jurisdiction": "200004802",
+		"commune": "83133",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 703,
+	"fields":
+	{
+		"jurisdiction": "200004802",
+		"commune": "83008",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 704,
+	"fields":
+	{
+		"jurisdiction": "200004802",
+		"commune": "83117",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 705,
+	"fields":
+	{
+		"jurisdiction": "200004802",
+		"commune": "83080",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 706,
+	"fields":
+	{
+		"jurisdiction": "200004802",
+		"commune": "83055",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 707,
+	"fields":
+	{
+		"jurisdiction": "200004802",
+		"commune": "83124",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 708,
+	"fields":
+	{
+		"jurisdiction": "200004802",
+		"commune": "83029",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 709,
+	"fields":
+	{
+		"jurisdiction": "200004802",
+		"commune": "83138",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 710,
+	"fields":
+	{
+		"jurisdiction": "200004802",
+		"commune": "83081",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 711,
+	"fields":
+	{
+		"jurisdiction": "200027100",
+		"commune": "83071",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 712,
+	"fields":
+	{
+		"jurisdiction": "200027100",
+		"commune": "83043",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 713,
+	"fields":
+	{
+		"jurisdiction": "200027100",
+		"commune": "83049",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 714,
+	"fields":
+	{
+		"jurisdiction": "200027100",
+		"commune": "83070",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 715,
+	"fields":
+	{
+		"jurisdiction": "200027100",
+		"commune": "83091",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 716,
+	"fields":
+	{
+		"jurisdiction": "200027100",
+		"commune": "83019",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 717,
+	"fields":
+	{
+		"jurisdiction": "248400293",
+		"commune": "84088",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 718,
+	"fields":
+	{
+		"jurisdiction": "248400293",
+		"commune": "84080",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 719,
+	"fields":
+	{
+		"jurisdiction": "248400293",
+		"commune": "84129",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 720,
+	"fields":
+	{
+		"jurisdiction": "248400293",
+		"commune": "84016",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 721,
+	"fields":
+	{
+		"jurisdiction": "248400293",
+		"commune": "84001",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 722,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04013",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 723,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04027",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 724,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04199",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 725,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04229",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 726,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04145",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 727,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04051",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 728,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04200",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 729,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04140",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 730,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04211",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 731,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04067",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 732,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04127",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 733,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04053",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 734,
+	"fields":
+	{
+		"jurisdiction": "200071033",
+		"commune": "04139",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 735,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05024",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 736,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05165",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 737,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05117",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 738,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05094",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 739,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05126",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 740,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04123",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 741,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04222",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 742,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05155",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 743,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05048",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 744,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05129",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 745,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05091",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 746,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05150",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 747,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04137",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 748,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05135",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 749,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05033",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 750,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05014",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 751,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05172",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 752,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04085",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 753,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05078",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 754,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04231",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 755,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04050",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 756,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05102",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 757,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05088",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 758,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05081",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 759,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05173",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 760,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05070",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 761,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05097",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 762,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05076",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 763,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04016",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 764,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04093",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 765,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05089",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 766,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04023",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 767,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05053",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 768,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04037",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 769,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05073",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 770,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05086",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 771,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05159",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 772,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04134",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 773,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05178",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 774,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04118",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 775,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05160",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 776,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04233",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 777,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04207",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 778,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04209",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 779,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05047",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 780,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04216",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 781,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04026",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 782,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04075",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 783,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05118",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 784,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04057",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 785,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04228",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 786,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05103",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 787,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "04179",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 788,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05167",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 789,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05169",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 790,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05166",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 791,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05016",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 792,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05021",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 793,
+	"fields":
+	{
+		"jurisdiction": "200068765",
+		"commune": "05051",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 794,
+	"fields":
+	{
+		"jurisdiction": "248300543",
+		"commune": "83098",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 795,
+	"fields":
+	{
+		"jurisdiction": "248300543",
+		"commune": "83153",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 796,
+	"fields":
+	{
+		"jurisdiction": "248300543",
+		"commune": "83090",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 797,
+	"fields":
+	{
+		"jurisdiction": "248300543",
+		"commune": "83069",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 798,
+	"fields":
+	{
+		"jurisdiction": "248300543",
+		"commune": "83144",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 799,
+	"fields":
+	{
+		"jurisdiction": "248300543",
+		"commune": "83137",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 800,
+	"fields":
+	{
+		"jurisdiction": "248300543",
+		"commune": "83034",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 801,
+	"fields":
+	{
+		"jurisdiction": "248300543",
+		"commune": "83126",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 802,
+	"fields":
+	{
+		"jurisdiction": "248300543",
+		"commune": "83103",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 803,
+	"fields":
+	{
+		"jurisdiction": "248300543",
+		"commune": "83129",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 804,
+	"fields":
+	{
+		"jurisdiction": "248300543",
+		"commune": "83062",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 805,
+	"fields":
+	{
+		"jurisdiction": "248300543",
+		"commune": "83047",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 806,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83060",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 807,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83066",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 808,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83146",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 809,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83006",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 810,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83012",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 811,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83025",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 812,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83135",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 813,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83114",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 814,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83104",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 815,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83145",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 816,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83052",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 817,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83095",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 818,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83113",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 819,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83084",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 820,
+	"fields":
+	{
+		"jurisdiction": "200040202",
+		"commune": "83125",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 821,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06019",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 822,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06031",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 823,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06043",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 824,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06057",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 825,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06039",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 826,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06054",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 827,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06048",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 828,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06142",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 829,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06091",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 830,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06014",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 831,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06077",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 832,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06015",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 833,
+	"fields":
+	{
+		"jurisdiction": "240600593",
+		"commune": "06092",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 834,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04102",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 835,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04161",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 836,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04120",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 837,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04220",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 838,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04073",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 839,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04195",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 840,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04096",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 841,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04193",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 842,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04033",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 843,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04226",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 844,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04062",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 845,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04019",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 846,
+	"fields":
+	{
+		"jurisdiction": "200072304",
+		"commune": "04086",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 847,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05063",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 848,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05027",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 849,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05093",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 850,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05109",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 851,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05085",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 852,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05161",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 853,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05174",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 854,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05183",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 855,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05023",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 856,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05079",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 857,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05133",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 858,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05181",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 859,
+	"fields":
+	{
+		"jurisdiction": "240500439",
+		"commune": "05107",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 860,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05184",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 861,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05013",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 862,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05037",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 863,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05100",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 864,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05049",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 865,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05168",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 866,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05061",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 867,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "04066",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 868,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05170",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 869,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05092",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 870,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05059",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 871,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05057",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 872,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "04058",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 873,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05162",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 874,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05071",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 875,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05074",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 876,
+	"fields":
+	{
+		"jurisdiction": "200067825",
+		"commune": "05068",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 877,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04065",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 878,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04138",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 879,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04164",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 880,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04101",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 881,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04151",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 882,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04178",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 883,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04104",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 884,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04130",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 885,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04087",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 886,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04106",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 887,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04141",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 888,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04206",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 889,
+	"fields":
+	{
+		"jurisdiction": "240400440",
+		"commune": "04088",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 890,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84090",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 891,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84084",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 892,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84009",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 893,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84002",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 894,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84076",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 895,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84121",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 896,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84042",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 897,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84151",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 898,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84113",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 899,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84052",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 900,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84133",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 901,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84014",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 902,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84024",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 903,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84147",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 904,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84026",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 905,
+	"fields":
+	{
+		"jurisdiction": "248400285",
+		"commune": "84010",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 906,
+	"fields":
+	{
+		"jurisdiction": "240500462",
+		"commune": "05122",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 907,
+	"fields":
+	{
+		"jurisdiction": "240500462",
+		"commune": "05110",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 908,
+	"fields":
+	{
+		"jurisdiction": "240500462",
+		"commune": "05180",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 909,
+	"fields":
+	{
+		"jurisdiction": "240500462",
+		"commune": "05031",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 910,
+	"fields":
+	{
+		"jurisdiction": "240500462",
+		"commune": "05101",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 911,
+	"fields":
+	{
+		"jurisdiction": "240500462",
+		"commune": "05058",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 912,
+	"fields":
+	{
+		"jurisdiction": "240500462",
+		"commune": "05006",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 913,
+	"fields":
+	{
+		"jurisdiction": "240500462",
+		"commune": "05151",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 914,
+	"fields":
+	{
+		"jurisdiction": "248400251",
+		"commune": "84034",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 915,
+	"fields":
+	{
+		"jurisdiction": "248400251",
+		"commune": "84119",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 916,
+	"fields":
+	{
+		"jurisdiction": "248400251",
+		"commune": "84043",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 917,
+	"fields":
+	{
+		"jurisdiction": "248400251",
+		"commune": "84142",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 918,
+	"fields":
+	{
+		"jurisdiction": "248400251",
+		"commune": "84081",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 919,
+	"fields":
+	{
+		"jurisdiction": "248400251",
+		"commune": "84055",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 920,
+	"fields":
+	{
+		"jurisdiction": "248400251",
+		"commune": "84141",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 921,
+	"fields":
+	{
+		"jurisdiction": "248400251",
+		"commune": "84007",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 922,
+	"fields":
+	{
+		"jurisdiction": "248400251",
+		"commune": "84092",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 923,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05038",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 924,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05052",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 925,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05003",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 926,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05001",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 927,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05116",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 928,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05007",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 929,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05136",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 930,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05157",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 931,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05120",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 932,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05077",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 933,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05026",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 934,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05065",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 935,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05177",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 936,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05134",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 937,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05119",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 938,
+	"fields":
+	{
+		"jurisdiction": "200067452",
+		"commune": "05082",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 939,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13067",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 940,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13027",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 941,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13018",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 942,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13076",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 943,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13116",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 944,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13064",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 945,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13045",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 946,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13036",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 947,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13066",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 948,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13083",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 949,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13089",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 950,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13052",
+		"created_on": "2018-08-01"
+	}
+},
+{
+	"model": "idgo_admin.jurisdictioncommune",
+	"pk": 951,
+	"fields":
+	{
+		"jurisdiction": "200035087",
+		"commune": "13010",
+		"created_on": "2018-08-01"
+	}
+}]

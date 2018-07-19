@@ -1,420 +1,417 @@
-[{
-    "model": "idgo_admin.jurisdiction",
-    "pk": 1,
-    "fields": {
-        "code": "200039857",
-        "name": "CA du Pays de Grasse",
-        "communes": [643, 449, 504, 619, 638, 571, 150, 925,
-            652, 126, 624, 640, 435, 211, 623, 629, 20,
-            614, 630, 447, 622, 637, 616
-        ]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 2,
-    "fields": {
-        "code": "200034700",
-        "name": "CA Durance-Lub\u00e9ron-Verdon Agglom\u00e9ration",
-        "communes": [812, 421, 395, 124, 829, 537, 431, 109, 868, 732, 539, 423, 3, 781, 112, 513, 116, 191, 878, 394, 536, 919, 4, 855, 869]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 3,
-    "fields": {
-        "code": "248400236",
-        "name": "CC des Pays de Rh\u00f4ne et Ouv\u00e8ze",
-        "communes": [776, 777, 304, 391, 432]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 4,
-    "fields": {
-        "code": "200036077",
-        "name": "CC du Golfe de Saint-Tropez",
-        "communes": [903, 898, 588, 27, 901, 25, 494, 599, 899, 557, 594, 519]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 5,
-    "fields": {
-        "code": "200035723",
-        "name": "CC Ventoux Sud",
-        "communes": [844, 770, 831, 912, 374, 158, 371, 913, 911, 375]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 6,
-    "fields": {
-        "code": "248400160",
-        "name": "CC Aygues-Ouv\u00e8ze en Provence (Ccaop)",
-        "communes": [769, 290, 13, 299, 300, 917, 293, 5]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 7,
-    "fields": {
-        "code": "200040210",
-        "name": "CC Lacs et Gorges du Verdon",
-        "communes": [696, 397, 744, 733, 735, 620, 889, 621, 618, 745, 407, 302, 424, 485, 82, 450]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 8,
-    "fields": {
-        "code": "200068104",
-        "name": "CA de la Provence Verte",
-        "communes": [216, 19, 697, 474, 933, 694, 453, 737, 207, 490, 223, 894, 734, 931, 24, 296, 817, 262, 403, 31, 401, 820, 260, 824, 479, 294, 819, 746]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 9,
-    "fields": {
-        "code": "241300375",
-        "name": "CC Vall\u00e9e des Baux-Alpilles (Cc Vba)",
-        "communes": [325, 189, 711, 850, 289, 440, 815, 849, 837, 712]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 10,
-    "fields": {
-        "code": "248400319",
-        "name": "CC du Pays des Sorgues et des Monts de Vaucluse",
-        "communes": [360, 349, 354, 487, 345]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 11,
-    "fields": {
-        "code": "200035319",
-        "name": "CA Var Esterel M\u00e9diterran\u00e9e (Cavem)",
-        "communes": [598, 634, 603, 596, 22]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 12,
-    "fields": {
-        "code": "200067320",
-        "name": "CC Serre-Pon\u00e7on Val d'Avance",
-        "communes": [252, 685, 457, 682, 550, 251, 680, 171, 240, 551, 684, 678, 549, 70, 244, 759]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 13,
-    "fields": {
-        "code": "240600551",
-        "name": "CA de la Riviera Fran\u00e7aise",
-        "communes": [23, 455, 709, 155, 454, 708, 154, 670, 705, 456, 286, 239, 492, 706, 288]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 14,
-    "fields": {
-        "code": "200067437",
-        "name": "CA Provence-Alpes-Agglom\u00e9ration",
-        "communes": [125, 98, 955, 957, 416, 508, 459, 420, 414, 228, 891, 97, 476, 863, 460, 415, 945, 79, 190, 193, 114, 538, 858, 129, 80, 464, 418, 195, 115, 478, 864, 877, 672, 613, 923, 790, 209, 185, 921, 465, 683, 791, 90, 417, 786, 111]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 15,
-    "fields": {
-        "code": "240600585",
-        "name": "CA de Sophia Antipolis",
-        "communes": [830, 802, 628, 482, 452, 532, 645, 644, 152, 803, 448, 801, 626, 926, 534, 641, 533, 700, 814, 627, 936, 161, 531, 810]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 16,
-    "fields": {
-        "code": "200067445",
-        "name": "CC Bu\u00ebch-D\u00e9voluy",
-        "communes": [765, 175, 569, 563, 954, 561, 553, 570, 552, 181, 797, 243, 62, 755, 568, 565, 793, 572, 764, 174]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 17,
-    "fields": {
-        "code": "200040442",
-        "name": "CA Luberon Monts de Vaucluse",
-        "communes": [839, 281, 357, 719, 914, 205, 332, 256, 336, 197, 225, 275, 326, 351, 346, 331]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 18,
-    "fields": {
-        "code": "248400335",
-        "name": "CC Pays Vaison Ventoux (Copavo)",
-        "communes": [843, 241, 367, 368, 724, 747, 918, 9, 544, 381, 369, 204, 541, 543, 383, 203, 226, 542]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 19,
-    "fields": {
-        "code": "200040624",
-        "name": "CC Pays d'Apt-Luberon",
-        "communes": [56, 149, 206, 834, 340, 339, 118, 344, 120, 350, 353, 758, 910, 208, 347, 57, 29, 342, 481, 906, 352, 159, 341, 86, 507]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 20,
-    "fields": {
-        "code": "200071025",
-        "name": "CC Haute-Provence-Pays de Banon",
-        "communes": [429, 412, 859, 104, 866, 61, 805, 856, 410, 122, 11, 8, 370, 411, 428, 106, 103, 406, 920, 107, 426]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 21,
-    "fields": {
-        "code": "200067742",
-        "name": "CC Serre-Pon\u00e7on",
-        "communes": [26, 949, 36, 41, 953, 33, 674, 37, 89, 88, 518, 676, 34, 91, 673, 677, 956]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 22,
-    "fields": {
-        "code": "248300550",
-        "name": "CC Coeur du Var",
-        "communes": [468, 741, 740, 591, 493, 736, 738, 748, 742, 875, 825]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 23,
-    "fields": {
-        "code": "200068625",
-        "name": "CC Alpes-Provence-Verdon \"sources de Lumi\u00e8re\"",
-        "communes": [610, 873, 458, 66, 865, 888, 469, 612, 187, 607, 463, 872, 38, 890, 135, 617, 488, 606, 589, 882, 64, 609, 467, 92, 461, 466, 202, 885, 496, 605, 654, 65, 477, 67, 186, 611, 522, 615, 130, 470, 862]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 24,
-    "fields": {
-        "code": "200039931",
-        "name": "CC Alpes d'Azur",
-        "communes": [635, 799, 667, 138, 234, 142, 153, 132, 661, 668, 655, 663, 233, 586, 137, 147, 928, 292, 235, 438, 131, 656, 653, 666, 608, 631, 472, 642, 148, 798, 141, 117, 662, 133]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 25,
-    "fields": {
-        "code": "248300493",
-        "name": "CA Drac\u00e9noise",
-        "communes": [739, 483, 749, 84, 81, 595, 521, 297, 601, 295, 632, 593, 201, 750, 604, 698, 600, 210, 743, 590, 121, 83, 592]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 26,
-    "fields": {
-        "code": "200054807",
-        "name": "M\u00e9tropole d'Aix-Marseille-Provence",
-        "communes": [446, 212, 188, 523, 823, 192, 510, 21, 484, 329, 717, 392, 265, 886, 282, 268, 59, 826, 328, 214, 852, 879, 721, 720, 180, 816, 30, 713, 883, 271, 317, 221, 718, 408, 318, 822, 269, 218, 853, 105, 854, 322, 280, 441, 179, 215, 506, 848, 194, 320, 14, 716, 178, 196, 505, 847, 330, 909, 499, 405, 287, 333, 198, 811, 404, 199, 851, 277, 502, 695, 821, 315, 184, 314, 818, 323, 409, 393, 324, 222, 321, 503, 165, 442, 28, 501, 525, 334, 312, 443, 319, 327]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 27,
-    "fields": {
-        "code": "200040681",
-        "name": "CC Enclave des Papes-Pays de Grignan",
-        "communes": [916, 535, 136, 60]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 28,
-    "fields": {
-        "code": "200068096",
-        "name": "CC Champsaur-Valgaudemar",
-        "communes": [951, 45, 163, 548, 53, 908, 170, 173, 555, 162, 556, 259, 44, 42, 959, 517, 952, 944, 343, 585, 164, 558, 242, 32, 727, 51, 723]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 29,
-    "fields": {
-        "code": "241300417",
-        "name": "CA d'Arles-Crau-Camargue-Montagnette",
-        "communes": [15, 309, 846, 291, 308, 710]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 30,
-    "fields": {
-        "code": "248300410",
-        "name": "CC de la Vall\u00e9e du Gapeau",
-        "communes": [261, 213, 462, 278, 692]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 31,
-    "fields": {
-        "code": "200030195",
-        "name": "M\u00e9tropole Nice C\u00f4te d'Azur",
-        "communes": [238, 669, 575, 144, 436, 699, 935, 649, 648, 660, 647, 486, 929, 651, 930, 232, 659, 714, 151, 808, 143, 445, 665, 639, 497, 495, 664, 451, 145, 491, 800, 804, 934, 237, 715, 927, 128, 230, 625, 439, 657, 658, 437, 146, 473, 139, 140, 587, 707]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 32,
-    "fields": {
-        "code": "200039915",
-        "name": "CA Cannes Pays de L\u00e9rins",
-        "communes": [937, 500, 806, 530, 127]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 33,
-    "fields": {
-        "code": "200000628",
-        "name": "CC Rh\u00f4ne Lez Provence",
-        "communes": [515, 773, 780, 433, 434]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 34,
-    "fields": {
-        "code": "248300394",
-        "name": "CA Sud Sainte Baume",
-        "communes": [274, 273, 270, 272, 266, 263, 904, 267, 905]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 35,
-    "fields": {
-        "code": "248400053",
-        "name": "CA Ventoux-Comtat-Venaissin (Cove)",
-        "communes": [388, 386, 813, 389, 385, 372, 887, 224, 841, 384, 387, 838, 529, 796, 10, 842, 915, 390, 373, 378, 376, 833, 379, 380, 768]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 36,
-    "fields": {
-        "code": "200004802",
-        "name": "CC du Pays de Fayence",
-        "communes": [168, 633, 597, 520, 636, 169, 87, 807, 602]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 37,
-    "fields": {
-        "code": "200027100",
-        "name": "CC M\u00e9diterran\u00e9e Porte des Maures",
-        "communes": [895, 897, 902, 896, 172, 893]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 38,
-    "fields": {
-        "code": "248400293",
-        "name": "CC des Sorgues du Comtat",
-        "communes": [382, 835, 377, 779, 58]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 39,
-    "fields": {
-        "code": "200071033",
-        "name": "CC Jabron-Lure-Van\u00e7on-Durance",
-        "communes": [229, 6, 526, 123, 792, 881, 922, 413, 108, 101, 110, 113, 7]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 40,
-    "fields": {
-        "code": "200068765",
-        "name": "CC du Sisteronais-Bu\u00ebch",
-        "communes": [68, 176, 71, 876, 257, 554, 183, 754, 751, 100, 255, 584, 562, 69, 763, 78, 573, 577, 74, 766, 73, 789, 246, 471, 579, 528, 564, 63, 72, 574, 580, 545, 547, 782, 578, 778, 752, 527, 540, 39, 546, 119, 767, 583, 247, 258, 762, 760, 861, 94, 761, 249, 177, 783, 576, 757, 182, 860, 254]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 41,
-    "fields": {
-        "code": "248300543",
-        "name": "CA Toulon Provence M\u00e9diterran\u00e9e",
-        "communes": [18, 939, 892, 248, 276, 16, 516, 693, 264, 900, 279, 17]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 42,
-    "fields": {
-        "code": "200040202",
-        "name": "CC Provence Verdon",
-        "communes": [489, 940, 941, 402, 512, 514, 932, 827, 498, 400, 217, 943, 828, 398, 942]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 43,
-    "fields": {
-        "code": "240600593",
-        "name": "CC du Pays des Paillons",
-        "communes": [444, 702, 704, 646, 650, 231, 156, 236, 134, 701, 157, 703, 691]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 44,
-    "fields": {
-        "code": "200072304",
-        "name": "CC Vall\u00e9e de l'Ubaye - Serre-Pon\u00e7on",
-        "communes": [509, 681, 958, 787, 85, 250, 96, 40, 675, 35, 948, 874, 93]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 45,
-    "fields": {
-        "code": "240500439",
-        "name": "CC du Brian\u00e7onnais",
-        "communes": [688, 775, 167, 524, 48, 907, 809, 731, 298, 689, 686, 54, 687]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 46,
-    "fields": {
-        "code": "200067825",
-        "name": "CA Gap-Tallard-Durance",
-        "communes": [784, 785, 756, 870, 794, 753, 160, 253, 560, 566, 245, 567, 559, 788, 795, 871, 77]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 47,
-    "fields": {
-        "code": "240400440",
-        "name": "CC Pays Forcalquier et Montagne de Lure",
-        "communes": [867, 427, 95, 102, 425, 430, 938, 227, 857, 422, 419, 99, 924]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 48,
-    "fields": {
-        "code": "248400285",
-        "name": "CC Territoriale Sud-Luberon",
-        "communes": [335, 880, 311, 316, 338, 219, 396, 511, 200, 303, 399, 2, 220, 337, 313, 475]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 49,
-    "fields": {
-        "code": "240500462",
-        "name": "CC du Pays des Ecrins",
-        "communes": [722, 725, 726, 46, 690, 50, 47, 730]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 50,
-    "fields": {
-        "code": "248400251",
-        "name": "CA du Grand Avignon (Coga)",
-        "communes": [306, 832, 359, 362, 307, 361, 836, 365, 840]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 51,
-    "fields": {
-        "code": "200067452",
-        "name": "CC du Guillestrois et du Queyras",
-        "communes": [76, 75, 729, 166, 772, 774, 679, 285, 55, 728, 950, 348, 947, 283, 284, 946]
-    }
-}, {
-    "model": "idgo_admin.jurisdiction",
-    "pk": 52,
-    "fields": {
-        "code": "200035087",
-        "name": "CA Terre de Provence",
-        "communes": [310, 355, 771, 301, 12, 305, 363, 364, 480, 356, 845, 366, 358]
-    }
+[
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200000628",
+	"fields":
+	{
+		"name": "CC Rh\u00f4ne Lez Provence"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200004802",
+	"fields":
+	{
+		"name": "CC du Pays de Fayence"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200027100",
+	"fields":
+	{
+		"name": "CC M\u00e9diterran\u00e9e Porte des Maures"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200030195",
+	"fields":
+	{
+		"name": "M\u00e9tropole Nice C\u00f4te d'Azur"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200034700",
+	"fields":
+	{
+		"name": "CA Durance-Lub\u00e9ron-Verdon Agglom\u00e9ration"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200035087",
+	"fields":
+	{
+		"name": "CA Terre de Provence"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200035319",
+	"fields":
+	{
+		"name": "CA Var Esterel M\u00e9diterran\u00e9e (Cavem)"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200035723",
+	"fields":
+	{
+		"name": "CC Ventoux Sud"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200036077",
+	"fields":
+	{
+		"name": "CC du Golfe de Saint-Tropez"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200039857",
+	"fields":
+	{
+		"name": "CA du Pays de Grasse"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200039915",
+	"fields":
+	{
+		"name": "CA Cannes Pays de L\u00e9rins"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200039931",
+	"fields":
+	{
+		"name": "CC Alpes d'Azur"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200040202",
+	"fields":
+	{
+		"name": "CC Provence Verdon"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200040210",
+	"fields":
+	{
+		"name": "CC Lacs et Gorges du Verdon"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200040442",
+	"fields":
+	{
+		"name": "CA Luberon Monts de Vaucluse"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200040624",
+	"fields":
+	{
+		"name": "CC Pays d'Apt-Luberon"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200040681",
+	"fields":
+	{
+		"name": "CC Enclave des Papes-Pays de Grignan"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200054807",
+	"fields":
+	{
+		"name": "M\u00e9tropole d'Aix-Marseille-Provence"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200067320",
+	"fields":
+	{
+		"name": "CC Serre-Pon\u00e7on Val d'Avance"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200067437",
+	"fields":
+	{
+		"name": "CA Provence-Alpes-Agglom\u00e9ration"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200067445",
+	"fields":
+	{
+		"name": "CC Bu\u00ebch-D\u00e9voluy"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200067452",
+	"fields":
+	{
+		"name": "CC du Guillestrois et du Queyras"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200067742",
+	"fields":
+	{
+		"name": "CC Serre-Pon\u00e7on"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200067825",
+	"fields":
+	{
+		"name": "CA Gap-Tallard-Durance"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200068096",
+	"fields":
+	{
+		"name": "CC Champsaur-Valgaudemar"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200068104",
+	"fields":
+	{
+		"name": "CA de la Provence Verte"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200068625",
+	"fields":
+	{
+		"name": "CC Alpes-Provence-Verdon \"sources de Lumi\u00e8re\""
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200068765",
+	"fields":
+	{
+		"name": "CC du Sisteronais-Bu\u00ebch"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200071025",
+	"fields":
+	{
+		"name": "CC Haute-Provence-Pays de Banon"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200071033",
+	"fields":
+	{
+		"name": "CC Jabron-Lure-Van\u00e7on-Durance"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "200072304",
+	"fields":
+	{
+		"name": "CC Vall\u00e9e de l'Ubaye - Serre-Pon\u00e7on"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "240400440",
+	"fields":
+	{
+		"name": "CC Pays Forcalquier et Montagne de Lure"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "240500439",
+	"fields":
+	{
+		"name": "CC du Brian\u00e7onnais"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "240500462",
+	"fields":
+	{
+		"name": "CC du Pays des Ecrins"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "240600551",
+	"fields":
+	{
+		"name": "CA de la Riviera Fran\u00e7aise"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "240600585",
+	"fields":
+	{
+		"name": "CA de Sophia Antipolis"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "240600593",
+	"fields":
+	{
+		"name": "CC du Pays des Paillons"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "241300375",
+	"fields":
+	{
+		"name": "CC Vall\u00e9e des Baux-Alpilles (Cc Vba)"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "241300417",
+	"fields":
+	{
+		"name": "CA d'Arles-Crau-Camargue-Montagnette"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248300394",
+	"fields":
+	{
+		"name": "CA Sud Sainte Baume"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248300410",
+	"fields":
+	{
+		"name": "CC de la Vall\u00e9e du Gapeau"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248300493",
+	"fields":
+	{
+		"name": "CA Drac\u00e9noise"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248300543",
+	"fields":
+	{
+		"name": "CA Toulon Provence M\u00e9diterran\u00e9e"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248300550",
+	"fields":
+	{
+		"name": "CC Coeur du Var"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248400053",
+	"fields":
+	{
+		"name": "CA Ventoux-Comtat-Venaissin (Cove)"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248400160",
+	"fields":
+	{
+		"name": "CC Aygues-Ouv\u00e8ze en Provence (Ccaop)"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248400236",
+	"fields":
+	{
+		"name": "CC des Pays de Rh\u00f4ne et Ouv\u00e8ze"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248400251",
+	"fields":
+	{
+		"name": "CA du Grand Avignon (Coga)"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248400285",
+	"fields":
+	{
+		"name": "CC Territoriale Sud-Luberon"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248400293",
+	"fields":
+	{
+		"name": "CC des Sorgues du Comtat"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248400319",
+	"fields":
+	{
+		"name": "CC du Pays des Sorgues et des Monts de Vaucluse"
+	}
+},
+{
+	"model": "idgo_admin.jurisdiction",
+	"pk": "248400335",
+	"fields":
+	{
+		"name": "CC Pays Vaison Ventoux (Copavo)"
+	}
 }]
