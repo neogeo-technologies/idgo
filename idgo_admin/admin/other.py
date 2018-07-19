@@ -15,18 +15,68 @@
 
 
 from django.contrib import admin
+# from django import forms
+# from idgo_admin.forms.widgets import MapSelectMultipleWidget
 from idgo_admin.models import Category
 from idgo_admin.models import Financier
 from idgo_admin.models import Jurisdiction
+from idgo_admin.models import JurisdictionCommune
 from idgo_admin.models import License
 from idgo_admin.models import SupportedCrs
 from idgo_admin.models import Task
 
 
-class JurisdictionAdmin(admin.ModelAdmin):
-    ordering = ("name", )
-    search_fields = ('name', 'commune')
+# class JurisdictionCommuneForm(forms.ModelForm):
+#
+#     class Meta(object):
+#         model = JurisdictionCommune
+#         fields = '__all__'
+#
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.fields['commune'].widget = MapSelectMultipleWidget()
 
+
+class JurisdictionCommuneTabularInline(admin.TabularInline):
+    can_delete = True
+    can_order = True
+    extra = 0
+    fields = ('commune', 'name', 'code_insee')
+    model = JurisdictionCommune
+    readonly_fields = ('name', 'code_insee',)
+    verbose_name_plural = 'Communes rattachées au territoire de compétence'
+    verbose_name = 'Commune rattachée au territoire de compétence'
+
+    def name(self, obj):
+        return obj.commune.name
+    name.short_description = 'Nom'
+
+    def code_insee(self, obj):
+        return obj.commune.pk
+    code_insee.short_description = 'Code INSEE'
+
+
+class JurisdictionCommuneTabularInlineReader(JurisdictionCommuneTabularInline):
+    fields = ('name', 'code_insee')
+    readonly_fields = ('name', 'code_insee')
+
+
+class JurisdictionCommuneTabularInlineAdder(JurisdictionCommuneTabularInline):
+    extra = 1
+    fields = ('commune',)
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+class JurisdictionAdmin(admin.ModelAdmin):
+
+    list_display = ('name', 'code')
+    ordering = ('name',)
+    search_fields = ('name', 'commune')
+    search_fields = ('name', 'code')
+    inlines = (JurisdictionCommuneTabularInlineReader, JurisdictionCommuneTabularInlineAdder)
+    # form = JurisdictionCommuneForm
 
 admin.site.register(Jurisdiction, JurisdictionAdmin)
 

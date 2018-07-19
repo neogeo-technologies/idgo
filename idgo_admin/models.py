@@ -511,7 +511,7 @@ class Commune(models.Model):
         ordering = ['name']
 
     def __str__(self):
-        return self.name
+        return '{} ({})'.format(self.name, self.code)
 
 
 class Jurisdiction(models.Model):
