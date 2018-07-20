@@ -35,6 +35,7 @@ MRA_DATAGIS_USER = settings.MRA['DATAGIS_DB_USER']
 
 SCHEMA = 'public'
 THE_GEOM = 'the_geom'
+TO_EPSG = 4171
 
 
 def is_valid_epsg(code):
@@ -112,7 +113,7 @@ CREATE_TABLE = '''
 CREATE TABLE {schema}."{table}" (
   fid serial NOT NULL,
   {attrs},
-  {the_geom} geometry({geometry}, 4326),
+  {the_geom} geometry({geometry}, {to_epsg}),
   CONSTRAINT "{table}_pkey" PRIMARY KEY (fid)) WITH (OIDS=FALSE);
 ALTER TABLE {schema}."{table}" OWNER TO {owner};
 COMMENT ON TABLE {schema}."{table}" IS '{description}';
@@ -124,7 +125,7 @@ GRANT SELECT ON TABLE  {schema}."{table}" TO {mra_datagis_user};
 
 INSERT_INTO = '''
 INSERT INTO {schema}."{table}" ({attrs_name}, {the_geom})
-VALUES ({attrs_value}, ST_Transform(ST_GeomFromtext('{wkt}', {epsg}), 4326));'''
+VALUES ({attrs_value}, ST_Transform(ST_GeomFromtext('{wkt}', {epsg}), {to_epsg}));'''
 
 
 def ogr_field_2_pg(k, n=None, p=None):
@@ -223,7 +224,8 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
             mra_datagis_user=MRA_DATAGIS_USER,
             schema=SCHEMA,
             table=str(table_id),
-            the_geom=THE_GEOM))
+            the_geom=THE_GEOM,
+            to_epsg=TO_EPSG))
 
         for feature in layer:
 
@@ -248,6 +250,7 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                 schema=SCHEMA,
                 table=str(table_id),
                 the_geom=THE_GEOM,
+                to_epsg=TO_EPSG,
                 wkt=feature.geom))
 
     for table_id in update.values():
