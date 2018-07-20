@@ -16,9 +16,11 @@
 	<li role="presentation">
 		<a href="#resources" aria-controls="resources" role="tab" data-toggle="tab">Ressource(s) associée(s)</a>
 	</li>
+		{% if is_crige %}
 	<li role="presentation">
 		<a href="#owslayers" aria-controls="service" role="tab" data-toggle="tab">Service Géo-DataSud</a>
 	</li>
+		{% endif %}
 	{% endif %}
 </ul>
 <div class="tab-content">
@@ -31,10 +33,12 @@
 		<br />
 		{% include "idgo_admin/inner_resources.html" %}
 	</div>
+		{% if is_crige %}
 	<div id="owslayers" role="tabpanel" class="tab-pane fade in">
 		<br />
 		{% include "idgo_admin/inner_layers.html" %}
 	</div>
+		{% endif %}
 	{% endif %}
 </div>
 {% endblock main_content %}
