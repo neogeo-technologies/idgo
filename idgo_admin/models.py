@@ -50,6 +50,7 @@ from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garde
 import json
 import os
 from pathlib import Path
+import re
 from taggit.managers import TaggableManager
 import uuid
 
@@ -372,9 +373,14 @@ class Resource(models.Model):
                 # Si c'est le cas, monter les données dans la base PostGIS dédiée,
                 # puis ajouter au service OGC:WxS de l'organisation.
                 if extension in ('zip', 'tar', 'geojson'):
+                    existing_layers = {}
+                    if previous and previous.datagis_id:
+                        existing_layers = dict(
+                            (re.sub('^(\w+)_[a-z0-9]{7}$', '\g<1>', table_name), table_name)
+                            for table_name in previous.datagis_id)
                     try:
                         datagis_id = ogr2postgis(
-                            filename, extension=extension,
+                            filename, extension=extension, update=existing_layers,
                             epsg=self.crs and self.crs.auth_code or None)
                     except (ExceedsMaximumLayerNumberFixedError,
                             NotOGRError, NotSupportedSrsError) as e:

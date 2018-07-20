@@ -149,7 +149,7 @@ def ogr_field_2_pg(k, n=None, p=None):
         'OFTInteger64List': 'integer[]'}.get(k, 'text').format(n=n, p=p)
 
 
-def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1):
+def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
     ds = OgrOpener(filename, extension=extension)
 
     sql = []
@@ -161,7 +161,10 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1):
             count=len(layers), maximum=limit_to)
     # else:
     for layer in layers:
-        table_id = '{0}_{1}'.format(slugify(layer.name), str(uuid4())[:7])
+
+        layername = slugify(layer.name)
+        table_id = update.get(
+            layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))
         table_ids.append(table_id)
 
         if epsg and is_valid_epsg(epsg):
@@ -247,15 +250,25 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1):
                 the_geom=THE_GEOM,
                 wkt=feature.geom))
 
+    for table_id in update.values():
+        rename_table(table_id, '_{}'.format(table_id))
+
     with connections[DATABASE].cursor() as cursor:
         for q in sql:
             try:
                 cursor.execute(q)
             except Exception as e:
+                # Revenir à l'état initial
                 for table_id in table_ids:
                     drop_table(table_id)
+                for table_id in update.values():
+                    rename_table('_{}'.format(table_id), table_id)
+                # Puis retourner l'erreur
                 raise CriticalException(e.__str__())
         cursor.close()
+
+    for table_id in update.values():
+        drop_table('_{}'.format(table_id))
 
     return tuple(table_ids)
 
@@ -281,6 +294,24 @@ WHERE relname = '{table}' AND nspname = '{schema}';
         return records[0][0]
     except Exception:
         return None
+
+
+def rename_table(table, name, schema=SCHEMA):
+
+    sql = '''
+ALTER TABLE IF EXISTS "{table}" RENAME TO "{name}";
+ALTER INDEX IF EXISTS "{table}_pkey" RENAME TO "{name}_pkey";
+ALTER INDEX IF EXISTS "{table}_fid" RENAME TO "{name}_fid";
+ALTER INDEX IF EXISTS "{table}_gix" RENAME TO "{name}_gix";
+'''.format(schema=schema, table=table, name=name)
+
+    with connections[DATABASE].cursor() as cursor:
+        try:
+            cursor.execute(sql)
+        except Exception as e:
+            if e.__class__.__qualname__ != 'ProgrammingError':
+                raise e
+        cursor.close()
 
 
 def drop_table(table, schema=SCHEMA):
