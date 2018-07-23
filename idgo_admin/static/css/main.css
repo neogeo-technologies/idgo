@@ -109,6 +109,38 @@ select[multiple] {
     min-width: 767px;
 }
 
+
+.modal-hourglass .modal-dialog {
+    width: 150px;
+}
+
+.modal-hourglass .modal-content {
+    border-radius: 0;
+    -webkit-box-shadow: none;
+            box-shadow: none;
+    height: 150px;
+}
+
+.modal-hourglass .glyphicon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    animation-name: spin-center;
+    animation-duration: 4000ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    font-size: 1.5em;
+}
+
+@keyframes spin-center {
+    from {
+        transform: translateX(-50%) translateY(-50%) rotateZ(0deg);
+    }
+    to {
+        transform: translateX(-50%) translateY(-50%) rotateZ(360deg);
+    }
+}
+
 .outer {
     display: table;
     position: absolute;

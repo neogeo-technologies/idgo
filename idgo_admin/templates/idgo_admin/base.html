@@ -143,6 +143,13 @@ $(document).ajaxSend(function(e, xhr, settings) {
 	</div>
 
 	<body>
+		<div id="modal-hourglass" class="modal modal-hourglass" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<span class="glyphicon glyphicon-refresh"></span>
+				</div>
+			</div>
+		</div>
 		<div id="modal-dialog" class="modal fade" tabindex="-1" role="dialog">
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
@@ -240,11 +247,12 @@ var $popover = $('[data-toggle="popover"]')
 		trigger: 'hover'
 	});
 
-var $modal = $('.modal[role="dialog"]#modal-dialog')
-	.modal({
-		'backdrop': 'static',
-		'show': false  // Important!
-	})
+var closeAllModalDialog = function() {
+	$('.modal').modal('hide');
+};
+
+var $modal = $('#modal-dialog')
+	.modal({'backdrop': 'static', 'show': false})
 	.on('show.bs.modal', function(e) {
 		closeAllModalDialog();
 	})
@@ -253,9 +261,11 @@ var $modal = $('.modal[role="dialog"]#modal-dialog')
 		$(this).find('.modal-title').val('');
 	});
 
-var closeAllModalDialog = function() {
-	$modal.modal('hide');
-};
+var $modalHourglass = $('#modal-hourglass')
+	.modal({'backdrop': 'static', 'show': false})
+	.on('show.bs.modal', function(e) {
+		closeAllModalDialog();
+	});
 
 $('.phone').change(function() {
 	var $this = $(this);

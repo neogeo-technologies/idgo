@@ -199,8 +199,6 @@
 </div>
 
 <script>
-const hash = window.location.hash.substring(1);
-
 $(function() {
 
 	const openModalDelete = function(organizationId, username, target) {
@@ -281,7 +279,7 @@ $(function() {
 	};
 
 
-	const displayOrganisation = function(data) {
+	const displayOrganization = function(data) {
 
 		const ORGANIZATION_ID = data.id;
 
@@ -540,17 +538,55 @@ $(function() {
 
 	};
 
-	const getOrganization = function(id) {
+	const getOrganization = function(id, onSuccess, onFailure) {
 		$.ajax({
 			url: '{{ organization_base_url }}/' + id,
 			success: function(data, status, xhr) {
-				displayOrganisation(data);
+				onSuccess(data);
 			},
-			error : function(resultat, statut, erreur) {
-				$('.tab-pane#info').empty();
-				$('.tab-pane#info').append("Impossible d'obtenir les informations");
+			error: function(xhr, statut, error) {
+				onFailure(xhr, statut, error);
 			}
 		});
+	};
+
+	const onGetOrganizationSuccess = function(data) {
+		window.location.hash = data.id;
+		$organizations.val([data.id]);
+		displayOrganization(data);
+		$('input[type=radio][name=organizations][value=' + data.id + ']').parent().addClass('active');
+	};
+
+	const handler = function(value) {
+
+		const $container = $('div.scrolling-box');
+
+		const prev = $('input[type=radio][name=organizations]:checked').val();
+		const $prev = $('input[type=radio][name=organizations][value=' + prev + ']').parent().removeClass('active');
+
+		const next = value;
+		const $next = $('input[type=radio][name=organizations][value=' + next + ']').parent();
+
+		const onSuccess = function(data, status, xhr) {
+			$container.animate({
+				scrollTop: $next.offset().top - $container.offset().top + $container.scrollTop() - 7
+			}, 303, undefined, function() {
+				$modalHourglass.one('hidden.bs.modal', function(e) {
+					onGetOrganizationSuccess(data);
+				}).modal('hide');
+			});
+		};
+
+		const onFailure = function(xhr, statut, error) {
+			$modalHourglass.one('hidden.bs.modal', function(e) {
+				$prev.addClass('active');
+			}).modal('hide');
+		};
+
+		$modalHourglass.one('shown.bs.modal', function(e) {
+			getOrganization(next, onSuccess, onFailure);
+		}).modal('show');
+
 	};
 
 	const $typeahead = $('.typeahead input[name="organization"]')
@@ -569,7 +605,8 @@ $(function() {
 			fitToElement: true,
 			afterSelect: function(val) {
 				deactivateButton($typeaheadButton);
-				selectRowByDataId(val.id);
+				handler(val.id);
+				// selectRowByDataId(val.id);
 			}
 		});
 
@@ -578,34 +615,21 @@ $(function() {
 		selected && selectRowByDataId(selected['id']);
 	});
 
-	$.each($('.label-name'), function(){
+	$.each($('.label-name'), function() {
 		$(this).width("calc(100% - " + ($(this).next('.label-badges').width() + 5) + "px)");
 	})
 
-	const $organizations = $('input[type=radio][name=organizations]').change(function(e) {
-		window.location.hash = this.value;
-		getOrganization(this.value);
+	const $organizations = $('label, input[type=radio][name=organizations]').bind('mouseup change click', function(e) {
+		e.stopPropagation();
+	}).mousedown(function(e) {
+		handler($(this).children('input').val());
 	});
-
-	const selectRowByDataId = function(value) {
-		const previous = $('input[type=radio][name=organizations]:checked').val()
-		$('input[type=radio][name=organizations][value=' + previous + ']').parent().removeClass('active');
-
-		$organizations.val([value]);
-		const $entry = $('input[type=radio][name=organizations][value=' + value + ']').parent().addClass('active');
-		const $container = $('div.scrolling-box');
-		$container.animate({
-			scrollTop: $entry.offset().top - $container.offset().top + $container.scrollTop() - 7
-		}, 303, undefined, function() {
-			getOrganization(value);
-		});
-	};
 
 	$(window).bind('hashchange', function(e) {
-		// selectRowByDataId(window.location.hash.substring(1));
+		// TODO
 	});
 
-	window.location.hash.substring(1) ? selectRowByDataId(window.location.hash.substring(1)) : selectRowByDataId($organizations.first().val());  // TODO -> Avant de charger la page
+	handler(window.location.hash.substring(1) ? window.location.hash.substring(1) : $organizations.first().val());
 
 });
 </script>
