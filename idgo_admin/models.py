@@ -465,26 +465,6 @@ class Resource(models.Model):
                 self.disable_layers()
 
 
-# class Commune(models.Model):
-#
-#     code = models.CharField(
-#         verbose_name='Code INSEE', max_length=5)
-#
-#     name = models.CharField(
-#         verbose_name='Nom', max_length=100)
-#
-#     geom = models.MultiPolygonField(
-#         verbose_name='Geometrie', srid=2154, blank=True, null=True)
-#
-#     objects = models.GeoManager()
-#
-#     class Meta(object):
-#         ordering = ['name']
-#
-#     def __str__(self):
-#         return self.name
-
-
 class Commune(models.Model):
 
     code = models.CharField(
@@ -594,7 +574,6 @@ class Organisation(models.Model):
         to='OrganisationType', verbose_name="Type d'organisation",
         default='1', blank=True, null=True, on_delete=models.SET_NULL)
 
-    # Territoire de compétence
     jurisdiction = models.ForeignKey(
         to='Jurisdiction', blank=True, null=True,
         verbose_name="Territoire de compétence")
@@ -715,11 +694,6 @@ class Profile(models.Model):
         return {"is_admin": self.is_admin,
                 "is_referent": is_referent,
                 "is_editor": (self.user == dataset.editor) if dataset else False}
-
-    # @classmethod
-    # def active_users(cls):
-    #     active_profiles = Profile.objects.filter(is_active=True)
-    #     return User.objects.filter(pk__in=[])
 
 
 class LiaisonsReferents(models.Model):

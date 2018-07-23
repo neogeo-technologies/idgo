@@ -17,7 +17,6 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import url
-# from idgo_admin.views.account import AccountManager
 from idgo_admin.views.account import delete_account
 from idgo_admin.views.account import PasswordManager
 from idgo_admin.views.account import ReferentAccountManager
@@ -30,7 +29,6 @@ from idgo_admin.views.dataset import all_datasets
 from idgo_admin.views.dataset import DatasetManager
 from idgo_admin.views.dataset import datasets
 from idgo_admin.views.dataset import export
-# from idgo_admin.views.dataset import ReferentDatasetManager
 from idgo_admin.views.mailer import confirm_contribution
 from idgo_admin.views.mailer import confirm_new_orga
 from idgo_admin.views.mailer import confirm_rattachement
@@ -87,6 +85,7 @@ urlpatterns = [
 
     url('^action/$', ActionsManager.as_view(), name='action'),
     url('^licences/?$', DisplayLicenses.as_view(), name='licences')]
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
