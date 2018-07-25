@@ -279,12 +279,14 @@ class UpdateOrganisation(View):
             validated_on__isnull=False) and True or False
 
         if is_referent or is_admin:
+            instance = get_object_or_404(Organisation, id=id)
             return render_with_info_profile(
                 request, self.template, context={
-                    'id': id, 'update': True, 'form': Form(
-                        instance=get_object_or_404(Organisation, id=id),
-                        include={'user': user, 'id': id})})
-
+                    'id': id,
+                    'update': True,
+                    'organisation_name': instance.name,
+                    'form': Form(instance=instance,
+                                 include={'user': user, 'id': id})})
         raise Http404()
 
     @ExceptionsHandler(

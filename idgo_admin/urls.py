@@ -39,9 +39,9 @@ from idgo_admin.views.mdedit import MDEditTplEdit
 from idgo_admin.views.organization import all_organisations
 from idgo_admin.views.organization import CreateOrganisation
 from idgo_admin.views.organization import organisation
+from idgo_admin.views.organization import OrganisationOWS
 from idgo_admin.views.organization import Subscription
 from idgo_admin.views.organization import UpdateOrganisation
-from idgo_admin.views.organization import OrganisationOWS
 from idgo_admin.views.resource import LayerManager
 from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
