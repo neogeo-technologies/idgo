@@ -151,6 +151,15 @@ class MRAHandler(metaclass=Singleton):
             MRA['URL'], username=MRA['USERNAME'], password=MRA['PASSWORD'])
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def is_workspace_exists(self, ws_name):
+        try:
+            self.get_workspace(ws_name)
+        except MRANotFoundError:
+            return False
+        else:
+            return True
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_workspace(self, ws_name):
         return self.remote.get('workspaces', ws_name)
 

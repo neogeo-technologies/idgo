@@ -89,6 +89,7 @@ except Exception:
 
 
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
+MRA = settings.MRA
 
 
 class SupportedCrs(models.Model):
@@ -625,6 +626,12 @@ class Organisation(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def ows_url(self):
+        if MRAHandler.is_workspace_exists(self.ckan_slug):
+            return OWS_URL_PATTERN.format(organisation=self.ckan_slug)
+        # else: return None
 
 
 class Profile(models.Model):

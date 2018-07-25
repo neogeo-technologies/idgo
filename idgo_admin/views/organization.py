@@ -42,6 +42,7 @@ from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
+from idgo_admin.mra_client import MRAHandler
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
@@ -193,6 +194,13 @@ def organisation(request, id=None):
                         Q(liaisonsreferents__organisation=id),
                         Q(liaisonsreferents__validated_on__isnull=False)])])
                 ).distinct().order_by('user__username')]}
+
+    if instance.ows_url:
+        ws = MRAHandler.get_workspace(instance.ckan_slug)
+        data['osw'] = {
+            'url': instance.ows_url,
+            'title': ws.pop('title', None),
+            'description': ws.pop('description', None)}
 
     try:
         data['logo'] = urljoin(settings.DOMAIN_NAME, instance.logo.url)
