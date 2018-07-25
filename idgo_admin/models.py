@@ -1716,3 +1716,11 @@ def post_delete_organisation(sender, instance, **kwargs):
 def pre_delete_category(sender, instance, **kwargs):
     if ckan.is_group_exists(str(instance.ckan_id)):
         ckan.del_group(str(instance.ckan_id))
+
+
+@receiver(post_save, sender=Profile)
+def post_save_profile(sender, instance, **kwargs):
+    if instance.crige_membership:
+        ckan.add_user_to_partner_group(instance.user.username, 'crige-partner')
+    else:
+        ckan.del_user_from_partner_group(instance.user.username)

@@ -390,6 +390,27 @@ class CkanManagerHandler(metaclass=Singleton):
         return self.get_group(str(id)) and True or False
 
     @CkanExceptionsHandler()
+    def create_partner_group(self, name):
+        return self.call_action('group_create', type='partner', name=name)
+
+    @CkanExceptionsHandler()
+    def add_user_to_partner_group(self, username, name):
+        ckan_group = self.get_group(name) or self.create_partner_group(name)
+
+        users = ckan_group.pop('users', [])
+        ckan_group['users'] = [
+            {'id': user['id'], 'name': user['name']} for user in users]
+
+        if username not in [user['name'] for user in ckan_group['users']]:
+            ckan_group['users'].append({'name': username})
+
+        self.call_action('group_update', **ckan_group)
+
+    @CkanExceptionsHandler()
+    def del_user_from_partner_group(self, username, id):
+        self.call_action('group_member_delete', id=id, username=username)
+
+    @CkanExceptionsHandler()
     def add_group(self, group, type=None):
         ckan_group = {
             'id': str(group.ckan_id),
