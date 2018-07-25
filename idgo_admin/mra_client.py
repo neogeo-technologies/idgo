@@ -161,28 +161,30 @@ class MRAHandler(metaclass=Singleton):
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_workspace(self, ws_name):
-        return self.remote.get('workspaces', ws_name)
+        return self.remote.get('workspaces', ws_name)['workspace']
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def del_workspace(self, ws_name):
         self.remote.delete('workspaces', ws_name)
 
     @MRAExceptionsHandler()
-    def create_workspace(self, ws_name):
+    def create_workspace(self, organisation):
         json = {
             'workspace': {
-                'name': ws_name}}
+                'name': organisation.ckan_slug,
+                'title': organisation.name,
+                'description': organisation.description}}
 
         self.remote.post('workspaces', json=json)
 
-        return self.get_workspace(ws_name)
+        return self.get_workspace(organisation.ckan_slug)
 
-    def get_or_create_workspace(self, ws_name):
+    def get_or_create_workspace(self, organisation):
         try:
-            return self.get_workspace(ws_name)
+            return self.get_workspace(organisation.ckan_slug)
         except MRANotFoundError:
             pass
-        return self.create_workspace(ws_name)
+        return self.create_workspace(organisation)
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_datastore(self, ws_name, ds_name):
@@ -326,8 +328,9 @@ class MRAHandler(metaclass=Singleton):
 
     def publish_layers_resource(self, resource):
 
-        ws_name = resource.dataset.organisation.ckan_slug
-        self.get_or_create_workspace(ws_name)
+        organisation = resource.dataset.organisation
+        ws_name = organisation.ckan_slug
+        self.get_or_create_workspace(organisation)
 
         ds_name = 'public'
         self.get_or_create_datastore(ws_name, ds_name)
