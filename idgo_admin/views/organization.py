@@ -196,11 +196,11 @@ def organisation(request, id=None):
                 ).distinct().order_by('user__username')]}
 
     if instance.ows_url:
-        ws = MRAHandler.get_workspace(instance.ckan_slug)
+        ows_settings = MRAHandler.get_ows_settings('ows', instance.ckan_slug)
         data['osw'] = {
             'url': instance.ows_url,
-            'title': ws.pop('title', None),
-            'description': ws.pop('description', None)}
+            'title': ows_settings.pop('title', None),
+            'abstract': ows_settings.pop('abstract', None)}
 
     try:
         data['logo'] = urljoin(settings.DOMAIN_NAME, instance.logo.url)
@@ -330,6 +330,36 @@ class UpdateOrganisation(View):
 
         return HttpResponseRedirect('{0}#{1}'.format(
             reverse('idgo_admin:all_organizations'), instance.id))
+
+
+@method_decorator(decorators, name='dispatch')
+class OrganisationOWS(View):
+
+    @ExceptionsHandler(
+        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    def post(self, request):
+        user, profile = user_and_profile(request)
+
+        instance = get_object_or_404(Organisation, id=request.GET.get('id'))
+
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation=instance,
+            validated_on__isnull=False) and True or False
+
+        if is_referent or is_admin:
+            json = {
+                'abstract': request.POST.get('abstract', None),
+                'title': request.POST.get('title', None)}
+            print(json)
+            try:
+                MRAHandler.update_ows_settings('ows', instance.ckan_slug, json)
+            except Exception as e:
+                messages.error(request, e.__str__())
+            else:
+                messages.success(request, "Le service OGC est mis à jour.")
+            return JsonResponse(data={})
+        raise Http404()
 
 
 @method_decorator(decorators, name='dispatch')

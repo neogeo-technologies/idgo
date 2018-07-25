@@ -18,10 +18,8 @@ import ast
 from django.conf import settings
 from functools import reduce
 from functools import wraps
-from idgo_admin.datagis import get_description
 from idgo_admin.exceptions import GenericException
 from idgo_admin.utils import Singleton
-from idgo_admin.utils import slugify
 from requests import request
 import timeout_decorator
 from urllib.parse import urljoin
@@ -307,24 +305,38 @@ class MRAHandler(metaclass=Singleton):
         self.update_layer(l_name, {'enabled': False})
 
     @MRAExceptionsHandler()
-    def enable_wms(self, ws_name=None):
-        self.remote.put('services', 'workspaces', ws_name, 'wms', 'settings',
-                        json={'wms': {'enabled': True}})
+    def get_ows_settings(self, ows, ws_name):
+        return self.remote.get('services', ows, 'workspaces', ws_name, 'settings')[ows]
 
     @MRAExceptionsHandler()
-    def disable_wms(self, ws_name=None):
-        self.remote.put('services', 'workspaces', ws_name, 'wms', 'settings',
-                        json={'wms': {'enabled': False}})
+    def update_ows_settings(self, ows, ws_name, data):
+        self.remote.put('services', ows,
+                        'workspaces', ws_name,
+                        'settings', json={ows: data})
 
-    @MRAExceptionsHandler()
-    def enable_wfs(self, ws_name=None):
-        self.remote.put('services', 'workspaces', ws_name, 'wfs', 'settings',
-                        json={'wfs': {'enabled': True}})
+    def enable_ows(self, ws_name, ows='ows'):
+        self.update_ows_settings(ows, ws_name, {'enabled': True})
 
-    @MRAExceptionsHandler()
-    def disable_wfs(self, ws_name=None):
-        self.remote.put('services', 'workspaces', ws_name, 'wfs', 'settings',
-                        json={'wfs': {'enabled': False}})
+    def disable_ows(self, ws_name, ows='ows'):
+        self.update_ows_settings(ows, ws_name, {'enabled': False})
+
+    # def enable_wms(self, ws_name):
+    #     self.enable_ows(ws_name, ows='wms')
+
+    # def disable_wms(self, ws_name):
+    #     self.disable_ows(ws_name, ows='wms')
+
+    # def enable_wfs(self, ws_name):
+    #     self.enable_ows(ws_name, ows='wms')
+
+    # def disable_wfs(self, ws_name):
+    #     self.disable_ows(ws_name, ows='wms')
+
+    # def enable_wcs(self, ws_name):
+    #     self.enable_ows(ws_name, ows='wms')
+
+    # def disable_wcs(self, ws_name):
+    #     self.disable_ows(ws_name, ows='wms')
 
     def publish_layers_resource(self, resource):
 
