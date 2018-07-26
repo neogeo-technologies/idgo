@@ -104,7 +104,6 @@ class SupportedCrs(models.Model):
         verbose_name='Description', blank=True, null=True)
 
     class Meta(object):
-        db_table = 'supported_crs'
         verbose_name = "CRS supporté par l'application"
         verbose_name_plural = "CRS supportés par l'application"
 
