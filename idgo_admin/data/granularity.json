@@ -1,0 +1,25 @@
+[
+{
+	"model": "idgo_admin.granularity",
+	"pk": "commune-francaise",
+	"fields":
+	{
+		"name": "Commune"
+	}
+},
+{
+	"model": "idgo_admin.granularity",
+	"pk": "departement-francais",
+	"fields":
+	{
+		"name": "D\u00e9partement"
+	}
+},
+{
+	"model": "idgo_admin.granularity",
+	"pk": "region-francaise",
+	"fields":
+	{
+		"name": "R\u00e9gion"
+	}
+}]
