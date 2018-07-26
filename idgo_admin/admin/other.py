@@ -19,6 +19,7 @@ from django.contrib import admin
 # from idgo_admin.forms.widgets import MapSelectMultipleWidget
 from idgo_admin.models import Category
 from idgo_admin.models import Financier
+from idgo_admin.models import Granularity
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import JurisdictionCommune
 from idgo_admin.models import License
@@ -133,3 +134,10 @@ class TaskAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Task, TaskAdmin)
+
+
+class GranularityAdmin(admin.ModelAdmin):
+    pass
+
+
+admin.site.register(Granularity, GranularityAdmin)

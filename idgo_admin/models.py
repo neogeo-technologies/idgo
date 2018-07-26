@@ -1326,6 +1326,23 @@ class DataType(models.Model):
         return self.name
 
 
+class Granularity(models.Model):
+
+    slug = models.SlugField(
+        verbose_name='Slug', max_length=100,
+        unique=True, db_index=True, blank=True,
+        primary_key=True)
+
+    name = models.TextField(verbose_name='Nom')
+
+    class Meta(object):
+        verbose_name = 'Granularité de la couverture territoriale'
+        verbose_name_plural = 'Granularités des couvertures territoriales'
+
+    def __str__(self):
+        return self.name
+
+
 class Dataset(models.Model):
 
     _current_editor = None
@@ -1438,6 +1455,13 @@ class Dataset(models.Model):
 
     broadcaster_email = models.EmailField(
         verbose_name='E-mail du diffuseur', blank=True, null=True)
+
+    # Mandatory
+    granularity = models.ForeignKey(
+        to='Granularity',
+        blank=True, null=True,  # blank=False, null=False, default='commune-francaise',
+        verbose_name='Granularité de la couverture territoriale',
+        on_delete=models.PROTECT)
 
     class Meta(object):
         verbose_name = 'Jeu de données'

@@ -21,6 +21,7 @@ from django.utils import timezone
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import DataType
+from idgo_admin.models import Granularity
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Support
@@ -52,6 +53,7 @@ class DatasetForm(forms.ModelForm):
             'date_publication',
             'description',
             'geocover',
+            'granularity',
             'is_inspire',
             'keywords',
             'license',
@@ -154,6 +156,11 @@ class DatasetForm(forms.ModelForm):
         choices=Dataset.GEOCOVER_CHOICES,
         label='Couverture géographique',
         required=False)
+
+    granularity = forms.ModelChoiceField(
+        label='Granularité de la couverture territoriale',
+        queryset=Granularity.objects.all(),
+        required=True)
 
     organisation = forms.ModelChoiceField(
         label='Organisation à laquelle est rattaché ce jeu de données*',
@@ -272,6 +279,7 @@ class DatasetForm(forms.ModelForm):
             'description': data['description'],
             'editor': user,
             'geocover': data['geocover'],
+            'granularity': data['granularity'],
             'license': data['license'],
             'name': data['name'],
             'organisation': data['organisation'],

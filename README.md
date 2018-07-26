@@ -274,6 +274,7 @@ Apache doit pouvoir écrire dans les sous répertoires de `media`.
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/resourceformats.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/jurisdiction.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/datatype.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/granularity.json
 ```
 
 #### CRON
