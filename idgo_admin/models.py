@@ -1638,6 +1638,16 @@ class Dataset(models.Model):
                             url='{0}#{1}'.format(
                                 OWS_URL_PATTERN.format(organisation=ws_name), ft_name))
 
+        set = [r.datagis_id for r in
+               Resource.objects.filter(dataset=self, datagis_id__isnull=False)]
+        if set:
+            ws_name = self.organisation.ckan_slug
+            data = {
+                'name': self.ckan_slug,
+                'title': self.name,
+                'layers': [item for sub in set for item in sub]}
+            MRAHandler.create_layergroup(ws_name, data)
+
         self.ckan_id = uuid.UUID(ckan_dataset['id'])
         super().save()  # self.save(sync_ckan=False)
 

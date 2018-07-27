@@ -355,6 +355,30 @@ class MRAHandler(metaclass=Singleton):
         self.enable_ows(ws_name=ws_name)
 
     @MRAExceptionsHandler()
+    def get_layergroup(self, ws_name, lg_name):
+        self.remote.get('workspaces', ws_name, 'layergroups', lg_name)['layerGroup']
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def is_layergroup_exists(self, ws_name, lg_name):
+        try:
+            self.get_layergroup(ws_name, lg_name)
+        except MRANotFoundError:
+            return False
+        else:
+            return True
+
+    @MRAExceptionsHandler()
+    def create_layergroup(self, ws_name, data):
+        lg_name = data.get('name')
+        if self.is_layergroup_exists(ws_name, lg_name):
+            self.remote.put('workspaces', ws_name,
+                            'layergroups', lg_name,
+                            json={'layerGroup': data})
+        else:
+            self.remote.post('workspaces', ws_name,
+                             'layergroups', json={'layerGroup': data})
+
+    @MRAExceptionsHandler()
     def get_fonts(self, ws_name=None):
         return self.remote.get('fonts')['fonts']
 
