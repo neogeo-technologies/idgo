@@ -352,8 +352,7 @@ class MRAHandler(metaclass=Singleton):
             self.get_or_create_featuretype(
                 ws_name, ds_name, datagis_id, enabled=enabled)
 
-        self.enable_wms(ws_name=ws_name)
-        self.enable_wfs(ws_name=ws_name)
+        self.enable_ows(ws_name=ws_name)
 
     @MRAExceptionsHandler()
     def get_fonts(self, ws_name=None):

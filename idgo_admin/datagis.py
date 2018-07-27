@@ -154,7 +154,7 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
     ds = OgrOpener(filename, extension=extension)
 
     sql = []
-    table_ids = []
+    tables = []
 
     layers = ds.get_layers()
     if len(layers) > limit_to:
@@ -164,9 +164,6 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
     for layer in layers:
 
         layername = slugify(layer.name)
-        table_id = update.get(
-            layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))
-        table_ids.append(table_id)
 
         if epsg and is_valid_epsg(epsg):
             pass
@@ -187,6 +184,10 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                     epsg = retreive_epsg_through_proj4(layer.srs.proj4)
             if not epsg:
                 raise NotSupportedSrsError('SRS Not found')
+
+        table_id = update.get(
+            layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))
+        tables.append({'id': table_id, 'epsg': epsg})
 
         attrs = {}
         for i, k in enumerate(layer.fields):
@@ -262,7 +263,7 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                 cursor.execute(q)
             except Exception as e:
                 # Revenir à l'état initial
-                for table_id in table_ids:
+                for table_id in [table['id'] for table in tables]:
                     drop_table(table_id)
                 for table_id in update.values():
                     rename_table('_{}'.format(table_id), table_id)
@@ -273,7 +274,29 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
     for table_id in update.values():
         drop_table('_{}'.format(table_id))
 
-    return tuple(table_ids)
+    return tables
+
+
+def get_extent(tables, schema='public'):
+
+    sub = 'SELECT {the_geom} as the_geom FROM {schema}."{table}"'
+    sql = 'WITH all_geoms AS ({}) SELECT geometry(ST_Extent(the_geom)) FROM all_geoms;'.format(
+        ' UNION '.join([
+            sub.format(table=table, the_geom=THE_GEOM, schema=schema)
+            for table in tables]))
+
+    with connections[DATABASE].cursor() as cursor:
+        try:
+            cursor.execute(sql)
+        except Exception as e:
+            if e.__class__.__qualname__ != 'ProgrammingError':
+                raise e
+        records = cursor.fetchall()
+        cursor.close()
+    try:
+        return records[0][0]
+    except Exception:
+        return None
 
 
 def get_description(table, schema='public'):

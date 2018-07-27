@@ -34,6 +34,7 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import drop_table
+from idgo_admin.datagis import get_extent
 from idgo_admin.datagis import ogr2postgis
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import NotOGRError
@@ -287,11 +288,14 @@ class Resource(models.Model):
 
         super().save(*args, **kwargs)
 
+        self.dataset.date_modification = timezone.now().date()
+
         if sync_ckan:
 
             ckan_params = {
                 'name': self.name,
                 'description': self.description,
+                'data_type': self.data_type,
                 'format': self.format_type.extension,
                 'view_type': self.format_type.ckan_view,
                 'id': str(self.ckan_id),
@@ -379,7 +383,7 @@ class Resource(models.Model):
                             (re.sub('^(\w+)_[a-z0-9]{7}$', '\g<1>', table_name), table_name)
                             for table_name in previous.datagis_id)
                     try:
-                        datagis_id = ogr2postgis(
+                        tables = ogr2postgis(
                             filename, extension=extension, update=existing_layers,
                             epsg=self.crs and self.crs.auth_code or None)
                     except (ExceedsMaximumLayerNumberFixedError,
@@ -390,13 +394,21 @@ class Resource(models.Model):
                             remove_file(filename)
                         raise ValidationError(e.__str__(), code='__all__')
                     else:
-                        self.datagis_id = list(datagis_id)
+                        datagis_id = []
+                        crs = []
+                        for table in tables:
+                            datagis_id.append(table['id'])
+                            crs.append(SupportedCrs.objects.get(
+                                auth_name='EPSG', auth_code=table['epsg']))
+                        self.datagis_id = datagis_id
+                        self.crs = crs[0]
                         try:
                             MRAHandler.publish_layers_resource(self)
                         except Exception as e:
-                            for table_id in datagis_id:
+                            for table_id in self.datagis_id:
                                 drop_table(str(table_id))
                             raise e
+                    ckan_params['crs'] = self.crs.description
                 else:
                     self.datagis_id = None
                 super().save()
@@ -447,12 +459,19 @@ class Resource(models.Model):
                         'id': ft_name,
                         'name': '{} (OGC:WMS)'.format(self.name),
                         'description': 'Visualiseur cartographique',
+                        'data_type': 'service',
+                        'crs': SupportedCrs.objects.get(
+                            auth_name='EPSG', auth_code='4171').description,
                         'lang': self.lang,
                         'format': 'WMS',
                         'url': '{0}#{1}'.format(
                             OWS_URL_PATTERN.format(organisation=ws_name), ft_name),
                         'view_type': 'geo_view'}
                     ckan_user.publish_resource(ckan_package, **ckan_params)
+
+                resources = Resource.objects.filter(dataset=self.dataset)
+                self.dataset.bbox = get_extent(
+                    [item for sub in [r.datagis_id for r in resources] for item in sub])
 
             ckan_user.close()
             # Endif sync_ckan
@@ -463,6 +482,8 @@ class Resource(models.Model):
                 self.enable_layers()
             else:
                 self.disable_layers()
+
+        self.dataset.save()
 
 
 class Commune(models.Model):
@@ -1462,6 +1483,9 @@ class Dataset(models.Model):
         verbose_name='Granularité de la couverture territoriale',
         on_delete=models.PROTECT)
 
+    bbox = models.PolygonField(
+        verbose_name='Rectangle englobant', blank=True, null=True, srid=4171)
+
     class Meta(object):
         verbose_name = 'Jeu de données'
         verbose_name_plural = 'Jeux de données'
@@ -1543,6 +1567,7 @@ class Dataset(models.Model):
             'notes': self.description,
             'owner_org': str(self.organisation.ckan_id),
             'private': not self.published,
+            'spatial': self.bbox and self.bbox.geojson or None,
             'state': 'active',
             'support': self.support and self.support.ckan_slug,
             'tags': [
@@ -1670,10 +1695,14 @@ def post_delete_dataset(sender, instance, **kwargs):
     ckan.deactivate_ckan_organization_if_empty(str(instance.organisation.ckan_id))
 
 
-@receiver(post_save, sender=Resource)
-def post_save_resource(sender, instance, **kwargs):
-    instance.dataset.date_modification = timezone.now().date()
-    instance.dataset.save()
+# @receiver(post_save, sender=Resource)
+# def post_save_resource(sender, instance, **kwargs):
+#     resources = Resource.objects.filter(dataset=instance.dataset)
+#     instance.dataset.bbox = get_extent(
+#         [item for sub in [r.datagis_id for r in resources] for item in sub])
+#
+#     instance.dataset.date_modification = timezone.now().date()
+#     instance.dataset.save()
 
 
 @receiver(post_delete, sender=Resource)
