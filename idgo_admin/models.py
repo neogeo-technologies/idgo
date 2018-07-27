@@ -1646,7 +1646,9 @@ class Dataset(models.Model):
                 'name': self.ckan_slug,
                 'title': self.name,
                 'layers': [item for sub in set for item in sub]}
-            MRAHandler.create_layergroup(ws_name, data)
+            MRAHandler.create_or_update_layergroup(ws_name, data)
+        else:
+            MRAHandler.del_layergroup(ws_name, self.ckan_slug)
 
         self.ckan_id = uuid.UUID(ckan_dataset['id'])
         super().save()  # self.save(sync_ckan=False)
