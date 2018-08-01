@@ -45,6 +45,7 @@ from idgo_admin.views.organization import UpdateOrganisation
 from idgo_admin.views.resource import LayerManager
 from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
+from idgo_admin.views.stuffs import ows_preview
 
 
 urlpatterns = [
@@ -86,7 +87,9 @@ urlpatterns = [
     url('^confirmation/referent/(?P<key>.+)/?$', confirm_referent, name='confirm_referent'),
 
     url('^action/$', ActionsManager.as_view(), name='action'),
-    url('^licences/?$', DisplayLicenses.as_view(), name='licences')]
+    url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
+
+    url('^owspreview/$', ows_preview, name='ows_preview')]
 
 
 if settings.DEBUG:

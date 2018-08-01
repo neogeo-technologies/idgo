@@ -97,8 +97,6 @@ class DatasetForm(forms.ModelForm):
             attrs={
                 'placeholder': 'Vous pouvez utiliser le langage Markdown ici'}))
 
-    # thumbnail = forms.ImageField(label='Vignette', required=False)
-
     keywords = TagField(
         label='Liste de mots-clés',
         required=False,

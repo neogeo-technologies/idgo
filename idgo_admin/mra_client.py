@@ -378,9 +378,10 @@ class MRAHandler(metaclass=Singleton):
             self.remote.post('workspaces', ws_name,
                              'layergroups', json={'layerGroup': data})
 
-    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    @MRAExceptionsHandler()
     def del_layergroup(self, ws_name, lg_name):
-        self.remote.delete('workspaces', ws_name, 'layergroups', lg_name)
+        if self.is_layergroup_exists(ws_name, lg_name):
+            self.remote.delete('workspaces', ws_name, 'layergroups', lg_name)
 
     @MRAExceptionsHandler()
     def get_fonts(self, ws_name=None):

@@ -224,7 +224,6 @@ class Resource(models.Model):
     bbox = models.PolygonField(
         verbose_name='Rectangle englobant', blank=True, null=True)
 
-    # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
     geo_restriction = models.BooleanField(
         verbose_name='Restriction géographique', default=False)
 
@@ -232,7 +231,7 @@ class Resource(models.Model):
         verbose_name='Extractible', default=True)
 
     ogc_services = models.BooleanField(
-        verbose_name='Services OGC', default=True)
+        verbose_name='Services OGC', default=False)
 
     created_on = models.DateTimeField(
         verbose_name='Date de création de la resource',
@@ -278,6 +277,10 @@ class Resource(models.Model):
             for l_name in self.datagis_id:
                 MRAHandler.enable_layer(l_name)
 
+    @property
+    def is_datagis(self):
+        return self.datagis_id and True or False
+
     def save(self, *args, **kwargs):
 
         previous = self.pk and Resource.objects.get(pk=self.pk) or None
@@ -285,6 +288,9 @@ class Resource(models.Model):
         sync_ckan = 'sync_ckan' in kwargs and kwargs.pop('sync_ckan') or False
         file_extras = 'file_extras' in kwargs and kwargs.pop('file_extras') or None
         editor = 'editor' in kwargs and kwargs.pop('editor') or None
+
+        # La restriction au territoire de compétence désactive tout service OGC
+        self.ogc_services = not self.geo_restriction and True or False
 
         super().save(*args, **kwargs)
 
@@ -300,6 +306,7 @@ class Resource(models.Model):
                 'view_type': self.format_type.ckan_view,
                 'id': str(self.ckan_id),
                 'lang': self.lang,
+                # 'restricted_by_jurisdiction': self.geo_restriction,
                 'url': ''}
 
             if self.restricted_level == '0':  # Public
@@ -464,6 +471,7 @@ class Resource(models.Model):
                             auth_name='EPSG', auth_code='4171').description,
                         'lang': self.lang,
                         'format': 'WMS',
+                        # 'restricted_by_jurisdiction': self.geo_restriction,
                         'url': '{0}#{1}'.format(
                             OWS_URL_PATTERN.format(organisation=ws_name), ft_name),
                         'view_type': 'geo_view'}
@@ -476,12 +484,12 @@ class Resource(models.Model):
             ckan_user.close()
             # Endif sync_ckan
 
-        if not previous or (
-                previous and previous.ogc_services != self.ogc_services):
-            if self.ogc_services:
-                self.enable_layers()
-            else:
-                self.disable_layers()
+        # if not previous or (
+        #         previous and previous.ogc_services != self.ogc_services):
+        if self.ogc_services:
+            self.enable_layers()
+        else:
+            self.disable_layers()
 
         self.dataset.save()
 
@@ -580,6 +588,7 @@ class OrganisationType(models.Model):
 
 
 def get_all_users_for_organizations(list_id):
+    print(list_id)
     return [
         profile.user.username
         for profile in Profile.objects.filter(
@@ -1555,6 +1564,7 @@ class Dataset(models.Model):
                 str(self.date_publication) if self.date_publication else '',
             'groups': [],
             'geocover': self.geocover,
+            'granularity': self.granularity.slug,
             'last_modified':
                 str(self.date_modification) if self.date_modification else '',
             'license_id': (
@@ -1615,10 +1625,10 @@ class Dataset(models.Model):
         ckan_user.close()
 
         # Si l'organisation change
+        ws_name = self.organisation.ckan_slug
         if previous and previous.organisation != self.organisation:
             resources = Resource.objects.filter(dataset=previous)
             prev_ws_name = previous.organisation.ckan_slug
-            ws_name = self.organisation.ckan_slug
             ds_name = 'public'
             for resource in resources:
                 if resource.datagis_id:
@@ -1641,7 +1651,6 @@ class Dataset(models.Model):
         set = [r.datagis_id for r in
                Resource.objects.filter(dataset=self, datagis_id__isnull=False)]
         if set:
-            ws_name = self.organisation.ckan_slug
             data = {
                 'name': self.ckan_slug,
                 'title': self.name,

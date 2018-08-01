@@ -14,11 +14,18 @@
 # under the License.
 
 
+from django.conf import settings
+from django.http import HttpResponse
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.models import License
+from idgo_admin.shortcuts import user_and_profile
+import requests
+
+
+OWS_PREVIEW_URL = settings.OWS_PREVIEW_URL
 
 
 @method_decorator([csrf_exempt, ], name='dispatch')
@@ -38,3 +45,12 @@ class DisplayLicenses(View):
             'title': license.title,
             'url': license.url} for license in License.objects.all()]
         return JsonResponse(data, safe=False)
+
+
+@csrf_exempt
+def ows_preview(request):
+    user, profile = user_and_profile(request)
+
+    r = requests.get(OWS_PREVIEW_URL, params=dict(request.GET), timeout=5)
+    r.raise_for_status()
+    return HttpResponse(r.content, content_type=r.headers['Content-Type'])

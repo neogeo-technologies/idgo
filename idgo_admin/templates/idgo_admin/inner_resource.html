@@ -132,7 +132,7 @@
 		</div>
 	</div>
 	<br />
-	{% if is_crige %}
+	{% if is_crige and is_datagis %}
 	<div class="well">
 		<div class="row">
 			<div class="col-xs-12">
@@ -141,12 +141,12 @@
 		</div>
 		<div class="row">
 			<div class="col-xs-12">
-				{% bootstrap_field form.extractable %}
+				{% bootstrap_field form.ogc_services %}
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-xs-12">
-				{% bootstrap_field form.ogc_services %}
+				{% bootstrap_field form.extractable %}
 			</div>
 		</div>
 	</div>
@@ -380,6 +380,17 @@ $(function() {
 		};
 
 	});
+
+	const onChangeGeoRestriction = function() {
+		const $target = $('[name="{{ form.ogc_services.name }}"]');
+		if (this.checked) {
+			$target.prop('checked', false).prop('disabled', true)
+		} else {
+			$target.prop('disabled', false);
+		};
+	};
+
+	$('[name="{{ form.geo_restriction.name }}"]').on('change', onChangeGeoRestriction).trigger('change');
 
 });
 </script>

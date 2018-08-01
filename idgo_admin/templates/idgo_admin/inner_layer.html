@@ -634,7 +634,7 @@ $(function() {
 
 			var sldBody = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
 			layer.remove();
-			layer = new L.NonTiledLayer.WMS('{{ ows_url }}', {
+			layer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 				format: 'image/png',
 				layers: params['name'],
 				sld_body: sldBody,
@@ -975,7 +975,7 @@ $(function() {
 		}));
 	};
 
-	var layer = new L.NonTiledLayer.WMS('{{ ows_url }}', {
+	var layer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 		format: 'image/png',
 		layers: layerData['name'],
 		styles: $selectStyle.val(),

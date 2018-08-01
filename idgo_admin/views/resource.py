@@ -49,7 +49,6 @@ import json
 
 CKAN_URL = settings.CKAN_URL
 MRA = settings.MRA
-OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -78,7 +77,8 @@ class ResourceManager(View):
                     'dataset_id': dataset_id, 'resource_id': _resource, 'layer_id': _layer}))
         # Ugly #
 
-        context = {'dataset_name': three_suspension_points(dataset.name),
+        context = {'is_datagis': False,
+                   'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
                    'dataset_ckan_slug': dataset.ckan_slug,
                    'resource_name': 'Nouvelle ressource',
@@ -96,6 +96,7 @@ class ResourceManager(View):
                 or None
 
             context.update({
+                'is_datagis': instance.is_datagis,
                 'resource_name': three_suspension_points(instance.name),
                 'resource_id': instance.id,
                 'resource_ckan_id': instance.ckan_id,
@@ -139,7 +140,8 @@ class ResourceManager(View):
                 or form.data.get('referenced_url') and 'referenced_url'
                 or None)
 
-        context = {'dataset_name': three_suspension_points(dataset.name),
+        context = {'is_datagis': instance and instance.is_datagis or False,
+                   'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
                    'dataset_ckan_slug': dataset.ckan_slug,
                    'resource_name': instance and three_suspension_points(instance.name) or 'Nouvelle ressource',
@@ -319,14 +321,11 @@ class LayerManager(View):
 
         dataset = instance.dataset
 
-        ows_url = OWS_URL_PATTERN.format(organisation=dataset.organisation.ckan_slug)
-
         layer = get_layer(instance, layer_id)
 
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
                    'layer_title': layer['title'],
-                   'ows_url': ows_url,
                    'dataset_ckan_slug': dataset.ckan_slug,
                    'resource_name': three_suspension_points(instance.name),
                    'resource_id': instance.id,
@@ -350,7 +349,6 @@ class LayerManager(View):
         dataset = instance.dataset
 
         sld = request.POST.get('sldBody')
-        ows_url = OWS_URL_PATTERN.format(organisation=dataset.organisation.ckan_slug)
 
         try:
             MRAHandler.create_or_update_style(layer_id, data=sld.encode('utf-8'))
@@ -368,7 +366,6 @@ class LayerManager(View):
         context = {'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
                    'layer_title': layer['title'],
-                   'ows_url': ows_url,
                    'dataset_ckan_slug': dataset.ckan_slug,
                    'resource_name': three_suspension_points(instance.name),
                    'resource_id': instance.id,

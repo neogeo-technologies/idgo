@@ -141,6 +141,7 @@ MRA = {
     'DATAGIS_DB_USER': 'username'}
 
 OWS_URL_PATTERN = 'http://127.0.0.1/ows/{organisation}?'
+OWS_PREVIEW_URL = 'http://127.0.0.1/preview?'
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
