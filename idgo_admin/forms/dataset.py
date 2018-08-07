@@ -62,7 +62,7 @@ class DatasetForm(forms.ModelForm):
             'owner_name',
             'published',
             'support',
-            # 'thumbnail',
+            'thumbnail',
             'update_freq',
             'name',
             'ckan_slug')
@@ -286,7 +286,7 @@ class DatasetForm(forms.ModelForm):
             'update_freq': data['update_freq'],
             'published': data['published'],
             'support': data['support'],
-            # 'thumbnail': data['thumbnail'],
+            'thumbnail': data['thumbnail'],
             'is_inspire': data['is_inspire']}
 
         if id:  # Mise à jour du jeu de données

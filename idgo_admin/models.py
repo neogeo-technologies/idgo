@@ -53,6 +53,7 @@ import os
 from pathlib import Path
 import re
 from taggit.managers import TaggableManager
+from urllib.parse import urljoin
 import uuid
 
 
@@ -1585,6 +1586,12 @@ class Dataset(models.Model):
             'title': self.name,
             'update_frequency': self.update_freq,
             'url': ''}  # Laisser vide
+
+        try:
+            ckan_params['thumbnail'] = urljoin(
+                settings.DOMAIN_NAME, self.thumbnail.url)
+        except ValueError:
+            pass
 
         if self.geonet_id:
             ckan_params['inspire_url'] = \
