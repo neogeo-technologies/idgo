@@ -29,8 +29,10 @@ from idgo_admin.shortcuts import user_and_profile
 import re
 from taggit.forms import TagField
 from taggit.forms import TagWidget
+from urllib.parse import urljoin
 
 
+DOMAIN_NAME = settings.DOMAIN_NAME
 GEONETWORK_URL = settings.GEONETWORK_URL
 CKAN_URL = settings.CKAN_URL
 
@@ -66,6 +68,9 @@ class DatasetForm(forms.ModelForm):
             'update_freq',
             'name',
             'ckan_slug')
+
+    class CustomClearableFileInput(forms.ClearableFileInput):
+        template_name = 'idgo_admin/widgets/file_drop_zone.html'
 
     name = forms.CharField(
         label='Titre*',
@@ -204,6 +209,15 @@ class DatasetForm(forms.ModelForm):
         label='Le jeu de données est soumis à la règlementation INSPIRE',
         required=False)
 
+    thumbnail = forms.FileField(
+        label='Imagette',
+        required=False,
+        # validators=[],
+        widget=CustomClearableFileInput(
+            attrs={
+                'value': None,
+                'max_size_info': 1048576}))
+
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
@@ -228,6 +242,9 @@ class DatasetForm(forms.ModelForm):
             instance and instance.support and instance.support.name or 'Plateforme DataSud'
         self.fields['broadcaster_email'].widget.attrs['placeholder'] = \
             instance and instance.support and instance.support.email or 'contact@datasud.fr'
+
+        if instance and instance.thumbnail:
+            self.fields['thumbnail'].widget.attrs['value'] = instance.thumbnail.url
 
     def clean(self):
 

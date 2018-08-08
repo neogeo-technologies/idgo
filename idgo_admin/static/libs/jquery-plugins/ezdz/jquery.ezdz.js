@@ -210,14 +210,14 @@
                         reader.readAsDataURL(file);
 
                         reader.onload = function(e) {
-                            // var img = new Image();
-                            // var isImage;
+                            var img = new Image();
+                            var isImage;
 
                             file.data = e.target.result;
-                            // img.src = file.data;
+                            img.src = file.data;
 
                             setTimeout(function() {
-                                // isImage = (img.width && img.height);
+                                isImage = (img.width && img.height);
 
                                 // Validator
                                 if (settings.validators.maxSize && file.size > settings.validators.maxSize) {
@@ -225,44 +225,44 @@
                                     errors.maxSize = true;
                                 };
 
-                                // if (isImage) {
-                                //     file.width  = img.width;
-                                //     file.height = img.height;
-                                //     if (settings.validators.width && img.width !== settings.validators.width) {
-                                //         valid = false;
-                                //         errors.width = true;
-                                //     };
-                                //     if (settings.validators.maxWidth && img.width > settings.validators.maxWidth) {
-                                //         valid = false;
-                                //         errors.maxWidth = true;
-                                //     };
-                                //     if (settings.validators.minWidth && img.width < settings.validators.minWidth) {
-                                //         valid = false;
-                                //         errors.minWidth = true;
-                                //     };
-                                //     if (settings.validators.height && img.height !== settings.validators.height) {
-                                //         valid = false;
-                                //         errors.height = true;
-                                //     };
-                                //     if (settings.validators.maxHeight && img.height > settings.validators.maxHeight) {
-                                //         valid = false;
-                                //         errors.maxHeight = true;
-                                //     };
-                                //     if (settings.validators.minHeight && img.height < settings.validators.minHeight) {
-                                //         valid = false;
-                                //         errors.minHeight = true;
-                                //     };
-                                // };
+                                if (isImage) {
+                                    file.width  = img.width;
+                                    file.height = img.height;
+                                    if (settings.validators.width && img.width !== settings.validators.width) {
+                                        valid = false;
+                                        errors.width = true;
+                                    };
+                                    if (settings.validators.maxWidth && img.width > settings.validators.maxWidth) {
+                                        valid = false;
+                                        errors.maxWidth = true;
+                                    };
+                                    if (settings.validators.minWidth && img.width < settings.validators.minWidth) {
+                                        valid = false;
+                                        errors.minWidth = true;
+                                    };
+                                    if (settings.validators.height && img.height !== settings.validators.height) {
+                                        valid = false;
+                                        errors.height = true;
+                                    };
+                                    if (settings.validators.maxHeight && img.height > settings.validators.maxHeight) {
+                                        valid = false;
+                                        errors.maxHeight = true;
+                                    };
+                                    if (settings.validators.minHeight && img.height < settings.validators.minHeight) {
+                                        valid = false;
+                                        errors.minHeight = true;
+                                    };
+                                };
 
                                 // The file is validated, so added to input
                                 if (valid === true) {
-                                    // $ezdz.find('img').remove();
+                                    $ezdz.find('img').remove();
 
-                                    // if (isImage && settings.previewImage === true) {
-                                    // $ezdz.find('div').html($(img).fadeIn());
-                                    // } else {
-                                    $ezdz.find('div').append('<span class="dz-filename">' + formatted + '</span>');
-                                    // };
+                                    if (isImage && settings.previewImage === true) {
+                                    $ezdz.find('div').html($(img).fadeIn());
+                                    } else {
+                                    	$ezdz.find('div').append('<span class="dz-filename">' + formatted + '</span>');
+                                    };
 
                                     $ezdz.addClass(settings.classes.accept);
 
@@ -325,7 +325,7 @@
         };
 
         // Is not an image
-        img.onerror = function() {
+        img.onerror = function(e) {
             $ezdz.find('div').html('<span>' + formatted + '</span>');
 
             if ($.isFunction(callback)) {
