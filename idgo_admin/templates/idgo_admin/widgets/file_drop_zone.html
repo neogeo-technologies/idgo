@@ -13,9 +13,10 @@ $(function() {
 	};
 	var $emptyFile = $('#{{ widget.attrs.id }}-empty')
 	var $inputFile = $('#{{ widget.attrs.id }}')
+
 	$inputFile.ezdz({
 		text: '<button class="btn btn-default">Parcourir...</button> ou déposez le fichier dans cette zone.',
-		value: {% if widget.is_initial %}'{{ widget.value }}'{% else %}null{% endif %},
+		value: {% if widget.is_initial %}'{{ widget.attrs.value }}'{% else %}null{% endif %},
 		validators: {
 			maxSize: {{ widget.attrs.max_size_info }}
 		},

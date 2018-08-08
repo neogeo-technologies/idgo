@@ -73,7 +73,9 @@ class ResourceForm(forms.ModelForm):
         required=False,
         validators=[file_size],
         widget=CustomClearableFileInput(
-            attrs={'max_size_info': DOWNLOAD_SIZE_LIMIT}))
+            attrs={
+                'value': None,
+                'max_size_info': DOWNLOAD_SIZE_LIMIT}))
 
     name = forms.CharField(
         label='Titre*',
@@ -143,8 +145,11 @@ class ResourceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
         self._dataset = kwargs.pop('dataset', None)
-
+        instance = kwargs.get('instance', None)
         super().__init__(*args, **kwargs)
+
+        if instance and instance.up_file:
+            self.fields['up_file'].widget.attrs['value'] = instance.up_file
 
     def clean(self):
 

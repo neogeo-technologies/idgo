@@ -131,11 +131,19 @@ class LastNameField(forms.CharField):
         super().__init__(*args, **kwargs)
 
 
+class CustomClearableFileInput(forms.ClearableFileInput):
+    template_name = 'idgo_admin/widgets/file_drop_zone.html'
+
+
 class OrganisationLogoField(forms.ImageField):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label', "Logo de l'organisation")
         kwargs.setdefault('required', False)
+        kwargs.setdefault('widget', CustomClearableFileInput(
+            attrs={
+                'value': None,
+                'max_size_info': 1048576}))
 
         super().__init__(*args, **kwargs)
 

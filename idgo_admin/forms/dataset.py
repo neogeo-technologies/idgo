@@ -29,7 +29,6 @@ from idgo_admin.shortcuts import user_and_profile
 import re
 from taggit.forms import TagField
 from taggit.forms import TagWidget
-from urllib.parse import urljoin
 
 
 DOMAIN_NAME = settings.DOMAIN_NAME

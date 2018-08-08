@@ -619,9 +619,7 @@ $(function() {
 			};
 		});
 
-		$classes.children('option').change(function() {
-			console.log(0)
-		})
+		$classes.children('option').change(function() {})
 
 		const $namedLayer = $sld.children('NamedLayer').last();
 		($namedLayer.children('Name').last() == params['name']) || $namedLayer.children('Name').last().text(params['name']);
