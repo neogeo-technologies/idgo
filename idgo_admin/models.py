@@ -1553,6 +1553,7 @@ class Dataset(models.Model):
         if not sync_ckan:  # STOP
             return
 
+        ows = False
         for resource in Resource.objects.filter(dataset=self):
             ows = resource.ogc_services
 
