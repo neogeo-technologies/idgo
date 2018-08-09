@@ -1553,6 +1553,9 @@ class Dataset(models.Model):
         if not sync_ckan:  # STOP
             return
 
+        for resource in Resource.objects.filter(dataset=self):
+            ows = resource.ogc_services
+
         ckan_params = {
             'author': self.owner_name,
             'author_email': self.owner_email,
@@ -1577,6 +1580,7 @@ class Dataset(models.Model):
             'name': self.ckan_slug,
             'notes': self.description,
             'owner_org': str(self.organisation.ckan_id),
+            'ows': ows,
             'private': not self.published,
             'spatial': self.bbox and self.bbox.geojson or None,
             'state': 'active',
