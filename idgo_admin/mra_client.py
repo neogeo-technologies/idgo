@@ -59,16 +59,25 @@ class MRASyncingError(GenericException):
 
 
 class MRANotFoundError(GenericException):
+
+    message = "Not Found"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
 
 class MRAConflictError(GenericException):
+
+    message = "Conflict"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
 
 class MRATimeoutError(MRASyncingError):
+
+    message = "Time out"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -88,14 +97,13 @@ class MRAExceptionsHandler(object):
                     return f(*args, **kwargs)
                 if e.__class__.__qualname__ == 'HTTPError':
                     if e.response.status_code == 404:
-                        raise MRANotFoundError
+                        raise MRANotFoundError()
                     if e.response.status_code == 409:
-                        raise MRAConflictError
+                        raise MRAConflictError()
                 if isinstance(e, timeout_decorator.TimeoutError):
-                    raise MRATimeoutError
+                    raise MRATimeoutError()
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
-                print(e)
                 raise MRASyncingError(e.__str__())
         return wrapper
 
