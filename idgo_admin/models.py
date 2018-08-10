@@ -307,7 +307,7 @@ class Resource(models.Model):
                 'view_type': self.format_type.ckan_view,
                 'id': str(self.ckan_id),
                 'lang': self.lang,
-                # 'restricted_by_jurisdiction': self.geo_restriction,
+                'restricted_by_jurisdiction': str(self.geo_restriction),
                 'url': ''}
 
             if self.restricted_level == '0':  # Public
@@ -472,7 +472,7 @@ class Resource(models.Model):
                             auth_name='EPSG', auth_code='4171').description,
                         'lang': self.lang,
                         'format': 'WMS',
-                        # 'restricted_by_jurisdiction': self.geo_restriction,
+                        'restricted_by_jurisdiction': str(self.geo_restriction),
                         'url': '{0}#{1}'.format(
                             OWS_URL_PATTERN.format(organisation=ws_name), ft_name),
                         'view_type': 'geo_view'}
@@ -1581,7 +1581,7 @@ class Dataset(models.Model):
             'name': self.ckan_slug,
             'notes': self.description,
             'owner_org': str(self.organisation.ckan_id),
-            'ows': ows,
+            'ows': str(ows),
             'private': not self.published,
             'spatial': self.bbox and self.bbox.geojson or None,
             'state': 'active',
