@@ -5,7 +5,7 @@ $(function() {
 		var len = String(value).length;
 		if (len > 6) {
 			return (value / 1024 / 1024).toLocaleString('fr-FR') + ' mo';
-		} else if (value > 3) {
+		} else if (len > 3) {
 			return (value / 1024).toLocaleString('fr-FR') + ' ko';
 		} else {
 			return value + ' octets';
