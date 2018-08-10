@@ -290,8 +290,8 @@ class Resource(models.Model):
         file_extras = 'file_extras' in kwargs and kwargs.pop('file_extras') or None
         editor = 'editor' in kwargs and kwargs.pop('editor') or None
 
-        # La restriction au territoire de compétence désactive tout service OGC
-        self.ogc_services = not self.geo_restriction and True or False
+        # La restriction au territoire de compétence désactive les services OGC
+        self.ogc_services = self.geo_restriction and False or self.ogc_services
 
         super().save(*args, **kwargs)
 
@@ -460,19 +460,26 @@ class Resource(models.Model):
             ckan_user.publish_resource(ckan_package, **ckan_params)
 
             if self.datagis_id:
-                # Publier les nouvelles resources SIG..
+                # Publier dans CKAN les resources de type OWS..
+
                 for datagis_id in self.datagis_id:
                     ft_name = str(datagis_id)
+                    # Publier la ressource si explicitement requis..
+                    if not self.ogc_services:
+                        # sinon supprimer la ressource CKAN.
+                        ckan_user.delete_resource(ft_name)
+                        continue
+
                     ckan_params = {
                         'id': ft_name,
                         'name': '{} (OGC:WMS)'.format(self.name),
                         'description': 'Visualiseur cartographique',
+                        # TODO Ajouter URL du GetLengendGraphic
                         'data_type': 'service',
                         'crs': SupportedCrs.objects.get(
                             auth_name='EPSG', auth_code='4171').description,
                         'lang': self.lang,
                         'format': 'WMS',
-                        'restricted_by_jurisdiction': str(self.geo_restriction),
                         'url': '{0}#{1}'.format(
                             OWS_URL_PATTERN.format(organisation=ws_name), ft_name),
                         'view_type': 'geo_view'}
@@ -485,8 +492,6 @@ class Resource(models.Model):
             ckan_user.close()
             # Endif sync_ckan
 
-        # if not previous or (
-        #         previous and previous.ogc_services != self.ogc_services):
         if self.ogc_services:
             self.enable_layers()
         else:
@@ -589,7 +594,6 @@ class OrganisationType(models.Model):
 
 
 def get_all_users_for_organizations(list_id):
-    print(list_id)
     return [
         profile.user.username
         for profile in Profile.objects.filter(
