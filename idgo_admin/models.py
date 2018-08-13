@@ -23,6 +23,7 @@ from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.mail import send_mail
+from django.db import IntegrityError
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
@@ -303,17 +304,18 @@ class Resource(models.Model):
     def anonymous_access(self):
         return self.restricted_level == '0'
 
-    def is_profile_authorized(self, username):
-        if self.restricted_level in ('0', '1'):
-            return True
+    def is_profile_authorized(self, user):
+        if not user.pk:
+            raise IntegrityError('User does not exists')
         if self.restricted_level == '2':
-            return username in (
-                self.profiles_allowed.exists() and
-                [p.user.username for p in self.profiles_allowed.all()] or [])
-        if self.restricted_level in ('3', '4'):
-            return username in (
-                self.organisations_allowed.exists() and
-                get_all_users_for_organizations(self.organisations_allowed))
+            return self.profiles_allowed.exists() and user in [
+                p.user for p in self.profiles_allowed.all()]
+        elif self.restricted_level in ('3', '4'):
+            return self.organisations_allowed.exists() and user in [
+                p.user for p in Profile.objects.filter(
+                    organisation__in=self.organisations_allowed,
+                    organisation__is_active=True)]
+        return True
 
     @property
     def is_datagis(self):
