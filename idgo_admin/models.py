@@ -28,6 +28,7 @@ from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.http import Http404
 from django.urls import reverse
 from django.utils.text import slugify
 from django.utils import timezone
@@ -53,7 +54,9 @@ import os
 from pathlib import Path
 import re
 from taggit.managers import TaggableManager
+from urllib.parse import parse_qs
 from urllib.parse import urljoin
+from urllib.parse import urlparse
 import uuid
 
 
@@ -277,6 +280,40 @@ class Resource(models.Model):
         if self.datagis_id:
             for l_name in self.datagis_id:
                 MRAHandler.enable_layer(l_name)
+
+    @classmethod
+    def get_resources_by_mapserver_url(cls, url):
+
+        parsed_url = urlparse(url.lower())
+        qs = parse_qs(parsed_url.query)
+
+        ows = qs.get('service')
+        if not ows:
+            raise Http404()
+
+        if ows[-1] == 'wms':
+            layers = qs.get('layers')[-1].replace(' ', '').split(',')
+        elif ows[-1] == 'wfs':
+            layers = qs.get('typenames')[-1].replace(' ', '').split(',')
+        else:
+            raise Http404()
+        return cls.objects.filter(datagis_id__contains=layers)
+
+    @property
+    def anonymous_access(self):
+        return self.restricted_level == '0'
+
+    def is_profile_authorized(self, username):
+        if self.restricted_level in ('0', '1'):
+            return True
+        if self.restricted_level == '2':
+            return username in (
+                self.profiles_allowed.exists() and
+                [p.user.username for p in self.profiles_allowed.all()] or [])
+        if self.restricted_level in ('3', '4'):
+            return username in (
+                self.organisations_allowed.exists() and
+                get_all_users_for_organizations(self.organisations_allowed))
 
     @property
     def is_datagis(self):
