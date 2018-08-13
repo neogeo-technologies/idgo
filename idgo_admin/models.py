@@ -342,6 +342,7 @@ class Resource(models.Model):
                 'name': self.name,
                 'description': self.description,
                 'data_type': self.data_type,
+                'extracting_service': str(self.extractable),
                 'format': self.format_type.extension,
                 'view_type': self.format_type.ckan_view,
                 'id': str(self.ckan_id),
@@ -515,6 +516,7 @@ class Resource(models.Model):
                         'description': 'Visualiseur cartographique',
                         # TODO Ajouter URL du GetLengendGraphic
                         'data_type': 'service',
+                        'extracting_service': str(self.extractable),
                         'crs': SupportedCrs.objects.get(
                             auth_name='EPSG', auth_code='4171').description,
                         'lang': self.lang,
