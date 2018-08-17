@@ -510,11 +510,17 @@ class Resource(models.Model):
                         ckan_user.delete_resource(ft_name)
                         continue
 
+                    getlegendgraphic = (
+                        '{}?&version=1.1.1&service=WMS&request=GetLegendGraphic'
+                        '&layer={}&format=image/png').format(
+                            OWS_URL_PATTERN.format(organisation=ws_name).replace('?', ''),
+                            ft_name)
+
                     ckan_params = {
                         'id': ft_name,
                         'name': '{} (OGC:WMS)'.format(self.name),
                         'description': 'Visualiseur cartographique',
-                        # TODO Ajouter URL du GetLengendGraphic
+                        'getlegendgraphic': getlegendgraphic,
                         'data_type': 'service',
                         'extracting_service': str(self.extractable),
                         'crs': SupportedCrs.objects.get(
