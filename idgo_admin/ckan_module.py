@@ -191,13 +191,19 @@ class CkanUserHandler(object):
 
         return resource, view
 
-    @CkanExceptionsHandler()
+    @CkanExceptionsHandler(ignore=[CkanError.NotFound])
     def delete_resource(self, id):
-        return self.call_action('resource_delete', id=id)
+        try:
+            return self.call_action('resource_delete', id=id)
+        except CkanError.NotFound:
+            return None
 
-    @CkanExceptionsHandler()
+    @CkanExceptionsHandler(ignore=[CkanError.NotFound])
     def delete_dataset(self, id):
-        return self.call_action('package_delete', id=id)
+        try:
+            return self.call_action('package_delete', id=id)
+        except CkanError.NotFound:
+            return None
 
 
 class CkanManagerHandler(metaclass=Singleton):
