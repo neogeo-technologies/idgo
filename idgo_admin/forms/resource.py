@@ -45,22 +45,23 @@ class ResourceForm(forms.ModelForm):
 
     class Meta(object):
         model = Resource
-        fields = ('up_file',
-                  'dl_url',
-                  'referenced_url',
-                  'name',
+        fields = ('crs',
+                  'data_type',
                   'description',
-                  'lang',
+                  'dl_url',
+                  'extractable',
                   'format_type',
-                  'restricted_level',
-                  'profiles_allowed',
+                  'geo_restriction',
+                  'lang',
+                  'name',
+                  'ogc_services',
                   'organisations_allowed',
+                  'profiles_allowed',
+                  'referenced_url',
+                  'restricted_level',
                   'synchronisation',
                   'sync_frequency',
-                  'geo_restriction',
-                  'extractable',
-                  'ogc_services',
-                  'crs')
+                  'up_file')
 
     # _instance = None
     _dataset = None
@@ -182,9 +183,10 @@ class ResourceForm(forms.ModelForm):
             'size': memory_up_file.size} or None
 
         data = self.cleaned_data
-        params = {'dataset': dataset,
+        params = {'crs': data['crs'],
+                  'data_type': data['data_type'],
+                  'dataset': dataset,
                   'description': data['description'],
-                  'crs': data['crs'],
                   'dl_url': data['dl_url'],
                   'extractable': data['extractable'],
                   'format_type': data['format_type'],
