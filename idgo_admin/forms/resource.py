@@ -169,7 +169,6 @@ class ResourceForm(forms.ModelForm):
             dl_url and self.add_error('dl_url', error_msg)
             referenced_url and self.add_error('referenced_url', error_msg)
 
-        self.cleaned_data['organisations_allowed'] = [self._dataset.organisation]
         self.cleaned_data['last_update'] = timezone.now().date()
 
     def handle_me(self, request, dataset, id=None):
@@ -211,8 +210,14 @@ class ResourceForm(forms.ModelForm):
         else:  # Création d'une nouvelle ressource
             resource = Resource.objects.create(**params)
 
-        resource.organizations_allowed = data['organisations_allowed']
-        resource.profiles_allowed = data['profiles_allowed']
+        lvl = resource.restricted_level
+        if lvl == '2':
+            resource.profiles_allowed = data['profiles_allowed']
+        if lvl == '3':
+            resource.organisations_allowed = [self._dataset.organisation]
+        if lvl == '4':
+            resource.organisations_allowed = data['organisations_allowed']
+
         resource.save(editor=user, file_extras=file_extras, sync_ckan=True)
 
         return resource
