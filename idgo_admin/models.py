@@ -534,7 +534,9 @@ class Resource(models.Model):
 
                 resources = Resource.objects.filter(dataset=self.dataset)
                 self.dataset.bbox = get_extent(
-                    [item for sub in [r.datagis_id for r in resources] for item in sub])
+                    [item for sub in [
+                        r.datagis_id for r in resources if r.datagis_id
+                        ] for item in sub])
 
             ckan_user.close()
             # Endif sync_ckan
