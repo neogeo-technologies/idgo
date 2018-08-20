@@ -2,6 +2,16 @@
 
 {% include "idgo_admin/alert_messages.html" %}
 
+<div class="well">
+	<div class="form-group">
+		<input name="dataset" type="text" class="typeahead form-control" placeholder="Recherche libre" data-provide="typeahead"></input>
+	</div>
+	<div class="form-group">
+		<input name="organisation" type="text" class="typeahead form-control" placeholder="Sélectionner une organisation" data-provide="typeahead"></input>
+	</div>
+	<button role="button" name="filter" class="btn btn-default">Filtrer</button>
+</div>
+
 <div id="datasets">
 	<div class="buttons-on-the-right-side">
 		<a name="export-csv" class="btn btn-default">Exporter</a>
@@ -260,12 +270,13 @@ $(function() {
 			grid.refreshGrid();
 			$containerId.show();
 		} else {
-			$containerId.hide();
+			$containerId.html('<div class="alert alert-warning" role="alert">Aucun jeu de données trouvé.</div>');
+			$containerId.show();
 		};
 
 		const isContributor = {{ is_contributor | yesno:"true,false,none" }};
 
-		if (data.length == 0 && isContributor || !isContributor) {
+		if ({{ all_datasets | length }} == 0 && isContributor || !isContributor) {
 			$containerId.parent().before('<div role="alert" class="alert alert-info"><span class="glyphicon glyphicon-bell" aria-hidden="true"></span>Vous êtes un utilisateur enregistré. Pour profiter des fonctionnalités participatives de DATASUD, vous pouvez parcourir <a href="{{ ckan_url }}" target="_blank">Le Catalogue</a>.</div>');
 		};
 
@@ -277,7 +288,7 @@ $(function() {
 			$containerId.parent().before('<div role="alert" class="alert alert-warning"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n\'êtes contributeur d\'aucune organisation. Dans le menu <a href="{% url "idgo_admin:all_organizations" %}">Les Organisations</a>, vous pouvez choisir une organisation à laquelle contribuer ou bien en créer <a href="{% url "idgo_admin:create_organization" %}">une nouvelle</a>.</div>');
 		};
 
-		if (data.length == 0 && isContributor) {
+		if ({{ all_datasets | length }} == 0 && isContributor) {
 			$parent.find('button.btn, a.btn').each(function() {
 				deactivateButton($(this));
 				$(this).hide();
@@ -354,10 +365,11 @@ $(function() {
 						data[i][3],  // date_modification
 						data[i][4],  // date_publication
 						data[i][5],  // organization
-						data[i][6],  // published
-						data[i][7],  // is_inspire
-						data[i][8],  // ckan_slug
-						data[i][9],  // is_contributor
+						// data[i][6],  // editor
+						data[i][7],  // published
+						data[i][8],  // is_inspire
+						data[i][9],  // ckan_slug
+						data[i][10],  // is_contributor
 						data[i][0]   // id
 					]
 				});
@@ -365,6 +377,80 @@ $(function() {
 			return m;
 		})(DATA)
 	);
+
+	//
+	var qs = {}
+
+	const getQueryVariable = function(variable) {
+		var query = window.location.search.substring(1);
+		var vars = query.split('&');
+		for (var i = 0; i < vars.length; i++) {
+			var pair = vars[i].split('=');
+			if (decodeURIComponent(pair[0]) == variable) {
+				return decodeURIComponent(pair[1]);
+			};
+		};
+	};
+
+	const $typeaheadOrganisation = $('input.typeahead[name="organisation"]')
+		.typeahead({
+			source: (function() {
+				var arr = [];
+				{% for item in all_organisations %}
+				arr.push({'id': '{{ item.id }}', 'name': '{{ item.name }}'});
+				{% endfor %}
+				return arr;
+			})(),
+			autoSelect: true,
+			fitToElement: true,
+			afterSelect: function(val) {
+				qs['organisation'] = val.id;
+			}
+		})
+		.typeahead('selectBy', 'id', getQueryVariable('organisation'));
+
+
+	const $typeaheadDataset = $('input.typeahead[name="dataset"]')
+		.on('input', function() {
+			qs['q'] = this.value;
+		})
+		.typeahead({
+			source: (function() {
+				var arr = [];
+				{% for item in all_datasets %}
+				arr.push({'id': '{{ item.id }}', 'name': '{{ item.name }}'});
+				{% endfor %}
+				return arr;
+			})(),
+			autoSelect: false,
+			fitToElement: false,
+			afterSelect: function(val) {
+				handler('q', val.name);
+			}
+		})
+		.val(getQueryVariable('q'));
+
+	$filterButton = $('button[name="filter"]').click(function(e) {
+		e.preventDefault();
+		for (k in qs) {
+			const k_ = encodeURI(k);
+			const v_ = encodeURI(qs[k]);
+			var kvp = window.location.search.substr(1).split('&');
+
+			var i = kvp.length; var x; while (i--) {
+				x = kvp[i].split('=');
+				if (x[0] == k_) {
+					x[1] = v_;
+					kvp[i] = x.join('=');
+					break;
+				}
+			};
+			if (i < 0) {
+				kvp[kvp.length] = [k_, v_].join('=');
+			};
+		};
+		window.location.search = kvp.join('&');
+	});
 
 	$(window).bind('hashchange', function(e) {
 		selectRowByDataId(window.location.hash.split('/')[1]);

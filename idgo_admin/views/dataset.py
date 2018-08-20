@@ -39,6 +39,7 @@ from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
+from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
@@ -265,6 +266,69 @@ class DatasetManager(View):
         return HttpResponse(status=status)
 
 
+def get_all_organisations(profile):
+    return [{
+        'id': instance.ckan_slug,
+        'name': instance.name
+        } for instance in Organisation.objects.filter(
+            is_active=True,
+            liaisonscontributeurs__profile=profile,
+            liaisonscontributeurs__validated_on__isnull=False)]
+
+
+def get_all_datasets(profile, strict=False):
+
+    filters = {}
+    if strict:
+        filters['editor'] = profile.user
+    else:
+        filters['organisation__in'] = \
+            LiaisonsReferents.get_subordinated_organizations(profile=profile)
+
+    return [{
+        'id': instance.ckan_slug,
+        'name': instance.name,
+        # 'name': ' '.join('{} {}'.format(instance.name, instance.description).splitlines())
+        } for instance in Dataset.objects.filter(**filters)]
+
+
+def get_datasets(profile, qs, strict=False):
+
+    filters = {}
+    if strict:
+        filters['editor'] = profile.user
+    else:
+        filters['organisation__in'] = \
+            LiaisonsReferents.get_subordinated_organizations(profile=profile)
+
+    q = qs.get('q', None)
+    published = {
+        'true': True,
+        'false': False}.get(qs.get('published', '').lower())
+
+    if q:
+        filters['name__icontains'] = q
+        # filters['description__icontains'] = q
+    if published:
+        filters['published'] = published
+
+    print(filters)
+
+    return [(
+        instance.pk,
+        instance.name,
+        instance.date_creation.isoformat() if instance.date_creation else None,
+        instance.date_modification.isoformat() if instance.date_modification else None,
+        instance.date_publication.isoformat() if instance.date_publication else None,
+        Organisation.objects.get(id=instance.organisation_id).name,
+        instance.editor.get_full_name() if instance.editor != profile.user else 'Moi',
+        instance.published,
+        instance.is_inspire,
+        instance.ckan_slug,
+        profile in LiaisonsContributeurs.get_contributors(instance.organisation)
+        ) for instance in Dataset.objects.filter(**filters)]
+
+
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
@@ -272,23 +336,17 @@ def datasets(request, *args, **kwargs):
 
     user, profile = user_and_profile(request)
 
-    datasets = [(
-        o.pk,
-        o.name,
-        o.date_creation.isoformat() if o.date_creation else None,
-        o.date_modification.isoformat() if o.date_modification else None,
-        o.date_publication.isoformat() if o.date_publication else None,
-        Organisation.objects.get(id=o.organisation_id).name,
-        o.published,
-        o.is_inspire,
-        o.ckan_slug,
-        profile in LiaisonsContributeurs.get_contributors(o.organisation)
-        ) for o in Dataset.objects.filter(editor=user)]
+    all_datasets = get_all_datasets(profile, strict=True)
+    all_organisations = get_all_organisations(profile)
+    filtered_datasets = get_datasets(profile, request.GET, strict=True)
 
     return render_with_info_profile(
         request, 'idgo_admin/datasets.html', status=200,
-        context={'datasets': json.dumps(datasets),
-                 'datasets_count': len(datasets)})
+        context={
+            'all_datasets': all_datasets,
+            'all_organisations': all_organisations,
+            'datasets': json.dumps(filtered_datasets),
+            'datasets_count': len(filtered_datasets)})
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -299,26 +357,20 @@ def all_datasets(request, *args, **kwargs):
     user, profile = user_and_profile(request)
 
     roles = profile.get_roles()
-    if not roles["is_referent"] and not roles["is_admin"]:
+    if not roles['is_referent'] and not roles['is_admin']:
         raise Http404
 
-    datasets = [(
-        d.pk,
-        d.name,
-        d.date_creation.isoformat() if d.date_creation else None,
-        d.date_modification.isoformat() if d.date_modification else None,
-        d.date_publication.isoformat() if d.date_publication else None,
-        Organisation.objects.get(id=d.organisation_id).name,
-        d.editor.get_full_name() if d.editor != user else 'Moi',
-        d.published,
-        d.is_inspire,
-        d.ckan_slug,
-        ) for d in Dataset.get_subordinated_datasets(profile)]
+    all_datasets = get_all_datasets(profile, strict=True)
+    all_organisations = get_all_organisations(profile)
+    filtered_datasets = get_datasets(profile, request.GET)
 
     return render_with_info_profile(
         request, 'idgo_admin/all_datasets.html', status=200,
-        context={'datasets': json.dumps(datasets),
-                 'datasets_count': len(datasets)})
+        context={
+            'all_datasets': all_datasets,
+            'all_organisations': all_organisations,
+            'datasets': json.dumps(filtered_datasets),
+            'datasets_count': len(filtered_datasets)})
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
