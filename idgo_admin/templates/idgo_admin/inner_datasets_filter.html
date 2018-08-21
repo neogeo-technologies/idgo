@@ -118,7 +118,7 @@
 		<br />
 	</div>
 	<div class="buttons-on-the-right-side">
-		<button role="button" name="more-filter-criteria" class="btn btn-default" data-toggle="collapse" href="#more-filter-criteria">Plus de critères</button>
+		<button role="button" name="more-filter-criteria" class="btn btn-default" data-toggle="collapse" href="#more-filter-criteria">Plus de critères de filtre</button>
 		<button role="button" name="clear-all" class="btn btn-default">Réinitialiser</button>
 		<button role="button" name="submit" class="btn btn-default">Rechercher</button>
 	</div>
@@ -253,18 +253,21 @@ $(function() {
 		$submit.trigger('click');
 	});
 
+	const $moreFilterCriteriaButton = $('button[name="more-filter-criteria"]');
 	const $moreFilterCriteria = $('#more-filter-criteria')
-		.collapse(qs['c'] ? 'show' : 'hide')
-		.on('shown.bs.collapse', function() {
+		.on('show.bs.collapse', function() {
+			$moreFilterCriteriaButton.html($moreFilterCriteriaButton.html().replace('Plus', 'Moins'));
 			qs['c'] = null;
 		})
 		.on('hide.bs.collapse', function() {
+			$moreFilterCriteriaButton.html($moreFilterCriteriaButton.html().replace('Moins', 'Plus'));
 			delete qs['c'];
 			// Fermer le `collapse` réinitialise les critères optionnels
 			$(this).find('input, select').each(function(i) {
 				clear($(this));
 			});
-		});
+		})
+		.collapse(qs['c'] ? 'show' : 'hide');
 
 	const $submit = $div.find('button[name="submit"]')
 		.click(function(e) {
