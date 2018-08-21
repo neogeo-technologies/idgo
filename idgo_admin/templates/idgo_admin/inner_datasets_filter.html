@@ -125,7 +125,6 @@
 </div>
 <script>
 $(function() {
-	var qs = {};
 	const $div = $('#datasets-filter');
 
 	$div.find('button[name="clear"]').popover({
@@ -133,15 +132,12 @@ $(function() {
 		'content': 'Effacer'
 	});
 
-	const getQueryVariable = function(variable) {
-		var query = window.location.search.substring(1);
-		var vars = query.split('&');
-		for (var i = 0; i < vars.length; i++) {
-			var pair = vars[i].split('=');
-			if (decodeURIComponent(pair[0]) == variable) {
-				return decodeURIComponent(pair[1]);
-			};
-		};
+	var query = window.location.search.substring(1);
+	var vars = query.split('&');
+	var qs = {};
+	for (var i = 0; i < vars.length; i ++) {
+		const pair = vars[i].split('=');
+		qs[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
 	};
 
 	$div.find('input.typeahead[name="dataset"]')
@@ -163,7 +159,7 @@ $(function() {
 				qs['dataset'] = val.id;
 			}
 		})
-		.val(getQueryVariable('q'));
+		.val(qs['q']);
 
 	$div.find('input.typeahead[name="organisation"]')
 		// Recherche strict sur organisation
@@ -184,20 +180,20 @@ $(function() {
 				qs['organisation'] = val.id;
 			}
 		})
-		.typeahead('selectBy', 'id', getQueryVariable('organisation'));
+		.typeahead('selectBy', 'id', qs['organisation']);
 
 	const $selectCategory = $div.find('select[name="category"]')
 		// Recherche strict sur catégorie
 		.on('change', function() {
 			qs['category'] = this.value;
 		});
-	$selectCategory.val(getQueryVariable('category') || $selectCategory.find('option:first').val());
+	$selectCategory.val(qs['category'] || $selectCategory.find('option:first').val());
 
 	$div.find('input[name="private"]')
 		// Recherche strict sur le statut de publication des jeux de données
 		.on('change', function() {
 			qs['private'] = $(this).prop('checked');
-		}).prop('checked', getQueryVariable('private') == 'true' ? true : false)
+		}).prop('checked', qs['private'] == 'true' ? true : false)
 
 	const $selectSyncFrequency = $div.find('select[name="syncfrequency"]')
 		// Recherche strict sur fréquence de synchronisation
@@ -205,7 +201,7 @@ $(function() {
 				.on('change', function() {
 			qs['syncfrequency'] = this.value;
 		});
-	$selectSyncFrequency.val(getQueryVariable('syncfrequency') || $selectSyncFrequency.find('option:first').val());
+	$selectSyncFrequency.val(qs['syncfrequency'] || $selectSyncFrequency.find('option:first').val());
 
 	$div.find('input[name="sync"]')
 		// Recherche strict sur les jeux de données qui ont au moins une ressource synchronisée
@@ -220,7 +216,7 @@ $(function() {
 				$selectSyncFrequency.val($selectSyncFrequency.find('option:first').val());
 			};
 		})
-		.prop('checked', getQueryVariable('sync') == 'true' ? true : false)
+		.prop('checked', qs['sync'] == 'true' ? true : false)
 		.trigger('change');
 
 	const $selectLicense = $div.find('select[name="license"]')
@@ -228,21 +224,20 @@ $(function() {
 		.on('change', function() {
 			qs['license'] = this.value;
 		});
-	$selectLicense.val(getQueryVariable('license') || $selectLicense.find('option:first').val());
+	$selectLicense.val(qs['license'] || $selectLicense.find('option:first').val());
 
 	const $selectResourceFormat = $div.find('select[name="resourceformat"]')
 		// Recherche strict sur un format de ressource
 		.on('change', function() {
 			qs['resourceformat'] = this.value;
 		});
-	$selectResourceFormat.val(getQueryVariable('resourceformat') || $selectResourceFormat.find('option:first').val());
+	$selectResourceFormat.val(qs['resourceformat'] || $selectResourceFormat.find('option:first').val());
 
 	const clear = function($target) {
 		$target.is('input[type="checkbox"]') && $target.prop('checked', false);
 		$target.is('input[type="text"]') && $target.val('');
 		$target.is('select') && $target.val($target.find('option:first').val());
-		qs = {};
-		$submit.trigger('click');
+		delete qs[$target.prop('name')];
 	};
 
 	$div.find('button[name="clear"]').click(function(e) {
@@ -255,11 +250,16 @@ $(function() {
 		$div.find('input, select').each(function(i) {
 			clear($(this));
 		});
+		$submit.trigger('click');
 	});
 
-	const $moreFilterCriteria = $('#more-filter-criteria').collapse()
-		// TODO Renommer le bouton `collapse`
+	const $moreFilterCriteria = $('#more-filter-criteria')
+		.collapse(qs['c'] ? 'show' : 'hide')
+		.on('shown.bs.collapse', function() {
+			qs['c'] = null;
+		})
 		.on('hide.bs.collapse', function() {
+			delete qs['c'];
 			// Fermer le `collapse` réinitialise les critères optionnels
 			$(this).find('input, select').each(function(i) {
 				clear($(this));
@@ -270,21 +270,10 @@ $(function() {
 		.click(function(e) {
 			e.preventDefault();
 			var kvp = [];
-			for (k in qs) {
-				const k_ = encodeURI(k);
-				const v_ = encodeURI(qs[k]);
-				kvp = window.location.search.substr(1).split('&');
-				var i = kvp.length; var x; while (i--) {
-					x = kvp[i].split('=');
-					if (x[0] == k_) {
-						x[1] = v_;
-						kvp[i] = x.join('=');
-						break;
-					};
-				};
-				if (i < 0) {
-					kvp[kvp.length] = [k_, v_].join('=');
-				};
+			for (var k in qs) {
+				const key = encodeURI(k);
+				const val = qs[k] && encodeURI(qs[k]);
+				kvp.push(val ? key + '=' + val : key);
 			};
 			window.location.search = kvp.join('&');
 		});
