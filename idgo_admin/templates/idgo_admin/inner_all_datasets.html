@@ -9,7 +9,7 @@
 {% else %}
 <div id="alldatasets">
 	<div class="buttons-on-the-right-side">
-		<a name="export-csv" class="btn btn-default">Exporter</a>
+		{% include "idgo_admin/export_csv.html" %}
 	</div>
 	<div id="table-alldatasets" class="table-responsive"></div>
 	<nav aria-label="Page navigation" style="text-align: center;">
@@ -48,18 +48,6 @@ $(function() {
 		targetBlank(CKAN_URL + '/dataset/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_slug']);
 		e.stopPropagation();
 	});
-
-	const $exportCSV = $('#alldatasets a[name="export-csv"]').on('click', function(e) {
-		e.preventDefault();
-		targetBlank('{% url "idgo_admin:export" %}?format=csv&mode=all');
-		e.stopPropagation();
-	});
-
-	if (DATA.length > 0) {
-		activateButton($exportCSV);
-	} else {
-		deactivateButton($exportCSV);
-	};
 
 	$('#alldatasets button[name="delete-dataset"]')
 		.on('click', function(e) {

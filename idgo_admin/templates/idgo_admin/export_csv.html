@@ -1,0 +1,38 @@
+<div class="btn-group">
+	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		Exporter <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
+	</button>
+	<ul class="dropdown-menu dropdown-menu-right">
+		<li><a role="button" name="export-csv" format="odl1" style="text-align: right;">Format ODL 1 (SCDL 1.0 ANSI, point-virgule)</a></li>
+		<li><a role="button" name="export-csv" format="odl2" style="text-align: right;">Format ODL 2 (SCDL 1.0 UTF-8, virgule)</a></li>
+		<li><a role="button" name="export-csv" format="datasud1" style="text-align: right;">Format Datasud 1 (SCDL 1.0 ANSI, point-virgule)</a></li>
+		<li><a role="button" name="export-csv" format="datasud2" style="text-align: right;">Format Datasud 2 (SCDL 1.0  UTF-8, virgule)</a></li>
+	</ul>
+</div>
+<script>
+$(function() {
+
+	var query = window.location.search.substring(1);
+	var vars = query.split('&');
+	var qs = {};
+	for (var i = 0; i < vars.length; i ++) {
+		const pair = vars[i].split('=');
+		qs[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+	};
+
+	$('a[name="export-csv"]').on('click', function(e) {
+		e.preventDefault();
+		qs['format'] = $(this).attr('format');
+		// TODO Vérifier si All ou Mine
+
+		var kvp = [];
+		for (var k in qs) {
+			const key = encodeURI(k);
+			const val = qs[k] && encodeURI(qs[k]);
+			kvp.push(val ? key + '=' + val : key);
+		};
+		targetBlank('{% url "idgo_admin:export" %}?' + kvp.join('&'));
+		e.stopPropagation();
+	});
+});
+</script>

@@ -333,19 +333,7 @@ def get_datasets(profile, qs, strict=False):
     if resource_format:
         filters['resource__format_type__extension'] = resource_format
 
-    return [(
-        instance.pk,
-        instance.name,
-        instance.date_creation.isoformat() if instance.date_creation else None,
-        instance.date_modification.isoformat() if instance.date_modification else None,
-        instance.date_publication.isoformat() if instance.date_publication else None,
-        Organisation.objects.get(id=instance.organisation_id).name,
-        instance.editor.get_full_name() if instance.editor != profile.user else 'Moi',
-        instance.published,
-        instance.is_inspire,
-        instance.ckan_slug,
-        profile in LiaisonsContributeurs.get_contributors(instance.organisation)
-        ) for instance in Dataset.objects.filter(**filters)]
+    return Dataset.objects.filter(**filters)
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -369,7 +357,20 @@ def my_datasets(request, *args, **kwargs):
     all_update_frequencies = [
         {'id': choice[0], 'name': choice[1]}
         for choice in Resource.FREQUENCY_CHOICES]
-    filtered_datasets = get_datasets(profile, request.GET, strict=True)
+
+    filtered_datasets = [(
+        instance.pk,
+        instance.name,
+        instance.date_creation.isoformat() if instance.date_creation else None,
+        instance.date_modification.isoformat() if instance.date_modification else None,
+        instance.date_publication.isoformat() if instance.date_publication else None,
+        Organisation.objects.get(id=instance.organisation_id).name,
+        instance.editor.get_full_name() if instance.editor != profile.user else 'Moi',
+        instance.published,
+        instance.is_inspire,
+        instance.ckan_slug,
+        profile in LiaisonsContributeurs.get_contributors(instance.organisation)
+        ) for instance in get_datasets(profile, request.GET, strict=True)]
 
     return render_with_info_profile(
         request, 'idgo_admin/datasets.html', status=200,
@@ -410,7 +411,19 @@ def all_datasets(request, *args, **kwargs):
         {'id': choice[0], 'name': choice[1]}
         for choice in Resource.FREQUENCY_CHOICES]
 
-    filtered_datasets = get_datasets(profile, request.GET)
+    filtered_datasets = [(
+        instance.pk,
+        instance.name,
+        instance.date_creation.isoformat() if instance.date_creation else None,
+        instance.date_modification.isoformat() if instance.date_modification else None,
+        instance.date_publication.isoformat() if instance.date_publication else None,
+        Organisation.objects.get(id=instance.organisation_id).name,
+        instance.editor.get_full_name() if instance.editor != profile.user else 'Moi',
+        instance.published,
+        instance.is_inspire,
+        instance.ckan_slug,
+        profile in LiaisonsContributeurs.get_contributors(instance.organisation)
+        ) for instance in get_datasets(profile, request.GET)]
 
     return render_with_info_profile(
         request, 'idgo_admin/all_datasets.html', status=200,
@@ -432,21 +445,24 @@ def export(request, *args, **kwargs):
 
     user, profile = user_and_profile(request)
 
-    if profile.get_roles()["is_referent"] and request.GET.get('mode') == 'all':
-        datasets = Dataset.get_subordinated_datasets(profile)
-    else:
-        datasets = Dataset.objects.filter(editor=user)
+    strict = request.GET.get('mode') == 'all' and False and True
+    if not strict:
+        roles = profile.get_roles()
+        if not roles['is_referent'] and not roles['is_admin']:
+            raise Http404
 
-    if request.GET.get('format') == 'csv':
-        datasets = datasets.annotate(
-            Auteur=F('editor__email'),
-            Nom_organisation=F('organisation__name'),
-            Titre_licence=F('license__title'),
-            ).values(
-                'name', 'description', 'Auteur', 'published', 'is_inspire',
-                'date_creation', 'date_publication', 'date_modification',
-                'Nom_organisation', 'Titre_licence', 'update_freq',
-                'geocover', 'ckan_slug')
-        return render_to_csv_response(datasets)
+    filtered_datasets = get_datasets(profile, request.GET, strict=strict)
 
-    raise Http404
+    # if request.GET.get('format') == 'csv':
+    datasets = filtered_datasets.annotate(
+        Auteur=F('editor__email'),
+        Nom_organisation=F('organisation__name'),
+        Titre_licence=F('license__title'),
+        ).values(
+            'name', 'description', 'Auteur', 'published', 'is_inspire',
+            'date_creation', 'date_publication', 'date_modification',
+            'Nom_organisation', 'Titre_licence', 'update_freq',
+            'geocover', 'ckan_slug')
+    return render_to_csv_response(datasets)
+
+    # raise Http404

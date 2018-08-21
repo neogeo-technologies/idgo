@@ -6,7 +6,7 @@
 
 <div id="datasets">
 	<div class="buttons-on-the-right-side">
-		<a name="export-csv" class="btn btn-default">Exporter</a>
+		{% include "idgo_admin/export_csv.html" %}
 		<a name="add-dataset" class="btn btn-primary" href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a>
 	</div>
 	<div id="table-datasets" class="table-responsive"></div>
@@ -46,19 +46,6 @@ $(function() {
 		targetBlank(CKAN_URL + '/dataset/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_slug']);
 		e.stopPropagation();
 	});
-
-	const $exportCSV = $('#datasets a[name="export-csv"]').on('click', function(e) {
-		e.preventDefault();
-		targetBlank('{% url "idgo_admin:export" %}?format=csv');
-		e.stopPropagation();
-	});
-
-	if (DATA.length > 0) {
-		activateButton($exportCSV);
-	} else {
-		deactivateButton($exportCSV);
-		$($exportCSV).hide();
-	};
 
 	$('#datasets button[name="delete-dataset"]')
 		.on('click', function(e) {
