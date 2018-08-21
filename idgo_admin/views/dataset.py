@@ -41,9 +41,11 @@ from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
+from idgo_admin.models import License
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
+from idgo_admin.models import ResourceFormats
 from idgo_admin.models import Support
 from idgo_admin.mra_client import MRANotFoundError
 from idgo_admin.shortcuts import get_object_or_404_extended
@@ -305,15 +307,31 @@ def get_datasets(profile, qs, strict=False):
     q = qs.get('q', None)
     if q:
         filters['name__icontains'] = q
-        # filters['description__icontains'] = q
+        filters['description__icontains'] = q
 
-    published = {'true': True, 'false': False}.get(qs.get('published', '').lower())
-    if published:
-        filters['published'] = published
+    private = {'true': True, 'false': False}.get(qs.get('private', '').lower())
+    if private:
+        filters['published'] = not private
 
     category = qs.get('category', None)
     if category:
         filters['categories__in'] = Category.objects.filter(ckan_slug=category)
+
+    license = qs.get('license', None)
+    if license:
+        filters['license__id'] = license
+
+    synchronisation = {'true': True, 'false': False}.get(qs.get('sync', '').lower())
+    if synchronisation:
+        filters['resource__synchronisation'] = synchronisation
+
+    sync_frequency = qs.get('syncfrequency', None)
+    if synchronisation and sync_frequency:
+        filters['resource__sync_frequency'] = sync_frequency
+
+    resource_format = qs.get('resourceformat', None)
+    if resource_format:
+        filters['resource__format_type__extension'] = resource_format
 
     return [(
         instance.pk,
@@ -341,7 +359,16 @@ def my_datasets(request, *args, **kwargs):
         {'id': instance.ckan_slug, 'name': instance.name}
         for instance in Category.objects.all()]
     all_datasets = get_all_datasets(profile, strict=True)
+    all_licenses = [
+        {'id': instance.id, 'name': instance.title}
+        for instance in License.objects.all()]
     all_organisations = get_all_organisations(profile)
+    all_resourceformats = [
+        {'id': instance.extension, 'name': instance.extension}
+        for instance in ResourceFormats.objects.all()]
+    all_update_frequencies = [
+        {'id': choice[0], 'name': choice[1]}
+        for choice in Resource.FREQUENCY_CHOICES]
     filtered_datasets = get_datasets(profile, request.GET, strict=True)
 
     return render_with_info_profile(
@@ -349,7 +376,10 @@ def my_datasets(request, *args, **kwargs):
         context={
             'all_categories': all_categories,
             'all_datasets': all_datasets,
+            'all_licenses': all_licenses,
             'all_organisations': all_organisations,
+            'all_resourceformats': all_resourceformats,
+            'all_update_frequencies': all_update_frequencies,
             'datasets': json.dumps(filtered_datasets),
             'datasets_count': len(filtered_datasets)})
 
@@ -369,7 +399,17 @@ def all_datasets(request, *args, **kwargs):
         {'id': instance.ckan_slug, 'name': instance.name}
         for instance in Category.objects.all()]
     all_datasets = get_all_datasets(profile, strict=True)
+    all_licenses = [
+        {'id': instance.id, 'name': instance.title}
+        for instance in License.objects.all()]
     all_organisations = get_all_organisations(profile)
+    all_resourceformats = [
+        {'id': instance.extension, 'name': instance.extension}
+        for instance in ResourceFormats.objects.all()]
+    all_update_frequencies = [
+        {'id': choice[0], 'name': choice[1]}
+        for choice in Resource.FREQUENCY_CHOICES]
+
     filtered_datasets = get_datasets(profile, request.GET)
 
     return render_with_info_profile(
@@ -377,7 +417,10 @@ def all_datasets(request, *args, **kwargs):
         context={
             'all_categories': all_categories,
             'all_datasets': all_datasets,
+            'all_licenses': all_licenses,
             'all_organisations': all_organisations,
+            'all_resourceformats': all_resourceformats,
+            'all_update_frequencies': all_update_frequencies,
             'datasets': json.dumps(filtered_datasets),
             'datasets_count': len(filtered_datasets)})
 
