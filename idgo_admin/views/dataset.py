@@ -37,6 +37,7 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.dataset import DatasetForm as Form
+from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
@@ -302,17 +303,17 @@ def get_datasets(profile, qs, strict=False):
             LiaisonsReferents.get_subordinated_organizations(profile=profile)
 
     q = qs.get('q', None)
-    published = {
-        'true': True,
-        'false': False}.get(qs.get('published', '').lower())
-
     if q:
         filters['name__icontains'] = q
         # filters['description__icontains'] = q
+
+    published = {'true': True, 'false': False}.get(qs.get('published', '').lower())
     if published:
         filters['published'] = published
 
-    print(filters)
+    category = qs.get('category', None)
+    if category:
+        filters['categories__in'] = Category.objects.filter(ckan_slug=category)
 
     return [(
         instance.pk,
@@ -332,10 +333,13 @@ def get_datasets(profile, qs, strict=False):
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
-def datasets(request, *args, **kwargs):
+def my_datasets(request, *args, **kwargs):
 
     user, profile = user_and_profile(request)
 
+    all_categories = [
+        {'id': instance.ckan_slug, 'name': instance.name}
+        for instance in Category.objects.all()]
     all_datasets = get_all_datasets(profile, strict=True)
     all_organisations = get_all_organisations(profile)
     filtered_datasets = get_datasets(profile, request.GET, strict=True)
@@ -343,6 +347,7 @@ def datasets(request, *args, **kwargs):
     return render_with_info_profile(
         request, 'idgo_admin/datasets.html', status=200,
         context={
+            'all_categories': all_categories,
             'all_datasets': all_datasets,
             'all_organisations': all_organisations,
             'datasets': json.dumps(filtered_datasets),
@@ -360,6 +365,9 @@ def all_datasets(request, *args, **kwargs):
     if not roles['is_referent'] and not roles['is_admin']:
         raise Http404
 
+    all_categories = [
+        {'id': instance.ckan_slug, 'name': instance.name}
+        for instance in Category.objects.all()]
     all_datasets = get_all_datasets(profile, strict=True)
     all_organisations = get_all_organisations(profile)
     filtered_datasets = get_datasets(profile, request.GET)
@@ -367,6 +375,7 @@ def all_datasets(request, *args, **kwargs):
     return render_with_info_profile(
         request, 'idgo_admin/all_datasets.html', status=200,
         context={
+            'all_categories': all_categories,
             'all_datasets': all_datasets,
             'all_organisations': all_organisations,
             'datasets': json.dumps(filtered_datasets),

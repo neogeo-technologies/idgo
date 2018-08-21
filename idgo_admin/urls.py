@@ -27,8 +27,8 @@ from idgo_admin.views.account import UpdateAccount
 from idgo_admin.views.action import ActionsManager
 from idgo_admin.views.dataset import all_datasets
 from idgo_admin.views.dataset import DatasetManager
-from idgo_admin.views.dataset import datasets
 from idgo_admin.views.dataset import export
+from idgo_admin.views.dataset import my_datasets
 from idgo_admin.views.mailer import confirm_contribution
 from idgo_admin.views.mailer import confirm_new_orga
 from idgo_admin.views.mailer import confirm_rattachement
@@ -49,7 +49,7 @@ from idgo_admin.views.stuffs import ows_preview
 
 
 urlpatterns = [
-    url('^$', datasets, name='datasets'),  # TODO: Home Page
+    url('^$', my_datasets, name='datasets'),  # TODO: Home Page
 
     url('^signin/?$', SignIn.as_view(), name='signIn'),
     url('^signout/?$', SignOut.as_view(), name='signOut'),
@@ -64,7 +64,7 @@ urlpatterns = [
 
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/?$', MDEdit.as_view(), name='mdedit'),
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/edit/?$', MDEditTplEdit.as_view(), name='mdedit_tpl_edit'),
-    url('^dataset/mine/?$', datasets, name='datasets'),
+    url('^dataset/mine/?$', my_datasets, name='datasets'),
     url('^dataset/all/?$', all_datasets, name='all_datasets'),
     url('^dataset/export/?$', export, name='export'),
 
