@@ -18,7 +18,6 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.db.models import F
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
@@ -28,7 +27,6 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from djqscsv import render_to_csv_response
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanNotFoundError
 from idgo_admin.ckan_module import CkanSyncingError
@@ -436,33 +434,3 @@ def all_datasets(request, *args, **kwargs):
             'all_update_frequencies': all_update_frequencies,
             'datasets': json.dumps(filtered_datasets),
             'datasets_count': len(filtered_datasets)})
-
-
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-@login_required(login_url=settings.LOGIN_URL)
-@csrf_exempt
-def export(request, *args, **kwargs):
-
-    user, profile = user_and_profile(request)
-
-    strict = request.GET.get('mode') == 'all' and False and True
-    if not strict:
-        roles = profile.get_roles()
-        if not roles['is_referent'] and not roles['is_admin']:
-            raise Http404
-
-    filtered_datasets = get_datasets(profile, request.GET, strict=strict)
-
-    # if request.GET.get('format') == 'csv':
-    datasets = filtered_datasets.annotate(
-        Auteur=F('editor__email'),
-        Nom_organisation=F('organisation__name'),
-        Titre_licence=F('license__title'),
-        ).values(
-            'name', 'description', 'Auteur', 'published', 'is_inspire',
-            'date_creation', 'date_publication', 'date_modification',
-            'Nom_organisation', 'Titre_licence', 'update_freq',
-            'geocover', 'ckan_slug')
-    return render_to_csv_response(datasets)
-
-    # raise Http404
