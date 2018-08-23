@@ -387,6 +387,10 @@ div.main-container {
     bottom: 0;
 }
 
+table {
+    font-size: 13px;
+}
+
 table>thead {
     color: #333333;
 }
@@ -411,6 +415,11 @@ table tr.disabled:focus {
     pointer-events: none;
     cursor: not-allowed;
     color: #aaa;
+}
+
+table tr th,
+table tr td {
+    padding: 9px 6px !important;
 }
 
 table tr.selected td {

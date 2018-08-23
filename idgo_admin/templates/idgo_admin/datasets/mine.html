@@ -1,19 +1,7 @@
-{% load bootstrap3 %}
-
-{% include "idgo_admin/alert_messages.html" %}
-
-{% include "idgo_admin/datasets_filter.html" %}
-
-{% if datasets_count == 0 %}
-<div class="alert alert-warning" role="alert">Il n'y a aucun jeu de données actuellement.<div/>
-{% else %}
-<div id="alldatasets">
-	<div class="buttons-on-the-right-side">
-		{% include "idgo_admin/export_csv.html" %}
-	</div>
-	<div id="table-alldatasets" class="table-responsive"></div>
+<div id="datasets">
+	<div id="table-datasets" class="table-responsive"></div>
 	<nav aria-label="Page navigation" style="text-align: center;">
-		<ul id="table-alldatasets-paginator" class="pagination pagination-sm"></ul>
+		<ul id="table-datasets-paginator" class="pagination pagination-sm"></ul>
 	</nav>
 	<div class="buttons-on-the-right-side">
 		<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
@@ -23,33 +11,36 @@
 			</button>
 			<ul class="dropdown-menu dropdown-menu-right">
 				<li><a role="button" name="edit-dataset" style="text-align: right;">Editer le jeu de données</a></li>
+				<li><a role="button" name="edit-resources" style="text-align: right;">Editer les ressources associées</a></li>
 				<li><a role="button" name="mdedit-dataset" style="text-align: right;">Editer la fiche de métadonnées INSPIRE</a></li>
 				<li role="separator" class="divider"></li>
 				<li><a role="button" name="publish-dataset" style="text-align: right;">Publier le jeu de données</a></li>
 			</ul>
 		</div>
-		<button name="delete-dataset" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+		<button role="button" type="button" name="delete-dataset" class="btn btn-danger" data-toggle="modal" data-target="#modal">
+			Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+		</button>
 	</div>
 </div>
 
 <script>
 $(function() {
-	const GRID_NAME = 'AllDatasets';
+	const GRID_NAME = 'Datasets';
 	const CKAN_URL = '{{ ckan_url }}';
 	const DATASET_URL = '{% url "idgo_admin:dataset" %}';
-	const ACTION_URL = '{% url "idgo_admin:action" %}';
+
 	const DATA = {{ datasets | safe }};
-	const CONTAINER = 'table-alldatasets';
+	const CONTAINER = 'table-datasets';
 
 	const tableGrid = new EditableGrid(GRID_NAME, {pageSize: 15});
 
-	$('#alldatasets button[name="view-ckan"]').on('click', function(e) {
+	$('#datasets [name="view-ckan"]').on('click', function(e) {
 		e.preventDefault();
 		targetBlank(CKAN_URL + '/dataset/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_slug']);
 		e.stopPropagation();
 	});
 
-	$('#alldatasets button[name="delete-dataset"]')
+	$('#datasets [name="delete-dataset"]')
 		.on('click', function(e) {
 			e.preventDefault();
 
@@ -68,15 +59,9 @@ $(function() {
 					})
 					.done(function(response, textStatus, jqXHR) {
 						location.reload();
-						// $modal.find('.modal-title').text('Information');
-						// $modal.find('.modal-body').append(jqXHR.responseText);
-						// $modal.modal('show');
 					})
 					.fail(function(jqXHR, textStatus, errorThrown) {
 						location.reload();
-						// $modal.find('.modal-title').text("L'opération a échouée");
-						// $modal.find('.modal-body').append(jqXHR.responseText);
-						// $modal.modal('show');
 					});
 					e.stopPropagation();
 				});
@@ -111,28 +96,35 @@ $(function() {
 			e.stopPropagation();
 		});
 
-	$('#alldatasets a[name="edit-dataset"]')
+	$('#datasets [name="edit-dataset"]')
 		.on('click', function(e) {
 			e.preventDefault();
 			redirect(DATASET_URL + '?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
 			e.stopPropagation();
 		});
 
-	$('#alldatasets a[name="mdedit-dataset"]')
+	$('#datasets [name="edit-resources"]')
+		.on('click', function(e) {
+			e.preventDefault();
+			redirect(DATASET_URL + '?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id'] + '#resources');
+			e.stopPropagation();
+		});
+
+	$('#datasets [name="mdedit-dataset"]')
 		.on('click', function(e) {
 			e.preventDefault();
 			redirect(DATASET_URL + '/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']  + '/mdedit');
 			e.stopPropagation();
 		});
 
-	var $publishDataset = $('#alldatasets a[name="publish-dataset"]')
+	const $publishDataset = $('#datasets [name="publish-dataset"]')
 		.on('click', function(e) {
 			e.preventDefault();
 			closeAllModalDialog();
 			$.ajax({
 				type: 'GET',
 				// success: function() {},
-				url: ACTION_URL + '?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id'] + '&publish=toggle'
+				url: '{% url "idgo_admin:action" %}?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id'] + '&publish=toggle'
 			})
 			.done(function(response, textStatus, jqXHR) {
 				// $modal.find('.close').remove();
@@ -151,12 +143,17 @@ $(function() {
 
 	tableGrid.initializeGrid = function() {
 		var grid = tableGrid;
-		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button,a[role="button"]');
+		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button,[role="button"]');
 
 		with (this) {
 			tableRendered = function(containerId, className) {
 				rowSelected(-1, -1);
 				updatePaginator(grid);
+				for (const entry of data) {
+					if (entry.columns[8] == 'false') {
+						$('#' + CONTAINER + ' tr#' + GRID_NAME + '_' + entry.id).addClass('disabled');
+					};
+				};
 			};
 			rowSelected = function(pRowIdx, nRowIdx) {
 				$(grid.getRow(pRowIdx)).removeClass('selected');
@@ -164,6 +161,9 @@ $(function() {
 					deactivateButton($(this));
 				});
 				if (pRowIdx != nRowIdx) {
+					if ($('#' + CONTAINER + ' tr#' + GRID_NAME + '_' + getRowId(nRowIdx)).hasClass('disabled')) {
+						return
+					};
 					window.location = '#datasets/' + getRowValues(nRowIdx).id;
 					$(grid.getRow(nRowIdx)).addClass('selected');
 					$buttons.each(function() {
@@ -173,9 +173,9 @@ $(function() {
 						};
 					});
 				};
-				$publishDataset[0].innerHTML = (grid.getRowValues(nRowIdx)['published'] ? 'Dépublier' : 'Publier') + ' le jeu de données';
+				$publishDataset[0].innerHTML = (grid.getRowValues(nRowIdx)['private'] ? 'Publier' : 'Dépublier') + ' le jeu de données';
 			};
-			setCellRenderer('published', new CellRenderer({
+			setCellRenderer('private', new CellRenderer({
 				render: function(cell, value) {
 					cell.style.textAlign = 'center';
 					cell.style.width = '32px';
@@ -189,7 +189,7 @@ $(function() {
 					cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
 				}
 			}));
-			const DATE_FORMAT = 'dddd Do MMMM YYYY';
+			const DATE_FORMAT = 'DD/MM/YY';
 			setCellRenderer('date_creation', new CellRenderer({
 				render: function(cell, value) {
 					cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
@@ -242,7 +242,6 @@ $(function() {
 		} else {
 			$containerId.hide();
 		};
-
 	};
 
 	updateGrid(
@@ -256,17 +255,17 @@ $(function() {
 				datatype: 'string'
 			}, {
 				name: 'date_creation',
-				label: 'Date de création',
+				label: 'Créé',
 				editable: false,
 				datatype: 'string'
 			}, {
 				name: 'date_modification',
-				label: 'Dernière modification',
+				label: 'Modifié',
 				editable: false,
 				datatype: 'string'
 			}, {
 				name: 'date_publication',
-				label: 'Date de publication',
+				label: 'Publié',
 				editable: false,
 				datatype: 'string'
 			}, {
@@ -275,13 +274,13 @@ $(function() {
 				editable: false,
 				datatype: 'string'
 			}, {
-				name: 'editor',
-				label: 'Editeur',
-				editable: false,
-				datatype: 'string'
-			}, {
-				name: 'published',
-				label: 'Publié',
+			// 	name: 'editor',
+			// 	label: 'Editeur',
+			// 	editable: false,
+			// 	datatype: 'string'
+			// }, {
+				name: 'private',
+				label: 'Privé',
 				editable: true,
 				datatype: 'boolean'
 			}, {
@@ -317,8 +316,8 @@ $(function() {
 						data[i][3],  // date_modification
 						data[i][4],  // date_publication
 						data[i][5],  // organization
-						data[i][6],  // editor
-						data[i][7],  // published
+						// data[i][6],  // editor
+						!data[i][7],  // private
 						data[i][8],  // is_inspire
 						data[i][9],  // ckan_slug
 						data[i][10],  // is_contributor
@@ -331,10 +330,9 @@ $(function() {
 	);
 
 	$(window).bind('hashchange', function(e) {
-		selectRowByDataId(location.hash.split('/')[1]);
+		selectRowByDataId(window.location.hash.split('/')[1]);
 	});
-	selectRowByDataId(location.hash.split('/')[1]);
+	selectRowByDataId(window.location.hash.split('/')[1]);
 
 });
 </script>
-{% endif %}
