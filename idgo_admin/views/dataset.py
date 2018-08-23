@@ -267,29 +267,40 @@ class DatasetManager(View):
         return HttpResponse(status=status)
 
 
-def get_all_organisations(profile):
+def get_all_organisations(profile, strict=False):
+    role = profile.get_roles()
+
+    if role['is_admin'] and not strict:
+        filters = {}
+    elif role['is_referent'] and not strict:
+        filters = {
+            'liaisonsreferents__profile': profile,
+            'liaisonsreferents__validated_on__isnull': False}
+    else:
+        filters = {
+            'liaisonscontributeurs__profile': profile,
+            'liaisonscontributeurs__validated_on__isnull': False}
+
     return [{
         'id': instance.ckan_slug,
         'name': instance.name
-        } for instance in Organisation.objects.filter(
-            is_active=True,
-            liaisonscontributeurs__profile=profile,
-            liaisonscontributeurs__validated_on__isnull=False)]
+        } for instance in Organisation.objects.filter(is_active=True, **filters)]
 
 
 def get_all_datasets(profile, strict=False):
+    role = profile.get_roles()
 
-    filters = {}
-    if strict:
-        filters['editor'] = profile.user
+    if role['is_admin'] and not strict:
+        filters = {}
+    elif role['is_referent'] and not strict:
+        filters = {
+            'organisation__in': LiaisonsReferents.get_subordinated_organizations(profile=profile)}
     else:
-        filters['organisation__in'] = \
-            LiaisonsReferents.get_subordinated_organizations(profile=profile)
+        filters = {'editor': profile.user}
 
     return [{
         'id': instance.ckan_slug,
-        'name': instance.name,
-        # 'name': ' '.join('{} {}'.format(instance.name, instance.description).splitlines())
+        'name': instance.name
         } for instance in Dataset.objects.filter(**filters)]
 
 
@@ -348,7 +359,7 @@ def my_datasets(request, *args, **kwargs):
     all_licenses = [
         {'id': instance.id, 'name': instance.title}
         for instance in License.objects.all()]
-    all_organisations = get_all_organisations(profile)
+    all_organisations = get_all_organisations(profile, strict=True)
     all_resourceformats = [
         {'id': instance.extension, 'name': instance.extension}
         for instance in ResourceFormats.objects.all()]
@@ -397,7 +408,7 @@ def all_datasets(request, *args, **kwargs):
     all_categories = [
         {'id': instance.ckan_slug, 'name': instance.name}
         for instance in Category.objects.all()]
-    all_datasets = get_all_datasets(profile, strict=True)
+    all_datasets = get_all_datasets(profile)
     all_licenses = [
         {'id': instance.id, 'name': instance.title}
         for instance in License.objects.all()]
