@@ -169,8 +169,8 @@ $(function() {
 				{% endfor %}
 				return arr;
 			})(),
-			autoSelect: true,
-			fitToElement: true,
+			autoSelect: false,
+			fitToElement: false,
 			afterSelect: function(val) {
 				qs['organisation'] = val.id;
 			}
