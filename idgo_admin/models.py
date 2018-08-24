@@ -428,7 +428,7 @@ class Resource(models.Model):
                 # Pour les archives, toujours vérifier si contient des données SIG.
                 # Si c'est le cas, monter les données dans la base PostGIS dédiée,
                 # puis ajouter au service OGC:WxS de l'organisation.
-                if extension in ('zip', 'tar', 'geojson'):
+                if extension in ('zip', 'tar', 'geojson', 'shapezip'):
                     existing_layers = {}
                     if previous and previous.datagis_id:
                         existing_layers = dict(
@@ -439,7 +439,17 @@ class Resource(models.Model):
                             filename, extension=extension, update=existing_layers,
                             epsg=self.crs and self.crs.auth_code or None)
                     except NotOGRError as e:
-                        pass
+                        if extension in ('geojson', 'shapezip'):
+                            if self.dl_url:
+                                remove_dir(directory)
+                            if self.up_file and file_extras:
+                                remove_file(filename)
+                            msg = (
+                                "Le fichier reçu n'est pas reconnu "
+                                'comme étant un jeu de données SIG correct.')
+                            raise ValidationError(msg, code='__all__')
+                        # else:
+                        #     pass
                     except NotSupportedSrsError as e:
                         if self.dl_url:
                             remove_dir(directory)
