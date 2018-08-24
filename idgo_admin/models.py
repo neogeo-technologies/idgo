@@ -451,7 +451,7 @@ class Resource(models.Model):
                             'de coordonnées. Merci de sélectionner le code du '
                             'CRS dans la liste ci-dessous.')
                         raise ValidationError(msg, code='crs')
-                    except ExceedsMaximumLayerNumberFixedError:
+                    except ExceedsMaximumLayerNumberFixedError as e:
                         if self.dl_url:
                             remove_dir(directory)
                         if self.up_file and file_extras:
