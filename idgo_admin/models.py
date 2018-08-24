@@ -434,8 +434,20 @@ class Resource(models.Model):
                         tables = ogr2postgis(
                             filename, extension=extension, update=existing_layers,
                             epsg=self.crs and self.crs.auth_code or None)
-                    except (ExceedsMaximumLayerNumberFixedError,
-                            NotOGRError, NotSupportedSrsError) as e:
+                    except NotOGRError as e:
+                        pass
+                    except NotSupportedSrsError as e:
+                        if self.dl_url:
+                            remove_dir(directory)
+                        if self.up_file and file_extras:
+                            remove_file(filename)
+                        msg = (
+                            'votre ressource semble contenir des données SIG '
+                            'mais nous ne parvenons pas à détecter le système '
+                            'de coordonnées. Merci de sélectionner le code du '
+                            'CRS dans la liste ci-dessous.')
+                        raise ValidationError(msg, code='crs')
+                    except ExceedsMaximumLayerNumberFixedError:
                         if self.dl_url:
                             remove_dir(directory)
                         if self.up_file and file_extras:
@@ -456,7 +468,7 @@ class Resource(models.Model):
                             for table_id in self.datagis_id:
                                 drop_table(str(table_id))
                             raise e
-                    ckan_params['crs'] = self.crs.description
+                        ckan_params['crs'] = self.crs.description
                 else:
                     self.datagis_id = None
                 super().save()

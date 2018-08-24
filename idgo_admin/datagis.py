@@ -96,14 +96,11 @@ class OgrOpener(object):
             raise NotOGRError(
                 "The format '{}' is not supported.".format(extension))
         try:
-            ds = DataSource(vsi and '/{}/{}'.format(vsi, filename) or filename)
-        except GDALException:
-            ds = None
-        if not ds:
+            self._datastore = DataSource(
+                vsi and '/{}/{}'.format(vsi, filename) or filename)
+        except GDALException as e:
             raise NotOGRError(
-                'The file received is not recognized as being a GIS data.')
-
-        self._datastore = ds
+                'The file received is not recognized as being a GIS data. {}'.format(e.__str__()))
 
     def get_layers(self):
         return self._datastore
@@ -128,7 +125,7 @@ INSERT INTO {schema}."{table}" ({attrs_name}, {the_geom})
 VALUES ({attrs_value}, ST_Transform(ST_GeomFromtext('{wkt}', {epsg}), {to_epsg}));'''
 
 
-def ogr_field_2_pg(k, n=None, p=None):
+def handle_ogr_field_type(k, n=None, p=None):
 
     if k.startswith('OFTString') and not n:
         k = k.replace(k, 'OFTWide')
@@ -148,6 +145,18 @@ def ogr_field_2_pg(k, n=None, p=None):
         'OFTDateTime': 'datetime',
         'OFTInteger64': 'integer',
         'OFTInteger64List': 'integer[]'}.get(k, 'text').format(n=n, p=p)
+
+
+def handle_ogr_geom_type(ogr_geom_type):
+    return {
+        'geometrycollection25d': 'GeometryCollectionZ',
+        'linestring25d': 'LineStringZ',
+        'multilinestring25d': 'MultiLineStringZ',
+        'multipoint25d': 'MultiPointZ',
+        'multipolygon25d': 'MultiPolygonZ',
+        'point25d': 'PointZ',
+        'polygon25d': 'PolygonZ'
+        }.get(ogr_geom_type.__str__().lower(), ogr_geom_type)
 
 
 def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
@@ -191,7 +200,7 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
 
         attrs = {}
         for i, k in enumerate(layer.fields):
-            t = ogr_field_2_pg(
+            t = handle_ogr_field_type(
                 layer.field_types[i].__qualname__,
                 n=layer.field_widths[i],
                 p=layer.field_precisions[i])
@@ -213,7 +222,7 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
         # Donc dans ce cas on définit le type de géométrie de la couche
         # comme générique (soit 'Geometry')
         test = len(set(feat.geom.__class__.__qualname__ for feat in layer))
-        geometry = test > 1 and 'Geometry' or layer.geom_type
+        geometry = test > 1 and 'Geometry' or handle_ogr_geom_type(layer.geom_type)
 
         sql.append(CREATE_TABLE.format(
             attrs=',\n  '.join(
