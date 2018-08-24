@@ -342,7 +342,7 @@
 								<!-- class_well_template -->
 							</div>
 							<div class="buttons-on-the-right-side" style="position: absolute; bottom: 0; right: 0; margin: 0 35px 40px 0;">
-								<button type="button" name="export" class="btn btn-default">Exporter le SLD</button>
+								<a type="button" name="export-sld" class="btn btn-default">Exporter le SLD</a>
 								<button type="button" name="save" class="btn btn-primary disabled" disabled>Enregistrer</button>
 							</div>
 						</div>
@@ -628,6 +628,14 @@ $(function() {
 			$classes.append($('<option>', {value: value, text : value}));
 		});
 
+		const $exportSld = $('a[name="export-sld"]').click(function(e) {
+			const filename = $sld.children('namedlayer').last().children('name').last().text();
+			// const xmlstr = (new XMLSerializer()).serializeToString($sld);
+			const xmlstr = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
+			$(this).attr('download', filename + '.sld');
+			$(this).attr('href', 'data:text/xml;charset=UTF-8,' + encodeURIComponent(xmlstr));
+		});
+
 		glob.overviewingStyle = function() {
 
 			var sldBody = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
@@ -647,13 +655,15 @@ $(function() {
 				$form.submit();
 			});
 
+			$exportSld.click(function(e) {
+				const filename = $sld.children('namedlayer').last().children('name').last().text();
+				const xmlstr = sldBody;
+				$(this).attr('download', filename + '.sld');
+				$(this).attr('href', 'data:text/xml;charset=UTF-8,' + encodeURIComponent(xmlstr));
+			});
+
 			activateButton($save);
 		};
-
-		var $export = $('button[name="export"]').click(function(e) {
-			e.preventDefault();
-			alert('TODO')
-		});
 
 	};
 
