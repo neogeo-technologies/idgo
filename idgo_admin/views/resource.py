@@ -78,6 +78,7 @@ class ResourceManager(View):
         # Ugly #
 
         context = {'is_datagis': False,
+                   'datagis_ids': [],
                    'dataset_name': three_suspension_points(dataset.name),
                    'dataset_id': dataset.id,
                    'dataset_ckan_slug': dataset.ckan_slug,
@@ -97,6 +98,7 @@ class ResourceManager(View):
 
             context.update({
                 'is_datagis': instance.is_datagis,
+                'datagis_ids': instance.is_datagis and instance.datagis_id or [],
                 'resource_name': three_suspension_points(instance.name),
                 'resource_id': instance.id,
                 'resource_ckan_id': instance.ckan_id,

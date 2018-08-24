@@ -14,6 +14,22 @@
 
 <form method="post" action="" enctype="multipart/form-data">
 	<div class="buttons-on-the-right-side">
+		{% if is_crige and is_datagis %}
+			{% if datagis_ids|length == 1 %}
+		<a class="btn btn-default" href="{% url "idgo_admin:resource" dataset_id=dataset_id %}?resource={{ resource_id }}&layer={{ datagis_ids.0 }}">Editer la ressource géographique</a>
+			{% else %}
+		<div class="btn-group">
+			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				Editer les ressources géographiques <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
+			</button>
+			<ul class="dropdown-menu dropdown-menu-right">
+				{% for datagis_id in datagis_ids %}
+				<li><a role="button" href="{% url "idgo_admin:resource" dataset_id=dataset_id %}?resource={{ resource_id }}&layer={{ datagis_id }}" style="text-align: right;">{{ datagis_id }}</a></li>
+				{% endfor %}
+			</ul>
+		</div>
+			{% endif %}
+		{% endif %}
 		{% if resource_ckan_id %}
 		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset_ckan_slug }}/resource/{{ resource_ckan_id }}">Ouvrir dans CKAN</a>
 		{% endif %}
