@@ -350,30 +350,34 @@ class Resource(models.Model):
                 'restricted_by_jurisdiction': str(self.geo_restriction),
                 'url': ''}
 
+            restricted = {}
+
             if self.restricted_level == '0':  # Public
-                ckan_params['restricted'] = json.dumps({'level': 'public'})
+                restricted = json.dumps({'level': 'public'})
 
             if self.restricted_level == '1':  # Registered users
-                ckan_params['restricted'] = json.dumps({'level': 'registered'})
+                restricted = json.dumps({'level': 'registered'})
 
             if self.restricted_level == '2':  # Only allowed users
-                ckan_params['restricted'] = json.dumps({
+                restricted = json.dumps({
                     'allowed_users': ','.join(
                         self.profiles_allowed.exists() and [
                             p.user.username for p in self.profiles_allowed.all()] or []),
                     'level': 'only_allowed_users'})
 
             if self.restricted_level == '3':  # This organization
-                ckan_params['restricted'] = json.dumps({
+                restricted = json.dumps({
                     'allowed_users': ','.join(
                         get_all_users_for_organizations(self.organisations_allowed.all())),
                     'level': 'only_allowed_users'})
 
             if self.restricted_level == '4':  # Any organization
-                ckan_params['restricted'] = json.dumps({
+                restricted = json.dumps({
                     'allowed_users': ','.join(
                         get_all_users_for_organizations(self.organisations_allowed.all())),
                     'level': 'only_allowed_users'})
+
+            ckan_params['restricted'] = restricted
 
             if self.referenced_url:
                 ckan_params['url'] = self.referenced_url
@@ -539,6 +543,7 @@ class Resource(models.Model):
                             auth_name='EPSG', auth_code='4171').description,
                         'lang': self.lang,
                         'format': 'WMS',
+                        'restricted': restricted,
                         'url': '{0}#{1}'.format(
                             OWS_URL_PATTERN.format(organisation=ws_name), ft_name),
                         'view_type': 'geo_view'}
