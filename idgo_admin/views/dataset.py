@@ -50,7 +50,6 @@ from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
-from idgo_admin.utils import three_suspension_points
 from idgo_admin.views.resource import get_layers
 import json
 
@@ -68,6 +67,48 @@ class DatasetManager(View):
     namespace = 'idgo_admin:dataset'
     namespace_resource = 'idgo_admin:resource'
 
+    def get_context(self, form, profile, dataset):
+
+        resources = []
+        ogc_layers = []
+        for resource in Resource.objects.filter(dataset=dataset):
+            resources.append((
+                resource.pk,
+                resource.name,
+                resource.format_type.extension,
+                resource.get_data_type_display(),
+                resource.created_on.isoformat() if resource.created_on else None,
+                resource.last_update.isoformat() if resource.last_update else None,
+                resource.get_restricted_level_display(),
+                str(resource.ckan_id),
+                resource.datagis_id and [str(uuid) for uuid in resource.datagis_id] or []))
+
+            if resource.datagis_id:
+                common = [
+                    resource.pk, resource.name, resource.get_data_type_display(),
+                    resource.get_restricted_level_display(),
+                    resource.geo_restriction, resource.extractable,
+                    resource.ogc_services]
+                try:
+                    ogc_layers += [
+                        common + list(l) for l in get_layers(resource)]
+                except MRANotFoundError:
+                    pass
+
+        return {
+            'dataset': dataset,
+            'doc_url': READTHEDOC_URL,
+            'form': form,
+            'licenses': dict(
+                (o.pk, o.license.pk) for o
+                in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
+            'ogc_layers': json.dumps(ogc_layers),
+            'resources': json.dumps(resources),
+            'supports': json.dumps(dict(
+                (item.pk, {'name': item.name, 'email': item.email})
+                for item in Support.objects.all())),
+            'tags': json.dumps(ckan.get_tags())}
+
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, *args, **kwargs):
 
@@ -77,74 +118,21 @@ class DatasetManager(View):
                 profile=profile, validated_on__isnull=False).exists():
             raise Http404
 
-        form = Form(include={'user': user, 'identification': False, 'id': None})
-        dataset_name = 'Nouveau'
-        dataset_id = None
-        dataset_ckan_slug = None
-        resources = []
-
-        # Ugly #
         _ckan_slug = request.GET.get('ckan_slug')
         if _ckan_slug:
             instance = get_object_or_404_extended(
                 Dataset, user, include={'ckan_slug': _ckan_slug})
             return redirect(
                 reverse(self.namespace) + '?id={0}'.format(instance.pk))
-        # Ugly #
 
-        resources = []
-        ogc_layers = []
+        id = request.POST.get('id', request.GET.get('id'))
+        instance = id and get_object_or_404_extended(
+            Dataset, user, include={'id': id}) or None
 
-        id = request.GET.get('id')
-        if id:
-            instance = get_object_or_404_extended(
-                Dataset, user, include={'id': id})
+        form = Form(instance=instance, include={
+            'user': user, 'id': id, 'identification': id and True or False})
 
-            form = Form(instance=instance,
-                        include={'user': user, 'identification': True, 'id': id})
-            dataset_name = instance.name
-            dataset_id = instance.id
-            dataset_ckan_slug = instance.ckan_slug
-
-            for resource in Resource.objects.filter(dataset=instance):
-                resources.append((
-                    resource.pk,
-                    resource.name,
-                    resource.format_type.extension,
-                    resource.get_data_type_display(),
-                    resource.created_on.isoformat() if resource.created_on else None,
-                    resource.last_update.isoformat() if resource.last_update else None,
-                    resource.get_restricted_level_display(),
-                    str(resource.ckan_id),
-                    resource.datagis_id and [
-                        str(uuid) for uuid in resource.datagis_id] or []))
-
-                if resource.datagis_id:
-                    common = [
-                        resource.pk, resource.name, resource.get_data_type_display(),
-                        resource.get_restricted_level_display(),
-                        resource.geo_restriction, resource.extractable,
-                        resource.ogc_services]
-                    try:
-                        ogc_layers += [
-                            common + list(l) for l in get_layers(resource)]
-                    except MRANotFoundError:
-                        pass
-
-        context = {'form': form,
-                   'doc_url': READTHEDOC_URL,
-                   'dataset_name': three_suspension_points(dataset_name),
-                   'dataset_id': dataset_id,
-                   'dataset_ckan_slug': dataset_ckan_slug,
-                   'licenses': dict(
-                       (o.pk, o.license.pk) for o
-                       in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
-                   'ogc_layers': json.dumps(ogc_layers),
-                   'resources': json.dumps(resources),
-                   'supports': json.dumps(dict(
-                       (item.pk, {'name': item.name, 'email': item.email})
-                       for item in Support.objects.all())),
-                   'tags': json.dumps(ckan.get_tags())}
+        context = self.get_context(form, profile, instance)
 
         return render_with_info_profile(request, self.template, context=context)
 
@@ -154,44 +142,15 @@ class DatasetManager(View):
 
         user, profile = user_and_profile(request)
 
-        context = {
-            'supports': json.dumps(dict(
-                (item.pk, {'name': item.name, 'email': item.email})
-                for item in Support.objects.all())),
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'dataset_name': 'Nouveau',
-            'dataset_id': None,
-            'licenses': dict(
-                (o.pk, o.license.pk) for o
-                in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
-            'resources': [],
-            'tags': json.dumps(ckan.get_tags())}
-
         id = request.POST.get('id', request.GET.get('id'))
         instance = id and get_object_or_404_extended(
             Dataset, user, include={'id': id}) or None
 
         form = Form(
-            request.POST, request.FILES, instance=instance,
-            include={'user': user, 'id': id,
-                     'identification': id and True or False})
+            request.POST, request.FILES, instance=instance, include={
+                'user': user, 'id': id, 'identification': id and True or False})
 
-        context.update(form=form)
-        if instance:
-            context.update(
-                dataset_name=three_suspension_points(instance.name),
-                dataset_ckan_slug=instance.ckan_slug,
-                dataset_id=instance.id,
-                resources=json.dumps([(
-                    o.pk,
-                    o.name,
-                    o.format_type.extension,
-                    o.created_on.isoformat() if o.created_on else None,
-                    o.last_update.isoformat() if o.last_update else None,
-                    o.get_restricted_level_display(),
-                    str(o.ckan_id)
-                    ) for o in Resource.objects.filter(dataset=instance)]))
+        context = self.get_context(form, profile, instance)
 
         if not form.is_valid():
             errors = form._errors.get('__all__', [])

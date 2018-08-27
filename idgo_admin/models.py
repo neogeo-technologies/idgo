@@ -50,6 +50,7 @@ from idgo_admin.utils import PartialFormatter
 from idgo_admin.utils import remove_dir
 from idgo_admin.utils import remove_file
 from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garder l'original
+from idgo_admin.utils import three_suspension_points
 import json
 import os
 from pathlib import Path
@@ -271,6 +272,10 @@ class Resource(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def name_overflow(self):
+        return three_suspension_points(self.name)
 
     def disable_layers(self):
         if self.datagis_id:
@@ -1582,6 +1587,10 @@ class Dataset(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def name_overflow(self):
+        return three_suspension_points(self.name)
 
     def is_contributor(self, profile):
         return LiaisonsContributeurs.objects.filter(

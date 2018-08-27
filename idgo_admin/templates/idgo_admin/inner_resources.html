@@ -3,7 +3,7 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <div class="buttons-on-the-right-side">
-	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_admin:resource" dataset_id=dataset_id %}">Ajouter une nouvelle ressource</a>
+	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}">Ajouter une nouvelle ressource</a>
 </div>
 <div id="table-resources" class="table-responsive"></div>
 <nav aria-label="Page navigation" style="text-align: center;">
@@ -18,8 +18,8 @@
 <script>
 $(function() {
 	var CKAN_URL = '{{ ckan_url }}';
-	var RESOURCE_URL = '{% url "idgo_admin:resource" dataset_id=dataset_id %}';
-	// var RESOURCE_OGC_URL = '{# url "idgo_admin:resources_ogc" dataset_id=dataset_id #}';
+	var RESOURCE_URL = '{% url "idgo_admin:resource" dataset_id=dataset.id %}';
+	// var RESOURCE_OGC_URL = '{# url "idgo_admin:resources_ogc" dataset_id=dataset.id #}';
 	var RESOURCES = {{ resources | safe }};
 	var RESOURCES_CONTAINER = 'table-resources';
 	var RESOURCES_METADATA = [
@@ -75,7 +75,7 @@ $(function() {
 
 	$('#resources [name="view-ckan"]').on('click', function(e) {
 		e.preventDefault();
-		targetBlank(CKAN_URL + '/dataset/{{ dataset_ckan_slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
+		targetBlank(CKAN_URL + '/dataset/{{ dataset.ckan_slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
 		e.stopPropagation();
 	});
 
@@ -232,7 +232,7 @@ $(function() {
 				deactivateButton($(this));
 				$(this).hide();
 			});
-			$containerId.before('<div role="alert" class="alert alert-warning"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n\'avez encore jamais ajouté de ressource. <a name="add-resource" href="{% url "idgo_admin:resource" dataset_id=dataset_id %}">Créer une nouvelle ressource</a> pour commencer.<div/>');
+			$containerId.before('<div role="alert" class="alert alert-warning"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n\'avez encore jamais ajouté de ressource. <a name="add-resource" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}">Créer une nouvelle ressource</a> pour commencer.<div/>');
 		};
 
 	};

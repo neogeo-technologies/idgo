@@ -14,40 +14,40 @@
 
 <form method="post" action="" enctype="multipart/form-data">
 	<div class="buttons-on-the-right-side">
-		{% if is_crige and is_datagis %}
-			{% if datagis_ids|length == 1 %}
-		<a class="btn btn-default" href="{% url "idgo_admin:resource" dataset_id=dataset_id %}?resource={{ resource_id }}&layer={{ datagis_ids.0 }}">Editer la ressource géographique</a>
+		{% if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige %}
+			{% if resource.datagis_id and resource.datagis_id|length == 1 %}
+		<a class="btn btn-default" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ resource.datagis_id.0 }}">Editer la ressource géographique</a>
 			{% else %}
 		<div class="btn-group">
 			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				Editer les ressources géographiques <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
 			</button>
 			<ul class="dropdown-menu dropdown-menu-right">
-				{% for datagis_id in datagis_ids %}
-				<li><a role="button" href="{% url "idgo_admin:resource" dataset_id=dataset_id %}?resource={{ resource_id }}&layer={{ datagis_id }}" style="text-align: right;">{{ datagis_id }}</a></li>
+				{% for layer in resource.datagis_id %}
+				<li>
+					<a role="button" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ layer }}" style="text-align: right;">{{ layer }}</a>
+				</li>
 				{% endfor %}
 			</ul>
 		</div>
 			{% endif %}
 		{% endif %}
-		{% if resource_ckan_id %}
-		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset_ckan_slug }}/resource/{{ resource_ckan_id }}">Ouvrir dans CKAN</a>
+		{% if resource.ckan_id %}
+		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}/resource/{{ resource.ckan_id }}">Ouvrir dans CKAN</a>
 		{% endif %}
 	</div>
 	<br/>
 	{% csrf_token %}
 	<div class="row">
 		<div class="col-xs-12">
-
-		<div id='{{ form.crs.name }}_container'>
-			<div class="row">
-				<div class="col-xs-8">
-					{% bootstrap_field form.crs %}
+			<div id='{{ form.crs.name }}_container'>
+				<div class="row">
+					<div class="col-xs-8">
+						{% bootstrap_field form.crs %}
+					</div>
 				</div>
+				<br />
 			</div>
-			<br />
-		</div>
-
 		{% if mode %}
 			<div class="well">
 			{% if mode == 'up_file' %}
@@ -148,7 +148,7 @@
 		</div>
 	</div>
 	<br />
-	{% if is_crige and is_datagis %}
+	{% if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige %}
 	<div class="well">
 		<div class="row">
 			<div class="col-xs-12">
@@ -175,7 +175,7 @@
 	</div>
 	<br />
 	<div class="buttons-on-the-right-side">
-		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">Annuler</a>
+		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#resources">Annuler</a>
 		<button type="submit" name="continue" value="continue" class="btn btn-primary">Enregistrer et continuer les modifications</button>
 		<button type="submit" name="save" value="save" class="btn btn-primary">Enregistrer</button>
 	</div>
@@ -297,7 +297,7 @@ $(function() {
 				e.preventDefault();
 				$.ajax({
 					type: 'POST',
-					url: '{% url "idgo_admin:resource" dataset_id=dataset_id %}?id={{ resource_id }}',
+					url: '{% url "idgo_admin:resource" dataset_id=dataset.id %}?id={{ resource.id }}',
 					data: data,
 					contentType: false,
 					processData: false,

@@ -3,7 +3,9 @@
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
 	<li>Jeu de données</li>
-	<li class="active"><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}">{{ dataset_name }}</a></li>
+	<li class="active">
+		{% if dataset %}<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}">{{ dataset.name_overflow }}</a>{% else %}Nouveau jeu de données{% endif %}
+	</li>
 </ol>
 {% endblock breadcrumb_content %}
 
@@ -12,14 +14,16 @@
 	<li role="presentation">
 		<a href="#dataset" aria-controls="dataset" role="tab" data-toggle="tab">Editer le jeu de données</a>
 	</li>
-	{% if dataset_id %}
+	{% if dataset %}
+		{% if dataset.id %}
 	<li role="presentation">
 		<a href="#resources" aria-controls="resources" role="tab" data-toggle="tab">Ressource(s) associée(s)</a>
 	</li>
-		{% if is_crige %}
+			{% if is_crige and dataset.organisation.is_crige_partner %}
 	<li role="presentation">
 		<a href="#owslayers" aria-controls="service" role="tab" data-toggle="tab">Service Géo-DataSud</a>
 	</li>
+			{% endif %}
 		{% endif %}
 	{% endif %}
 </ul>
@@ -28,16 +32,18 @@
 		<br />
 		{% include "idgo_admin/inner_dataset.html" %}
 	</div>
-	{% if dataset_id %}
+	{% if dataset %}
+		{% if dataset.id %}
 	<div id="resources" role="tabpanel" class="tab-pane fade in">
 		<br />
-		{% include "idgo_admin/inner_resources.html" %}
+			{% include "idgo_admin/inner_resources.html" %}
 	</div>
-		{% if is_crige %}
+			{% if is_crige and dataset.organisation.is_crige_partner %}
 	<div id="owslayers" role="tabpanel" class="tab-pane fade in">
 		<br />
 		{% include "idgo_admin/inner_layers.html" %}
 	</div>
+			{% endif %}
 		{% endif %}
 	{% endif %}
 </div>

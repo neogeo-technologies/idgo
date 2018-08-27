@@ -8,7 +8,7 @@
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
 	<li>Jeu de données</li>
-	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">{{ dataset_name }}</a></li>
+	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#dataset">{{ dataset.name }}</a></li>
 	<li class="active">Édition de la fiche de métadonnées INSPIRE</li>
 </ol>
 {% endblock breadcrumb_content %}
@@ -122,7 +122,7 @@ $(function() {
 			success: function(response) {
 				location.reload();
 			},
-			url: '{% url "idgo_admin:mdedit" dataset_id=dataset_id %}'
+			url: '{% url "idgo_admin:mdedit" dataset_id=dataset.id %}'
 		})
 		e.stopPropagation();
 	});

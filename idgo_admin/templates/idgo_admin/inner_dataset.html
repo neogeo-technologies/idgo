@@ -5,8 +5,8 @@
 <form name="dataset" method="post" action="" enctype="multipart/form-data">
 
 	<div class="buttons-on-the-right-side">
-		{% if dataset_id %}
-		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset_ckan_slug }}">Ouvrir dans CKAN</a>
+		{% if dataset.id %}
+		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}">Ouvrir dans CKAN</a>
 		{% endif %}
 		<a role="button" class="btn btn-default" target="_blank" href="{{ doc_url }}">
 			<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
@@ -148,8 +148,8 @@
 		<a class="btn btn-default" href="{% url "idgo_admin:datasets" %}">Annuler</a>
 		<button type="submit" name="continue" class="btn btn-primary">Enregistrer et continuer les modifications</button>
 		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
-		{% if dataset_id %}
-		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset_ckan_slug }}">Ouvrir dans CKAN</a>
+		{% if dataset.id %}
+		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}">Ouvrir dans CKAN</a>
 		{% endif %}
 	</div>
 </form>
@@ -190,19 +190,19 @@ $(function() {
 		if (!$ckanSlug.prop('readonly')) {
 			$(this).text(btnText);
 			$ckanSlug.prop('readonly', true);
-			$ckanSlug.val({% if dataset_ckan_slug %}'{{ dataset_ckan_slug }}'{% else %}window.slugify($name.val(), 100){% endif %});
+			$ckanSlug.val({% if dataset.ckan_slug %}'{{ dataset.ckan_slug }}'{% else %}window.slugify($name.val(), 100){% endif %});
 		} else {
 			$(this).text('Annuler la saisie');
 			$ckanSlug.prop('readonly', false);
 		};
 	});
 
-	{% if not dataset_ckan_slug %}
+	{% if not dataset.ckan_slug %}
 	$name.on('input', function() {
 		$ckanSlug.val(window.slugify(this.value, 100))
 	});
 	{% else %}
-		$ckanSlug.val('{{ dataset_ckan_slug }}')
+		$ckanSlug.val('{{ dataset.ckan_slug }}')
 	{% endif %}
 
 	function extractor(query) {

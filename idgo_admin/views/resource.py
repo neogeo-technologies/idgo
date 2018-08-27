@@ -43,7 +43,6 @@ from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
-from idgo_admin.utils import three_suspension_points
 import json
 
 
@@ -60,6 +59,27 @@ class ResourceManager(View):
     template = 'idgo_admin/resource.html'
     namespace = 'idgo_admin:resource'
 
+    def get_context(self, form, profile, dataset, resource):
+
+        if resource:
+            mode = (
+                resource.up_file and 'up_file' or
+                resource.dl_url and 'dl_url' or
+                resource.referenced_url and 'referenced_url'
+                ) or None
+        elif form:
+            mode = (
+                form.files.get('up_file') and 'up_file' or
+                form.data.get('dl_url') and 'dl_url' or
+                form.data.get('referenced_url') and 'referenced_url'
+                ) or None
+
+        return {
+            'dataset': dataset,
+            'form': form,
+            'mode': mode,
+            'resource': resource}
+
     @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
     def get(self, request, dataset_id=None, *args, **kwargs):
 
@@ -68,43 +88,23 @@ class ResourceManager(View):
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
 
-        # Ugly #
+        # Redirect to layer
         _resource = request.GET.get('resource')
         _layer = request.GET.get('layer')
         if _resource and _layer:
             return redirect(
                 reverse('idgo_admin:layer', kwargs={
-                    'dataset_id': dataset_id, 'resource_id': _resource, 'layer_id': _layer}))
-        # Ugly #
-
-        context = {'is_datagis': False,
-                   'datagis_ids': [],
-                   'dataset_name': three_suspension_points(dataset.name),
-                   'dataset_id': dataset.id,
-                   'dataset_ckan_slug': dataset.ckan_slug,
-                   'resource_name': 'Nouvelle ressource',
-                   'resource_ckan_id': None,
-                   'form': Form()}
+                    'dataset_id': dataset.id,
+                    'resource_id': _resource,
+                    'layer_id': _layer}))
 
         id = request.GET.get('id')
-        if id:
-            instance = get_object_or_404_extended(
-                Resource, user, include={'id': id, 'dataset_id': dataset_id})
+        instance = id and get_object_or_404_extended(
+            Resource, user, include={'id': id, 'dataset_id': dataset.id}) or None
 
-            mode = instance.up_file and 'up_file' \
-                or instance.dl_url and 'dl_url' \
-                or instance.referenced_url and 'referenced_url' \
-                or None
+        form = Form(instance=instance)
 
-            context.update({
-                'is_datagis': instance.is_datagis,
-                'datagis_ids': instance.is_datagis and instance.datagis_id or [],
-                'resource_name': three_suspension_points(instance.name),
-                'resource_id': instance.id,
-                'resource_ckan_id': instance.ckan_id,
-                'ows': instance.datagis_id and len(instance.datagis_id) > 0,
-                'mode': mode,
-                'form': Form(instance=instance)})
+        context = self.get_context(form, profile, dataset, instance)
 
         return render_with_info_profile(request, self.template, context)
 
@@ -128,30 +128,7 @@ class ResourceManager(View):
         form = Form(
             request.POST, request.FILES, instance=instance, dataset=dataset)
 
-        mode = None
-        if instance:
-            mode = (
-                instance.up_file and 'up_file'
-                or instance.dl_url and 'dl_url'
-                or instance.referenced_url and 'referenced_url'
-                or None)
-        elif form:
-            mode = (
-                form.data.get('up_file') and 'up_file'
-                or form.data.get('dl_url') and 'dl_url'
-                or form.data.get('referenced_url') and 'referenced_url'
-                or None)
-
-        context = {'is_datagis': instance and instance.is_datagis or False,
-                   'dataset_name': three_suspension_points(dataset.name),
-                   'dataset_id': dataset.id,
-                   'dataset_ckan_slug': dataset.ckan_slug,
-                   'resource_name': instance and three_suspension_points(instance.name) or 'Nouvelle ressource',
-                   'resource_ckan_id': instance and instance.ckan_id or None,
-                   'resource_id': instance and instance.id or None,
-                   'ows': (instance and instance.datagis_id) and len(instance.datagis_id) > 0 or None,
-                   'mode': mode,
-                   'form': form}
+        context = self.get_context(form, profile, dataset, instance)
 
         ajax = 'ajax' in request.POST
         save_and_continue = 'continue' in request.POST
@@ -325,15 +302,12 @@ class LayerManager(View):
 
         layer = get_layer(instance, layer_id)
 
-        context = {'dataset_name': three_suspension_points(dataset.name),
-                   'dataset_id': dataset.id,
-                   'layer_title': layer['title'],
-                   'dataset_ckan_slug': dataset.ckan_slug,
-                   'resource_name': three_suspension_points(instance.name),
-                   'resource_id': instance.id,
-                   'resource_ckan_id': instance.ckan_id,
-                   'fonts': json.dumps(MRAHandler.get_fonts()),
-                   'layer': json.dumps(layer)}
+        context = {
+            'dataset': dataset,
+            'resource': instance,
+            'layer_title': layer['title'],
+            'fonts': json.dumps(MRAHandler.get_fonts()),
+            'layer': json.dumps(layer)}
 
         return render_with_info_profile(request, self.template, context)
 
@@ -365,14 +339,11 @@ class LayerManager(View):
 
         layer = get_layer(instance, layer_id)
 
-        context = {'dataset_name': three_suspension_points(dataset.name),
-                   'dataset_id': dataset.id,
-                   'layer_title': layer['title'],
-                   'dataset_ckan_slug': dataset.ckan_slug,
-                   'resource_name': three_suspension_points(instance.name),
-                   'resource_id': instance.id,
-                   'resource_ckan_id': instance.ckan_id,
-                   'fonts': json.dumps(MRAHandler.get_fonts()),
-                   'layer': json.dumps(layer)}
+        context = {
+            'dataset': dataset,
+            'layer_title': layer['title'],
+            'resource': instance,
+            'fonts': json.dumps(MRAHandler.get_fonts()),
+            'layer': json.dumps(layer)}
 
         return render_with_info_profile(request, self.template, context)
