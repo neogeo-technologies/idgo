@@ -34,12 +34,15 @@ from idgo_admin.views.mailer import confirm_new_orga
 from idgo_admin.views.mailer import confirm_rattachement
 from idgo_admin.views.mailer import confirm_referent
 from idgo_admin.views.mailer import confirmation_mail
-from idgo_admin.views.mdedit import MDEdit
-from idgo_admin.views.mdedit import MDEditTplEdit
+from idgo_admin.views.mdedit import DatasetMDEdit
+from idgo_admin.views.mdedit import DatasetMDEditTplEdit
+from idgo_admin.views.mdedit import ServiceMDEdit
+from idgo_admin.views.mdedit import ServiceMDEditTplEdit
 from idgo_admin.views.organization import all_organisations
 from idgo_admin.views.organization import CreateOrganisation
 from idgo_admin.views.organization import organisation
 from idgo_admin.views.organization import OrganisationOWS
+from idgo_admin.views.organization import OrganisationOWSMDedit
 from idgo_admin.views.organization import Subscription
 from idgo_admin.views.organization import UpdateOrganisation
 from idgo_admin.views.resource import LayerManager
@@ -62,8 +65,8 @@ urlpatterns = [
     url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))$', LayerManager.as_view(), name='layer'),
 
-    url('^dataset/(?P<dataset_id>(\d+))/mdedit/?$', MDEdit.as_view(), name='mdedit'),
-    url('^dataset/(?P<dataset_id>(\d+))/mdedit/edit/?$', MDEditTplEdit.as_view(), name='mdedit_tpl_edit'),
+    url('^dataset/(?P<dataset_id>(\d+))/mdedit/?$', DatasetMDEdit.as_view(), name='mdedit'),
+    url('^dataset/(?P<dataset_id>(\d+))/mdedit/edit/?$', DatasetMDEditTplEdit.as_view(), name='mdedit_tpl_edit'),
     url('^dataset/mine/?$', my_datasets, name='datasets'),
     url('^dataset/all/?$', all_datasets, name='all_datasets'),
     url('^dataset/export/?$', export, name='export'),
@@ -72,8 +75,14 @@ urlpatterns = [
 
     url('^organisation/all/?$', all_organisations, name='all_organizations'),
     url('^organisation/new/?$', CreateOrganisation.as_view(), name='create_organization'),
+
     url('^organisation/ows/?$', OrganisationOWS.as_view(), name='organization_ows'),
+    url('^organisation/ows/mdedit?$', OrganisationOWSMDedit.as_view(), name='organization_ows_mdedit'),
     url('^organisation/(?P<id>(\d+))/?$', organisation, name='organization'),
+
+    url('^md/service/(?P<id>(\d+))/mdedit/edit/?$', ServiceMDEdit.as_view(), name='service_mdedit'),
+    url('^md/service/(?P<id>(\d+))/mdedit/edit/?$', ServiceMDEditTplEdit.as_view(), name='service_mdedit_tpl_edit'),
+
     url('^organisation/(?P<id>(\d+))/update/?$', UpdateOrganisation.as_view(), name='update_organization'),
     url('^organisation/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
 

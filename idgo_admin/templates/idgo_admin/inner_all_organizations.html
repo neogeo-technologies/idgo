@@ -280,7 +280,6 @@ $(function() {
 		$modal.modal('show');
 	};
 
-
 	const displayOrganization = function(data) {
 
 		const ORGANIZATION_ID = data.id;
@@ -533,6 +532,13 @@ $(function() {
 			{% for item in referent %}
 			if (data['id'] == {{ item.0 }}) {
 				addUpdateButton('{% url "idgo_admin:update_organization" id=item.0 %}');
+
+				$('button[name="ows-meta"]')
+					.on('click', function(e) {
+						e.preventDefault();
+						redirect('{% url "idgo_admin:service_mdedit" id=item.0 %}');
+						e.stopPropagation();
+					});
 			};
 			{% endfor %}
 		{% endif %}
@@ -547,6 +553,13 @@ $(function() {
 				$('button[name=ows-meta]').remove();
 				$('button[name=ows-save]').remove();
 			} else {
+				$('button[name="ows-meta"]')
+					.on('click', function(e) {
+						e.preventDefault();
+						redirect('{% url "idgo_admin:organization_ows_mdedit" %}?id=' + ORGANIZATION_ID);
+						e.stopPropagation();
+					});
+
 				$('button[name=ows-save]').click(function(e) {
 					e.preventDefault();
 					$.ajax({
@@ -567,7 +580,7 @@ $(function() {
 			};
 		} else {
 			$('li[role="presentation"]>a[href="#service"]').prop('href', '#').parent('li').addClass('disabled').prop('disabled', true);
-			$('#service.tab-pane[role="tabpanel"]').empty()
+			$('#service.tab-pane[role="tabpanel"]').empty();
 		};
 
 	};

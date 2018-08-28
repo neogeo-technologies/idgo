@@ -23,6 +23,7 @@ from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -362,6 +363,18 @@ class OrganisationOWS(View):
                 messages.success(request, "Le service OGC est mis à jour.")
             return JsonResponse(data={})
         raise Http404()
+
+
+@method_decorator(decorators, name='dispatch')
+class OrganisationOWSMDedit(View):
+
+    @ExceptionsHandler(
+        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    def get(self, request):
+        user, profile = user_and_profile(request)
+        instance = get_object_or_404(Organisation, id=request.GET.get('id'))
+        return redirect(
+            reverse('idgo_admin:service_mdedit', kwargs={'id': instance.id}))
 
 
 @method_decorator(decorators, name='dispatch')

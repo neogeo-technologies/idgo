@@ -738,6 +738,10 @@ class Organisation(models.Model):
     is_crige_partner = models.BooleanField(
         verbose_name='Organisation partenaire du CRIGE', default=False)
 
+    geonet_id = models.UUIDField(
+        verbose_name='UUID de la métadonnées', unique=True,
+        db_index=True, blank=True, null=True)
+
     class Meta(object):
         ordering = ['name']
 
