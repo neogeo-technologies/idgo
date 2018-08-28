@@ -22,12 +22,16 @@ from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import F
 from django.db.models import Func
 from django.http import Http404
+from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.views import View
 from djqscsv import render_to_csv_response
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
+from idgo_admin.models import Dataset
+from idgo_admin.models import Profile
 from idgo_admin.shortcuts import on_profile_http404
-from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.views.dataset import get_datasets
 
 
@@ -74,95 +78,114 @@ DATASUD_DATE_CREATION = F('date_creation')
 DATASUD_RESSOURCE_TYPES = FORMATS  # ???
 
 
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-@login_required(login_url=settings.LOGIN_URL)
-@csrf_exempt
-def export(request, *args, **kwargs):
+@method_decorator([csrf_exempt], name='dispatch')
+class Export(View):
 
-    user, profile = user_and_profile(request)
+    def handle(self, request, *args, **kwargs):
 
-    strict = request.GET.get('mode') == 'all' and False and True
-    if not strict:
-        roles = profile.get_roles()
-        if not roles['is_referent'] and not roles['is_admin']:
+        user = request.user
+        if user.is_anonymous:
+            profile = None
+        else:
+            try:
+                profile = get_object_or_404(Profile, user=user)
+            except Exception:
+                raise ProfileHttp404
+
+        params = request.POST or request.GET
+
+        if not profile:
+            qs = Dataset.objects.filter(id__in=params.get('ids', []))
+        else:
+            strict = params.get('mode') == 'all' and False and True
+            if not strict:
+                roles = profile.get_roles()
+                if not roles['is_referent'] and not roles['is_admin']:
+                    raise Http404
+            qs = get_datasets(profile, params, strict=strict)
+
+        outputformat = params.get('format')
+        if not outputformat or outputformat[:-1] not in ('odl', 'datasud'):
             raise Http404
 
-    filtered_datasets = get_datasets(profile, request.GET, strict=strict)
+        delimiter = outputformat[-1] == 1 and ';' or ','
+        # encoding = outputformat[-1] == 1 and 'ansi' or 'uft-8'
 
-    outputformat = request.GET.get('format')
-    if not outputformat or outputformat[:-1] not in ('odl', 'datasud'):
-        raise Http404
+        if outputformat[:-1] == 'odl':
+            annotate = OrderedDict((
+                ('COLL_NOM', COLL_NOM),
+                # ('COLL_SIRET', COLL_SIRET),
+                # ('ID', ID),
+                ('TITRE', TITRE),
+                ('DESCRIPTION', DESCRIPTION),
+                ('THEME', THEME),
+                ('DIFFUSEUR', DIFFUSEUR),
+                ('PRODUCTEUR', PRODUCTEUR),
+                # ('COUV_SPAT', COUV_SPAT),
+                # ('COUV_TEMP_DEBUT', COUV_TEMP_DEBUT),
+                # ('COUV_TEMP_FIN', COUV_TEMP_DEBUT),
+                ('DATE_PUBL', DATE_PUBL),
+                ('FREQ_MAJ', FREQ_MAJ),
+                ('DATE_MAJ', DATE_MAJ),
+                ('MOT_CLES', MOT_CLES),
+                ('LICENCE', LICENCE),
+                ('FORMATS', FORMATS),
+                ('PROJECTION', PROJECTION),
+                ('LANG', LANG),
+                # ('URL', URL)
+                ))
+        else:
+            annotate = OrderedDict((
+                ('COLL_NOM', COLL_NOM),
+                # ('COLL_SIRET', COLL_SIRET),
+                # ('ID', ID),
+                ('TITRE', TITRE),
+                ('DESCRIPTION', DESCRIPTION),
+                ('THEME', THEME),
+                ('DIFFUSEUR', DIFFUSEUR),
+                ('PRODUCTEUR', PRODUCTEUR),
+                # ('COUV_SPAT', COUV_SPAT),
+                # ('COUV_TEMP_DEBUT', COUV_TEMP_DEBUT),
+                # ('COUV_TEMP_FIN', COUV_TEMP_DEBUT),
+                ('DATE_PUBL', DATE_PUBL),
+                ('FREQ_MAJ', FREQ_MAJ),
+                ('DATE_MAJ', DATE_MAJ),
+                ('MOT_CLES', MOT_CLES),
+                ('LICENCE', LICENCE),
+                ('FORMATS', FORMATS),
+                ('PROJECTION', PROJECTION),
+                ('LANG', LANG),
+                # ('URL', URL),
+                ('DATASUD_ID', DATASUD_ID),
+                # ('DATASUD_MOT_CLES', DATASUD_MOT_CLES),
+                # ('DATASUD_ORGA', DATASUD_ORGA),
+                ('DATASUD_ORGA_ID', DATASUD_ORGA_ID),
+                ('DATASUD_ORGA_URL', DATASUD_ORGA_URL),
+                ('DATASUD_PRODUCTEUR_NAME', DATASUD_PRODUCTEUR_NAME),
+                ('DATASUD_PRODUCTEUR_EMAIL', DATASUD_PRODUCTEUR_EMAIL),
+                ('DATASUD_DIFFUSEUR_NAME', DATASUD_DIFFUSEUR_NAME),
+                ('DATASUD_DIFFUSEUR_EMAIL', DATASUD_DIFFUSEUR_EMAIL),
+                ('DATASUD_COUV_TERR', DATASUD_COUV_TERR),
+                ('DATASUD_INSPIRE', DATASUD_INSPIRE),
+                # ('DATASUD_DATASET_URL', DATASUD_DATASET_URL),
+                # ('DATASUD_INSPIRE_URL', DATASUD_INSPIRE_URL),
+                # ...
+                ('DATASUD_DATE_CREATION', DATASUD_DATE_CREATION),
+                # ('DATASUD_RESSOURCE_URLS', DATASUD_RESSOURCE_URLS),
+                # ('DATASUD_RESSOURCE_TAILLE', DATASUD_RESSOURCE_TAILLE),
+                ('DATASUD_RESSOURCE_TYPES', DATASUD_RESSOURCE_TYPES)))
 
-    delimiter = outputformat[-1] == 1 and ';' or ','
-    # encoding = outputformat[-1] == 1 and 'ansi' or 'uft-8'
+        values = list(annotate.keys())
 
-    if outputformat[:-1] == 'odl':
-        annotate = OrderedDict((
-            ('COLL_NOM', COLL_NOM),
-            # ('COLL_SIRET', COLL_SIRET),
-            # ('ID', ID),
-            ('TITRE', TITRE),
-            ('DESCRIPTION', DESCRIPTION),
-            ('THEME', THEME),
-            ('DIFFUSEUR', DIFFUSEUR),
-            ('PRODUCTEUR', PRODUCTEUR),
-            # ('COUV_SPAT', COUV_SPAT),
-            # ('COUV_TEMP_DEBUT', COUV_TEMP_DEBUT),
-            # ('COUV_TEMP_FIN', COUV_TEMP_DEBUT),
-            ('DATE_PUBL', DATE_PUBL),
-            ('FREQ_MAJ', FREQ_MAJ),
-            ('DATE_MAJ', DATE_MAJ),
-            ('MOT_CLES', MOT_CLES),
-            ('LICENCE', LICENCE),
-            ('FORMATS', FORMATS),
-            ('PROJECTION', PROJECTION),
-            ('LANG', LANG),
-            # ('URL', URL)
-            ))
-    else:
-        annotate = OrderedDict((
-            ('COLL_NOM', COLL_NOM),
-            # ('COLL_SIRET', COLL_SIRET),
-            # ('ID', ID),
-            ('TITRE', TITRE),
-            ('DESCRIPTION', DESCRIPTION),
-            ('THEME', THEME),
-            ('DIFFUSEUR', DIFFUSEUR),
-            ('PRODUCTEUR', PRODUCTEUR),
-            # ('COUV_SPAT', COUV_SPAT),
-            # ('COUV_TEMP_DEBUT', COUV_TEMP_DEBUT),
-            # ('COUV_TEMP_FIN', COUV_TEMP_DEBUT),
-            ('DATE_PUBL', DATE_PUBL),
-            ('FREQ_MAJ', FREQ_MAJ),
-            ('DATE_MAJ', DATE_MAJ),
-            ('MOT_CLES', MOT_CLES),
-            ('LICENCE', LICENCE),
-            ('FORMATS', FORMATS),
-            ('PROJECTION', PROJECTION),
-            ('LANG', LANG),
-            # ('URL', URL),
-            ('DATASUD_ID', DATASUD_ID),
-            # ('DATASUD_MOT_CLES', DATASUD_MOT_CLES),
-            # ('DATASUD_ORGA', DATASUD_ORGA),
-            ('DATASUD_ORGA_ID', DATASUD_ORGA_ID),
-            ('DATASUD_ORGA_URL', DATASUD_ORGA_URL),
-            ('DATASUD_PRODUCTEUR_NAME', DATASUD_PRODUCTEUR_NAME),
-            ('DATASUD_PRODUCTEUR_EMAIL', DATASUD_PRODUCTEUR_EMAIL),
-            ('DATASUD_DIFFUSEUR_NAME', DATASUD_DIFFUSEUR_NAME),
-            ('DATASUD_DIFFUSEUR_EMAIL', DATASUD_DIFFUSEUR_EMAIL),
-            ('DATASUD_COUV_TERR', DATASUD_COUV_TERR),
-            ('DATASUD_INSPIRE', DATASUD_INSPIRE),
-            # ('DATASUD_DATASET_URL', DATASUD_DATASET_URL),
-            # ('DATASUD_INSPIRE_URL', DATASUD_INSPIRE_URL),
-            # ...
-            ('DATASUD_DATE_CREATION', DATASUD_DATE_CREATION),
-            # ('DATASUD_RESSOURCE_URLS', DATASUD_RESSOURCE_URLS),
-            # ('DATASUD_RESSOURCE_TAILLE', DATASUD_RESSOURCE_TAILLE),
-            ('DATASUD_RESSOURCE_TYPES', DATASUD_RESSOURCE_TYPES)))
+        return render_to_csv_response(
+            qs.annotate(**annotate).values(*values),
+            delimiter=delimiter, field_order=values,
+            quotechar='"', quoting=csv.QUOTE_ALL)
 
-    values = list(annotate.keys())
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    def get(self, request, *args, **kwargs):
+        return self.handle(request, *args, **kwargs)
 
-    return render_to_csv_response(
-        filtered_datasets.annotate(**annotate).values(*values),
-        delimiter=delimiter, field_order=values,
-        quotechar='"', quoting=csv.QUOTE_ALL)
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    def post(self, request, *args, **kwargs):
+        return self.handle(request, *args, **kwargs)

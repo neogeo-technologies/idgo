@@ -28,7 +28,7 @@ from idgo_admin.views.action import ActionsManager
 from idgo_admin.views.dataset import all_datasets
 from idgo_admin.views.dataset import DatasetManager
 from idgo_admin.views.dataset import my_datasets
-from idgo_admin.views.export import export
+from idgo_admin.views.export import Export
 from idgo_admin.views.mailer import confirm_contribution
 from idgo_admin.views.mailer import confirm_new_orga
 from idgo_admin.views.mailer import confirm_rattachement
@@ -69,7 +69,7 @@ urlpatterns = [
     url('^dataset/(?P<dataset_id>(\d+))/mdedit/edit/?$', DatasetMDEditTplEdit.as_view(), name='mdedit_tpl_edit'),
     url('^dataset/mine/?$', my_datasets, name='datasets'),
     url('^dataset/all/?$', all_datasets, name='all_datasets'),
-    url('^dataset/export/?$', export, name='export'),
+    url('^dataset/export/?$', Export.as_view(), name='export'),
 
     url('^member/all/?$', ReferentAccountManager.as_view(), name='all_members'),
 
