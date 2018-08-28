@@ -169,6 +169,11 @@ class DatasetManager(View):
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
         else:
+            # if id:
+            #     Mail.updating_a_dataset(profile, instance)
+            # else:
+            #     Mail.creating_a_dataset(profile, instance)
+
             messages.success(request, (
                 'Le jeu de données a été {0} avec succès. Souhaitez-vous '
                 '<a href="{1}">créer un nouveau jeu de données</a> ? ou '
@@ -216,10 +221,11 @@ class DatasetManager(View):
             messages.error(request, e.__str__())
         else:
             instance.delete()
+            # Mail.deleting_a_dataset(profile, instance)
+
             status = 200
             message = 'Le jeu de données a été supprimé avec succès.'
             messages.success(request, message)
-            Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
         finally:
             ckan_user.close()
 

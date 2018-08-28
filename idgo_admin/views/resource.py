@@ -160,9 +160,13 @@ class ResourceManager(View):
             error = dict(
                 [(k, [str(m) for m in v]) for k, v in form.errors.items()])
         else:
+            # if id:
+            #     Mail.updating_a_resource(profile, instance)
+            # else:
+            #     Mail.creating_a_resource(profile, instance)
+
             dataset_href = reverse(
                 self.namespace, kwargs={'dataset_id': dataset_id})
-
             messages.success(request, (
                 'La ressource a été {0} avec succès. Souhaitez-vous '
                 '<a href="{1}">ajouter une nouvelle ressource</a> ? ou bien '
@@ -220,6 +224,8 @@ class ResourceManager(View):
             messages.error(request, e.__str__())
         else:
             instance.delete()
+            # Mail.deleting_a_resource(profile, instance)
+
             status = 200
             message = 'La ressource a été supprimée avec succès.'
             messages.success(request, message)

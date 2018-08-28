@@ -22,6 +22,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.files import File
+from django.core.mail import get_connection
+from django.core.mail.message import EmailMultiAlternatives
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models.signals import post_delete
@@ -817,6 +819,10 @@ class Profile(models.Model):
                 "is_referent": is_referent,
                 "is_editor": (self.user == dataset.editor) if dataset else False}
 
+    @classmethod
+    def get_admin(cls):
+        return Profile.objects.filter(is_active=True, is_admin=True)
+
 
 class LiaisonsReferents(models.Model):
 
@@ -982,6 +988,8 @@ class Mail(models.Model):
 
     def __str__(self):
         return self.template_name
+
+    ## TODO Factoriser les classmethod
 
     @classmethod
     def superuser_mails(cls, receip_list):
@@ -1309,6 +1317,82 @@ Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
                   message=message,
                   from_email=mail_template.from_email,
                   recipient_list=[user.email])
+    ##
+
+    @classmethod
+    def creating_a_dataset(cls, profile, instance):
+        bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('creating_a_dataset',
+                   to=[profile.user.email], bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name)
+
+    @classmethod
+    def updating_a_dataset(cls, profile, instance):
+        bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('updating_a_dataset',
+                   to=[profile.user.email], bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name)
+
+    @classmethod
+    def deleting_a_dataset(cls, profile, instance):
+        bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('deleting_a_dataset',
+                   to=[profile.user.email], bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name)
+
+    @classmethod
+    def creating_a_resource(cls, profile, instance):
+        bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('creating_a_resource',
+                   to=[profile.user.email], bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name,
+                   dataset=instance.dataset.name)
+
+    @classmethod
+    def updating_a_resource(cls, profile, instance):
+        bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('updating_a_resource',
+                   to=[profile.user.email], bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name,
+                   dataset=instance.dataset.name)
+
+    @classmethod
+    def deleting_a_resource(cls, profile, instance):
+        bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('deleting_a_resource',
+                   to=[profile.user.email], bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name,
+                   dataset=instance.dataset.name)
+
+    @classmethod
+    def sender(cls, template_name, to, cc=None, bcc=None, **kvp):
+        try:
+            tmpl = Mail.objects.get(template_name=template_name)
+        except Mail.DoesNotExist:
+            return False
+
+        subject = tmpl.subject
+        body = PartialFormatter().format(tmpl.message, **kvp)
+        from_email = tmpl.from_email
+        connection = get_connection(fail_silently=False)
+
+        mail = EmailMultiAlternatives(
+            subject=subject, body=body,
+            from_email=from_email, to=to,
+            cc=cc, bcc=bcc, connection=connection)
+        return mail.send()
 
 
 class Category(models.Model):
