@@ -212,8 +212,7 @@ class MDEdit(View):
             'modal_template': {
                 'help': join_url('modal-help.html', path='mdedit/html/')}}
 
-        context = {'dataset_name': three_suspension_points(dataset.name),
-                   'dataset_id': dataset.id,
+        context = {'dataset': dataset,
                    'doc_url': READTHEDOC_URL_INSPIRE,
                    'config': config}
 
