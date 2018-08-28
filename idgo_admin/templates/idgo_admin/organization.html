@@ -2,7 +2,7 @@
 
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
-	<li class="active"><a href="{% url "idgo_admin:all_organizations" %}#{{ id }}">Organisations</a></li>
+	<li><a href="{% url "idgo_admin:all_organizations" %}#{{ id }}">Organisations</a></li>
 	<li class="active"><a href="{% url "idgo_admin:update_organization" id=id %}#">{{ organisation_name }}</a></li>
 </ol>
 {% endblock breadcrumb_content %}
