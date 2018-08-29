@@ -366,18 +366,6 @@ class OrganisationOWS(View):
 
 
 @method_decorator(decorators, name='dispatch')
-class OrganisationOWSMDedit(View):
-
-    @ExceptionsHandler(
-        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def get(self, request):
-        user, profile = user_and_profile(request)
-        instance = get_object_or_404(Organisation, id=request.GET.get('id'))
-        return redirect(
-            reverse('idgo_admin:service_mdedit', kwargs={'id': instance.id}))
-
-
-@method_decorator(decorators, name='dispatch')
 class Subscription(View):
 
     namespace = 'idgo_admin:all_organizations'

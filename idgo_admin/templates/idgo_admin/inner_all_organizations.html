@@ -556,7 +556,7 @@ $(function() {
 				$('button[name="ows-meta"]')
 					.on('click', function(e) {
 						e.preventDefault();
-						redirect('{% url "idgo_admin:organization_ows_mdedit" %}?id=' + ORGANIZATION_ID);
+						redirect('{% url "idgo_admin:mdhandler" type="service" %}?id=' + ORGANIZATION_ID);
 						e.stopPropagation();
 					});
 

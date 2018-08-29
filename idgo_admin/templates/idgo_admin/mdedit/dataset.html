@@ -167,7 +167,7 @@ $(function() {
 			success: function(response) {
 				location.reload();
 			},
-			url: '{% url "idgo_admin:mdedit" dataset_id=dataset.id %}'
+			url: '{% url "idgo_admin:dataset_mdedit" id=dataset.id %}'
 		})
 		e.stopPropagation();
 	});

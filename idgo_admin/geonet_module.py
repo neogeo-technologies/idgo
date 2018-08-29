@@ -69,6 +69,9 @@ class GeonetUserHandler(metaclass=Singleton):
             'typename': 'gmd:MD_Metadata'}
         return self.remote.transaction(**params)
 
+    def is_record_exists(self, id):
+        return self.get_record(id) and True or False
+
     def get_record(self, id):
         self.remote.getrecordbyid(
             id=[id], outputschema='http://www.isotc211.org/2005/gmd')

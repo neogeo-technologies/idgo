@@ -113,7 +113,7 @@ $(function() {
 	$('#alldatasets a[name="mdedit-dataset"]')
 		.on('click', function(e) {
 			e.preventDefault();
-			redirect(DATASET_URL + '/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']  + '/mdedit');
+			redirect('{% url "idgo_admin:mdhandler" type="dataset" %}?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
 			e.stopPropagation();
 		});
 

@@ -20,6 +20,7 @@ from django.contrib import messages
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -34,7 +35,6 @@ from idgo_admin.models import MDEDIT_LOCALES
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.shortcuts import get_object_or_404
-from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
@@ -53,40 +53,49 @@ CKAN_URL = settings.CKAN_URL
 DOMAIN_NAME = settings.DOMAIN_NAME
 READTHEDOC_URL_INSPIRE = settings.READTHEDOC_URL_INSPIRE
 
+MDEDIT_HTML_PATH = 'mdedit/html/'
+MDEDIT_CONFIG_PATH = 'mdedit/config/'
+MDEDIT_DATASET_MODEL = 'models/model-dataset-empty.json'
+MDEDIT_SERVICE_MODEL = 'models/model-service-empty.json'
 
-decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+
+def join_url(filename, path=MDEDIT_CONFIG_PATH):
+    return urljoin(urljoin(STATIC_URL, path), filename)
 
 
-def prefill_model(model, dataset):
+def prefill_dataset_model(dataset):
+
+    model = open_json_staticfile(
+        os.path.join(MDEDIT_CONFIG_PATH, MDEDIT_DATASET_MODEL))
 
     data = model.copy()
     editor = dataset.editor
-    organization = dataset.organisation
+    organisation = dataset.organisation
 
     data['mdContacts'].insert(0, {
         'role': 'author',
         'individualName': editor.get_full_name(),
-        'organisationName': organization.name,
-        'email': organization.email,
-        'phoneVoice': organization.org_phone,
-        'deliveryPoint': organization.address,
-        'postalCode': organization.postcode,
-        'city': dataset.organisation.city})
+        'organisationName': organisation.name,
+        'email': organisation.email,
+        'phoneVoice': organisation.org_phone,
+        'deliveryPoint': organisation.address,
+        'postalCode': organisation.postcode,
+        'city': organisation.city})
 
     data['dataPointOfContacts'].insert(0, {
         'role': 'owner',
         'individualNzame': editor.get_full_name(),
-        'organisationName': organization.name,
-        'email': organization.email,
-        'phoneVoice': organization.org_phone,
-        'deliveryPoint': organization.address,
-        'postalCode': organization.postcode,
-        'city': dataset.organisation.city})
+        'organisationName': organisation.name,
+        'email': organisation.email,
+        'phoneVoice': organisation.org_phone,
+        'deliveryPoint': organisation.address,
+        'postalCode': organisation.postcode,
+        'city': organisation.city})
 
     try:
         data['mdContacts'][0].update({
             'logoDescription': 'logo',
-            'logoUrl': urljoin(DOMAIN_NAME, organization.logo.url)})
+            'logoUrl': urljoin(DOMAIN_NAME, organisation.logo.url)})
     except Exception:
         pass
 
@@ -133,23 +142,63 @@ def prefill_model(model, dataset):
     return clean_my_obj(data)
 
 
+def prefill_service_model(organisation):
+
+    model = open_json_staticfile(
+        os.path.join(MDEDIT_CONFIG_PATH, MDEDIT_SERVICE_MODEL))
+
+    data = model.copy()
+    editor = None  # qui est l'éditeur ?
+
+    data['mdContacts'].insert(0, {
+        'role': 'author',
+        # 'individualName': editor.get_full_name(),
+        'organisationName': organisation.name,
+        'email': organisation.email,
+        'phoneVoice': organisation.org_phone,
+        'deliveryPoint': organisation.address,
+        'postalCode': organisation.postcode,
+        'city': organisation.city})
+
+    data['dataPointOfContacts'].insert(0, {
+        'role': 'owner',
+        # 'individualNzame': editor.get_full_name(),
+        'organisationName': organisation.name,
+        'email': organisation.email,
+        'phoneVoice': organisation.org_phone,
+        'deliveryPoint': organisation.address,
+        'postalCode': organisation.postcode,
+        'city': organisation.city})
+
+    try:
+        data['mdContacts'][0].update({
+            'logoDescription': 'logo',
+            'logoUrl': urljoin(DOMAIN_NAME, organisation.logo.url)})
+    except Exception:
+        pass
+
+    return clean_my_obj(data)
+
+
+def prefill_model(instance):
+    if isinstance(instance, Dataset):
+        return prefill_dataset_model(instance)
+    if isinstance(instance, Organisation):
+        return prefill_service_model(instance)
+
+
+decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+
+
 @method_decorator(decorators, name='dispatch')
 class DatasetMDEditTplEdit(View):
 
     template = 'idgo_admin/mdedit/template_dataset_edit.html'
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, dataset_id, *args, **kwargs):
-
-        def join_url(filename, path='mdedit/html/'):
-            return urljoin(urljoin(STATIC_URL, path), filename)
-
+    def get(self, request, id, *args, **kwargs):
         user, profile = user_and_profile(request)
-
-        dataset = get_object_or_404_extended(
-            Dataset, user, include={'id': dataset_id})
-        del dataset
-
+        get_object_or_404(Dataset, id=id)
         return render(request, self.template)
 
 
@@ -157,30 +206,12 @@ class DatasetMDEditTplEdit(View):
 class DatasetMDEdit(View):
 
     template = 'idgo_admin/mdedit/dataset.html'
-    namespace = 'idgo_admin:mdedit'
-    config_path = 'mdedit/config/'
-    html_path = 'mdedit/html/'
-    locales = MDEDIT_LOCALES
-    geonetwork_url = GEONETWORK_URL
-    static_url = STATIC_URL
-
-    # filenames
-    model_json = 'models/model-service-empty.json'
+    namespace = 'idgo_admin:dataset_mdedit'
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, dataset_id, *args, **kwargs):
-
+    def get(self, request, id, *args, **kwargs):
         user, profile = user_and_profile(request)
-
-        instance = get_object_or_404_extended(
-            Dataset, user, include={'id': dataset_id})
-
-        def join_url(filename, path=self.config_path):
-            return urljoin(urljoin(self.static_url, path), filename)
-
-        def server_url(namespace):
-            return reverse('idgo_admin:{0}'.format(namespace),
-                           kwargs={'dataset_id': instance.id})
+        instance = get_object_or_404(Dataset, id=id)
 
         config = {
             'app_name': 'mdEdit',
@@ -189,42 +220,42 @@ class DatasetMDEdit(View):
             'app_copyrights': '(c) CIGAL 2016',
             'languages': {'locales': ['fr']},
             'defaultLanguage': 'fr',
-            'server_url_md': self.geonetwork_url,
+            'server_url_md': GEONETWORK_URL,
             'views': {
                 'list': [{
-                    'path': 'mdedit/edit/',
+                    # 'path': '{id}/edit/'.format(id=id),
+                    'path': reverse('idgo_admin:dataset_mdedit_tpl_edit', kwargs={'id': instance.id}),
                     'values': {'fr': 'Edition'},
                     'locales': {'fr': join_url('views/edit/tpl-edit_fr.json')}
                     }, {
-                    'path': join_url('tpl-view.html', path=self.html_path),
+                    'path': join_url('tpl-view.html', path=MDEDIT_HTML_PATH),
                     'values': {'fr': 'Vue'},
                     'locales': {'fr': join_url('views/view/tpl-view_fr.json')}
                     }]},
             'models': {
                 'list': [{
-                    'path': join_url(self.model_json),
+                    'path': join_url(MDEDIT_DATASET_MODEL),
                     'value': 'Modèle de fiche vierge'
                     }]},
-            'locales': self.locales,
+            'locales': MDEDIT_LOCALES,
             'locales_path': join_url('locales/'),
             'geographicextents_list': join_url('list_geographicextents.json'),
             'referencesystems_list': join_url('list_referencesystems.json'),
             'static_root': join_url('libs/mdedit/', path=STATIC_URL),
             'modal_template': {
-                'help': join_url('modal-help.html', path='mdedit/html/')}}
+                'help': join_url('modal-help.html', path=MDEDIT_HTML_PATH)}}
 
         context = {'dataset': instance,
                    'doc_url': READTHEDOC_URL_INSPIRE,
                    'config': config}
 
-        if instance.geonet_id:
-            record = geonet.get_record(str(instance.geonet_id))
+        record = instance.geonet_id and geonet.get_record(str(instance.geonet_id)) or None
+
+        if record:
             xml = record.xml.decode(encoding='utf-8')
             context['record_xml'] = re.sub('\n', '', xml).replace("'", "\\'")  # C'est moche
         else:
-            context['record_obj'] = \
-                prefill_model(open_json_staticfile(
-                    os.path.join(self.config_path, self.model_json)), instance)
+            context['record_obj'] = prefill_model(instance)
 
         return render_with_info_profile(request, self.template, context=context)
 
@@ -233,15 +264,11 @@ class DatasetMDEdit(View):
 
         user, profile = user_and_profile(request)
 
-        dataset = get_object_or_404_extended(
-            Dataset, user, include={'id': dataset_id})
-
-        def http_redirect(dataset_id):
-            return HttpResponseRedirect(
-                reverse(self.namespace, kwargs={'dataset_id': dataset_id}))
+        dataset = get_object_or_404(Dataset, id=dataset_id)
 
         if not request.is_ajax():
-            return http_redirect(dataset_id)
+            return HttpResponseRedirect(
+                reverse(self.namespace, kwargs={'dataset_id': dataset_id}))
 
         root = ET.fromstring(request.body)
         ns = {'gmd': 'http://www.isotc211.org/2005/gmd',
@@ -282,17 +309,9 @@ class ServiceMDEditTplEdit(View):
     template = 'idgo_admin/mdedit/template_service_edit.html'
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, dataset_id, *args, **kwargs):
-
-        def join_url(filename, path='mdedit/html/'):
-            return urljoin(urljoin(STATIC_URL, path), filename)
-
+    def get(self, request, id, *args, **kwargs):
         user, profile = user_and_profile(request)
-
-        dataset = get_object_or_404_extended(
-            Dataset, user, include={'id': dataset_id})
-        del dataset
-
+        get_object_or_404(Organisation, id=id, is_active=True)
         return render(request, self.template)
 
 
@@ -301,28 +320,11 @@ class ServiceMDEdit(View):
 
     template = 'idgo_admin/mdedit/service.html'
     namespace = 'idgo_admin:service_mdedit'
-    config_path = 'mdedit/config/'
-    html_path = 'mdedit/html/'
-    locales = MDEDIT_LOCALES
-    geonetwork_url = GEONETWORK_URL
-    static_url = STATIC_URL
-
-    # filenames
-    model_json = 'models/model-dataset-empty.json'
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, id, *args, **kwargs):
-
         user, profile = user_and_profile(request)
-
         instance = get_object_or_404(Organisation, id=id, is_active=True)
-
-        def join_url(filename, path=self.config_path):
-            return urljoin(urljoin(self.static_url, path), filename)
-
-        def server_url(namespace):
-            return reverse(
-                'idgo_admin:{0}'.format(namespace), kwargs={'id': instance.id})
 
         config = {
             'app_name': 'mdEdit',
@@ -331,45 +333,98 @@ class ServiceMDEdit(View):
             'app_copyrights': '(c) CIGAL 2016',
             'languages': {'locales': ['fr']},
             'defaultLanguage': 'fr',
-            'server_url_md': self.geonetwork_url,
+            'server_url_md': GEONETWORK_URL,
             'views': {
                 'list': [{
-                    'path': 'mdedit/edit/',
+                    'path': reverse('idgo_admin:service_mdedit_tpl_edit', kwargs={'id': instance.id}),
                     'values': {'fr': 'Edition'},
                     'locales': {'fr': join_url('views/edit/tpl-edit_fr.json')}
                     }, {
-                    'path': join_url('tpl-view.html', path=self.html_path),
+                    'path': join_url('tpl-view.html', path=MDEDIT_HTML_PATH),
                     'values': {'fr': 'Vue'},
                     'locales': {'fr': join_url('views/view/tpl-view_fr.json')}
                     }]},
             'models': {
                 'list': [{
-                    'path': join_url(self.model_json),
+                    'path': join_url(MDEDIT_SERVICE_MODEL),
                     'value': 'Modèle de fiche vierge'
                     }]},
-            'locales': self.locales,
+            'locales': MDEDIT_LOCALES,
             'locales_path': join_url('locales/'),
             'geographicextents_list': join_url('list_geographicextents.json'),
             'referencesystems_list': join_url('list_referencesystems.json'),
             'static_root': join_url('libs/mdedit/', path=STATIC_URL),
             'modal_template': {
-                'help': join_url('modal-help.html', path='mdedit/html/')}}
+                'help': join_url('modal-help.html', path=MDEDIT_HTML_PATH)}}
 
         context = {'organisation': instance,
                    'doc_url': READTHEDOC_URL_INSPIRE,
                    'config': config}
 
-        if instance.geonet_id:
-            record = geonet.get_record(str(instance.geonet_id))
+        record = instance.geonet_id and geonet.get_record(str(instance.geonet_id)) or None
+
+        if record:
             xml = record.xml.decode(encoding='utf-8')
             context['record_xml'] = re.sub('\n', '', xml).replace("'", "\\'")  # C'est moche
         else:
-            context['record_obj'] = open_json_staticfile(
-                os.path.join(self.config_path, self.model_json))
+            context['record_obj'] = prefill_model(instance)
 
         return render_with_info_profile(request, self.template, context=context)
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def post(self, request, id, *args, **kwargs):
 
-        raise Exception('TODO')
+        user, profile = user_and_profile(request)
+
+        instance = get_object_or_404(Organisation, id=id, is_active=True)
+
+        if not request.is_ajax():
+            return HttpResponseRedirect(
+                reverse(self.namespace, kwargs={'id': instance.id}))
+
+        root = ET.fromstring(request.body)
+        ns = {'gmd': 'http://www.isotc211.org/2005/gmd',
+              'gco': 'http://www.isotc211.org/2005/gco'}
+        id = root.find('gmd:fileIdentifier/gco:CharacterString', ns).text
+
+        record = ET.tostring(
+            root, encoding='utf-8', method='xml', short_empty_elements=True)
+
+        if not geonet.is_record_exists(id):
+            try:
+                geonet.create_record(id, record)
+            except Exception:
+                messages.error(request, 'La création de la fiche de métadonnées a échoué.')
+            else:
+                geonet.publish(id)  # Toujours publier la fiche
+                instance.geonet_id = UUID(id)
+                instance.save()
+                messages.success(
+                    request, 'La fiche de metadonnées a été créée avec succès.')
+        else:
+            try:
+                geonet.update_record(id, record)
+            except Exception:
+                messages.error(request, 'La mise à jour de la fiche de métadonnées a échoué.')
+            else:
+                messages.success(
+                    request, 'La fiche de metadonnées a été créée avec succès.')
+
+        return HttpResponse()
+
+
+@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def mdhandler(request, type, *args, **kwargs):
+    user, profile = user_and_profile(request)
+
+    if type == 'dataset':
+        target = Dataset
+        namespace = 'idgo_admin:dataset_mdedit'
+    elif type == 'service':
+        target = Organisation
+        namespace = 'idgo_admin:service_mdedit'
+
+    instance = get_object_or_404(target, id=request.GET.get('id'))
+    return redirect(reverse(namespace, kwargs={'id': instance.id}))

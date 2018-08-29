@@ -5,6 +5,9 @@
 <form name="dataset" method="post" action="" enctype="multipart/form-data">
 
 	<div class="buttons-on-the-right-side">
+		{% if dataset.is_inspire %}
+		<a class="btn btn-default" href="{% url "idgo_admin:dataset_mdedit" id=dataset.id %}">Éditer la fiche de métadonnées INSPIRE</a>
+		{% endif %}
 		{% if dataset.id %}
 		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}">Ouvrir dans CKAN</a>
 		{% endif %}
