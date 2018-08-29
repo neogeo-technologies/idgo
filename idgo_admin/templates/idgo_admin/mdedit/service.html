@@ -159,17 +159,21 @@ $(function() {
 
 	$('#validate').click(function(e) {
 		e.preventDefault();
-		$.ajax({
-			type: 'POST',
-			data: $scope.vm.getXml(),
-			contentType: 'text/xml',
-			dataType: 'xml',
-			success: function(response) {
-				location.reload();
-			},
-			url: '{% url "idgo_admin:service_mdedit" id=organisation.id %}'
-		})
-		e.stopPropagation();
+		$modalHourglass.one('show.bs.modal', function(e) {
+			$.ajax({
+				type: 'POST',
+				data: $scope.vm.getXml(),
+				contentType: 'text/xml',
+				dataType: 'xml',
+				success: function(response) {
+					location.reload();
+				},
+				error: function(xhr, statut, error) {
+					location.reload();  // C'est moche..
+				},
+				url: '{% url "idgo_admin:service_mdedit" id=organisation.id %}'
+			})
+		}).modal('show');
 	});
 });
 </script>
