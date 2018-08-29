@@ -827,6 +827,10 @@ class Profile(models.Model):
     def get_admin(cls):
         return Profile.objects.filter(is_active=True, is_admin=True)
 
+    @classmethod
+    def get_crige_membership(cls):
+        return Profile.objects.filter(is_active=True, crige_membership=True)
+
 
 class LiaisonsReferents(models.Model):
 
