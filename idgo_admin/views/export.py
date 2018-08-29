@@ -16,8 +16,8 @@
 
 from collections import OrderedDict
 import csv
-from django.conf import settings
-from django.contrib.auth.decorators import login_required
+# from django.conf import settings
+# from django.contrib.auth.decorators import login_required
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import F
 from django.db.models import Func
@@ -33,6 +33,7 @@ from idgo_admin.models import Dataset
 from idgo_admin.models import Profile
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.views.dataset import get_datasets
+from uuid import UUID
 
 
 # Définition des champs ODL :
@@ -94,8 +95,11 @@ class Export(View):
 
         params = request.POST or request.GET
 
+        ids = params.get('ids', [])
+        ids = isinstance(ids, str) and [ids] or ids
+
         if not profile:
-            qs = Dataset.objects.filter(id__in=params.get('ids', []))
+            qs = Dataset.objects.filter(ckan_id__in=[UUID(id) for id in ids])
         else:
             strict = params.get('mode') == 'all' and False and True
             if not strict:
