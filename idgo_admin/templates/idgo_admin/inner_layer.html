@@ -228,6 +228,11 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <div id="layer-container">
+	{% if resource.extractable %}
+	<div class="floating-buttons-on-the-right-side">
+		<a href="{% url "idgo_admin:extractor" %}?dataset={{ dataset.id }}&resource={{ resource.id }}&layer={{ layer.id }}" name="extractor" type="button" class="btn btn-default">Service d'extraction</a>
+	</div>
+	{% endif %}
 	<ul class="nav nav-tabs" role="tablist">
 		<li role="presentation" class="active">
 			<a href="#configuration" aria-controls="configuration" role="tab" data-toggle="tab">Configuration générale de la couche de données</a>
@@ -355,8 +360,7 @@
 
 <script>
 $(function() {
-
-	var LAYER = {{ layer | safe }};
+	var LAYER = {{ layer_asjson | safe }};
 	var DEFAULT_STYLE = LAYER.styles.default;
 	var STYLES = LAYER.styles.styles;
 	var STYLES_CONTAINER = 'table-styles';
@@ -810,7 +814,7 @@ $(function() {
 		const $well = $container.find('#text_symbolizer_well');
 		const $symbolizer = $rule.getChildrenOrCreate('TextSymbolizer');
 		declareParameter($content, $symbolizer, 'Label', 'PropertyName', 'property-name', undefined, options.attributes);
-		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-family', undefined, {{ fonts | safe }});
+		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-family', undefined, {{ fonts_asjson | safe }});
 		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-size');
 		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-style', 'normal', ['normal', 'italic', 'oblique']);
 		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-weight', 'normal', ['normal', 'bold']);
@@ -956,7 +960,7 @@ $(function() {
 	};
 
 
-	var layerData = {{ layer | safe }};
+	var layerData = {{ layer_asjson | safe }};
 
 	$('#layer-container #name').val(layerData['name']);
 	$('#layer-container #title').val(layerData['title']);

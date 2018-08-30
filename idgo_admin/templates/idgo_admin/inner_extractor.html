@@ -1,0 +1,155 @@
+{% load static %}
+{% load bootstrap3 %}
+
+{% block head_extras %}
+<script src="{% static "libs/leaflet/leaflet.js" %}"></script>
+<script src="{% static "libs/leaflet/leaflet-nontiledlayer.js" %}"></script>
+<script src="{% static "libs/leaflet/leaflet-nontiledlayer-wms.js" %}"></script>
+<script src="{% static "libs/bootstrap-slider/bootstrap-slider.js" %}"></script>
+<link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
+<link rel="stylesheet" href="{% static "libs/bootstrap-slider/css/bootstrap-slider.css" %}"/>
+{% endblock head_extras %}
+
+{% include "idgo_admin/alert_messages.html" %}
+
+<div>
+	<div class="row">
+		<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
+			<div id="map_well">
+				<div id="map" style="height: 650px;"></div>
+			</div>
+		</div>
+		<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
+			<form>
+				<div class="form-group">
+					<label for="dataset">Jeu de données</label>
+					<div class="input-group input-group">
+						<select class="form-control" id="dataset">
+							<option disabled selected>Sélectionnez un jeu de données</option>
+						</select>
+						<span class="input-group-btn">
+							<button class="btn btn-default" type="button" name="clear">
+								<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+							</button>
+						</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="resource">Ressource</label>
+					<div class="input-group input-group">
+						<select class="form-control" id="resource">
+							<option disabled selected>Sélectionnez une ressource</option>
+						</select>
+						<span class="input-group-btn">
+							<button class="btn btn-default" type="button" name="clear">
+								<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+							</button>
+						</span>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="buttons-on-the-right-side">
+		<a type="button" name="export" class="btn btn-primary">Exporter</a>
+	</div>
+</div>
+
+<script>
+$(function() {
+
+	$.fn.pop = function() {
+		var top = this.get(-1);
+		this.splice(this.length-1,1);
+		return top;
+	};
+	$.fn.shift = function() {
+		var bottom = this.get(0);
+		this.splice(0,1);
+		return bottom;
+	};
+
+	const datasets = {{ datasets | safe }};
+	const focusOn = {{ focus_on | safe }};
+
+	const clear = function($target) {
+		$target.is('input[type="checkbox"]') && $target.prop('checked', false);
+		$target.is('input[type="text"]') && $target.val('');
+		$target.is('select') && $target.val($target.find('option:first').val());
+		$target.trigger('change');
+	};
+
+	$('form').find('button[name="clear"]').click(function(e) {
+		e.preventDefault();
+		clear($(this).parent().siblings('input, select'));
+	});
+
+	const map = L.map('map').fitBounds([[41.15, -9.86], [51.56, 10.38]]);
+
+	L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+		attribution: 'CartoDB',
+	}).addTo(map);
+
+	const layerGroup = new L.layerGroup().addTo(map);
+
+	const addLayerToMap = function(layer) {
+		layerGroup.addLayer(
+			new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+				format: 'image/png',
+				layers: layer['name'],
+				styles: layer['styles']['default'],
+				transparent: true
+			})
+		);
+	};
+
+	$selectResource = $('#resource').change(function(e) {
+		e.preventDefault();
+
+		layerGroup.clearLayers();
+
+		const datasetId = $selectDataset.val();
+		const resourceId = $(this).val();
+
+		if (datasetId && resourceId) {
+			const layer = datasets[datasetId].resources[resourceId].layer;
+			addLayerToMap(layer);
+		};
+	});
+
+	$selectDataset = $('#dataset').change(function(e) {
+		e.preventDefault();
+
+		$selectResource.find('option').not(':first').remove();
+		$selectResource.val($selectResource.find('option:first').val());
+
+		const datasetId = $(this).val();
+
+		if (datasetId) {
+			$selectResource.prop('disabled', false).removeClass('disabled');
+			for (const resourceId in datasets[datasetId].resources) {
+				const resource = datasets[datasetId].resources[resourceId];
+				$selectResource.append($('<option>', {
+					value: resourceId,
+					text: resource.text,
+					// selected: resourceId == focusOn.resource.pop()
+				}));
+			};
+		} else {
+			$selectResource.prop('disabled', true).addClass('disabled')
+		};
+		$selectResource.trigger('change')
+	});
+
+	for (const datasetId in datasets) {
+		const dataset = datasets[datasetId];
+		$selectDataset.append($('<option>', {
+			value: datasetId,
+			text: dataset.text,
+			// selected: datasetId == focusOn.dataset.pop()
+		}));
+	};
+	$selectDataset.trigger('change');
+
+});
+</script>

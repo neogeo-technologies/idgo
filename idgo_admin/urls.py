@@ -29,6 +29,7 @@ from idgo_admin.views.dataset import all_datasets
 from idgo_admin.views.dataset import DatasetManager
 from idgo_admin.views.dataset import my_datasets
 from idgo_admin.views.export import Export
+from idgo_admin.views.extractor import Extractor
 from idgo_admin.views.mailer import confirm_contribution
 from idgo_admin.views.mailer import confirm_new_orga
 from idgo_admin.views.mailer import confirm_rattachement
@@ -64,6 +65,8 @@ urlpatterns = [
     url('^dataset/?$', DatasetManager.as_view(), name='dataset'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))$', LayerManager.as_view(), name='layer'),
+
+    url('^extractor/?$', Extractor.as_view(), name='extractor'),
 
     url('^dataset/mine/?$', my_datasets, name='datasets'),
     url('^dataset/all/?$', all_datasets, name='all_datasets'),

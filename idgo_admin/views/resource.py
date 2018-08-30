@@ -311,9 +311,9 @@ class LayerManager(View):
         context = {
             'dataset': dataset,
             'resource': instance,
-            'layer_title': layer['title'],
-            'fonts': json.dumps(MRAHandler.get_fonts()),
-            'layer': json.dumps(layer)}
+            'fonts_asjson': json.dumps(MRAHandler.get_fonts()),
+            'layer': layer,
+            'layer_asjson': json.dumps(layer)}
 
         return render_with_info_profile(request, self.template, context)
 
@@ -347,9 +347,9 @@ class LayerManager(View):
 
         context = {
             'dataset': dataset,
-            'layer_title': layer['title'],
             'resource': instance,
-            'fonts': json.dumps(MRAHandler.get_fonts()),
-            'layer': json.dumps(layer)}
+            'fonts_asjson': json.dumps(MRAHandler.get_fonts()),
+            'layer': layer,
+            'layer_asjson': json.dumps(layer)}
 
         return render_with_info_profile(request, self.template, context)

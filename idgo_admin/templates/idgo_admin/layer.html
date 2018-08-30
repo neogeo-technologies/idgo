@@ -13,10 +13,10 @@
 		<a href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?id={{ resource.id }}">{{ resource.name_overflow }}</a>
 	</li>
 	<li>
-		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#owslayers/{{ layer_id }}">Ressources géographiques</a>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#owslayers/{{ layer.id }}">Ressources géographiques</a>
 	</li>
 	<li class="active">
-		<a href="{% url "idgo_admin:layer" dataset_id=dataset.id resource_id=resource.id layer_id=layer_id%}">{{ layer_title }}</a>
+		<a href="{% url "idgo_admin:layer" dataset_id=dataset.id resource_id=resource.id layer_id=layer.id%}">{{ layer.title }}</a>
 	</li>
 </ol>
 {% endblock breadcrumb_content %}
