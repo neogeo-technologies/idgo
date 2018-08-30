@@ -95,10 +95,8 @@ class Export(View):
 
         params = request.POST or request.GET
 
-        ids = params.get('ids', [])
-        ids = isinstance(ids, str) and [ids] or ids
-
         if not profile:
+            ids = params.get('ids', '').split(',')
             qs = Dataset.objects.filter(ckan_id__in=[UUID(id) for id in ids])
         else:
             strict = params.get('mode') == 'all' and False and True
