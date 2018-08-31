@@ -57,6 +57,7 @@ import json
 import os
 from pathlib import Path
 import re
+import requests
 from taggit.managers import TaggableManager
 from urllib.parse import parse_qs
 from urllib.parse import urljoin
@@ -99,6 +100,7 @@ except Exception:
 
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 MRA = settings.MRA
+EXTRACTOR_URL = settings.EXTRACTOR_URL
 
 
 class SupportedCrs(models.Model):
@@ -115,6 +117,10 @@ class SupportedCrs(models.Model):
     class Meta(object):
         verbose_name = "CRS supporté par l'application"
         verbose_name_plural = "CRS supportés par l'application"
+
+    @property
+    def authority(self):
+        return '{}:{}'.format(self.auth_name, self.auth_code)
 
     def __str__(self):
         return '{}:{} ({})'.format(
@@ -162,6 +168,10 @@ class Layer(models.Model):
     resource = models.ForeignKey(
         to='Resource', verbose_name='Ressource',
         on_delete=models.CASCADE, blank=True, null=True)
+
+    # data_source = models.TextField(
+    #     verbose_name='Chaîne de connexion à la source de données',
+    #     blank=True, null=True)
 
     @property
     def mra_info(self):
@@ -819,6 +829,10 @@ class Organisation(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def full_address(self):
+        return '{} - {} {}'.format(self.address, self.postcode, self.city)
 
     @property
     def ows_url(self):
@@ -1983,19 +1997,43 @@ class AsyncExtractorTask(models.Model):
 
     success = models.NullBooleanField(verbose_name='Succès')
 
-    start_date = models.DateTimeField(
-        verbose_name='Start', auto_now_add=True)
+    submission_datetime = models.DateTimeField(
+        verbose_name='Submission', null=True, blank=True)
 
-    stop_date = models.DateTimeField(
+    start_datetime = models.DateTimeField(
+        verbose_name='Start', null=True, blank=True)
+
+    stop_datetime = models.DateTimeField(
         verbose_name='Stop', null=True, blank=True)
 
     details = JSONField(verbose_name='Details', blank=True, null=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.uuid and self.success is None:
+            url = self.details['possible_requests']['status']['url']
+            r = requests.get(url)
+            if r.status_code == 200:
+                details = r.json()
+                self.success = {
+                    'SUCCESS': True, 'FAILED': False
+                    }.get(details['status'], None)
+                self.start_datetime = details.get('start_datetime', None)
+                self.stop_datetime = details.get('start_datetime', None)
+                self.details = details
+                self.save()
+
+    @property
+    def status(self):
+        return {
+            True: 'Succès', False: 'Échec', None: 'Attente'}.get(self.success)
+
     @property
     def elapsed_time(self):
-        return self.stop_date \
-            and (self.stop_date - self.start_date) \
-            or (timezone.now() - self.start_date)
+        return self.stop_datetime \
+            and (self.stop_datetime - self.submission_datetime) \
+            or (timezone.now() - self.submission_datetime)
 
 
 # Triggers

@@ -5,8 +5,11 @@
 <script src="{% static "libs/leaflet/leaflet.js" %}"></script>
 <script src="{% static "libs/leaflet/leaflet-nontiledlayer.js" %}"></script>
 <script src="{% static "libs/leaflet/leaflet-nontiledlayer-wms.js" %}"></script>
+<script src="{% static "libs/leaflet.draw/leaflet.draw.js" %}"></script>
+
 <script src="{% static "libs/bootstrap-slider/bootstrap-slider.js" %}"></script>
 <link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
+<link rel="stylesheet" href="{% static "libs/leaflet.draw/leaflet.draw.css" %}"/>
 <link rel="stylesheet" href="{% static "libs/bootstrap-slider/css/bootstrap-slider.css" %}"/>
 {% endblock head_extras %}
 
@@ -21,56 +24,107 @@
 		</div>
 		<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
 			<form>
-				<div class="form-group">
-					<label for="dataset">Jeu de données</label>
-					<div class="input-group input-group">
-						<select class="form-control" id="dataset">
-							<option disabled selected>Sélectionnez un jeu de données</option>
-						</select>
-						<span class="input-group-btn">
-							<button class="btn btn-default" type="button" name="clear">
-								<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-							</button>
-						</span>
+				<div class="well">
+					<div class="form-group">
+						<label for="dataset">Jeu de données</label>
+						<div class="input-group input-group">
+							<select class="form-control" id="dataset">
+								<option disabled selected>Sélectionnez un jeu de données</option>
+							</select>
+							<span class="input-group-btn">
+								<button class="btn btn-default" type="button" name="clear">
+									<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+								</button>
+							</span>
+						</div>
 					</div>
+					<div class="form-group">
+						<label for="resource">Ressource</label>
+						<div class="input-group input-group">
+							<select class="form-control" id="resource">
+								<option disabled selected>Sélectionnez une ressource</option>
+							</select>
+							<span class="input-group-btn">
+								<button class="btn btn-default" type="button" name="clear">
+									<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+								</button>
+							</span>
+						</div>
+					</div>
+					<!-- <button class="btn btn-default" type="button" name="zoom-on">
+						<span class="glyphicon glyphicon-search" aria-hidden="true"></span> Zoom
+					</button> -->
 				</div>
-				<div class="form-group">
-					<label for="resource">Ressource</label>
-					<div class="input-group input-group">
-						<select class="form-control" id="resource">
-							<option disabled selected>Sélectionnez une ressource</option>
-						</select>
-						<span class="input-group-btn">
-							<button class="btn btn-default" type="button" name="clear">
-								<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-							</button>
-						</span>
+				<div class="well">
+					<div class="form-group">
+						<label for="crs">Système de coordonnées</label>
+						<div class="input-group input-group">
+							<select class="form-control" id="crs">
+								<option disabled selected>Sélectionnez un système de coordonnées</option>
+								{% for crs in supported_crs %}
+								<option value="{{ crs.authority }}">"{{ crs }}"</option>
+								{% endfor %}
+							</select>
+							<span class="input-group-btn">
+								<button class="btn btn-default" type="button" name="clear">
+									<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+								</button>
+							</span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="format">Format de données</label>
+						<div class="input-group input-group">
+							<select class="form-control" id="format">
+								<option disabled selected>Sélectionnez un format</option>
+							</select>
+							<span class="input-group-btn">
+								<button class="btn btn-default" type="button" name="clear">
+									<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+								</button>
+							</span>
+						</div>
 					</div>
 				</div>
 			</form>
 		</div>
 	</div>
 	<div class="buttons-on-the-right-side">
-		<a type="button" name="export" class="btn btn-primary">Exporter</a>
+		<button type="button" name="extract" class="btn btn-primary">Exporter</button>
 	</div>
 </div>
 
 <script>
 $(function() {
 
-	$.fn.pop = function() {
-		var top = this.get(-1);
-		this.splice(this.length-1,1);
-		return top;
-	};
-	$.fn.shift = function() {
-		var bottom = this.get(0);
-		this.splice(0,1);
-		return bottom;
-	};
-
 	const datasets = {{ datasets | safe }};
 	const focusOn = {{ focus_on | safe }};
+
+	var targetLayer;
+	var footprintLayer;
+
+	const $extract = $('button[name="extract"]').click(function(e) {
+		e.preventDefault();
+
+		if ((!targetLayer && !map.hasLayer(targetLayer)) ||
+			(!footprintLayer && !editableLayers.hasLayer(footprintLayer))) {
+			return;
+		};
+
+		const layer = targetLayer.options.layers;
+		const footprint = JSON.stringify(footprintLayer.toGeoJSON());
+		const srs = $('#crs').val();
+		const format = $('#format').val();
+
+		const $form = $('form').attr('method', 'POST');
+		$form.append($('<input type="text" name="layer"/>').hide().val(layer));
+		$form.append($('<input type="text" name="footprint"/>').hide().val(footprint));
+		$form.append($('<input type="text" name="srs"/>').hide().val(srs));
+		$form.append($('<input type="text" name="format"/>').hide().val(format));
+
+		$form.submit();
+
+	});
 
 	const clear = function($target) {
 		$target.is('input[type="checkbox"]') && $target.prop('checked', false);
@@ -90,34 +144,69 @@ $(function() {
 		attribution: 'CartoDB',
 	}).addTo(map);
 
-	const layerGroup = new L.layerGroup().addTo(map);
+	const editableLayers = new L.FeatureGroup().addTo(map);
 
-	const addLayerToMap = function(layer) {
-		layerGroup.addLayer(
-			new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
-				format: 'image/png',
-				layers: layer['name'],
-				styles: layer['styles']['default'],
-				transparent: true
-			})
-		);
-	};
+	map.addControl(
+		new L.Control.Draw({
+			position: 'topright',
+			draw: {
+				polygon: {
+					allowIntersection: false,
+					drawError: {
+						color: '#e1e100',
+						message: '<strong>Oh snap!<strong> you can\'t draw that!'
+					},
+					shapeOptions: {
+						color: '#bada55'
+					}
+				},
+				rectangle: {
+					shapeOptions: {
+						clickable: false
+					}
+				},
+				marker: false,
+				polyline: false,
+				circle: false,
+				circlemarker: false
+			},
+			edit: {
+				featureGroup: editableLayers,
+				remove: false
+			}
+		})
+	);
 
-	$selectResource = $('#resource').change(function(e) {
+	map.on(L.Draw.Event.CREATED, function (e) {
+		if (footprintLayer && editableLayers.hasLayer(footprintLayer)) {
+			editableLayers.removeLayer(footprintLayer);
+		};
+		footprintLayer = e.layer;
+		editableLayers.clearLayers().addLayer(footprintLayer);
+	});
+
+	const $selectResource = $('#resource').change(function(e) {
 		e.preventDefault();
-
-		layerGroup.clearLayers();
 
 		const datasetId = $selectDataset.val();
 		const resourceId = $(this).val();
 
 		if (datasetId && resourceId) {
-			const layer = datasets[datasetId].resources[resourceId].layer;
-			addLayerToMap(layer);
+			if (targetLayer && map.hasLayer(targetLayer)) {
+				map.removeLayer(targetLayer);
+			};
+			const layer = datasets[datasetId].resources[resourceId].layer
+			targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+				format: 'image/png',
+				layers: layer['name'],
+				styles: layer['styles']['default'],
+				transparent: true
+			});
+			map.addLayer(targetLayer);
 		};
 	});
 
-	$selectDataset = $('#dataset').change(function(e) {
+	const $selectDataset = $('#dataset').change(function(e) {
 		e.preventDefault();
 
 		$selectResource.find('option').not(':first').remove();
