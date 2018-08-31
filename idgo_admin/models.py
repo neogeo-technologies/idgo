@@ -148,6 +148,65 @@ class ResourceFormats(models.Model):
         return self.extension
 
 
+class Layer(models.Model):
+
+    class Meta(object):
+        verbose_name = 'Couche de données'
+
+    def __str__(self):
+        return self.name
+
+    name = models.SlugField(
+        verbose_name='Nom de la couche', primary_key=True, editable=False)
+
+    resource = models.ForeignKey(
+        to='Resource', verbose_name='Ressource',
+        on_delete=models.CASCADE, blank=True, null=True)
+
+    @property
+    def mra_info(self):
+        l = MRAHandler.get_layer(self.name)
+        ft = MRAHandler.get_featuretype(
+            self.resource.dataset.organisation.ckan_slug, 'public', self.name)
+        if not l or not ft:
+            raise MRANotFoundError
+
+        ll = ft['featureType']['latLonBoundingBox']
+        bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
+        attributes = [item['name'] for item in ft['featureType']['attributes']]
+
+        default_style_name = l['defaultStyle']['name']
+
+        styles = [{
+            'name': 'default',
+            'text': 'Style par défaut',
+            'url': l['defaultStyle']['href'].replace('json', 'sld'),
+            'sld': MRAHandler.get_style(l['defaultStyle']['name'])}]
+
+        if l.get('styles'):
+            for style in l.get('styles')['style']:
+                styles.append({
+                    'name': style['name'],
+                    'text': style['name'],
+                    'url': style['href'].replace('json', 'sld'),
+                    'sld': MRAHandler.get_style(style['name'])})
+
+        return {
+            'name': l['name'],
+            'title': l['title'],
+            'type': l['type'],
+            'enabled': l['enabled'],
+            'bbox': bbox,
+            'attributes': attributes,
+            'styles': {
+                'default': default_style_name,
+                'styles': styles}}
+
+    @property
+    def id(self):
+        return self.name
+
+
 def upload_resource(instance, filename):
     return _slugify(filename, exclude_dot=False)
 
@@ -189,9 +248,9 @@ class Resource(models.Model):
     ckan_id = models.UUIDField(
         verbose_name='Ckan UUID', default=uuid.uuid4, editable=False)
 
-    datagis_id = ArrayField(
-        models.CharField(max_length=150),
-        verbose_name='DataGIS IDs', blank=True, null=True, editable=False)
+    # datagis_id = ArrayField(
+    #     models.CharField(max_length=150),
+    #     verbose_name='DataGIS IDs', blank=True, null=True, editable=False)
 
     description = models.TextField(
         verbose_name='Description', blank=True, null=True)
@@ -276,8 +335,21 @@ class Resource(models.Model):
         return self.name
 
     @property
+    def datagis_id(self):
+        qs = Layer.objects.filter(resource=self)
+        return [l.name for l in qs]
+
+    @datagis_id.setter
+    def datagis_id(self, names):
+        for name in names:
+            Layer.objects.get_or_create(name=name, resource=self)
+
+    @property
     def name_overflow(self):
         return three_suspension_points(self.name)
+
+    def get_layers(self, **kwargs):
+        return Layer.objects.filter(resource=self, **kwargs)
 
     def disable_layers(self):
         if self.datagis_id:
@@ -753,6 +825,9 @@ class Organisation(models.Model):
         if MRAHandler.is_workspace_exists(self.ckan_slug):
             return OWS_URL_PATTERN.format(organisation=self.ckan_slug)
         # else: return None
+
+    def get_datasets(self, **kwargs):
+        return Dataset.objects.filter(organisation=self, **kwargs)
 
 
 class Profile(models.Model):
@@ -1680,6 +1755,9 @@ class Dataset(models.Model):
     def __str__(self):
         return self.name
 
+    def get_resources(self, **kwargs):
+        return Resource.objects.filter(dataset=self, **kwargs)
+
     @property
     def name_overflow(self):
         return three_suspension_points(self.name)
@@ -1842,7 +1920,7 @@ class Dataset(models.Model):
                                 OWS_URL_PATTERN.format(organisation=ws_name), ft_name))
 
         set = [r.datagis_id for r in
-               Resource.objects.filter(dataset=self, datagis_id__isnull=False)]
+               Resource.objects.filter(dataset=self).exclude(layer=None)]
         if set:
             data = {
                 'name': self.ckan_slug,
@@ -1887,6 +1965,37 @@ class Task(models.Model):
 
     class Meta(object):
         verbose_name = 'Tâche de synchronisation'
+
+
+class AsyncExtractorTask(models.Model):
+
+    class Meta(object):
+        verbose_name = "Tâche exécutée par l'extracteur de données"
+        verbose_name_plural = "Tâches exécutées par l'extracteur de données"
+
+    uuid = models.UUIDField(
+        verbose_name='UUID', default=uuid.uuid4, primary_key=True, editable=False)
+
+    user = models.ForeignKey(to=User, verbose_name='User')
+
+    layer = models.ForeignKey(
+        to='Layer', verbose_name='Layers', on_delete=models.CASCADE)
+
+    success = models.NullBooleanField(verbose_name='Succès')
+
+    start_date = models.DateTimeField(
+        verbose_name='Start', auto_now_add=True)
+
+    stop_date = models.DateTimeField(
+        verbose_name='Stop', null=True, blank=True)
+
+    details = JSONField(verbose_name='Details', blank=True, null=True)
+
+    @property
+    def elapsed_time(self):
+        return self.stop_date \
+            and (self.stop_date - self.start_date) \
+            or (timezone.now() - self.start_date)
 
 
 # Triggers
