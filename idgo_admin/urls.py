@@ -53,8 +53,6 @@ from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
 from idgo_admin.views.stuffs import ows_preview
 
-from idgo_admin.views.test import Test
-
 
 urlpatterns = [
     url('^$', my_datasets, name='datasets'),  # TODO: Home Page
@@ -106,8 +104,6 @@ urlpatterns = [
 
     url('^action/$', ActionsManager.as_view(), name='action'),
     url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
-
-    url('^test/?$', Test.as_view(), name='test'),
 
     url('^owspreview/$', ows_preview, name='ows_preview')]
 
