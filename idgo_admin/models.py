@@ -26,8 +26,10 @@ from django.core.mail import get_connection
 from django.core.mail.message import EmailMultiAlternatives
 from django.core.mail import send_mail
 from django.db import IntegrityError
+from django.db.models.signals import post_init
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
+from django.db.models.signals import pre_init
 from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -2008,32 +2010,24 @@ class AsyncExtractorTask(models.Model):
 
     details = JSONField(verbose_name='Details', blank=True, null=True)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if self.uuid and self.success is None:
-            url = self.details['possible_requests']['status']['url']
-            r = requests.get(url)
-            if r.status_code == 200:
-                details = r.json()
-                self.success = {
-                    'SUCCESS': True, 'FAILED': False
-                    }.get(details['status'], None)
-                self.start_datetime = details.get('start_datetime', None)
-                self.stop_datetime = details.get('start_datetime', None)
-                self.details = details
-                self.save()
-
     @property
     def status(self):
-        return {
-            True: 'Succès', False: 'Échec', None: 'Attente'}.get(self.success)
+        if self.success is True:
+            return 'Succès'  # Terminé
+        elif self.success is False:
+            return 'Échec'  # En erreur
+        elif self.success is None and not self.start_datetime:
+            return 'En attente'
+        elif self.success is None and self.start_datetime:
+            return 'En cours'
+        return 'Inconnu'
 
     @property
     def elapsed_time(self):
-        return self.stop_datetime \
-            and (self.stop_datetime - self.submission_datetime) \
-            or (timezone.now() - self.submission_datetime)
+        if self.stop_datetime and self.success in (True, False):
+            return self.stop_datetime - self.submission_datetime
+        else:
+            return timezone.now() - self.submission_datetime
 
 
 # Triggers
@@ -2144,3 +2138,23 @@ def post_save_profile(sender, instance, **kwargs):
         ckan.add_user_to_partner_group(instance.user.username, 'crige-partner')
     else:
         ckan.del_user_from_partner_group(instance.user.username)
+
+
+@receiver(pre_init, sender=AsyncExtractorTask)
+def synchronize_extractor_task(sender, *args, **kwargs):
+    try:
+        instance = AsyncExtractorTask.objects.get(uuid=kwargs.get('uuid'))
+    except AsyncExtractorTask.DoesNotExist:
+        return
+    if instance.success is None:
+        url = instance.details['possible_requests']['status']['url']
+        r = requests.get(url)
+        if r.status_code == 200:
+            details = r.json()
+            instance.success = {
+                'SUCCESS': True, 'FAILED': False
+                }.get(details['status'], None)
+            instance.start_datetime = details.get('start_datetime', None)
+            instance.stop_datetime = details.get('start_datetime', None)
+            instance.details = details
+            instance.save()

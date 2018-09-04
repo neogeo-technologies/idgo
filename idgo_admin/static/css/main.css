@@ -107,6 +107,7 @@ select[multiple] {
 
 .modal {
     min-width: 767px;
+	background-color: transparent;
 }
 
 
@@ -115,10 +116,11 @@ select[multiple] {
 }
 
 .modal-hourglass .modal-content {
-    border-radius: 0;
+    border: none;
     -webkit-box-shadow: none;
             box-shadow: none;
     height: 150px;
+    background-color: transparent;
 }
 
 .modal-hourglass .glyphicon {
@@ -129,7 +131,8 @@ select[multiple] {
     animation-duration: 4000ms;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
-    font-size: 1.5em;
+    font-size: 2em;
+    color: #333;
 }
 
 @keyframes spin-center {
@@ -427,6 +430,10 @@ table tr.selected td {
     color: #fff;
     border-top-color: #002880;
     border-bottom-color: #002880;
+}
+
+table tr.selected td a {
+    color: #fff;
 }
 
 table tr.selected td:first-child {

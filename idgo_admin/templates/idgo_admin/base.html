@@ -194,6 +194,11 @@ $(document).ajaxSend(function(e, xhr, settings) {
 							<li role="presentation">
 								<a href="{% url "idgo_admin:all_organizations" %}" aria-controls="all-organizations" role="tab">Les organisations</a>
 							</li>
+							{% if is_crige %}
+							<li role="presentation">
+								<a href="{% url "idgo_admin:extractor_dashboard" %}" aria-controls="all-extracts" role="tab">Mes extractions</a>
+							</li>
+							{% endif %}
 							{% block nav_content_extra %}
 							{% endblock nav_content_extra %}
 						</ul>

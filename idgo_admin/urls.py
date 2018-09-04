@@ -30,6 +30,7 @@ from idgo_admin.views.dataset import DatasetManager
 from idgo_admin.views.dataset import my_datasets
 from idgo_admin.views.export import Export
 from idgo_admin.views.extractor import Extractor
+from idgo_admin.views.extractor import extractor_task
 from idgo_admin.views.extractor import ExtractorDashboard
 from idgo_admin.views.mailer import confirm_contribution
 from idgo_admin.views.mailer import confirm_new_orga
@@ -52,6 +53,8 @@ from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
 from idgo_admin.views.stuffs import ows_preview
 
+from idgo_admin.views.test import Test
+
 
 urlpatterns = [
     url('^$', my_datasets, name='datasets'),  # TODO: Home Page
@@ -68,7 +71,8 @@ urlpatterns = [
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))$', LayerManager.as_view(), name='layer'),
 
     url('^extractor/?$', Extractor.as_view(), name='extractor'),
-    url('^extractor/dashboard?$', ExtractorDashboard.as_view(), name='extractor_dashboard'),
+    url('^extractor/task/?$', extractor_task, name='extractor_task'),
+    url('^extractor/dashboard/?$', ExtractorDashboard.as_view(), name='extractor_dashboard'),
 
     url('^dataset/mine/?$', my_datasets, name='datasets'),
     url('^dataset/all/?$', all_datasets, name='all_datasets'),
@@ -102,6 +106,8 @@ urlpatterns = [
 
     url('^action/$', ActionsManager.as_view(), name='action'),
     url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
+
+    url('^test/?$', Test.as_view(), name='test'),
 
     url('^owspreview/$', ows_preview, name='ows_preview')]
 
