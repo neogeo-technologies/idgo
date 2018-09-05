@@ -2142,19 +2142,34 @@ def post_save_profile(sender, instance, **kwargs):
 
 @receiver(pre_init, sender=AsyncExtractorTask)
 def synchronize_extractor_task(sender, *args, **kwargs):
-    try:
-        instance = AsyncExtractorTask.objects.get(uuid=kwargs.get('uuid'))
-    except AsyncExtractorTask.DoesNotExist:
-        return
-    if instance.success is None:
-        url = instance.details['possible_requests']['status']['url']
-        r = requests.get(url)
-        if r.status_code == 200:
-            details = r.json()
-            instance.success = {
-                'SUCCESS': True, 'FAILED': False
-                }.get(details['status'], None)
-            instance.start_datetime = details.get('start_datetime', None)
-            instance.stop_datetime = details.get('start_datetime', None)
-            instance.details = details
-            instance.save()
+    pre_init.disconnect(synchronize_extractor_task, sender=sender)
+
+    doc = sender.__dict__.get('__doc__')
+    if doc.startswith(sender.__name__):
+        keys = doc[len(sender.__name__) + 1:-1].split(', ')
+        values = kwargs.get('args')
+
+        if len(keys) == len(values):
+            kvp = dict((k, values[i]) for i, k in enumerate(keys))
+
+            try:
+                instance = AsyncExtractorTask.objects.get(uuid=kvp['uuid'])
+            except AsyncExtractorTask.DoesNotExist:
+                pass
+            else:
+                if instance.success is None:
+                    url = instance.details['possible_requests']['status']['url']
+                    r = requests.get(url)
+                    if r.status_code == 200:
+                        details = r.json()
+
+                        instance.success = {
+                            'SUCCESS': True,
+                            'FAILED': False
+                            }.get(details['status'], None)
+
+                        instance.start_datetime = details.get('start_datetime', None)
+                        instance.stop_datetime = details.get('start_datetime', None)
+                        instance.save()
+
+    pre_init.connect(synchronize_extractor_task, sender=sender)
