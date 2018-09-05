@@ -10,16 +10,17 @@
 	<ul id="table-resources-paginator" class="pagination pagination-sm"></ul>
 </nav>
 <div class="buttons-on-the-right-side">
-	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
+	{% if is_crige %}
+	<button name="resource-extractor" class="btn btn-default">Service d'extraction</button>
+	{% endif %}
+	<button name="view-ckan-resource" class="btn btn-default">Ouvrir dans CKAN</button>
 	<button name="edit-resource" class="btn btn-default">Editer</button>
 	<button name="delete-resource" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 </div>
 
 <script>
 $(function() {
-	var CKAN_URL = '{{ ckan_url }}';
 	var RESOURCE_URL = '{% url "idgo_admin:resource" dataset_id=dataset.id %}';
-	// var RESOURCE_OGC_URL = '{# url "idgo_admin:resources_ogc" dataset_id=dataset.id #}';
 	var RESOURCES = {{ resources | safe }};
 	var RESOURCES_CONTAINER = 'table-resources';
 	var RESOURCES_METADATA = [
@@ -64,6 +65,16 @@ $(function() {
 			editable: false,
 			datatype: 'object'
 		}, {
+			name: 'ogc_services',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'object'
+		}, {
+			name: 'extractable',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'object'
+		}, {
 			name: 'id',
 			label: '_HIDDEN',  //->https://github.com/webismymind/editablegrid/issues/153
 			editable: false,
@@ -73,9 +84,17 @@ $(function() {
 
 	var tableGrid = new EditableGrid('Resources', {pageSize: 10});
 
-	$('#resources [name="view-ckan"]').on('click', function(e) {
+	{% if is_crige %}
+	$('button[name="resource-extractor"]').on('click', function(e) {
 		e.preventDefault();
-		targetBlank(CKAN_URL + '/dataset/{{ dataset.ckan_slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
+		redirect('{% url "idgo_admin:extractor"%}?dataset={{ dataset.id }}&resource=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id'])
+		e.stopPropagation();
+	});
+	{% endif %}
+
+	$('#resources [name="view-ckan-resource"]').on('click', function(e) {
+		e.preventDefault();
+		targetBlank('{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
 		e.stopPropagation();
 	});
 
@@ -168,9 +187,12 @@ $(function() {
 				if (pRowIdx != nRowIdx) {
 					window.location = '#resources/' + getRowValues(nRowIdx).id;
 					$(grid.getRow(nRowIdx)).addClass('selected');
-					$buttons.each(function() {
-						activateButton($(this));
-					});
+					if (getRowValues(nRowIdx).datagis_id.length && getRowValues(nRowIdx).extractable) {
+					 	activateButton($('button[name="resource-extractor"]'));
+					};
+					activateButton($('#resources button[name="view-ckan-resource"]'));
+					activateButton($('#resources button[name="edit-resource"]'));
+					activateButton($('#resources button[name="delete-resource"]'));
 				};
 			};
 			var DATE_FORMAT = 'dddd Do MMMM YYYY';
@@ -255,6 +277,8 @@ $(function() {
 						data[i][6],  // restrictions
 						data[i][7],  // ckan_id
 						data[i][8],  // datagis_id
+						data[i][9],  // ogc_services
+						data[i][10],  // extractable
 						data[i][0]   // id
 					]
 				});

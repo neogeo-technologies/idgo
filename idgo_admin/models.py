@@ -353,6 +353,8 @@ class Resource(models.Model):
 
     @datagis_id.setter
     def datagis_id(self, names):
+        if not names:
+            return
         for name in names:
             Layer.objects.get_or_create(name=name, resource=self)
 

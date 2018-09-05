@@ -1,5 +1,6 @@
+{% extends "idgo_admin/base.html" %}
+
 {% load static %}
-{% load bootstrap3 %}
 
 {% block head_extras %}
 <script src="{% static "libs/leaflet/leaflet.js" %}"></script>
@@ -8,10 +9,18 @@
 <link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
 {% endblock head_extras %}
 
+{% block main_content %}
+
 {% include "idgo_admin/alert_messages.html" %}
 
 <template id="modal-body-template-on-success">
 	<form>
+
+		<div class="form-group">
+			<label for="user" class="control-label">Utilisateur</label>
+			<input type="text" class="form-control disabled" id="user" disabled>
+		</div>
+
 		<div class="form-group">
 			<label for="dataset" class="control-label">Jeu de données</label>
 			<input type="text" class="form-control disabled" id="dataset" disabled>
@@ -24,17 +33,41 @@
 			<label for="layer" class="control-label">Nom de la couche</label>
 			<input type="text" class="form-control disabled" id="layer" disabled>
 		</div>
-		<div class="form-group">
-			<label for="format" class="control-label">Format</label>
-			<input type="text" class="form-control disabled" id="format" disabled>
+		<div class="row">
+			<div class="col-xs-7">
+				<div class="form-group">
+					<label for="srs" class="control-label">Système de coordonnées</label>
+					<input type="text" class="form-control disabled" id="srs" disabled>
+				</div>
+			</div>
+			<div class="col-xs-5">
+				<div class="form-group">
+					<label for="format" class="control-label">Format</label>
+					<input type="text" class="form-control disabled" id="format" disabled>
+				</div>
+			</div>
 		</div>
-		<div class="form-group">
-			<label for="submission" class="control-label">Système de coordonnées</label>
-			<input type="datetime" class="form-control disabled" id="submission" disabled>
+		<div class="row">
+			<div class="col-xs-5">
+				<div class="form-group">
+					<label for="submission" class="control-label">Date de la demande</label>
+					<input type="datetime" class="form-control disabled" id="submission" disabled>
+				</div>
+			</div>
 		</div>
-		<div class="form-group">
-			<label for="submission" class="control-label">Date de la demande</label>
-			<input type="datetime" class="form-control disabled" id="submission" disabled>
+		<div class="row">
+			<div class="col-xs-5">
+				<div class="form-group">
+					<label for="start" class="control-label">Date de début du traitement</label>
+					<input type="datetime" class="form-control disabled" id="start" disabled>
+				</div>
+			</div>
+			<div class="col-xs-5">
+				<div class="form-group">
+					<label for="stop" class="control-label">Date de fin du traitement</label>
+					<input type="datetime" class="form-control disabled" id="stop" disabled>
+				</div>
+			</div>
 		</div>
 		<div class="form-group">
 			<label for="submission" class="control-label">Aperçu</label>
@@ -42,9 +75,9 @@
 		</div>
 	</form>
 	<div class="buttons-on-the-right-side">
-		<a type="button" name="modify" class="btn btn-default">Modifier</a>
-		<button type="button" name="again" class="btn btn-default">Relancer</button>
-		<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
+		<a type="button" name="modify" class="btn btn-default">Ouvrir le formulaire du service d'extraction</a>
+		<button type="button" name="again" class="btn btn-default disabled" disabled>Relancer [TODO]</button>
+		<button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
 	</div>
 </template>
 
@@ -55,15 +88,21 @@
 	</div>
 </template>
 
-
 <form>
-	{% if is_admin %}
-
-	{% endif %}
 	<div name="actions" class="buttons-on-the-right-side">
 		<a type="button" class="btn btn-primary" href="{% url "idgo_admin:extractor" %}">Nouvelle extraction</a>
 	</div>
-	<br/>
+{% if tasks|length == 0 %}
+	{% if is_admin %}
+	<div role="alert" class="alert alert-info">
+		<span class="glyphicon glyphicon-bell" aria-hidden="true"></span>Le service d'extraction n'a pas encore été utilisé.
+	</div>
+	{% else %}
+	<div role="alert" class="alert alert-info">
+		<span class="glyphicon glyphicon-bell" aria-hidden="true"></span> Vous n'avez effectué aucune extraction.
+	</div>
+	{% endif %}
+{% else %}
 	<div class="table-responsive">
 		<table id="extractor-dashboard" class="table table-striped table-bordered table-hover table-condensed">
 			<tr>
@@ -80,10 +119,10 @@
 				<td name="status">{{ task.status }}</td>
 				<td name="dataset"><a href="{% url "idgo_admin:dataset" %}?id={{ task.layer.resource.dataset.id }}">{{ task.layer.resource.dataset.name }}</a></td>
 				<td name="resource"><a href="{% url "idgo_admin:resource" dataset_id=task.layer.resource.dataset.id %}?id={{ task.layer.resource.id }}">{{ task.layer.resource.name }}</a></td>
-				<td name="submission">{{ task.submission_datetime | date:'d/m/Y H:i' }}</td>
-				<td name="start">{% if task.start_datetime %}{{ task.start_datetime | date:'d/m/Y H:i' }}{% endif %}</td>
-				<td name="stop">{% if task.stop_datetime %}{{ task.stop_datetime | date:'d/m/Y H:i' }}{% endif %}</td>
-				<td name="elapsed-time">{{ task.elapsed_time }}</td>
+				<td name="submission">{{ task.submission_datetime|date:"d/m/Y H:i" }}</td>
+				<td name="start">{{ task.start_datetime|date:"d/m/Y H:i"|default:"" }}</td>
+				<td name="stop">{{ task.stop_datetime|date:"d/m/Y H:i"|default:"" }}</td>
+				<td name="elapsed-time">{{ task.elapsed_time|default:"inf. à 1s" }}</td>
 			</tr>
 			{% endfor %}
 		<table>
@@ -91,10 +130,10 @@
 	<div name="actions" class="buttons-on-the-right-side">
 	{# if is_admin #}
 		<button type="button" name="open" class="btn btn-default disabled" disabled>Ouvrir</button>
-		<button type="button" name="revoke" class="btn btn-default disabled" disabled>Révoquer</button>
+		<button type="button" name="revoke" class="btn btn-default disabled" disabled>Révoquer [TODO]</button>
 		<div class="btn-group">
 			<button type="button" class="btn btn-default dropdown-toggle disabled" data-toggle="dropdown" disabled>
-				Prioriser <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
+				Prioriser [TODO] <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
 			</button>
 			<ul class="dropdown-menu dropdown-menu-right">
 				<li><a role="button" name="" class="disabled" style="text-align: right;" disabled>Priorité forte</a></li>
@@ -102,7 +141,7 @@
 			</ul>
 		</div>
 	{# else #}
-		<button type="button" name="warn" class="btn btn-default disabled" disabled>Signaler une erreur</button>
+		<button type="button" name="warn" class="btn btn-default disabled" disabled>Signaler une erreur [TODO]</button>
 	{# endif #}
 	</div>
 	{% if pagination.total > 1 %}
@@ -325,5 +364,9 @@ $(function() {
 		})
 		.trigger('hashchange');
 
+	$('#menu a[href="{% url "idgo_admin:extractor_dashboard" %}"]').parent().addClass('active');
 });
 </script>
+{% endif %}
+
+{% endblock main_content %}

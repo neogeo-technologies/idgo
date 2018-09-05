@@ -1,17 +1,19 @@
+{% extends "idgo_admin/base.html" %}
+
 {% load static %}
-{% load bootstrap3 %}
 
 {% block head_extras %}
 <script src="{% static "libs/leaflet/leaflet.js" %}"></script>
 <script src="{% static "libs/leaflet/leaflet-nontiledlayer.js" %}"></script>
 <script src="{% static "libs/leaflet/leaflet-nontiledlayer-wms.js" %}"></script>
 <script src="{% static "libs/leaflet.draw/leaflet.draw.js" %}"></script>
-
 <script src="{% static "libs/bootstrap-slider/bootstrap-slider.js" %}"></script>
 <link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
 <link rel="stylesheet" href="{% static "libs/leaflet.draw/leaflet.draw.css" %}"/>
 <link rel="stylesheet" href="{% static "libs/bootstrap-slider/css/bootstrap-slider.css" %}"/>
 {% endblock head_extras %}
+
+{% block main_content %}
 
 {% include "idgo_admin/alert_messages.html" %}
 
@@ -26,10 +28,29 @@
 			<form>
 				<div class="well">
 					<div class="form-group">
+						<label for="organisation">Organisation</label>
+						<div class="input-group input-group">
+							<select class="form-control" id="organisation">
+								<option disabled {% if not organisation %}selected{% endif %}>Sélectionnez une organisation</option>
+								{% for instance in organisations %}
+								<option value="{{ instance.id }}" {% if instance.id == organisation.id %}selected{% endif %}>{{ instance.name }}</option>
+								{% endfor %}
+							</select>
+							<span class="input-group-btn">
+								<button class="btn btn-default" type="button" name="clear">
+									<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+								</button>
+							</span>
+						</div>
+					</div>
+					<div class="form-group">
 						<label for="dataset">Jeu de données</label>
 						<div class="input-group input-group">
 							<select class="form-control" id="dataset">
-								<option disabled selected>Sélectionnez un jeu de données</option>
+								<option disabled {% if not dataset %}selected{% endif %}>Sélectionnez un jeu de données</option>
+								{% for instance in datasets %}
+								<option value="{{ instance.id }}" {% if instance.id == dataset.id %}selected{% endif %}>{{ instance.name }}</option>
+								{% endfor %}
 							</select>
 							<span class="input-group-btn">
 								<button class="btn btn-default" type="button" name="clear">
@@ -42,7 +63,10 @@
 						<label for="resource">Ressource</label>
 						<div class="input-group input-group">
 							<select class="form-control" id="resource">
-								<option disabled selected>Sélectionnez une ressource</option>
+								<option disabled {% if not resource %}selected{% endif %}>Sélectionnez une ressource</option>
+								{% for instance in resources %}
+								<option value="{{ instance.id }}" {% if instance.id == resources.id %}selected{% endif %}>{{ instance.name }}</option>
+								{% endfor %}
 							</select>
 							<span class="input-group-btn">
 								<button class="btn btn-default" type="button" name="clear">
@@ -93,12 +117,8 @@
 		<button type="button" name="extract" class="btn btn-primary">Exporter</button>
 	</div>
 </div>
-
 <script>
 $(function() {
-
-	const datasets = {{ datasets | safe }};
-	const focusOn = {{ focus_on | safe }};
 
 	var targetLayer;
 	var footprintLayer;
@@ -123,7 +143,6 @@ $(function() {
 		$form.append($('<input type="text" name="format"/>').hide().val(format));
 
 		$form.submit();
-
 	});
 
 	const clear = function($target) {
@@ -185,60 +204,38 @@ $(function() {
 		editableLayers.clearLayers().addLayer(footprintLayer);
 	});
 
-	const $selectResource = $('#resource').change(function(e) {
+	$('#organisation').change(function(e) {
 		e.preventDefault();
-
-		const datasetId = $selectDataset.val();
-		const resourceId = $(this).val();
-
-		if (datasetId && resourceId) {
-			if (targetLayer && map.hasLayer(targetLayer)) {
-				map.removeLayer(targetLayer);
-			};
-			const layer = datasets[datasetId].resources[resourceId].layer
-			targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
-				format: 'image/png',
-				layers: layer['name'],
-				styles: layer['styles']['default'],
-				transparent: true
-			});
-			map.addLayer(targetLayer);
-		};
+		const organisation = $(this).val();
+		redirect('{% url "idgo_admin:extractor" %}' + (organisation ? '?organisation=' + organisation : ''));
 	});
 
-	const $selectDataset = $('#dataset').change(function(e) {
+	{% if organisation %}
+	$('#dataset').change(function(e) {
 		e.preventDefault();
-
-		$selectResource.find('option').not(':first').remove();
-		$selectResource.val($selectResource.find('option:first').val());
-
-		const datasetId = $(this).val();
-
-		if (datasetId) {
-			$selectResource.prop('disabled', false).removeClass('disabled');
-			for (const resourceId in datasets[datasetId].resources) {
-				const resource = datasets[datasetId].resources[resourceId];
-				$selectResource.append($('<option>', {
-					value: resourceId,
-					text: resource.text,
-					// selected: resourceId == focusOn.resource.pop()
-				}));
-			};
-		} else {
-			$selectResource.prop('disabled', true).addClass('disabled')
-		};
-		$selectResource.trigger('change')
+		const dataset = $(this).val();
+		redirect('{% url "idgo_admin:extractor" %}?organisation={{ organisation.id }}' + (dataset ? '&dataset=' + dataset : ''));
 	});
+	{% endif %}
 
-	for (const datasetId in datasets) {
-		const dataset = datasets[datasetId];
-		$selectDataset.append($('<option>', {
-			value: datasetId,
-			text: dataset.text,
-			// selected: datasetId == focusOn.dataset.pop()
-		}));
-	};
-	$selectDataset.trigger('change');
+	{% if organisation and dataset %}
+	$('#resource').change(function(e) {
+		e.preventDefault();
+		const resource = $(this).val();
+		redirect('{% url "idgo_admin:extractor" %}?organisation={{ organisation.id }}&dataset={{ dataset.id }}' + (resource ? '&resource=' + resource : ''));
+	});
+	{% endif %}
+
+	{% if organisation and dataset and resource and layer %}
+	targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+		format: 'image/png',
+		layers: '{{ layer.mra_info.name }}',
+		styles: '{{ layer.mra_info.styles.default }}',
+		transparent: true
+	});
+	map.addLayer(targetLayer);
+	{% endif %}
 
 });
 </script>
+{% endblock main_content %}

@@ -8,6 +8,9 @@
 	<ul id="table-layers-paginator" class="pagination pagination-sm"></ul>
 </nav>
 <div class="buttons-on-the-right-side">
+	{% if is_crige %}
+	<button name="extractor" class="btn btn-default">Service d'extraction</button>
+	{% endif %}
 	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
 	<button name="edit-layer" class="btn btn-default">Editer</button>
 </div>
@@ -80,6 +83,15 @@ $(function() {
 		}
 	];
 
+	{% if is_crige %}
+	$('button[name="extractor"]').on('click', function(e) {
+		e.preventDefault();
+		const data = tableGrid.getRowValues(tableGrid.lastSelectedRowIndex);
+		redirect('{% url "idgo_admin:extractor"%}?dataset={{ dataset_id}}&resource=' + data['resource_id'] + '&layer=' + data['id'])
+		e.stopPropagation();
+	});
+	{% endif %}
+
 	$('button[name="view-ckan"]').on('click', function(e) {
 		e.preventDefault();
 		targetBlank('{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
@@ -110,10 +122,15 @@ $(function() {
 				if (pRowIdx != nRowIdx) {
 					window.location = '#owslayers/' + getRowValues(nRowIdx).id;
 					$(grid.getRow(nRowIdx)).addClass('selected');
-
-					$buttons.each(function() {
-						activateButton($(this));
-					});
+					{% if is_crige %}
+					if (getRowValues(nRowIdx).extractor_enabled) {
+						activateButton($('button[name="extractor"]'));
+					};
+					{% endif %}
+					if (getRowValues(nRowIdx).ogc_enabled) {
+						activateButton($('button[name="view-ckan"]'));
+					};
+					activateButton($('button[name="edit-layer"]'));
 				};
 			};
 			const BooleanRenderer = function(cell, value) {

@@ -81,7 +81,9 @@ class DatasetManager(View):
                 resource.last_update.isoformat() if resource.last_update else None,
                 resource.get_restricted_level_display(),
                 str(resource.ckan_id),
-                resource.datagis_id and [str(uuid) for uuid in resource.datagis_id] or []))
+                resource.datagis_id and [str(uuid) for uuid in resource.datagis_id] or [],
+                resource.ogc_services,
+                resource.extractable))
 
             if resource.datagis_id:
                 common = [

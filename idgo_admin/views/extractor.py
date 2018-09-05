@@ -18,11 +18,11 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import Http404
-from django.http import JsonResponse
 from django.http import HttpResponseRedirect
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.exceptions import ExceptionsHandler
@@ -30,6 +30,7 @@ from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import AsyncExtractorTask
 from idgo_admin.models import Dataset
 from idgo_admin.models import Layer
+from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.models import SupportedCrs
 from idgo_admin.shortcuts import on_profile_http404
@@ -58,14 +59,15 @@ def extractor_task(request, *args, **kwargs):
         requested = instance.details['submitted_request']
 
     data = {
+        'user': instance.user.get_full_name(),
         'dataset': instance.layer.resource.dataset.name,
         'resource': instance.layer.resource.name,
         'layer': instance.layer.name,
         'format': requested.get('dst_format'),
         'srs': requested.get('dst_srs'),
         'submission': instance.details.get('submission_datetime'),
-        'start': instance.details.get('start_datetime'),
-        'stop': instance.details.get('stop_datetime'),
+        'start': instance.start_datetime,
+        'stop': instance.stop_datetime,
         'footprint': requested.get('footprint'),
         'footprint_srs': requested.get('footprint_srs')}
 
@@ -75,7 +77,7 @@ def extractor_task(request, *args, **kwargs):
 @method_decorator([csrf_exempt], name='dispatch')
 class ExtractorDashboard(View):
 
-    template = 'idgo_admin/extractor_dashboard.html'
+    template = 'idgo_admin/extractor/dashboard.html'
     namespace = 'idgo_admin:extractor_dashboard'
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -124,60 +126,74 @@ class ExtractorDashboard(View):
 @method_decorator([csrf_exempt], name='dispatch')
 class Extractor(View):
 
-    template = 'idgo_admin/extractor.html'
+    template = 'idgo_admin/extractor/extractor.html'
     namespace = 'idgo_admin:extractor'
 
-    def get_context(self, user, **kwargs):
+    def get_context(self, user, organisation=None,
+                    dataset=None, resource=None, task=None):
 
-        task_id = kwargs.get('task')
-        layer_id = kwargs.get('layer')
-        resource_id = kwargs.get('resource')
-        dataset_id = kwargs.get('dataset')
+        context = {
+            'organisations': None,
+            'organisation': None,
+            'datasets': None,
+            'dataset': None,
+            'resources': None,
+            'resource': None,
+            'layer': None,
+            'supported_crs': SupportedCrs.objects.all()}
 
-        if task_id:
-            task = get_object_or_404(AsyncExtractorTask, uuid=UUID(task_id))
-            resource = task.layer.resource
-            dataset = resource.dataset
-            organisation = dataset.organisation
-        elif resource_id and dataset_id:
-            resource = get_object_or_404(Resource, id=resource_id,
-                                         dataset__id=dataset_id,
-                                         dataset__published=True)
-            dataset = resource.dataset
-            organisation = dataset.organisation
-        elif dataset_id:
-            dataset = get_object_or_404(Dataset, id=dataset_id, published=True)
-            organisation = dataset.organisation
-        else:
-            organisation = user.profile.organisation
-
-        d = {}
-
-        resources = Resource.objects.filter(
-            dataset__organisation=organisation, dataset__published=True).exclude(layer=None)
-
-        for resource in resources:
-            if not resource.is_profile_authorized(user):
-                continue
-
-            r = {
-                'text': resource.name,
-                'layer': [
-                    layer.mra_info for layer
-                    in Layer.objects.filter(resource=resource)
-                    ][0]}  # 1 ressource = 1 layer
-
-            if resource.dataset.id in d:
-                d[resource.dataset.id]['resources'][resource.id] = r
+        if task:
+            try:
+                task = AsyncExtractorTask.objects.get(uuid=UUID(task))
+            except AsyncExtractorTask.DoesNotExist:
+                pass
             else:
-                d[resource.dataset.id] = {
-                    'text': resource.dataset.name,
-                    'resources': {resource.id: r}}
+                context['layer'] = task.layer
+                context['resource'] = task.layer.resource
+                context['dataset'] = task.layer.resource.dataset
+                context['organisation'] = task.layer.resource.dataset.organisation
 
-        return {
-            'supported_crs': SupportedCrs.objects.all(),
-            'datasets': json.dumps(d),
-            'focus_on': json.dumps({'dataset': dataset_id, 'resource': resource_id})}
+        context['organisations'] = \
+            Organisation.objects.filter(
+                dataset__resource__extractable=True
+                ).distinct()
+
+        if not context['organisation'] and organisation:
+            try:
+                context['organisation'] = Organisation.objects.get(id=organisation)
+            except Organisation.DoesNotExist:
+                return context
+
+        context['datasets'] = \
+            Dataset.objects.filter(
+                organisation=context['organisation'],
+                resource__extractable=True
+                ).distinct()
+
+        if not context['dataset'] and dataset:
+            try:
+                context['dataset'] = Dataset.objects.get(id=dataset)
+            except Dataset.DoesNotExist:
+                return context
+
+        context['resources'] = \
+            Resource.objects.filter(
+                dataset=context['dataset'],
+                extractable=True
+                ).exclude(layer=None)
+
+        if not context['resource'] and resource:
+            try:
+                context['resource'] = Resource.objects.get(id=resource)
+            except Resource.DoesNotExist:
+                return context
+
+        layers = Layer.objects.filter(resource=context['resources'])
+
+        if not context['layer'] and layers:
+            context['layer'] = layers[0]
+
+        return context
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, *args, **kwargs):
@@ -186,12 +202,16 @@ class Extractor(View):
         if not profile.crige_membership:
             raise Http404
 
-        context = self.get_context(
-            user,
-            task=request.GET.get('task'),
-            layer=request.GET.get('layer'),
-            resource=request.GET.get('resource'),
-            dataset=request.GET.get('dataset'))
+        try:
+            context = self.get_context(
+                user,
+                organisation=request.GET.get('organisation'),
+                dataset=request.GET.get('dataset'),
+                resource=request.GET.get('resource'),
+                task=request.GET.get('task'))
+        except Exception as e:
+            print(e)
+            raise Http404
 
         return render_with_info_profile(request, self.template, context=context)
 
@@ -202,12 +222,15 @@ class Extractor(View):
         if not profile.crige_membership:
             raise Http404
 
-        context = self.get_context(
-            user,
-            task=request.GET.get('task'),
-            layer=request.GET.get('layer'),
-            resource=request.GET.get('resource'),
-            dataset=request.GET.get('dataset'))
+        try:
+            context = self.get_context(
+                user,
+                organisation=request.GET.get('organisation'),
+                dataset=request.GET.get('dataset'),
+                resource=request.GET.get('resource'),
+                task=request.GET.get('task'))
+        except Exception:
+            raise Http404
 
         footprint = json.loads(request.POST.get('footprint')).get('geometry')
         layer_name = request.POST.get('layer')
