@@ -181,6 +181,7 @@ $(function() {
 
 	const openCmd = function(taskId) {
 		$modalHourglass.one('show.bs.modal', function(e) {
+			return
 			$.ajax({
 				type: 'GET',
 				url: '{% url "idgo_admin:extractor_task" %}?id=' + taskId,
