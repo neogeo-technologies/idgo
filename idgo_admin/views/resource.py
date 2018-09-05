@@ -136,6 +136,11 @@ class ResourceManager(View):
         if not form.is_valid():
             if ajax:
                 error = dict([(k, [str(m) for m in v]) for k, v in form.errors.items()])
+                msg = 'Veuillez corriger le formulaire.'
+                if '__all__' in error:
+                    error['__all__'].prepend(msg)
+                else:
+                    error['__all__'] = [msg]
                 return JsonResponse(json.dumps({'error': error}), safe=False)
             return render_with_info_profile(request, self.template, context)
 

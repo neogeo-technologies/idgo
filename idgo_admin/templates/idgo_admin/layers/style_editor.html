@@ -1,5 +1,4 @@
 {% load static %}
-{% load bootstrap3 %}
 
 {% block head_extras %}
 <script src="{% static "libs/leaflet/leaflet.js" %}"></script>
@@ -61,7 +60,7 @@
 			<div class="form-group">
 				<label for="property-name" class="control-label">Attribut</label>
 				<select class="form-control input-sm" id="property-name" name="sld-handler">
-					<option value='' selected>Aucun</option>
+					<option value="" selected>Aucun</option>
 				</select>
 			</div>
 		</div>
@@ -105,12 +104,12 @@
 	</div>
 </template>
 
-<template id="line_symbolizer_well_template">
+<template id="linestring_symbolizer_well_template">
 	<div class="row">
 		<div class="col-xs-6">
 			<div class="form-group">
 				<label for="stroke" class="control-label">Couleur du trait</label>
-				<input type="color" class="form-control input-sm" id="polygon-stroke" name="sld-handler"></input>
+				<input type="color" class="form-control input-sm" id="stroke" name="sld-handler"></input>
 			</div>
 		</div>
 		<div class="col-xs-6">
@@ -225,244 +224,56 @@
 	</div>
 </template>
 
-{% include "idgo_admin/alert_messages.html" %}
-
-<div id="layer-container">
-	{% if resource.extractable %}
-	<div class="floating-buttons-on-the-right-side">
-		<a href="{% url "idgo_admin:extractor" %}?dataset={{ dataset.id }}&resource={{ resource.id }}&layer={{ layer.id }}" name="extractor" type="button" class="btn btn-default">Service d'extraction</a>
+<div class="row">
+	<div class="col-xs-offset-4 col-sm-offset-5 col-md-offset-6 col-lg-offset-7 col-xs-8 col-sm-7 col-md-6 col-lg-5">
+		<div class="form-group">
+			<select class="form-control input-sm" name="styles"></select>
+		</div>
 	</div>
-	{% endif %}
-	<ul class="nav nav-tabs" role="tablist">
-		<li role="presentation" class="active">
-			<a href="#configuration" aria-controls="configuration" role="tab" data-toggle="tab">Configuration générale de la couche de données</a>
-		</li>
-		<li role="presentation">
-			<a href="#styles" aria-controls="styles" role="tab" data-toggle="tab">Gestion des styles</a>
-		</li>
-		<li role="presentation">
-			<a href="#editor" aria-controls="editor" role="tab" data-toggle="tab">Editeur de style</a>
-		</li>
-	</ul>
-	<div class="tab-content">
-		<div role="tabpanel" class="tab-pane active" id="configuration">
-			<div class="tab-pane-content">
-				<form name="layer" method="post">
-					<div class="row">
-						<div class="col-xs-8">
-							<div class="form-group">
-								<label for="name">Nom identifiant</label>
-								<input class="form-control" id="name" disabled></input>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-xs-4">
-							<div class="form-group">
-								<label for="type">Type</label>
-								<input class="form-control" id="type" disabled></input>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-xs-12">
-							<div class="form-group">
-								<label for="title">Titre de la couche</label>
-								<input class="form-control" id="title"></input>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-xs-12">
-							<div class="form-group">
-								<label for="title">Description</label>
-								<textarea class="form-control" id="title" rows=4></textarea>
-							</div>
-						</div>
-					</div>
-					<div class="buttons-on-the-right-side">
-						<button type="button" name="save" class="btn btn-primary">Enregistrer</button>
-					</div>
-				</form>
-			</div>
-		</div>
-		<div role="tabpanel" class="tab-pane" id="styles">
-			<div class="tab-pane-content">
-				<div class="buttons-on-the-right-side">
-					<a name="add-style" class="btn btn-default">Importer un SLD depuis une ressource</a>
-					<a name="create-style" class="btn btn-default">Créer un nouveau style</a>
-				</div>
-				<div id="table-styles" class="table-responsive"></div>
-				<nav aria-label="Page navigation" style="text-align: center;">
-					<ul id="table-styles-paginator" class="pagination pagination-sm"></ul>
-				</nav>
-				<div class="buttons-on-the-right-side">
-					<button name="is-default-style" class="btn btn-warning">Définir comme style par défaut</button>
-					<button name="edit-style" class="btn btn-default">Editer</button>
-					<button name="del-style" class="btn btn-danger">Supprimer</button>
-				</div>
-			</div>
-		</div>
-		<div role="tabpanel" class="tab-pane" id="editor">
-			<div class="tab-pane-content">
-				<div class="row">
-					<div class="col-xs-offset-4 col-sm-offset-5 col-md-offset-6 col-lg-offset-7 col-xs-8 col-sm-7 col-md-6 col-lg-5">
-						<div class="form-group">
-							<select class="form-control input-sm" name="styles"></select>
-						</div>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
-						<div id="map_well"></div>
-					</div>
+</div>
+<div class="row">
+	<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
+		<div id="map_well"></div>
+	</div>
 
-					<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
-						<!--
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" name="is-default-style"></input> Style par défaut
-							</label>
-						</div>
-						-->
-						<div name="form" class="well" style="height: 650px">
-							<div class="form-group">
-								<label for="classes">Règles de représentation</label>
-								<div class="row">
-									<div class="col-xs-10">
-										<select class="form-control input-sm" id="classes" size="7" multiple style="height: 106px"></select>
-									</div>
-									<div class="col-xs-2">
-										<div class="btn-group-vertical" role="group">
-											<button type="button" name="up" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span></button>
-											<button type="button" name="down" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>
-											<button type="button" name="clone" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></button>
-											<button type="button" name="add" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
-											<button type="button" name="remove" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div id="class_well">
-								<!-- class_well_template -->
-							</div>
-							<div class="buttons-on-the-right-side" style="position: absolute; bottom: 0; right: 0; margin: 0 35px 40px 0;">
-								<a type="button" name="export-sld" class="btn btn-default">Exporter le SLD</a>
-								<button type="button" name="save" class="btn btn-primary disabled" disabled>Enregistrer</button>
-							</div>
+	<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
+		<!--
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" name="is-default-style"></input> Style par défaut
+			</label>
+		</div>
+		-->
+		<div name="form" class="well" style="height: 650px">
+			<div class="form-group">
+				<label for="classes">Règles de représentation</label>
+				<div class="row">
+					<div class="col-xs-10">
+						<select class="form-control input-sm" id="classes" size="7" multiple style="height: 106px"></select>
+					</div>
+					<div class="col-xs-2">
+						<div class="btn-group-vertical" role="group">
+							<button type="button" name="up" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span></button>
+							<button type="button" name="down" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>
+							<button type="button" name="clone" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></button>
+							<button type="button" name="add" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+							<button type="button" name="remove" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 						</div>
 					</div>
 				</div>
+			</div>
+			<div id="class_well">
+				<!-- class_well_template -->
+			</div>
+			<div class="buttons-on-the-right-side" style="position: absolute; bottom: 0; right: 0; margin: 0 35px 40px 0;">
+				<a type="button" name="export-sld" class="btn btn-default">Exporter le SLD</a>
+				<button type="button" name="save" class="btn btn-primary disabled" disabled>Enregistrer</button>
 			</div>
 		</div>
 	</div>
 </div>
-
 <script>
 $(function() {
-	var LAYER = {{ layer_asjson | safe }};
-	var DEFAULT_STYLE = LAYER.styles.default;
-	var STYLES = LAYER.styles.styles;
-	var STYLES_CONTAINER = 'table-styles';
-	var STYLES_METADATA = [
-		{
-			name: 'name',
-			label: 'Nom',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'title',
-			label: 'Titre',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'default',
-			label: 'Style par défaut',
-			editable: false,
-			datatype: 'boolean'
-		}
-	];
-
-	$('button[name="edit-style"]').on('click', function(e) {
-		e.preventDefault();
-		var row = tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['name']
-		window.location = '#editor/' + (row.default ? 'default' : row.name);
-		e.stopPropagation();
-	});
-
-	var tableGrid = new EditableGrid('Styles', {pageSize: 5});
-
-	tableGrid.initializeGrid = function() {
-		var grid = tableGrid;
-		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
-
-		with (this) {
-			tableRendered = function() {
-				this.updatePaginator(grid);
-			};
-			rowSelected = function(pRowIdx, nRowIdx) {
-				$(grid.getRow(pRowIdx)).removeClass('selected');
-				$buttons.each(function() {
-					deactivateButton($(this));
-				});
-				if (pRowIdx != nRowIdx) {
-					window.location = '#styles/' + getRowValues(nRowIdx).name;
-					$(grid.getRow(nRowIdx)).addClass('selected');
-					$buttons.each(function() {
-						if (!((this.name == 'del-style' || this.name == 'is-default-style') && getRowValues(nRowIdx).default)) {
-							activateButton($(this));
-						};
-					});
-				};
-			};
-			const BooleanRenderer = function(cell, value) {
-				cell.style.textAlign = 'center';
-				cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
-			};
-			setCellRenderer('default', new CellRenderer({render: BooleanRenderer}));
-		};
-	};
-
-	function updateTableGrid(grid, containerId, metadata, data) {
-		var $containerId = $('#' + containerId);
-		var $parent = $($containerId.parent().get(0));
-		$parent.find('div[role="alert"]not:div[name="message-tags"]').remove();
-		$parent.find('button').each(function() {
-			deactivateButton($(this));
-		});
-		if (data.length > 0) {
-			grid.load({'metadata': metadata, 'data': data});
-			grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
-			grid.initializeGrid();
-			grid.refreshGrid();
-			$containerId.show();
-		} else {
-			$containerId.hide();
-		};
-	};
-
-	updateTableGrid(
-		tableGrid,
-		STYLES_CONTAINER,
-		STYLES_METADATA,
-		(function(data) {
-			var m = [];
-			for (var i = 0; i < data.length; i ++) {
-				m.push({
-					id: i,
-					values: [
-						data[i]['name'] == 'default' ? DEFAULT_STYLE : data[i]['name'],
-						data[i]['text'],
-						data[i]['name'] == 'default' ? true : false
-					]
-				});
-			};
-			return m;
-		})(STYLES)
-	);
-
-	//
-
 	var glob = {};
 
 	$.expr[':'].textEquals = $.expr.createPseudo(function(arg) {
@@ -745,7 +556,7 @@ $(function() {
 			</Stroke>
 		</LineSymbolizer>
 		*/
-		const $template = $('#line_symbolizer_well_template');
+		const $template = $('#linestring_symbolizer_well_template');
 		const $content = $($template.prop('content')).clone();
 		const $well = $container.find('#symbolizer_well');
 		const $symbolizer = $rule.getChildrenOrCreate('LineSymbolizer').last();
@@ -946,9 +757,11 @@ $(function() {
 			operators: options.operators
 		});
 
+		console.log(options.type.toLowerCase())
+
 		switch(options.type.toLowerCase()) {
 			case 'polygon': parsePolygonSymbolizer($rule, $content); break;
-			case 'line': parseLineSymbolizer($rule, $content); break;
+			case 'linestring': parseLineSymbolizer($rule, $content); break;
 			case 'point': parsePointSymbolizer($rule, $content); break;
 		};
 
@@ -1012,6 +825,5 @@ $(function() {
 	const $sld  = $(_sld).children('StyledLayerDescriptor').last();
 
 	displayStyleForm($('#layer-container'), $sld, layer, layerData);
-
 });
 </script>
