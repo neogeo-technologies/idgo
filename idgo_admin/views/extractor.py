@@ -28,7 +28,9 @@ from django.views import View
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import AsyncExtractorTask
+from idgo_admin.models import BaseMaps
 from idgo_admin.models import Dataset
+from idgo_admin.models import ExtractorSupportedFormat
 from idgo_admin.models import Layer
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
@@ -50,26 +52,19 @@ EXTRACTOR_URL = settings.EXTRACTOR_URL
 @csrf_exempt
 def extractor_task(request, *args, **kwargs):
     user, profile = user_and_profile(request)
-
     instance = get_object_or_404(AsyncExtractorTask, uuid=request.GET.get('id'))
-
-    if instance.details['status'] == 'SUCCESS':
-        requested = instance.details['request']
-    if instance.details['status'] == 'SUBMITTED':
-        requested = instance.details['submitted_request']
-
+    query = instance.details['query']
     data = {
         'user': instance.user.get_full_name(),
         'dataset': instance.layer.resource.dataset.name,
         'resource': instance.layer.resource.name,
         'layer': instance.layer.name,
-        'format': requested.get('dst_format'),
-        'srs': requested.get('dst_srs'),
+        'format': query.get('dst_format'),
+        'srs': query.get('dst_srs'),
         'submission': instance.details.get('submission_datetime'),
         'start': instance.start_datetime,
         'stop': instance.stop_datetime,
-        'footprint': requested.get('footprint'),
-        'footprint_srs': requested.get('footprint_srs')}
+        'footprint': query.get('footprint_geojson')}
 
     return JsonResponse(data=data)
 
@@ -115,6 +110,7 @@ class ExtractorDashboard(View):
         number_of_pages = ceil(len(tasks) / items_per_page)
 
         context = {
+            'basemaps': BaseMaps.objects.all(),
             'pagination': {
                 'current': page_number,
                 'total': number_of_pages},
@@ -140,7 +136,9 @@ class Extractor(View):
             'resources': None,
             'resource': None,
             'layer': None,
-            'supported_crs': SupportedCrs.objects.all()}
+            'task': None,
+            'supported_crs': SupportedCrs.objects.all(),
+            'supported_format': ExtractorSupportedFormat.objects.all()}
 
         if task:
             try:
@@ -148,6 +146,7 @@ class Extractor(View):
             except AsyncExtractorTask.DoesNotExist:
                 pass
             else:
+                context['task'] = task
                 context['layer'] = task.layer
                 context['resource'] = task.layer.resource
                 context['dataset'] = task.layer.resource.dataset
@@ -155,7 +154,7 @@ class Extractor(View):
 
         context['organisations'] = \
             Organisation.objects.filter(
-                dataset__resource__extractable=True
+                dataset__resource__in=Resource.objects.all().exclude(layer=None)
                 ).distinct()
 
         if not context['organisation'] and organisation:
@@ -188,7 +187,7 @@ class Extractor(View):
             except Resource.DoesNotExist:
                 return context
 
-        layers = Layer.objects.filter(resource=context['resources'])
+        layers = Layer.objects.filter(resource=context['resource'])
 
         if not context['layer'] and layers:
             context['layer'] = layers[0]
@@ -202,16 +201,18 @@ class Extractor(View):
         if not profile.crige_membership:
             raise Http404
 
-        try:
-            context = self.get_context(
-                user,
-                organisation=request.GET.get('organisation'),
-                dataset=request.GET.get('dataset'),
-                resource=request.GET.get('resource'),
-                task=request.GET.get('task'))
-        except Exception as e:
-            print(e)
-            raise Http404
+        # try:
+        context = self.get_context(
+            user,
+            organisation=request.GET.get('organisation'),
+            dataset=request.GET.get('dataset'),
+            resource=request.GET.get('resource'),
+            task=request.GET.get('task'))
+        # except Exception as e:
+        #     print(e)
+        #     raise Http404
+
+        context['basemaps'] = BaseMaps.objects.all()
 
         return render_with_info_profile(request, self.template, context=context)
 

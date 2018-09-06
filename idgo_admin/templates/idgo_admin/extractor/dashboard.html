@@ -15,12 +15,10 @@
 
 <template id="modal-body-template-on-success">
 	<form>
-
 		<div class="form-group">
 			<label for="user" class="control-label">Utilisateur</label>
 			<input type="text" class="form-control disabled" id="user" disabled>
 		</div>
-
 		<div class="form-group">
 			<label for="dataset" class="control-label">Jeu de données</label>
 			<input type="text" class="form-control disabled" id="dataset" disabled>
@@ -88,7 +86,7 @@
 	</div>
 </template>
 
-<form>
+<div>
 	<div name="actions" class="buttons-on-the-right-side">
 		<a type="button" class="btn btn-primary" href="{% url "idgo_admin:extractor" %}">Nouvelle extraction</a>
 	</div>
@@ -129,19 +127,19 @@
 	</div>
 	<div name="actions" class="buttons-on-the-right-side">
 	{# if is_admin #}
-		<button type="button" name="open" class="btn btn-default disabled" disabled>Ouvrir</button>
-		<button type="button" name="revoke" class="btn btn-default disabled" disabled>Révoquer [TODO]</button>
+		<button type="button" name="open" class="btn btn-default">Ouvrir</button>
+		<button type="button" name="revoke" class="btn btn-default">Révoquer [TODO]</button>
 		<div class="btn-group">
-			<button type="button" class="btn btn-default dropdown-toggle disabled" data-toggle="dropdown" disabled>
+			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
 				Prioriser [TODO] <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
 			</button>
 			<ul class="dropdown-menu dropdown-menu-right">
-				<li><a role="button" name="" class="disabled" style="text-align: right;" disabled>Priorité forte</a></li>
-				<li><a role="button" name="" class="disabled" style="text-align: right;" disabled>Priorité faible</a></li>
+				<li><a role="button" style="text-align: right;">Priorité forte</a></li>
+				<li><a role="button" style="text-align: right;">Priorité faible</a></li>
 			</ul>
 		</div>
 	{# else #}
-		<button type="button" name="warn" class="btn btn-default disabled" disabled>Signaler une erreur [TODO]</button>
+		<button type="button" name="warn" class="btn btn-default" >Signaler une erreur [TODO]</button>
 	{# endif #}
 	</div>
 	{% if pagination.total > 1 %}
@@ -185,7 +183,7 @@
 		</ul>
 	</nav>
 	{% endif %}
-</form>
+</div>
 
 <script>
 $(function() {
@@ -235,23 +233,38 @@ $(function() {
 					$modal.find('.modal-body').append($content);
 					$modal.find('a[name="modify"]').attr('href', '{% url "idgo_admin:extractor" %}?task=' + taskId);
 
-					const map = L.map('map');
+					var baseMaps = {};
+					{% if basemaps %}
+						{% if basemaps|length > 1 %}
+							{% for basemap in basemaps %}
+					baseMaps['{{ basemap.name }}'] = L.tileLayer('{{ basemap.url }}', {{ basemap.options|safe }});
+							{% endfor %}
+						{% else %}
+					baseMaps['{{ basemaps.0.name}}'] = L.tileLayer('{{ basemaps.0.url }}', {{ basemaps.0.options|safe }});
+						{% endif %}
+					{% else %}
+					baseMaps['CartoDB'] = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {});
+					{% endif %}
 
-					const baseLayer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
-						attribution: 'CartoDB',
-					}).addTo(map);
+					for (var defaultBaseMap in baseMaps) {
+						break;
+					};
 
 					const wmsLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 						format: 'image/png',
 						layers: data['layer'],
 						transparent: true
-					}).addTo(map);
+					});
 
-					// const footprintLayer = L.geoJSON(data.footprint, {
-					// }).addTo(map);
+					const footprintLayer = L.geoJSON(data.footprint, {});
+					const bounds = footprintLayer.getBounds();
 
-					// const bounds = geojsonLayer.getBounds()
-					const bounds = [[41.15, -9.86], [51.56, 10.38]];
+					const map = L
+						.map('map', {
+							'layers': [baseMaps[defaultBaseMap], wmsLayer, footprintLayer]
+						})
+						.fitBounds(bounds)
+						.addControl(new L.control.layers(baseMaps, null, {}))
 
 					$modal
 						.on('shown.bs.modal', function(e) {

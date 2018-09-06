@@ -73,7 +73,9 @@ $(document).ajaxSend(function(e, xhr, settings) {
 (function() {
 	with (this) {
 		redirect = function(path) {
-			window.location.replace(window.location.origin + path);
+			$modalHourglass.one('show.bs.modal', function(e) {
+				window.location.replace(window.location.origin + path);
+			}).modal('show');
 		};
 		targetBlank = function(path) {
 			window.open(path, '_blank');
@@ -148,7 +150,7 @@ $(document).ajaxSend(function(e, xhr, settings) {
 				<div class="modal-content modal-centered-content">
 					<span class="glyphicon glyphicon-hourglass"></span>
 					<br/>
-					chargement
+					Chargement...
 				</div>
 			</div>
 		</div>

@@ -32,7 +32,6 @@ label.focus {
     outline: none !important;
 }
 
-
 input[type=color] {
     padding: 0 2px;
 }
@@ -1096,4 +1095,16 @@ div#map {
     border-radius: 4px;
     -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
             box-shadow: 0 2px 1px 0 rgba(0,0,0,.123);
+}
+
+div.disabled,
+div.disabled input,
+div.disabled select,
+div.disabled .btn {
+    pointer-events: none;
+    background-color: transparent;
+    color: #aaa;
+    border-color: #ddd;
+    -webkit-box-shadow: none;
+            box-shadow: none;
 }

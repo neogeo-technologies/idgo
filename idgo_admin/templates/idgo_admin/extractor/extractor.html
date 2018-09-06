@@ -27,7 +27,7 @@
 		<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
 			<form>
 				<div class="well">
-					<div class="form-group">
+					<div class="form-group{% if not organisations %} disabled{% endif %}">
 						<label for="organisation">Organisation</label>
 						<div class="input-group input-group">
 							<select class="form-control" id="organisation">
@@ -43,7 +43,7 @@
 							</span>
 						</div>
 					</div>
-					<div class="form-group">
+					<div class="form-group{% if not datasets %} disabled{% endif %}">
 						<label for="dataset">Jeu de données</label>
 						<div class="input-group input-group">
 							<select class="form-control" id="dataset">
@@ -59,7 +59,7 @@
 							</span>
 						</div>
 					</div>
-					<div class="form-group">
+					<div class="form-group{% if not resources %} disabled{% endif %}">
 						<label for="resource">Ressource</label>
 						<div class="input-group input-group">
 							<select class="form-control" id="resource">
@@ -75,18 +75,15 @@
 							</span>
 						</div>
 					</div>
-					<!-- <button class="btn btn-default" type="button" name="zoom-on">
-						<span class="glyphicon glyphicon-search" aria-hidden="true"></span> Zoom
-					</button> -->
 				</div>
-				<div class="well">
+				<div class="well{% if not dataset %} disabled{% endif %}">
 					<div class="form-group">
 						<label for="crs">Système de coordonnées</label>
 						<div class="input-group input-group">
 							<select class="form-control" id="crs">
 								<option disabled selected>Sélectionnez un système de coordonnées</option>
 								{% for crs in supported_crs %}
-								<option value="{{ crs.authority }}">"{{ crs }}"</option>
+								<option value="{{ crs.authority }}"{% if task and task.details.query.dst_srs == crs.authority %} selected{% endif %}>{{ crs }}</option>
 								{% endfor %}
 							</select>
 							<span class="input-group-btn">
@@ -101,20 +98,23 @@
 						<div class="input-group input-group">
 							<select class="form-control" id="format">
 								<option disabled selected>Sélectionnez un format</option>
+								{% for format in supported_format %}
+								<option value="{{ format.name }}"{% if task and task.details.query.dst_format == format.details %} selected{% endif %}>{{ format.description }}</option>
+								{% endfor %}
 							</select>
 							<span class="input-group-btn">
-								<button class="btn btn-default" type="button" name="clear">
+								<button class="btn btn-default{% if not datasets %} disabled{% endif %}" type="button" name="clear">
 									<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
 								</button>
 							</span>
 						</div>
 					</div>
+					<div class="buttons-on-the-right-side{% if not dataset %} disabled{% endif %}">
+						<button type="button" name="extract" class="btn btn-primary">Exporter</button>
+					</div>
 				</div>
 			</form>
 		</div>
-	</div>
-	<div class="buttons-on-the-right-side">
-		<button type="button" name="extract" class="btn btn-primary">Exporter</button>
 	</div>
 </div>
 <script>
@@ -142,7 +142,9 @@ $(function() {
 		$form.append($('<input type="text" name="srs"/>').hide().val(srs));
 		$form.append($('<input type="text" name="format"/>').hide().val(format));
 
-		$form.submit();
+		$modalHourglass.one('show.bs.modal', function(e) {
+			$form.submit();
+		}).modal('show');
 	});
 
 	const clear = function($target) {
@@ -157,16 +159,38 @@ $(function() {
 		clear($(this).parent().siblings('input, select'));
 	});
 
-	const map = L.map('map').fitBounds([[41.15, -9.86], [51.56, 10.38]]);
+	var baseMaps = {};
+	{% if basemaps %}
+		{% if basemaps|length > 1 %}
+			{% for basemap in basemaps %}
+	baseMaps['{{ basemap.name }}'] = L.tileLayer('{{ basemap.url }}', {{ basemap.options|safe }});
+			{% endfor %}
+		{% else %}
+	baseMaps['{{ basemaps.0.name}}'] = L.tileLayer('{{ basemaps.0.url }}', {{ basemaps.0.options|safe }});
+		{% endif %}
+	{% else %}
+	baseMaps['CartoDB'] = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {});
+	{% endif %}
 
-	L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
-		attribution: 'CartoDB',
-	}).addTo(map);
+	for (var defaultBaseMap in baseMaps) {
+		break;
+	};
 
-	const editableLayers = new L.FeatureGroup().addTo(map);
+	const editableLayers = new L.FeatureGroup();
+	{% if task %}
+	footprintLayer = L.geoJSON({{ task.details.query.footprint_geojson|safe }});
+	editableLayers.addLayer(footprintLayer);
+	{% endif %}
 
-	map.addControl(
-		new L.Control.Draw({
+	const map = L
+		.map('map', {
+			'layers': [baseMaps[defaultBaseMap], editableLayers]
+		})
+		.fitBounds([[41.15, -9.86], [51.56, 10.38]])
+		.addControl(new L.control.layers(baseMaps, null, {
+			'collapsed': false
+		}))
+		.addControl(new L.Control.Draw({
 			position: 'topright',
 			draw: {
 				polygon: {
@@ -193,16 +217,14 @@ $(function() {
 				featureGroup: editableLayers,
 				remove: false
 			}
-		})
-	);
-
-	map.on(L.Draw.Event.CREATED, function (e) {
-		if (footprintLayer && editableLayers.hasLayer(footprintLayer)) {
-			editableLayers.removeLayer(footprintLayer);
-		};
-		footprintLayer = e.layer;
-		editableLayers.clearLayers().addLayer(footprintLayer);
-	});
+		}))
+		.on(L.Draw.Event.CREATED, function (e) {
+			if (footprintLayer && editableLayers.hasLayer(footprintLayer)) {
+				editableLayers.removeLayer(footprintLayer);
+			};
+			footprintLayer = e.layer;
+			editableLayers.clearLayers().addLayer(footprintLayer);
+		});
 
 	$('#organisation').change(function(e) {
 		e.preventDefault();

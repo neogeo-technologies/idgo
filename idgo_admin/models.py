@@ -1478,6 +1478,30 @@ Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
                    dataset=instance.dataset.name)
 
     @classmethod
+    def data_extraction_successfully(cls, profile, instance):
+        # bcc = [p.user.email for p in Profile.get_admin()]
+        url = urljoin(
+            settings.EXTRACTOR_URL, 'job/{}/download'.format(instance.uuid))
+        cls.sender('data_extraction_successfully',
+                   to=[profile.user.email],
+                   # bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   url=url,
+                   dataset=instance.layer.resource.dataset.name)
+
+    @classmethod
+    def data_extraction_failure(cls, profile, instance):
+        # bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('data_extraction_failure',
+                   to=[profile.user.email],
+                   # bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name,
+                   dataset=instance.dataset.name)
+
+    @classmethod
     def sender(cls, template_name, to, cc=None, bcc=None, **kvp):
         try:
             tmpl = Mail.objects.get(template_name=template_name)
@@ -2032,6 +2056,32 @@ class AsyncExtractorTask(models.Model):
             return timezone.now() - self.submission_datetime
 
 
+class BaseMaps(models.Model):
+
+    class Meta(object):
+        verbose_name = 'Fond cartographique'
+        verbose_name_plural = 'Fonds cartographiques'
+
+    name = models.TextField(verbose_name='Titre', unique=True)
+
+    url = models.URLField(verbose_name='URL')
+
+    options = JSONField(verbose_name='Options')
+
+
+class ExtractorSupportedFormat(models.Model):
+
+    class Meta(object):
+        verbose_name = "Format pris en charge par le service d'extraction"
+        verbose_name_plural = "Formats pris en charge par le service d'extraction"
+
+    name = models.SlugField(verbose_name='Nom', primary_key=True, editable=False)
+
+    description = models.TextField(verbose_name='Description', unique=True)
+
+    details = JSONField(verbose_name='Détails')
+
+
 # Triggers
 
 
@@ -2159,7 +2209,7 @@ def synchronize_extractor_task(sender, *args, **kwargs):
             except AsyncExtractorTask.DoesNotExist:
                 pass
             else:
-                if instance.success is None:
+                if instance.success:
                     url = instance.details['possible_requests']['status']['url']
                     r = requests.get(url)
                     if r.status_code == 200:
@@ -2173,5 +2223,10 @@ def synchronize_extractor_task(sender, *args, **kwargs):
                         instance.start_datetime = details.get('start_datetime', None)
                         instance.stop_datetime = details.get('start_datetime', None)
                         instance.save()
+
+                        if instance.success is True:
+                            Mail.data_extraction_successfully(instance.user.profile, instance)
+                        elif instance.success is False:
+                            Mail.data_extraction_failure(instance.user.profile, instance)
 
     pre_init.connect(synchronize_extractor_task, sender=sender)
