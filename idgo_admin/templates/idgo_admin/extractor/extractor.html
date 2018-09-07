@@ -13,115 +13,175 @@
 <link rel="stylesheet" href="{% static "libs/bootstrap-slider/css/bootstrap-slider.css" %}"/>
 {% endblock head_extras %}
 
-{% block main_content %}
-
-{% include "idgo_admin/alert_messages.html" %}
-
-<div>
-	<div class="row">
-		<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
-			<div id="map_well">
-				<div id="map" style="height: 650px;"></div>
+{% block body %}
+<div id="extractor">
+	<div id="map" class="map"></div>
+	<div class="page-header">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					{% block header_content %}
+					{% include "idgo_admin/inner_header.html" %}
+					{% endblock header_content %}
+				</div>
 			</div>
 		</div>
-		<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
-			<form>
-				<div class="well">
-					<div class="form-group{% if not organisations %} disabled{% endif %}">
-						<label for="organisation">Organisation</label>
-						<div class="input-group input-group">
-							<select class="form-control" id="organisation">
-								<option disabled {% if not organisation %}selected{% endif %}>Sélectionnez une organisation</option>
-								{% for instance in organisations %}
-								<option value="{{ instance.id }}" {% if instance.id == organisation.id %}selected{% endif %}>{{ instance.name }}</option>
-								{% endfor %}
-							</select>
-							<span class="input-group-btn">
-								<button class="btn btn-default" type="button" name="clear">
-									<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-								</button>
-							</span>
-						</div>
-					</div>
-					<div class="form-group{% if not datasets %} disabled{% endif %}">
-						<label for="dataset">Jeu de données</label>
-						<div class="input-group input-group">
-							<select class="form-control" id="dataset">
-								<option disabled {% if not dataset %}selected{% endif %}>Sélectionnez un jeu de données</option>
-								{% for instance in datasets %}
-								<option value="{{ instance.id }}" {% if instance.id == dataset.id %}selected{% endif %}>{{ instance.name }}</option>
-								{% endfor %}
-							</select>
-							<span class="input-group-btn">
-								<button class="btn btn-default" type="button" name="clear">
-									<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-								</button>
-							</span>
-						</div>
-					</div>
-					<div class="form-group{% if not resources %} disabled{% endif %}">
-						<label for="resource">Ressource</label>
-						<div class="input-group input-group">
-							<select class="form-control" id="resource">
-								<option disabled {% if not resource %}selected{% endif %}>Sélectionnez une ressource</option>
-								{% for instance in resources %}
-								<option value="{{ instance.id }}" {% if instance.id == resources.id %}selected{% endif %}>{{ instance.name }}</option>
-								{% endfor %}
-							</select>
-							<span class="input-group-btn">
-								<button class="btn btn-default" type="button" name="clear">
-									<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-								</button>
-							</span>
-						</div>
-					</div>
+	</div>
+	<div class="nav-container">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					{% block nav_content %}
+					<ul id="menu" class="nav nav-default" role="tablist">
+						<li role="presentation">
+							<a href="{% url "idgo_admin:datasets" %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
+						</li>
+						{% if is_referent or is_admin  %}
+						<li role="presentation">
+							<a href="{% url "idgo_admin:all_datasets" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
+						</li>
+						{% endif %}
+						<li role="presentation">
+							<a href="{% url "idgo_admin:all_organizations" %}" aria-controls="all-organizations" role="tab">Les organisations</a>
+						</li>
+						{% if is_crige %}
+						<li role="presentation">
+							<a href="{% url "idgo_admin:extractor_dashboard" %}" aria-controls="all-extracts" role="tab">Mes extractions</a>
+						</li>
+						{% endif %}
+						{% block nav_content_extra %}
+						{% endblock nav_content_extra %}
+					</ul>
+					{% endblock nav_content %}
 				</div>
-				<div class="well{% if not dataset %} disabled{% endif %}">
-					<div class="form-group">
-						<label for="crs">Système de coordonnées</label>
-						<div class="input-group input-group">
-							<select class="form-control" id="crs">
-								<option disabled selected>Sélectionnez un système de coordonnées</option>
-								{% for crs in supported_crs %}
-								<option value="{{ crs.authority }}"{% if task and task.details.query.dst_srs == crs.authority %} selected{% endif %}>{{ crs }}</option>
-								{% endfor %}
-							</select>
-							<span class="input-group-btn">
-								<button class="btn btn-default" type="button" name="clear">
-									<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-								</button>
-							</span>
-						</div>
-					</div>
-					<div class="form-group">
-						<label for="format">Format de données</label>
-						<div class="input-group input-group">
-							<select class="form-control" id="format">
-								<option disabled selected>Sélectionnez un format</option>
-								{% for format in supported_format %}
-								<option value="{{ format.name }}"{% if task and task.details.query.dst_format == format.details %} selected{% endif %}>{{ format.description }}</option>
-								{% endfor %}
-							</select>
-							<span class="input-group-btn">
-								<button class="btn btn-default{% if not datasets %} disabled{% endif %}" type="button" name="clear">
-									<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-								</button>
-							</span>
-						</div>
-					</div>
-					<div class="buttons-on-the-right-side{% if not dataset %} disabled{% endif %}">
-						<button type="button" name="extract" class="btn btn-primary">Exporter</button>
-					</div>
-				</div>
-			</form>
+			</div>
 		</div>
 	</div>
+	<div class="main-container">
+		<div class="wrapper" >
+			<div class="container">
+				<div class="row">
+					<div class="col-md-12">
+						{% block main_content %}
+							<div class="row">
+								<div class="col-xs-offset-8 col-xs-4">
+									<form class="well extractor-panel">
+										<div>
+											<div class="form-group{% if not organisations %} disabled{% endif %}">
+												<label for="organisation">Organisation</label>
+												<div class="input-group input-group">
+													<select class="form-control" id="organisation">
+														<option disabled {% if not organisation %}selected{% endif %}>Sélectionnez une organisation</option>
+														{% for instance in organisations %}
+														<option value="{{ instance.id }}" {% if instance.id == organisation.id %}selected{% endif %}>{{ instance.name }}</option>
+														{% endfor %}
+													</select>
+													<span class="input-group-btn">
+														<button class="btn btn-default" type="button" name="clear">
+															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+														</button>
+													</span>
+												</div>
+											</div>
+											<div class="form-group{% if not datasets %} disabled{% endif %}">
+												<label for="dataset">Jeu de données</label>
+												<div class="input-group input-group">
+													<select class="form-control" id="dataset">
+														<option disabled {% if not dataset %}selected{% endif %}>Sélectionnez un jeu de données</option>
+														{% for instance in datasets %}
+														<option value="{{ instance.id }}" {% if instance.id == dataset.id %}selected{% endif %}>{{ instance.name }}</option>
+														{% endfor %}
+													</select>
+													<span class="input-group-btn">
+														<button class="btn btn-default" type="button" name="clear">
+															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+														</button>
+													</span>
+												</div>
+											</div>
+											<div class="form-group{% if not resources %} disabled{% endif %}">
+												<label for="resource">Ressource</label>
+												<div class="input-group input-group">
+													<select class="form-control" id="resource">
+														<option disabled {% if not resource %}selected{% endif %}>Sélectionnez une ressource</option>
+														{% for instance in resources %}
+														<option value="{{ instance.id }}" {% if instance.id == resources.id %}selected{% endif %}>{{ instance.name }}</option>
+														{% endfor %}
+													</select>
+													<span class="input-group-btn">
+														<button class="btn btn-default" type="button" name="clear">
+															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+														</button>
+													</span>
+												</div>
+											</div>
+										</div>
+										<div class="{% if not dataset %} disabled{% endif %}">
+											<div class="form-group">
+												<label for="crs">Système de coordonnées</label>
+												<div class="input-group input-group">
+													<select class="form-control" id="crs">
+														<option disabled selected>Sélectionnez un système de coordonnées</option>
+														{% for crs in supported_crs %}
+														<option value="{{ crs.authority }}"{% if task and task.details.query.dst_srs == crs.authority %} selected{% endif %}>{{ crs }}</option>
+														{% endfor %}
+													</select>
+													<span class="input-group-btn">
+														<button class="btn btn-default" type="button" name="clear">
+															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+														</button>
+													</span>
+												</div>
+											</div>
+											<div class="form-group">
+												<label for="format">Format de données</label>
+												<div class="input-group input-group">
+													<select class="form-control" id="format">
+														<option disabled selected>Sélectionnez un format</option>
+														{% for format in supported_format %}
+														<option value="{{ format.name }}"{% if task and task.details.query.dst_format == format.details %} selected{% endif %}>{{ format.description }}</option>
+														{% endfor %}
+													</select>
+													<span class="input-group-btn">
+														<button class="btn btn-default{% if not datasets %} disabled{% endif %}" type="button" name="clear">
+															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+														</button>
+													</span>
+												</div>
+											</div>
+											<div class="buttons-on-the-right-side{% if not dataset %} disabled{% endif %}">
+												<button type="button" name="extract" class="btn btn-primary">Exporter</button>
+											</div>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+						{% endblock main_content %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% block footer %}
+	<div class="footer navbar-fixed-bottom">
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-12">
+					<p>© <span name="current-year"></span> - Région Provence-Alpes-Côte d'Azur et CRIGE PACA | Tous droits réservés | Propulsé par <a href='http://www.neogeo.fr' target="blank">Neogeo-Technologies</a></p>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endblock footer %}
 </div>
 <script>
 $(function() {
 
 	var targetLayer;
 	var footprintLayer;
+	var layers = [];
+	var bounds = [[41.15, -9.86], [51.56, 10.38]];
 
 	const $extract = $('button[name="extract"]').click(function(e) {
 		e.preventDefault();
@@ -173,20 +233,52 @@ $(function() {
 	{% endif %}
 
 	for (var defaultBaseMap in baseMaps) {
+		layers.push(baseMaps[defaultBaseMap]);
 		break;
 	};
+
+	{% if organisation and dataset and resource and layer %}
+	targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+		format: 'image/png',
+		layers: '{{ layer.mra_info.name }}',
+		styles: '{{ layer.mra_info.styles.default }}',
+		transparent: true
+	});
+	layers.push(targetLayer);
+	bounds = {{ layer.mra_info.bbox|default:None|safe }};
+	{% elif organisation and dataset %}
+		{% for instance in resources %}
+			{% for layer in instance.get_layers %}
+	layers.push(
+		new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+			format: 'image/png',
+			layers: '{{ layer.mra_info.name }}',
+			styles: '{{ layer.mra_info.styles.default }}',
+			transparent: true
+		})
+	);
+			{% endfor %}
+		{% endfor %}
+	bounds = {{ dataset.bounds|default:None|safe }};
+	{% endif %}
 
 	const editableLayers = new L.FeatureGroup();
 	{% if task %}
 	footprintLayer = L.geoJSON({{ task.details.query.footprint_geojson|safe }});
-	editableLayers.addLayer(footprintLayer);
+	editableLayers.addLayer(footprintLayer.getLayers()[0]);
+	layers.push(editableLayers);
+	bounds = footprintLayer.getBounds();
+	{% endif %}
+
+	{% if bounds %}
+	bounds = {{ bounds|safe }};
 	{% endif %}
 
 	const map = L
 		.map('map', {
-			'layers': [baseMaps[defaultBaseMap], editableLayers]
+			'layers': layers
 		})
-		.fitBounds([[41.15, -9.86], [51.56, 10.38]])
+		.fitBounds(bounds, {paddingTopLeft: [-400, 0]})
 		.addControl(new L.control.layers(baseMaps, null, {
 			'collapsed': false
 		}))
@@ -197,7 +289,7 @@ $(function() {
 					allowIntersection: false,
 					drawError: {
 						color: '#e1e100',
-						message: '<strong>Oh snap!<strong> you can\'t draw that!'
+						message: ''  // Pas de message
 					},
 					shapeOptions: {
 						color: '#bada55'
@@ -229,14 +321,18 @@ $(function() {
 	$('#organisation').change(function(e) {
 		e.preventDefault();
 		const organisation = $(this).val();
-		redirect('{% url "idgo_admin:extractor" %}' + (organisation ? '?organisation=' + organisation : ''));
+		const bounds = map.getBounds();
+		const bbox = bounds._southWest.lng + ',' + bounds._southWest.lat + ',' + bounds._northEast.lng + ',' + bounds._northEast.lat;
+		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + (organisation ? '&organisation=' + organisation : ''));
 	});
 
 	{% if organisation %}
 	$('#dataset').change(function(e) {
 		e.preventDefault();
 		const dataset = $(this).val();
-		redirect('{% url "idgo_admin:extractor" %}?organisation={{ organisation.id }}' + (dataset ? '&dataset=' + dataset : ''));
+		const bounds = map.getBounds();
+		const bbox = bounds._southWest.lng + ',' + bounds._southWest.lat + ',' + bounds._northEast.lng + ',' + bounds._northEast.lat;
+		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + '&organisation={{ organisation.id }}' + (dataset ? '&dataset=' + dataset : ''));
 	});
 	{% endif %}
 
@@ -244,20 +340,12 @@ $(function() {
 	$('#resource').change(function(e) {
 		e.preventDefault();
 		const resource = $(this).val();
-		redirect('{% url "idgo_admin:extractor" %}?organisation={{ organisation.id }}&dataset={{ dataset.id }}' + (resource ? '&resource=' + resource : ''));
+		const bounds = map.getBounds();
+		const bbox = bounds._southWest.lng + ',' + bounds._southWest.lat + ',' + bounds._northEast.lng + ',' + bounds._northEast.lat;
+		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + '&organisation={{ organisation.id }}&dataset={{ dataset.id }}' + (resource ? '&resource=' + resource : ''));
 	});
-	{% endif %}
-
-	{% if organisation and dataset and resource and layer %}
-	targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
-		format: 'image/png',
-		layers: '{{ layer.mra_info.name }}',
-		styles: '{{ layer.mra_info.styles.default }}',
-		transparent: true
-	});
-	map.addLayer(targetLayer);
 	{% endif %}
 
 });
 </script>
-{% endblock main_content %}
+{% endblock body %}

@@ -15,55 +15,83 @@
 
 <template id="modal-body-template-on-success">
 	<form>
-		<div class="form-group">
-			<label for="user" class="control-label">Utilisateur</label>
-			<input type="text" class="form-control disabled" id="user" disabled>
+		<div class="row">
+			<div class="col-xs-6">
+				<div class="form-group form-group-sm">
+					<label for="user" class="control-label">Utilisateur</label>
+					<input type="text" class="form-control disabled" id="user" disabled>
+				</div>
+			</div>
 		</div>
-		<div class="form-group">
-			<label for="dataset" class="control-label">Jeu de données</label>
-			<input type="text" class="form-control disabled" id="dataset" disabled>
+		<div class="row">
+			<div class="col-xs-10">
+				<div class="form-group form-group-sm">
+					<label for="dataset" class="control-label">Jeu de données</label>
+					<input type="text" class="form-control disabled" id="dataset" disabled>
+				</div>
+			</div>
 		</div>
-		<div class="form-group">
-			<label for="resource" class="control-label">Ressource</label>
-			<input type="text" class="form-control disabled" id="resource" disabled>
+		<div class="row">
+			<div class="col-xs-10">
+				<div class="form-group form-group-sm">
+					<label for="resource" class="control-label">Ressource</label>
+					<input type="text" class="form-control disabled" id="resource" disabled>
+				</div>
+			</div>
 		</div>
-		<div class="form-group">
-			<label for="layer" class="control-label">Nom de la couche</label>
-			<input type="text" class="form-control disabled" id="layer" disabled>
+		<!-- <div class="row">
+			<div class="col-xs-10">
+				<div class="form-group form-group-sm">
+					<label for="layer" class="control-label">Nom de la couche</label>
+					<input type="text" class="form-control disabled" id="layer" disabled>
+				</div>
+			</div>
+		</div> -->
+		<div class="row">
+			<div class="col-xs-7">
+				<div class="form-group form-group-sm">
+					<label for="crs">Système de coordonnées</label>
+					<select class="form-control disabled" id="crs" disabled>
+						<option disabled selected>Sélectionnez un système de coordonnées</option>
+						{% for crs in supported_crs %}
+						<option value="{{ crs.authority }}">{{ crs }}</option>
+						{% endfor %}
+					</select>
+				</div>
+			</div>
 		</div>
 		<div class="row">
 			<div class="col-xs-7">
-				<div class="form-group">
-					<label for="srs" class="control-label">Système de coordonnées</label>
-					<input type="text" class="form-control disabled" id="srs" disabled>
-				</div>
-			</div>
-			<div class="col-xs-5">
-				<div class="form-group">
-					<label for="format" class="control-label">Format</label>
-					<input type="text" class="form-control disabled" id="format" disabled>
+				<div class="form-group form-group-sm">
+					<label for="format">Format de données</label>
+					<select class="form-control disabled" id="format" disabled>
+						<option disabled selected>Sélectionnez un format</option>
+						{% for format in supported_format %}
+						<option value="{{ format.name }}">{{ format }}</option>
+						{% endfor %}
+					</select>
 				</div>
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-xs-5">
-				<div class="form-group">
+				<div class="form-group form-group-sm">
 					<label for="submission" class="control-label">Date de la demande</label>
-					<input type="datetime" class="form-control disabled" id="submission" disabled>
+					<input type="datetime-local" class="form-control disabled" id="submission" step="1" disabled>
 				</div>
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-xs-5">
-				<div class="form-group">
+				<div class="form-group form-group-sm">
 					<label for="start" class="control-label">Date de début du traitement</label>
-					<input type="datetime" class="form-control disabled" id="start" disabled>
+					<input type="datetime-local" class="form-control disabled" id="start" step="1" disabled>
 				</div>
 			</div>
 			<div class="col-xs-5">
-				<div class="form-group">
+				<div class="form-group form-group-sm">
 					<label for="stop" class="control-label">Date de fin du traitement</label>
-					<input type="datetime" class="form-control disabled" id="stop" disabled>
+					<input type="datetime-local" class="form-control disabled" id="stop" step="1" disabled>
 				</div>
 			</div>
 		</div>
@@ -73,7 +101,7 @@
 		</div>
 	</form>
 	<div class="buttons-on-the-right-side">
-		<a type="button" name="modify" class="btn btn-default">Ouvrir le formulaire du service d'extraction</a>
+		<a type="button" name="modify" class="btn btn-default">Modifier</a>
 		<button type="button" name="again" class="btn btn-default disabled" disabled>Relancer [TODO]</button>
 		<button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
 	</div>
@@ -226,7 +254,12 @@ $(function() {
 					const $content = $($template.prop('content')).clone();
 
 					for (const k in data) {
-						$content.find('#' + k).val(data[k]);
+						const $target = $content.find('#' + k);
+						if ($target.prop('type') == 'datetime-local') {
+							$target.val(moment(data[k]).toJSON().slice(0, 19));
+						} else {
+							$target.val(data[k]);
+						};
 					};
 
 					$modal.find('.modal-title').text('Tâche « ' + taskId + ' »');
@@ -261,7 +294,12 @@ $(function() {
 
 					const map = L
 						.map('map', {
-							'layers': [baseMaps[defaultBaseMap], wmsLayer, footprintLayer]
+							'attributionControl': false,
+							'boxZoom': false,
+							'doubleClickZoom': false,
+							'dragging': false,
+							'layers': [baseMaps[defaultBaseMap], wmsLayer, footprintLayer],
+							'zoomControl': false
 						})
 						.fitBounds(bounds)
 						.addControl(new L.control.layers(baseMaps, null, {}))

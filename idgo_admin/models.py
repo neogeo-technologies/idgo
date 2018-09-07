@@ -1798,6 +1798,11 @@ class Dataset(models.Model):
     def name_overflow(self):
         return three_suspension_points(self.name)
 
+    @property
+    def bounds(self):
+        minx, miny, maxx, maxy = self.bbox.extent
+        return [[miny, minx], [maxy, maxx]]
+
     def is_contributor(self, profile):
         return LiaisonsContributeurs.objects.filter(
             profile=profile, organisation=self.organisation,
@@ -2074,6 +2079,9 @@ class ExtractorSupportedFormat(models.Model):
     description = models.TextField(verbose_name='Description', unique=True)
 
     details = JSONField(verbose_name='Détails')
+
+    def __str__(self):
+        return self.description
 
 
 # Triggers

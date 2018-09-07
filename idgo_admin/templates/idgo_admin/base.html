@@ -167,6 +167,7 @@ $(document).ajaxSend(function(e, xhr, settings) {
 				</div>
 			</div>
 		</div>
+		{% block body %}
 		{% block header %}
 		<div class="page-header">
 			<div class="container">
@@ -247,6 +248,7 @@ $(document).ajaxSend(function(e, xhr, settings) {
 			</div>
 		</div>
 		{% endblock footer %}
+		{% endblock body %}
 	</body>
 	<script>
 

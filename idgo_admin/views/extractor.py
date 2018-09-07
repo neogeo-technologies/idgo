@@ -54,13 +54,18 @@ def extractor_task(request, *args, **kwargs):
     user, profile = user_and_profile(request)
     instance = get_object_or_404(AsyncExtractorTask, uuid=request.GET.get('id'))
     query = instance.details['query']
+
+    auth_name, auth_code = query.get('dst_srs').split(':')
+    crs = SupportedCrs.objects.get(auth_name=auth_name, auth_code=auth_code)
+    format = ExtractorSupportedFormat.objects.get(details=query.get('dst_format'))
+
     data = {
         'user': instance.user.get_full_name(),
         'dataset': instance.layer.resource.dataset.name,
         'resource': instance.layer.resource.name,
         'layer': instance.layer.name,
-        'format': query.get('dst_format'),
-        'srs': query.get('dst_srs'),
+        'format': format.name,
+        'crs': crs.authority,
         'submission': instance.details.get('submission_datetime'),
         'start': instance.start_datetime,
         'stop': instance.stop_datetime,
@@ -114,6 +119,8 @@ class ExtractorDashboard(View):
             'pagination': {
                 'current': page_number,
                 'total': number_of_pages},
+            'supported_crs': SupportedCrs.objects.all(),
+            'supported_format': ExtractorSupportedFormat.objects.all(),
             'tasks': tasks[x:y]}
 
         return render_with_info_profile(request, self.template, context=context)
@@ -154,7 +161,7 @@ class Extractor(View):
 
         context['organisations'] = \
             Organisation.objects.filter(
-                dataset__resource__in=Resource.objects.all().exclude(layer=None)
+                dataset__resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
                 ).distinct()
 
         if not context['organisation'] and organisation:
@@ -166,7 +173,7 @@ class Extractor(View):
         context['datasets'] = \
             Dataset.objects.filter(
                 organisation=context['organisation'],
-                resource__extractable=True
+                resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
                 ).distinct()
 
         if not context['dataset'] and dataset:
@@ -183,7 +190,8 @@ class Extractor(View):
 
         if not context['resource'] and resource:
             try:
-                context['resource'] = Resource.objects.get(id=resource)
+                context['resource'] = \
+                    Resource.objects.get(id=resource)
             except Resource.DoesNotExist:
                 return context
 
@@ -213,6 +221,11 @@ class Extractor(View):
         #     raise Http404
 
         context['basemaps'] = BaseMaps.objects.all()
+
+        bbox = request.GET.get('bbox')
+        if bbox:
+            minx, miny, maxx, maxy = bbox.split(',')
+            context['bounds'] = [[miny, minx], [maxy, maxx]]
 
         return render_with_info_profile(request, self.template, context=context)
 
