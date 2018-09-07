@@ -1869,7 +1869,7 @@ class Dataset(models.Model):
                 str(self.date_publication) if self.date_publication else '',
             'groups': [],
             'geocover': self.geocover,
-            'granularity': self.granularity.slug,
+            'granularity': self.granularity and self.granularity.slug or None,
             'last_modified':
                 str(self.date_modification) if self.date_modification else '',
             'license_id': (

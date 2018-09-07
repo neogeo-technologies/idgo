@@ -162,7 +162,7 @@ class DatasetForm(forms.ModelForm):
     granularity = forms.ModelChoiceField(
         label='Granularité de la couverture territoriale',
         queryset=Granularity.objects.all(),
-        required=True)
+        required=False)
 
     organisation = forms.ModelChoiceField(
         label='Organisation à laquelle est rattaché ce jeu de données*',
