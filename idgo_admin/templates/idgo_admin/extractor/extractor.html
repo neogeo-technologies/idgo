@@ -267,9 +267,9 @@ $(function() {
 	{% if task %}
 	footprintLayer = L.geoJSON({{ task.details.query.footprint_geojson|safe }});
 	editableLayers.addLayer(footprintLayer.getLayers()[0]);
-	layers.push(editableLayers);
 	bounds = footprintLayer.getBounds();
 	{% endif %}
+	layers.push(editableLayers);
 
 	{% if bounds %}
 	bounds = {{ bounds|safe }};
