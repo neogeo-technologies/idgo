@@ -202,7 +202,7 @@ div.page-header {
     background-color: #fff;
     color: #002880;
     position: relative;
-    z-index: 1000;
+    z-index: 1005;
 }
 
 div.page-header .title {
