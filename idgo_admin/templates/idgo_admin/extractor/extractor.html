@@ -182,6 +182,7 @@ $(function() {
 	var footprintLayer;
 	var layers = [];
 	var bounds = [[41.15, -9.86], [51.56, 10.38]];
+	var boundsOptions = {paddingTopLeft: [-400, 0]};
 
 	const $extract = $('button[name="extract"]').click(function(e) {
 		e.preventDefault();
@@ -272,13 +273,14 @@ $(function() {
 
 	{% if bounds %}
 	bounds = {{ bounds|safe }};
+	boundsOptions = {};
 	{% endif %}
 
 	const map = L
 		.map('map', {
 			'layers': layers
 		})
-		.fitBounds(bounds, {paddingTopLeft: [-400, 0]})
+		.fitBounds(bounds, boundsOptions)
 		.addControl(new L.control.layers(baseMaps, null, {
 			'collapsed': false
 		}))
