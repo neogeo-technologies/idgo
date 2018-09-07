@@ -18,7 +18,6 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
-from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -26,11 +25,10 @@ from django.core.mail import get_connection
 from django.core.mail.message import EmailMultiAlternatives
 from django.core.mail import send_mail
 from django.db import IntegrityError
-from django.db.models.signals import post_init
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
-from django.db.models.signals import pre_init
 from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_init
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.http import Http404
@@ -259,10 +257,6 @@ class Resource(models.Model):
 
     ckan_id = models.UUIDField(
         verbose_name='Ckan UUID', default=uuid.uuid4, editable=False)
-
-    # datagis_id = ArrayField(
-    #     models.CharField(max_length=150),
-    #     verbose_name='DataGIS IDs', blank=True, null=True, editable=False)
 
     description = models.TextField(
         verbose_name='Description', blank=True, null=True)
@@ -2209,7 +2203,7 @@ def synchronize_extractor_task(sender, *args, **kwargs):
             except AsyncExtractorTask.DoesNotExist:
                 pass
             else:
-                if instance.success:
+                if instance.success is None:
                     url = instance.details['possible_requests']['status']['url']
                     r = requests.get(url)
                     if r.status_code == 200:
