@@ -132,23 +132,18 @@ class ProfileAddForm(forms.ModelForm):
             'user',
             'phone',
             'organisation',
-            'is_active',
-            'membership',
-            'crige_membership',
-            'is_admin'
+            # 'is_active',
+            # 'membership',
+            # 'crige_membership',
+            # 'is_admin',
             )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         # Pour ne proposer que les users sans profile
         existing_profiles = Profile.objects.all()
         self.fields['user'].queryset = User.objects.exclude(profile__in=existing_profiles)
-
-        self.fields['is_active'].widget = forms.HiddenInput()
-        self.fields['membership'].widget = forms.HiddenInput()
-
-        if not self.instance.crige_membership:  # and self.instance.is_admin:
-            self.fields['crige_membership'].widget = forms.HiddenInput()
 
     def clean(self):
         self.cleaned_data.update(is_active=True)
@@ -159,7 +154,7 @@ class ProfileAddForm(forms.ModelForm):
         return self.cleaned_data
 
 
-class ProfileChangeForm(forms.ModelForm):
+class BaseProfileChangeForm(forms.ModelForm):
 
     class Meta(object):
         model = Profile
@@ -173,16 +168,21 @@ class ProfileChangeForm(forms.ModelForm):
             'is_admin',
             )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if not self.instance.crige_membership:  # and self.instance.is_admin:
-            self.fields['crige_membership'].widget = forms.HiddenInput()
-
     def clean(self):
         if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
             raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé.")
         return self.cleaned_data
+
+
+class CrigeProfileChangeForm(BaseProfileChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class StandardProfileChangeForm(BaseProfileChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['crige_membership'].widget = forms.HiddenInput()
 
 
 class ProfileAdmin(admin.ModelAdmin):
@@ -205,8 +205,10 @@ class ProfileAdmin(admin.ModelAdmin):
         )
 
     def get_form(self, request, obj=None, **kwargs):
+        profile = request.user.profile
+        Form = profile.is_crige_admin and CrigeProfileChangeForm or StandardProfileChangeForm
         if obj:
-            return ProfileChangeForm
+            return Form
         else:
             return super().get_form(request, obj=None, **kwargs)
 

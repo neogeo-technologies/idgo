@@ -890,6 +890,10 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
+    @property
+    def is_crige_admin(self):
+        return (self.is_admin and self.crige_membership)
+
     def nb_datasets(self, organisation):
         return Dataset.objects.filter(
             editor=self.user, organisation=organisation).count()
