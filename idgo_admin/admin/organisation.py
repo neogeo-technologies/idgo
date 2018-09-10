@@ -26,7 +26,7 @@ geo_admin.GeoModelAdmin.default_lat = 5404331
 geo_admin.GeoModelAdmin.default_zoom = 14
 
 
-class MyOrganisationForm(forms.ModelForm):
+class OrganisationForm(forms.ModelForm):
 
     class Meta(object):
         model = Organisation
@@ -44,15 +44,12 @@ class OrganisationAdmin(geo_admin.OSMGeoAdmin):
     list_filter = ('organisation_type',)
     ordering = ('name',)
     readonly_fields = ('ckan_slug', )
-    form = MyOrganisationForm
+    form = OrganisationForm
 
-    # Champ name modifiable lors du /add
-    # Champs name et ckan_slug NON modifiables lors du /change
-    # def get_readonly_fields(self, request, obj=None):
-    #     if obj:
-    #         return ['name', 'ckan_slug']
-    #     else:
-    #         return ['ckan_slug']
+    def get_form(self, request, obj=None, **kwargs):
+        if not request.user.profile.is_crige_admin:
+            self.form._meta.exclude = ('is_crige_partner',)
+        return super().get_form(request, obj, **kwargs)
 
 
 admin.site.register(Organisation, OrganisationAdmin)
