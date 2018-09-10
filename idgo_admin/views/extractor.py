@@ -40,6 +40,7 @@ from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
 import json
 from math import ceil
+import re
 import requests
 from uuid import UUID
 
@@ -132,6 +133,20 @@ class Extractor(View):
     template = 'idgo_admin/extractor/extractor.html'
     namespace = 'idgo_admin:extractor'
 
+    def get_instance(self, ModelObj, value):
+        m = re.match('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', value)
+        if m:
+            key = 'ckan_id'
+            value = UUID(m.group(0))
+        if isinstance(value, str):
+            key = 'ckan_slug'
+        if isinstance(value, int):
+            key = 'id'
+        try:
+            return ModelObj.objects.get(**{key: value})
+        except (ModelObj.DoesNotExist, ValueError):
+            raise Http404
+
     def get_context(self, user, organisation=None,
                     dataset=None, resource=None, task=None):
 
@@ -165,10 +180,7 @@ class Extractor(View):
                 ).distinct()
 
         if not context['organisation'] and organisation:
-            try:
-                context['organisation'] = Organisation.objects.get(id=organisation)
-            except Organisation.DoesNotExist:
-                return context
+            context['organisation'] = self.get_instance(Organisation, organisation)
 
         context['datasets'] = \
             Dataset.objects.filter(
@@ -177,10 +189,7 @@ class Extractor(View):
                 ).distinct()
 
         if not context['dataset'] and dataset:
-            try:
-                context['dataset'] = Dataset.objects.get(id=dataset)
-            except Dataset.DoesNotExist:
-                return context
+            context['dataset'] = self.get_instance(Dataset, dataset)
 
         context['resources'] = \
             Resource.objects.filter(
@@ -189,11 +198,7 @@ class Extractor(View):
                 ).exclude(layer=None)
 
         if not context['resource'] and resource:
-            try:
-                context['resource'] = \
-                    Resource.objects.get(id=resource)
-            except Resource.DoesNotExist:
-                return context
+            context['resource'] = self.get_instance(Resource, resource)
 
         layers = Layer.objects.filter(resource=context['resource'])
 
