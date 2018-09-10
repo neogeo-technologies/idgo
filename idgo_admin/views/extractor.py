@@ -174,13 +174,25 @@ class Extractor(View):
                 context['dataset'] = task.layer.resource.dataset
                 context['organisation'] = task.layer.resource.dataset.organisation
 
+        if not context['organisation'] and organisation:
+            context['organisation'] = self.get_instance(Organisation, organisation)
+
+        if not context['dataset'] and dataset:
+            context['dataset'] = self.get_instance(Dataset, dataset)
+            if not context['organisation']:
+                context['organisation'] = context['dataset'].organisation
+
+        if not context['resource'] and resource:
+            context['resource'] = self.get_instance(Resource, resource)
+            if not context['dataset']:
+                context['dataset'] = context['resource'].dataset
+            if not context['organisation']:
+                context['organisation'] = context['dataset'].organisation
+
         context['organisations'] = \
             Organisation.objects.filter(
                 dataset__resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
                 ).distinct()
-
-        if not context['organisation'] and organisation:
-            context['organisation'] = self.get_instance(Organisation, organisation)
 
         context['datasets'] = \
             Dataset.objects.filter(
@@ -188,17 +200,11 @@ class Extractor(View):
                 resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
                 ).distinct()
 
-        if not context['dataset'] and dataset:
-            context['dataset'] = self.get_instance(Dataset, dataset)
-
         context['resources'] = \
             Resource.objects.filter(
                 dataset=context['dataset'],
                 extractable=True
                 ).exclude(layer=None)
-
-        if not context['resource'] and resource:
-            context['resource'] = self.get_instance(Resource, resource)
 
         layers = Layer.objects.filter(resource=context['resource'])
 
