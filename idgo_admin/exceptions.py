@@ -62,8 +62,12 @@ class ExceedsMaximumLayerNumberFixedError(GenericException):
         return ' '.join(sentences)
 
 
-class NotSupportedSrsError(GenericException):
+class NotFoundSrsError(GenericException):
     message = "Le système de coordonnées n'est pas reconnu."
+
+
+class NotSupportedSrsError(GenericException):
+    message = "Le système de coordonnées n'est pas supporté par l'application."
 
 
 class UnexpectedError(GenericException):

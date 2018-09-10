@@ -15,6 +15,7 @@
 
 
 import datetime
+from django.apps import apps
 from django.conf import settings
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.gdal.error import GDALException
@@ -22,6 +23,7 @@ from django.contrib.gis.gdal.error import SRSException
 from django.db import connections
 from idgo_admin.exceptions import CriticalException
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
+from idgo_admin.exceptions import NotFoundSrsError
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.utils import slugify
@@ -133,8 +135,8 @@ def handle_ogr_field_type(k, n=None, p=None):
     return {
         'OFTInteger': 'integer',
         'OFTIntegerList': 'integer[]',
-        'OFTReal': 'numeric({n}, {p})',
-        'OFTRealList': 'numeric({n}, {p})[]',
+        'OFTReal': 'double precision',  # numeric({n}, {p})
+        'OFTRealList': 'double precision[]',  # numeric({n}, {p})[]
         'OFTString': 'varchar({n})',
         'OFTStringList': 'varchar({n})[]',
         'OFTWideString': 'text',
@@ -192,7 +194,15 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                 if not epsg:
                     epsg = retreive_epsg_through_proj4(layer.srs.proj4)
             if not epsg:
-                raise NotSupportedSrsError('SRS Not found')
+                raise NotFoundSrsError('SRS Not found')
+
+        SupportedCrs = apps.get_model(
+            app_label='idgo_admin', model_name='SupportedCrs')
+
+        try:
+            SupportedCrs.objects.get(auth_name='EPSG', auth_code=epsg)
+        except SupportedCrs.DoesNotExist:
+            raise NotSupportedSrsError('SRS Not Supported')
 
         table_id = update.get(
             layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))

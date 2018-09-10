@@ -41,6 +41,7 @@ from idgo_admin.datagis import drop_table
 from idgo_admin.datagis import get_extent
 from idgo_admin.datagis import ogr2postgis
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
+from idgo_admin.exceptions import NotFoundSrsError
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.exceptions import SizeLimitExceededError
@@ -537,17 +538,27 @@ class Resource(models.Model):
                             raise ValidationError(msg, code='__all__')
                         # else:
                         #     pass
+                    except NotFoundSrsError as e:
+                        if self.dl_url:
+                            remove_dir(directory)
+                        if self.up_file and file_extras:
+                            remove_file(filename)
+                        msg = (
+                            'Votre ressource semble contenir des données SIG '
+                            'mais nous ne parvenons pas à détecter le système '
+                            'de coordonnées. Merci de sélectionner le code du '
+                            'CRS dans la liste ci-dessous.')
+                        raise ValidationError(msg, code='crs')
                     except NotSupportedSrsError as e:
                         if self.dl_url:
                             remove_dir(directory)
                         if self.up_file and file_extras:
                             remove_file(filename)
                         msg = (
-                            'votre ressource semble contenir des données SIG '
-                            'mais nous ne parvenons pas à détecter le système '
-                            'de coordonnées. Merci de sélectionner le code du '
-                            'CRS dans la liste ci-dessous.')
-                        raise ValidationError(msg, code='crs')
+                            'Votre ressource semble contenir des données SIG '
+                            'mais le système de coordonnées de celles-ci '
+                            "n'est pas supporté par l'application.")
+                        raise ValidationError(msg, code='__all__')
                     except ExceedsMaximumLayerNumberFixedError as e:
                         if self.dl_url:
                             remove_dir(directory)
