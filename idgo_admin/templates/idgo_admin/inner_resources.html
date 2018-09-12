@@ -87,7 +87,7 @@ $(function() {
 	{% if is_crige %}
 	$('button[name="resource-extractor"]').on('click', function(e) {
 		e.preventDefault();
-		redirect('{% url "idgo_admin:extractor"%}?dataset={{ dataset.id }}&resource=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id'])
+		redirect('{% url "idgo_admin:extractor"%}?&resource=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id'])
 		e.stopPropagation();
 	});
 	{% endif %}

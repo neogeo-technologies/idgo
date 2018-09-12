@@ -5,7 +5,7 @@
 <div id="layer-container">
 	{% if resource.extractable %}
 	<div class="floating-buttons-on-the-right-side">
-		<a href="{% url "idgo_admin:extractor" %}?dataset={{ dataset.id }}&resource={{ resource.id }}&layer={{ layer.id }}" name="extractor" type="button" class="btn btn-default">Service d'extraction</a>
+		<a href="{% url "idgo_admin:extractor" %}?layer={{ layer.id }}" name="extractor" type="button" class="btn btn-default">Service d'extraction</a>
 	</div>
 	{% endif %}
 	<ul class="nav nav-tabs" role="tablist">

@@ -87,7 +87,7 @@ $(function() {
 	$('button[name="extractor"]').on('click', function(e) {
 		e.preventDefault();
 		const data = tableGrid.getRowValues(tableGrid.lastSelectedRowIndex);
-		redirect('{% url "idgo_admin:extractor"%}?dataset={{ dataset_id}}&resource=' + data['resource_id'] + '&layer=' + data['id'])
+		redirect('{% url "idgo_admin:extractor"%}?&layer=' + data['id'])
 		e.stopPropagation();
 	});
 	{% endif %}
