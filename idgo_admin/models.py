@@ -245,7 +245,7 @@ class Resource(models.Model):
         ('0', 'Tous les utilisateurs'),
         ('1', 'Utilisateurs authentifiés'),
         ('2', 'Utilisateurs authentifiés avec droits spécifiques'),
-        ('3', 'Utilisateurs de cette organisations uniquements'),
+        ('3', 'Utilisateurs de cette organisation uniquement'),
         ('4', 'Organisations spécifiées'))
 
     TYPE_CHOICES = (
