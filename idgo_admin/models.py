@@ -305,7 +305,7 @@ class Resource(models.Model):
         verbose_name='Extractible', default=True)
 
     ogc_services = models.BooleanField(
-        verbose_name='Services OGC', default=False)
+        verbose_name='Services OGC', default=True)
 
     created_on = models.DateTimeField(
         verbose_name='Date de création de la resource',
@@ -416,6 +416,11 @@ class Resource(models.Model):
         sync_ckan = 'sync_ckan' in kwargs and kwargs.pop('sync_ckan') or False
         file_extras = 'file_extras' in kwargs and kwargs.pop('file_extras') or None
         editor = 'editor' in kwargs and kwargs.pop('editor') or None
+
+        if not previous:
+            # Valeur par défaut à la création de l'instance
+            self.ogc_services = True
+            self.extractable = True
 
         # La restriction au territoire de compétence désactive les services OGC
         self.ogc_services = self.geo_restriction and False or self.ogc_services

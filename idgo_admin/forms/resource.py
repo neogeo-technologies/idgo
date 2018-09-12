@@ -128,12 +128,10 @@ class ResourceForm(forms.ModelForm):
         required=False)
 
     extractable = forms.BooleanField(
-        initial=False,
         label="Activer le service d'extraction des données géographiques",
         required=False)
 
     ogc_services = forms.BooleanField(
-        initial=False,
         label="Activer les services OGC associés",
         required=False)
 
