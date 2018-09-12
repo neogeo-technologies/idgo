@@ -8,6 +8,7 @@
 <script src="{% static "libs/leaflet/leaflet-nontiledlayer-wms.js" %}"></script>
 <script src="{% static "libs/leaflet.draw/leaflet.draw.js" %}"></script>
 <script src="{% static "libs/bootstrap-slider/bootstrap-slider.js" %}"></script>
+<script src="{% static "libs/turf/turf.min.js" %}"></script>
 <link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
 <link rel="stylesheet" href="{% static "libs/leaflet.draw/leaflet.draw.css" %}"/>
 <link rel="stylesheet" href="{% static "libs/bootstrap-slider/css/bootstrap-slider.css" %}"/>
@@ -60,6 +61,7 @@
 	<div class="main-container">
 		<div class="wrapper" >
 			<div class="container">
+				{% include "idgo_admin/alert_messages.html" %}
 				<div class="row">
 					<div class="col-md-12">
 						{% block main_content %}
@@ -73,7 +75,7 @@
 													<select class="form-control" id="organisation">
 														<option disabled {% if not organisation %}selected{% endif %}>Sélectionnez une organisation</option>
 														{% for instance in organisations %}
-														<option value="{{ instance.id }}" {% if instance.id == organisation.id %}selected{% endif %}>{{ instance.name }}</option>
+														<option value="{{ instance.ckan_slug }}" {% if instance.id == organisation.id %}selected{% endif %}>{{ instance.name }}</option>
 														{% endfor %}
 													</select>
 													<span class="input-group-btn">
@@ -89,7 +91,7 @@
 													<select class="form-control" id="dataset">
 														<option disabled {% if not dataset %}selected{% endif %}>Sélectionnez un jeu de données</option>
 														{% for instance in datasets %}
-														<option value="{{ instance.id }}" {% if instance.id == dataset.id %}selected{% endif %}>{{ instance.name }}</option>
+														<option value="{{ instance.ckan_slug }}" {% if instance.id == dataset.id %}selected{% endif %}>{{ instance.name }}</option>
 														{% endfor %}
 													</select>
 													<span class="input-group-btn">
@@ -105,7 +107,7 @@
 													<select class="form-control" id="resource">
 														<option disabled {% if not resource %}selected{% endif %}>Sélectionnez une ressource</option>
 														{% for instance in resources %}
-														<option value="{{ instance.id }}" {% if instance.id == resources.id %}selected{% endif %}>{{ instance.name }}</option>
+														<option value="{{ instance.ckan_id }}" {% if instance.id == resources.id %}selected{% endif %}>{{ instance.name }}</option>
 														{% endfor %}
 													</select>
 													<span class="input-group-btn">
@@ -178,6 +180,7 @@
 <script>
 $(function() {
 
+	var ctrlPressed;
 	var targetLayer;
 	var footprintLayer;
 	var layers = [];
@@ -192,10 +195,19 @@ $(function() {
 			return;
 		};
 
+		if (footprintLayer instanceof L.FeatureGroup) {
+			// Normalement, footprintLayer.getLayers() == 1;
+			footprintLayer = footprintLayer.getLayers()[0];
+		};
+
 		const layer = targetLayer.options.layers;
 		const footprint = JSON.stringify(footprintLayer.toGeoJSON());
 		const srs = $('#crs').val();
 		const format = $('#format').val();
+
+		if (!layer || !footprint || !srs || !format) {
+			return;
+		};
 
 		const $form = $('form').attr('method', 'POST');
 		$form.append($('<input type="text" name="layer"/>').hide().val(layer));
@@ -263,6 +275,57 @@ $(function() {
 	bounds = {{ dataset.bounds|default:None|safe }};
 	{% endif %}
 
+	const communesLayers = new L.FeatureGroup();
+	{% for commune in communes %}
+	communesLayers.addLayer(L.geoJSON({{ commune.geom.geojson|safe }}, {
+		style: {
+			weight: 1.2,
+			fillColor: "#fff",
+			fillOpacity: 0,
+			color: '#327368',
+			opacity: .9
+		},
+		onEachFeature: function (feature, layer) {
+			layer.on({
+				click: function(e) {
+					const layer = e.target;
+
+					var backup;
+					var geojson = layer.toGeoJSON();
+
+					if (ctrlPressed && footprintLayer) {
+						try {
+							geojson = turf.union(geojson, footprintLayer.getLayers()[0].toGeoJSON());
+						} catch {
+							/* pass */
+						};
+					};
+
+					footprintLayer = L.geoJSON(geojson).setStyle({
+						weight: 3,
+						color: '#f6546a'
+					});
+
+					map.fire(L.Draw.Event.CREATED, {layerType: 'featureCollection', layer: footprintLayer.getLayers()[0]});
+				},
+				mouseover : function(e) {
+					const layer = e.target;
+					layer.setStyle({
+						weight: 4
+					});
+				},
+				mouseout : function(e) {
+					const layer = e.target;
+					layer.setStyle({
+						weight: 1.2
+					});
+				}
+			});
+		}
+	}));
+	{% endfor %}
+	layers.push(communesLayers);
+
 	const editableLayers = new L.FeatureGroup();
 	{% if task %}
 	footprintLayer = L.geoJSON({{ task.details.query.footprint_geojson|safe }});
@@ -281,20 +344,21 @@ $(function() {
 			'layers': layers
 		})
 		.fitBounds(bounds, boundsOptions)
-		.addControl(new L.control.layers(baseMaps, null, {
-			'collapsed': false
+		.addControl(new L.control.layers(baseMaps, {
+			'Communes': communesLayers
+		}, {
+			collapsed: false
 		}))
 		.addControl(new L.Control.Draw({
-			position: 'topright',
 			draw: {
 				polygon: {
 					allowIntersection: false,
 					drawError: {
-						color: '#e1e100',
+						color: '#8b0000',
 						message: ''  // Pas de message
 					},
 					shapeOptions: {
-						color: '#bada55'
+						color: '#f6546a'
 					}
 				},
 				rectangle: {
@@ -310,14 +374,18 @@ $(function() {
 			edit: {
 				featureGroup: editableLayers,
 				remove: false
-			}
+			},
+			position: 'topright'
 		}))
-		.on(L.Draw.Event.CREATED, function (e) {
-			if (footprintLayer && editableLayers.hasLayer(footprintLayer)) {
-				editableLayers.removeLayer(footprintLayer);
+		.on(L.Draw.Event.CREATED, function(e) {
+			editableLayers.clearLayers();
+			if (e.layer instanceof L.FeatureGroup) {
+				e.layer.eachLayer(function(layer) {
+    				editableLayers.addLayer(layer);
+				});
+			} else {
+				editableLayers.addLayer(e.layer);
 			};
-			footprintLayer = e.layer;
-			editableLayers.clearLayers().addLayer(footprintLayer);
 		});
 
 	$('#organisation').change(function(e) {
@@ -334,7 +402,7 @@ $(function() {
 		const dataset = $(this).val();
 		const bounds = map.getBounds();
 		const bbox = bounds._southWest.lng + ',' + bounds._southWest.lat + ',' + bounds._northEast.lng + ',' + bounds._northEast.lat;
-		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + '&organisation={{ organisation.id }}' + (dataset ? '&dataset=' + dataset : ''));
+		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + '&organisation={{ organisation.ckan_slug }}' + (dataset ? '&dataset=' + dataset : ''));
 	});
 	{% endif %}
 
@@ -344,9 +412,19 @@ $(function() {
 		const resource = $(this).val();
 		const bounds = map.getBounds();
 		const bbox = bounds._southWest.lng + ',' + bounds._southWest.lat + ',' + bounds._northEast.lng + ',' + bounds._northEast.lat;
-		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + '&organisation={{ organisation.id }}&dataset={{ dataset.id }}' + (resource ? '&resource=' + resource : ''));
+		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + '&organisation={{ organisation.ckan_slug }}&dataset={{ dataset.ckan_slug }}' + (resource ? '&resource=' + resource : ''));
 	});
 	{% endif %}
+
+	$(window).keydown(function(evt) {
+		if (evt.which == 17) {
+			ctrlPressed = true;
+		};
+	}).keyup(function(evt) {
+		if (evt.which == 17) {
+			ctrlPressed = false;
+		};
+	});
 
 });
 </script>

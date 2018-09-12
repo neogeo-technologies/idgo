@@ -29,6 +29,7 @@ from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import AsyncExtractorTask
 from idgo_admin.models import BaseMaps
+from idgo_admin.models import Commune
 from idgo_admin.models import Dataset
 from idgo_admin.models import ExtractorSupportedFormat
 from idgo_admin.models import Layer
@@ -159,6 +160,7 @@ class Extractor(View):
             'resource': None,
             'layer': None,
             'task': None,
+            'communes': Commune.objects.all().transform(srid=4326),
             'supported_crs': SupportedCrs.objects.all(),
             'supported_format': ExtractorSupportedFormat.objects.all()}
 
@@ -293,8 +295,16 @@ class Extractor(View):
                 uuid=uuid, user=user, layer=layer,
                 submission_datetime=submission_datetime, details=details)
 
-            messages.success(request, '{}/{}'.format(EXTRACTOR_URL, str(uuid)))
+            messages.success(request, (
+                "L'extraction a été ajoutée à la liste de tâche. "
+                "Vous allez recevoir un e-mail une fois l'extraction réalisée."))
+
             return HttpResponseRedirect(reverse('idgo_admin:extractor_dashboard'))
         else:
-            messages.error(request, 'Ko')
+            if r.status_code == 400:
+                msg = r.json().get('detail')
+            else:
+                print()
+                msg = "L'extracteur n'est pas disponible pour le moment."
+            messages.error(request, msg)
             return render_with_info_profile(request, self.template, context=context)
