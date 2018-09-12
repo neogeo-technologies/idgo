@@ -86,6 +86,7 @@ class OgrOpener(object):
 
     VSI_PROTOCOLE = (
         ('geojson', None),
+        ('shapezip', 'vsizip'),
         ('tar', 'vsitar'),
         ('zip', 'vsizip'))
 
