@@ -1126,7 +1126,6 @@ div.disabled .btn {
     height: 100%;
 }
 
-
 @media (min-width: 768px) {
     #extractor .map .leaflet-control-container {
         width: 750px;
