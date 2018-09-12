@@ -16,7 +16,6 @@
 
 from decimal import Decimal
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.utils.functional import keep_lazy
 from django.utils.safestring import mark_safe
 from django.utils.safestring import SafeText
