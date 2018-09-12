@@ -135,12 +135,16 @@ class Extractor(View):
     namespace = 'idgo_admin:extractor'
 
     def get_instance(self, ModelObj, value):
+
         m = re.match('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', value)
         if m:
             key = 'ckan_id'
             value = UUID(m.group(0))
         if isinstance(value, str):
-            key = 'ckan_slug'
+            if ModelObj.__name__ == 'Layer':
+                key = 'name'
+            else:
+                key = 'ckan_slug'
         if isinstance(value, int):
             key = 'id'
         try:
@@ -148,8 +152,8 @@ class Extractor(View):
         except (ModelObj.DoesNotExist, ValueError):
             raise Http404
 
-    def get_context(self, user, organisation=None,
-                    dataset=None, resource=None, task=None):
+    def get_context(self, user, organisation=None, dataset=None,
+                    resource=None, layer=None, task=None):
 
         context = {
             'organisations': None,
@@ -191,22 +195,28 @@ class Extractor(View):
             if not context['organisation']:
                 context['organisation'] = context['dataset'].organisation
 
-        context['organisations'] = \
-            Organisation.objects.filter(
-                dataset__resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
-                ).distinct()
+        if not context['layer'] and layer:
+            context['layer'] = self.get_instance(Layer, layer)
+            if not context['resource']:
+                context['resource'] = context['layer'].resource
+            if not context['dataset']:
+                context['dataset'] = context['resource'].dataset
+            if not context['organisation']:
+                context['organisation'] = context['dataset'].organisation
 
-        context['datasets'] = \
-            Dataset.objects.filter(
-                organisation=context['organisation'],
-                resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
-                ).distinct()
+        context['organisations'] = Organisation.objects.filter(
+            dataset__resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
+            ).distinct()
 
-        context['resources'] = \
-            Resource.objects.filter(
-                dataset=context['dataset'],
-                extractable=True
-                ).exclude(layer=None)
+        context['datasets'] = Dataset.objects.filter(
+            organisation=context['organisation'],
+            resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
+            ).distinct()
+
+        context['resources'] = Resource.objects.filter(
+            dataset=context['dataset'],
+            extractable=True
+            ).exclude(layer=None)
 
         layers = Layer.objects.filter(resource=context['resource'])
 
@@ -228,6 +238,7 @@ class Extractor(View):
             organisation=request.GET.get('organisation'),
             dataset=request.GET.get('dataset'),
             resource=request.GET.get('resource'),
+            layer=request.GET.get('layer'),
             task=request.GET.get('task'))
         # except Exception as e:
         #     print(e)
@@ -304,7 +315,6 @@ class Extractor(View):
             if r.status_code == 400:
                 msg = r.json().get('detail')
             else:
-                print()
                 msg = "L'extracteur n'est pas disponible pour le moment."
             messages.error(request, msg)
             return render_with_info_profile(request, self.template, context=context)
