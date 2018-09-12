@@ -570,6 +570,12 @@ class Resource(models.Model):
                         if self.up_file and file_extras:
                             remove_file(filename)
                         raise ValidationError(e.__str__(), code='__all__')
+                    except Exception as e:  # Toutes les autres exceptions
+                        if self.dl_url:
+                            remove_dir(directory)
+                        if self.up_file and file_extras:
+                            remove_file(filename)
+                        raise ValidationError(e.__str__(), code='__all__')
                     else:
                         datagis_id = []
                         crs = []
