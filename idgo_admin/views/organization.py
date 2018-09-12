@@ -182,6 +182,7 @@ def organisation(request, id=None):
             'is_referent': LiaisonsReferents.objects.filter(
                 profile=member, organisation__id=id, validated_on__isnull=False
                 ).exists(),
+            'crige_membership': member.crige_membership,
             'datasets_count': len(Dataset.objects.filter(
                 organisation=id, editor=member.user)),
             'profile_id': member.id

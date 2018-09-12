@@ -82,6 +82,7 @@
 						<ul id="table-members-paginator" class="pagination pagination-sm"></ul>
 					</nav>
 					<div class="buttons-on-the-right-side">
+						{% if user.profile.is_crige_admin %}<button role="button" name="send-mail-to-crige-member" class="btn btn-default">Envoyer un e-mail aux membres CRIGE</button>{% endif %}
 						<button role="button" name="ckan-card" class="btn btn-default">Ouvrir la fiche Ckan</button>
 						<div class="btn-group">
 							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -394,6 +395,7 @@ $(function() {
 				grid.setCellRenderer('is_member', new CellRenderer({render: booleanRender}));
 				grid.setCellRenderer('is_contributor', new CellRenderer({render: booleanRender}));
 				grid.setCellRenderer('is_referent', new CellRenderer({render: booleanRender}));
+				grid.setCellRenderer('is_crige_member', new CellRenderer({render: booleanRender}));
 			};
 
 			membersGrid.load({
@@ -424,6 +426,13 @@ $(function() {
 						editable: false,
 						datatype: 'boolean'
 					}, {
+					{% if user.profile.is_crige_admin %}
+						name: 'is_crige_member',
+						label: 'Membre partenaire du CRIGE',
+						editable: false,
+						datatype: 'boolean'
+					}, {
+					{% endif %}
 						name: 'datasets_count',
 						label: 'Nombre de jeux de données',
 						editable: false,
@@ -446,6 +455,7 @@ $(function() {
 								data[i].is_member,
 								data[i].is_contributor,
 								data[i].is_referent,
+								{% if user.profile.is_crige_admin %}data[i].crige_membership,{% endif %}
 								data[i].datasets_count,
 								data[i].profile_id
 							]
