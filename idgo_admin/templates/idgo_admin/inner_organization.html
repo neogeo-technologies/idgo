@@ -54,8 +54,18 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-xs-10 col-sm-6">
-			{% bootstrap_field form.jurisdiction %}
+		<div class="col-xs-12">
+			<div class="form-group">
+				<label>{{ form.jurisdiction.label }}</label>
+				<div class="form-inline">
+					{% bootstrap_field form.jurisdiction show_label=false %}
+					{% if form.jurisdiction.value %}
+					<a type="button" name="edit" class="btn btn-primary" href="{% url "idgo_admin:jurisdiction" code=form.jurisdiction.value %}">Éditer</a>
+					{% else %}
+					<a type="button" name="edit" class="btn btn-primary" href="#">Ajouter [TODO]</a>
+					{% endif %}
+				</div>
+			</div>
 		</div>
 	</div>
 	<div class="row">

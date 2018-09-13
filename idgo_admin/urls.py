@@ -32,6 +32,7 @@ from idgo_admin.views.export import Export
 from idgo_admin.views.extractor import Extractor
 from idgo_admin.views.extractor import extractor_task
 from idgo_admin.views.extractor import ExtractorDashboard
+from idgo_admin.views.jurisdiction import JurisdictionView
 from idgo_admin.views.mailer import confirm_contribution
 from idgo_admin.views.mailer import confirm_new_orga
 from idgo_admin.views.mailer import confirm_rattachement
@@ -76,6 +77,8 @@ urlpatterns = [
     url('^dataset/all/?$', all_datasets, name='all_datasets'),
     url('^dataset/export/?$', Export.as_view(), name='export'),
 
+    url('^jurisdiction/(?P<code>(\d+))/edit/?$', JurisdictionView.as_view(), name='jurisdiction'),
+
     url('^mdedit/(?P<type>(dataset|service))/?$', mdhandler, name='mdhandler'),
     url('^mdedit/dataset/(?P<id>(\d+))/?$', DatasetMDEdit.as_view(), name='dataset_mdedit'),
     url('^mdedit/dataset/(?P<id>(\d+))/edit/?$', DatasetMDEditTplEdit.as_view(), name='dataset_mdedit_tpl_edit'),
@@ -89,7 +92,6 @@ urlpatterns = [
 
     url('^organisation/ows/?$', OrganisationOWS.as_view(), name='organization_ows'),
     url('^organisation/(?P<id>(\d+))/?$', organisation, name='organization'),
-
     url('^organisation/(?P<id>(\d+))/update/?$', UpdateOrganisation.as_view(), name='update_organization'),
     url('^organisation/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
 

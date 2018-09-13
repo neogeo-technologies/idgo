@@ -713,6 +713,11 @@ class Jurisdiction(models.Model):
 
     name = models.CharField(verbose_name='Nom', max_length=100)
 
+    communes = models.ManyToManyField(
+        to='Commune', through='JurisdictionCommune',
+        verbose_name='Communes',
+        related_name='jurisdiction_communes')
+
     objects = models.GeoManager()
 
     class Meta(object):
@@ -721,6 +726,22 @@ class Jurisdiction(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        back = kwargs.pop('back', None)
+        pk_is_changing = back and back != self.code
+
+        super().save(*args, **kwargs)
+
+        if pk_is_changing:
+            JurisdictionCommune.objects.filter(jurisdiction_id=back).delete()
+            # TODO
+            # for instance in Jurisdiction.objects.filter(code=back):
+            #     instance.code = self.code
+            #     instance.save()
+            # for instance in Organisation.objects.filter(jurisdiction__code=back):
+            #     instance.jurisdiction = self
+            #     instance.save()
 
 
 class JurisdictionCommune(models.Model):
