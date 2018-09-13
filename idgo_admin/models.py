@@ -386,7 +386,7 @@ class Resource(models.Model):
             layers = qs.get('typenames')[-1].replace(' ', '').split(',')
         else:
             raise Http404()
-        return cls.objects.filter(datagis_id__contains=layers)
+        return Resource.objects.filter(layer__name__in=layers).distinct()
 
     @property
     def anonymous_access(self):
