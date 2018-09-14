@@ -198,6 +198,10 @@ MAMA_CAS_SERVICES = [{
     'LOGOUT_ALLOW': True,
     'LOGOUT_URL': 'http://localhost/signout'}]
 
+DEFAULTS_VALUES = {
+    'JURISDICTION': 93,  # Code INSEE -> Région SUD
+}
+
 ```
 
 Puis :
