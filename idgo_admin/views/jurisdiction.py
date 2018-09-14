@@ -116,7 +116,7 @@ class JurisdictionView(View):
 
         for item in form.Meta.property_fields:
             setattr(jurisdiction, item, form.cleaned_data[item])
-        jurisdiction.save(back=code)
+        jurisdiction.save(old=code)
 
         for instance in JurisdictionCommune.objects.filter(jurisdiction=jurisdiction):
             if instance.commune not in form.cleaned_data['communes']:
@@ -135,7 +135,7 @@ class JurisdictionView(View):
         if jurisdiction.code != code:
             redirect_to = reverse(self.namespace, kwargs={'code': jurisdiction.code})
             if organisation:
-                redirect_to = '{0}?organisation={1}'.format(reversed, organisation.id)
+                redirect_to = '{0}?organisation={1}'.format(redirect_to, organisation.id)
             return HttpResponseRedirect(redirect_to)
         else:
             return render_with_info_profile(request, self.template, context=context)

@@ -31,14 +31,20 @@
 						{% bootstrap_field form.code %}
 					</div>
 					<div class="col-xs-12">
-						<div id="communes-container" class="well" style="height: 353px; overflow-y: scroll">
-						{% bootstrap_field form.communes show_label=false %}
-						<div>
+						<label>{{ form.communes.label }}</label>
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" name="check-all"> Sélectionner/Désélectionner tout
+							</label>
+						</div>
+						<div id="communes-container" style="height: 303px; overflow-y: scroll; border-radius: 2px; border: 1px solid #ccc; padding: 0 5px; margin-right: 5px; margin-left: -5px">
+							{% bootstrap_field form.communes show_label=false %}
+						</div>
 					</div>
 				</div>
 				<div class="buttons-on-the-right-side">
 					{% if organisation %}
-					<a class="btn btn-default" href="{% url "admin_idgo:update_organization" id=organisation.id %}">Annuler</a>
+					<a class="btn btn-default" href="{% url "idgo_admin:update_organization" id=organisation.id %}">Annuler</a>
 					{% endif %}
 					<button type="submit" class="btn btn-primary">Enregistrer</button>
 				</div>
@@ -202,8 +208,17 @@ $(function() {
 			});
 		});
 
+	$('.checkbox input[name="check-all"]')
+		.change(function() {
+			const checked = $(this).is(':checked');
+			$('.checkbox').find('input[name="{{ form.communes.name }}"]').map(function() {
+				$(this).prop('checked', checked);
+			});
+			communesLayers.setStyle(checked ? selectStyle : style);
+		});
+
 	$('input[name="{{ form.communes.name }}"]')
-		.on('change', function(e) {
+		.change(function(e) {
 			const checked = $(this).is(':checked');
 			getCommuneLayerByCode($(this).val(), function(layer) {
 				if (checked) {

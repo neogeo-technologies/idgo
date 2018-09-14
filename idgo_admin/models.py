@@ -728,20 +728,14 @@ class Jurisdiction(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        back = kwargs.pop('back', None)
-        pk_is_changing = back and back != self.code
-
+        old = kwargs.pop('old', None)
         super().save(*args, **kwargs)
 
-        if pk_is_changing:
-            JurisdictionCommune.objects.filter(jurisdiction_id=back).delete()
-            # TODO
-            # for instance in Jurisdiction.objects.filter(code=back):
-            #     instance.code = self.code
-            #     instance.save()
-            # for instance in Organisation.objects.filter(jurisdiction__code=back):
-            #     instance.jurisdiction = self
-            #     instance.save()
+        if old and old != self.code:
+            instance_to_del = Jurisdiction.objects.get(code=old)
+            JurisdictionCommune.objects.filter(jurisdiction=instance_to_del).delete()
+            Organisation.objects.filter(jurisdiction=instance_to_del).update(jurisdiction=self)
+            instance_to_del.delete()
 
 
 class JurisdictionCommune(models.Model):
