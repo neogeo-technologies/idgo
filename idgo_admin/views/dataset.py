@@ -280,10 +280,14 @@ def get_datasets(profile, qs, strict=False):
         filters['organisation__in'] = \
             LiaisonsReferents.get_subordinated_organizations(profile=profile)
 
+    organisation = qs.get('organisation', None)
+    if organisation:
+        filters['organisation__in'] = Organisation.objects.filter(ckan_slug=organisation)
+
     q = qs.get('q', None)
     if q:
         filters['name__icontains'] = q
-        filters['description__icontains'] = q
+        # filters['description__icontains'] = q
 
     private = {'true': True, 'false': False}.get(qs.get('private', '').lower())
     if private:
@@ -308,6 +312,8 @@ def get_datasets(profile, qs, strict=False):
     resource_format = qs.get('resourceformat', None)
     if resource_format:
         filters['resource__format_type__extension'] = resource_format
+
+    print(filters)
 
     return Dataset.objects.filter(**filters)
 
