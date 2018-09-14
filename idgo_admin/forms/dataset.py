@@ -160,6 +160,7 @@ class DatasetForm(forms.ModelForm):
         required=False)
 
     granularity = forms.ModelChoiceField(
+        empty_label='Sélectionnez une valeur',
         label='Granularité de la couverture territoriale',
         queryset=Granularity.objects.all(),
         required=False)
