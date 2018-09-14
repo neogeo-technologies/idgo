@@ -222,7 +222,8 @@ class Extractor(View):
 
         if not context['layer'] and layers:
             context['layer'] = layers[0]
-
+        from pprint import pprint
+        pprint(context)
         return context
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -266,6 +267,7 @@ class Extractor(View):
                 organisation=request.GET.get('organisation'),
                 dataset=request.GET.get('dataset'),
                 resource=request.GET.get('resource'),
+                layer=request.GET.get('layer'),
                 task=request.GET.get('task'))
         except Exception:
             raise Http404

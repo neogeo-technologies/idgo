@@ -107,7 +107,7 @@
 													<select class="form-control" id="resource">
 														<option disabled {% if not resource %}selected{% endif %}>Sélectionnez une ressource</option>
 														{% for instance in resources %}
-														<option value="{{ instance.ckan_id }}" {% if instance.id == resources.id %}selected{% endif %}>{{ instance.name }}</option>
+														<option value="{{ instance.ckan_id }}" {% if instance.id == resource.id %}selected{% endif %}>{{ instance.name }}</option>
 														{% endfor %}
 													</select>
 													<span class="input-group-btn">
@@ -415,6 +415,19 @@ $(function() {
 		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + '&organisation={{ organisation.ckan_slug }}&dataset={{ dataset.ckan_slug }}' + (resource ? '&resource=' + resource : ''));
 	});
 	{% endif %}
+
+	$('#format, #crs').change(function(e) {
+		e.preventDefault();
+		if ($('#organisation').val() &&
+			$('#dataset').val() &&
+			$('#resource').val() &&
+			$('#format').val() &&
+			$('#crs').val()) {
+			$extract.prop('disabled', false).removeClass('disabled');
+		} else {
+			$extract.prop('disabled', true).addClass('disabled');
+		};
+	}).trigger('change');
 
 	$(window).keydown(function(evt) {
 		if (evt.which == 17) {
