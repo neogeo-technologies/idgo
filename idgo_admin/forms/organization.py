@@ -48,7 +48,7 @@ class OrganizationForm(forms.ModelForm):
             'logo',
             'name',
             'organisation_type',
-            'org_phone',
+            'phone',
             'postcode',
             'website')
 
