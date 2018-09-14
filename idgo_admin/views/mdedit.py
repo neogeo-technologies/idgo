@@ -77,7 +77,7 @@ def prefill_dataset_model(dataset):
         'individualName': editor.get_full_name(),
         'organisationName': organisation.name,
         'email': organisation.email,
-        'phoneVoice': organisation.org_phone,
+        'phoneVoice': organisation.phone,
         'deliveryPoint': organisation.address,
         'postalCode': organisation.postcode,
         'city': organisation.city})
@@ -87,7 +87,7 @@ def prefill_dataset_model(dataset):
         'individualNzame': editor.get_full_name(),
         'organisationName': organisation.name,
         'email': organisation.email,
-        'phoneVoice': organisation.org_phone,
+        'phoneVoice': organisation.phone,
         'deliveryPoint': organisation.address,
         'postalCode': organisation.postcode,
         'city': organisation.city})
@@ -155,7 +155,7 @@ def prefill_service_model(organisation):
         # 'individualName': editor.get_full_name(),
         'organisationName': organisation.name,
         'email': organisation.email,
-        'phoneVoice': organisation.org_phone,
+        'phoneVoice': organisation.phone,
         'deliveryPoint': organisation.address,
         'postalCode': organisation.postcode,
         'city': organisation.city})
@@ -165,7 +165,7 @@ def prefill_service_model(organisation):
         # 'individualNzame': editor.get_full_name(),
         'organisationName': organisation.name,
         'email': organisation.email,
-        'phoneVoice': organisation.org_phone,
+        'phoneVoice': organisation.phone,
         'deliveryPoint': organisation.address,
         'postalCode': organisation.postcode,
         'city': organisation.city})

@@ -167,7 +167,7 @@ def organisation(request, id=None):
         'address': instance.address,
         'postcode': instance.postcode,
         'city': instance.city,
-        'phone': instance.org_phone,
+        'phone': instance.phone,
         'website': instance.website,
         'email': instance.email,
         'description': instance.description,

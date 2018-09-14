@@ -295,7 +295,7 @@ class CkanManagerHandler(metaclass=Singleton):
             'description': organization.description,
             'extras': [
                 {'key': 'email', 'value': organization.email or ''},
-                {'key': 'phone', 'value': organization.org_phone or ''},
+                {'key': 'phone', 'value': organization.phone or ''},
                 {'key': 'website', 'value': organization.website or ''},
                 {'key': 'address', 'value': organization.address or ''},
                 {'key': 'postcode', 'value': organization.postcode or ''},
@@ -319,7 +319,7 @@ class CkanManagerHandler(metaclass=Singleton):
             'description': organization.description,
             'extras': [
                 {'key': 'email', 'value': organization.email or ''},
-                {'key': 'phone', 'value': organization.org_phone or ''},
+                {'key': 'phone', 'value': organization.phone or ''},
                 {'key': 'website', 'value': organization.website or ''},
                 {'key': 'address', 'value': organization.address or ''},
                 {'key': 'postcode', 'value': organization.postcode or ''},

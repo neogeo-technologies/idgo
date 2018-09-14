@@ -189,7 +189,7 @@ class SignUpForm(forms.Form):
             'address',
             'city',
             'description',
-            'email',
+            'org_email',
             'jurisdiction',
             'license',
             'logo',
@@ -228,7 +228,7 @@ class SignUpForm(forms.Form):
     city = CityField()
     postcode = PostcodeField()
     org_phone = PhoneField()
-    email = EMailField()
+    org_email = EMailField()
     website = WebsiteField()
     description = DescriptionField()
     jurisdiction = JurisdictionField()

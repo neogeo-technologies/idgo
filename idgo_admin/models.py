@@ -839,7 +839,7 @@ class Organisation(models.Model):
     city = models.CharField(
         verbose_name='Ville', max_length=100, blank=True, null=True)
 
-    org_phone = models.CharField(
+    phone = models.CharField(
         verbose_name='Téléphone', max_length=10, blank=True, null=True)
 
     license = models.ForeignKey(
@@ -2229,10 +2229,12 @@ def pre_delete_category(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Profile)
 def post_save_profile(sender, instance, **kwargs):
-    if instance.crige_membership:
-        ckan.add_user_to_partner_group(instance.user.username, 'crige-partner')
-    else:
-        ckan.del_user_from_partner_group(instance.user.username, 'crige-partner')
+    username = instance.user.username
+    if ckan.is_user_exists(username):
+        if instance.crige_membership:
+            ckan.add_user_to_partner_group(username, 'crige-partner')
+        else:
+            ckan.del_user_from_partner_group(username, 'crige-partner')
 
 
 @receiver(pre_init, sender=AsyncExtractorTask)
