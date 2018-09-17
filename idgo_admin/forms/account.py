@@ -49,10 +49,11 @@ from mama_cas.forms import LoginForm as MamaLoginForm
 
 try:
     JURISDICTION_CODE = settings.DEFAULTS_VALUES.get('JURISDICTION')
-except AttributeError:
-    JURISDICTION = None
-else:
     JURISDICTION = Jurisdiction.objects.get(code=JURISDICTION_CODE)
+except AttributeError:
+    JURISDICTION_CODE = None
+    JURISDICTION = None
+  
 
 
 class UserForgetPassword(forms.Form):
