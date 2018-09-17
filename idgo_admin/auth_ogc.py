@@ -14,17 +14,17 @@
 # under the License.
 
 
-import django
-from django.contrib.auth.models import User
-from idgo_admin.models import Resource
-import logging
 import os
+import logging
+
+import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+django.setup()
+from django.contrib.auth.models import User  # noqa: E402
+from idgo_admin.models import Resource  # noqa: E402
 
 logger = logging.getLogger('auth_ogc')
 logger.setLevel(logging.DEBUG)
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-django.setup()
 
 AUTHORIZED_PREFIX = ['/maps/', '/wfs/', '/wms/', '/wxs/']
 
