@@ -21,27 +21,48 @@ from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.files import File
+from django.core.mail import get_connection
+from django.core.mail.message import EmailMultiAlternatives
 from django.core.mail import send_mail
+from django.db import IntegrityError
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_init
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.http import Http404
 from django.urls import reverse
 from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.datagis import drop_table
+from idgo_admin.datagis import get_extent
+from idgo_admin.datagis import ogr2postgis
+from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
+from idgo_admin.exceptions import NotFoundSrsError
+from idgo_admin.exceptions import NotOGRError
+from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.exceptions import SizeLimitExceededError
+from idgo_admin.mra_client import MRAConflictError
+from idgo_admin.mra_client import MRAHandler
+from idgo_admin.mra_client import MRANotFoundError
 from idgo_admin.utils import download
 from idgo_admin.utils import PartialFormatter
 from idgo_admin.utils import remove_dir
 from idgo_admin.utils import remove_file
 from idgo_admin.utils import slugify as _slugify  # Pas forcement utile de garder l'original
+from idgo_admin.utils import three_suspension_points
 import json
 import os
 from pathlib import Path
+import re
+import requests
 from taggit.managers import TaggableManager
+from urllib.parse import parse_qs
+from urllib.parse import urljoin
+from urllib.parse import urlparse
 import uuid
 
 
@@ -78,6 +99,35 @@ except Exception:
     AUTHORIZED_PROTOCOL = ''
 
 
+OWS_URL_PATTERN = settings.OWS_URL_PATTERN
+MRA = settings.MRA
+EXTRACTOR_URL = settings.EXTRACTOR_URL
+
+
+class SupportedCrs(models.Model):
+
+    auth_name = models.CharField(
+        verbose_name='Authority Name', max_length=100, default='EPSG')
+
+    auth_code = models.CharField(
+        verbose_name='Authority Code', max_length=100)
+
+    description = models.TextField(
+        verbose_name='Description', blank=True, null=True)
+
+    class Meta(object):
+        verbose_name = "CRS supporté par l'application"
+        verbose_name_plural = "CRS supportés par l'application"
+
+    @property
+    def authority(self):
+        return '{}:{}'.format(self.auth_name, self.auth_code)
+
+    def __str__(self):
+        return '{}:{} ({})'.format(
+            self.auth_name, self.auth_code, self.description)
+
+
 class ResourceFormats(models.Model):
 
     PROTOCOL_CHOICES = AUTHORIZED_PROTOCOL
@@ -103,6 +153,69 @@ class ResourceFormats(models.Model):
 
     def __str__(self):
         return self.extension
+
+
+class Layer(models.Model):
+
+    class Meta(object):
+        verbose_name = 'Couche de données'
+
+    def __str__(self):
+        return self.name
+
+    name = models.SlugField(
+        verbose_name='Nom de la couche', primary_key=True, editable=False)
+
+    resource = models.ForeignKey(
+        to='Resource', verbose_name='Ressource',
+        on_delete=models.CASCADE, blank=True, null=True)
+
+    # data_source = models.TextField(
+    #     verbose_name='Chaîne de connexion à la source de données',
+    #     blank=True, null=True)
+
+    @property
+    def mra_info(self):
+        l = MRAHandler.get_layer(self.name)
+        ft = MRAHandler.get_featuretype(
+            self.resource.dataset.organisation.ckan_slug, 'public', self.name)
+        if not l or not ft:
+            raise MRANotFoundError
+
+        ll = ft['featureType']['latLonBoundingBox']
+        bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
+        attributes = [item['name'] for item in ft['featureType']['attributes']]
+
+        default_style_name = l['defaultStyle']['name']
+
+        styles = [{
+            'name': 'default',
+            'text': 'Style par défaut',
+            'url': l['defaultStyle']['href'].replace('json', 'sld'),
+            'sld': MRAHandler.get_style(l['defaultStyle']['name'])}]
+
+        if l.get('styles'):
+            for style in l.get('styles')['style']:
+                styles.append({
+                    'name': style['name'],
+                    'text': style['name'],
+                    'url': style['href'].replace('json', 'sld'),
+                    'sld': MRAHandler.get_style(style['name'])})
+
+        return {
+            'name': l['name'],
+            'title': l['title'],
+            'type': l['type'],
+            'enabled': l['enabled'],
+            'bbox': bbox,
+            'attributes': attributes,
+            'styles': {
+                'default': default_style_name,
+                'styles': styles}}
+
+    @property
+    def id(self):
+        return self.name
 
 
 def upload_resource(instance, filename):
@@ -132,13 +245,13 @@ class Resource(models.Model):
         ('0', 'Tous les utilisateurs'),
         ('1', 'Utilisateurs authentifiés'),
         ('2', 'Utilisateurs authentifiés avec droits spécifiques'),
-        ('3', 'Utilisateurs de cette organisations uniquements'),
+        ('3', 'Utilisateurs de cette organisation uniquement'),
         ('4', 'Organisations spécifiées'))
 
     TYPE_CHOICES = (
-        ('N/A', 'N/A'),
-        ('data', 'Données'),
-        ('resource', 'Resources'))
+        ('raw', 'Données brutes'),
+        ('annexe', 'Documentation associée'),
+        ('service', 'Service'))
 
     name = models.CharField(
         verbose_name='Nom', max_length=150)
@@ -180,14 +293,19 @@ class Resource(models.Model):
 
     dataset = models.ForeignKey(
         to='Dataset', verbose_name='Jeu de données',
-        on_delete=models.CASCADE, blank=True, null=True)
+        on_delete=models.SET_NULL, blank=True, null=True)
 
     bbox = models.PolygonField(
         verbose_name='Rectangle englobant', blank=True, null=True)
 
-    # Dans le formulaire de saisie, ne montrer que si AccessLevel = 2
     geo_restriction = models.BooleanField(
         verbose_name='Restriction géographique', default=False)
+
+    extractable = models.BooleanField(
+        verbose_name='Extractible', default=True)
+
+    ogc_services = models.BooleanField(
+        verbose_name='Services OGC', default=True)
 
     created_on = models.DateTimeField(
         verbose_name='Date de création de la resource',
@@ -198,8 +316,8 @@ class Resource(models.Model):
         blank=True, null=True)
 
     data_type = models.CharField(
-        verbose_name='type de resources',
-        choices=TYPE_CHOICES, max_length=10, default='N/A')
+        verbose_name='Type de la ressource',
+        choices=TYPE_CHOICES, max_length=10, default='raw')
 
     synchronisation = models.BooleanField(
         verbose_name='Synchronisation de données distante',
@@ -213,124 +331,366 @@ class Resource(models.Model):
         choices=FREQUENCY_CHOICES,
         default='never')
 
+    crs = models.ForeignKey(
+        to='SupportedCrs', verbose_name='CRS',
+        on_delete=models.SET_NULL, blank=True, null=True)
+
     class Meta(object):
         verbose_name = 'Ressource'
 
     def __str__(self):
         return self.name
 
+    @property
+    def datagis_id(self):
+        qs = Layer.objects.filter(resource=self)
+        return [l.name for l in qs]
+
+    @datagis_id.setter
+    def datagis_id(self, names):
+        if not names:
+            return
+        for name in names:
+            Layer.objects.get_or_create(name=name, resource=self)
+
+    @property
+    def name_overflow(self):
+        return three_suspension_points(self.name)
+
+    def get_layers(self, **kwargs):
+        return Layer.objects.filter(resource=self, **kwargs)
+
+    def disable_layers(self):
+        if self.datagis_id:
+            for l_name in self.datagis_id:
+                MRAHandler.disable_layer(l_name)
+
+    def enable_layers(self):
+        if self.datagis_id:
+            for l_name in self.datagis_id:
+                MRAHandler.enable_layer(l_name)
+
+    @classmethod
+    def get_resources_by_mapserver_url(cls, url):
+
+        parsed_url = urlparse(url.lower())
+        qs = parse_qs(parsed_url.query)
+
+        ows = qs.get('service')
+        if not ows:
+            raise Http404()
+
+        if ows[-1] == 'wms':
+            layers = qs.get('layers')[-1].replace(' ', '').split(',')
+        elif ows[-1] == 'wfs':
+            layers = qs.get('typenames')[-1].replace(' ', '').split(',')
+        else:
+            raise Http404()
+        return Resource.objects.filter(layer__name__in=layers).distinct()
+
+    @property
+    def anonymous_access(self):
+        return self.restricted_level == '0'
+
+    def is_profile_authorized(self, user):
+        if not user.pk:
+            raise IntegrityError('User does not exists')
+        if self.restricted_level == '2':
+            return self.profiles_allowed.exists() and user in [
+                p.user for p in self.profiles_allowed.all()]
+        elif self.restricted_level in ('3', '4'):
+            return self.organisations_allowed.exists() and user in [
+                p.user for p in Profile.objects.filter(
+                    organisation__in=self.organisations_allowed,
+                    organisation__is_active=True)]
+        return True
+
+    @property
+    def is_datagis(self):
+        return self.datagis_id and True or False
+
     def save(self, *args, **kwargs):
+
+        previous = self.pk and Resource.objects.get(pk=self.pk) or None
 
         sync_ckan = 'sync_ckan' in kwargs and kwargs.pop('sync_ckan') or False
         file_extras = 'file_extras' in kwargs and kwargs.pop('file_extras') or None
         editor = 'editor' in kwargs and kwargs.pop('editor') or None
 
+        if not previous:
+            # Valeur par défaut à la création de l'instance
+            self.ogc_services = True
+            self.extractable = True
+
+        # La restriction au territoire de compétence désactive les services OGC
+        self.ogc_services = self.geo_restriction and False or self.ogc_services
+
         super().save(*args, **kwargs)
 
-        if not sync_ckan:
-            return
+        self.dataset.date_modification = timezone.now().date()
 
-        ckan_params = {
-            'name': self.name,
-            'description': self.description,
-            'format': self.format_type.extension,
-            'view_type': self.format_type.ckan_view,
-            'id': str(self.ckan_id),
-            'lang': self.lang,
-            'url': ''}
+        if sync_ckan:
 
-        if self.restricted_level == '0':  # Public
-            ckan_params['restricted'] = json.dumps({'level': 'public'})
+            ckan_params = {
+                'name': self.name,
+                'description': self.description,
+                'data_type': self.data_type,
+                'extracting_service': str(self.extractable),
+                'format': self.format_type.extension,
+                'view_type': self.format_type.ckan_view,
+                'id': str(self.ckan_id),
+                'lang': self.lang,
+                'restricted_by_jurisdiction': str(self.geo_restriction),
+                'url': ''}
 
-        if self.restricted_level == '1':  # Registered users
-            ckan_params['restricted'] = json.dumps({'level': 'registered'})
+            restricted = {}
 
-        if self.restricted_level == '2':  # Only allowed users
-            ckan_params['restricted'] = json.dumps({
-                'allowed_users': ','.join(
-                    self.profiles_allowed.exists() and [
-                        p.user.username for p in self.profiles_allowed.all()] or []),
-                'level': 'only_allowed_users'})
+            if self.restricted_level == '0':  # Public
+                restricted = json.dumps({'level': 'public'})
 
-        if self.restricted_level == '3':  # This organization
-            ckan_params['restricted'] = json.dumps({
-                'allowed_users': ','.join(
-                    get_all_users_for_organizations(self.organisations_allowed)),
-                'level': 'only_allowed_users'})
+            if self.restricted_level == '1':  # Registered users
+                restricted = json.dumps({'level': 'registered'})
 
-        if self.restricted_level == '4':  # Any organization
-            ckan_params['restricted'] = json.dumps({
-                'allowed_users': ','.join(
-                    get_all_users_for_organizations(self.organizations_allowed)),
-                'level': 'only_allowed_users'})
+            if self.restricted_level == '2':  # Only allowed users
+                restricted = json.dumps({
+                    'allowed_users': ','.join(
+                        self.profiles_allowed.exists() and [
+                            p.user.username for p in self.profiles_allowed.all()] or []),
+                    'level': 'only_allowed_users'})
 
-        if self.referenced_url:
-            ckan_params['url'] = self.referenced_url
-            ckan_params['resource_type'] = '{0}.{1}'.format(
-                self.name, self.format_type.ckan_view)
+            if self.restricted_level == '3':  # This organization
+                restricted = json.dumps({
+                    'allowed_users': ','.join(
+                        get_all_users_for_organizations(self.organisations_allowed.all())),
+                    'level': 'only_allowed_users'})
 
-        if self.dl_url:
-            try:
-                directory, filename, content_type = download(
-                    self.dl_url, os.path.join(settings.MEDIA_ROOT, 'sync_temp'),
-                    max_size=DOWNLOAD_SIZE_LIMIT)
-            except SizeLimitExceededError as e:
-                l = len(str(e.max_size))
-                if l > 6:
-                    m = '{0} mo'.format(Decimal(int(e.max_size) / 1024 / 1024))
-                elif l > 3:
-                    m = '{0} ko'.format(Decimal(int(e.max_size) / 1024))
+            if self.restricted_level == '4':  # Any organization
+                restricted = json.dumps({
+                    'allowed_users': ','.join(
+                        get_all_users_for_organizations(self.organisations_allowed.all())),
+                    'level': 'only_allowed_users'})
+
+            ckan_params['restricted'] = restricted
+
+            if self.referenced_url:
+                ckan_params['url'] = self.referenced_url
+                ckan_params['resource_type'] = '{0}.{1}'.format(
+                    self.name, self.format_type.ckan_view)
+
+            if self.dl_url:
+                try:
+                    directory, filename, content_type = download(
+                        self.dl_url, settings.MEDIA_ROOT,
+                        max_size=DOWNLOAD_SIZE_LIMIT)
+                except SizeLimitExceededError as e:
+                    l = len(str(e.max_size))
+                    if l > 6:
+                        m = '{0} mo'.format(Decimal(int(e.max_size) / 1024 / 1024))
+                    elif l > 3:
+                        m = '{0} ko'.format(Decimal(int(e.max_size) / 1024))
+                    else:
+                        m = '{0} octets'.format(int(e.max_size))
+                    raise ValidationError(
+                        "La taille du fichier dépasse la limite autorisée : {0}.".format(m), code='dl_url')
+                except Exception as e:
+                    if e.__class__.__name__ == 'HTTPError':
+                        if e.response.status_code == 404:
+                            msg = "La ressource distante ne semble pas exister. Assurez-vous que l'URL soit correcte."
+                        if e.response.status_code == 403:
+                            msg = "Vous n'avez pas l'autorisation pour accéder à la ressource."
+                        if e.response.status_code == 401:
+                            msg = "Une authentification est nécessaire pour accéder à la ressource."
+                    else:
+                        msg = 'Le téléchargement du fichier a échoué.'
+                    raise ValidationError(msg, code='dl_url')
+
+                downloaded_file = File(open(filename, 'rb'))
+                ckan_params['upload'] = downloaded_file
+                ckan_params['size'] = downloaded_file.size
+                ckan_params['mimetype'] = content_type
+                ckan_params['resource_type'] = Path(filename).name
+
+            if self.up_file and file_extras:  # Si nouveau fichier (uploaded)
+                ckan_params['upload'] = self.up_file.file
+                ckan_params.update(file_extras)
+
+                filename = self.up_file.file.name
+
+            if self.dl_url or (self.up_file and file_extras):
+                extension = self.format_type.extension.lower()
+                # Pour les archives, toujours vérifier si contient des données SIG.
+                # Si c'est le cas, monter les données dans la base PostGIS dédiée,
+                # puis ajouter au service OGC:WxS de l'organisation.
+                if extension in ('zip', 'tar', 'geojson', 'shapezip'):
+                    existing_layers = {}
+                    if previous and previous.datagis_id:
+                        existing_layers = dict(
+                            (re.sub('^(\w+)_[a-z0-9]{7}$', '\g<1>', table_name), table_name)
+                            for table_name in previous.datagis_id)
+                    try:
+                        tables = ogr2postgis(
+                            filename, extension=extension, update=existing_layers,
+                            epsg=self.crs and self.crs.auth_code or None)
+                    except NotOGRError as e:
+                        if extension in ('geojson', 'shapezip'):
+                            if self.dl_url:
+                                remove_dir(directory)
+                            if self.up_file and file_extras:
+                                remove_file(filename)
+                            msg = (
+                                "Le fichier reçu n'est pas reconnu "
+                                'comme étant un jeu de données SIG correct.')
+                            raise ValidationError(msg, code='__all__')
+                        # else:
+                        #     pass
+                    except NotFoundSrsError as e:
+                        if self.dl_url:
+                            remove_dir(directory)
+                        if self.up_file and file_extras:
+                            remove_file(filename)
+                        msg = (
+                            'Votre ressource semble contenir des données SIG '
+                            'mais nous ne parvenons pas à détecter le système '
+                            'de coordonnées. Merci de sélectionner le code du '
+                            'CRS dans la liste ci-dessous.')
+                        raise ValidationError(msg, code='crs')
+                    except NotSupportedSrsError as e:
+                        if self.dl_url:
+                            remove_dir(directory)
+                        if self.up_file and file_extras:
+                            remove_file(filename)
+                        msg = (
+                            'Votre ressource semble contenir des données SIG '
+                            'mais le système de coordonnées de celles-ci '
+                            "n'est pas supporté par l'application.")
+                        raise ValidationError(msg, code='__all__')
+                    except ExceedsMaximumLayerNumberFixedError as e:
+                        if self.dl_url:
+                            remove_dir(directory)
+                        if self.up_file and file_extras:
+                            remove_file(filename)
+                        raise ValidationError(e.__str__(), code='__all__')
+                    except Exception as e:  # Toutes les autres exceptions
+                        if self.dl_url:
+                            remove_dir(directory)
+                        if self.up_file and file_extras:
+                            remove_file(filename)
+                        raise ValidationError(e.__str__(), code='__all__')
+                    else:
+                        datagis_id = []
+                        crs = []
+                        for table in tables:
+                            datagis_id.append(table['id'])
+                            crs.append(SupportedCrs.objects.get(
+                                auth_name='EPSG', auth_code=table['epsg']))
+                        self.datagis_id = datagis_id
+                        self.crs = crs[0]
+                        try:
+                            MRAHandler.publish_layers_resource(self)
+                        except Exception as e:
+                            for table_id in self.datagis_id:
+                                drop_table(str(table_id))
+                            raise e
+                        ckan_params['crs'] = self.crs.description
                 else:
-                    m = '{0} octets'.format(int(e.max_size))
-                raise ValidationError(
-                    "La taille du fichier dépasse la limite autorisée : {0}.".format(m), code='dl_url')
-            except Exception as e:
-                if e.__class__.__name__ == 'HTTPError':
-                    if e.response.status_code == 404:
-                        msg = "La ressource distante ne semble pas exister. Assurez-vous que l'URL soit correcte."
-                    if e.response.status_code == 403:
-                        msg = "Vous n'avez pas l'autorisation pour accéder à la ressource."
-                    if e.response.status_code == 401:
-                        msg = "Une authentification est nécessaire pour accéder à la ressource."
-                else:
-                    msg = 'Le téléchargement du fichier a échoué.'
-                raise ValidationError(msg, code='dl_url')
+                    self.datagis_id = None
+                super().save()
 
-            downloaded_file = File(open(filename, 'rb'))
-            ckan_params['upload'] = downloaded_file
-            ckan_params['size'] = downloaded_file.size
-            ckan_params['mimetype'] = content_type
-            ckan_params['resource_type'] = Path(filename).name
+            # Puis supprimer les données
+            if self.dl_url:
+                remove_dir(directory)
+            if self.up_file and file_extras:
+                remove_file(filename)
+            # TODO FACTORISER
 
-        # if uploaded_file:
-        if self.up_file and file_extras:
-            ckan_params['upload'] = self.up_file.file
-            ckan_params.update(file_extras)
+            # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+            # de données existant mais administrateur ou un référent technique,
+            # alors l'admin Ckan édite le jeu de données..
+            if editor == self.dataset.editor:
+                ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
+            else:
+                ckan_user = ckan_me(ckan.apikey)
 
-        # Puis supprimer les données
-        if self.dl_url:
-            remove_dir(directory)
-        if self.up_file and file_extras:
-            remove_file(self.up_file.file.name)
+            ws_name = self.dataset.organisation.ckan_slug
+            ds_name = 'public'
 
-        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-        # de données existant mais administrateur ou un référent technique,
-        # alors l'admin Ckan édite le jeu de données..
-        if editor == self.dataset.editor:
-            ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
+            # TODO Gérer les erreurs + factoriser
+            if previous and previous.datagis_id and \
+                    set(previous.datagis_id) != set(self.datagis_id):
+                # Nettoyer les anciennes resources SIG..
+                for datagis_id in previous.datagis_id:
+                    ft_name = str(datagis_id)
+                    # Supprimer les objects MRA  (TODO en cascade dans MRA)
+                    try:
+                        MRAHandler.del_layer(ft_name)
+                        MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
+                    except MRANotFoundError:
+                        pass
+                    # Supprimer la ressource CKAN
+                    ckan_user.delete_resource(ft_name)
+                    # Supprimer les anciennes tables GIS
+                    drop_table(ft_name)
+
+            ckan_package = ckan_user.get_package(str(self.dataset.ckan_id))
+            ckan_user.publish_resource(ckan_package, **ckan_params)
+
+            if self.datagis_id:
+                # Publier dans CKAN les resources de type OWS..
+
+                for datagis_id in self.datagis_id:
+                    ft_name = str(datagis_id)
+                    # Publier la ressource si explicitement requis..
+                    if not self.ogc_services:
+                        # sinon supprimer la ressource CKAN.
+                        ckan_user.delete_resource(ft_name)
+                        continue
+
+                    getlegendgraphic = (
+                        '{}?&version=1.1.1&service=WMS&request=GetLegendGraphic'
+                        '&layer={}&format=image/png').format(
+                            OWS_URL_PATTERN.format(organisation=ws_name).replace('?', ''),
+                            ft_name)
+
+                    ckan_params = {
+                        'id': ft_name,
+                        'name': '{} (OGC:WMS)'.format(self.name),
+                        'description': 'Visualiseur cartographique',
+                        'getlegendgraphic': getlegendgraphic,
+                        'data_type': 'service',
+                        'extracting_service': str(self.extractable),
+                        'crs': SupportedCrs.objects.get(
+                            auth_name='EPSG', auth_code='4171').description,
+                        'lang': self.lang,
+                        'format': 'WMS',
+                        'restricted': restricted,
+                        'url': '{0}#{1}'.format(
+                            OWS_URL_PATTERN.format(organisation=ws_name), ft_name),
+                        'view_type': 'geo_view'}
+                    ckan_user.publish_resource(ckan_package, **ckan_params)
+
+                resources = Resource.objects.filter(dataset=self.dataset)
+                self.dataset.bbox = get_extent(
+                    [item for sub in [
+                        r.datagis_id for r in resources if r.datagis_id
+                        ] for item in sub])
+
+            ckan_user.close()
+            # Endif sync_ckan
+
+        if self.ogc_services:
+            self.enable_layers()
         else:
-            ckan_user = ckan_me(ckan.apikey)
-        ckan_user.publish_resource(str(self.dataset.ckan_id), **ckan_params)
-        ckan_user.close()
+            self.disable_layers()
+
+        self.dataset.save()
 
 
 class Commune(models.Model):
 
     code = models.CharField(
-        verbose_name='Code INSEE', max_length=5)
+        verbose_name='Code INSEE', max_length=5, primary_key=True)
 
-    name = models.CharField(
-        verbose_name='Nom', max_length=100)
+    name = models.CharField(verbose_name='Nom', max_length=100)
 
     geom = models.MultiPolygonField(
         verbose_name='Geometrie', srid=2154, blank=True, null=True)
@@ -338,27 +698,69 @@ class Commune(models.Model):
     objects = models.GeoManager()
 
     class Meta(object):
+        verbose_name = 'Commune'
+        verbose_name_plural = 'Communes'
         ordering = ['name']
 
     def __str__(self):
-        return self.name
+        return '{} ({})'.format(self.name, self.code)
 
 
 class Jurisdiction(models.Model):
 
-    code = models.CharField(verbose_name='Code INSEE', max_length=10)
+    code = models.CharField(
+        verbose_name='Code INSEE', max_length=10, primary_key=True)
 
     name = models.CharField(verbose_name='Nom', max_length=100)
 
-    communes = models.ManyToManyField(to='Commune')
+    communes = models.ManyToManyField(
+        to='Commune', through='JurisdictionCommune',
+        verbose_name='Communes',
+        related_name='jurisdiction_communes')
 
     objects = models.GeoManager()
 
     class Meta(object):
         verbose_name = 'Territoire de compétence'
+        verbose_name_plural = 'Territoires de compétence'
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        old = kwargs.pop('old', None)
+        super().save(*args, **kwargs)
+
+        if old and old != self.code:
+            instance_to_del = Jurisdiction.objects.get(code=old)
+            JurisdictionCommune.objects.filter(jurisdiction=instance_to_del).delete()
+            Organisation.objects.filter(jurisdiction=instance_to_del).update(jurisdiction=self)
+            instance_to_del.delete()
+
+
+class JurisdictionCommune(models.Model):
+
+    jurisdiction = models.ForeignKey(
+        to='Jurisdiction', on_delete=models.CASCADE,
+        verbose_name='Territoire de compétence', to_field='code')
+
+    commune = models.ForeignKey(
+        to='Commune', on_delete=models.CASCADE,
+        verbose_name='Commune', to_field='code')
+
+    created_on = models.DateField(auto_now_add=True)
+
+    created_by = models.ForeignKey(
+        to="Profile", null=True, on_delete=models.SET_NULL,
+        verbose_name="Profil de l'utilisateur",
+        related_name='creates_jurisdiction')
+
+    class Meta(object):
+        verbose_name = 'Territoire de compétence / Commune'
+        verbose_name_plural = 'Territoires de compétence / Communes'
+
+    def __str__(self):
+        return '{0}: {1}'.format(self.jurisdiction, self.commune)
 
 
 class Financier(models.Model):
@@ -407,7 +809,6 @@ class Organisation(models.Model):
         to='OrganisationType', verbose_name="Type d'organisation",
         default='1', blank=True, null=True, on_delete=models.SET_NULL)
 
-    # Territoire de compétence
     jurisdiction = models.ForeignKey(
         to='Jurisdiction', blank=True, null=True,
         verbose_name="Territoire de compétence")
@@ -438,7 +839,7 @@ class Organisation(models.Model):
     city = models.CharField(
         verbose_name='Ville', max_length=100, blank=True, null=True)
 
-    org_phone = models.CharField(
+    phone = models.CharField(
         verbose_name='Téléphone', max_length=10, blank=True, null=True)
 
     license = models.ForeignKey(
@@ -451,11 +852,31 @@ class Organisation(models.Model):
 
     is_active = models.BooleanField('Organisation active', default=False)
 
+    is_crige_partner = models.BooleanField(
+        verbose_name='Organisation partenaire du CRIGE', default=False)
+
+    geonet_id = models.UUIDField(
+        verbose_name='UUID de la métadonnées', unique=True,
+        db_index=True, blank=True, null=True)
+
     class Meta(object):
         ordering = ['name']
 
     def __str__(self):
         return self.name
+
+    @property
+    def full_address(self):
+        return '{} - {} {}'.format(self.address, self.postcode, self.city)
+
+    @property
+    def ows_url(self):
+        if MRAHandler.is_workspace_exists(self.ckan_slug):
+            return OWS_URL_PATTERN.format(organisation=self.ckan_slug)
+        # else: return None
+
+    def get_datasets(self, **kwargs):
+        return Dataset.objects.filter(organisation=self, **kwargs)
 
 
 class Profile(models.Model):
@@ -468,12 +889,12 @@ class Profile(models.Model):
 
     referents = models.ManyToManyField(
         to='Organisation', through='LiaisonsReferents',
-        verbose_name="Organisations dont l'utiliateur est réferent",
+        verbose_name="Organisations dont l'utilisateur est réferent",
         related_name='profile_referents')
 
     contributions = models.ManyToManyField(
         to='Organisation', through='LiaisonsContributeurs',
-        verbose_name="Organisations dont l'utiliateur est contributeur",
+        verbose_name="Organisations dont l'utilisateur est contributeur",
         related_name='profile_contributions')
 
     resources = models.ManyToManyField(
@@ -492,6 +913,9 @@ class Profile(models.Model):
         verbose_name="Etat de rattachement profile-organisation d'appartenance",
         default=False)
 
+    crige_membership = models.BooleanField(
+        verbose_name='Utilisateur affilié au CRIGE', default=False)
+
     is_admin = models.BooleanField(
         verbose_name="Administrateur IDGO",
         default=False)
@@ -502,6 +926,10 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    @property
+    def is_crige_admin(self):
+        return (self.is_admin and self.crige_membership)
 
     def nb_datasets(self, organisation):
         return Dataset.objects.filter(
@@ -523,10 +951,13 @@ class Profile(models.Model):
                 "is_referent": is_referent,
                 "is_editor": (self.user == dataset.editor) if dataset else False}
 
-    # @classmethod
-    # def active_users(cls):
-    #     active_profiles = Profile.objects.filter(is_active=True)
-    #     return User.objects.filter(pk__in=[])
+    @classmethod
+    def get_admin(cls):
+        return Profile.objects.filter(is_active=True, is_admin=True)
+
+    @classmethod
+    def get_crige_membership(cls):
+        return Profile.objects.filter(is_active=True, crige_membership=True)
 
 
 class LiaisonsReferents(models.Model):
@@ -693,6 +1124,8 @@ class Mail(models.Model):
 
     def __str__(self):
         return self.template_name
+
+    ## TODO Factoriser les classmethod
 
     @classmethod
     def superuser_mails(cls, receip_list):
@@ -1020,6 +1453,106 @@ Ce message est envoyé automatiquement. Veuillez ne pas répondre. """
                   message=message,
                   from_email=mail_template.from_email,
                   recipient_list=[user.email])
+    ##
+
+    @classmethod
+    def creating_a_dataset(cls, profile, instance):
+        bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('creating_a_dataset',
+                   to=[profile.user.email], bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name)
+
+    @classmethod
+    def updating_a_dataset(cls, profile, instance):
+        bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('updating_a_dataset',
+                   to=[profile.user.email], bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name)
+
+    @classmethod
+    def deleting_a_dataset(cls, profile, instance):
+        bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('deleting_a_dataset',
+                   to=[profile.user.email], bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name)
+
+    @classmethod
+    def creating_a_resource(cls, profile, instance):
+        bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('creating_a_resource',
+                   to=[profile.user.email], bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name,
+                   dataset=instance.dataset.name)
+
+    @classmethod
+    def updating_a_resource(cls, profile, instance):
+        bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('updating_a_resource',
+                   to=[profile.user.email], bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name,
+                   dataset=instance.dataset.name)
+
+    @classmethod
+    def deleting_a_resource(cls, profile, instance):
+        bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('deleting_a_resource',
+                   to=[profile.user.email], bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name,
+                   dataset=instance.dataset.name)
+
+    @classmethod
+    def data_extraction_successfully(cls, profile, instance):
+        # bcc = [p.user.email for p in Profile.get_admin()]
+        url = urljoin(
+            settings.EXTRACTOR_URL, 'job/{}/download'.format(instance.uuid))
+        cls.sender('data_extraction_successfully',
+                   to=[profile.user.email],
+                   # bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   url=url,
+                   dataset=instance.layer.resource.dataset.name)
+
+    @classmethod
+    def data_extraction_failure(cls, profile, instance):
+        # bcc = [p.user.email for p in Profile.get_admin()]
+        cls.sender('data_extraction_failure',
+                   to=[profile.user.email],
+                   # bcc=bcc,
+                   full_name=profile.user.get_full_name(),
+                   username=profile.user.username,
+                   resource=instance.name,
+                   dataset=instance.dataset.name)
+
+    @classmethod
+    def sender(cls, template_name, to, cc=None, bcc=None, **kvp):
+        try:
+            tmpl = Mail.objects.get(template_name=template_name)
+        except Mail.DoesNotExist:
+            return False
+
+        subject = tmpl.subject
+        body = PartialFormatter().format(tmpl.message, **kvp)
+        from_email = tmpl.from_email
+        connection = get_connection(fail_silently=False)
+
+        mail = EmailMultiAlternatives(
+            subject=subject, body=body,
+            from_email=from_email, to=to,
+            cc=cc, bcc=bcc, connection=connection)
+        return mail.send()
 
 
 class Category(models.Model):
@@ -1152,6 +1685,23 @@ class DataType(models.Model):
         return self.name
 
 
+class Granularity(models.Model):
+
+    slug = models.SlugField(
+        verbose_name='Slug', max_length=100,
+        unique=True, db_index=True, blank=True,
+        primary_key=True)
+
+    name = models.TextField(verbose_name='Nom')
+
+    class Meta(object):
+        verbose_name = 'Granularité de la couverture territoriale'
+        verbose_name_plural = 'Granularités des couvertures territoriales'
+
+    def __str__(self):
+        return self.name
+
+
 class Dataset(models.Model):
 
     _current_editor = None
@@ -1265,12 +1815,34 @@ class Dataset(models.Model):
     broadcaster_email = models.EmailField(
         verbose_name='E-mail du diffuseur', blank=True, null=True)
 
+    # Mandatory
+    granularity = models.ForeignKey(
+        to='Granularity',
+        blank=True, null=True,  # blank=False, null=False, default='commune-francaise',
+        verbose_name='Granularité de la couverture territoriale',
+        on_delete=models.PROTECT)
+
+    bbox = models.PolygonField(
+        verbose_name='Rectangle englobant', blank=True, null=True, srid=4171)
+
     class Meta(object):
         verbose_name = 'Jeu de données'
         verbose_name_plural = 'Jeux de données'
 
     def __str__(self):
         return self.name
+
+    def get_resources(self, **kwargs):
+        return Resource.objects.filter(dataset=self, **kwargs)
+
+    @property
+    def name_overflow(self):
+        return three_suspension_points(self.name)
+
+    @property
+    def bounds(self):
+        minx, miny, maxx, maxy = self.bbox.extent
+        return [[miny, minx], [maxy, maxx]]
 
     def is_contributor(self, profile):
         return LiaisonsContributeurs.objects.filter(
@@ -1322,6 +1894,10 @@ class Dataset(models.Model):
         if not sync_ckan:  # STOP
             return
 
+        ows = False
+        for resource in Resource.objects.filter(dataset=self):
+            ows = resource.ogc_services
+
         ckan_params = {
             'author': self.owner_name,
             'author_email': self.owner_email,
@@ -1334,6 +1910,7 @@ class Dataset(models.Model):
                 str(self.date_publication) if self.date_publication else '',
             'groups': [],
             'geocover': self.geocover,
+            'granularity': self.granularity and self.granularity.slug or None,
             'last_modified':
                 str(self.date_modification) if self.date_modification else '',
             'license_id': (
@@ -1345,7 +1922,9 @@ class Dataset(models.Model):
             'name': self.ckan_slug,
             'notes': self.description,
             'owner_org': str(self.organisation.ckan_id),
+            'ows': str(ows),
             'private': not self.published,
+            'spatial': self.bbox and self.bbox.geojson or None,
             'state': 'active',
             'support': self.support and self.support.ckan_slug,
             'tags': [
@@ -1353,6 +1932,12 @@ class Dataset(models.Model):
             'title': self.name,
             'update_frequency': self.update_freq,
             'url': ''}  # Laisser vide
+
+        try:
+            ckan_params['thumbnail'] = urljoin(
+                settings.DOMAIN_NAME, self.thumbnail.url)
+        except ValueError:
+            pass
 
         if self.geonet_id:
             ckan_params['inspire_url'] = \
@@ -1392,8 +1977,43 @@ class Dataset(models.Model):
 
         ckan_user.close()
 
+        # Si l'organisation change
+        ws_name = self.organisation.ckan_slug
+        if previous and previous.organisation != self.organisation:
+            resources = Resource.objects.filter(dataset=previous)
+            prev_ws_name = previous.organisation.ckan_slug
+            ds_name = 'public'
+            for resource in resources:
+                if resource.datagis_id:
+                    for datagis_id in resource.datagis_id:
+                        ft_name = str(datagis_id)
+                        try:
+                            MRAHandler.del_layer(ft_name)
+                            MRAHandler.del_featuretype(prev_ws_name, ds_name, ft_name)
+                        except MRANotFoundError:
+                            pass
+                        try:
+                            MRAHandler.publish_layers_resource(resource)
+                        except MRAConflictError:
+                            pass
+                        ckan_user.update_resource(
+                            ft_name,
+                            url='{0}#{1}'.format(
+                                OWS_URL_PATTERN.format(organisation=ws_name), ft_name))
+
+        set = [r.datagis_id for r in
+               Resource.objects.filter(dataset=self).exclude(layer=None)]
+        if set:
+            data = {
+                'name': self.ckan_slug,
+                'title': self.name,
+                'layers': [item for sub in set for item in sub]}
+            MRAHandler.create_or_update_layergroup(ws_name, data)
+        else:
+            MRAHandler.del_layergroup(ws_name, self.ckan_slug)
+
         self.ckan_id = uuid.UUID(ckan_dataset['id'])
-        self.save(sync_ckan=False)
+        super().save()  # self.save(sync_ckan=False)
 
     @classmethod
     def get_subordinated_datasets(cls, profile):
@@ -1429,6 +2049,82 @@ class Task(models.Model):
         verbose_name = 'Tâche de synchronisation'
 
 
+class AsyncExtractorTask(models.Model):
+
+    class Meta(object):
+        verbose_name = "Tâche exécutée par l'extracteur de données"
+        verbose_name_plural = "Tâches exécutées par l'extracteur de données"
+
+    uuid = models.UUIDField(
+        verbose_name='UUID', default=uuid.uuid4, primary_key=True, editable=False)
+
+    user = models.ForeignKey(to=User, verbose_name='User')
+
+    layer = models.ForeignKey(
+        to='Layer', verbose_name='Layers', on_delete=models.CASCADE)
+
+    success = models.NullBooleanField(verbose_name='Succès')
+
+    submission_datetime = models.DateTimeField(
+        verbose_name='Submission', null=True, blank=True)
+
+    start_datetime = models.DateTimeField(
+        verbose_name='Start', null=True, blank=True)
+
+    stop_datetime = models.DateTimeField(
+        verbose_name='Stop', null=True, blank=True)
+
+    details = JSONField(verbose_name='Details', blank=True, null=True)
+
+    @property
+    def status(self):
+        if self.success is True:
+            return 'Succès'  # Terminé
+        elif self.success is False:
+            return 'Échec'  # En erreur
+        elif self.success is None and not self.start_datetime:
+            return 'En attente'
+        elif self.success is None and self.start_datetime:
+            return 'En cours'
+        return 'Inconnu'
+
+    @property
+    def elapsed_time(self):
+        if self.stop_datetime and self.success in (True, False):
+            return self.stop_datetime - self.submission_datetime
+        else:
+            return timezone.now() - self.submission_datetime
+
+
+class BaseMaps(models.Model):
+
+    class Meta(object):
+        verbose_name = 'Fond cartographique'
+        verbose_name_plural = 'Fonds cartographiques'
+
+    name = models.TextField(verbose_name='Titre', unique=True)
+
+    url = models.URLField(verbose_name='URL')
+
+    options = JSONField(verbose_name='Options')
+
+
+class ExtractorSupportedFormat(models.Model):
+
+    class Meta(object):
+        verbose_name = "Format pris en charge par le service d'extraction"
+        verbose_name_plural = "Formats pris en charge par le service d'extraction"
+
+    name = models.SlugField(verbose_name='Nom', primary_key=True, editable=False)
+
+    description = models.TextField(verbose_name='Description', unique=True)
+
+    details = JSONField(verbose_name='Détails')
+
+    def __str__(self):
+        return self.description
+
+
 # Triggers
 
 
@@ -1440,6 +2136,7 @@ def pre_save_dataset(sender, instance, **kwargs):
 
 @receiver(pre_delete, sender=Dataset)
 def pre_delete_dataset(sender, instance, **kwargs):
+    Resource.objects.filter(dataset=instance).delete()
     ckan.purge_dataset(instance.ckan_slug)
 
 
@@ -1448,10 +2145,34 @@ def post_delete_dataset(sender, instance, **kwargs):
     ckan.deactivate_ckan_organization_if_empty(str(instance.organisation.ckan_id))
 
 
-@receiver(post_save, sender=Resource)
-def post_save_resource(sender, instance, **kwargs):
-    instance.dataset.date_modification = timezone.now().date()
-    instance.dataset.save()
+# @receiver(post_save, sender=Resource)
+# def post_save_resource(sender, instance, **kwargs):
+#     resources = Resource.objects.filter(dataset=instance.dataset)
+#     instance.dataset.bbox = get_extent(
+#         [item for sub in [r.datagis_id for r in resources] for item in sub])
+#
+#     instance.dataset.date_modification = timezone.now().date()
+#     instance.dataset.save()
+
+
+@receiver(post_delete, sender=Resource)
+def post_delete_resource(sender, instance, **kwargs):
+    ckan_user = ckan_me(ckan.get_user(instance.dataset.editor.username)['apikey'])
+    ws_name = instance.dataset.organisation.ckan_slug
+    ds_name = 'public'
+    if instance.datagis_id:
+        for datagis_id in instance.datagis_id:
+            ft_name = str(datagis_id)
+            # Supprimer les objects MRA  (TODO en cascade dans MRA)
+            try:
+                MRAHandler.del_layer(ft_name)
+                MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
+            except MRANotFoundError:
+                pass
+            # Supprimer la ressource CKAN
+            ckan_user.delete_resource(ft_name)
+            # Supprimer les anciennes tables GIS
+            drop_table(ft_name)
 
 
 @receiver(pre_delete, sender=User)
@@ -1484,6 +2205,12 @@ def pre_save_organisation(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Organisation)
 def post_save_organisation(sender, instance, **kwargs):
+    # Mettre à jour en cascade les profiles (utilisateurs)
+    for profile in Profile.objects.filter(organisation=instance):
+        profile.crige_membership = instance.is_crige_partner
+        profile.save()
+
+    # Synchroniser avec l'organisation CKAN
     if ckan.is_organization_exists(str(instance.ckan_id)):
         ckan.update_organization(instance)
 
@@ -1498,3 +2225,53 @@ def post_delete_organisation(sender, instance, **kwargs):
 def pre_delete_category(sender, instance, **kwargs):
     if ckan.is_group_exists(str(instance.ckan_id)):
         ckan.del_group(str(instance.ckan_id))
+
+
+@receiver(post_save, sender=Profile)
+def post_save_profile(sender, instance, **kwargs):
+    username = instance.user.username
+    if ckan.is_user_exists(username):
+        if instance.crige_membership:
+            ckan.add_user_to_partner_group(username, 'crige-partner')
+        else:
+            ckan.del_user_from_partner_group(username, 'crige-partner')
+
+
+@receiver(pre_init, sender=AsyncExtractorTask)
+def synchronize_extractor_task(sender, *args, **kwargs):
+    pre_init.disconnect(synchronize_extractor_task, sender=sender)
+
+    doc = sender.__dict__.get('__doc__')
+    if doc.startswith(sender.__name__):
+        keys = doc[len(sender.__name__) + 1:-1].split(', ')
+        values = kwargs.get('args')
+
+        if len(keys) == len(values):
+            kvp = dict((k, values[i]) for i, k in enumerate(keys))
+
+            try:
+                instance = AsyncExtractorTask.objects.get(uuid=kvp['uuid'])
+            except AsyncExtractorTask.DoesNotExist:
+                pass
+            else:
+                if instance.success is None:
+                    url = instance.details['possible_requests']['status']['url']
+                    r = requests.get(url)
+                    if r.status_code == 200:
+                        details = r.json()
+
+                        instance.success = {
+                            'SUCCESS': True,
+                            'FAILED': False
+                            }.get(details['status'], None)
+
+                        instance.start_datetime = details.get('start_datetime', None)
+                        instance.stop_datetime = details.get('start_datetime', None)
+                        instance.save()
+
+                        if instance.success is True:
+                            Mail.data_extraction_successfully(instance.user.profile, instance)
+                        elif instance.success is False:
+                            Mail.data_extraction_failure(instance.user.profile, instance)
+
+    pre_init.connect(synchronize_extractor_task, sender=sender)

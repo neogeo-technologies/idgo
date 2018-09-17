@@ -48,7 +48,7 @@ class OrganizationForm(forms.ModelForm):
             'logo',
             'name',
             'organisation_type',
-            'org_phone',
+            'phone',
             'postcode',
             'website')
 
@@ -81,11 +81,15 @@ class OrganizationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
         self.extended = self.include_args.get('extended', False)
+        instance = kwargs.get('instance', None)
         super().__init__(*args, **kwargs)
 
         if not self.extended:
             for item in self.Meta.extended_fields:
                 self.fields[item].widget = forms.HiddenInput()
+
+        if instance and instance.logo:
+            self.fields['logo'].widget.attrs['value'] = instance.logo.url
 
     def clean(self):
         return self.cleaned_data

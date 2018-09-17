@@ -80,6 +80,7 @@ def render_with_info_profile(
         'username': user.username,
         'first_name': user.first_name,
         'last_name': user.last_name,
+        'is_crige': profile.crige_membership,
         'is_membership': profile.membership,
         'is_referent': profile.get_roles()['is_referent'],
         'is_contributor': len(contributor) > 0,

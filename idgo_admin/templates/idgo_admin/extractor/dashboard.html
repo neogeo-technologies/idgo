@@ -1,0 +1,423 @@
+{% extends "idgo_admin/base.html" %}
+
+{% load static %}
+
+{% block head_extras %}
+<script src="{% static "libs/leaflet/leaflet.js" %}"></script>
+<script src="{% static "libs/leaflet/leaflet-nontiledlayer.js" %}"></script>
+<script src="{% static "libs/leaflet/leaflet-nontiledlayer-wms.js" %}"></script>
+<link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
+{% endblock head_extras %}
+
+{% block main_content %}
+
+{% include "idgo_admin/alert_messages.html" %}
+
+<template id="modal-body-template-on-success">
+	<form>
+		<div class="row">
+			<div class="col-xs-6">
+				<div class="form-group form-group-sm">
+					<label for="user" class="control-label">Utilisateur</label>
+					<input type="text" class="form-control disabled" id="user" disabled>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-10">
+				<div class="form-group form-group-sm">
+					<label for="dataset" class="control-label">Jeu de données</label>
+					<input type="text" class="form-control disabled" id="dataset" disabled>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-10">
+				<div class="form-group form-group-sm">
+					<label for="resource" class="control-label">Ressource</label>
+					<input type="text" class="form-control disabled" id="resource" disabled>
+				</div>
+			</div>
+		</div>
+		<!-- <div class="row">
+			<div class="col-xs-10">
+				<div class="form-group form-group-sm">
+					<label for="layer" class="control-label">Nom de la couche</label>
+					<input type="text" class="form-control disabled" id="layer" disabled>
+				</div>
+			</div>
+		</div> -->
+		<div class="row">
+			<div class="col-xs-7">
+				<div class="form-group form-group-sm">
+					<label for="crs">Système de coordonnées</label>
+					<select class="form-control disabled" id="crs" disabled>
+						<option disabled selected>Sélectionnez un système de coordonnées</option>
+						{% for crs in supported_crs %}
+						<option value="{{ crs.authority }}">{{ crs }}</option>
+						{% endfor %}
+					</select>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-7">
+				<div class="form-group form-group-sm">
+					<label for="format">Format de données</label>
+					<select class="form-control disabled" id="format" disabled>
+						<option disabled selected>Sélectionnez un format</option>
+						{% for format in supported_format %}
+						<option value="{{ format.name }}">{{ format }}</option>
+						{% endfor %}
+					</select>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-5">
+				<div class="form-group form-group-sm">
+					<label for="submission" class="control-label">Date de la demande</label>
+					<input type="datetime-local" class="form-control disabled" id="submission" step="1" disabled>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-5">
+				<div class="form-group form-group-sm">
+					<label for="start" class="control-label">Date de début du traitement</label>
+					<input type="datetime-local" class="form-control disabled" id="start" step="1" disabled>
+				</div>
+			</div>
+			<div class="col-xs-5">
+				<div class="form-group form-group-sm">
+					<label for="stop" class="control-label">Date de fin du traitement</label>
+					<input type="datetime-local" class="form-control disabled" id="stop" step="1" disabled>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="submission" class="control-label">Aperçu</label>
+			<div id="map" style="height: 238px;"></div>
+		</div>
+	</form>
+	<div class="buttons-on-the-right-side">
+		<a type="button" name="modify" class="btn btn-default">Modifier</a>
+		<button type="button" name="again" class="btn btn-default disabled" disabled>Relancer [TODO]</button>
+		<button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+	</div>
+</template>
+
+<template id="modal-body-template-on-error">
+	<p>Une erreur s'est produite</p>
+	<div class="buttons-on-the-right-side">
+		<button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+	</div>
+</template>
+
+<div>
+	<div name="actions" class="buttons-on-the-right-side">
+		<a type="button" class="btn btn-primary" href="{% url "idgo_admin:extractor" %}">Nouvelle extraction</a>
+	</div>
+{% if tasks|length == 0 %}
+	{% if is_admin %}
+	<div role="alert" class="alert alert-info">
+		<span class="glyphicon glyphicon-bell" aria-hidden="true"></span>Le service d'extraction n'a pas encore été utilisé.
+	</div>
+	{% else %}
+	<div role="alert" class="alert alert-info">
+		<span class="glyphicon glyphicon-bell" aria-hidden="true"></span> Vous n'avez effectué aucune extraction.
+	</div>
+	{% endif %}
+{% else %}
+	<div class="table-responsive">
+		<table id="extractor-dashboard" class="table table-striped table-bordered table-hover table-condensed">
+			<tr>
+				<th name="status">État <a name="sort" href="#"><span class="glyphicon glyphicon-sort" style="float: right;"></span></a></th>
+				<th name="dataset">Jeu de données</th>
+				<th name="resource">Ressource</th>
+				<th name="submission">Demande <a name="sort" href="#"><span class="glyphicon glyphicon-sort" style="float: right;"></span></a></th>
+				<th name="start">Début du traitement</th>
+				<th name="stop">Fin de traitement</th>
+				<th name="elapsed-time">Temps écoulé</th>
+			</tr>
+			{% for task in tasks %}
+			<tr id="{{ task.uuid }}">
+				<td name="status">{{ task.status }}</td>
+				<td name="dataset"><a href="{% url "idgo_admin:dataset" %}?id={{ task.layer.resource.dataset.id }}">{{ task.layer.resource.dataset.name }}</a></td>
+				<td name="resource"><a href="{% url "idgo_admin:resource" dataset_id=task.layer.resource.dataset.id %}?id={{ task.layer.resource.id }}">{{ task.layer.resource.name }}</a></td>
+				<td name="submission">{{ task.submission_datetime|date:"d/m/Y H:i" }}</td>
+				<td name="start">{{ task.start_datetime|date:"d/m/Y H:i"|default:"" }}</td>
+				<td name="stop">{{ task.stop_datetime|date:"d/m/Y H:i"|default:"" }}</td>
+				<td name="elapsed-time">{{ task.elapsed_time|default:"inf. à 1s" }}</td>
+			</tr>
+			{% endfor %}
+		<table>
+	</div>
+	<div name="actions" class="buttons-on-the-right-side">
+	{# if is_admin #}
+		<button type="button" name="open" class="btn btn-default">Ouvrir</button>
+		<button type="button" name="revoke" class="btn btn-default">Révoquer [TODO]</button>
+		<div class="btn-group">
+			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+				Prioriser [TODO] <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
+			</button>
+			<ul class="dropdown-menu dropdown-menu-right">
+				<li><a role="button" style="text-align: right;">Priorité forte</a></li>
+				<li><a role="button" style="text-align: right;">Priorité faible</a></li>
+			</ul>
+		</div>
+	{# else #}
+		<button type="button" name="warn" class="btn btn-default" >Signaler une erreur [TODO]</button>
+	{# endif #}
+	</div>
+	{% if pagination.total > 1 %}
+	<nav style="text-align: center;">
+		<ul class="pagination pagination-sm">
+			<nav style="text-align: center;">
+				<ul id="paginator" class="pagination pagination-sm">
+					{% if pagination.total > 2 %}
+					<li {% if pagination.current == 1 %}class="disabled"{% endif %}>
+						<a name="page" href="#" value="1">
+							<span class="glyphicon glyphicon-fast-backward"></span>
+						</a>
+					</li>
+					{% endif %}
+					<li {% if pagination.current == 1 %}class="disabled"{% endif %}>
+						<a name="page" href="#" value="{{ pagination.current|add:"-1" }}">
+							<span class="glyphicon glyphicon-backward"></span>
+						</a>
+					</li>
+					{% with ''|center:pagination.total as range %}
+						{% for _ in range %}
+					<li {% if forloop.counter == pagination.current %}class="active"{% endif %}>
+						<a name="page" href="#" value="{{ forloop.counter }}">{{ forloop.counter }}</a>
+					</li>
+						{% endfor %}
+					{% endwith %}
+					<li {% if pagination.current == pagination.total %}class="disabled"{% endif %}>
+						<a name="page" href="#" value="{{ pagination.current|add:"1" }}">
+							<span class="glyphicon glyphicon-forward"></span>
+						</a>
+					</li>
+					{% if pagination.total > 2 %}
+					<li {% if pagination.current == pagination.total %}class="disabled"{% endif %}>
+						<a name="page" href="#" value="{{ pagination.total }}">
+							<span class="glyphicon glyphicon-fast-forward"></span>
+						</a>
+					</li>
+					{% endif %}
+				</ul>
+			</nav>
+		</ul>
+	</nav>
+	{% endif %}
+</div>
+
+<script>
+$(function() {
+	const $window = $(window);
+	const $document = $(document);
+
+	var qs = (function(items) {
+		var kvp = {};
+		for (var i = 0; i < items.length; i ++) {
+			const kv = items[i].split('=');
+			kvp[kv[0]]= kv[1];
+		};
+		return kvp;
+	})($window[0].location.search.substring(1).split('&'));
+
+	const reload = function(options) {
+		var kvp = [];
+		for (var k in qs) {
+			if (k) {
+				const key = encodeURI(k);
+				const val = qs[k] ? encodeURI(qs[k]) : null;
+				if (val) {
+					kvp.push(key + '=' + val);
+				}
+			};
+		};
+		if (options.withHash == false) {
+			$window[0].location.hash = '';
+		};
+		$window[0].location.search = kvp.join('&');
+	};
+
+	const openCmd = function(taskId) {
+		$modalHourglass.one('show.bs.modal', function(e) {
+			$.ajax({
+				type: 'GET',
+				url: '{% url "idgo_admin:extractor_task" %}?id=' + taskId,
+				success: function(data, status, xhr) {
+					const $template = $('#modal-body-template-on-success');
+					const $content = $($template.prop('content')).clone();
+
+					for (const k in data) {
+						const $target = $content.find('#' + k);
+						if ($target.prop('type') == 'datetime-local') {
+							$target.val(moment(data[k]).toJSON().slice(0, 19));
+						} else {
+							$target.val(data[k]);
+						};
+					};
+
+					$modal.find('.modal-title').text('Tâche « ' + taskId + ' »');
+					$modal.find('.modal-body').append($content);
+					$modal.find('a[name="modify"]').attr('href', '{% url "idgo_admin:extractor" %}?task=' + taskId);
+
+					var baseMaps = {};
+					{% if basemaps %}
+						{% if basemaps|length > 1 %}
+							{% for basemap in basemaps %}
+					baseMaps['{{ basemap.name }}'] = L.tileLayer('{{ basemap.url }}', {{ basemap.options|safe }});
+							{% endfor %}
+						{% else %}
+					baseMaps['{{ basemaps.0.name}}'] = L.tileLayer('{{ basemaps.0.url }}', {{ basemaps.0.options|safe }});
+						{% endif %}
+					{% else %}
+					baseMaps['CartoDB'] = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {});
+					{% endif %}
+
+					for (var defaultBaseMap in baseMaps) {
+						break;
+					};
+
+					const wmsLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+						format: 'image/png',
+						layers: data['layer'],
+						transparent: true
+					});
+
+					const footprintLayer = L.geoJSON(data.footprint, {});
+					const bounds = footprintLayer.getBounds();
+
+					const map = L
+						.map('map', {
+							'attributionControl': false,
+							'boxZoom': false,
+							'doubleClickZoom': false,
+							'dragging': false,
+							'layers': [baseMaps[defaultBaseMap], wmsLayer, footprintLayer],
+							'zoomControl': false
+						})
+						.fitBounds(bounds)
+						.addControl(new L.control.layers(baseMaps, null, {}))
+
+					$modal
+						.on('shown.bs.modal', function(e) {
+							e.preventDefault();
+							map.invalidateSize().fitBounds(bounds);
+						})
+						.modal('show');
+				},
+				error: function(xhr, statut, error) {
+					const $template = $('#modal-body-template-on-error');
+					const $content = $($template.prop('content')).clone();
+
+					$modal.find('.modal-title').text('Tâche « ' + taskId + ' »');
+					$modal.find('.modal-body').append($content);
+					$modal.modal('show');
+				}
+			})
+		}).modal('show');
+	};
+
+	const warnCmd = function(taskId) {
+		console.log(taskId);
+
+	};
+
+	const revokeCmd = function(taskId) {
+		console.log(taskId);
+
+	};
+
+	const $open = $('[name="open"]');
+	const $warn = $('[name="warn"]');
+	const $revoke = $('[name="revoke"]');
+
+	const $table = $('#extractor-dashboard');
+
+	$table.find('tr>th>a[name="sort"]')
+		.click(function(e) {
+			e.preventDefault();
+			const $this = $(this);
+			const targetValue = $this.parent().attr('name');
+			qs['sortby'] = qs['sortby'] == targetValue ? '-' + targetValue : targetValue;
+			reload({withHash: false});
+		});
+
+	$table.find('tr')
+		.on('row.selected', function(e) {
+			const $row = $(this);
+			$row.prop('selected', true).addClass('selected');
+			$('[name="actions"]').find('button, a[role="button"]').each(function() {
+				$(this).prop('disabled', false).removeClass('disabled');
+			});
+
+			$open.off('click').on('click', function(e) {
+				e.preventDefault();
+				openCmd($row.prop('id'));
+			});
+
+			$warn.off('click').on('click', function(e) {
+				e.preventDefault();
+				warnCmd($row.prop('id'));
+			});
+
+			$revoke.off('click').on('click', function(e) {
+				e.preventDefault();
+				revokeCmd($row.prop('id'));
+			});
+
+		})
+		.on('row.unselected', function(e) {
+			const $row = $(this);
+			$row.prop('selected', false).removeClass('selected');
+			$('[name="actions"]').find('button, a[role="button"]').each(function() {
+				$(this).prop('disabled', true).addClass('disabled');
+			});
+		})
+		.on('click', function(e) {
+			if (e.target.localName == 'a') {
+				return;
+			};
+			const $that = $table.find('tr:selected');
+			const $this = $(this);
+			if ($that) {
+				if ($this.index() != $that.index()) {
+					$window[0].location.hash = $this.index();
+				} else {
+					$window[0].location.hash = '';
+				};
+			};
+		});
+
+	$('a[name="page"]')
+		.click(function(e) {
+			e.preventDefault();
+			qs['page'] = $(this).attr('value');
+			reload({withHash: false});
+		});
+
+	$window
+		.bind('hashchange', function(e) {
+			const rowId = $window[0].location.hash.substring(1);
+			const $that = $table.find('tr:selected');
+			const $this = rowId ? $table.find('tr:eq(' + rowId + ')') : undefined;
+			if ($that) {
+				$that.trigger('row.unselected');
+				if ($this && ($this.index() != $that.index())) {
+					$this.trigger('row.selected');
+				};
+			};
+		})
+		.trigger('hashchange');
+
+	$('#menu a[href="{% url "idgo_admin:extractor_dashboard" %}"]').parent().addClass('active');
+});
+</script>
+{% endif %}
+
+{% endblock main_content %}

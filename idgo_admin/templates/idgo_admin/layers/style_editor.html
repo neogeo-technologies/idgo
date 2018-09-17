@@ -1,0 +1,829 @@
+{% load static %}
+
+{% block head_extras %}
+<script src="{% static "libs/leaflet/leaflet.js" %}"></script>
+<script src="{% static "libs/leaflet/leaflet-nontiledlayer.js" %}"></script>
+<script src="{% static "libs/leaflet/leaflet-nontiledlayer-wms.js" %}"></script>
+<script src="{% static "libs/bootstrap-slider/bootstrap-slider.js" %}"></script>
+<link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
+<link rel="stylesheet" href="{% static "libs/bootstrap-slider/css/bootstrap-slider.css" %}"/>
+{% endblock head_extras %}
+
+<template id="class_well_template">
+	<div class="row">
+		<div class="col-xs-10">
+			<div class="form-group">
+				<label for="rule-name" class="control-label">Nom</label>
+				<input class="form-control input-sm" id="rule-name"></input>
+			</div>
+		</div>
+	</div>
+	<ul class="nav nav-tabs nav-tabs-sm nav-justified" role="tablist">
+		<li role="presentation" class="active">
+			<a href="#filter" aria-controls="configuration" role="tab" data-toggle="tab">Filtre</a>
+		</li>
+		<li role="presentation">
+			<a href="#representation" aria-controls="styles" role="tab" data-toggle="tab">Représentation</a>
+		</li>
+		<li role="label">
+			<a href="#label" aria-controls="styles" role="tab" data-toggle="tab">Etiquette</a>
+		</li>
+	</ul>
+	<div class="tab-content">
+		<div role="tabpanel" class="tab-pane active" id="filter">
+			<div class="tab-pane-content">
+				<div id='filter_well'><!-- filter_well_template --></div>
+			</div>
+		</div>
+		<div role="tabpanel" class="tab-pane" id="representation">
+			<div class="tab-pane-content">
+				<div id='symbolizer_well'><!-- {geometry type}_symbolizer_well_template --></div>
+			</div>
+		</div>
+		<div role="tabpanel" class="tab-pane" id="label">
+			<div class="tab-pane-content">
+				<div id='text_symbolizer_well'><!-- text_symbolizer_well_template --></div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<template id="filter_well_template">
+	<div class="form-group">
+		<label for="filter-operator" class="control-label">Opérateur</label>
+		<select class="form-control input-sm" id="filter-operator" name="sld-handler">
+			<option value='' selected>Aucun</option>
+		</select>
+	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="property-name" class="control-label">Attribut</label>
+				<select class="form-control input-sm" id="property-name" name="sld-handler">
+					<option value="" selected>Aucun</option>
+				</select>
+			</div>
+		</div>
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="literal" class="control-label">Valeur</label>
+				<input class="form-control input-sm" id="literal"></input>
+			</div>
+		</div>
+	</div>
+</template>
+
+<template  id="polygon_symbolizer_well_template">
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="fill" class="control-label">Couleur du fond</label>
+				<input type="color" class="form-control input-sm" id="fill" name="sld-handler"></input>
+			</div>
+		</div>
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="fill-opacity" class="control-label">Opacité du fond</label>
+				<input name="sld-handler" class="form-control" id="fill-opacity" data-slider-id='fill-opacity-slider' type="text" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1"/>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="stroke" class="control-label">Couleur du contour</label>
+				<input type="color" class="form-control input-sm" id="stroke" name="sld-handler"></input>
+			</div>
+		</div>
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="stroke-width" class="control-label">Epaisseur du contour</label>
+				<input class="form-control input-sm" id="stroke-width" name="sld-handler"></input>
+			</div>
+		</div>
+	</div>
+</template>
+
+<template id="linestring_symbolizer_well_template">
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="stroke" class="control-label">Couleur du trait</label>
+				<input type="color" class="form-control input-sm" id="stroke" name="sld-handler"></input>
+			</div>
+		</div>
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="stroke-width" class="control-label">Epaisseur du trait</label>
+				<input class="form-control input-sm" id="stroke-width" name="sld-handler"></input>
+			</div>
+		</div>
+	</div>
+</template>
+
+<template id="point_symbolizer_well_template">
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="wellknownname" class="control-label">Symbole</label>
+				<select class="form-control input-sm" id="wellknownname" name="sld-handler">
+				</select>
+			</div>
+		</div>
+		<div class="col-xs-3">
+			<div class="form-group">
+				<label for="size" class="control-label">Taille</label>
+				<input type="text" class="form-control input-sm" id="size" name="sld-handler"></input>
+			</div>
+		</div>
+		<div class="col-xs-3">
+			<div class="form-group">
+				<label for="rotation" class="control-label">Rotation</label>
+				<input type="text" class="form-control input-sm" id="rotation" name="sld-handler"></input>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="fill" class="control-label">Couleur du fond</label>
+				<input type="color" class="form-control input-sm" id="fill" name="sld-handler" placeholder="#000000"></input>
+			</div>
+		</div>
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="fill-opacity" class="control-label">Opacité du fond</label>
+				<input name="sld-handler" class="form-control" id="fill-opacity" data-slider-id='fill-opacity-slider' type="text" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1"/>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="stroke" class="control-label">Couleur du trait</label>
+				<input type="color" class="form-control input-sm" id="stroke" name="sld-handler"></input>
+			</div>
+		</div>
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="stroke-width" class="control-label">Epaisseur du trait</label>
+				<input class="form-control input-sm" id="stroke-width" name="sld-handler"></input>
+			</div>
+		</div>
+	</div>
+</template>
+
+<template id="text_symbolizer_well_template">
+	<div class="row">
+		<div class="col-xs-8">
+			<div class="form-group">
+				<label for="property-name" class="control-label">Attribut</label>
+				<select class="form-control input-sm" id="property-name" name="sld-handler">
+					<option value='' selected>Aucun</option>
+				</select>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-8">
+			<div class="form-group">
+				<label for="font-family" class="control-label">Police de caractère</label>
+				<select class="form-control input-sm" id="font-family" name="sld-handler" placeholder="Arial">
+					<option value='' selected>Aucun</option>
+				</select>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="form-group">
+				<label for="fill" class="control-label">Couleur</label>
+				<input type="color" class="form-control input-sm" id="fill" name="sld-handler" placeholder="#000000"></input>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-2">
+			<div class="form-group">
+				<label for="font-size" class="control-label">Taille</label>
+				<input class="form-control input-sm" id="font-size" name="sld-handler" placeholder="10"></input>
+			</div>
+		</div>
+		<div class="col-xs-4">
+			<div class="form-group">
+				<label for="font-style" class="control-label">Style</label>
+				<select class="form-control input-sm" id="font-style" name="sld-handler"></select>
+			</div>
+		</div>
+		<div class="col-xs-4">
+			<div class="form-group">
+				<label for="font-weight" class="control-label">Epaisseur</label>
+				<select class="form-control input-sm" id="font-weight" name="sld-handler"></select>
+			</div>
+		</div>
+	</div>
+</template>
+
+<div class="row">
+	<div class="col-xs-offset-4 col-sm-offset-5 col-md-offset-6 col-lg-offset-7 col-xs-8 col-sm-7 col-md-6 col-lg-5">
+		<div class="form-group">
+			<select class="form-control input-sm" name="styles"></select>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
+		<div id="map_well"></div>
+	</div>
+
+	<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
+		<!--
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" name="is-default-style"></input> Style par défaut
+			</label>
+		</div>
+		-->
+		<div name="form" class="well" style="height: 650px">
+			<div class="form-group">
+				<label for="classes">Règles de représentation</label>
+				<div class="row">
+					<div class="col-xs-10">
+						<select class="form-control input-sm" id="classes" size="7" multiple style="height: 106px"></select>
+					</div>
+					<div class="col-xs-2">
+						<div class="btn-group-vertical" role="group">
+							<button type="button" name="up" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span></button>
+							<button type="button" name="down" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>
+							<button type="button" name="clone" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></button>
+							<button type="button" name="add" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+							<button type="button" name="remove" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="class_well">
+				<!-- class_well_template -->
+			</div>
+			<div class="buttons-on-the-right-side" style="position: absolute; bottom: 0; right: 0; margin: 0 35px 40px 0;">
+				<a type="button" name="export-sld" class="btn btn-default">Exporter le SLD</a>
+				<button type="button" name="save" class="btn btn-primary disabled" disabled>Enregistrer</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+$(function() {
+	var glob = {};
+
+	$.expr[':'].textEquals = $.expr.createPseudo(function(arg) {
+		return function( elem ) {
+			return $(elem).text().match("^" + arg + "$");
+		};
+	});
+
+	const pullXml = function($xml) {
+		var xmlString = '';
+		$xml.children().each(function() {
+			var attrs = []
+			for (var att, i = 0, atts = this.attributes, n = atts.length; i < n; i ++) {
+				att = atts[i];
+				attrs.push(att.nodeName + '="' + att.nodeValue + '"');
+			};
+			if ($(this).text()) {
+				if (attrs.length) {
+					xmlString += '<' + this.nodeName + ' ' + attrs.join(' ') + '>';
+				} else {
+					xmlString += '<' + this.nodeName + '>';
+				};
+			} else {
+				return;
+			};
+			if ($(this).children().length > 0) {
+				xmlString += pullXml($(this));
+			} else {
+				xmlString += $(this).text();
+			};
+			xmlString += '</' + this.nodeName + '>';
+		});
+		return xmlString;
+	};
+
+
+	const displayStyleForm = function($container, $sld, layer, params) {
+
+		/* Utils */
+		var increment = function(value, m) {
+			if (m.indexOf(value) > -1) {
+				var str = m[m.indexOf(value)];
+				var i = parseInt(str.slice(-1)) || undefined;
+				if (i === undefined) {
+					str = str + ' 2';
+				} else {
+					str = str.substring(0, str.length - 1) + (i + 1);
+				};
+				return increment(str, m);
+			} else {
+				return value;
+			};
+		};
+		/* Utils */
+
+		const $featureTypeStyle = $sld.find('NamedLayer:last>UserStyle:last>FeatureTypeStyle:last');
+
+		const getSelectedClassRule = function(callback) {
+			const $option = $classes.find('option:selected');
+			const $rule = $featureTypeStyle.find('Rule>Name:textEquals("' + $option.val() + '")').parent();
+			callback($option, $rule);
+		};
+
+		const $removeClass = $container.find('button[name="remove"]').click(function(e) {
+			e.preventDefault();
+			if ($classes.find('option').length > 1) {
+				getSelectedClassRule(function($option, $rule) {
+					$option.remove();
+					$rule.remove();
+					glob.overviewingStyle();
+				});
+			};
+		});
+
+		const $addClass = $container.find('button[name="add"]').click(function(e) {
+			e.preventDefault();
+			const m = []
+			for (var i = 0; i < $classes.children('option').length; i ++) {
+				m.push($($classes.children('option')[i]).val());
+			};
+			const value = increment('Nouvelle classe', m);
+			$featureTypeStyle.append($.parseXML('<Rule><Name>' + value + '</Name></Rule>').documentElement);
+			$classes.append($('<option>', {value: value, text : value}));
+		});
+
+		const $cloneClass = $container.find('button[name="clone"]').click(function(e) {
+			e.preventDefault();
+			getSelectedClassRule(function($option, $rule) {
+				const m = []
+				for (var i = 0; i < $classes.children('option').length; i ++) {
+					m.push($($classes.children('option')[i]).val());
+				};
+				const value = increment($option.val(), m)
+				$clone = $rule.clone();
+				$clone.children('Rule>Name').text(value);
+				$rule.parent().append($clone);
+				$classes.append($('<option>', {value: value, text : value}));
+			});
+
+		});
+
+		const $moveUpClass = $container.find('button[name="up"]').click(function(e) {
+			e.preventDefault();
+			getSelectedClassRule(function($option, $rule) {
+				if ($option.length) {
+					$option.first().prev().before($option);
+					$rule.first().prev().before($rule);
+				};
+				glob.overviewingStyle();
+			});
+		});
+
+		const $moveDownClass = $container.find('button[name="down"]').click(function(e) {
+			e.preventDefault();
+			getSelectedClassRule(function($option, $rule) {
+				if ($option.length) {
+					$option.last().next().after($option);
+					$rule.last().next().after($rule);
+				};
+				glob.overviewingStyle();
+			});
+		});
+
+		const $classes = $container.find('#classes').change(function(e) {
+			$('#class_well').empty();
+			if (this.value) {
+				const $rule = $featureTypeStyle.find('Rule>Name:textEquals("' + this.value + '")').parent();
+				displayRuleForm($container, $rule, {
+					'type': params['type'],
+					'attributes': params['attributes'],
+					'operators': [
+						{
+							'value': 'PropertyIsEqualTo',
+							'text': 'Egal à (=)',
+							'attributes': {'matchCase': false}
+						}, {
+							'value': 'PropertyIsNotEqualTo',
+							'text': 'Différent de (≠)'
+						}, {
+							'value': 'PropertyIsLessThan',
+							'text': 'Inférieur à (<)'
+						}, {
+							'value': 'PropertyIsLessThanOrEqualTo',
+							'text': 'Inférieur ou égale à (≤)'
+						}, {
+							'value': 'PropertyIsGreaterThan',
+							'text': 'Supérieur à (>)'
+						}, {
+							'value': 'PropertyIsGreaterThanOrEqualTo',
+							'text': 'Supérieur ou égale à (≥)'
+						}, {
+							'value': 'PropertyIsLike',
+							'text': 'Comme (« LIKE »)',
+							'attributes': {'wildCard': '*', 'singleChar': '.', 'escape': '!'}
+						}
+					]
+				});
+			};
+		});
+
+		$classes.children('option').change(function() {})
+
+		const $namedLayer = $sld.children('NamedLayer').last();
+		($namedLayer.children('Name').last() == params['name']) || $namedLayer.children('Name').last().text(params['name']);
+		$namedLayer.find('UserStyle:last>FeatureTypeStyle:last>Rule').each(function() {
+			const value = $(this).find('Name').text()
+			$classes.append($('<option>', {value: value, text : value}));
+		});
+
+		const $exportSld = $('a[name="export-sld"]').click(function(e) {
+			const filename = $sld.children('namedlayer').last().children('name').last().text();
+			// const xmlstr = (new XMLSerializer()).serializeToString($sld);
+			const xmlstr = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
+			$(this).attr('download', filename + '.sld');
+			$(this).attr('href', 'data:text/xml;charset=UTF-8,' + encodeURIComponent(xmlstr));
+		});
+
+		glob.overviewingStyle = function() {
+
+			var sldBody = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
+			layer.remove();
+			layer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+				format: 'image/png',
+				layers: params['name'],
+				sld_body: sldBody,
+				transparent: true
+			});
+			glob.addtoMap(layer);
+
+			var $save = $('button[name="save"]').click(function(e) {
+				e.preventDefault();
+				const $form = $('form').attr('method', 'POST');
+				$form.append($('<input type="text"/>').prop('name', 'sldBody').val(sldBody));
+				$form.submit();
+			});
+
+			$exportSld.click(function(e) {
+				const filename = $sld.children('namedlayer').last().children('name').last().text();
+				const xmlstr = sldBody;
+				$(this).attr('download', filename + '.sld');
+				$(this).attr('href', 'data:text/xml;charset=UTF-8,' + encodeURIComponent(xmlstr));
+			});
+
+			activateButton($save);
+		};
+
+	};
+
+	$.fn.getChildrenOrCreate = function(name, attrs) {
+		const attrList = [];
+		for (const k in attrs) {
+			attrList.push(k + '="' + attrs[k] + '"');
+		};
+		const $children = this.children(attrList.length ? name + '[' + attrList.join() + ']' : name);
+		if ($children.length == 0) {
+			const element = $.parseXML('<' + name + ' ' + attrList.join(' ') + '/>').documentElement;
+			this.append(element);
+		};
+		return this.children(attrList.length ? name + '[' + attrList.join() + ']' : name);
+	};
+
+	const declareParameter = function($container, $element, nodeName, parameterName, attrName, defaultValue, optionsList, callback) {
+		var $parameter = $element.getChildrenOrCreate(nodeName);
+		if (parameterName && attrName) {
+			var $parameter = $parameter.getChildrenOrCreate(parameterName, attrName && {'name': attrName});
+		};
+		if ($parameter && !$parameter.text()) {
+			$parameter.text(defaultValue);
+		};
+		const $item = $container.find('#' + attrName);
+		$item.change(function(e) {
+			e.preventDefault();
+			const value = $(this).val();
+			$parameter.text(value);
+			glob.overviewingStyle();
+		});
+		if (optionsList) {
+			for (var i = 0; i < optionsList.length; i ++) {
+				$item.append($('<option>', {value: optionsList[i], text: optionsList[i], selected: (optionsList[i] == ($parameter.text() || defaultValue) ? true : false)}));
+			};
+		};
+		switch($item.prop('nodeName').toLowerCase()) {
+			case 'input': $item.val($parameter.text() || defaultValue); break;
+		};
+		return $item;
+	};
+
+	const parsePolygonSymbolizer = function($rule, $container) {
+		/*
+		<PolygonSymbolizer>
+			<Fill>
+				<CssParameter name="fill">#ffffff</CssParameter>
+				<CssParameter name="fill-opacity">1</CssParameter>
+			</Fill>
+			<Stroke>
+				<CssParameter name="stroke">#000000</CssParameter>
+				<CssParameter name="stroke-width">1</CssParameter>
+			</Stroke>
+		</PolygonSymbolizer>
+		*/
+		const $template = $('#polygon_symbolizer_well_template');
+		const $content = $($template.prop('content')).clone();
+		const $well = $container.find('#symbolizer_well');
+		const $symbolizer = $rule.getChildrenOrCreate('PolygonSymbolizer').last();
+		declareParameter($content, $symbolizer, 'Fill', 'CssParameter', 'fill', '#ffffff');
+		const $fillOpacity = declareParameter($content, $symbolizer, 'Fill', 'CssParameter', 'fill-opacity', '1');
+		const fillOpacityValue = $fillOpacity.val();
+		$fillOpacity.slider().slider('setValue', fillOpacityValue);
+		declareParameter($content, $symbolizer, 'Stroke', 'CssParameter', 'stroke', '#000000');
+		declareParameter($content, $symbolizer, 'Stroke', 'CssParameter', 'stroke-width', 1);
+		$well.append($content);
+	};
+
+	const parseLineSymbolizer = function($rule, $container) {
+		/*
+		<LineSymbolizer>
+			<Stroke>
+				<CssParameter name="stroke">#000000</CssParameter>
+				<CssParameter name="stroke-width">1</CssParameter>
+			</Stroke>
+		</LineSymbolizer>
+		*/
+		const $template = $('#linestring_symbolizer_well_template');
+		const $content = $($template.prop('content')).clone();
+		const $well = $container.find('#symbolizer_well');
+		const $symbolizer = $rule.getChildrenOrCreate('LineSymbolizer').last();
+		declareParameter($content, $symbolizer, 'Stroke', 'CssParameter', 'stroke', '#000000');
+		declareParameter($content, $symbolizer, 'Stroke', 'CssParameter', 'stroke-width', 1);
+		$well.append($content);
+	};
+
+	const parsePointSymbolizer = function($rule, $container) {
+		/*
+		<PointSymbolizer>
+			<Graphic>
+				<Mark>
+					<WellKnownName>circle</WellKnownName>
+					<Fill>
+						<CssParameter name="fill">#FF0000</CssParameter>
+						<CssParameter name="fill-opacity">1</CssParameter>
+					</Fill>
+					<Stroke>
+						<CssParameter name="stroke">#000000</CssParameter>
+						<CssParameter name="stroke-width">2</CssParameter>
+					</Stroke>
+				</Mark>
+				<Size>6</Size>
+			</Graphic>
+		</PointSymbolizer>
+		*/
+		const $template = $('#point_symbolizer_well_template');
+		const $content = $($template.prop('content')).clone();
+		const $well = $container.find('#symbolizer_well'); //.empty();
+		const $symbolizer = $rule.getChildrenOrCreate('PointSymbolizer').last();
+		const $graphic = $symbolizer.getChildrenOrCreate('Graphic').last();
+		const $mark = $graphic.getChildrenOrCreate('Mark').last();
+		declareParameter($content, $graphic, 'Size', undefined, 'size', 16);
+		declareParameter($content, $graphic, 'Rotation', undefined, 'rotation', 0);
+		declareParameter($content, $mark, 'WellKnownName', undefined, 'wellknownname', undefined, ['circle', 'square', 'star', 'cross', 'x', 'triangle']);
+		declareParameter($content, $mark, 'Fill', 'CssParameter', 'fill', '#ffffff');
+		const $fillOpacity = declareParameter($content, $mark, 'Fill', 'CssParameter', 'fill-opacity', '1');
+		const fillOpacityValue = $fillOpacity.val();
+		$fillOpacity.slider().slider('setValue', fillOpacityValue);
+		declareParameter($content, $mark, 'Stroke', 'CssParameter', 'stroke', '#000000');
+		declareParameter($content, $mark, 'Stroke', 'CssParameter', 'stroke-width', 1);
+
+		$well.append($content);
+	};
+
+	const parseTextSymbolizer = function($rule, $container, options) {
+		/*
+		<TextSymbolizer>
+			<Label>
+				<ogc:PropertyName>name</ogc:PropertyName>
+			</Label>
+			<Font>
+				<CssParameter name="font-family">arial</CssParameter>
+				<CssParameter name="font-size">10</CssParameter>
+				<CssParameter name="font-style">normal</CssParameter>
+				<CssParameter name="font-weight">normal</CssParameter>
+			</Font>
+			<Fill>
+				<CssParameter name="fill">#000000</CssParameter>
+			</Fill>
+		</TextSymbolizer>
+		*/
+		const $template = $('#text_symbolizer_well_template');
+		const $content = $($template.prop('content')).clone();
+		const $well = $container.find('#text_symbolizer_well');
+		const $symbolizer = $rule.getChildrenOrCreate('TextSymbolizer');
+		declareParameter($content, $symbolizer, 'Label', 'PropertyName', 'property-name', undefined, options.attributes);
+		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-family', undefined, {{ fonts_asjson | safe }});
+		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-size');
+		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-style', 'normal', ['normal', 'italic', 'oblique']);
+		declareParameter($content, $symbolizer, 'Font', 'CssParameter', 'font-weight', 'normal', ['normal', 'bold']);
+		declareParameter($content, $symbolizer, 'Fill', 'CssParameter', 'fill');
+		$well.append($content);
+	};
+
+	const parseFilter = function($rule, $container, options) {
+		/*
+		<PropertyIs{Operator}>
+			<PropertyName>Name</PropertyName>
+			<Literal>Value</Literal>
+		</PropertyIs{Operator}>
+		*/
+		const $template = $('#filter_well_template');
+		const $content = $($template.prop('content')).clone();
+		const $well = $container.find('#filter_well')
+		const $filter = $rule.getChildrenOrCreate('Filter');
+
+		var $filterTagOperator = $filter.children().last();
+		const tagName = ($filterTagOperator.length) ? $filterTagOperator.prop('tagName') : undefined;
+
+		const $filterOperator = $content.find('#filter-operator').change(function() {
+			const value = $(this).val();
+
+			if (value) {
+				$propertyName.prop('disabled', false);
+				$literal.prop('disabled', false);
+			} else {
+				$propertyName.prop('disabled', true);
+				$literal.prop('disabled', true);
+			};
+
+			const operator = (function(value) {
+				for (var i = 0; i < options.operators.length; i ++) {
+					const operator = options.operators[i];
+					if (operator.value == value) {
+						return operator;
+					};
+				};
+			})(value);
+
+			const attrList = [];
+			if (operator && operator.attributes) {
+				for (const k in operator.attributes) {
+					attrList.push(k + '="' + operator.attributes[k] + '"');
+				};
+			};
+			const $children = $filterTagOperator.children();
+			$filter.empty();
+			if (value) {
+				$filter.append($.parseXML('<' + value + ' ' + attrList.join(' ') + '/>').documentElement);
+				$filterTagOperator = $filter.children(value);
+				$filterTagOperator.append($children);
+			};
+			glob.overviewingStyle();
+		});
+
+		if ($filterTagOperator.length) {
+			$filterOperator.val($filterTagOperator.prop('tagName'));
+		};
+
+		for (var i = 0; i < options.operators.length; i ++) {
+			const operator = options.operators[i];
+			$filterOperator.append($('<option>', {
+				value: operator.value,
+				text: operator.text,
+				selected: (operator.value == tagName ? true : false)
+			}));
+		};
+
+		// Property Name
+		const $propertyNameParameter = tagName ? $filter.children(tagName).getChildrenOrCreate('PropertyName') : undefined;
+		const $propertyName = $content.find('#property-name').change(function() {
+			const value = $(this).val();
+			const $children = $filterTagOperator.children().not('PropertyName');
+			$filterTagOperator.empty();
+			$filterTagOperator.append($.parseXML('<PropertyName>' + value + '</PropertyName>').documentElement);
+			$filterTagOperator.append($children);
+			glob.overviewingStyle();
+		});
+		for (var i = 0; i < options.attributes.length; i ++) {
+			const value = options.attributes[i];
+			$propertyName.append($('<option>', {
+				value: value,
+				text : value,
+				selected: ($propertyNameParameter && value == $propertyNameParameter.text()) ? true : false
+			}));
+		};
+
+		// Literal
+		const $literalParameter = tagName ? $filter.children(tagName).getChildrenOrCreate('Literal') : undefined;
+		const $literal = $content.find('#literal').val($literalParameter && $literalParameter.text()).change(function() {
+			const value = $(this).val();
+			const $children = $filterTagOperator.children().not('Literal');
+			$filterTagOperator.empty();
+			$filterTagOperator.append($.parseXML('<Literal>' + value + '</Literal>').documentElement);
+			$filterTagOperator.append($children);
+			glob.overviewingStyle();
+		});
+
+		if (tagName) {
+			$propertyName.prop('disabled', false);
+			$literal.prop('disabled', false);
+		} else {
+			$propertyName.prop('disabled', true);
+			$literal.prop('disabled', true);
+		};
+
+		$well.append($content);
+	};
+
+	const displayRuleForm = function($container, $rule, options) {
+
+		const $template = $('#class_well_template');
+		const $content = $($template.prop('content')).clone();
+		const $well = $('#class_well');
+
+		const $ruleName = $rule.children('Name');
+		$content.find('#rule-name').val($ruleName.text()).change(function() {
+			const value = ($(this).val());
+			$well.parent().find('#classes option[value="'+ $ruleName.text() +'"]').prop({'text': value, 'value': value});
+			$ruleName.text(value);
+			glob.overviewingStyle();
+		});
+
+		parseFilter($rule, $content, {
+			attributes: options.attributes,
+			operators: options.operators
+		});
+
+		console.log(options.type.toLowerCase())
+
+		switch(options.type.toLowerCase()) {
+			case 'polygon': parsePolygonSymbolizer($rule, $content); break;
+			case 'linestring': parseLineSymbolizer($rule, $content); break;
+			case 'point': parsePointSymbolizer($rule, $content); break;
+		};
+
+		parseTextSymbolizer($rule, $content, {
+			attributes: options.attributes
+		});
+
+		$well.append($content);
+	};
+
+
+	var layerData = {{ layer_asjson | safe }};
+
+	$('#layer-container #name').val(layerData['name']);
+	$('#layer-container #title').val(layerData['title']);
+	$('#layer-container #type').val(layerData['type']);
+	$('#layer-container #enabled').prop('checked', layerData['enabled']);
+
+	const $selectStyle = $('#layer-container select[name="styles"]');
+	const default_style = layerData['styles']['default'];
+
+	const styles = layerData['styles']['styles'];
+
+	const getSldByName = function(name) {
+		for (var i = 0; i < styles.length; i ++) {
+			if (styles[i]['name'] == name) {
+				return styles[i]['sld'];
+			};
+		};
+	};
+
+	for (var i = 0; i < styles.length; i ++) {
+		$selectStyle.append($('<option>', {
+			value: styles[i]['name'],
+			text: styles[i]['text']
+		}));
+	};
+
+	var layer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+		format: 'image/png',
+		layers: layerData['name'],
+		styles: $selectStyle.val(),
+		transparent: true
+	});
+
+	$('#layer-container .nav a[href="#editor"]').on('shown.bs.tab', function(e) {
+		if (!$('#map_well').children('#map').length > 0) {
+			$('#map_well').append('<div id="map" style="height: 650px;"></div>');
+			const map = L.map('map').fitBounds(layerData['bbox']);
+			L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+				attribution: 'CartoDB',
+			}).addTo(map);
+			glob.addtoMap = function(l) {
+				map.addLayer(l);
+			};
+			glob.addtoMap(layer);
+		};
+	});
+
+	const _sld = $.parseXML(getSldByName($selectStyle.val()));
+	const $sld  = $(_sld).children('StyledLayerDescriptor').last();
+
+	displayStyleForm($('#layer-container'), $sld, layer, layerData);
+});
+</script>

@@ -21,6 +21,7 @@ from django.utils import timezone
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import DataType
+from idgo_admin.models import Granularity
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Support
@@ -30,6 +31,7 @@ from taggit.forms import TagField
 from taggit.forms import TagWidget
 
 
+DOMAIN_NAME = settings.DOMAIN_NAME
 GEONETWORK_URL = settings.GEONETWORK_URL
 CKAN_URL = settings.CKAN_URL
 
@@ -52,6 +54,7 @@ class DatasetForm(forms.ModelForm):
             'date_publication',
             'description',
             'geocover',
+            'granularity',
             'is_inspire',
             'keywords',
             'license',
@@ -60,10 +63,13 @@ class DatasetForm(forms.ModelForm):
             'owner_name',
             'published',
             'support',
-            # 'thumbnail',
+            'thumbnail',
             'update_freq',
             'name',
             'ckan_slug')
+
+    class CustomClearableFileInput(forms.ClearableFileInput):
+        template_name = 'idgo_admin/widgets/file_drop_zone.html'
 
     name = forms.CharField(
         label='Titre*',
@@ -94,8 +100,6 @@ class DatasetForm(forms.ModelForm):
         widget=forms.Textarea(
             attrs={
                 'placeholder': 'Vous pouvez utiliser le langage Markdown ici'}))
-
-    # thumbnail = forms.ImageField(label='Vignette', required=False)
 
     keywords = TagField(
         label='Liste de mots-clés',
@@ -155,6 +159,12 @@ class DatasetForm(forms.ModelForm):
         label='Couverture géographique',
         required=False)
 
+    granularity = forms.ModelChoiceField(
+        empty_label='Sélectionnez une valeur',
+        label='Granularité de la couverture territoriale',
+        queryset=Granularity.objects.all(),
+        required=False)
+
     organisation = forms.ModelChoiceField(
         label='Organisation à laquelle est rattaché ce jeu de données*',
         queryset=Organisation.objects.all(),
@@ -199,6 +209,15 @@ class DatasetForm(forms.ModelForm):
         label='Le jeu de données est soumis à la règlementation INSPIRE',
         required=False)
 
+    thumbnail = forms.FileField(
+        label='Imagette',
+        required=False,
+        # validators=[],
+        widget=CustomClearableFileInput(
+            attrs={
+                'value': None,
+                'max_size_info': 1048576}))
+
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
@@ -223,6 +242,9 @@ class DatasetForm(forms.ModelForm):
             instance and instance.support and instance.support.name or 'Plateforme DataSud'
         self.fields['broadcaster_email'].widget.attrs['placeholder'] = \
             instance and instance.support and instance.support.email or 'contact@datasud.fr'
+
+        if instance and instance.thumbnail:
+            self.fields['thumbnail'].widget.attrs['value'] = instance.thumbnail.url
 
     def clean(self):
 
@@ -272,6 +294,7 @@ class DatasetForm(forms.ModelForm):
             'description': data['description'],
             'editor': user,
             'geocover': data['geocover'],
+            'granularity': data['granularity'],
             'license': data['license'],
             'name': data['name'],
             'organisation': data['organisation'],
@@ -280,7 +303,7 @@ class DatasetForm(forms.ModelForm):
             'update_freq': data['update_freq'],
             'published': data['published'],
             'support': data['support'],
-            # 'thumbnail': data['thumbnail'],
+            'thumbnail': data['thumbnail'],
             'is_inspire': data['is_inspire']}
 
         if id:  # Mise à jour du jeu de données

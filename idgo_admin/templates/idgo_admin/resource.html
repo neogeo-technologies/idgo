@@ -3,9 +3,15 @@
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
 	<li>Jeu de données</li>
-	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">{{ dataset_name }}</a></li>
-	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">ressources</a></li>
-	<li class="active">{% if resource_id %}<a href="{% url "idgo_admin:resource" dataset_id=dataset_id %}?id={{ resource_id }}">{{ resource_name }}</a>{% else %}{{ resource_name }}{% endif %}</li>
+	<li>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#dataset">{{ dataset.name_overflow }}</a>
+	</li>
+	<li>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#resources">Ressources</a>
+	</li>
+	<li class="active">
+		{% if resource %}<a href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?id={{ resource.id }}">{{ resource.name_overflow }}</a>{% else %}Nouvelle ressource{% endif %}
+	</li>
 </ol>
 {% endblock breadcrumb_content %}
 {% block main_content %}

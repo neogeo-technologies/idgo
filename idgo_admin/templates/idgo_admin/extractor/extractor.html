@@ -1,0 +1,444 @@
+{% extends "idgo_admin/base.html" %}
+
+{% load static %}
+
+{% block head_extras %}
+<script src="{% static "libs/leaflet/leaflet.js" %}"></script>
+<script src="{% static "libs/leaflet/leaflet-nontiledlayer.js" %}"></script>
+<script src="{% static "libs/leaflet/leaflet-nontiledlayer-wms.js" %}"></script>
+<script src="{% static "libs/leaflet.draw/leaflet.draw.js" %}"></script>
+<script src="{% static "libs/bootstrap-slider/bootstrap-slider.js" %}"></script>
+<script src="{% static "libs/turf/turf.min.js" %}"></script>
+<link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
+<link rel="stylesheet" href="{% static "libs/leaflet.draw/leaflet.draw.css" %}"/>
+
+{% endblock head_extras %}
+
+{% block body %}
+<div id="extractor">
+	<div id="map" class="map"></div>
+	<div class="page-header">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					{% block header_content %}
+					{% include "idgo_admin/inner_header.html" %}
+					{% endblock header_content %}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="nav-container">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					{% block nav_content %}
+					<ul id="menu" class="nav nav-default" role="tablist">
+						<li role="presentation">
+							<a href="{% url "idgo_admin:datasets" %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
+						</li>
+						{% if is_referent or is_admin  %}
+						<li role="presentation">
+							<a href="{% url "idgo_admin:all_datasets" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
+						</li>
+						{% endif %}
+						<li role="presentation">
+							<a href="{% url "idgo_admin:all_organizations" %}" aria-controls="all-organizations" role="tab">Les organisations</a>
+						</li>
+						{% if is_crige %}
+						<li role="presentation">
+							<a href="{% url "idgo_admin:extractor_dashboard" %}" aria-controls="all-extracts" role="tab">Mes extractions</a>
+						</li>
+						{% endif %}
+						{% block nav_content_extra %}
+						{% endblock nav_content_extra %}
+					</ul>
+					{% endblock nav_content %}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="main-container">
+		<div class="wrapper" >
+			<div class="container">
+				{% include "idgo_admin/alert_messages.html" %}
+				<div class="row">
+					<div class="col-md-12">
+						{% block main_content %}
+							<div class="row">
+								<div class="col-xs-offset-8 col-xs-4">
+									<form class="well extractor-panel">
+										<div>
+											<div class="form-group{% if not organisations %} disabled{% endif %}">
+												<label for="organisation">Organisation</label>
+												<div class="input-group input-group">
+													<select class="form-control" id="organisation">
+														<option disabled {% if not organisation %}selected{% endif %}>Sélectionnez une organisation</option>
+														{% for instance in organisations %}
+														<option value="{{ instance.ckan_slug }}" {% if instance.id == organisation.id %}selected{% endif %}>{{ instance.name }}</option>
+														{% endfor %}
+													</select>
+													<span class="input-group-btn">
+														<button class="btn btn-default" type="button" name="clear">
+															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+														</button>
+													</span>
+												</div>
+											</div>
+											<div class="form-group{% if not datasets %} disabled{% endif %}">
+												<label for="dataset">Jeu de données</label>
+												<div class="input-group input-group">
+													<select class="form-control" id="dataset">
+														<option disabled {% if not dataset %}selected{% endif %}>Sélectionnez un jeu de données</option>
+														{% for instance in datasets %}
+														<option value="{{ instance.ckan_slug }}" {% if instance.id == dataset.id %}selected{% endif %}>{{ instance.name }}</option>
+														{% endfor %}
+													</select>
+													<span class="input-group-btn">
+														<button class="btn btn-default" type="button" name="clear">
+															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+														</button>
+													</span>
+												</div>
+											</div>
+											<div class="form-group{% if not resources %} disabled{% endif %}">
+												<label for="resource">Ressource</label>
+												<div class="input-group input-group">
+													<select class="form-control" id="resource">
+														<option disabled {% if not resource %}selected{% endif %}>Sélectionnez une ressource</option>
+														{% for instance in resources %}
+														<option value="{{ instance.ckan_id }}" {% if instance.id == resource.id %}selected{% endif %}>{{ instance.name }}</option>
+														{% endfor %}
+													</select>
+													<span class="input-group-btn">
+														<button class="btn btn-default" type="button" name="clear">
+															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+														</button>
+													</span>
+												</div>
+											</div>
+										</div>
+										<div class="{% if not dataset %} disabled{% endif %}">
+											<div class="form-group">
+												<label for="crs">Système de coordonnées</label>
+												<div class="input-group input-group">
+													<select class="form-control" id="crs">
+														<option disabled selected>Sélectionnez un système de coordonnées</option>
+														{% for crs in supported_crs %}
+														<option value="{{ crs.authority }}"{% if task and task.details.query.dst_srs == crs.authority %} selected{% endif %}>{{ crs }}</option>
+														{% endfor %}
+													</select>
+													<span class="input-group-btn">
+														<button class="btn btn-default" type="button" name="clear">
+															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+														</button>
+													</span>
+												</div>
+											</div>
+											<div class="form-group">
+												<label for="format">Format de données</label>
+												<div class="input-group input-group">
+													<select class="form-control" id="format">
+														<option disabled selected>Sélectionnez un format</option>
+														{% for format in supported_format %}
+														<option value="{{ format.name }}"{% if task and task.details.query.dst_format == format.details %} selected{% endif %}>{{ format.description }}</option>
+														{% endfor %}
+													</select>
+													<span class="input-group-btn">
+														<button class="btn btn-default{% if not datasets %} disabled{% endif %}" type="button" name="clear">
+															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+														</button>
+													</span>
+												</div>
+											</div>
+											<div class="buttons-on-the-right-side{% if not dataset %} disabled{% endif %}">
+												<button type="button" name="extract" class="btn btn-primary">Exporter</button>
+											</div>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+						{% endblock main_content %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% block footer %}
+	<div class="footer navbar-fixed-bottom">
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-12">
+					<p>© <span name="current-year"></span> - Région Provence-Alpes-Côte d'Azur et CRIGE PACA | Tous droits réservés | Propulsé par <a href='http://www.neogeo.fr' target="blank">Neogeo-Technologies</a></p>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endblock footer %}
+</div>
+<script>
+$(function() {
+
+	var ctrlPressed;
+	var targetLayer;
+	var footprintLayer;
+	var layers = [];
+	var bounds = [[41.15, -9.86], [51.56, 10.38]];
+	var boundsOptions = {paddingTopLeft: [-400, 0]};
+
+	const $extract = $('button[name="extract"]').click(function(e) {
+		e.preventDefault();
+
+		if ((!targetLayer && !map.hasLayer(targetLayer)) ||
+			(!footprintLayer && !editableLayers.hasLayer(footprintLayer))) {
+			return;
+		};
+
+		if (footprintLayer instanceof L.FeatureGroup) {
+			// Normalement, footprintLayer.getLayers() == 1;
+			footprintLayer = footprintLayer.getLayers()[0];
+		};
+
+		const layer = targetLayer.options.layers;
+		const footprint = JSON.stringify(footprintLayer.toGeoJSON());
+		const srs = $('#crs').val();
+		const format = $('#format').val();
+
+		if (!layer || !footprint || !srs || !format) {
+			return;
+		};
+
+		const $form = $('form').attr('method', 'POST');
+		$form.append($('<input type="text" name="layer"/>').hide().val(layer));
+		$form.append($('<input type="text" name="footprint"/>').hide().val(footprint));
+		$form.append($('<input type="text" name="srs"/>').hide().val(srs));
+		$form.append($('<input type="text" name="format"/>').hide().val(format));
+
+		$modalHourglass.one('show.bs.modal', function(e) {
+			$form.submit();
+		}).modal('show');
+	});
+
+	const clear = function($target) {
+		$target.is('input[type="checkbox"]') && $target.prop('checked', false);
+		$target.is('input[type="text"]') && $target.val('');
+		$target.is('select') && $target.val($target.find('option:first').val());
+		$target.trigger('change');
+	};
+
+	$('form').find('button[name="clear"]').click(function(e) {
+		e.preventDefault();
+		clear($(this).parent().siblings('input, select'));
+	});
+
+	var baseMaps = {};
+	{% if basemaps %}
+		{% if basemaps|length > 1 %}
+			{% for basemap in basemaps %}
+	baseMaps['{{ basemap.name }}'] = L.tileLayer('{{ basemap.url }}', {{ basemap.options|safe }});
+			{% endfor %}
+		{% else %}
+	baseMaps['{{ basemaps.0.name}}'] = L.tileLayer('{{ basemaps.0.url }}', {{ basemaps.0.options|safe }});
+		{% endif %}
+	{% else %}
+	baseMaps['CartoDB'] = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {});
+	{% endif %}
+
+	for (var defaultBaseMap in baseMaps) {
+		layers.push(baseMaps[defaultBaseMap]);
+		break;
+	};
+
+	{% if organisation and dataset and resource and layer %}
+	targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+		format: 'image/png',
+		layers: '{{ layer.mra_info.name }}',
+		styles: '{{ layer.mra_info.styles.default }}',
+		transparent: true
+	});
+	layers.push(targetLayer);
+	bounds = {{ layer.mra_info.bbox|default:None|safe }};
+	{% elif organisation and dataset %}
+		{% for instance in resources %}
+			{% for layer in instance.get_layers %}
+	layers.push(
+		new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+			format: 'image/png',
+			layers: '{{ layer.mra_info.name }}',
+			styles: '{{ layer.mra_info.styles.default }}',
+			transparent: true
+		})
+	);
+			{% endfor %}
+		{% endfor %}
+	bounds = {{ dataset.bounds|default:None|safe }};
+	{% endif %}
+
+	const communesLayers = new L.FeatureGroup();
+	{% for commune in communes %}
+	communesLayers.addLayer(L.geoJSON({{ commune.geom.geojson|safe }}, {
+		style: {
+			weight: 1.2,
+			fillColor: "#fff",
+			fillOpacity: 0,
+			color: '#327368',
+			opacity: .9
+		},
+		onEachFeature: function (feature, layer) {
+			layer.on({
+				click: function(e) {
+					const layer = e.target;
+
+					var backup;
+					var geojson = layer.toGeoJSON();
+
+					if (ctrlPressed && footprintLayer) {
+						try {
+							geojson = turf.union(geojson, footprintLayer.getLayers()[0].toGeoJSON());
+						} catch {
+							/* pass */
+						};
+					};
+
+					footprintLayer = L.geoJSON(geojson).setStyle({
+						weight: 3,
+						color: '#f6546a'
+					});
+
+					map.fire(L.Draw.Event.CREATED, {layerType: 'featureCollection', layer: footprintLayer.getLayers()[0]});
+				},
+				mouseover : function(e) {
+					const layer = e.target;
+					layer.setStyle({
+						weight: 4
+					});
+				},
+				mouseout : function(e) {
+					const layer = e.target;
+					layer.setStyle({
+						weight: 1.2
+					});
+				}
+			});
+		}
+	}));
+	{% endfor %}
+	layers.push(communesLayers);
+
+	const editableLayers = new L.FeatureGroup();
+	{% if task %}
+	footprintLayer = L.geoJSON({{ task.details.query.footprint_geojson|safe }});
+	editableLayers.addLayer(footprintLayer.getLayers()[0]);
+	bounds = footprintLayer.getBounds();
+	{% endif %}
+	layers.push(editableLayers);
+
+	{% if bounds %}
+	bounds = {{ bounds|safe }};
+	boundsOptions = {};
+	{% endif %}
+
+	const map = L
+		.map('map', {
+			'layers': layers
+		})
+		.fitBounds(bounds, boundsOptions)
+		.addControl(new L.control.layers(baseMaps, {
+			'Communes': communesLayers
+		}, {
+			collapsed: false
+		}))
+		.addControl(new L.Control.Draw({
+			draw: {
+				polygon: {
+					allowIntersection: false,
+					drawError: {
+						color: '#8b0000',
+						message: ''  // Pas de message
+					},
+					shapeOptions: {
+						color: '#f6546a'
+					}
+				},
+				rectangle: {
+					shapeOptions: {
+						clickable: false
+					}
+				},
+				marker: false,
+				polyline: false,
+				circle: false,
+				circlemarker: false
+			},
+			edit: {
+				featureGroup: editableLayers,
+				remove: false
+			},
+			position: 'topright'
+		}))
+		.on(L.Draw.Event.CREATED, function(e) {
+			editableLayers.clearLayers();
+			if (e.layer instanceof L.FeatureGroup) {
+				e.layer.eachLayer(function(layer) {
+    				editableLayers.addLayer(layer);
+				});
+			} else {
+				editableLayers.addLayer(e.layer);
+			};
+		});
+
+	$('#organisation').change(function(e) {
+		e.preventDefault();
+		const organisation = $(this).val();
+		const bounds = map.getBounds();
+		const bbox = bounds._southWest.lng + ',' + bounds._southWest.lat + ',' + bounds._northEast.lng + ',' + bounds._northEast.lat;
+		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + (organisation ? '&organisation=' + organisation : ''));
+	});
+
+	{% if organisation %}
+	$('#dataset').change(function(e) {
+		e.preventDefault();
+		const dataset = $(this).val();
+		const bounds = map.getBounds();
+		const bbox = bounds._southWest.lng + ',' + bounds._southWest.lat + ',' + bounds._northEast.lng + ',' + bounds._northEast.lat;
+		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + '&organisation={{ organisation.ckan_slug }}' + (dataset ? '&dataset=' + dataset : ''));
+	});
+	{% endif %}
+
+	{% if organisation and dataset %}
+	$('#resource').change(function(e) {
+		e.preventDefault();
+		const resource = $(this).val();
+		const bounds = map.getBounds();
+		const bbox = bounds._southWest.lng + ',' + bounds._southWest.lat + ',' + bounds._northEast.lng + ',' + bounds._northEast.lat;
+		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + '&organisation={{ organisation.ckan_slug }}&dataset={{ dataset.ckan_slug }}' + (resource ? '&resource=' + resource : ''));
+	});
+	{% endif %}
+
+	$('#format, #crs').change(function(e) {
+		e.preventDefault();
+		if ($('#organisation').val() &&
+			$('#dataset').val() &&
+			$('#resource').val() &&
+			$('#format').val() &&
+			$('#crs').val()) {
+			$extract.prop('disabled', false).removeClass('disabled');
+		} else {
+			$extract.prop('disabled', true).addClass('disabled');
+		};
+	}).trigger('change');
+
+	$(window).keydown(function(evt) {
+		if (evt.which == 17) {
+			ctrlPressed = true;
+		};
+	}).keyup(function(evt) {
+		if (evt.which == 17) {
+			ctrlPressed = false;
+		};
+	});
+
+});
+</script>
+{% endblock body %}

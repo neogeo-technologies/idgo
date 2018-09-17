@@ -23,6 +23,7 @@ from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -42,6 +43,7 @@ from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
+from idgo_admin.mra_client import MRAHandler
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
@@ -73,6 +75,8 @@ def member_subscribe_process(request, profile, organisation, mail=True):
 def member_unsubscribe_process(request, profile, organisation):
     if profile.organisation != organisation:
         raise UnexpectedError('Echec')
+    if profile.organisation.is_crige_partner:
+        profile.crige_membership = False
     profile.organisation = None
     profile.membership = False
     profile.save()
@@ -163,7 +167,7 @@ def organisation(request, id=None):
         'address': instance.address,
         'postcode': instance.postcode,
         'city': instance.city,
-        'phone': instance.org_phone,
+        'phone': instance.phone,
         'website': instance.website,
         'email': instance.email,
         'description': instance.description,
@@ -178,6 +182,7 @@ def organisation(request, id=None):
             'is_referent': LiaisonsReferents.objects.filter(
                 profile=member, organisation__id=id, validated_on__isnull=False
                 ).exists(),
+            'crige_membership': member.crige_membership,
             'datasets_count': len(Dataset.objects.filter(
                 organisation=id, editor=member.user)),
             'profile_id': member.id
@@ -191,6 +196,13 @@ def organisation(request, id=None):
                         Q(liaisonsreferents__organisation=id),
                         Q(liaisonsreferents__validated_on__isnull=False)])])
                 ).distinct().order_by('user__username')]}
+
+    if instance.ows_url:
+        ows_settings = MRAHandler.get_ows_settings('ows', instance.ckan_slug)
+        data['osw'] = {
+            'url': instance.ows_url,
+            'title': ows_settings.pop('title', None),
+            'abstract': ows_settings.pop('abstract', None)}
 
     try:
         data['logo'] = urljoin(settings.DOMAIN_NAME, instance.logo.url)
@@ -269,12 +281,14 @@ class UpdateOrganisation(View):
             validated_on__isnull=False) and True or False
 
         if is_referent or is_admin:
+            instance = get_object_or_404(Organisation, id=id)
             return render_with_info_profile(
                 request, self.template, context={
-                    'id': id, 'update': True, 'form': Form(
-                        instance=get_object_or_404(Organisation, id=id),
-                        include={'user': user, 'id': id})})
-
+                    'id': id,
+                    'update': True,
+                    'organisation_name': instance.name,
+                    'form': Form(instance=instance,
+                                 include={'user': user, 'id': id})})
         raise Http404()
 
     @ExceptionsHandler(
@@ -323,6 +337,36 @@ class UpdateOrganisation(View):
 
 
 @method_decorator(decorators, name='dispatch')
+class OrganisationOWS(View):
+
+    @ExceptionsHandler(
+        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    def post(self, request):
+        user, profile = user_and_profile(request)
+
+        instance = get_object_or_404(Organisation, id=request.GET.get('id'))
+
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation=instance,
+            validated_on__isnull=False) and True or False
+
+        if is_referent or is_admin:
+            json = {
+                'abstract': request.POST.get('abstract', None),
+                'title': request.POST.get('title', None)}
+            print(json)
+            try:
+                MRAHandler.update_ows_settings('ows', instance.ckan_slug, json)
+            except Exception as e:
+                messages.error(request, e.__str__())
+            else:
+                messages.success(request, "Le service OGC est mis à jour.")
+            return JsonResponse(data={})
+        raise Http404()
+
+
+@method_decorator(decorators, name='dispatch')
 class Subscription(View):
 
     namespace = 'idgo_admin:all_organizations'
@@ -361,7 +405,14 @@ class Subscription(View):
                     '<strong>{0}</strong> est en cours de traitement. '
                     "Celle-ci ne sera effective qu'après validation par "
                     'un administrateur.').format(status, organisation.name)
+                # Spécial CRIGE
+                if status == 'member':
+                    messages.info(request, "L'organisation est partenaire du CRIGE.")
+                # Fin [Spécial CRIGE]
             messages.success(request, message)
 
-        return HttpResponseRedirect('{0}#{1}'.format(
-            reverse(self.namespace), organisation.id))
+        # TODO Revoir la gestion de l'AJAX sur la page des organisations
+
+        return JsonResponse(data={})  # Bidon
+        # return HttpResponseRedirect('{0}#{1}'.format(
+        #     reverse(self.namespace), organisation.id))

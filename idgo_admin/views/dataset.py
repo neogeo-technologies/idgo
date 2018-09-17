@@ -18,7 +18,6 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.db.models import F
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
@@ -28,7 +27,6 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from djqscsv import render_to_csv_response
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanNotFoundError
 from idgo_admin.ckan_module import CkanSyncingError
@@ -37,17 +35,22 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.dataset import DatasetForm as Form
+from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
+from idgo_admin.models import LiaisonsReferents
+from idgo_admin.models import License
 from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
+from idgo_admin.models import ResourceFormats
 from idgo_admin.models import Support
+from idgo_admin.mra_client import MRANotFoundError
 from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
-from idgo_admin.utils import three_suspension_points
+from idgo_admin.views.resource import get_layers
 import json
 
 
@@ -64,6 +67,50 @@ class DatasetManager(View):
     namespace = 'idgo_admin:dataset'
     namespace_resource = 'idgo_admin:resource'
 
+    def get_context(self, form, profile, dataset):
+
+        resources = []
+        ogc_layers = []
+        for resource in Resource.objects.filter(dataset=dataset):
+            resources.append((
+                resource.pk,
+                resource.name,
+                resource.format_type.extension,
+                resource.get_data_type_display(),
+                resource.created_on.isoformat() if resource.created_on else None,
+                resource.last_update.isoformat() if resource.last_update else None,
+                resource.get_restricted_level_display(),
+                str(resource.ckan_id),
+                resource.datagis_id and [str(uuid) for uuid in resource.datagis_id] or [],
+                resource.ogc_services,
+                resource.extractable))
+
+            if resource.datagis_id:
+                common = [
+                    resource.pk, resource.name, resource.get_data_type_display(),
+                    resource.get_restricted_level_display(),
+                    resource.geo_restriction, resource.extractable,
+                    resource.ogc_services]
+                try:
+                    ogc_layers += [
+                        common + list(l) for l in get_layers(resource)]
+                except MRANotFoundError:
+                    pass
+
+        return {
+            'dataset': dataset,
+            'doc_url': READTHEDOC_URL,
+            'form': form,
+            'licenses': dict(
+                (o.pk, o.license.pk) for o
+                in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
+            'ogc_layers': json.dumps(ogc_layers),
+            'resources': json.dumps(resources),
+            'supports': json.dumps(dict(
+                (item.pk, {'name': item.name, 'email': item.email})
+                for item in Support.objects.all())),
+            'tags': json.dumps(ckan.get_tags())}
+
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, *args, **kwargs):
 
@@ -73,53 +120,21 @@ class DatasetManager(View):
                 profile=profile, validated_on__isnull=False).exists():
             raise Http404
 
-        form = Form(include={'user': user, 'identification': False, 'id': None})
-        dataset_name = 'Nouveau'
-        dataset_id = None
-        dataset_ckan_slug = None
-        resources = []
-
-        # Ugly
-        ckan_slug = request.GET.get('ckan_slug')
-        if ckan_slug:
+        _ckan_slug = request.GET.get('ckan_slug')
+        if _ckan_slug:
             instance = get_object_or_404_extended(
-                Dataset, user, include={'ckan_slug': ckan_slug})
+                Dataset, user, include={'ckan_slug': _ckan_slug})
             return redirect(
                 reverse(self.namespace) + '?id={0}'.format(instance.pk))
 
-        id = request.GET.get('id')
-        if id:
-            instance = get_object_or_404_extended(
-                Dataset, user, include={'id': id})
+        id = request.POST.get('id', request.GET.get('id'))
+        instance = id and get_object_or_404_extended(
+            Dataset, user, include={'id': id}) or None
 
-            form = Form(instance=instance,
-                        include={'user': user, 'identification': True, 'id': id})
-            dataset_name = instance.name
-            dataset_id = instance.id
-            dataset_ckan_slug = instance.ckan_slug
-            resources = [(
-                o.pk,
-                o.name,
-                o.format_type.extension,
-                o.created_on.isoformat() if o.created_on else None,
-                o.last_update.isoformat() if o.last_update else None,
-                o.get_restricted_level_display(),
-                str(o.ckan_id)
-                ) for o in Resource.objects.filter(dataset=instance)]
+        form = Form(instance=instance, include={
+            'user': user, 'id': id, 'identification': id and True or False})
 
-        context = {'form': form,
-                   'doc_url': READTHEDOC_URL,
-                   'dataset_name': three_suspension_points(dataset_name),
-                   'dataset_id': dataset_id,
-                   'dataset_ckan_slug': dataset_ckan_slug,
-                   'licenses': dict(
-                       (o.pk, o.license.pk) for o
-                       in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
-                   'resources': json.dumps(resources),
-                   'supports': json.dumps(dict(
-                       (item.pk, {'name': item.name, 'email': item.email})
-                       for item in Support.objects.all())),
-                   'tags': json.dumps(ckan.get_tags())}
+        context = self.get_context(form, profile, instance)
 
         return render_with_info_profile(request, self.template, context=context)
 
@@ -129,44 +144,15 @@ class DatasetManager(View):
 
         user, profile = user_and_profile(request)
 
-        context = {
-            'supports': json.dumps(dict(
-                (item.pk, {'name': item.name, 'email': item.email})
-                for item in Support.objects.all())),
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'dataset_name': 'Nouveau',
-            'dataset_id': None,
-            'licenses': dict(
-                (o.pk, o.license.pk) for o
-                in LiaisonsContributeurs.get_contribs(profile=profile) if o.license),
-            'resources': [],
-            'tags': json.dumps(ckan.get_tags())}
-
         id = request.POST.get('id', request.GET.get('id'))
         instance = id and get_object_or_404_extended(
             Dataset, user, include={'id': id}) or None
 
         form = Form(
-            request.POST, request.FILES, instance=instance,
-            include={'user': user, 'id': id,
-                     'identification': id and True or False})
+            request.POST, request.FILES, instance=instance, include={
+                'user': user, 'id': id, 'identification': id and True or False})
 
-        context.update(form=form)
-        if instance:
-            context.update(
-                dataset_name=three_suspension_points(instance.name),
-                dataset_ckan_slug=instance.ckan_slug,
-                dataset_id=instance.id,
-                resources=json.dumps([(
-                    o.pk,
-                    o.name,
-                    o.format_type.extension,
-                    o.created_on.isoformat() if o.created_on else None,
-                    o.last_update.isoformat() if o.last_update else None,
-                    o.get_restricted_level_display(),
-                    str(o.ckan_id)
-                    ) for o in Resource.objects.filter(dataset=instance)]))
+        context = self.get_context(form, profile, instance)
 
         if not form.is_valid():
             errors = form._errors.get('__all__', [])
@@ -185,6 +171,11 @@ class DatasetManager(View):
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
         else:
+            # if id:
+            #     Mail.updating_a_dataset(profile, instance)
+            # else:
+            #     Mail.creating_a_dataset(profile, instance)
+
             messages.success(request, (
                 'Le jeu de données a été {0} avec succès. Souhaitez-vous '
                 '<a href="{1}">créer un nouveau jeu de données</a> ? ou '
@@ -232,40 +223,148 @@ class DatasetManager(View):
             messages.error(request, e.__str__())
         else:
             instance.delete()
+            # Mail.deleting_a_dataset(profile, instance)
+
             status = 200
             message = 'Le jeu de données a été supprimé avec succès.'
             messages.success(request, message)
-            Mail.conf_deleting_dataset_res_by_user(user, dataset=instance)
         finally:
             ckan_user.close()
 
         return HttpResponse(status=status)
 
 
+def get_all_organisations(profile, strict=False):
+    role = profile.get_roles()
+
+    if role['is_admin'] and not strict:
+        filters = {}
+    elif role['is_referent'] and not strict:
+        filters = {
+            'liaisonsreferents__profile': profile,
+            'liaisonsreferents__validated_on__isnull': False}
+    else:
+        filters = {
+            'liaisonscontributeurs__profile': profile,
+            'liaisonscontributeurs__validated_on__isnull': False}
+
+    return [{
+        'id': instance.ckan_slug,
+        'name': instance.name
+        } for instance in Organisation.objects.filter(is_active=True, **filters)]
+
+
+def get_all_datasets(profile, strict=False):
+    role = profile.get_roles()
+
+    if role['is_admin'] and not strict:
+        filters = {}
+    elif role['is_referent'] and not strict:
+        filters = {
+            'organisation__in': LiaisonsReferents.get_subordinated_organizations(profile=profile)}
+    else:
+        filters = {'editor': profile.user}
+
+    return [{
+        'id': instance.ckan_slug,
+        'name': instance.name
+        } for instance in Dataset.objects.filter(**filters)]
+
+
+def get_datasets(profile, qs, strict=False):
+
+    filters = {}
+    if strict:
+        filters['editor'] = profile.user
+    else:
+        filters['organisation__in'] = \
+            LiaisonsReferents.get_subordinated_organizations(profile=profile)
+
+    organisation = qs.get('organisation', None)
+    if organisation:
+        filters['organisation__in'] = Organisation.objects.filter(ckan_slug=organisation)
+
+    q = qs.get('q', None)
+    if q:
+        filters['name__icontains'] = q
+        # filters['description__icontains'] = q
+
+    private = {'true': True, 'false': False}.get(qs.get('private', '').lower())
+    if private:
+        filters['published'] = not private
+
+    category = qs.get('category', None)
+    if category:
+        filters['categories__in'] = Category.objects.filter(ckan_slug=category)
+
+    license = qs.get('license', None)
+    if license:
+        filters['license__id'] = license
+
+    synchronisation = {'true': True, 'false': False}.get(qs.get('sync', '').lower())
+    if synchronisation:
+        filters['resource__synchronisation'] = synchronisation
+
+    sync_frequency = qs.get('syncfrequency', None)
+    if synchronisation and sync_frequency:
+        filters['resource__sync_frequency'] = sync_frequency
+
+    resource_format = qs.get('resourceformat', None)
+    if resource_format:
+        filters['resource__format_type__extension'] = resource_format
+
+    print(filters)
+
+    return Dataset.objects.filter(**filters)
+
+
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
-def datasets(request, *args, **kwargs):
+def my_datasets(request, *args, **kwargs):
 
     user, profile = user_and_profile(request)
 
-    datasets = [(
-        o.pk,
-        o.name,
-        o.date_creation.isoformat() if o.date_creation else None,
-        o.date_modification.isoformat() if o.date_modification else None,
-        o.date_publication.isoformat() if o.date_publication else None,
-        Organisation.objects.get(id=o.organisation_id).name,
-        o.published,
-        o.is_inspire,
-        o.ckan_slug,
-        profile in LiaisonsContributeurs.get_contributors(o.organisation)
-        ) for o in Dataset.objects.filter(editor=user)]
+    all_categories = [
+        {'id': instance.ckan_slug, 'name': instance.name}
+        for instance in Category.objects.all()]
+    all_datasets = get_all_datasets(profile, strict=True)
+    all_licenses = [
+        {'id': instance.id, 'name': instance.title}
+        for instance in License.objects.all()]
+    all_organisations = get_all_organisations(profile, strict=True)
+    all_resourceformats = [
+        {'id': instance.extension, 'name': instance.extension}
+        for instance in ResourceFormats.objects.all()]
+    all_update_frequencies = [
+        {'id': choice[0], 'name': choice[1]}
+        for choice in Resource.FREQUENCY_CHOICES]
+
+    filtered_datasets = [(
+        instance.pk,
+        instance.name,
+        instance.date_creation.isoformat() if instance.date_creation else None,
+        instance.date_modification.isoformat() if instance.date_modification else None,
+        instance.date_publication.isoformat() if instance.date_publication else None,
+        Organisation.objects.get(id=instance.organisation_id).name,
+        instance.editor.get_full_name() if instance.editor != profile.user else 'Moi',
+        instance.published,
+        instance.is_inspire,
+        instance.ckan_slug,
+        profile in LiaisonsContributeurs.get_contributors(instance.organisation)
+        ) for instance in get_datasets(profile, request.GET, strict=True)]
 
     return render_with_info_profile(
         request, 'idgo_admin/datasets.html', status=200,
-        context={'datasets': json.dumps(datasets),
-                 'datasets_count': len(datasets)})
+        context={
+            'all_categories': all_categories,
+            'all_datasets': all_datasets,
+            'all_licenses': all_licenses,
+            'all_organisations': all_organisations,
+            'all_resourceformats': all_resourceformats,
+            'all_update_frequencies': all_update_frequencies,
+            'datasets': json.dumps(filtered_datasets),
+            'datasets_count': len(filtered_datasets)})
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -276,50 +375,46 @@ def all_datasets(request, *args, **kwargs):
     user, profile = user_and_profile(request)
 
     roles = profile.get_roles()
-    if not roles["is_referent"] and not roles["is_admin"]:
+    if not roles['is_referent'] and not roles['is_admin']:
         raise Http404
 
-    datasets = [(
-        d.pk,
-        d.name,
-        d.date_creation.isoformat() if d.date_creation else None,
-        d.date_modification.isoformat() if d.date_modification else None,
-        d.date_publication.isoformat() if d.date_publication else None,
-        Organisation.objects.get(id=d.organisation_id).name,
-        d.editor.get_full_name() if d.editor != user else 'Moi',
-        d.published,
-        d.is_inspire,
-        d.ckan_slug,
-        ) for d in Dataset.get_subordinated_datasets(profile)]
+    all_categories = [
+        {'id': instance.ckan_slug, 'name': instance.name}
+        for instance in Category.objects.all()]
+    all_datasets = get_all_datasets(profile)
+    all_licenses = [
+        {'id': instance.id, 'name': instance.title}
+        for instance in License.objects.all()]
+    all_organisations = get_all_organisations(profile)
+    all_resourceformats = [
+        {'id': instance.extension, 'name': instance.extension}
+        for instance in ResourceFormats.objects.all()]
+    all_update_frequencies = [
+        {'id': choice[0], 'name': choice[1]}
+        for choice in Resource.FREQUENCY_CHOICES]
+
+    filtered_datasets = [(
+        instance.pk,
+        instance.name,
+        instance.date_creation.isoformat() if instance.date_creation else None,
+        instance.date_modification.isoformat() if instance.date_modification else None,
+        instance.date_publication.isoformat() if instance.date_publication else None,
+        Organisation.objects.get(id=instance.organisation_id).name,
+        instance.editor.get_full_name() if instance.editor != profile.user else 'Moi',
+        instance.published,
+        instance.is_inspire,
+        instance.ckan_slug,
+        profile in LiaisonsContributeurs.get_contributors(instance.organisation)
+        ) for instance in get_datasets(profile, request.GET)]
 
     return render_with_info_profile(
         request, 'idgo_admin/all_datasets.html', status=200,
-        context={'datasets': json.dumps(datasets),
-                 'datasets_count': len(datasets)})
-
-
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-@login_required(login_url=settings.LOGIN_URL)
-@csrf_exempt
-def export(request, *args, **kwargs):
-
-    user, profile = user_and_profile(request)
-
-    if profile.get_roles()["is_referent"] and request.GET.get('mode') == 'all':
-        datasets = Dataset.get_subordinated_datasets(profile)
-    else:
-        datasets = Dataset.objects.filter(editor=user)
-
-    if request.GET.get('format') == 'csv':
-        datasets = datasets.annotate(
-            Auteur=F('editor__email'),
-            Nom_organisation=F('organisation__name'),
-            Titre_licence=F('license__title'),
-            ).values(
-                'name', 'description', 'Auteur', 'published', 'is_inspire',
-                'date_creation', 'date_publication', 'date_modification',
-                'Nom_organisation', 'Titre_licence', 'update_freq',
-                'geocover', 'ckan_slug')
-        return render_to_csv_response(datasets)
-
-    raise Http404
+        context={
+            'all_categories': all_categories,
+            'all_datasets': all_datasets,
+            'all_licenses': all_licenses,
+            'all_organisations': all_organisations,
+            'all_resourceformats': all_resourceformats,
+            'all_update_frequencies': all_update_frequencies,
+            'datasets': json.dumps(filtered_datasets),
+            'datasets_count': len(filtered_datasets)})

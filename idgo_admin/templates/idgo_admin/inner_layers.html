@@ -1,0 +1,228 @@
+{% load bootstrap3 %}
+
+{% include "idgo_admin/alert_messages.html" %}
+
+
+<div id="table-layers" class="table-responsive"></div>
+<nav aria-label="Page navigation" style="text-align: center;">
+	<ul id="table-layers-paginator" class="pagination pagination-sm"></ul>
+</nav>
+<div class="buttons-on-the-right-side">
+	{% if is_crige %}
+	<button name="extractor" class="btn btn-default">Service d'extraction</button>
+	{% endif %}
+	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
+	<button name="edit-layer" class="btn btn-default">Editer</button>
+</div>
+
+<script>
+$(function() {
+	var LAYERS = {{ ogc_layers | safe }};
+	var LAYERS_CONTAINER = 'table-layers';
+	var LAYERS_METADATA = [
+		{
+			name: 'resource',
+			label: 'Titre de la ressource',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'title',
+			label: 'Titre de la couche',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'type',
+			label: 'Type',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'ogc_enabled',
+			label: 'Service OGC',
+			editable: false,
+			datatype: 'boolean'
+		}, {
+			name: 'extractor_enabled',
+			label: "Service d'extraction",
+			editable: false,
+			datatype: 'boolean'
+		}, {
+			name: 'restrictions',
+			label: "Restrictions d'accès",
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'geo_restrictions',
+			label: "Au territoire de compétence",
+			editable: false,
+			datatype: 'boolean'
+		}, {
+			name: 'bbox',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'object'
+		}, {
+			name: 'attributes',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'object'
+		}, {
+			name: 'styles',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'object'
+		}, {
+			name: 'resource_id',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'id',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'string'
+		}
+	];
+
+	{% if is_crige %}
+	$('button[name="extractor"]').on('click', function(e) {
+		e.preventDefault();
+		const data = tableGrid.getRowValues(tableGrid.lastSelectedRowIndex);
+		redirect('{% url "idgo_admin:extractor"%}?&layer=' + data['id'])
+		e.stopPropagation();
+	});
+	{% endif %}
+
+	$('button[name="view-ckan"]').on('click', function(e) {
+		e.preventDefault();
+		targetBlank('{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
+		e.stopPropagation();
+	});
+
+	$('button[name="edit-layer"]').on('click', function(e) {
+		e.preventDefault();
+		redirect('{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['resource_id'] + '&layer=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
+		e.stopPropagation();
+	});
+
+	var tableGrid = new EditableGrid('Layers', {pageSize: 5});
+
+	tableGrid.initializeGrid = function() {
+		var grid = tableGrid;
+		var $buttons = $($('#' + this.currentContainerid).parent().get(0)).find('button');
+
+		with (this) {
+			tableRendered = function() {
+				this.updatePaginator(grid);
+			};
+			rowSelected = function(pRowIdx, nRowIdx) {
+				$(grid.getRow(pRowIdx)).removeClass('selected');
+				$buttons.each(function() {
+					deactivateButton($(this));
+				});
+				if (pRowIdx != nRowIdx) {
+					window.location = '#owslayers/' + getRowValues(nRowIdx).id;
+					$(grid.getRow(nRowIdx)).addClass('selected');
+					{% if is_crige %}
+					if (getRowValues(nRowIdx).extractor_enabled) {
+						activateButton($('button[name="extractor"]'));
+					};
+					{% endif %}
+					if (getRowValues(nRowIdx).ogc_enabled) {
+						activateButton($('button[name="view-ckan"]'));
+					};
+					activateButton($('button[name="edit-layer"]'));
+				};
+			};
+			const BooleanRenderer = function(cell, value) {
+				cell.style.textAlign = 'center';
+				// cell.style.width = '32px';
+				cell.innerHTML = (value == true) ? '<span class="glyphicon glyphicon-ok"></span>' : '';
+			};
+			setCellRenderer('ogc_enabled', new CellRenderer({render: BooleanRenderer}));
+			setCellRenderer('extractor_enabled', new CellRenderer({render: BooleanRenderer}));
+			setCellRenderer('geo_restrictions', new CellRenderer({render: BooleanRenderer}));
+		};
+	};
+
+	const selectRowByDataId = function(dataId) {
+		for (var i = 0; i < tableGrid.data.length; i ++) {
+			if (tableGrid.data[i].columns[tableGrid.getColumnIndex('id')] == dataId) {
+				tableGrid.setPageIndex(0);
+				// TODO Pas good
+				while (tableGrid.currentPageIndex < tableGrid.getPageCount()) {
+					const rowIndex = tableGrid.getRowIndex(tableGrid.data[i].id);
+					if (tableGrid.getRow(rowIndex)) {
+						tableGrid.rowSelected(tableGrid.lastSelectedRowIndex, rowIndex);
+						tableGrid.lastSelectedRowIndex = rowIndex;
+						break;
+					};
+					tableGrid.setPageIndex(tableGrid.currentPageIndex + 1);
+				};
+			};
+		};
+	};
+
+	function updateTableGrid(grid, containerId, metadata, data) {
+		var $containerId = $('#' + containerId);
+		var $parent = $($containerId.parent().get(0));
+		$parent.find('div[role="alert"]not:div[name="message-tags"]').remove();
+		$parent.find('button').each(function() {
+			deactivateButton($(this));
+		});
+		if (data.length > 0) {
+			grid.load({'metadata': metadata, 'data': data});
+			grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
+			grid.initializeGrid();
+			grid.refreshGrid();
+			$containerId.show();
+		} else {
+			$containerId.hide();
+		};
+
+		if (data.length == 0) {
+			$parent.find('button.btn, a.btn').each(function() {
+				deactivateButton($(this));
+				$(this).hide();
+			});
+			$containerId.before('<div role="alert" class="alert alert-warning"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n\'avez encore jamais ajouté de ressource. <a name="add-resource" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}">Créer une nouvelle ressource</a> pour commencer.<div/>');
+		};
+
+	};
+
+	updateTableGrid(
+		tableGrid,
+		LAYERS_CONTAINER,
+		LAYERS_METADATA,
+		(function(data) {
+			var m = [];
+			for (var i = 0; i < data.length; i ++) {
+				m.push({
+					id: i,
+					values: [
+						data[i][1],  // resource_name
+						// data[i][8],  // name
+						data[i][9],  // title
+						data[i][2],  // type
+						data[i][6],  // ogc_enabled
+						data[i][5],  // extractor_enabled
+						data[i][3],  // restrictions
+						data[i][4],  // geo_restrictions
+						data[i][11],  // bbox
+						data[i][12],  // attributes
+						data[i][13], // styles
+						data[i][0],  // resource_pk
+						data[i][7]   // datagis_id
+					]
+				});
+			};
+			return m;
+		})(LAYERS)
+	);
+
+	$(window).bind('hashchange', function(e) {
+		selectRowByDataId(location.hash.split('/')[1]);
+	});
+	selectRowByDataId(location.hash.split('/')[1]);
+
+});
+</script>

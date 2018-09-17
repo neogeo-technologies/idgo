@@ -3,22 +3,24 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <div class="buttons-on-the-right-side">
-	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_admin:resource" dataset_id=dataset_id %}">Ajouter une nouvelle ressource</a>
+	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}">Ajouter une nouvelle ressource</a>
 </div>
 <div id="table-resources" class="table-responsive"></div>
 <nav aria-label="Page navigation" style="text-align: center;">
 	<ul id="table-resources-paginator" class="pagination pagination-sm"></ul>
 </nav>
 <div class="buttons-on-the-right-side">
-	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
+	{% if is_crige %}
+	<button name="resource-extractor" class="btn btn-default">Service d'extraction</button>
+	{% endif %}
+	<button name="view-ckan-resource" class="btn btn-default">Ouvrir dans CKAN</button>
 	<button name="edit-resource" class="btn btn-default">Editer</button>
 	<button name="delete-resource" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 </div>
 
 <script>
 $(function() {
-	var CKAN_URL = '{{ ckan_url }}';
-	var RESOURCE_URL = '{% url "idgo_admin:resource" dataset_id=dataset_id %}';
+	var RESOURCE_URL = '{% url "idgo_admin:resource" dataset_id=dataset.id %}';
 	var RESOURCES = {{ resources | safe }};
 	var RESOURCES_CONTAINER = 'table-resources';
 	var RESOURCES_METADATA = [
@@ -30,6 +32,11 @@ $(function() {
 		}, {
 			name: 'format',
 			label: 'Format',
+			editable: false,
+			datatype: 'string'
+		}, {
+			name: 'type',
+			label: 'Type',
 			editable: false,
 			datatype: 'string'
 		}, {
@@ -53,6 +60,21 @@ $(function() {
 			editable: false,
 			datatype: 'string'
 		}, {
+			name: 'datagis_id',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'object'
+		}, {
+			name: 'ogc_services',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'object'
+		}, {
+			name: 'extractable',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'object'
+		}, {
 			name: 'id',
 			label: '_HIDDEN',  //->https://github.com/webismymind/editablegrid/issues/153
 			editable: false,
@@ -62,11 +84,21 @@ $(function() {
 
 	var tableGrid = new EditableGrid('Resources', {pageSize: 10});
 
-	$('#resources button[name="view-ckan"]').on('click', function(e) {
+	{% if is_crige %}
+	$('button[name="resource-extractor"]').on('click', function(e) {
 		e.preventDefault();
-		targetBlank(CKAN_URL + '/dataset/{{ dataset_ckan_slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
+		redirect('{% url "idgo_admin:extractor"%}?&resource=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id'])
 		e.stopPropagation();
 	});
+	{% endif %}
+
+	$('#resources [name="view-ckan-resource"]').on('click', function(e) {
+		e.preventDefault();
+		targetBlank('{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
+		e.stopPropagation();
+	});
+
+	const $multipleCkanView = $('#resources [name="view-multiple-ckan"]').hide();
 
 	$('#resources button[name="delete-resource"]')
 		.on('click', function(e) {
@@ -155,9 +187,12 @@ $(function() {
 				if (pRowIdx != nRowIdx) {
 					window.location = '#resources/' + getRowValues(nRowIdx).id;
 					$(grid.getRow(nRowIdx)).addClass('selected');
-					$buttons.each(function() {
-						activateButton($(this));
-					});
+					if (getRowValues(nRowIdx).datagis_id.length && getRowValues(nRowIdx).extractable) {
+					 	activateButton($('button[name="resource-extractor"]'));
+					};
+					activateButton($('#resources button[name="view-ckan-resource"]'));
+					activateButton($('#resources button[name="edit-resource"]'));
+					activateButton($('#resources button[name="delete-resource"]'));
 				};
 			};
 			var DATE_FORMAT = 'dddd Do MMMM YYYY';
@@ -219,7 +254,7 @@ $(function() {
 				deactivateButton($(this));
 				$(this).hide();
 			});
-			$containerId.before('<div role="alert" class="alert alert-warning"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n\'avez encore jamais ajouté de ressource. <a name="add-resource" href="{% url "idgo_admin:resource" dataset_id=dataset_id %}">Créer une nouvelle ressource</a> pour commencer.<div/>');
+			$containerId.before('<div role="alert" class="alert alert-warning"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n\'avez encore jamais ajouté de ressource. <a name="add-resource" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}">Créer une nouvelle ressource</a> pour commencer.<div/>');
 		};
 
 	};
@@ -236,10 +271,14 @@ $(function() {
 					values: [
 						data[i][1],  // title
 						data[i][2],  // format
-						data[i][3],  // date_creation
-						data[i][4],  // last_modification
-						data[i][5],  // restrictions
-						data[i][6],  // ckan_id
+						data[i][3],  // type
+						data[i][4],  // date_creation
+						data[i][5],  // last_modification
+						data[i][6],  // restrictions
+						data[i][7],  // ckan_id
+						data[i][8],  // datagis_id
+						data[i][9],  // ogc_services
+						data[i][10],  // extractable
 						data[i][0]   // id
 					]
 				});

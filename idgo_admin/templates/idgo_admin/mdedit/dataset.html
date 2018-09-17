@@ -8,7 +8,7 @@
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
 	<li>Jeu de données</li>
-	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#dataset">{{ dataset_name }}</a></li>
+	<li><a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#dataset">{{ dataset.name }}</a></li>
 	<li class="active">Édition de la fiche de métadonnées INSPIRE</li>
 </ol>
 {% endblock breadcrumb_content %}
@@ -16,7 +16,52 @@
 {% block main %}
 <div ng-app="mdEdit">
 	<div class="main-container" ng-controller="mdEditCtrl as vm">
-		{% include "idgo_admin/mdedit/inner.html" %}
+		<div class="container ng-scope">
+			<div class="row">
+				<div class="col-md-offset-0 col-md-12">
+					{% if messages %}
+						{% for message in messages %}
+							{% if message.tags == 'success' %}
+							<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+							{% elif message.tags == 'error' %}
+							<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+							{% endif %}
+						{% endfor %}
+					{% endif %}
+					<div class="buttons-on-the-right-side">
+						<span ng-show="vm.data.view == 1" ng-hide="vm.data.view == 3">
+							<a role="button" class="btn btn-default" target="_blank" href="{{ doc_url }}">
+								<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
+							</a>
+							<a href="#" role="button" class="btn btn-default" ng-init="vm.showAllFields=False" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="!vm.showAllFields" uib-tooltip="Permuter vers l'affichage complet" tooltip-trigger="mouseenter" tooltip-placement="left">
+								<span class="glyphicon glyphicon-th"></span>
+							</a>
+							<a href="#" role="button" class="btn btn-default" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="vm.showAllFields" uib-tooltip="Revenir à l'affichage simple" tooltip-trigger="mouseenter" tooltip-placement="left">
+								<span class="glyphicon glyphicon-th-large"></span>
+							</a>
+						</span>
+						<a href="#" role="button" class="btn btn-default" ng-click="vm.changeView(1)" uib-tooltip="Revenir au mode d'édition" tooltip-trigger="mouseenter" tooltip-placement="left" ng-hide="vm.data.view == 1">
+							<span class="glyphicon glyphicon-pencil"></span>
+						</a>
+						<a href="#" role="button" class="btn btn-default" ng-click="vm.changeView(2)" uib-tooltip="Permuter vers le mode de visualisation" tooltip-trigger="mouseenter" tooltip-placement="left" ng-hide="vm.data.view != 1">
+							<span class="glyphicon glyphicon-eye-open"></span>
+						</a>
+					</div>
+					<div ng-hide="vm.data.pageLoaded" id="alert" class="" role="alert">
+						<uib-progressbar class="progress-striped active" value="100" type="info">Chargement...</uib-progressbar>
+					</div>
+					<form name="mdedit">
+						<div id="content" ng-include="vm.data.template_url">
+							<!-- Content -->
+						</div>
+						<div class="buttons-on-the-right-side">
+							<a class="btn btn-default" target="_self" href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#dataset">Annuler</a>
+							<button id="validate" type="button" class="btn btn-primary">Enregistrer</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -114,17 +159,21 @@ $(function() {
 
 	$('#validate').click(function(e) {
 		e.preventDefault();
-		$.ajax({
-			type: 'POST',
-			data: $scope.vm.getXml(),
-			contentType: 'text/xml',
-			dataType: 'xml',
-			success: function(response) {
-				location.reload();
-			},
-			url: '{% url "idgo_admin:mdedit" dataset_id=dataset_id %}'
-		})
-		e.stopPropagation();
+		$modalHourglass.one('show.bs.modal', function(e) {
+			$.ajax({
+				type: 'POST',
+				data: $scope.vm.getXml(),
+				contentType: 'text/xml',
+				dataType: 'xml',
+				success: function(data, status, xhr) {
+					location.reload();  // C'est moche..
+				},
+				error: function(xhr, statut, error) {
+					location.reload();  // C'est moche..
+				},
+				url: '{% url "idgo_admin:dataset_mdedit" id=dataset.id %}'
+			})
+		}).modal('show');
 	});
 });
 </script>

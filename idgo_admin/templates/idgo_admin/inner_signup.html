@@ -61,27 +61,44 @@
 							{% bootstrap_field form.new_orga show_label=False %}
 						</div>
 					</div>
+
 					<div class="row">
-						<div class="col-sm-12">
-							{% bootstrap_field form.logo %}
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-sm-5">
-							{% bootstrap_field form.address show_label=False %}
-						</div>
-						<div class="col-sm-3">
-							{% bootstrap_field form.postcode show_label=False %}
-						</div>
-						<div class="col-sm-4">
-							{% bootstrap_field form.city show_label=False %}
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-sm-3">
-							{% bootstrap_field form.org_phone show_label=False %}
+						<div class="col-sm-6">
+							<label>Contact</label>
+							<div class="row">
+								<div class="col-sm-12">
+									{% bootstrap_field form.address show_label=False %}
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-sm-6">
+									{% bootstrap_field form.postcode show_label=False %}
+								</div>
+								<div class="col-sm-6">
+									{% bootstrap_field form.city show_label=False %}
+								</div>
+							</div>
 						</div>
 						<div class="col-sm-6">
+							<div class="row">
+								<div class="col-sm-12">
+									{% bootstrap_field form.logo %}
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-2 col-md-4">
+							{% bootstrap_field form.org_phone show_label=False %}
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-5 col-md-4">
+							{% bootstrap_field form.org_email show_label=False %}
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-5 col-md-4">
 							{% bootstrap_field form.website show_label=False %}
 						</div>
 					</div>

@@ -14,35 +14,61 @@
 
 <form method="post" action="" enctype="multipart/form-data">
 	<div class="buttons-on-the-right-side">
-		{% if resource_ckan_id %}
-		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset_ckan_slug }}/resource/{{ resource_ckan_id }}">Ouvrir dans CKAN</a>
+		{% if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige %}
+			{% if resource.datagis_id and resource.datagis_id|length == 1 %}
+		<a class="btn btn-default" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ resource.datagis_id.0 }}">Editer la ressource géographique</a>
+			{% else %}
+		<div class="btn-group">
+			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				Editer les ressources géographiques <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
+			</button>
+			<ul class="dropdown-menu dropdown-menu-right">
+				{% for layer in resource.datagis_id %}
+				<li>
+					<a role="button" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ layer }}" style="text-align: right;">{{ layer }}</a>
+				</li>
+				{% endfor %}
+			</ul>
+		</div>
+			{% endif %}
+		{% endif %}
+		{% if resource.ckan_id %}
+		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}/resource/{{ resource.ckan_id }}">Ouvrir dans CKAN</a>
 		{% endif %}
 	</div>
 	<br/>
 	{% csrf_token %}
 	<div class="row">
 		<div class="col-xs-12">
-			{% if mode %}
-				<div class="well">
-				{% if mode == 'up_file' %}
-					{% bootstrap_field form.up_file %}
-				{% elif mode == 'dl_url' %}
-					{% bootstrap_field form.dl_url %}
-					<div class="row">
-						<div class="col-xs-5 col-sm-5 col-md-4">
-							{% bootstrap_field form.synchronisation %}
-						</div>
+			<div id='{{ form.crs.name }}_container'>
+				<div class="row">
+					<div class="col-xs-8">
+						{% bootstrap_field form.crs %}
 					</div>
-					<div class="row">
-						<div class="col-xs-5 col-sm-5 col-md-4">
-							{% bootstrap_field form.sync_frequency show_label=False %}
-						</div>
-					</div>
-				{% elif mode == 'referenced_url' %}
-					{% bootstrap_field form.referenced_url %}
-				{% endif %}
 				</div>
-			{% else %}
+				<br />
+			</div>
+		{% if mode %}
+			<div class="well">
+			{% if mode == 'up_file' %}
+				{% bootstrap_field form.up_file %}
+			{% elif mode == 'dl_url' %}
+				{% bootstrap_field form.dl_url %}
+				<div class="row">
+					<div class="col-xs-5 col-sm-5 col-md-4">
+						{% bootstrap_field form.synchronisation %}
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-5 col-sm-5 col-md-4">
+						{% bootstrap_field form.sync_frequency show_label=False %}
+					</div>
+				</div>
+			{% elif mode == 'referenced_url' %}
+				{% bootstrap_field form.referenced_url %}
+			{% endif %}
+			</div>
+		{% else %}
 			<ul class="nav nav-tabs" name="data-selector" role="tablist">
 				<li role="presentation">
 					<a name="up_file" href="#up_file" aria-controls="up_file" role="tab" data-toggle="tab">Téléverser un fichier</a>
@@ -77,7 +103,7 @@
 					{% bootstrap_field form.referenced_url show_label=False %}
 				</div>
 			</div>
-			{% endif %}
+		{% endif %}
 		</div>
 	</div>
 	<div class="row">
@@ -100,6 +126,11 @@
 			{% bootstrap_field form.format_type %}
 		</div>
 	</div>
+	<div class="row">
+		<div class="col-xs-4">
+			{% bootstrap_field form.data_type %}
+		</div>
+	</div>
 	<hr />
 	<div class="row">
 		<div class="col-xs-8">
@@ -117,6 +148,26 @@
 		</div>
 	</div>
 	<br />
+	{% if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige %}
+	<div class="well">
+		<div class="row">
+			<div class="col-xs-12">
+				{% bootstrap_field form.geo_restriction %}
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12">
+				{% bootstrap_field form.ogc_services %}
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12">
+				{% bootstrap_field form.extractable %}
+			</div>
+		</div>
+	</div>
+	<br />
+	{% endif %}
 	<div class="row">
 		<div class="col-xs-12">
 			<p>* Les champs marqués d'un astérisque sont obligatoires.</p>
@@ -124,17 +175,16 @@
 	</div>
 	<br />
 	<div class="buttons-on-the-right-side">
-		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset_id }}#resources">Annuler</a>
-		<button type="submit" name="continue" class="btn btn-primary">Enregistrer et continuer les modifications</button>
-		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
-		{% if resource_ckan_id %}
-		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset_ckan_slug }}/resource/{{ resource_ckan_id }}">Ouvrir dans CKAN</a>
-		{% endif %}
+		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#resources">Annuler</a>
+		<button type="submit" name="continue" value="continue" class="btn btn-primary">Enregistrer et continuer les modifications</button>
+		<button type="submit" name="save" value="save" class="btn btn-primary">Enregistrer</button>
 	</div>
 </form>
 
 <script>
 $(function() {
+
+	const $crsInputContainer = $('#{{ form.crs.name }}_container').hide();
 
 	$('button[name="continue,save"]').prop('type', 'button');
 
@@ -247,7 +297,7 @@ $(function() {
 				e.preventDefault();
 				$.ajax({
 					type: 'POST',
-					url: '{% url "idgo_admin:resource" dataset_id=dataset_id %}?id={{ resource_id }}',
+					url: '{% url "idgo_admin:resource" dataset_id=dataset.id %}?id={{ resource.id }}',
 					data: data,
 					contentType: false,
 					processData: false,
@@ -258,6 +308,9 @@ $(function() {
 
 						$modal.one('hidden.bs.modal', function(e) {
 							e.preventDefault();
+							if (xhr.status == 278) {
+								window.location.href = xhr.getResponseHeader("Location");
+							};
 							if (xhr.status == 302) {
 								return window.location.href = xhr.getResponseHeader('Location');
 							} else if (xhr.status == 201) {
@@ -271,6 +324,9 @@ $(function() {
 								if (data.error) {
 									for (const key in data.error) {
 										const val = data.error[key].join();
+										if (key == '{{ form.crs.name }}') {
+											$crsInputContainer.show();
+										};
 										if (key == '__all__') {
 											$('.container-message').append('<div name="message-tags" class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>' + val + '</div>');
 										} else {
@@ -340,6 +396,17 @@ $(function() {
 		};
 
 	});
+
+	const onChangeGeoRestriction = function() {
+		const $target = $('[name="{{ form.ogc_services.name }}"]');
+		if (this.checked) {
+			$target.prop('checked', false).prop('disabled', true)
+		} else {
+			$target.prop('disabled', false);
+		};
+	};
+
+	$('[name="{{ form.geo_restriction.name }}"]').on('change', onChangeGeoRestriction).trigger('change');
 
 });
 </script>

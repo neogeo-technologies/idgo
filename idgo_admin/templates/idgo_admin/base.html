@@ -54,7 +54,7 @@ $(document).ajaxSend(function(e, xhr, settings) {
 		</script>
 		<script src="{% static "libs/jquery-plugins/ezdz/jquery.ezdz.js" %}"></script>
 
-		<script src="{% static "libs/bootstrap-typeahead/bootstrap3-typeahead.min.js" %}"></script>
+		<script src="{% static "libs/bootstrap-typeahead/bootstrap3-typeahead.js" %}"></script>
 		<script src="{% static "libs/bootstrap-tagsinput/bootstrap-tagsinput.min.js" %}"></script>
 
 		<script src="{% static "libs/editablegrid/editablegrid.js" %}"></script>
@@ -73,7 +73,9 @@ $(document).ajaxSend(function(e, xhr, settings) {
 (function() {
 	with (this) {
 		redirect = function(path) {
-			window.location.replace(window.location.origin + path);
+			$modalHourglass.one('show.bs.modal', function(e) {
+				window.location.replace(window.location.origin + path);
+			}).modal('show');
 		};
 		targetBlank = function(path) {
 			window.open(path, '_blank');
@@ -100,6 +102,34 @@ $(document).ajaxSend(function(e, xhr, settings) {
 	};
 })();
 		</script>
+		<script>
+(function() {
+	var cache = {};
+	this.templator = function _itself(str, data) {
+		var fun;
+		if (/\W/.test(str)) {
+			var js =
+				"var _p = []; " +
+				"with (obj) { _p.push('" +
+				str
+					.replace(/[\r\t\n]/g, " ")
+					.replace(/'(?=[^%]*%>)/g,"\t")
+					.replace(/\r|\*="/g, ' ')
+					.split("'").join("\\'")
+					.split("\t").join("'")
+					.replace(/<%=(.+?)%>/g, "',$1,'")
+					.split("<%").join("');")
+					.split("%>").join("_p.push('")
+				+ "');}return _p.join('');";
+			js = js.replace(/\&amp;/g, '&');  // Ugly..
+			fun = new Function('obj', js);
+		} else {
+			fun = (cache[str] = cache[str]) || _itself(document.getElementById(str).innerHTML);
+		};
+		return data ? fun(data) : fun;
+	};
+})();
+		</script>
 		<link rel="stylesheet" href="{% static "libs/jquery-plugins/ezdz/jquery.ezdz.css" %}"/>
 		<link rel="stylesheet" href="{% static "libs/bootstrap/css/bootstrap.min.css" %}"/>
 		<link rel="stylesheet" href="{% static "libs/bootstrap-tagsinput/bootstrap-tagsinput.css" %}"/>
@@ -115,6 +145,15 @@ $(document).ajaxSend(function(e, xhr, settings) {
 	</div>
 
 	<body>
+		<div id="modal-hourglass" class="modal modal-hourglass" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content modal-centered-content">
+					<span class="glyphicon glyphicon-hourglass"></span>
+					<br/>
+					Chargement...
+				</div>
+			</div>
+		</div>
 		<div id="modal-dialog" class="modal fade" tabindex="-1" role="dialog">
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
@@ -128,6 +167,7 @@ $(document).ajaxSend(function(e, xhr, settings) {
 				</div>
 			</div>
 		</div>
+		{% block body %}
 		{% block header %}
 		<div class="page-header">
 			<div class="container">
@@ -159,6 +199,11 @@ $(document).ajaxSend(function(e, xhr, settings) {
 							<li role="presentation">
 								<a href="{% url "idgo_admin:all_organizations" %}" aria-controls="all-organizations" role="tab">Les organisations</a>
 							</li>
+							{% if is_crige %}
+							<li role="presentation">
+								<a href="{% url "idgo_admin:extractor_dashboard" %}" aria-controls="all-extracts" role="tab">Mes extractions</a>
+							</li>
+							{% endif %}
 							{% block nav_content_extra %}
 							{% endblock nav_content_extra %}
 						</ul>
@@ -203,6 +248,7 @@ $(document).ajaxSend(function(e, xhr, settings) {
 			</div>
 		</div>
 		{% endblock footer %}
+		{% endblock body %}
 	</body>
 	<script>
 
@@ -212,11 +258,12 @@ var $popover = $('[data-toggle="popover"]')
 		trigger: 'hover'
 	});
 
-var $modal = $('.modal[role="dialog"]#modal-dialog')
-	.modal({
-		'backdrop': 'static',
-		'show': false  // Important!
-	})
+var closeAllModalDialog = function() {
+	$('.modal').modal('hide');
+};
+
+var $modal = $('#modal-dialog')
+	.modal({'backdrop': 'static', 'show': false})
 	.on('show.bs.modal', function(e) {
 		closeAllModalDialog();
 	})
@@ -225,9 +272,11 @@ var $modal = $('.modal[role="dialog"]#modal-dialog')
 		$(this).find('.modal-title').val('');
 	});
 
-var closeAllModalDialog = function() {
-	$modal.modal('hide');
-};
+var $modalHourglass = $('#modal-hourglass')
+	.modal({'backdrop': 'static', 'show': false})
+	.on('show.bs.modal', function(e) {
+		closeAllModalDialog();
+	});
 
 $('.phone').change(function() {
 	var $this = $(this);

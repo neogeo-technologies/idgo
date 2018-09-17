@@ -9,6 +9,9 @@
 			<li role="presentation">
 				<a href="#members" aria-controls="members" role="tab" data-toggle="tab">Utilisateurs</a>
 			</li>
+			<li role="presentation">
+				<a href="#service" aria-controls="service" role="tab" data-toggle="tab">Service OGC</a>
+			</li>
 		</ul>
 		<div class="tab-content">
 			<div role="tabpanel" class="tab-pane active" id="info">
@@ -79,6 +82,7 @@
 						<ul id="table-members-paginator" class="pagination pagination-sm"></ul>
 					</nav>
 					<div class="buttons-on-the-right-side">
+						{% if user.profile.is_crige_admin %}<button role="button" name="send-mail-to-crige-member" class="btn btn-default">Envoyer un e-mail aux membres CRIGE</button>{% endif %}
 						<button role="button" name="ckan-card" class="btn btn-default">Ouvrir la fiche Ckan</button>
 						<div class="btn-group">
 							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -90,6 +94,40 @@
 								<li><a role="button" name="delete-referent" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de référent technique</a></li>
 							</ul>
 						</div>
+					</div>
+				</div>
+			</div>
+			<div role="tabpanel" class="tab-pane" id="service">
+				<div class="tab-pane-content">
+					<div class="row">
+						<div class="col-xs-12">
+							<div class="form-group">
+								<label for="ows-onlineresource">URL du service</label>
+								<div class="form-control-static">
+									<a id="ows-url" target="_blank"></a>
+								<div>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-12">
+							<div class="form-group">
+								<label for="ows-title">Titre</label>
+								<input class="form-control" id="ows-title"></input>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-12">
+							<div class="form-group">
+								<label for="ows-abstract">Description</label>
+								<textarea class="form-control" id="ows-abstract" rows=6></textarea>
+							</div>
+						</div>
+					</div>
+					<div class="buttons-on-the-right-side">
+						<button type="button" name="ows-meta" class="btn btn-default">Editer la fiche de métadonnées INSPIRE</button>
+						<button type="button" name="ows-save" class="btn btn-primary">Enregistrer</button>
 					</div>
 				</div>
 			</div>
@@ -164,8 +202,6 @@
 </div>
 
 <script>
-const hash = window.location.hash.substring(1);
-
 $(function() {
 
 	const openModalDelete = function(organizationId, username, target) {
@@ -245,8 +281,7 @@ $(function() {
 		$modal.modal('show');
 	};
 
-
-	const displayOrganisation = function(data) {
+	const displayOrganization = function(data) {
 
 		const ORGANIZATION_ID = data.id;
 
@@ -360,6 +395,7 @@ $(function() {
 				grid.setCellRenderer('is_member', new CellRenderer({render: booleanRender}));
 				grid.setCellRenderer('is_contributor', new CellRenderer({render: booleanRender}));
 				grid.setCellRenderer('is_referent', new CellRenderer({render: booleanRender}));
+				grid.setCellRenderer('is_crige_member', new CellRenderer({render: booleanRender}));
 			};
 
 			membersGrid.load({
@@ -390,6 +426,13 @@ $(function() {
 						editable: false,
 						datatype: 'boolean'
 					}, {
+					{% if user.profile.is_crige_admin %}
+						name: 'is_crige_member',
+						label: 'Membre partenaire du CRIGE',
+						editable: false,
+						datatype: 'boolean'
+					}, {
+					{% endif %}
 						name: 'datasets_count',
 						label: 'Nombre de jeux de données',
 						editable: false,
@@ -412,6 +455,7 @@ $(function() {
 								data[i].is_member,
 								data[i].is_contributor,
 								data[i].is_referent,
+								{% if user.profile.is_crige_admin %}data[i].crige_membership,{% endif %}
 								data[i].datasets_count,
 								data[i].profile_id
 							]
@@ -474,7 +518,6 @@ $(function() {
 		};
 
 		{% if not is_admin %}
-
 		const buttonReferentStatus = function() {
 			{% for item in referent %}
 			if (data['id'] == {{ item.0 }}) {
@@ -499,23 +542,108 @@ $(function() {
 			{% for item in referent %}
 			if (data['id'] == {{ item.0 }}) {
 				addUpdateButton('{% url "idgo_admin:update_organization" id=item.0 %}');
+
+				$('button[name="ows-meta"]')
+					.on('click', function(e) {
+						e.preventDefault();
+						redirect('{% url "idgo_admin:service_mdedit" id=item.0 %}');
+						e.stopPropagation();
+					});
 			};
 			{% endfor %}
 		{% endif %}
 
+		if (data.osw) {
+			$('#ows-title').val(data.osw.title);
+			$('#ows-abstract').val(data.osw.abstract);
+			$('#ows-url').attr('href', data.osw.url).text(data.osw.url);
+			if (!(isReferent() || {{ is_admin | yesno:'true,false,null' }})) {
+				$('#ows-title').prop('disabled', true).addClass('disabled');
+				$('#ows-abstract').prop('disabled', true).addClass('disabled');
+				$('button[name=ows-meta]').remove();
+				$('button[name=ows-save]').remove();
+			} else {
+				$('button[name="ows-meta"]')
+					.on('click', function(e) {
+						e.preventDefault();
+						redirect('{% url "idgo_admin:mdhandler" type="service" %}?id=' + ORGANIZATION_ID);
+						e.stopPropagation();
+					});
+
+				$('button[name=ows-save]').click(function(e) {
+					e.preventDefault();
+					$.ajax({
+						type: 'POST',
+						url: '{% url "idgo_admin:organization_ows" %}?id=' + ORGANIZATION_ID,
+						data: {
+							'title': $('#ows-title').val(),
+							'abstract': $('#ows-abstract').val()
+						},
+						success: function(data, status, xhr) {
+							location.reload();
+						},
+						error: function(xhr, statut, error) {
+							location.reload();
+						}
+					});
+				});
+			};
+		} else {
+			$('li[role="presentation"]>a[href="#service"]').prop('href', '#').parent('li').addClass('disabled').prop('disabled', true);
+			$('#service.tab-pane[role="tabpanel"]').empty();
+		};
+
 	};
 
-	const getOrganization = function(id) {
+	const getOrganization = function(id, onSuccess, onFailure) {
 		$.ajax({
 			url: '{{ organization_base_url }}/' + id,
 			success: function(data, status, xhr) {
-				displayOrganisation(data);
+				onSuccess(data);
 			},
-			error : function(resultat, statut, erreur) {
-				$('.tab-pane#info').empty();
-				$('.tab-pane#info').append("Impossible d'obtenir les informations");
+			error: function(xhr, statut, error) {
+				onFailure(xhr, statut, error);
 			}
 		});
+	};
+
+	const onGetOrganizationSuccess = function(data) {
+		window.location.hash = data.id;
+		$organizations.val([data.id]);
+		displayOrganization(data);
+		$('input[type=radio][name=organizations][value=' + data.id + ']').parent().addClass('active');
+	};
+
+	const handler = function(value) {
+
+		const $container = $('div.scrolling-box');
+
+		const prev = $('input[type=radio][name=organizations]:checked').val();
+		const $prev = $('input[type=radio][name=organizations][value=' + prev + ']').parent().removeClass('active');
+
+		const next = value;
+		const $next = $('input[type=radio][name=organizations][value=' + next + ']').parent();
+
+		const onSuccess = function(data, status, xhr) {
+			$container.animate({
+				scrollTop: $next.offset().top - $container.offset().top + $container.scrollTop() - 7
+			}, 303, undefined, function() {
+				$modalHourglass.one('hidden.bs.modal', function(e) {
+					onGetOrganizationSuccess(data);
+				}).modal('hide');
+			});
+		};
+
+		const onFailure = function(xhr, statut, error) {
+			$modalHourglass.one('hidden.bs.modal', function(e) {
+				$prev.addClass('active');
+			}).modal('hide');
+		};
+
+		$modalHourglass.one('shown.bs.modal', function(e) {
+			getOrganization(next, onSuccess, onFailure);
+		}).modal('show');
+
 	};
 
 	const $typeahead = $('.typeahead input[name="organization"]')
@@ -534,7 +662,8 @@ $(function() {
 			fitToElement: true,
 			afterSelect: function(val) {
 				deactivateButton($typeaheadButton);
-				selectRowByDataId(val.id);
+				handler(val.id);
+				// selectRowByDataId(val.id);
 			}
 		});
 
@@ -543,34 +672,21 @@ $(function() {
 		selected && selectRowByDataId(selected['id']);
 	});
 
-	$.each($('.label-name'), function(){
+	$.each($('.label-name'), function() {
 		$(this).width("calc(100% - " + ($(this).next('.label-badges').width() + 5) + "px)");
 	})
 
-	const $organizations = $('input[type=radio][name=organizations]').change(function(e) {
-		window.location.hash = this.value;
-		getOrganization(this.value);
+	const $organizations = $('label, input[type=radio][name=organizations]').bind('mouseup change click', function(e) {
+		e.stopPropagation();
+	}).mousedown(function(e) {
+		handler($(this).children('input').val());
 	});
-
-	const selectRowByDataId = function(value) {
-		const previous = $('input[type=radio][name=organizations]:checked').val()
-		$('input[type=radio][name=organizations][value=' + previous + ']').parent().removeClass('active');
-
-		$organizations.val([value]);
-		const $entry = $('input[type=radio][name=organizations][value=' + value + ']').parent().addClass('active');
-		const $container = $('div.scrolling-box');
-		$container.animate({
-			scrollTop: $entry.offset().top - $container.offset().top + $container.scrollTop() - 7
-		}, 303, undefined, function() {
-			getOrganization(value);
-		});
-	};
 
 	$(window).bind('hashchange', function(e) {
-		// selectRowByDataId(window.location.hash.substring(1));
+		// TODO
 	});
 
-	window.location.hash.substring(1) ? selectRowByDataId(window.location.hash.substring(1)) : selectRowByDataId($organizations.first().val());  // TODO -> Avant de charger la page
+	handler(window.location.hash.substring(1) ? window.location.hash.substring(1) : $organizations.first().val());
 
 });
 </script>

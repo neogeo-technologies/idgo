@@ -188,6 +188,7 @@ def confirm_rattachement(request, key):
         else:
             action.profile.membership = True
             action.profile.organisation = action.organisation
+            action.profile.crige_membership = action.profile.organisation.is_crige_partner
             action.profile.save()
             action.closed = timezone.now()
             action.save()

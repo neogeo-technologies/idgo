@@ -1,7 +1,28 @@
 {% extends "idgo_admin/base.html" %}
 
 {% block main_content %}
-{% include "idgo_admin/inner_all_datasets.html" %}
+
+{% include "idgo_admin/alert_messages.html" %}
+
+<div class="row">
+	<div class="col-sm-3">
+		{% include "idgo_admin/datasets/facets.html" %}
+	</div>
+	<div class="col-sm-9">
+		<div class="well">
+			<div class="buttons-on-the-right-side">
+				{% include "idgo_admin/datasets/actions/export_csv.html" %}
+				{% include "idgo_admin/datasets/actions/add_dataset.html" %}
+			</div>
+			<br />
+			{% if datasets_count == 0 %}
+			<div class="alert alert-warning" role="alert">Aucun jeu de données n'est trouvé.<div/>
+			{% else %}
+				{% include "idgo_admin/datasets/all.html" %}
+			{% endif %}
+		</div>
+	</div>
+</div>
 <script>
 $(function() {
 	$('#menu a[href="{% url "idgo_admin:all_datasets" %}"]').parent().addClass('active');

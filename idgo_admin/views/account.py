@@ -357,9 +357,15 @@ class SignUp(View):
                     **form.cleaned_profile_data,
                     **{'user': User.objects.create_user(**form.cleaned_user_data)}}
 
-                organisation = form.create_organisation \
-                    and Organisation.objects.create(**form.cleaned_organisation_data) \
-                    or form.cleaned_profile_data['organisation']
+                if form.create_organisation:
+                    kvp = {}
+                    for k, v in form.cleaned_organisation_data.items():
+                        if k.startswith('org_'):
+                            k = k[4:]
+                        kvp[k] = v
+                    organisation = Organisation.objects.create(**kvp)
+                else:
+                    organisation = form.cleaned_profile_data['organisation']
 
                 profile_data['organisation'] = organisation
                 profile = Profile.objects.create(**profile_data)

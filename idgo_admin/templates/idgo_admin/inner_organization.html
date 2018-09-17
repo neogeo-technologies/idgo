@@ -9,46 +9,63 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-sm-8">
-			{% bootstrap_field form.logo %}
+		<div class="col-xs-6">
+			<label>Contact</label>
+			<div class="row">
+				<div class="col-xs-12">
+					{% bootstrap_field form.address show_label=False %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-6">
+					{% bootstrap_field form.postcode show_label=False %}
+				</div>
+				<div class="col-xs-6">
+					{% bootstrap_field form.city show_label=False %}
+				</div>
+			</div>
+		</div>
+		<div class="col-xs-6">
+			<div class="row">
+				<div class="col-sm-12">
+					{% bootstrap_field form.logo %}
+				</div>
+			</div>
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-xs-10 col-md-6">
-			{% bootstrap_field form.address show_label=False %}
-		</div>
-		<div class="row">
-		</div>
-		<div class="col-xs-4 col-md-2">
-			{% bootstrap_field form.postcode show_label=False %}
-		</div>
-		<div class="col-xs-6 col-md-4">
-			{% bootstrap_field form.city show_label=False %}
+		<div class="col-xs-3 col-md-3">
+			{% bootstrap_field form.phone show_label=False %}
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-xs-8 col-md-4">
-			{% bootstrap_field form.org_phone show_label=False %}
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-8 col-md-4">
+		<div class="col-xs-5 col-md-4">
 			{% bootstrap_field form.email show_label=False %}
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-xs-8 col-md-4">
+		<div class="col-xs-5 col-md-4">
 			{% bootstrap_field form.website show_label=False %}
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-xs-12">
-			{% bootstrap_field form.description show_label=False %}
+			{% bootstrap_field form.description show_label=True %}
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-xs-10 col-sm-6">
-			{% bootstrap_field form.jurisdiction %}
+		<div class="col-xs-12">
+			<div class="form-group">
+				<label>{{ form.jurisdiction.label }}</label>
+				<div class="form-inline">
+					{% bootstrap_field form.jurisdiction show_label=false %}
+					{% if form.jurisdiction.value %}
+					<a type="button" name="edit" class="btn btn-primary" href="{% url "idgo_admin:jurisdiction" code=form.jurisdiction.value %}?organisation={{ id }}">Éditer</a>
+					{% else %}
+					<a type="button" name="new" class="btn btn-primary" href="#">Ajouter [TODO]</a>
+					{% endif %}
+				</div>
+			</div>
 		</div>
 	</div>
 	<div class="row">
@@ -78,5 +95,15 @@ $(function() {
 	const $inputReferent = $('input[name="{{ form.referent_requested.name }}"]').prop('checked', false).change(function() {
 		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
 	});
+
+	$('select[name="{{ form.jurisdiction.name }}"]').change(function(e) {
+		const $button = $('a[name="edit"]');
+		if (this.value != '{{ form.jurisdiction.value }}') {
+			$button.prop('disabled', true).addClass('disabled');
+		} else {
+			$button.prop('disabled', false).removeClass('disabled');
+		};
+	});
+
 });
 </script>

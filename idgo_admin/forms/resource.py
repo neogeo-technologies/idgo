@@ -22,6 +22,7 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
+from idgo_admin.models import SupportedCrs
 from idgo_admin.utils import readable_file_size
 
 
@@ -44,18 +45,23 @@ class ResourceForm(forms.ModelForm):
 
     class Meta(object):
         model = Resource
-        fields = ('up_file',
-                  'dl_url',
-                  'referenced_url',
-                  'name',
+        fields = ('crs',
+                  'data_type',
                   'description',
-                  'lang',
+                  'dl_url',
+                  'extractable',
                   'format_type',
-                  'restricted_level',
-                  'profiles_allowed',
+                  'geo_restriction',
+                  'lang',
+                  'name',
+                  'ogc_services',
                   'organisations_allowed',
+                  'profiles_allowed',
+                  'referenced_url',
+                  'restricted_level',
                   'synchronisation',
-                  'sync_frequency')
+                  'sync_frequency',
+                  'up_file')
 
     # _instance = None
     _dataset = None
@@ -68,7 +74,9 @@ class ResourceForm(forms.ModelForm):
         required=False,
         validators=[file_size],
         widget=CustomClearableFileInput(
-            attrs={'max_size_info': DOWNLOAD_SIZE_LIMIT}))
+            attrs={
+                'value': None,
+                'max_size_info': DOWNLOAD_SIZE_LIMIT}))
 
     name = forms.CharField(
         label='Titre*',
@@ -86,6 +94,11 @@ class ResourceForm(forms.ModelForm):
         label='Format*',
         queryset=ResourceFormats.objects.all(),
         required=True)
+
+    data_type = forms.ChoiceField(
+        label='Type',
+        choices=Meta.model.TYPE_CHOICES,
+        required=False)
 
     profiles_allowed = forms.ModelMultipleChoiceField(
         label='Utilisateurs autorisés',
@@ -109,11 +122,33 @@ class ResourceForm(forms.ModelForm):
         choices=Meta.model.FREQUENCY_CHOICES,
         required=False)
 
+    geo_restriction = forms.BooleanField(
+        initial=False,
+        label="Restreindre l'accès au territoire de compétence",
+        required=False)
+
+    extractable = forms.BooleanField(
+        label="Activer le service d'extraction des données géographiques",
+        required=False)
+
+    ogc_services = forms.BooleanField(
+        label="Activer les services OGC associés",
+        required=False)
+
+    crs = forms.ModelChoiceField(
+        label='Système de coordonnées du jeu de données géographiques',
+        queryset=SupportedCrs.objects.all(),
+        required=False,
+        to_field_name='auth_code')
+
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
         self._dataset = kwargs.pop('dataset', None)
-
+        instance = kwargs.get('instance', None)
         super().__init__(*args, **kwargs)
+
+        if instance and instance.up_file:
+            self.fields['up_file'].widget.attrs['value'] = instance.up_file
 
     def clean(self):
 
@@ -132,7 +167,6 @@ class ResourceForm(forms.ModelForm):
             dl_url and self.add_error('dl_url', error_msg)
             referenced_url and self.add_error('referenced_url', error_msg)
 
-        self.cleaned_data['organisations_allowed'] = [self._dataset.organisation]
         self.cleaned_data['last_update'] = timezone.now().date()
 
     def handle_me(self, request, dataset, id=None):
@@ -146,13 +180,18 @@ class ResourceForm(forms.ModelForm):
             'size': memory_up_file.size} or None
 
         data = self.cleaned_data
-        params = {'dataset': dataset,
+        params = {'crs': data['crs'],
+                  'data_type': data['data_type'],
+                  'dataset': dataset,
                   'description': data['description'],
                   'dl_url': data['dl_url'],
+                  'extractable': data['extractable'],
                   'format_type': data['format_type'],
+                  'geo_restriction': data['geo_restriction'],
                   'lang': data['lang'],
                   'last_update': data['last_update'],
                   'name': data['name'],
+                  'ogc_services': data['ogc_services'],
                   # 'organizations_allowed': None,
                   # 'profiles_allowed': None,
                   'referenced_url': data['referenced_url'],
@@ -169,8 +208,14 @@ class ResourceForm(forms.ModelForm):
         else:  # Création d'une nouvelle ressource
             resource = Resource.objects.create(**params)
 
-        resource.organizations_allowed = data['organisations_allowed']
-        resource.profiles_allowed = data['profiles_allowed']
+        lvl = resource.restricted_level
+        if lvl == '2':
+            resource.profiles_allowed = data['profiles_allowed']
+        if lvl == '3':
+            resource.organisations_allowed = [self._dataset.organisation]
+        if lvl == '4':
+            resource.organisations_allowed = data['organisations_allowed']
+
         resource.save(editor=user, file_extras=file_extras, sync_ckan=True)
 
         return resource

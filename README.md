@@ -123,7 +123,25 @@ DATABASES = {
         'USER': 'username',
         'PASSWORD': 'password',
         'HOST':'hostname',
-        'PORT':'5432'}}
+        'PORT':'5432'},
+    'datagis': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'dbname_datagis',
+        'USER': 'username',
+        'PASSWORD': 'password',
+        'HOST': 'hostname',
+        'PORT': '5432'}}
+
+DATAGIS_DB = 'datagis'
+
+MRA = {
+    'URL': 'http://127.0.0.1/mra',
+    'USERNAME': 'username',
+    'PASSWORD': 'password',
+    'DATAGIS_DB_USER': 'username'}
+
+OWS_URL_PATTERN = 'http://127.0.0.1/ows/{organisation}?'
+OWS_PREVIEW_URL = 'http://127.0.0.1/preview?'
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -179,6 +197,10 @@ MAMA_CAS_SERVICES = [{
         'mama_cas.callbacks.user_model_attributes'],
     'LOGOUT_ALLOW': True,
     'LOGOUT_URL': 'http://localhost/signout'}]
+
+DEFAULTS_VALUES = {
+    'JURISDICTION': 93,  # Code INSEE -> Région SUD
+}
 
 ```
 
@@ -256,7 +278,10 @@ Apache doit pouvoir écrire dans les sous répertoires de `media`.
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/mail.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/resourceformats.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/jurisdiction.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/jurisdictioncommune.json
 (idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/datatype.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/granularity.json
+(idgo_venv) /idgo_venv> python manage.py loaddata idgo_admin/data/supportedcrs.json
 ```
 
 #### CRON

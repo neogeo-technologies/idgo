@@ -1,0 +1,25 @@
+{% extends "idgo_admin/base.html" %}
+
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li>Jeu de données</li>
+	<li>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#dataset/{{ dataset.id }}">{{ dataset.name }}</a>
+	</li>
+	<li>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#resources/{{ resource.id }}">ressources</a>
+	</li>
+	<li>
+		<a href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?id={{ resource.id }}">{{ resource.name_overflow }}</a>
+	</li>
+	<li>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#owslayers/{{ layer.id }}">Ressources géographiques</a>
+	</li>
+	<li class="active">
+		<a href="{% url "idgo_admin:layer" dataset_id=dataset.id resource_id=resource.id layer_id=layer.id%}">{{ layer.title }}</a>
+	</li>
+</ol>
+{% endblock breadcrumb_content %}
+{% block main_content %}
+{% include "idgo_admin/layers/layer.html" %}
+{% endblock main_content %}

@@ -86,7 +86,6 @@ class CkanExceptionsHandler(object):
             try:
                 return f(*args, **kwargs)
             except Exception as e:
-                print(e.__str__())
                 if isinstance(e, timeout_decorator.TimeoutError):
                     raise CkanTimeoutError
                 if self.is_ignored(e):
@@ -172,6 +171,12 @@ class CkanUserHandler(object):
                     'resource_view_update', id=view['id'], **kwargs)
         return self.call_action('resource_view_create', **kwargs)
 
+    @CkanExceptionsHandler()
+    def update_resource(self, id, **kwargs):
+        resource = self.call_action('resource_show', id=id)
+        resource.update(kwargs)
+        return self.call_action('resource_update', **resource)
+
     def check_dataset_integrity(self, name):
         if self.is_package_name_already_used(name):
             raise ConflictError('Dataset already exists')
@@ -186,21 +191,30 @@ class CkanUserHandler(object):
         return package
 
     @CkanExceptionsHandler()
-    def publish_resource(self, dataset_id, **kwargs):
-        resource_view_type = kwargs['view_type'] or None
-        del kwargs['view_type']
-        resource = self.push_resource(self.get_package(dataset_id), **kwargs)
+    def publish_resource(self, package, **kwargs):
+        resource_view_type = kwargs.pop('view_type')
+        resource = self.push_resource(package, **kwargs)
+
+        view = None
         if resource_view_type:
-            self.push_resource_view(
+            view = self.push_resource_view(
                 resource_id=resource['id'], view_type=resource_view_type)
 
-    @CkanExceptionsHandler()
-    def delete_resource(self, id):
-        return self.call_action('resource_delete', id=id)
+        return resource, view
 
-    @CkanExceptionsHandler()
+    @CkanExceptionsHandler(ignore=[CkanError.NotFound])
+    def delete_resource(self, id):
+        try:
+            return self.call_action('resource_delete', id=id)
+        except CkanError.NotFound:
+            return None
+
+    @CkanExceptionsHandler(ignore=[CkanError.NotFound])
     def delete_dataset(self, id):
-        return self.call_action('package_delete', id=id)
+        try:
+            return self.call_action('package_delete', id=id)
+        except CkanError.NotFound:
+            return None
 
 
 class CkanManagerHandler(metaclass=Singleton):
@@ -292,7 +306,7 @@ class CkanManagerHandler(metaclass=Singleton):
             'description': organization.description,
             'extras': [
                 {'key': 'email', 'value': organization.email or ''},
-                {'key': 'phone', 'value': organization.org_phone or ''},
+                {'key': 'phone', 'value': organization.phone or ''},
                 {'key': 'website', 'value': organization.website or ''},
                 {'key': 'address', 'value': organization.address or ''},
                 {'key': 'postcode', 'value': organization.postcode or ''},
@@ -316,7 +330,7 @@ class CkanManagerHandler(metaclass=Singleton):
             'description': organization.description,
             'extras': [
                 {'key': 'email', 'value': organization.email or ''},
-                {'key': 'phone', 'value': organization.org_phone or ''},
+                {'key': 'phone', 'value': organization.phone or ''},
                 {'key': 'website', 'value': organization.website or ''},
                 {'key': 'address', 'value': organization.address or ''},
                 {'key': 'postcode', 'value': organization.postcode or ''},
@@ -391,6 +405,27 @@ class CkanManagerHandler(metaclass=Singleton):
 
     def is_group_exists(self, id):
         return self.get_group(str(id)) and True or False
+
+    @CkanExceptionsHandler()
+    def create_partner_group(self, name):
+        return self.call_action('group_create', type='partner', name=name)
+
+    @CkanExceptionsHandler()
+    def add_user_to_partner_group(self, username, name):
+        ckan_group = self.get_group(name) or self.create_partner_group(name)
+
+        users = ckan_group.pop('users', [])
+        ckan_group['users'] = [
+            {'id': user['id'], 'name': user['name']} for user in users]
+
+        if username not in [user['name'] for user in ckan_group['users']]:
+            ckan_group['users'].append({'name': username})
+
+        self.call_action('group_update', **ckan_group)
+
+    @CkanExceptionsHandler()
+    def del_user_from_partner_group(self, username, id):
+        self.call_action('group_member_delete', id=id, username=username)
 
     @CkanExceptionsHandler()
     def add_group(self, group, type=None):
