@@ -50,7 +50,7 @@ from mama_cas.forms import LoginForm as MamaLoginForm
 try:
     JURISDICTION_CODE = settings.DEFAULTS_VALUES.get('JURISDICTION')
     JURISDICTION = Jurisdiction.objects.get(code=JURISDICTION_CODE)
-except AttributeError:
+except:
     JURISDICTION_CODE = None
     JURISDICTION = None
   
