@@ -128,21 +128,7 @@ class ResourceManager(View):
         form = Form(
             request.POST, request.FILES, instance=instance, dataset=dataset)
 
-<<<<<<< HEAD
-        context = {'dataset_name': three_suspension_points(dataset.name),
-                   'dataset_id': dataset.id,
-                   'dataset_ckan_slug': dataset.ckan_slug,
-                   'resource_name': instance and three_suspension_points(instance.name) or 'Nouvelle ressource',
-                   'resource_ckan_id': instance and instance.ckan_id or None,
-                   'resource_id': instance and instance.id or None,
-                   'mode': instance and (
-                       instance.up_file and 'up_file'
-                       or instance.dl_url and 'dl_url'
-                       or instance.referenced_url and 'referenced_url') or None,
-                   'form': form}
-=======
         context = self.get_context(form, profile, dataset, instance)
->>>>>>> develop
 
         ajax = 'ajax' in request.POST
         save_and_continue = 'continue' in request.POST
@@ -150,14 +136,11 @@ class ResourceManager(View):
         if not form.is_valid():
             if ajax:
                 error = dict([(k, [str(m) for m in v]) for k, v in form.errors.items()])
-<<<<<<< HEAD
-=======
                 msg = 'Veuillez corriger le formulaire.'
                 if '__all__' in error:
                     error['__all__'].prepend(msg)
                 else:
                     error['__all__'] = [msg]
->>>>>>> develop
                 return JsonResponse(json.dumps({'error': error}), safe=False)
             return render_with_info_profile(request, self.template, context)
 
@@ -173,15 +156,11 @@ class ResourceManager(View):
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
         except ValidationError as e:
-<<<<<<< HEAD
-            form.add_error(e.code, e.message)
-=======
             if e.code == 'crs':
                 form.add_error(e.code, '')
                 form.add_error('__all__', e.message)
             else:
                 form.add_error(e.code, e.message)
->>>>>>> develop
             messages.error(request, ' '.join(e))
             error = dict(
                 [(k, [str(m) for m in v]) for k, v in form.errors.items()])
@@ -219,10 +198,7 @@ class ResourceManager(View):
                     reverse('idgo_admin:dataset'), dataset_id, instance.id))
 
         if ajax:
-<<<<<<< HEAD
-=======
             form._errors = None
->>>>>>> develop
             return JsonResponse(json.dumps({'error': error}), safe=False)
         return render_with_info_profile(request, self.template, context)
 
