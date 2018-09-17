@@ -300,3 +300,36 @@ cd /idgo_venv
 /idgo_venv> source bin/activate
 (idgo_venv) /idgo_venv> python manage.py sync_ckan_categories
 ```
+
+
+#### Utiliser le service d'autorisation d'accès à mapserver
+
+Configurer Apache, ajouter dans le VirtualHost :
+```
+	ProxyRequests Off
+
+    <Location />
+        WSGIAuthUserScript /idgo_venv/idgo_admin/auth_ogc.py application-group=idgo.com
+        WSGIApplicationGroup auth
+        AuthType Basic
+        AuthName "DataSud authentification"
+        AuthBasicProvider wsgi
+
+        Require valid-user
+
+        ProxyPass http://mapserver/
+        ProxyPassReverse http://mapserver/
+    </Location>
+```
+
+Utiliser le fichier auth\_ogc.py
+
+Tester avec pyresttest (peut se faire à distance):
+
+```
+pip install pyresttest
+pyresttest  test/test_auth_ogc.yml --url=https://ocs.dev.idgo.neogeo.fr
+```
+
+
+
