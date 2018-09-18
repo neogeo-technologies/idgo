@@ -260,15 +260,15 @@ class DatasetMDEdit(View):
         return render_with_info_profile(request, self.template, context=context)
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def post(self, request, dataset_id, *args, **kwargs):
+    def post(self, request, id, *args, **kwargs):
 
         user, profile = user_and_profile(request)
 
-        dataset = get_object_or_404(Dataset, id=dataset_id)
+        dataset = get_object_or_404(Dataset, id=id)
 
         if not request.is_ajax():
             return HttpResponseRedirect(
-                reverse(self.namespace, kwargs={'dataset_id': dataset_id}))
+                reverse(self.namespace, kwargs={'dataset_id': id}))
 
         root = ET.fromstring(request.body)
         ns = {'gmd': 'http://www.isotc211.org/2005/gmd',
