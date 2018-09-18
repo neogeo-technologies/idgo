@@ -14,17 +14,17 @@
 # under the License.
 
 
-import django
-from django.contrib.auth.models import User
-from idgo_admin.models import Resource
-import logging
 import os
+import logging
+
+import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+django.setup()
+from django.contrib.auth.models import User  # noqa: E402
+from idgo_admin.models import Resource  # noqa: E402
 
 logger = logging.getLogger('auth_ogc')
 logger.setLevel(logging.DEBUG)
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-django.setup()
 
 AUTHORIZED_PREFIX = ['/maps/', '/wfs/', '/wms/', '/wxs/']
 
@@ -50,7 +50,6 @@ def check_password(environ, user, password):
         user = User.objects.get(username=user, is_active=True)
     except User.DoesNotExist:
         logger.debug("User %s does not exist (or is not active :()" % user)
-        anonymous = True
     else:
         if not user.check_password(password):
             logger.error("User %s provided bad password", user)
@@ -69,9 +68,11 @@ def check_password(environ, user, password):
 
         try:
             if not resource.is_profile_authorized(user):
-                logger.error("resource %s not authorized to user %s", resource, user)
+                logger.error("resource %s not authorized to user %s",
+                             resource,
+                             user)
                 return False
-        except:
+        except Exception:
             logger.error("resource %s not authorized to anonymous", resource)
             return False
 
