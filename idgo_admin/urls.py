@@ -94,7 +94,7 @@ urlpatterns = [
 
     url('^organisation/ows/?$', OrganisationOWS.as_view(), name='organization_ows'),
     url('^organisation/(?P<id>(\d+))/?$', organisation, name='organization'),
-    url('^organisation/(?P<id>(\d+))/update/?$', UpdateOrganisation.as_view(), name='update_organization'),
+    url('^organisation/(?P<id>(\d+))/edit/?$', UpdateOrganisation.as_view(), name='update_organization'),
     url('^organisation/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
 
     url('^password/(?P<process>(forget))/?$', PasswordManager.as_view(), name='password_manager'),
