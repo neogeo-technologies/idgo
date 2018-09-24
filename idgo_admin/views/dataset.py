@@ -348,6 +348,9 @@ def datasets(request, target, *args, **kwargs):
     datasets = get_datasets(profile, request.GET, strict=not all)
     order_by = request.GET.get('sortby', None)
     if order_by:
+        order_by = {
+            '-private': 'published',
+            'private': '-published'}.get(order_by, order_by)
         datasets = datasets.order_by(order_by)
 
     # Pagination

@@ -1832,6 +1832,10 @@ class Dataset(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def private(self):
+        return not self.published
+
     def get_resources(self, **kwargs):
         return Resource.objects.filter(dataset=self, **kwargs)
 
