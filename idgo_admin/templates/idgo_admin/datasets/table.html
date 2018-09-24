@@ -180,7 +180,7 @@ $(function() {
 					.prop('class', 'form-control')
 					.prop('placeholder', 'Nom du jeu de données à supprimer')
 					.on('input', function(e) {
-						if ($(this).val() === tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['name']) {
+						if ($(this).val() === $row.find('td[name="name"]')[0].innerText) {
 							$button.removeClass('disabled').prop('disabled', false);
 						} else {
 							$button.addClass('disabled').prop('disabled', true);
