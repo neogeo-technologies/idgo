@@ -16,7 +16,7 @@
 </div>
 		{% if user.profile.is_contributor %}
 <div role="alert" class="alert alert-warning">
-	<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n'avez aucun jeu de données. <a href="{% url "idgo_admin:dataset" %}">Créer un nouveau jeu de données</a> pour commencer.
+	<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n'avez aucun jeu de données. <a href="{% url "idgo_admin:dataset_editor" id="new" %}">Créer un nouveau jeu de données</a> pour commencer.
 <div/>
 		{% else %}
 <div role="alert" class="alert alert-warning">

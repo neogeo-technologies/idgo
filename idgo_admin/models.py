@@ -959,6 +959,14 @@ class Profile(models.Model):
     def get_crige_membership(cls):
         return Profile.objects.filter(is_active=True, crige_membership=True)
 
+    @property
+    def is_contributor(self):
+        return self.contributions and True or False
+
+    @property
+    def is_referent(self):
+        return self.referents and True or False
+
 
 class LiaisonsReferents(models.Model):
 

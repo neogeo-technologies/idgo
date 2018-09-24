@@ -25,6 +25,7 @@ from idgo_admin.views.account import SignOut
 from idgo_admin.views.account import SignUp
 from idgo_admin.views.account import UpdateAccount
 from idgo_admin.views.action import ActionsManager
+from idgo_admin.views.dataset import dataset
 from idgo_admin.views.dataset import DatasetManager
 from idgo_admin.views.dataset import datasets
 from idgo_admin.views.export import Export
@@ -65,7 +66,9 @@ urlpatterns = [
     url('^account/update/?$', UpdateAccount.as_view(), name='update_account'),
     url('^account/delete/?$', delete_account, name='deleteAccount'),
 
-    url('^dataset/new?$', DatasetManager.as_view(), name='dataset'),
+    url('^dataset/?$', dataset, name='dataset'),
+    url('^dataset/(?P<id>(new|(\d+)))/edit/?$', DatasetManager.as_view(), name='dataset_editor'),
+
     url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))$', LayerManager.as_view(), name='layer'),
 

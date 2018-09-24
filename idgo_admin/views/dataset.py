@@ -22,6 +22,7 @@ from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -61,12 +62,33 @@ READTHEDOC_URL = settings.READTHEDOC_URL
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
+@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def dataset(request, *args, **kwargs):
+
+    user, profile = user_and_profile(request)
+
+    id = request.GET.get('id', request.GET.get('ckan_slug'))
+    if not id:
+        raise Http404
+
+    kvp = {}
+    try:
+        id = int(id)
+    except ValueError:
+        kvp['ckan_slug'] = id
+    else:
+        kvp['id'] = id
+    finally:
+        instance = get_object_or_404(Dataset, **kvp)
+
+    # Redirect to layer
+    return redirect(reverse('idgo_admin:dataset_editor', kwargs={'id': instance.id}))
+
+
 @method_decorator(decorators, name='dispatch')
 class DatasetManager(View):
-
-    template = 'idgo_admin/dataset.html'
-    namespace = 'idgo_admin:dataset'
-    namespace_resource = 'idgo_admin:resource'
 
     def get_context(self, form, profile, dataset):
 
@@ -113,7 +135,7 @@ class DatasetManager(View):
             'tags': json.dumps(ckan.get_tags())}
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, *args, **kwargs):
+    def get(self, request, id, *args, **kwargs):
 
         user, profile = user_and_profile(request)
 
@@ -121,33 +143,34 @@ class DatasetManager(View):
                 profile=profile, validated_on__isnull=False).exists():
             raise Http404
 
-        _ckan_slug = request.GET.get('ckan_slug')
-        if _ckan_slug:
-            instance = get_object_or_404_extended(
-                Dataset, user, include={'ckan_slug': _ckan_slug})
-            return redirect(
-                reverse(self.namespace) + '?id={0}'.format(instance.pk))
-
-        id = request.POST.get('id', request.GET.get('id'))
-        instance = id and get_object_or_404_extended(
-            Dataset, user, include={'id': id}) or None
+        instance = None
+        if id != 'new':
+            instance = get_object_or_404_extended(Dataset, user, include={'id': id})
+        else:
+            id = None
 
         form = Form(instance=instance, include={
             'user': user, 'id': id, 'identification': id and True or False})
 
         context = self.get_context(form, profile, instance)
 
-        return render_with_info_profile(request, self.template, context=context)
+        return render_with_info_profile(request, 'idgo_admin/dataset.html', context=context)
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     @transaction.atomic
-    def post(self, request, *args, **kwargs):
+    def post(self, request, id, *args, **kwargs):
 
         user, profile = user_and_profile(request)
 
-        id = request.POST.get('id', request.GET.get('id'))
-        instance = id and get_object_or_404_extended(
-            Dataset, user, include={'id': id}) or None
+        if not LiaisonsContributeurs.objects.filter(
+                profile=profile, validated_on__isnull=False).exists():
+            raise Http404
+
+        instance = None
+        if id != 'new':
+            instance = get_object_or_404_extended(Dataset, user, include={'id': id})
+        else:
+            id = None
 
         form = Form(
             request.POST, request.FILES, instance=instance, include={
@@ -158,7 +181,7 @@ class DatasetManager(View):
         if not form.is_valid():
             errors = form._errors.get('__all__', [])
             errors and messages.error(request, ' '.join(errors))
-            return render_with_info_profile(request, self.template, context)
+            return render_with_info_profile(request, 'idgo_admin/dataset.html', context)
 
         try:
             with transaction.atomic():
@@ -184,34 +207,35 @@ class DatasetManager(View):
                 '<a href="{3}/dataset/{4}" target="_blank">voir le jeu '
                 'de données dans CKAN</a> ?').format(
                     id and 'mis à jour' or 'créé',
-                    reverse(self.namespace),
-                    reverse(self.namespace_resource,
-                            kwargs={'dataset_id': instance.id}),
+                    reverse('idgo_admin:dataset_editor', kwargs={'id': instance.id}),
+                    reverse('idgo_admin:resource', kwargs={'dataset_id': instance.id}),
                     CKAN_URL,
                     instance.ckan_slug))
 
             if 'continue' in request.POST:
-                return HttpResponseRedirect('{0}?id={1}'.format(
-                    reverse(self.namespace), instance.id))
+                return HttpResponseRedirect(
+                    reverse('idgo_admin:dataset_editor', kwargs={'id': instance.id}))
 
             target = instance.editor == profile.user and 'mine' or 'all'
             return HttpResponseRedirect('{0}#{1}'.format(
-                reverse('idgo_admin:datasets', kwargs={'target': target}), instance.ckan_slug))
+                reverse('idgo_admin:datasets', kwargs={'target': target}),
+                instance.ckan_slug))
 
-        return render_with_info_profile(request, self.template, context)
+        return render_with_info_profile(request, 'idgo_admin/dataset.html', context)
 
-    @ExceptionsHandler(ignore=[Http404, CkanSyncingError],
-                       actions={ProfileHttp404: on_profile_http404})
-    def delete(self, request, *args, **kwargs):
+    @ExceptionsHandler(ignore=[Http404, CkanSyncingError], actions={ProfileHttp404: on_profile_http404})
+    def delete(self, request, id, *args, **kwargs):
+
+        if id == 'new':
+            raise Http404
 
         user, profile = user_and_profile(request)
 
-        id = request.POST.get('id', request.GET.get('id'))
-        if not id:
+        if not LiaisonsContributeurs.objects.filter(
+                profile=profile, validated_on__isnull=False).exists():
             raise Http404
 
-        instance = get_object_or_404_extended(
-            Dataset, user, include={'id': id})
+        instance = get_object_or_404_extended(Dataset, user, include={'id': id})
 
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
