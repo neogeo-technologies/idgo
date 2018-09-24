@@ -1,5 +1,8 @@
+{% extends "idgo_admin/base.html" %}
+
 {% load bootstrap3 %}
 
+{% block main_content %}
 <template id="organization_well_template">
 	<div>
 		<ul class="nav nav-tabs" role="tablist">
@@ -688,5 +691,8 @@ $(function() {
 
 	handler(window.location.hash.substring(1) ? window.location.hash.substring(1) : $organizations.first().val());
 
+	$('#menu a[href="{% url "idgo_admin:all_organizations" %}"]').parent().addClass('active');
+
 });
 </script>
+{% endblock main_content %}

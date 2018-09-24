@@ -56,7 +56,7 @@ decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 @method_decorator(decorators, name='dispatch')
 class ResourceManager(View):
 
-    template = 'idgo_admin/resource.html'
+    template = 'idgo_admin/dataset/resource/resource.html'
     namespace = 'idgo_admin:resource'
 
     def get_context(self, form, profile, dataset, resource):
@@ -298,7 +298,7 @@ def get_layers(resource):
 @method_decorator(decorators, name='dispatch')
 class LayerManager(View):
 
-    template = 'idgo_admin/layer.html'
+    template = 'idgo_admin/dataset/resource/layer/layer.html'
     namespace = 'idgo_admin:layer'
 
     @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})

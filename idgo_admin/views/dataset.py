@@ -154,7 +154,7 @@ class DatasetManager(View):
 
         context = self.get_context(form, profile, instance)
 
-        return render_with_info_profile(request, 'idgo_admin/dataset.html', context=context)
+        return render_with_info_profile(request, 'idgo_admin/dataset/dataset.html', context=context)
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     @transaction.atomic
@@ -181,7 +181,7 @@ class DatasetManager(View):
         if not form.is_valid():
             errors = form._errors.get('__all__', [])
             errors and messages.error(request, ' '.join(errors))
-            return render_with_info_profile(request, 'idgo_admin/dataset.html', context)
+            return render_with_info_profile(request, 'idgo_admin/dataset/dataset.html', context)
 
         try:
             with transaction.atomic():
@@ -221,7 +221,7 @@ class DatasetManager(View):
                 reverse('idgo_admin:datasets', kwargs={'target': target}),
                 instance.ckan_slug))
 
-        return render_with_info_profile(request, 'idgo_admin/dataset.html', context)
+        return render_with_info_profile(request, 'idgo_admin/dataset/dataset.html', context)
 
     @ExceptionsHandler(ignore=[Http404, CkanSyncingError], actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, id, *args, **kwargs):
@@ -399,7 +399,7 @@ def datasets(request, target, *args, **kwargs):
     number_of_pages = ceil(len(datasets) / items_per_page)
 
     return render_with_info_profile(
-        request, 'idgo_admin/datasets/datasets.html', status=200,
+        request, 'idgo_admin/dataset/datasets.html', status=200,
         context={
             'all': all,
             'all_categories': all_categories,

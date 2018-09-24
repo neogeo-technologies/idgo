@@ -1,4 +1,15 @@
+{% extends "idgo_admin/base.html" %}
+
 {% load bootstrap3 %}
+
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li><a href="{% url "idgo_admin:all_organizations" %}#{{ id }}">Organisations</a></li>
+	<li class="active"><a href="{% url "idgo_admin:update_organization" id=id %}#">{{ organisation_name }}</a></li>
+</ol>
+{% endblock breadcrumb_content %}
+
+{% block main_content %}
 
 {% include "idgo_admin/alert_messages.html" %}
 
@@ -105,5 +116,7 @@ $(function() {
 		};
 	});
 
+	$('#menu a[href="{% url "idgo_admin:all_organizations" %}"]').parent().addClass('active');
 });
 </script>
+{% endblock main_content %}

@@ -142,7 +142,7 @@ def all_organisations(request, *args, **kwargs):
     organizations.sort(key=operator.itemgetter('member'), reverse=True)
 
     return render_with_info_profile(
-        request, 'idgo_admin/all_organizations.html',
+        request, 'idgo_admin/organisation/organisations.html',
         context={
             'organization_base_url': '/organisation',  # Moche
             'organizations': organizations})
@@ -215,7 +215,7 @@ def organisation(request, id=None):
 @method_decorator(decorators, name='dispatch')
 class CreateOrganisation(View):
 
-    template = 'idgo_admin/organization.html'
+    template = 'idgo_admin/organisation/organisation.html'
 
     @ExceptionsHandler(
         ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -268,7 +268,7 @@ class CreateOrganisation(View):
 
 @method_decorator(decorators, name='dispatch')
 class UpdateOrganisation(View):
-    template = 'idgo_admin/organization.html'
+    template = 'idgo_admin/organisation/organisation.html'
 
     @ExceptionsHandler(
         ignore=[Http404], actions={ProfileHttp404: on_profile_http404})

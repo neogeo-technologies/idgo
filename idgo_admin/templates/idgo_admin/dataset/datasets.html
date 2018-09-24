@@ -28,20 +28,20 @@
 {% else %}
 <div class="row">
 	<div class="col-sm-3">
-		{% include "idgo_admin/datasets/facets.html" %}
+		{% include "idgo_admin/dataset/facets.html" %}
 	</div>
 	<div class="col-sm-9">
 		<div class="well">
 			<div class="buttons-on-the-right-side">
 				{% if total > 0 %}
-				{% include "idgo_admin/datasets/actions/export_csv.html" %}
+				{% include "idgo_admin/dataset/actions/export_csv.html" %}
 				{% endif %}
-				{% include "idgo_admin/datasets/actions/add_dataset.html" %}
+				{% include "idgo_admin/dataset/actions/add_dataset.html" %}
 			</div>
 			<br />
 			{% if total > 0 %}
 			<label>{{ total }} jeu{% if total > 1 %}x{% endif %} de données</label>
-			{% include "idgo_admin/datasets/table.html" %}
+			{% include "idgo_admin/dataset/table.html" %}
 			{% else %}
 			<label>Aucun jeu de données</label>
 			{% endif %}
