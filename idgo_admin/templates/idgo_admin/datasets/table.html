@@ -6,7 +6,7 @@
 				<th name="date_creation">Créé <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
 				<th name="date_modification">Modifié <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
 				<th name="date_publication">Publié <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
-				<th name="organization">Organisation <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
+				<th name="organisation">Organisation <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
 				{% if all %}
 				<th name="editor">Éditeur <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
 				{% endif %}
@@ -19,7 +19,7 @@
 				<td name="date_creation">{{ dataset.date_creation|date:"d/m/y"|default:"" }}</td>
 				<td name="date_modification">{{ dataset.date_modification|date:"d/m/y"|default:"" }}</td>
 				<td name="date_publication">{{ dataset.date_publication|date:"d/m/y"|default:"" }}</td>
-				<td name="organization">{{ dataset.organisation }}</td>
+				<td name="organisation">{{ dataset.organisation }}</td>
 				{% if all %}
 				<td name="editor">{% if dataset.editor == user %}Moi{% else %}{{ dataset.editor.get_full_name }}{% endif %}</td>
 				{% endif %}
@@ -33,21 +33,21 @@
 		<a role="button" name="view-ckan" class="btn btn-default disabled" href="#" target="_blank" disabled>Ouvrir dans CKAN</a>
 		<div class="btn-group">
 			<button type="button" class="btn btn-default dropdown-toggle disabled" data-toggle="dropdown" disabled>
-				Editer <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
+				Éditer <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
 			</button>
 			<ul class="dropdown-menu dropdown-menu-right">
 				<li>
-					<a role="button" name="edit-dataset" href="#" target="_blank" style="text-align: right;">Éditer le jeu de données</a>
+					<a role="button" name="edit-dataset" href="#" style="text-align: right;">Éditer le jeu de données</a>
 				</li>
 				<li>
-					<a role="button" name="edit-resources" href="#" target="_blank" style="text-align: right;">Éditer les ressources associées</a>
+					<a role="button" name="edit-resources" href="#" style="text-align: right;">Éditer les ressources associées</a>
 				</li>
 				<li>
-					<a role="button" name="mdedit-dataset" href="#" target="_blank" style="text-align: right;">Éditer la fiche de métadonnées INSPIRE</a>
+					<a role="button" name="mdedit-dataset" href="#" style="text-align: right;">Éditer la fiche de métadonnées INSPIRE</a>
 				</li>
 				<li role="separator" class="divider"></li>
 				<li>
-					<a role="button" name="publish-dataset" href="#" target="_blank" style="text-align: right;">Publier le jeu de données</a>
+					<a role="button" name="publish-dataset" href="#" style="text-align: right;">Publier le jeu de données</a>
 				</li>
 			</ul>
 		</div>
@@ -90,12 +90,12 @@ $(function() {
 
 	const $div = $('#datasets');
 
-	const $viewCkan = $div.find('a[name="view-ckan"]');
-	const $deleteDataset = $div.find('button[name="delete-dataset"]');
-	const $editDataset = $div.find('a[name="edit-dataset"]');
-	const $editResources = $div.find('a[name="edit-resources"]');
-	const $MDEditDatasets = $div.find('a[name="mdedit-dataset"]');
-	const $publishDataset = $div.find('a[name="publish-dataset"]');
+	const $viewCkan = $div.find('[name="view-ckan"]');
+	const $deleteDataset = $div.find('[name="delete-dataset"]');
+	const $editDataset = $div.find('[name="edit-dataset"]');
+	const $editResources = $div.find('[name="edit-resources"]');
+	const $MDEditDatasets = $div.find('[name="mdedit-dataset"]');
+	const $publishDataset = $div.find('[name="publish-dataset"]');
 
 	const $table = $div.find('table');
 
@@ -118,7 +118,7 @@ $(function() {
 			};
 
 			$row.prop('selected', true).addClass('selected');
-			$('#actions').find('button, a[role="button"]').each(function() {
+			$('#actions').find('button, a').each(function() {
 				$(this).prop('disabled', false).removeClass('disabled');
 			});
 
@@ -209,7 +209,7 @@ $(function() {
 		.on('row.unselected', function(e) {
 			const $row = $(this);
 			$row.prop('selected', false).removeClass('selected');
-			$('#actions').find('button, a[role="button"]').each(function() {
+			$('#actions').find('button, a').each(function() {
 				$(this).prop('disabled', true).addClass('disabled');
 			});
 		})

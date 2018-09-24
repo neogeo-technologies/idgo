@@ -40,7 +40,7 @@ from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import License
-from idgo_admin.models import Mail
+# from idgo_admin.models import Mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
@@ -259,11 +259,15 @@ def get_all_datasets(profile, strict=False):
     role = profile.get_roles()
 
     if role['is_admin'] and not strict:
+        # L'administrateur accède à tous les jeux de données.
         filters = {}
     elif role['is_referent'] and not strict:
+        # Le référent accède au jeux de données des organisations
+        # pour lesquelles il est référent.
         filters = {
             'organisation__in': LiaisonsReferents.get_subordinated_organizations(profile=profile)}
     else:
+        # Un utilisateur classique ne voit que ses jeux de données
         filters = {'editor': profile.user}
 
     return [{
@@ -326,6 +330,7 @@ def datasets(request, target, *args, **kwargs):
 
     all = target == 'all'
     if all:
+        # Réservé aux référents ou administrateurs IDGO
         roles = profile.get_roles()
         if not roles['is_referent'] and not roles['is_admin']:
             raise Http404
@@ -346,14 +351,23 @@ def datasets(request, target, *args, **kwargs):
         for choice in Resource.FREQUENCY_CHOICES]
 
     datasets = get_datasets(profile, request.GET, strict=not all)
+
+    # Gestion du tri
     order_by = request.GET.get('sortby', None)
     if order_by:
+        if order_by.endswith('organisation'):
+            # Trier par le nom de l'organisation
+            order_by = '{}__name'.format(order_by)
+        if order_by.endswith('editor'):
+            # Trier par le nom de famille de l'utilisateur
+            order_by = '{}__last_name'.format(order_by)
         order_by = {
             '-private': 'published',
             'private': '-published'}.get(order_by, order_by)
+
         datasets = datasets.order_by(order_by)
 
-    # Pagination
+    # Gestion de la pagination
     page_number = int(request.GET.get('page', 1))
     items_per_page = int(request.GET.get('count', 10))
     x = items_per_page * page_number - items_per_page
