@@ -52,6 +52,7 @@ from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.views.resource import get_layers
 import json
+from math import ceil
 
 
 CKAN_URL = settings.CKAN_URL
@@ -193,9 +194,9 @@ class DatasetManager(View):
                 return HttpResponseRedirect('{0}?id={1}'.format(
                     reverse(self.namespace), instance.id))
 
-            namespace = instance.editor == profile.user and 'datasets' or 'all_datasets'
-            return HttpResponseRedirect('{0}#datasets/{1}'.format(
-                reverse('idgo_admin:{0}'.format(namespace)), instance.id))
+            target = instance.editor == profile.user and 'mine' or 'all'
+            return HttpResponseRedirect('{0}#{1}'.format(
+                reverse('idgo_admin:datasets', kwargs={'target': target}), instance.ckan_slug))
 
         return render_with_info_profile(request, self.template, context)
 
@@ -272,8 +273,8 @@ def get_all_datasets(profile, strict=False):
 
 
 def get_datasets(profile, qs, strict=False):
-
     filters = {}
+
     if strict:
         filters['editor'] = profile.user
     else:
@@ -313,75 +314,26 @@ def get_datasets(profile, qs, strict=False):
     if resource_format:
         filters['resource__format_type__extension'] = resource_format
 
-    print(filters)
-
     return Dataset.objects.filter(**filters)
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
-def my_datasets(request, *args, **kwargs):
+def datasets(request, target, *args, **kwargs):
 
     user, profile = user_and_profile(request)
+
+    all = target == 'all'
+    if all:
+        roles = profile.get_roles()
+        if not roles['is_referent'] and not roles['is_admin']:
+            raise Http404
 
     all_categories = [
         {'id': instance.ckan_slug, 'name': instance.name}
         for instance in Category.objects.all()]
-    all_datasets = get_all_datasets(profile, strict=True)
-    all_licenses = [
-        {'id': instance.id, 'name': instance.title}
-        for instance in License.objects.all()]
-    all_organisations = get_all_organisations(profile, strict=True)
-    all_resourceformats = [
-        {'id': instance.extension, 'name': instance.extension}
-        for instance in ResourceFormats.objects.all()]
-    all_update_frequencies = [
-        {'id': choice[0], 'name': choice[1]}
-        for choice in Resource.FREQUENCY_CHOICES]
-
-    filtered_datasets = [(
-        instance.pk,
-        instance.name,
-        instance.date_creation.isoformat() if instance.date_creation else None,
-        instance.date_modification.isoformat() if instance.date_modification else None,
-        instance.date_publication.isoformat() if instance.date_publication else None,
-        Organisation.objects.get(id=instance.organisation_id).name,
-        instance.editor.get_full_name() if instance.editor != profile.user else 'Moi',
-        instance.published,
-        instance.is_inspire,
-        instance.ckan_slug,
-        profile in LiaisonsContributeurs.get_contributors(instance.organisation)
-        ) for instance in get_datasets(profile, request.GET, strict=True)]
-
-    return render_with_info_profile(
-        request, 'idgo_admin/datasets.html', status=200,
-        context={
-            'all_categories': all_categories,
-            'all_datasets': all_datasets,
-            'all_licenses': all_licenses,
-            'all_organisations': all_organisations,
-            'all_resourceformats': all_resourceformats,
-            'all_update_frequencies': all_update_frequencies,
-            'datasets': json.dumps(filtered_datasets),
-            'datasets_count': len(filtered_datasets)})
-
-
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-@login_required(login_url=settings.LOGIN_URL)
-@csrf_exempt
-def all_datasets(request, *args, **kwargs):
-
-    user, profile = user_and_profile(request)
-
-    roles = profile.get_roles()
-    if not roles['is_referent'] and not roles['is_admin']:
-        raise Http404
-
-    all_categories = [
-        {'id': instance.ckan_slug, 'name': instance.name}
-        for instance in Category.objects.all()]
-    all_datasets = get_all_datasets(profile)
+    all_datasets = get_all_datasets(profile, strict=not all)
     all_licenses = [
         {'id': instance.id, 'name': instance.title}
         for instance in License.objects.all()]
@@ -393,28 +345,31 @@ def all_datasets(request, *args, **kwargs):
         {'id': choice[0], 'name': choice[1]}
         for choice in Resource.FREQUENCY_CHOICES]
 
-    filtered_datasets = [(
-        instance.pk,
-        instance.name,
-        instance.date_creation.isoformat() if instance.date_creation else None,
-        instance.date_modification.isoformat() if instance.date_modification else None,
-        instance.date_publication.isoformat() if instance.date_publication else None,
-        Organisation.objects.get(id=instance.organisation_id).name,
-        instance.editor.get_full_name() if instance.editor != profile.user else 'Moi',
-        instance.published,
-        instance.is_inspire,
-        instance.ckan_slug,
-        profile in LiaisonsContributeurs.get_contributors(instance.organisation)
-        ) for instance in get_datasets(profile, request.GET)]
+    datasets = get_datasets(profile, request.GET, strict=not all)
+    order_by = request.GET.get('sortby', None)
+    if order_by:
+        datasets = datasets.order_by(order_by)
+
+    # Pagination
+    page_number = int(request.GET.get('page', 1))
+    items_per_page = int(request.GET.get('count', 10))
+    x = items_per_page * page_number - items_per_page
+    y = x + items_per_page
+    number_of_pages = ceil(len(datasets) / items_per_page)
 
     return render_with_info_profile(
-        request, 'idgo_admin/all_datasets.html', status=200,
+        request, 'idgo_admin/datasets/datasets.html', status=200,
         context={
+            'all': all,
             'all_categories': all_categories,
             'all_datasets': all_datasets,
             'all_licenses': all_licenses,
             'all_organisations': all_organisations,
             'all_resourceformats': all_resourceformats,
             'all_update_frequencies': all_update_frequencies,
-            'datasets': json.dumps(filtered_datasets),
-            'datasets_count': len(filtered_datasets)})
+            'datasets': datasets[x:y],
+            'pagination': {
+                'current': page_number,
+                'total': number_of_pages},
+            'total': len(datasets)
+            })

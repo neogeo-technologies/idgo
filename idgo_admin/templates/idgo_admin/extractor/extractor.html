@@ -39,7 +39,7 @@
 						</li>
 						{% if is_referent or is_admin  %}
 						<li role="presentation">
-							<a href="{% url "idgo_admin:all_datasets" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
+							<a href="{% url "idgo_admin:datasets" target="all" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
 						</li>
 						{% endif %}
 						<li role="presentation">

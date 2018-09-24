@@ -25,13 +25,13 @@ from idgo_admin.views.account import SignOut
 from idgo_admin.views.account import SignUp
 from idgo_admin.views.account import UpdateAccount
 from idgo_admin.views.action import ActionsManager
-from idgo_admin.views.dataset import all_datasets
 from idgo_admin.views.dataset import DatasetManager
-from idgo_admin.views.dataset import my_datasets
+from idgo_admin.views.dataset import datasets
 from idgo_admin.views.export import Export
 from idgo_admin.views.extractor import Extractor
 from idgo_admin.views.extractor import extractor_task
 from idgo_admin.views.extractor import ExtractorDashboard
+from idgo_admin.views import home
 from idgo_admin.views.jurisdiction import JurisdictionView
 from idgo_admin.views.mailer import confirm_contribution
 from idgo_admin.views.mailer import confirm_new_orga
@@ -56,7 +56,7 @@ from idgo_admin.views.stuffs import ows_preview
 
 
 urlpatterns = [
-    url('^$', my_datasets, name='datasets'),  # TODO: Home Page
+    url('^$', home, name='datasets'),
 
     url('^signin/?$', SignIn.as_view(), name='signIn'),
     url('^signout/?$', SignOut.as_view(), name='signOut'),
@@ -65,7 +65,7 @@ urlpatterns = [
     url('^account/update/?$', UpdateAccount.as_view(), name='update_account'),
     url('^account/delete/?$', delete_account, name='deleteAccount'),
 
-    url('^dataset/?$', DatasetManager.as_view(), name='dataset'),
+    url('^dataset/new?$', DatasetManager.as_view(), name='dataset'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))$', LayerManager.as_view(), name='layer'),
 
@@ -73,8 +73,7 @@ urlpatterns = [
     url('^extractor/task/?$', extractor_task, name='extractor_task'),
     url('^extractor/dashboard/?$', ExtractorDashboard.as_view(), name='extractor_dashboard'),
 
-    url('^dataset/mine/?$', my_datasets, name='datasets'),
-    url('^dataset/all/?$', all_datasets, name='all_datasets'),
+    url('^dataset/(?P<target>(all|mine))/?$', datasets, name='datasets'),
     url('^dataset/export/?$', Export.as_view(), name='export'),
 
     url('^jurisdiction/(?P<code>(\d+))/edit/?$', JurisdictionView.as_view(), name='jurisdiction'),
