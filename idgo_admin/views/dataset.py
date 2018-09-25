@@ -396,9 +396,11 @@ def datasets(request, target, *args, **kwargs):
     # Gestion de la pagination
     page_number = int(request.GET.get('page', 1))
     items_per_page = int(request.GET.get('count', 10))
+    number_of_pages = ceil(len(datasets) / items_per_page)
+    if number_of_pages < page_number:
+        page_number = 1
     x = items_per_page * page_number - items_per_page
     y = x + items_per_page
-    number_of_pages = ceil(len(datasets) / items_per_page)
 
     return render_with_info_profile(
         request, 'idgo_admin/dataset/datasets.html', status=200,
@@ -414,5 +416,4 @@ def datasets(request, target, *args, **kwargs):
             'pagination': {
                 'current': page_number,
                 'total': number_of_pages},
-            'total': len(datasets)
-            })
+            'total': len(datasets)})

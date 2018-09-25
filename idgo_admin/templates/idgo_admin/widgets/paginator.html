@@ -38,6 +38,7 @@
 		</nav>
 	</ul>
 </nav>
+{% endif %}
 <script>
 $(function() {
 	const $window = $(window);
@@ -51,7 +52,7 @@ $(function() {
 		return kvp;
 	})($window[0].location.search.substring(1).split('&'));
 
-	const reload = function(options) {
+	const updateUrl = function(options) {
 		var kvp = [];
 		for (var k in qs) {
 			if (k) {
@@ -65,15 +66,23 @@ $(function() {
 		if (options.withHash == false) {
 			$window[0].location.hash = '';
 		};
-		$window[0].location.search = kvp.join('&');
+		if (options.refresh == false) {
+			history.pushState(null, null, '?' + kvp.join('&'));
+		} else {
+			$window[0].location.search = kvp.join('&');
+		};
 	};
 
 	$('a[name="page"]').on('click', function(e) {
 		e.preventDefault();
 		qs['page'] = $(this).attr('value');
-		reload({withHash: false});
+		updateUrl({withHash: false});
 	});
+
+	if ({{ current }} != qs['page']) {
+		qs['page'] = {{ current }};
+		updateUrl({refresh: false});
+	};
 
 });
 </script>
-{% endif %}
