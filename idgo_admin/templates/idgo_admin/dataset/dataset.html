@@ -30,18 +30,18 @@
 <div class="tab-content">
 	<div id="dataset" role="tabpanel" class="tab-pane fade in">
 		<br />
-		{% include "idgo_admin/inner_dataset.html" %}
+		{% include "idgo_admin/dataset/edit.html" %}
 	</div>
 	{% if dataset %}
 		{% if dataset.id %}
 	<div id="resources" role="tabpanel" class="tab-pane fade in">
 		<br />
-			{% include "idgo_admin/inner_resources.html" %}
+		{% include "idgo_admin/dataset/resource/resources.html" %}
 	</div>
 			{% if is_crige and dataset.organisation.is_crige_partner %}
 	<div id="owslayers" role="tabpanel" class="tab-pane fade in">
 		<br />
-		{% include "idgo_admin/inner_layers.html" %}
+		{% include "idgo_admin/dataset/resource/layer/layers.html" %}
 	</div>
 			{% endif %}
 		{% endif %}

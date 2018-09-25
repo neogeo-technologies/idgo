@@ -37,7 +37,7 @@ from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
-from idgo_admin.models import Mail
+from idgo_admin.models.mail import send_account_creation_mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 import random
@@ -290,18 +290,10 @@ class ProfileAdmin(admin.ModelAdmin):
             obj.save()
             user = obj.user
             action = AccountActions.objects.create(profile=obj, action="set_password_admin")
-            url = request.build_absolute_uri(
-                reverse(
-                    "idgo_admin:password_manager",
-                    kwargs={'process': 'initiate', 'key': action.key}))
-            account_data = {
-                'last_name': user.last_name,
-                'first_name': user.first_name,
-                'username': user.username,
-                'email': user.email,
-                'url': url
-                }
-            Mail.send_credentials_user_creation_admin(account_data)
+            url = request.build_absolute_uri(reverse(
+                "idgo_admin:password_manager",
+                kwargs={'process': 'initiate', 'key': action.key}))
+            send_account_creation_mail(user, url)
         super().save_model(request, obj, form, change)
 
     def process_action(self, request, profile_id, action_form, action_title):

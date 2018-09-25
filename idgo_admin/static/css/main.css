@@ -453,6 +453,16 @@ table tr td {
     padding: 9px 6px !important;
 }
 
+table tr th {
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+table tr th a {
+    pointer-events: auto;
+    white-space: nowrap;
+}
+
 table tr.selected td {
     background: #002880;
     color: #fff;

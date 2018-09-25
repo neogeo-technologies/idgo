@@ -25,7 +25,14 @@ from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.models import AccountActions
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
-from idgo_admin.models import Mail
+from idgo_admin.models.mail import send_confirmed_contribution_mail
+from idgo_admin.models.mail import send_confirmed_membership_mail
+from idgo_admin.models.mail import send_confirmed_referent_mail
+from idgo_admin.models.mail import send_contributor_confirmation_mail
+from idgo_admin.models.mail import send_membership_confirmation_mail
+from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
+from idgo_admin.models.mail import send_referent_confirmation_mail
+from idgo_admin.models.mail import send_successful_account_creation_mail
 from uuid import UUID
 
 
@@ -59,7 +66,11 @@ def confirmation_mail(request, key):
                 organisation=organisation,
                 profile=profile,
                 closed=None)
-            Mail.confirm_new_organisation(request, new_organisation_action)
+
+            url = request.build_absolute_uri(
+                reverse('idgo_admin:confirm_new_orga',
+                        kwargs={'key': new_organisation_action.key}))
+            send_organisation_creation_confirmation_mail(user, organisation, url)
 
         # Demande de rattachement (Profile-Organisation)
         rattachement_action = get_object_or_404(
@@ -68,7 +79,12 @@ def confirmation_mail(request, key):
             organisation=organisation,
             profile=profile,
             closed=None)
-        Mail.confirm_rattachement(request, rattachement_action)
+
+        url = request.build_absolute_uri(
+            reverse('idgo_admin:confirm_rattachement',
+                    kwargs={'key': rattachement_action.key}))
+
+        send_membership_confirmation_mail(user, organisation, url)
 
         # Demande de rôle de référent en attente de validation
         try:
@@ -85,7 +101,10 @@ def confirmation_mail(request, key):
                 organisation=organisation,
                 profile=profile,
                 closed=None)
-            Mail.confirm_referent(request, referent_action)
+
+            url = request.build_absolute_uri(
+                reverse('idgo_admin:confirm_referent', kwargs={'key': referent_action.key}))
+            send_referent_confirmation_mail(user, organisation, url)
 
         # Demande de rôle de contributeur en attente de validation
         try:
@@ -102,9 +121,11 @@ def confirmation_mail(request, key):
                 organisation=organisation,
                 profile=profile,
                 closed=None)
-            Mail.confirm_contribution(request, contribution_action)
+            url = request.build_absolute_uri(
+                reverse('idgo_admin:confirm_contribution', kwargs={'key': contribution_action.key}))
+            send_contributor_confirmation_mail(user, organisation, url)
 
-    Mail.confirmation_user_mail(user)
+    send_successful_account_creation_mail(user)
 
     action.closed = timezone.now()
     action.save()
@@ -184,6 +205,7 @@ def confirm_rattachement(request, key):
                          last_name=user.last_name,
                          username=user.username,
                          organization_name=name)
+            status = 200
 
         else:
             action.profile.membership = True
@@ -192,6 +214,7 @@ def confirm_rattachement(request, key):
             action.profile.save()
             action.closed = timezone.now()
             action.save()
+
             message = (
                 "Le rattachement de <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) "
                 "à l'organisation <strong>{organization_name}</strong> a bien été confirmée."
@@ -199,9 +222,11 @@ def confirm_rattachement(request, key):
                          last_name=user.last_name,
                          username=user.username,
                          organization_name=name)
+            status = 200
+            send_confirmed_membership_mail(user, action.organisation)
 
     return render(request, 'idgo_admin/message.html',
-                  {'message': message}, status=200)
+                  {'message': message}, status=status)
 
 
 @ExceptionsHandler(ignore=[Http404])
@@ -256,13 +281,14 @@ def confirm_referent(request, key):
                     action.closed = timezone.now()
                     action.save()
 
-                    status = 200
                     message = (
                         "Le rôle de référent technique de l'organisation "
                         '<strong>{organization_name}</strong> '
                         "a bien été confirmé pour <strong>{username}</strong>."
                         ).format(organization_name=organisation.name,
                                  username=user.username)
+                    status = 200
+                    send_confirmed_referent_mail(user, organisation)
 
     return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=status)
@@ -318,10 +344,7 @@ def confirm_contribution(request, key):
                     ).format(organization_name=organisation.name,
                              username=user.username)
                 status = 200
-                try:
-                    Mail.confirm_contrib_to_user(action)
-                except Exception:
-                    pass
+                send_confirmed_contribution_mail(user, organisation)
 
     return render(request, 'idgo_admin/message.html',
                   {'message': message}, status=status)

@@ -174,7 +174,7 @@ $(document).ajaxSend(function(e, xhr, settings) {
 				<div class="row">
 					<div class="col-md-12">
 						{% block header_content %}
-						{% include "idgo_admin/inner_header.html" %}
+						{% include "idgo_admin/header.html" %}
 						{% endblock header_content %}
 					</div>
 				</div>
@@ -193,7 +193,7 @@ $(document).ajaxSend(function(e, xhr, settings) {
 							</li>
 							{% if is_referent or is_admin  %}
 							<li role="presentation">
-								<a href="{% url "idgo_admin:all_datasets" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
+								<a href="{% url "idgo_admin:datasets" target="all" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
 							</li>
 							{% endif %}
 							<li role="presentation">

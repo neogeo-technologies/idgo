@@ -75,6 +75,7 @@ class EMailField(forms.CharField):
         kwargs.setdefault('error_messages', {
             'invalid': "L'adresse e-mail est invalide."})
         kwargs.setdefault('label', 'Adresse e-mail')
+        kwargs.setdefault('required', False)
         kwargs.setdefault('validators', [validators.validate_email])
         kwargs.setdefault('widget', forms.EmailInput(
             attrs={
