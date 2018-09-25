@@ -321,6 +321,9 @@ class Resource(models.Model):
 
         if sync_ckan:
 
+            SupportedCrs = apps.get_model(
+                app_label='idgo_admin', model_name='SupportedCrs')
+
             ckan_params = {
                 'name': self.name,
                 'description': self.description,
@@ -469,8 +472,6 @@ class Resource(models.Model):
                     else:
                         datagis_id = []
                         crs = []
-                        SupportedCrs = apps.get_model(
-                            app_label='idgo_admin', model_name='SupportedCrs')
                         for table in tables:
                             datagis_id.append(table['id'])
                             crs.append(SupportedCrs.objects.get(
