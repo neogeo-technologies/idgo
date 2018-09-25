@@ -36,6 +36,7 @@ from urllib.parse import urljoin
 import uuid
 
 
+CKAN_URL = settings.CKAN_URL
 GEONETWORK_URL = settings.GEONETWORK_URL
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 TODAY = timezone.now().date()
@@ -175,6 +176,10 @@ class Dataset(models.Model):
     @property
     def private(self):
         return not self.published
+
+    @property
+    def ckan_url(self):
+        return urljoin(settings.CKAN_URL, 'dataset/{}'.format(self.ckan_slug))
 
     def get_resources(self, **kwargs):
         Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')

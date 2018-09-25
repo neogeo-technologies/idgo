@@ -20,7 +20,8 @@ from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import pre_init
 from django.dispatch import receiver
 from django.utils import timezone
-from idgo_admin.models.mail import Mail
+from idgo_admin.models.mail import send_extraction_failure_mail
+from idgo_admin.models.mail import send_extraction_successfully_mail
 import requests
 import uuid
 
@@ -124,8 +125,8 @@ def synchronize_extractor_task(sender, *args, **kwargs):
                         instance.save()
 
                         if instance.success is True:
-                            Mail.data_extraction_successfully(instance.user.profile, instance)
+                            send_extraction_successfully_mail(instance.user, instance)
                         elif instance.success is False:
-                            Mail.data_extraction_failure(instance.user.profile, instance)
+                            send_extraction_failure_mail(instance.user, instance)
 
     pre_init.connect(synchronize_extractor_task, sender=sender)

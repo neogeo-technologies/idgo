@@ -101,10 +101,6 @@ class Profile(models.Model):
                 "is_editor": (self.user == dataset.editor) if dataset else False}
 
     @classmethod
-    def get_admin(cls):
-        return Profile.objects.filter(is_active=True, is_admin=True)
-
-    @classmethod
     def get_crige_membership(cls):
         return Profile.objects.filter(is_active=True, crige_membership=True)
 

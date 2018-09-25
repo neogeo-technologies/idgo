@@ -23,7 +23,6 @@ from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -40,7 +39,10 @@ from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
-from idgo_admin.models import Mail
+from idgo_admin.models.mail import send_membership_confirmation_mail
+from idgo_admin.models.mail import send_contributor_confirmation_mail
+from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
+from idgo_admin.models.mail import send_referent_confirmation_mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.mra_client import MRAHandler
@@ -61,7 +63,10 @@ def creation_process(request, profile, organisation, mail=True):
         action='confirm_new_organisation',
         organisation=organisation,
         profile=profile)
-    mail and Mail.confirm_new_organisation(request, action)
+    if mail:
+        url = request.build_absolute_uri(
+            reverse('idgo_admin:confirm_new_orga', kwargs={'key': action.key}))
+        send_organisation_creation_confirmation_mail(profile.user, organisation, url)
 
 
 def member_subscribe_process(request, profile, organisation, mail=True):
@@ -69,7 +74,11 @@ def member_subscribe_process(request, profile, organisation, mail=True):
         action='confirm_rattachement',
         organisation=organisation,
         profile=profile)
-    mail and Mail.confirm_updating_rattachement(request, action)
+
+    if mail:
+        url = request.build_absolute_uri(
+            reverse('idgo_admin:confirm_rattachement', kwargs={'key': action.key}))
+        send_membership_confirmation_mail(profile.user, organisation, url)
 
 
 def member_unsubscribe_process(request, profile, organisation):
@@ -90,7 +99,10 @@ def contributor_subscribe_process(request, profile, organisation, mail=True):
         action='confirm_contribution',
         organisation=organisation,
         profile=profile)
-    mail and Mail.confirm_contribution(request, action)
+    if mail:
+        url = request.build_absolute_uri(
+            reverse('idgo_admin:confirm_contribution', kwargs={'key': action.key}))
+        send_contributor_confirmation_mail(profile.user, organisation, url)
 
 
 def contributor_unsubscribe_process(request, profile, organisation):
@@ -108,7 +120,11 @@ def referent_subscribe_process(request, profile, organisation, mail=True):
     action = AccountActions.objects.create(
         action='confirm_referent',
         organisation=organisation, profile=profile)
-    mail and Mail.confirm_referent(request, action)
+
+    if mail:
+        url = request.build_absolute_uri(
+            reverse('idgo_admin:confirm_referent', kwargs={'key': action.key}))
+        send_referent_confirmation_mail(profile.user, organisation, url)
 
 
 def referent_unsubscribe_process(request, profile, organisation):

@@ -48,6 +48,7 @@ import os
 from pathlib import Path
 import re
 from urllib.parse import parse_qs
+from urllib.parse import urljoin
 from urllib.parse import urlparse
 import uuid
 
@@ -226,6 +227,11 @@ class Resource(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def ckan_url(self):
+        return urljoin(settings.CKAN_URL, 'dataset/{}/resource/{}'.format(
+            self.dataset.ckan_slug, self.ckan_id))
 
     @property
     def datagis_id(self):

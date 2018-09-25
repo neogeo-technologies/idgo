@@ -1,121 +1,148 @@
 [{
-    "model": "idgo_admin.mail",
-    "pk": "affiliate_confirmation_to_user",
-    "fields": {
-        "subject": "Confirmation de votre rattachement \u00e0 une organisation",
-        "message": "Bonjour,\r\n\r\nVotre demande de rattachement \u00e0 l'organisation {organisation_name} a \u00e9t\u00e9 valid\u00e9e.\r\n\r\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "account_activated",
+	"fields": {
+		"subject": "Bienvenue sur la plateforme Datasud",
+		"message": "Bonjour {full_name} ({username}),\n\nNous confirmons votre inscription sur la plateforme Datasud.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "conf_deleting_dataset_by_user",
-    "fields": {
-        "subject": "Confirmation de la suppression d'un jeu de donn\u00e9es",
-        "message": "Bonjour,\r\n\r\nNous vous confirmons la suppression d'un jeu de donn\u00e9e dont vous avez la responsabilit\u00e9:\r\n+ Nom du jeu de donn\u00e9e supprim\u00e9: {dataset_name}\r\n\r\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "account_creation_by_admin",
+	"fields": {
+		"subject": "Un nouveau compte vous a \u00e9t\u00e9 cr\u00e9e sur la plateforme Datasud",
+		"message": "Bonjour,\n\nUn compte vous a \u00e9t\u00e9 cr\u00e9\u00e9 sur la plateforme Datasud par les services d'administration.\n\nVoici votre identifiant de connexion : {username}.\n\nPour initialiser votre compte, veuillez cliquer sur le lien ci-dessous :\n\n{url}\n\n--\nCe message est envoy\u00e9 automatiquement. Veuillez ne pas r\u00e9pondre. "
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "conf_deleting_profile_to_user",
-    "fields": {
-        "subject": "Confirmation de votre d\u00e9sinscription au service IDGO",
-        "message": "Bonjour {first_name} {last_name} ({username}),\n\nNous confirmons votre d\u00e9sinscription du site IDGO.\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "account_deleted",
+	"fields": {
+		"subject": "Confirmation de la suppression de votre compte de la plateforme Datasud",
+		"message": "Bonjour {full_name} ({username}),\n\nNous confirmons la suppression de votre compte de la plateforme Datasud.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "conf_deleting_res_by_user",
-    "fields": {
-        "subject": "Confirmation de la suppression d'une ressource",
-        "message": "Bonjour,\r\n\r\nNous vous confirmons la suppression d'une ressource dont vous avez la responsabilit\u00e9:\r\n+ Nom du jeu de donn\u00e9e auquel appartient la resource: {dataset_name}\r\n+ Nom de la ressource supprim\u00e9e: {resource_name}\r\n\r\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "confirm_account_creation",
+	"fields": {
+		"subject": "Confirmer votre inscription sur la plateforme Datasud",
+		"message": "Bonjour {full_name} ({username}),\n\nAfin de valider votre inscription sur la plateforme Datasud, veuillez cliquer sur le lien suivant :\n\n{url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "confirmation_user_mail",
-    "fields": {
-        "subject": "Confirmation de votre inscription sur le site IDGO",
-        "message": "Bonjour {first_name} {last_name} ({username}),\n\nNous confirmons votre inscription sur le site IDGO.\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "confirm_contributor_status",
+	"fields": {
+		"subject": "Un utilisateur demande le statut de contributeur",
+		"message": "Bonjour,\n\nL'utilisateur {full_name} ({username}, {email}) demande le statut de contributeur de l'organisation \u00ab {organisation} \u00bb ({website}).\n\nVeuillez cliquer sur le lien ci-dessous pour valider sa demande : \n\n{url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "confirm_contrib_to_user",
-    "fields": {
-        "subject": "Confirmation de votre inscription en tant que contributeur pour une organisation.",
-        "message": "Bonjour,\n\nVotre demande de contribution pour l'organisation {organisation_name} a \u00e9t\u00e9 valid\u00e9e.\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "confirm_membership_status",
+	"fields": {
+		"subject": "Un utilisateur demande le statut de membre",
+		"message": "Bonjour,\n\nL'utilisateur {full_name} ({username}, {email}) demande le statut de membre de l'organisation \u00ab {organisation} \u00bb ({website}).\n\nVeuillez cliquer sur le lien ci-dessous pour valider sa demande : \n\n{url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "confirm_contribution",
-    "fields": {
-        "subject": "Un utilisateur requiert un statut de contributeur pour une organisation.",
-        "message": "Bonjour,\n\nUn utilisateur ({first_name} {last_name}, {username}, {user_mail}) a fait une demande\nde contribution pour l'organisation {organisation_name} {website}.\n\nVeuillez cliquer sur le lien suivant pour valider sa demande : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "confirm_organisation_creation",
+	"fields": {
+		"subject": "Un utilisateur demande la cr\u00e9ation d'une nouvelle organisation",
+		"message": "Bonjour,\n\nL'utilisateur {full_name} ({username}, {email}) demande la cr\u00e9ation d'une nouvelle organisation \u00ab {organisation} \u00bb ({website}).\n\nVeuillez cliquer sur le lien ci-dessous pour valider sa demande : \n\n{url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "confirm_new_organisation",
-    "fields": {
-        "subject": "Un utilisateur demande la cr\u00e9ation d'une nouvelle organisation",
-        "message": "Bonjour,\n\nUn nouvel utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le rattachement\n\u00e0 une nouvelle organisation qu'il a \u00e9galement cr\u00e9\u00e9e:\n\nVeuillez v\u00e9rifier les donn\u00e9es renseign\u00e9es avant de valider son inscription:\n*   Nom de l'organisation : {organisation_name}\n*   Adresse URL de l'organisation : {website}\n\nVeuillez cliquer sur le lien suivant afin de valider cette demande de cr\u00e9ation:\n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "confirm_referent_status",
+	"fields": {
+		"subject": "Un utilisateur demande le statut de r\u00e9f\u00e9rent",
+		"message": "Bonjour,\n\nL'utilisateur {full_name} ({username}, {email}) demande le statut de r\u00e9f\u00e9rent de l'organisation \u00ab {organisation} \u00bb ({website}).\n\nVeuillez cliquer sur le lien ci-dessous pour valider sa demande : \n\n{url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "confirm_rattachement",
-    "fields": {
-        "subject": "Un utilisateur demande son rattachement \u00e0 une organisation",
-        "message": "Bonjour,\n\nUn nouvel utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le rattachement \u00e0\nl'organisation : {organisation_name}, {website}.\n\nVeuillez cliquer sur ce lien afin de valider cette demande : \n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "contributor_status_confirmed",
+	"fields": {
+		"subject": "Validation de votre demande de statut de contributeur",
+		"message": "Bonjour {full_name} ({username}),\n\nVotre demande de statut de contributeur pour l'organisation \u00ab {organisation} \u00bb a \u00e9t\u00e9 valid\u00e9e.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "confirm_referent",
-    "fields": {
-        "subject": "Un utilisateur requiert un statut de r\u00e9f\u00e9rent technique pour une organisation.",
-        "message": "Bonjour,\n\nUn nouvel utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le r\u00f4le de r\u00e9f\u00e9rent technique pour {organisation_name}.\n\nVeuillez cliquer sur le lien suivant pour valider sa demande : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "data_extraction_failure",
+	"fields": {
+		"subject": "\u00c9chec de l'extraction",
+		"message": "Bonjour {full_name} ({username}),\n\nL'extraction du jeu de donn\u00e9es \u00ab {dataset} \u00bb a \u00e9chou\u00e9e.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "confirm_updating_rattachement",
-    "fields": {
-        "subject": "Un utilisateur demande son rattachement \u00e0 une organisation",
-        "message": "Bonjour,\n\nUn utilisateur ({first_name} {last_name}, {username}, {user_mail}) demande le rattachement \u00e0\nl'organisation : {organisation_name}, {website}.\n\nVeuillez cliquer sur ce lien afin de valider cette demande : \n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "data_extraction_successfully",
+	"fields": {
+		"subject": "Lien de t\u00e9l\u00e9chargement",
+		"message": "Bonjour {full_name} ({username}),\n\nPour t\u00e9l\u00e9charger votre jeu de donn\u00e9es, veuillez cliquer sur le lien ci-dessous :\n\n{url}\n\nLe lien est disponible 15 jours.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "credentials_user_creation_admin",
-    "fields": {
-        "subject": "Un nouveau compte vous a \u00e9t\u00e9 cr\u00e9e par le service d'administration de la plateforme IDGO",
-        "message": "Bonjour, {last_name}, {first_name},\n\nUn compte vous a \u00e9t\u00e9 cr\u00e9\u00e9 par les services d'administration sur la plateforme IDGO .\n+ Identifiant de connexion: {username}\n\nVeuillez initialiser votre mot de passe en suivant le lien suivant.\n+ Url de connexion: {url}\n\nCe message est envoy\u00e9 automatiquement. Veuillez ne pas r\u00e9pondre. ",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "dataset_created",
+	"fields": {
+		"subject": "Cr\u00e9ation d'un jeu de donn\u00e9es",
+		"message": "Bonjour {full_name} ({username}),\n\nLe jeu de donn\u00e9es \u00ab {dataset} \u00bb ({id}) a \u00e9t\u00e9 cr\u00e9\u00e9 avec succ\u00e8s :\n\n{ckan_url}\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "send_reset_password_link_to_user",
-    "fields": {
-        "subject": "R\u00e9initialisation de votre mot de passe pour le site IDGO",
-        "message": "Bonjour {last_name} {first_name},\n\nUne demande de r\u00e9initialisation de mot de passe \u00e0 \u00e9t\u00e9 faite concernant votre compte IDGO {username}.\n\nSi vous \u00eates \u00e0 l'origine de cette demande,  veuillez suivre ce lien afin de changer votre mot de passe:\n\n{url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "dataset_deleted",
+	"fields": {
+		"subject": "Suppression d'un jeu de donn\u00e9es",
+		"message": "Bonjour {full_name} ({username}),\n\nLe jeu de donn\u00e9es \u00ab {dataset} \u00bb ({id}) a \u00e9t\u00e9 supprim\u00e9 avec succ\u00e8s.\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "validation_user_mail",
-    "fields": {
-        "subject": "Validation de votre inscription sur le site IDGO",
-        "message": "Bonjour {first_name} {last_name} ({username}),\n\nPour valider votre inscription, veuillez cliquer sur le lien suivant : {url}\n\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "dataset_updated",
+	"fields": {
+		"subject": "Mise \u00e0 jour d'un jeu de donn\u00e9es",
+		"message": "Bonjour {full_name} ({username}),\n\nLe jeu de donn\u00e9es \u00ab {dataset} \u00bb ({id}) a \u00e9t\u00e9 mis \u00e0 jour avec succ\u00e8s :\n\n{ckan_url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }, {
-    "model": "idgo_admin.mail",
-    "pk": "email_task",
-    "fields": {
-        "subject": "Synchronisation des données distantes",
-        "message": "Bonjour,\n\nCi-joint, la liste des tâches effectuées cette semaine.\n\nCeci est un message automatique. Merci de ne pas y répondre.",
-        "from_email": "inscription@datasud.fr"
-    }
+	"model": "idgo_admin.mail",
+	"pk": "email_task",
+	"fields": {
+		"subject": "Synchronisation des donn\u00e9es distantes",
+		"message": "Bonjour,\n\nCi-joint, la liste des t\u00e2ches effectu\u00e9es ce jour.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
+	"model": "idgo_admin.mail",
+	"pk": "membership_status_confirmed",
+	"fields": {
+		"subject": "Validation de votre demande de statut de membre",
+		"message": "Bonjour {full_name} ({username}),\n\nVotre demande de statut de membre de l'organisation \u00ab {organisation} \u00bb a \u00e9t\u00e9 valid\u00e9e.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
+	"model": "idgo_admin.mail",
+	"pk": "referent_status_confirmed",
+	"fields": {
+		"subject": "Validation de votre demande de statut de r\u00e9f\u00e9rent",
+		"message": "Bonjour {full_name} ({username}),\n\nVotre demande de statut de r\u00e9f\u00e9rent pour l'organisation \u00ab {organisation} \u00bb a \u00e9t\u00e9 valid\u00e9e.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
+	"model": "idgo_admin.mail",
+	"pk": "reset_password",
+	"fields": {
+		"subject": "R\u00e9initialisation de votre mot de passe sur la plateforme Datasud",
+		"message": "Bonjour {full_name} ({username})\n\nVous avez demand\u00e9 la r\u00e9initialisation de mot de passe.\n\nSi vous \u00eates \u00e0 l'origine de cette demande, veuillez suivre ce lien :\n\n{url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
+	"model": "idgo_admin.mail",
+	"pk": "resource_created",
+	"fields": {
+		"subject": "Cr\u00e9ation d'une ressource",
+		"message": "Bonjour {full_name} ({username}),\n\nLa ressource \u00ab {resource} \u00bb ({id}) a \u00e9t\u00e9 cr\u00e9\u00e9e avec succ\u00e8s :\n\n{ckan_url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
+	"model": "idgo_admin.mail",
+	"pk": "resource_deleted",
+	"fields": {
+		"subject": "Suppression d'une ressource",
+		"message": "Bonjour {full_name} ({username}),\n\nLa ressource \u00ab {resource} \u00bb ({id}) a \u00e9t\u00e9 supprim\u00e9e avec succ\u00e8s.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
+	"model": "idgo_admin.mail",
+	"pk": "resource_updated",
+	"fields": {
+		"subject": "Mise \u00e0 jour d'une ressource",
+		"message": "Bonjour {full_name} ({username}),\n\nLa ressource \u00ab {resource} \u00bb ({id}) a \u00e9t\u00e9 mise \u00e0 jour avec succ\u00e8s :\n\n{ckan_url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
 }]

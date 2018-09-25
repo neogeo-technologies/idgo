@@ -41,7 +41,9 @@ from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import License
-# from idgo_admin.models import Mail
+from idgo_admin.models.mail import send_dataset_creation_mail
+from idgo_admin.models.mail import send_dataset_delete_mail
+from idgo_admin.models.mail import send_dataset_update_mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
@@ -195,10 +197,10 @@ class DatasetManager(View):
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
         else:
-            # if id:
-            #     Mail.updating_a_dataset(profile, instance)
-            # else:
-            #     Mail.creating_a_dataset(profile, instance)
+            if id:
+                send_dataset_update_mail(user, instance)
+            else:
+                send_dataset_creation_mail(user, instance)
 
             messages.success(request, (
                 'Le jeu de données a été {0} avec succès. Souhaitez-vous '
@@ -248,7 +250,7 @@ class DatasetManager(View):
             messages.error(request, e.__str__())
         else:
             instance.delete()
-            # Mail.deleting_a_dataset(profile, instance)
+            send_dataset_delete_mail(user, instance)
 
             status = 200
             message = 'Le jeu de données a été supprimé avec succès.'
