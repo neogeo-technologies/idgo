@@ -9,6 +9,13 @@
 <link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
 {% endblock head_extras %}
 
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li class="active">Mes extractions</li>
+</ol>
+{% endblock breadcrumb_content %}
+
 {% block main_content %}
 
 {% include "idgo_admin/alert_messages.html" %}
@@ -114,7 +121,7 @@
 	</div>
 </template>
 
-<div>
+<div class="well">
 	<div name="actions" class="buttons-on-the-right-side">
 		<a type="button" class="btn btn-primary" href="{% url "idgo_admin:extractor" %}">Nouvelle extraction</a>
 	</div>

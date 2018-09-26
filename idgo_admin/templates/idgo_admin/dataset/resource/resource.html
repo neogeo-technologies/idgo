@@ -2,7 +2,8 @@
 
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
-	<li>Jeu de données</li>
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li>{% if all %}Tous les{% else %}Mes{% endif %} jeux de données</li>
 	<li>
 		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#dataset">{{ dataset.name_overflow }}</a>
 	</li>

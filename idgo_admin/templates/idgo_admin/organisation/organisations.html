@@ -2,6 +2,13 @@
 
 {% load bootstrap3 %}
 
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li class="active">Organisations</li>
+</ol>
+{% endblock breadcrumb_content %}
+
 {% block main_content %}
 <template id="organization_well_template">
 	<div>
@@ -621,11 +628,17 @@ $(function() {
 
 		const $container = $('div.scrolling-box');
 
+		var $prev = undefined;
 		const prev = $('input[type=radio][name=organizations]:checked').val();
-		const $prev = $('input[type=radio][name=organizations][value=' + prev + ']').parent().removeClass('active');
+		if (prev) {
+			$prev = $('input[type=radio][name=organizations][value=' + prev + ']').parent().removeClass('active');
+		};
 
+		var $next = undefined;
 		const next = value;
-		const $next = $('input[type=radio][name=organizations][value=' + next + ']').parent();
+		if (next) {
+			$next = $('input[type=radio][name=organizations][value=' + next + ']').parent();
+		};
 
 		const onSuccess = function(data, status, xhr) {
 			$container.animate({

@@ -2,18 +2,21 @@
 {% load bootstrap3 %}
 
 <span class="title">
-	<a href="{{ wordpress_url }}"><img src="{% static "img/logo_data_sud.jpg" %}"/></a>
-	<img src="{% static "img/logo_paca.jpg" %}"/>
-	<img src="{% static "img/logo_crige.jpg" %}"/>
+	<a href="{{ wordpress_url }}">
+		<img src="{% static "img/logo_datasud.png" %}" style="height: 90px;"/>
+	</a>
+	<img src="{% static "img/logo_region_sud.png" %}" style="height: 57px;"/>
+	<img src="{% static "img/logo_crige.png" %}" style="height: 57px;"/>
 </span>
 <div class="btn-group login">
-	<button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-		<span name='full-name'>{{ first_name}} {{ last_name }}</span>
-		{% if is_admin %}<span class="label label-warning">admin</span>{% endif %}
-		<span class="glyphicon glyphicon-user"></span>
+	{% if is_admin %}
+	<span class="user-status">admin</span>
+	{% endif %}
+	<button type="button" class="dropdown-toggle" data-toggle="dropdown">
+		{{ first_name}} {{ last_name }} <span class="glyphicon glyphicon-user"></span>
 	</button>
-	<ul name="my-account-menu" class="dropdown-menu">
-		<li style="text-align: left"><a href="{% url "idgo_admin:update_account" %}">Mon profil</a></li>
-		<li style="text-align: left"><a href="{% url "idgo_admin:signOut" %}">Me déconnecter</a></li>
+	<ul class="dropdown-menu">
+		<li><a href="{% url "idgo_admin:update_account" %}">Mon profil</a></li>
+		<li><a href="{% url "idgo_admin:signOut" %}">Me déconnecter</a></li>
 	</ul>
 </div>

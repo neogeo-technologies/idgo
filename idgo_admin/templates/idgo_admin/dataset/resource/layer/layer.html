@@ -4,7 +4,8 @@
 
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
-	<li>Jeu de données</li>
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li >{% if all %}Tous les{% else %}Mes{% endif %} jeux de données</li>
 	<li>
 		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#dataset/{{ dataset.id }}">{{ dataset.name }}</a>
 	</li>
@@ -27,7 +28,7 @@
 <div id="layer-container">
 	{% if resource.extractable %}
 	<div class="floating-buttons-on-the-right-side">
-		<a href="{% url "idgo_admin:extractor" %}?layer={{ layer.id }}" name="extractor" type="button" class="btn btn-default">Service d'extraction</a>
+		<a href="{% url "idgo_admin:extractor" %}?layer={{ layer.id }}" name="extractor" type="button" class="btn btn-secondary">Service d'extraction</a>
 	</div>
 	{% endif %}
 	<ul class="nav nav-tabs" role="tablist">
@@ -41,7 +42,7 @@
 			<a href="#editor" aria-controls="editor" role="tab" data-toggle="tab">Editeur de style</a>
 		</li>
 	</ul>
-	<div class="tab-content">
+	<div class="tab-content well">
 		<div role="tabpanel" class="tab-pane active" id="configuration">
 			<div class="tab-pane-content">
 				{% include "idgo_admin/dataset/resource/layer/configuration.html" %}

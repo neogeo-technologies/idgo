@@ -1,5 +1,12 @@
 {% extends "idgo_admin/base.html" %}
 
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li class="active">{% if all %}Tous les{% else %}Mes{% endif %} jeux de données</li>
+</ol>
+{% endblock breadcrumb_content %}
+
 {% block main_content %}
 
 {% include "idgo_admin/alert_messages.html" %}

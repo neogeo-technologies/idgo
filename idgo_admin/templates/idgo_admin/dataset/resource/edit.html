@@ -12,7 +12,7 @@
 	</div>
 </template>
 
-<form method="post" action="" enctype="multipart/form-data">
+<form method="post" action="" enctype="multipart/form-data" class="well">
 	<div class="buttons-on-the-right-side">
 		{% if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige %}
 			{% if resource.datagis_id and resource.datagis_id|length == 1 %}
@@ -80,7 +80,7 @@
 					<a name="referenced_url" href="#referenced_url" aria-controls="referenced_url" role="tab" data-toggle="tab">Référencer une URL</a>
 				</li>
 			</ul>
-			<div class="well tab-content" name="data-selector-panel">
+			<div class="tab-content" name="data-selector-panel">
 				<div role="tabpanel" class="tab-pane" id="up_file">
 					{% bootstrap_field form.up_file show_label=False %}
 				</div>

@@ -2,7 +2,8 @@
 
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
-	<li>Jeu de données</li>
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li>{% if all %}Tous les{% else %}Mes{% endif %} jeux de données</li>
 	<li class="active">
 		{% if dataset %}<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}">{{ dataset.name_overflow }}</a>{% else %}Nouveau jeu de données{% endif %}
 	</li>
@@ -27,7 +28,7 @@
 		{% endif %}
 	{% endif %}
 </ul>
-<div class="tab-content">
+<div class="tab-content well">
 	<div id="dataset" role="tabpanel" class="tab-pane fade in">
 		<br />
 		{% include "idgo_admin/dataset/edit.html" %}

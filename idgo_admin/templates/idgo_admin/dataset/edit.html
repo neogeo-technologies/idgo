@@ -11,7 +11,7 @@
 		{% if dataset.id %}
 		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}">Ouvrir dans CKAN</a>
 		{% endif %}
-		<a role="button" class="btn btn-default" target="_blank" href="{{ doc_url }}">
+		<a role="button" class="btn btn-secondary" target="_blank" href="{{ doc_url }}">
 			<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
 		</a>
 	</div>
@@ -102,13 +102,13 @@
 			{% bootstrap_field form.support %}
 		</div>
 	</div>
+	<hr />
 	<div class="row">
 		<div class="col-xs-4">
-			<div class="well">
-				{% bootstrap_field form.data_type %}
-			</div>
+			{% bootstrap_field form.data_type %}
 		</div>
 	</div>
+	<hr />
 	<div class="row">
 		<div class="col-xs-6">
 			{% bootstrap_field form.owner_name %}
@@ -149,11 +149,8 @@
 	<br />
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:datasets" %}">Annuler</a>
-		<button type="submit" name="continue" class="btn btn-primary">Enregistrer et continuer les modifications</button>
+		<button type="submit" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>
 		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
-		{% if dataset.id %}
-		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}">Ouvrir dans CKAN</a>
-		{% endif %}
 	</div>
 </form>
 <script>
