@@ -17,6 +17,7 @@
 
 html {
     min-width: 767px;
+    background-color: #fefefe;
 }
 
 a {
@@ -176,10 +177,18 @@ table tr.selected td:last-child {
             box-shadow: none;
 }
 
-.input-group .btn-default {
-    color: #333;
-    background-color: #ccc;
+.input-group-btn .btn-default,
+                 .btn-default {
+    background-color: #ddd;
+    color: #666;
 }
+
+.input-group-btn .btn-default,
+                 .btn-default {
+    background-color: #ddd;
+    color: #666;
+}
+
 
 .input-group .btn-primary {
     color: #fff;
@@ -189,6 +198,18 @@ table tr.selected td:last-child {
     border-bottom: 1px solid #0072bc;
 }
 
+.input-group-addon:first-child {
+    border-right: 0px;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+.input-group-addon:last-child {
+    border-right: 0px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
 .form-control {
     border-radius: 0px;
     -webkit-box-shadow: none;
@@ -196,7 +217,6 @@ table tr.selected td:last-child {
 }
 
 .form-control.datepicker {
-    border-radius: 4px;
     padding: 6px 12px;
 }
 
@@ -208,7 +228,7 @@ table tr.selected td:last-child {
 
 .btn {
     background-color: #fff;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 1px;
     color: #666;
     -webkit-box-shadow: none;
@@ -231,10 +251,8 @@ table tr.selected td:last-child {
 }
 
 
-.input-group-btn .btn-default,
-                 .btn-default {
-    background-color: #ddd;
-    color: #666;
+.btn-default {
+    border: 1px solid #ccc;
 }
 
 .btn-default.focus,
@@ -245,7 +263,6 @@ table tr.selected td:last-child {
     -webkit-box-shadow: 0 2px 1px 0 rgba(221,221,221,.25);
             box-shadow: 0 2px 1px 0 rgba(221,221,221,.25);
 }
-
 
 .btn-primary {
     background-color: #0072bc;
@@ -561,8 +578,8 @@ table tr.selected td:last-child {
 .page-header {
     padding-top: 30px;
     padding-bottom: 30px;
-    margin: 0;
-    border-bottom: 1px solid transparent;
+    margin: 0 0;
+    border-bottom: none;
     background-color: #fff;
     color: #0072bc;
     position: relative;
@@ -765,16 +782,28 @@ table tr.selected td:last-child {
     padding-top: 30px;
     padding-bottom: 200px;
     bottom: 0;
-    background-color: #eee;
+    background: linear-gradient(#eee 0px, #eee 50px, #fefefe 300px);
 }
 
 .main-container .panel,
 .main-container .well {
     background-color: #fff;
-    border: none;
     border-radius: 0;
-    -webkit-box-shadow: 0 2px 1px -1px rgba(0,0,0,.123);
-            box-shadow: 0 2px 1px -1px rgba(0,0,0,.123);
+    border: 1px solid transparent;
+    -webkit-box-shadow: none;
+            box-shadow: none;
+    /* -webkit-box-shadow: 0 2px 1px -1px rgba(0,0,0,.4);
+            box-shadow: 0 2px 1px -1px rgba(0,0,0,.4); */
+}
+
+.main-container .panel .well,
+.main-container .panel .panel,
+.main-container .well .panel,
+.main-container .well .well {
+    border: 1px solid #eee;
+    background-color: #fcfcfc;
+    -webkit-box-shadow: 0 2px 3px -1px rgba(238,238,238,.5);
+            box-shadow: 0 2px 3px -1px rgba(238,238,238,.5);
 }
 
 .main-container .panel-heading {
@@ -783,6 +812,30 @@ table tr.selected td:last-child {
 
 .main-container .panel-heading h1 {
     font-size: 2em;
+}
+
+.panel-group .panel-heading+.panel-collapse>.list-group,
+.panel-group .panel-heading+.panel-collapse>.panel-body {
+    border-top: none;
+}
+
+.checkbox-select-multiple-widget {
+    overflow-y: scroll;
+    border: 1px solid #eee;
+    border-radius: 0;
+}
+
+.checkbox-select-multiple-widget label {
+    width: 100%;
+}
+
+.checkbox-select-multiple-widget .checkbox {
+    margin: 0;
+    padding: 6px 12px;
+}
+
+.checkbox-select-multiple-widget .checkbox:hover {
+    background-color: #eee;
 }
 
 /* ************************************************************************* */
@@ -1026,13 +1079,15 @@ table tr.selected td:last-child {
 /* ************************************************************************* */
 
 #categories.btn-group {
+    /* left: -12px; */
     position: relative;
     display: inline-block;
     vertical-align: middle;
-    border: 1px solid #aaa;
-    border-radius: 4px;
+    border: 1px solid transparent;
+    border-left: 1px solid #ccc;
+    background-color: #fff;
     width: 100%;
-    margin: 0;
+    padding-left: 24px;
 }
 
 #categories.btn-group>label.btn {
@@ -1065,7 +1120,7 @@ table tr.selected td:last-child {
     border: none;
     padding: 0;
     margin: 0;
-    border-radius: 10px;
+    border-radius: 16px;
 }
 
 
@@ -1073,22 +1128,31 @@ table tr.selected td:last-child {
 #categories.btn-group>label.btn.active>span.badge,
 #categories.btn-group>label.btn.active:hover>span.badge,
 #categories.btn-group>label.btn.active:focus>span.badge {
-    padding: 4px 8px;
-    margin: -4px -8px;
-    color: #fff;
+    padding: 5px 8px;
+    margin: -5px -8px;
 }
 
 #categories.btn-group>label.btn:hover>span.badge {
-    background-color: #aaa;
+    background-color: #ccc;
+    color: #666;
+    -webkit-box-shadow: 0 2px 1px 0 rgba(204,204,204,.25);
+            box-shadow: 0 2px 1px 0 rgba(204,204,204,.25);
 }
 
+
 #categories.btn-group>label.btn.active>span.badge {
-    background-color: #0072bc;
+    background-color: #d0be91;
+    color: #f8f6f2;
+}
+
+#categories.btn-group>label.btn.active:hover>span.badge {
+    -webkit-box-shadow: 0 2px 1px 0 rgba(187,171,130,.25);
+            box-shadow: 0 2px 1px 0 rgba(187,171,130,.25);
 }
 
 #categories.btn-group>label.btn.active:hover>span.badge,
 #categories.btn-group>label.btn.active:focus>span.badge {
-    background-color: #002066;
+    background-color: #bbab82;
 }
 
 /* ************************************************************************* */
@@ -1143,17 +1207,15 @@ table tr.selected td:last-child {
 /* ************************************************************************* */
 
 #extractor .page-header {
-    background-color: rgba(255,255,255,.5);
+    background: linear-gradient(#fff 0, rgba(255,255,255,.8) 100%);
 }
 
 #extractor .nav-container {
-    background-color: rgba(255,255,255,.5);
-    -webkit-box-shadow: 0 1px 2px 0px rgba(255,255,255,1);
-            box-shadow: 0 1px 2px 0px rgba(255,255,255,1);
+    background: linear-gradient(rgba(255,255,255,.8) 0, rgba(255,255,255,.75) 80%, rgba(255,255,255,.5) 100%);
 }
 
 #extractor .footer-container .footer {
-    background-color: rgba(255,255,255,.5);
+    background-color: rgba(255,255,255,.75);
     -webkit-box-shadow: 0 -1px 2px 0px rgba(255,255,255,1);
             box-shadow: 0 -1px 2px 0px rgba(255,255,255,1);
 }

@@ -2,25 +2,35 @@
 
 {% load bootstrap3 %}
 
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li><a href="{% url "idgo_admin:update_account" %}">Mes informations de profil</a></li>
+	<li class="active">Supprimer mon compte</li>
+</ol>
+{% endblock breadcrumb_content %}
+
 {% block main_content %}
-<h2 class="modal-title">Êtes-vous absolument sûr ?</h2>
-<br/>
-<p>Vous êtes sur le point de supprimer votre compte.</p>
-<p>Cette action est irreversible et supprimera <strong>définitivement</strong> votre compte.</p>
-<p>Pour confirmer, veuillez réécrire votre identifiant de connexion ainsi que votre mot de passe.</p>
-<form method="post" action="">
-	{% csrf_token %}
-	<div class="row">
-		<div class="col-xs-12 col-sm-6">
-			{% bootstrap_field uform.username show_label=False %}
+<div class="well">
+	<h2 class="modal-title">Êtes-vous absolument sûr ?</h2>
+	<br/>
+	<p>Vous êtes sur le point de supprimer votre compte.</p>
+	<p>Cette action est irreversible et supprimera <strong>définitivement</strong> votre compte.</p>
+	<p>Pour confirmer, veuillez réécrire votre identifiant de connexion ainsi que votre mot de passe.</p>
+	<form method="post" action="">
+		{% csrf_token %}
+		<div class="row">
+			<div class="col-xs-12 col-sm-6">
+				{% bootstrap_field uform.username show_label=False %}
+			</div>
+			<div class="col-xs-12 col-sm-6">
+				{% bootstrap_field uform.password show_label=False %}
+			</div>
 		</div>
-		<div class="col-xs-12 col-sm-6">
-			{% bootstrap_field uform.password show_label=False %}
+		<div class="buttons-on-the-right-side">
+			<a class="btn btn-default" href="{% url "idgo_admin:update_account" %}">Annuler</a>
+			<button type="submit" class="btn btn-danger">Supprimer définitivement mon compte</button>
 		</div>
-	</div>
-	<div class="buttons-on-the-right-side">
-		<a class="btn btn-default" href="{% url "idgo_admin:update_account" %}">Annuler</a>
-		<button type="submit" class="btn btn-danger">Supprimer définitivement mon compte</button>
-	</div>
-</form>
+	</form>
+</div>
 {% endblock main_content %}

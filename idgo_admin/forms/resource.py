@@ -102,15 +102,17 @@ class ResourceForm(forms.ModelForm):
 
     profiles_allowed = forms.ModelMultipleChoiceField(
         label='Utilisateurs autorisés',
-        queryset=Profile.objects.filter(is_active=True),
+        queryset=Profile.objects.filter(is_active=True).order_by('user__last_name'),
         required=False,
-        to_field_name='pk')
+        to_field_name='pk',
+        widget=forms.CheckboxSelectMultiple())
 
     organisations_allowed = forms.ModelMultipleChoiceField(
         label='Organisations autorisées',
-        queryset=Organisation.objects.filter(is_active=True),
+        queryset=Organisation.objects.filter(is_active=True).order_by('name'),
         required=False,
-        to_field_name='pk')
+        to_field_name='pk',
+        widget=forms.CheckboxSelectMultiple())
 
     synchronisation = forms.BooleanField(
         initial=False,
@@ -140,6 +142,11 @@ class ResourceForm(forms.ModelForm):
         queryset=SupportedCrs.objects.all(),
         required=False,
         to_field_name='auth_code')
+
+    restricted_level = forms.ChoiceField(
+        choices=Meta.model.LEVEL_CHOICES,
+        label="Restriction d'accès",
+        required=True)
 
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})

@@ -154,7 +154,7 @@ class PartialFormatter(string.Formatter):
                 raise
 
 
-def three_suspension_points(val, max_len=19):
+def three_suspension_points(val, max_len=29):
     return (len(val)) > max_len and val[0:max_len - 3] + '...' or val
 
 

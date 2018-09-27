@@ -2,6 +2,13 @@
 
 {% load bootstrap3 %}
 
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li class="active">Mes informations de profil</li>
+</ol>
+{% endblock breadcrumb_content %}
+
 {% block nav_content_extra %}
 <li role="presentation" name="account">
 	<a href="{% url "idgo_admin:update_account" %}" role="tab">Mon profil</a>

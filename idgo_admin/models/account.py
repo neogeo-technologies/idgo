@@ -73,7 +73,7 @@ class Profile(models.Model):
         verbose_name_plural = 'Profils des utilisateurs'
 
     def __str__(self):
-        return self.user.username
+        return '{} ({})'.format(self.user.get_full_name(), self.user.username)
 
     @property
     def is_crige_admin(self):

@@ -152,7 +152,7 @@ class OrganisationLogoField(forms.ImageField):
 class OrganisatioNameField(forms.CharField):
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('label', "Nom de l'organisation")
+        kwargs.setdefault('label', "Dénomination sociale")
         kwargs.setdefault('max_length', 100)
         kwargs.setdefault('required', False)
         kwargs.setdefault('widget', forms.TextInput(

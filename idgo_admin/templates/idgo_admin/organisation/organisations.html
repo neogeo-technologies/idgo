@@ -185,7 +185,7 @@
 			{% else %}
 			<div class="alert alert-info" role="alert">Aucune organisation n'est disponible</div>
 			{% endif %}
-			<div class="btn-group-vertical btn-block scrolling-box" data-toggle="buttons">
+			<div class="btn-group-vertical btn-block scrolling-box well" data-toggle="buttons" style="padding: 0;">
 				{% for item in organizations %}
 				<label for="id_organization_{{ item.pk }}" class="btn btn-radio">
 					<span class="label-name">{{ item.name }}</span>

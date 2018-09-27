@@ -3,7 +3,7 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <form name="dataset" method="post" action="" enctype="multipart/form-data">
-
+	{% csrf_token %}
 	<div class="buttons-on-the-right-side">
 		{% if dataset.is_inspire %}
 		<a class="btn btn-default" href="{% url "idgo_admin:dataset_mdedit" id=dataset.id %}">Éditer la fiche de métadonnées INSPIRE</a>
@@ -15,9 +15,6 @@
 			<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
 		</a>
 	</div>
-
-	{% csrf_token %}
-
 	<div class="row">
 		<div class="col-xs-12">
 			{% bootstrap_field form.name %}
@@ -28,6 +25,7 @@
 			{% bootstrap_field form.ckan_slug %}
 		</div>
 	</div>
+	<br />
 	<div class="row">
 		<div class="col-xs-8">
 			{% bootstrap_field form.description %}
@@ -36,11 +34,13 @@
 			{% bootstrap_field form.thumbnail %}
 		</div>
 	</div>
+	<br />
 	<div class="row">
 		<div class="col-xs-12">
 			{% bootstrap_field form.keywords %}
 		</div>
 	</div>
+	<br />
 	<div class="form-group">
 		<label for="categories">Catégories (sélectionnez dans la liste ci-dessous une ou plusieurs catégories)</label>
 		<div id="categories" class="btn-group" data-toggle="buttons">
@@ -54,7 +54,7 @@
 			{% endfor %}
 		</div>
 	</div>
-	<hr />
+	<br />
 	<div class="row">
 		<div class="col-xs-4">
 			{% bootstrap_field form.date_creation %}
@@ -70,7 +70,7 @@
 			{% bootstrap_field form.date_publication %}
 		</div>
 	</div>
-	<hr />
+	<br />
 	<div class="row">
 		<div class="col-xs-4">
 			{% bootstrap_field form.update_freq %}
@@ -86,7 +86,7 @@
 			{% bootstrap_field form.granularity %}
 		</div>
 	</div>
-	<hr />
+	<br />
 	<div class="row">
 		<div class="col-xs-8">
 			{% bootstrap_field form.organisation %}
@@ -102,13 +102,13 @@
 			{% bootstrap_field form.support %}
 		</div>
 	</div>
-	<hr />
+	<br />
 	<div class="row">
 		<div class="col-xs-4">
 			{% bootstrap_field form.data_type %}
 		</div>
 	</div>
-	<hr />
+	<br />
 	<div class="row">
 		<div class="col-xs-6">
 			{% bootstrap_field form.owner_name %}
@@ -129,28 +129,20 @@
 			{% bootstrap_field form.broadcaster_email %}
 		</div>
 	</div>
-	<hr />
-	<div class="row">
-		<div class="col-xs-12">
-			{% bootstrap_field form.published %}
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-12">
-			{% bootstrap_field form.is_inspire %}
-		</div>
-	</div>
 	<br />
-	<div class="row">
-		<div class="col-xs-12">
-			<p>* Les champs marqués d'un astérisque sont obligatoires.</p>
-		</div>
-	</div>
+	{% bootstrap_field form.published %}
+	{% bootstrap_field form.is_inspire %}
 	<br />
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:datasets" %}">Annuler</a>
 		<button type="submit" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>
 		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
+	</div>
+	<hr />
+	<div class="row">
+		<div class="col-xs-12">
+			<small>* Les champs marqués d'un astérisque sont obligatoires.</small>
+		</div>
 	</div>
 </form>
 <script>

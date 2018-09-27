@@ -14,12 +14,13 @@
 
 {% include "idgo_admin/alert_messages.html" %}
 
-<form method="post" action="" enctype="multipart/form-data">
+<form method="post" action="" enctype="multipart/form-data" class="well">
 	<div class="row">
 		<div class="col-sm-12">
-			{% bootstrap_field form.name show_label=False %}
+			{% bootstrap_field form.name %}
 		</div>
 	</div>
+	<br />
 	<div class="row">
 		<div class="col-xs-6">
 			<label>Contact</label>
@@ -60,11 +61,13 @@
 			{% bootstrap_field form.website show_label=False %}
 		</div>
 	</div>
+	<br />
 	<div class="row">
 		<div class="col-xs-12">
 			{% bootstrap_field form.description show_label=True %}
 		</div>
 	</div>
+	<br />
 	<div class="row">
 		<div class="col-xs-12">
 			<div class="form-group">
@@ -80,11 +83,13 @@
 			</div>
 		</div>
 	</div>
+	<br />
 	<div class="row">
 		<div class="col-xs-10 col-sm-6">
 			{% bootstrap_field form.organisation_type %}
 		</div>
 	</div>
+	<br />
 	<div class="row">
 		<div class="col-xs-10 col-sm-6">
 			{% bootstrap_field form.license %}
@@ -96,8 +101,14 @@
 	<br />
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:all_organizations" %}#{{ id }}">Annuler</a>
-		{% if update %}<button type="submit" name="continue" class="btn btn-primary">Enregistrer et continuer les modifications</button>{% endif %}
+		{% if update %}<button type="submit" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>{% endif %}
 		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
+	</div>
+	<hr />
+	<div class="row">
+		<div class="col-xs-12">
+			<small>* Les champs marqués d'un astérisque sont obligatoires.</small>
+		</div>
 	</div>
 </form>
 <script>

@@ -59,7 +59,6 @@ from math import ceil
 
 
 CKAN_URL = settings.CKAN_URL
-READTHEDOC_URL = settings.READTHEDOC_URL
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
@@ -124,7 +123,6 @@ class DatasetManager(View):
 
         return {
             'dataset': dataset,
-            'doc_url': READTHEDOC_URL,
             'form': form,
             'licenses': dict(
                 (o.pk, o.license.pk) for o

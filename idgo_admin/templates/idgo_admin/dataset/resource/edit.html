@@ -13,6 +13,7 @@
 </template>
 
 <form method="post" action="" enctype="multipart/form-data" class="well">
+	{% csrf_token %}
 	<div class="buttons-on-the-right-side">
 		{% if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige %}
 			{% if resource.datagis_id and resource.datagis_id|length == 1 %}
@@ -35,9 +36,11 @@
 		{% if resource.ckan_id %}
 		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}/resource/{{ resource.ckan_id }}">Ouvrir dans CKAN</a>
 		{% endif %}
+		<a role="button" class="btn btn-secondary" target="_blank" href="{{ doc_url }}">
+			<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
+		</a>
 	</div>
-	<br/>
-	{% csrf_token %}
+	<br />
 	<div class="row">
 		<div class="col-xs-12">
 			<div id='{{ form.crs.name }}_container'>
@@ -106,6 +109,7 @@
 		{% endif %}
 		</div>
 	</div>
+	<br />
 	<div class="row">
 		<div class="col-xs-12">
 			{% bootstrap_field form.name %}
@@ -116,11 +120,13 @@
 			{% bootstrap_field form.description %}
 		</div>
 	</div>
+	<br />
 	<div class="row">
 		<div class="col-xs-4">
 			{% bootstrap_field form.lang %}
 		</div>
 	</div>
+	<br />
 	<div class="row">
 		<div class="col-xs-4">
 			{% bootstrap_field form.format_type %}
@@ -131,25 +137,33 @@
 			{% bootstrap_field form.data_type %}
 		</div>
 	</div>
-	<hr />
+	<br />
 	<div class="row">
-		<div class="col-xs-8">
+		<div class="col-xs-6">
 			{% bootstrap_field form.restricted_level %}
 		</div>
 	</div>
-	<div class="collapse" id="permitted-users">
-		<div class="well">
-			{% bootstrap_field form.profiles_allowed %}
+	<div class="row">
+		<div class="col-xs-offset-1 col-xs-5">
+			<div class="collapse" id="permitted-users">
+				<div class="checkbox-select-multiple-widget" style="height: 145px;">
+					{% bootstrap_field form.profiles_allowed show_label=False  %}
+				</div>
+			</div>
 		</div>
 	</div>
-	<div class="collapse" id="permitted-organizations">
-		<div class="well">
-			{% bootstrap_field form.organisations_allowed %}
+	<div class="row">
+		<div class="col-xs-offset-1 col-xs-5">
+			<div class="collapse" id="permitted-organizations">
+				<div class="checkbox-select-multiple-widget" style="height: 145px;">
+					{% bootstrap_field form.organisations_allowed show_label=False  %}
+				</div>
+			</div>
 		</div>
 	</div>
-	<br />
 	{% if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige %}
-	<div class="well">
+	<br />
+	<div>
 		<div class="row">
 			<div class="col-xs-12">
 				{% bootstrap_field form.geo_restriction %}
@@ -166,19 +180,15 @@
 			</div>
 		</div>
 	</div>
-	<br />
 	{% endif %}
-	<div class="row">
-		<div class="col-xs-12">
-			<p>* Les champs marqués d'un astérisque sont obligatoires.</p>
-		</div>
-	</div>
 	<br />
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#resources">Annuler</a>
-		<button type="submit" name="continue" value="continue" class="btn btn-primary">Enregistrer et continuer les modifications</button>
+		<button type="submit" name="continue" value="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>
 		<button type="submit" name="save" value="save" class="btn btn-primary">Enregistrer</button>
 	</div>
+	<hr />
+	<small>* Les champs marqués d'un astérisque sont obligatoires.</small>
 </form>
 
 <script>
