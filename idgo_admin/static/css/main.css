@@ -841,7 +841,7 @@ table tr.selected td:last-child {
 /* ************************************************************************* */
 
 .footer-container .footer {
-    background-color: #eee;
+    background-color: rgba(254,254,254,.75); #fefefe
     padding-top: 10px;
     padding-bottom: 10px;
     text-align: center;
