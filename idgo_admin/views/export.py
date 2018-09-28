@@ -107,13 +107,10 @@ class Export(View):
             qs = get_datasets(profile, params, strict=strict)
 
         outputformat = params.get('format')
-        if not outputformat or outputformat[:-1] not in ('odl', 'datasud'):
+        if not outputformat or outputformat not in ('odl', 'datasud'):
             raise Http404
 
-        delimiter = outputformat[-1] == 1 and ';' or ','
-        # encoding = outputformat[-1] == 1 and 'ansi' or 'uft-8'
-
-        if outputformat[:-1] == 'odl':
+        if outputformat == 'odl':
             annotate = OrderedDict((
                 ('COLL_NOM', COLL_NOM),
                 # ('COLL_SIRET', COLL_SIRET),
@@ -181,7 +178,7 @@ class Export(View):
 
         return render_to_csv_response(
             qs.annotate(**annotate).values(*values),
-            delimiter=delimiter, field_order=values,
+            delimiter=';', field_order=values,
             quotechar='"', quoting=csv.QUOTE_ALL)
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
