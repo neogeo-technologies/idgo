@@ -309,7 +309,7 @@ def send_extraction_successfully_mail(user, instance):
         dataset=instance.layer.resource.dataset.name,
         full_name=user.get_full_name(),
         to=[user.email],
-        url=urljoin(EXTRACTOR_URL, 'job/{}/download'.format(instance.uuid)),
+        url=urljoin(EXTRACTOR_URL, 'jobs/{}/download'.format(instance.uuid)),
         username=user.username)
 
 
