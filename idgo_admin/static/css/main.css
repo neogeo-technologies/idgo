@@ -533,8 +533,15 @@ table tr.selected td:last-child {
     width: 480px;
 }
 
-.container-signin .panel {
-    border-radius: 1px;
+.container-signup {
+    width: 755px;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.container-signin .panel,
+.container-signup .panel {
+    border-radius: 0;
     border-left: 1px solid #ddd;
     border-top: 1px solid #eee;
     border-right: : 1px solid #ddd;
@@ -543,14 +550,26 @@ table tr.selected td:last-child {
             box-shadow: 0 2px 4px 0px rgba(0,0,0,.25);
 }
 
-.container-signin .panel-heading {
+.container-signin .panel-heading,
+.container-signup .panel-heading {
     border-bottom: none;
     padding: 60px 60px 15px 60px;
     background-color: #fff;
 }
 
-.container-signin .panel-body {
+.container-signin .panel-body,
+.container-signup .panel-body {
     padding: 15px 60px 60px 60px;
+}
+
+.container-signup .panel-body .well {
+    border-radius: 0;
+    border: 1px solid #eee;
+    background-color: #fcfcfc;
+    margin-left: -20px;
+    margin-right: -20px;
+    -webkit-box-shadow: 0 2px 3px -1px rgba(238,238,238,.5);
+            box-shadow: 0 2px 3px -1px rgba(238,238,238,.5);
 }
 
 /* ************************************************************************* */
@@ -701,6 +720,10 @@ table tr.selected td:last-child {
             transition: box-shadow .4s, color .2s;
 }
 
+/* .nav-container .nav.nav-default>li>.btn-group>button.focus,
+.nav-container .nav.nav-default>li>.btn-group>button:focus,
+.nav-container .nav.nav-default>li>.btn-group>button:hover, */
+.nav-container .nav.nav-default>li>a.focus,
 .nav-container .nav.nav-default>li>a:focus,
 .nav-container .nav.nav-default>li>a:hover {
     color: #fff;
@@ -708,7 +731,12 @@ table tr.selected td:last-child {
             box-shadow: 0 99px 0 0 #0072bc inset;
 }
 
+/* .nav-container .nav.nav-default>li.active>.btn-group>button,
+.nav-container .nav.nav-default>li.active>.btn-group>button.focus,
+.nav-container .nav.nav-default>li.active>.btn-group>button:focus,
+.nav-container .nav.nav-default>li.active>.btn-group>button:hover, */
 .nav-container .nav.nav-default>li.active>a,
+.nav-container .nav.nav-default>li.active>a.focus,
 .nav-container .nav.nav-default>li.active>a:focus,
 .nav-container .nav.nav-default>li.active>a:hover {
     color: #fff  ;

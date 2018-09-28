@@ -255,8 +255,8 @@ class SignUpForm(forms.Form):
         if JURISDICTION:
             self.fields['jurisdiction'].initial = JURISDICTION
 
-        self.fields['password1'].widget.attrs['placeholder'] = 'Mot de passe'
-        self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le mot de passe'
+        self.fields['password1'].widget.attrs['placeholder'] = 'Mot de passe*'
+        self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le mot de passe*'
 
     def clean(self):
 
