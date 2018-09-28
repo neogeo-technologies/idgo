@@ -1384,3 +1384,28 @@ table tr.selected td:last-child {
 .text-is-red {
     color: #ff554f;
 }
+
+/* ************************************************************************* */
+
+.crige-partner-badge {
+    background: linear-gradient(#006666 0%, #006666 50%, #197575 95%, #66a3a3 100%);
+    color: #e5efef;
+    border-radius: 3px;
+    border-bottom-right-radius: 9px;
+    padding: 2px 6px 6px 4px;
+    line-height: 10px;
+    -webkit-box-shadow: 1px 2px 1px 0 rgba(0,102,102,.25);
+            box-shadow: 1px 2px 1px 0 rgba(0,102,102,.25);
+}
+
+.crige-partner-badge::before {
+    content: "partenaire\A";
+    font-size: 9px;
+}
+
+.crige-partner-badge::after {
+    content: "CRIGE";
+    font-size: 13px;
+}
+
+/* ************************************************************************* */

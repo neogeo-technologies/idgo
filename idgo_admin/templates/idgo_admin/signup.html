@@ -50,8 +50,11 @@
 						<div id="collapse-one" class="collapse in">
 							<p>Sélectionnez dans la liste ci-dessous votre organisation</p>
 							<div class="row">
-								<div class="col-sm-9">
+								<div class="col-xs-11">
 									{% bootstrap_field form.organisation show_label=False %}
+								</div>
+								<div class="col-xs-1">
+									<span class="crige-partner-badge" style="position: absolute;"></span>
 								</div>
 							</div>
 							<p>Si celle-ci n'est pas dans la liste, vous pouvez <a name="open" type="button">indiquer une nouvelle organisation</a>. </p>
@@ -130,6 +133,7 @@
 								</div>
 							</div>
 						</div>
+						<br />
 						<div>
 							{% bootstrap_field form.contributor show_label=False %}
 							{% bootstrap_field form.referent show_label=False %}
@@ -160,14 +164,20 @@ $(function() {
 		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
 	});
 
+	const $crige = $('.crige-partner-badge').hide();
+
 	const toggleInputVisibility = function() {
 		var selected = parseInt($selectOrganization.val());
-		var value = {{ form.organisation.value | yesno:'true,false,NaN' }};
-
 		selected = isNaN(selected) ? null : selected;
-		value = isNaN(value) ? null : value;
 
-		if ((!selected || value === selected) && $collapseOne.hasClass('in')) {
+		const isCrige = $selectOrganization.find(':selected').attr('crige');
+		if (typeof isCrige !== typeof undefined && isCrige !== false) {
+			$crige.show();
+		} else {
+			$crige.hide();
+		};
+
+		if (!selected && $collapseOne.hasClass('in')) {
 			$inputContribution.parent().hide();
 			$inputContribution.prop('checked', false);
 			$inputReferent.parent().hide();
@@ -218,7 +228,10 @@ $(function() {
 	$collapseOne.find('[name="open"]').click(toggleCollpase);
 	$collapseTwo.find('[name="close"]').click(toggleCollpase);
 
-	{% if form.new_orga.value %} toggleCollpase(); {% endif %}
+	{% if form.new_orga.value %}
+	toggleCollpase();
+	{% endif %}
+
 });
 </script>
 {% endblock main %}

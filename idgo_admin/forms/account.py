@@ -22,6 +22,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django import forms
+from django.forms.models import ModelChoiceIterator
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.forms import AddressField
 from idgo_admin.forms import CityField
@@ -180,6 +181,83 @@ class DeleteAdminForm(forms.Form):
         deleted_user.delete()
 
 
+# Re-définition de forms.Select pour le CRIGE
+
+
+class ModelOrganisationIterator(ModelChoiceIterator):
+
+    def __iter__(self):
+        if self.field.empty_label is not None:
+            yield ("", self.field.empty_label, "")
+        queryset = self.queryset
+        if not queryset._prefetch_related_lookups:
+            queryset = queryset.iterator()
+        for obj in queryset:
+            yield self.choice(obj)
+
+    def choice(self, obj):
+        return (
+            self.field.prepare_value(obj),
+            self.field.label_from_instance(obj),
+            obj.is_crige_partner)  # l'organisation est partenaire du CRIGE
+
+
+class OrganisationSelect(forms.Select):
+
+    @staticmethod
+    def _choice_has_empty_value(choice):
+        """Return True if the choice's value is empty string or None."""
+        value, _, crige = choice
+        return value is None or value == ''
+
+    def optgroups(self, name, value, attrs=None):
+        """Return a list of optgroups for this widget."""
+        groups = []
+        has_selected = False
+
+        for index, (option_value, option_label, option_crige) in enumerate(self.choices):
+            if option_value is None:
+                option_value = ''
+
+            subgroup = []
+            if isinstance(option_label, (list, tuple)):
+                group_name = option_value
+                subindex = 0
+                choices = option_label
+            else:
+                group_name = None
+                subindex = None
+                choices = [(option_value, option_label, option_crige)]
+            groups.append((group_name, subgroup, index))
+
+            for subvalue, sublabel, subextra in choices:
+                selected = (
+                    str(subvalue) in value and
+                    (not has_selected or self.allow_multiple_selected))
+
+                has_selected |= selected
+                subgroup.append(
+                    self.create_option(
+                        name, subvalue, sublabel, selected, index,
+                        subindex=subindex, crige=option_crige))
+                if subindex is not None:
+                    subindex += 1
+        return groups
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None, crige=None):
+        result = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        if crige:
+            result['attrs']['crige'] = True
+        return result
+
+
+class ModelOrganisationField(forms.ModelChoiceField):
+    iterator = ModelOrganisationIterator
+
+
+#
+
+
 class SignUpForm(forms.Form):
 
     class Meta(object):
@@ -225,11 +303,13 @@ class SignUpForm(forms.Form):
 
     # Profile fields
     phone = PhoneField()
-    organisation = forms.ModelChoiceField(
+
+    organisation = ModelOrganisationField(
         required=False,
         label='Organisation',
         queryset=Organisation.objects.filter(is_active=True),
-        empty_label="Je ne suis rattaché à aucune organisation")
+        empty_label="Je ne suis rattaché à aucune organisation",
+        widget=OrganisationSelect(attrs={"crige": False}))
 
     # Organisation fields
     new_orga = OrganisatioNameField()
