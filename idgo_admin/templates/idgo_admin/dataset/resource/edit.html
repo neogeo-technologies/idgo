@@ -17,11 +17,11 @@
 	<div class="buttons-on-the-right-side">
 		{% if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige %}
 			{% if resource.datagis_id and resource.datagis_id|length == 1 %}
-		<a class="btn btn-default" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ resource.datagis_id.0 }}">Editer la ressource géographique</a>
+		<a class="btn btn-default" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ resource.datagis_id.0 }}">Éditer la ressource géographique</a>
 			{% else %}
 		<div class="btn-group">
 			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				Editer les ressources géographiques <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
+				Éditer les ressources géographiques <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
 			</button>
 			<ul class="dropdown-menu dropdown-menu-right">
 				{% for layer in resource.datagis_id %}

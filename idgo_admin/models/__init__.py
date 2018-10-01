@@ -136,7 +136,7 @@ class Commune(models.Model):
     name = models.CharField(verbose_name='Nom', max_length=100)
 
     geom = models.MultiPolygonField(
-        verbose_name='Geometrie', srid=2154, blank=True, null=True)
+        verbose_name='Geometrie', srid=4326, blank=True, null=True)
 
     objects = models.GeoManager()
 

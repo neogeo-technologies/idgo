@@ -131,7 +131,9 @@
 	</div>
 	<br />
 	{% bootstrap_field form.published %}
+	{% if dataset.organisation.is_crige_partner and is_crige %}
 	{% bootstrap_field form.is_inspire %}
+	{% endif %}
 	<br />
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:datasets" %}">Annuler</a>

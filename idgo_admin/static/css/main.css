@@ -89,8 +89,9 @@ table>thead a {
     color: inherit;
 }
 
-table>thead a:hover,
-table>thead a:focus {
+table>thead a.focus,
+table>thead a:focus,
+table>thead a:hover {
     text-decoration: underline;
     color: inherit;
 }
@@ -100,8 +101,9 @@ table.table-hover>tbody>tr {
 }
 
 table tr.disabled,
-table tr.disabled:hover,
-table tr.disabled:focus {
+table tr.disabled.focus,
+table tr.disabled:focus,
+table tr.disabled:hover {
     pointer-events: none;
     cursor: not-allowed;
     color: #aaa;
@@ -136,17 +138,23 @@ table tr.selected td:last-child {
     border-right-color: #ccc;
 }
 
+table tr.selected.focus td,
+table tr.selected:focus td,
 table tr.selected:hover td,
-table tr.selected:focus td {
+table tr.selected.focus td.crossed,
+table tr.selected:focus td.crossed,
+table tr.selected:hover td.crossed {
     background: #bbb;
     border-top-color: #bbb;
     border-bottom-color: #bbb;
 }
 
 table tr td a,
+table tr td a.focus,
 table tr td a:focus,
 table tr td a:hover,
 table tr.selected td a,
+table tr.selected td a.focus,
 table tr.selected td a:focus,
 table tr.selected td a:hover {
     color: #333;
@@ -159,6 +167,60 @@ table tr.selected td:first-child {
 table tr.selected td:last-child {
     border-right-color: #bbb;
 }
+
+table tr td.crossed,
+table tr.focus td.crossed,
+table tr.focus td.crossed,
+table tr.hover td.crossed {
+    background:
+       linear-gradient(to top left,
+           rgba(204,204,204,0) 0%,
+           rgba(204,204,204,0) calc(50% - 0.8px),
+           rgba(204,204,204,1) 50%,
+           rgba(204,204,204,0) calc(50% + 0.8px),
+           rgba(204,204,204,0) 100%),
+       linear-gradient(to top right,
+           rgba(204,204,204,0) 0%,
+           rgba(204,204,204,0) calc(50% - 0.8px),
+           rgba(204,204,204,1) 50%,
+           rgba(204,204,204,0) calc(50% + 0.8px),
+           rgba(204,204,204,0) 100%);
+}
+
+table tr.selected td.crossed {
+    background:
+       linear-gradient(to top left,
+           transparent 0%,
+           transparent calc(50% - 0.8px),
+           #ddd 50%,
+           transparent calc(50% + 0.8px),
+           transparent 100%),
+       linear-gradient(to top right,
+           #ccc 0%,
+           #ccc calc(50% - 0.8px),
+           #ddd 50%,
+           #ccc calc(50% + 0.8px),
+           #ccc 100%);
+}
+
+table tr.selected.focus td.crossed,
+table tr.selected:focus td.crossed,
+table tr.selected:hover td.crossed {
+    background:
+       linear-gradient(to top left,
+           transparent 0%,
+           transparent calc(50% - 0.8px),
+           #ddd 50%,
+           transparent calc(50% + 0.8px),
+           transparent 100%),
+       linear-gradient(to top right,
+           #bbb 0%,
+           #bbb calc(50% - 0.8px),
+           #ddd 50%,
+           #bbb calc(50% + 0.8px),
+           #bbb 100%);
+}
+
 
 /* ************************************************************************* */
 
