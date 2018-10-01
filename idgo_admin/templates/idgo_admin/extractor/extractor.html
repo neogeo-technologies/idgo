@@ -22,12 +22,13 @@
 			<div class="row">
 				<div class="col-md-12">
 					{% block header_content %}
-					{% include "idgo_admin/inner_header.html" %}
+					{% include "idgo_admin/header.html" %}
 					{% endblock header_content %}
 				</div>
 			</div>
 		</div>
 	</div>
+	{% block nav %}
 	<div class="nav-container">
 		<div class="container">
 			<div class="row">
@@ -39,7 +40,7 @@
 						</li>
 						{% if is_referent or is_admin  %}
 						<li role="presentation">
-							<a href="{% url "idgo_admin:all_datasets" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
+							<a href="{% url "idgo_admin:datasets" target="all" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
 						</li>
 						{% endif %}
 						<li role="presentation">
@@ -58,8 +59,22 @@
 			</div>
 		</div>
 	</div>
+	{% endblock nav %}
+	{% block breadcrumb %}
+	<div class="breadcrumb-container">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					{% block breadcrumb_content %}
+					{% endblock breadcrumb_content %}
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endblock breadcrumb %}
+	{% block main %}
 	<div class="main-container">
-		<div class="wrapper" >
+		<div class="wrapper" style="pointer-events: none;">
 			<div class="container">
 				{% include "idgo_admin/alert_messages.html" %}
 				<div class="row">
@@ -67,7 +82,7 @@
 						{% block main_content %}
 							<div class="row">
 								<div class="col-xs-offset-8 col-xs-4">
-									<form class="well extractor-panel">
+									<form class="well" style="pointer-events: auto;">
 										<div>
 											<div class="form-group{% if not organisations %} disabled{% endif %}">
 												<label for="organisation">Organisation</label>
@@ -164,18 +179,22 @@
 				</div>
 			</div>
 		</div>
-	</div>
-	{% block footer %}
-	<div class="footer navbar-fixed-bottom">
-		<div class="container">
-			<div class="row">
-				<div class="col-xs-12">
-					<p>© <span name="current-year"></span> - Région Provence-Alpes-Côte d'Azur et CRIGE PACA | Tous droits réservés | Propulsé par <a href='http://www.neogeo.fr' target="blank">Neogeo-Technologies</a></p>
+		{% block footer %}
+		<div class="footer-container">
+			<div class="footer navbar-fixed-bottom">
+				<div class="container">
+					<div class="row">
+						<div class="col-xs-12">
+						{% block footer_content %}
+							{% include "idgo_admin/footer.html" %}
+						{% endblock footer_content %}
+						</div>
+					</div>
 				</div>
 			</div>
-		</div>
+		{% endblock footer %}
 	</div>
-	{% endblock footer %}
+	{% endblock main %}
 </div>
 <script>
 $(function() {

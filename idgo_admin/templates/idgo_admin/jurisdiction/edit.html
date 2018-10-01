@@ -14,6 +14,15 @@
 <link rel="stylesheet" href="{% static "libs/leaflet.draw/leaflet.draw.css" %}"/>
 {% endblock head_extras %}
 
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li><a href="{% url "idgo_admin:all_organizations" %}#{{ organisation.id }}">Organisations</a></li>
+	<li><a href="{% url "idgo_admin:update_organization" id=organisation.id %}#">{{ organisation.name }}</a></li>
+	<li class="active">Territoire de compétence</li>
+</ol>
+{% endblock breadcrumb_content %}
+
 {% block main_content %}
 	<div class="row">
 		<div class="col-xs-8">
@@ -37,7 +46,7 @@
 								<input type="checkbox" name="check-all"> Sélectionner/Désélectionner tout
 							</label>
 						</div>
-						<div id="communes-container" style="height: 303px; overflow-y: scroll; border-radius: 2px; border: 1px solid #ccc; padding: 0 5px; margin-right: 5px; margin-left: -5px">
+						<div id="communes-container" class="checkbox-select-multiple-widget" style="height: 303px;">
 							{% bootstrap_field form.communes show_label=false %}
 						</div>
 					</div>

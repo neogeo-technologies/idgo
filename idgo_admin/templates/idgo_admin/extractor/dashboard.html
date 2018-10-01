@@ -9,6 +9,13 @@
 <link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
 {% endblock head_extras %}
 
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li class="active">Mes extractions</li>
+</ol>
+{% endblock breadcrumb_content %}
+
 {% block main_content %}
 
 {% include "idgo_admin/alert_messages.html" %}
@@ -114,7 +121,7 @@
 	</div>
 </template>
 
-<div>
+<div class="well">
 	<div name="actions" class="buttons-on-the-right-side">
 		<a type="button" class="btn btn-primary" href="{% url "idgo_admin:extractor" %}">Nouvelle extraction</a>
 	</div>
@@ -151,13 +158,13 @@
 				<td name="elapsed-time">{{ task.elapsed_time|default:"inf. à 1s" }}</td>
 			</tr>
 			{% endfor %}
-		<table>
+		</table>
 	</div>
 	<div name="actions" class="buttons-on-the-right-side">
 	{# if is_admin #}
 		<button type="button" name="open" class="btn btn-default">Ouvrir</button>
-		<button type="button" name="revoke" class="btn btn-default">Révoquer [TODO]</button>
-		<div class="btn-group">
+		<!-- <button type="button" name="revoke" class="btn btn-default">Révoquer [TODO]</button> -->
+		<!-- <div class="btn-group">
 			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
 				Prioriser [TODO] <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
 			</button>
@@ -165,52 +172,12 @@
 				<li><a role="button" style="text-align: right;">Priorité forte</a></li>
 				<li><a role="button" style="text-align: right;">Priorité faible</a></li>
 			</ul>
-		</div>
+		</div> -->
 	{# else #}
-		<button type="button" name="warn" class="btn btn-default" >Signaler une erreur [TODO]</button>
+		<button type="button" name="warn" class="btn btn-default">Signaler une erreur [TODO]</button>
 	{# endif #}
 	</div>
-	{% if pagination.total > 1 %}
-	<nav style="text-align: center;">
-		<ul class="pagination pagination-sm">
-			<nav style="text-align: center;">
-				<ul id="paginator" class="pagination pagination-sm">
-					{% if pagination.total > 2 %}
-					<li {% if pagination.current == 1 %}class="disabled"{% endif %}>
-						<a name="page" href="#" value="1">
-							<span class="glyphicon glyphicon-fast-backward"></span>
-						</a>
-					</li>
-					{% endif %}
-					<li {% if pagination.current == 1 %}class="disabled"{% endif %}>
-						<a name="page" href="#" value="{{ pagination.current|add:"-1" }}">
-							<span class="glyphicon glyphicon-backward"></span>
-						</a>
-					</li>
-					{% with ''|center:pagination.total as range %}
-						{% for _ in range %}
-					<li {% if forloop.counter == pagination.current %}class="active"{% endif %}>
-						<a name="page" href="#" value="{{ forloop.counter }}">{{ forloop.counter }}</a>
-					</li>
-						{% endfor %}
-					{% endwith %}
-					<li {% if pagination.current == pagination.total %}class="disabled"{% endif %}>
-						<a name="page" href="#" value="{{ pagination.current|add:"1" }}">
-							<span class="glyphicon glyphicon-forward"></span>
-						</a>
-					</li>
-					{% if pagination.total > 2 %}
-					<li {% if pagination.current == pagination.total %}class="disabled"{% endif %}>
-						<a name="page" href="#" value="{{ pagination.total }}">
-							<span class="glyphicon glyphicon-fast-forward"></span>
-						</a>
-					</li>
-					{% endif %}
-				</ul>
-			</nav>
-		</ul>
-	</nav>
-	{% endif %}
+	{% include "idgo_admin/widgets/paginator.html" with count=pagination.total current=pagination.current %}
 </div>
 
 <script>
@@ -386,26 +353,21 @@ $(function() {
 			const $that = $table.find('tr:selected');
 			const $this = $(this);
 			if ($that) {
+				$that.trigger('row.unselected');
 				if ($this.index() != $that.index()) {
-					$window[0].location.hash = $this.index();
+					history.pushState(null, null, '#' + $this.attr('name'));
+					$this.trigger('row.selected');
 				} else {
-					$window[0].location.hash = '';
+					history.pushState(null, null, '#');
 				};
 			};
 		});
 
-	$('a[name="page"]')
-		.click(function(e) {
-			e.preventDefault();
-			qs['page'] = $(this).attr('value');
-			reload({withHash: false});
-		});
-
 	$window
 		.bind('hashchange', function(e) {
-			const rowId = $window[0].location.hash.substring(1);
+			const name = $window[0].location.hash.substring(1);
 			const $that = $table.find('tr:selected');
-			const $this = rowId ? $table.find('tr:eq(' + rowId + ')') : undefined;
+			const $this = name ? $table.find('tr[name="' + name + '"]') : '';
 			if ($that) {
 				$that.trigger('row.unselected');
 				if ($this && ($this.index() != $that.index())) {

@@ -20,6 +20,7 @@ from django.core.mail import EmailMessage
 from django.core.management.base import BaseCommand
 from django.utils.timezone import datetime as tzdatetime
 from idgo_admin.models import Mail
+from idgo_admin.models.mail import get_admin_mails
 from idgo_admin.models import Resource
 from idgo_admin.models import Task
 from io import StringIO
@@ -64,6 +65,6 @@ class Command(BaseCommand):
 
         mail = EmailMessage(
             mail_instance.subject, mail_instance.message,
-            mail_instance.from_email, Mail.admin_mails([]))
+            mail_instance.from_email, get_admin_mails())
         mail.attach('log.csv', f.getvalue(), 'text/csv')
         mail.send()

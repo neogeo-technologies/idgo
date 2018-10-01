@@ -1,5 +1,14 @@
 {% extends "idgo_admin/base.html" %}
 
+{% load bootstrap3 %}
+
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li class="active">Mes informations de profil</li>
+</ol>
+{% endblock breadcrumb_content %}
+
 {% block nav_content_extra %}
 <li role="presentation" name="account">
 	<a href="{% url "idgo_admin:update_account" %}" role="tab">Mon profil</a>
@@ -7,7 +16,53 @@
 {% endblock nav_content_extra %}
 
 {% block main_content %}
-{% include "idgo_admin/inner_updateaccount.html" %}
+<form method="post" class="well">
+	{% csrf_token %}
+	<div class="row">
+		<div class="col-xs-4">
+			{% bootstrap_field form.first_name %}
+		</div>
+		<div class="col-xs-4">
+			{% bootstrap_field form.last_name %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-5">
+			{% bootstrap_field form.email %}
+		</div>
+		<div class="col-xs-2">
+			{% bootstrap_field form.phone %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="well">
+				<p>Entrez votre nouveau mot de passe ci-dessous si vous souhaitez le modifier.</p>
+				<div class="row">
+					<div class="col-xs-8">
+						{% bootstrap_field form.password1 show_label=False %}
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-8">
+						{% bootstrap_field form.password2 show_label=False %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="buttons-on-the-right-side">
+		<a class="btn btn-default" href="{% url "idgo_admin:update_account" %}">Annuler</a>
+		<button type="submit" class="btn btn-primary">Valider</button>
+	</div>
+</form>
+<div class="well">
+	<h4 class="modal-title">Supprimer mon compte</h4>
+	<p>Cette action est irreversible et supprimera définitivement votre compte.</p>
+	<div>
+		<a class="btn btn-danger" href="{% url "idgo_admin:deleteAccount" %}">Supprimer mon compte</a></li>
+	</div>
+</div>
 <script>
 $(function() {
 	$('#menu a[href="{% url "idgo_admin:update_account" %}"]').parent().addClass('active');

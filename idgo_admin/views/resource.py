@@ -37,6 +37,9 @@ from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
+from idgo_admin.models.mail import send_resource_creation_mail
+from idgo_admin.models.mail import send_resource_delete_mail
+from idgo_admin.models.mail import send_resource_update_mail
 from idgo_admin.models import Resource
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.shortcuts import get_object_or_404_extended
@@ -56,7 +59,7 @@ decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 @method_decorator(decorators, name='dispatch')
 class ResourceManager(View):
 
-    template = 'idgo_admin/resource.html'
+    template = 'idgo_admin/dataset/resource/resource.html'
     namespace = 'idgo_admin:resource'
 
     def get_context(self, form, profile, dataset, resource):
@@ -165,10 +168,10 @@ class ResourceManager(View):
             error = dict(
                 [(k, [str(m) for m in v]) for k, v in form.errors.items()])
         else:
-            # if id:
-            #     Mail.updating_a_resource(profile, instance)
-            # else:
-            #     Mail.creating_a_resource(profile, instance)
+            if id:
+                send_resource_update_mail(user, instance)
+            else:
+                send_resource_creation_mail(user, instance)
 
             dataset_href = reverse(
                 self.namespace, kwargs={'dataset_id': dataset_id})
@@ -229,7 +232,7 @@ class ResourceManager(View):
             messages.error(request, e.__str__())
         else:
             instance.delete()
-            # Mail.deleting_a_resource(profile, instance)
+            send_resource_delete_mail(user, instance)
 
             status = 200
             message = 'La ressource a été supprimée avec succès.'
@@ -298,7 +301,7 @@ def get_layers(resource):
 @method_decorator(decorators, name='dispatch')
 class LayerManager(View):
 
-    template = 'idgo_admin/layer.html'
+    template = 'idgo_admin/dataset/resource/layer/layer.html'
     namespace = 'idgo_admin:layer'
 
     @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})

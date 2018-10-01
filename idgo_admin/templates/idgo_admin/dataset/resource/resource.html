@@ -1,0 +1,20 @@
+{% extends "idgo_admin/base.html" %}
+
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li>{% if all %}Tous les{% else %}Mes{% endif %} jeux de données</li>
+	<li>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#dataset">{{ dataset.name_overflow }}</a>
+	</li>
+	<li>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#resources">Ressources</a>
+	</li>
+	<li class="active">
+		{% if resource %}<a href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?id={{ resource.id }}">{{ resource.name_overflow }}</a>{% else %}Nouvelle ressource{% endif %}
+	</li>
+</ol>
+{% endblock breadcrumb_content %}
+{% block main_content %}
+{% include "idgo_admin/dataset/resource/edit.html" %}
+{% endblock main_content %}

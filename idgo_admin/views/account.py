@@ -47,7 +47,9 @@ from idgo_admin.forms.account import UserResetPassword
 from idgo_admin.models import AccountActions
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
-from idgo_admin.models import Mail
+from idgo_admin.models.mail import send_account_creation_confirmation_mail
+from idgo_admin.models.mail import send_account_deletion_mail
+from idgo_admin.models.mail import send_reset_password_link_to_user
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.shortcuts import render_with_info_profile
@@ -179,8 +181,11 @@ class PasswordManager(View):
                               {'message': message}, status=200)
             forget_action, created = AccountActions.objects.get_or_create(
                 profile=profile, action=action, closed=None)
+
             try:
-                Mail.send_reset_password_link_to_user(request, forget_action)
+                url = request.build_absolute_uri(reverse(
+                    'idgo_admin:password_manager', kwargs={'process': 'reset', 'key': forget_action.key}))
+                send_reset_password_link_to_user(forget_action.profile.user, url)
             except Exception as e:
                 message = ("Une erreur s'est produite lors de l'envoi du mail "
                            "de réinitialisation: {error}".format(error=e))
@@ -271,14 +276,14 @@ def delete_account(request):
         return render_with_info_profile(
             request, 'idgo_admin/deleteaccount.html', {'uform': uform})
 
-    user_data_copy = {'last_name': user.last_name,
-                      'first_name': user.first_name,
-                      'username': user.username,
-                      'email': user.email}
+    email = user.email
+    full_name = user.get_full_name()
+    username = user.username
+
     logout(request)
     user.delete()
 
-    Mail.conf_deleting_profile_to_user(user_data_copy)
+    send_account_deletion_mail(email, full_name, username)
 
     return render(request, 'idgo_admin/message.html', status=200,
                   context={'message': 'Votre compte a été supprimé.'})
@@ -330,9 +335,11 @@ class ReferentAccountManager(View):
 
 
 def sign_up_process(request, profile, mail=True):
-    action = \
-        AccountActions.objects.create(profile=profile, action='confirm_mail')
-    mail and Mail.validation_user_mail(request, action)
+    action = AccountActions.objects.create(profile=profile, action='confirm_mail')
+    if mail:
+        url = request.build_absolute_uri(
+            reverse('idgo_admin:confirmation_mail', kwargs={'key': action.key}))
+        send_account_creation_confirmation_mail(action.profile.user, url)
 
 
 @method_decorator(decorators[0], name='dispatch')
