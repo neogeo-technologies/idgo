@@ -210,7 +210,7 @@ class LiaisonsResources(models.Model):
 class AccountActions(models.Model):
 
     ACTION_CHOICES = (
-        ('confirm_mail', "Confirmation de l'email par l'utilisateur"),
+        ('confirm_mail', "Confirmation de l'e-mail par l'utilisateur"),
         ('confirm_new_organisation', "Confirmation par un administrateur de la création d'une organisation par l'utilisateur"),
         ('confirm_rattachement', "Rattachement d'un utilisateur à une organisation par un administrateur"),
         ('confirm_referent', "Confirmation du rôle de réferent d'une organisation pour un utilisateur par un administrateur"),
@@ -240,7 +240,7 @@ class AccountActions(models.Model):
     # Utilisées dans admin/user.py
     def orga_name(self):
         return str(self.organisation.name) if self.organisation else str('N/A')
-    orga_name.short_description = "Nom de l'organsiation concernée"
+    orga_name.short_description = "Nom de l'organisation concernée"
 
     def get_path(self):
         choices = {
