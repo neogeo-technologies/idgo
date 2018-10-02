@@ -405,7 +405,9 @@ $(function() {
 				grid.setCellRenderer('is_member', new CellRenderer({render: booleanRender}));
 				grid.setCellRenderer('is_contributor', new CellRenderer({render: booleanRender}));
 				grid.setCellRenderer('is_referent', new CellRenderer({render: booleanRender}));
+				{% if user.profile.is_crige_admin %}
 				grid.setCellRenderer('is_crige_member', new CellRenderer({render: booleanRender}));
+				{% endif %}
 			};
 
 			membersGrid.load({
@@ -652,7 +654,9 @@ $(function() {
 
 		const onFailure = function(xhr, statut, error) {
 			$modalHourglass.one('hidden.bs.modal', function(e) {
-				$prev.addClass('active');
+				if (prev) {
+					$prev.addClass('active');
+				};
 			}).modal('hide');
 		};
 
@@ -702,7 +706,7 @@ $(function() {
 		// TODO
 	});
 
-	handler(window.location.hash.substring(1) ? window.location.hash.substring(1) : $organizations.first().val());
+	handler(window.location.hash.substring(1) ? window.location.hash.substring(1) : $('input[type=radio][name=organizations]').first().val());
 
 	$('#menu a[href="{% url "idgo_admin:all_organizations" %}"]').parent().addClass('active');
 
