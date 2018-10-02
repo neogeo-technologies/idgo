@@ -39,8 +39,8 @@ from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
-from idgo_admin.models.mail import send_membership_confirmation_mail
 from idgo_admin.models.mail import send_contributor_confirmation_mail
+from idgo_admin.models.mail import send_membership_confirmation_mail
 from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
 from idgo_admin.models.mail import send_referent_confirmation_mail
 from idgo_admin.models import Organisation
@@ -371,7 +371,6 @@ class OrganisationOWS(View):
             json = {
                 'abstract': request.POST.get('abstract', None),
                 'title': request.POST.get('title', None)}
-            print(json)
             try:
                 MRAHandler.update_ows_settings('ows', instance.ckan_slug, json)
             except Exception as e:

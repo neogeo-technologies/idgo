@@ -28,7 +28,7 @@
 				<td name="private" style="text-align: center;">{% if dataset.private %}<span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
 				{% if dataset.organisation.is_crige_partner and is_crige %}
 				<td name="is_inspire" style="text-align: center;">{% if not dataset.is_inspire %}<span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
-				{% else %}
+				{% elif is_crige %}
 				<td name="is_inspire" class="crossed"></td>
 				{% endif %}
 			</tr>
