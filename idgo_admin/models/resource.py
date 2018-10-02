@@ -313,10 +313,11 @@ class Resource(models.Model):
         file_extras = 'file_extras' in kwargs and kwargs.pop('file_extras') or None
         editor = 'editor' in kwargs and kwargs.pop('editor') or None
 
+        user_is_crige_membership = self.dataset.editor.profile.crige_membership
         if not previous:
             # Valeur par défaut à la création de l'instance
-            self.ogc_services = True
-            self.extractable = True
+            self.ogc_services = user_is_crige_membership
+            self.extractable = user_is_crige_membership
 
         # La restriction au territoire de compétence désactive les services OGC
         self.ogc_services = self.geo_restriction and False or self.ogc_services
