@@ -4,9 +4,19 @@
 
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
-	<li><span class="glyphicon glyphicon-home"></span></li>
-	<li><a href="{% url "idgo_admin:all_organizations" %}#{{ id }}">Organisations</a></li>
-	<li class="active"><a href="{% url "idgo_admin:update_organization" id=id %}#">{{ organisation_name }}</a></li>
+	<li>
+		<span class="glyphicon glyphicon-home"></span>
+	</li>
+	<li>
+		<a href="{% url "idgo_admin:all_organizations" %}{% if id %}#{{ id }}{% endif %}">Organisations</a>
+	</li>
+	<li class="active">
+		{% if id %}
+		<a href="{% url "idgo_admin:update_organization" id=id %}">{{ organisation_name }}</a>
+		{% else %}
+		Nouvelle organisation
+		{% endif %}
+	</li>
 </ol>
 {% endblock breadcrumb_content %}
 
