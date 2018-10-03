@@ -7,14 +7,12 @@
   - group: "Authentification"
   - name: "Without Authorization header access to open data"
   - url: "/maps/neogeo-technologies?service=WMS&request=GetCapabilities"
-  - expected_status: [401]
+    #  - expected_status: [401]
 
 - test:
   - group: "Authentification"
   - name: "Anonymous access to open data"
   - url: "/maps/neogeo-technologies?service=WMS&request=GetCapabilities"
-  - auth_username: ""
-  - auth_password: ""
 
 - test:
   - group: "Authentification"
@@ -35,8 +33,6 @@
 - test:
   - name: "Ressource access by anonymous"
   - group: "Auth Access to resource available to anonymous"
-  - auth_username: ""
-  - auth_password: ""
   - url: '/maps/neogeo-technologies?request=getFeature&service=wfs&version=1.1.0&typenames=ogrgeojson_908428b&'
 
 - test:
@@ -58,8 +54,6 @@
 - test:
   - name: "Ressource access by anonymous fail"
   - group: "Auth Access to resource available to auth"
-  - auth_username: ""
-  - auth_password: ""
   - url: '/maps/neogeo-technologies?request=getFeature&service=wfs&version=1.1.0&typenames=p2a_equipco_201705_ad41f9b'
   - expected_status: [401]
 
@@ -83,8 +77,6 @@
 - test:
   - name: "Ressource access by anonymous fail"
   - group: "Auth Access to resource available to mael"
-  - auth_username: ""
-  - auth_password: ""
   - url: '/maps/neogeo-technologies?request=getFeature&service=wfs&version=1.1.0&typenames=ogrgeojson_7acfe3e'
   - expected_status: [401]
 
@@ -124,8 +116,6 @@
 - test: 
   - group: 'multiressource tests'
   - name: "access to multiple ressources in anonymous mode"
-  - auth_username: ""
-  - auth_password: ""
   - url: '/maps/?request=getFeature&service=wfs&version=1.1.0&typenames=nouvelles_regions_fe2eccb,ogrgeojson_908428b'
 
 - test: 
@@ -146,8 +136,6 @@
   - group: 'multiressource tests'
   - name: "access to multiple ressources in anonymous mode fail if at least one requires being orga"
   - url: '/maps/?request=getFeature&service=wfs&version=1.1.0&typenames=nouvelles_regions_fe2eccb,ogrgeojson_7acfe3e'
-  - auth_username: ""
-  - auth_password: ""
   - expected_status: [401]
 
 - test: 
