@@ -228,6 +228,13 @@ table tr.selected:hover td.crossed {
     margin-bottom: 10px;
 }
 
+
+.input-group>.form-control,
+.input-group>.input-group-addon,
+.input-group>.input-group-btn>.btn {
+    border-radius: 0;
+}
+
 .input-group .btn {
     color: #ccc;
     background-color: #fff;
@@ -239,18 +246,32 @@ table tr.selected:hover td.crossed {
             box-shadow: none;
 }
 
-.input-group-btn .btn-default,
-                 .btn-default {
-    background-color: #ddd;
+.input-group .input-group-btn .btn-default {
+    background-color: #fff;
     color: #666;
+    -webkit-box-shadow: none;
+            box-shadow: none;
 }
 
-.input-group-btn .btn-default,
-                 .btn-default {
-    background-color: #ddd;
-    color: #666;
+.input-group .input-group-btn button[name="clear"] .glyphicon {
+    border-radius: 20px;
+    margin: -5px;
+    padding: 5px;
+    background-color: #ccc;
+    color: #eee;
 }
 
+.input-group .input-group-btn.focus button[name="clear"] .glyphicon,
+.input-group .input-group-btn:focus button[name="clear"] .glyphicon,
+.input-group .input-group-btn:hover button[name="clear"] .glyphicon {
+    background-color: #edc167;
+    color: #fbf2e0;
+}
+
+.disabled .input-group .input-group-btn button[name="clear"] .glyphicon {
+    background-color: #f0f0f0;
+    color: #fff;
+}
 
 .input-group .btn-primary {
     color: #fff;
@@ -272,7 +293,8 @@ table tr.selected:hover td.crossed {
     border-bottom-right-radius: 0px;
 }
 
-.form-control {
+.input-group .form-control,
+             .form-control {
     border-radius: 0px;
     -webkit-box-shadow: none;
             box-shadow: none;
@@ -480,7 +502,7 @@ table tr.selected:hover td.crossed {
             transform: translate(0, -50%) !important;
     margin: auto;
     width: 100%;
-    height: 100%;
+    height: auto;
 }
 
 .modal-hourglass .modal-content {
@@ -608,6 +630,7 @@ table tr.selected:hover td.crossed {
     border-top: 1px solid #eee;
     border-right: : 1px solid #ddd;
     border-bottom: 1px solid #ccc;
+    margin-bottom: 5px;
     -webkit-box-shadow: 0 2px 4px 0px rgba(0,0,0,.25);
             box-shadow: 0 2px 4px 0px rgba(0,0,0,.25);
 }
@@ -869,7 +892,7 @@ table tr.selected:hover td.crossed {
 /* ************************************************************************* */
 
 .main-container {
-    padding-top: 30px;
+    padding-top: 0px;
     padding-bottom: 200px;
     bottom: 0;
     background: linear-gradient(#eee 0px, #eee 50px, #fefefe 300px);
@@ -931,9 +954,9 @@ table tr.selected:hover td.crossed {
 /* ************************************************************************* */
 
 .footer-container .footer {
-    background-color: rgba(254,254,254,.75); #fefefe
-    padding-top: 10px;
-    padding-bottom: 10px;
+    background-color: rgba(254,254,254,.75);
+    padding-top: 3px;
+    padding-bottom: 3px;
     text-align: center;
     font-size: .8em;
     letter-spacing: 0.4px;
@@ -1315,11 +1338,13 @@ table tr.selected:hover td.crossed {
     width: 100%;
     height: 100%;
     z-index: 0;
+    min-width: 770px;
 }
 
 @media (min-width: 768px) {
     #extractor .leaflet-control-container {
         width: 750px;
+        min-width: 750px;
     }
 }
 
@@ -1363,7 +1388,7 @@ table tr.selected:hover td.crossed {
 }
 
 #extractor .leaflet-top {
-    top: 283px;
+    top: 252px;
 }
 
 #extractor .leaflet-bottom {
@@ -1471,3 +1496,13 @@ table tr.selected:hover td.crossed {
 }
 
 /* ************************************************************************* */
+
+.separator {
+    color: #ccc;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.separator:after {
+    content: "|";
+}
