@@ -140,7 +140,7 @@
 													<select class="form-control" id="crs">
 														<option disabled selected>Sélectionnez un système de coordonnées</option>
 														{% for crs in supported_crs %}
-														<option value="{{ crs.authority }}"{% if task and task.details.query.dst_srs == crs.authority %} selected{% endif %}>{{ crs }}</option>
+														<option value="{{ crs.authority }}"{% if task and task.details.query.dst_crs == crs.authority %} selected{% endif %}>{{ crs }}</option>
 														{% endfor %}
 													</select>
 													<span class="input-group-btn">
@@ -198,6 +198,7 @@
 </div>
 <script>
 $(function() {
+	const $window = $(window);
 
 	var ctrlPressed;
 	var targetLayer;
@@ -206,14 +207,41 @@ $(function() {
 	var bounds = [[41.15, -9.86], [51.56, 10.38]];
 	var boundsOptions = {paddingTopLeft: [-400, 0]};
 
+	var query = window.location.search.substring(1);
+	var vars = query.split('&');
+	var qs = {};
+	for (var i = 0; i < vars.length; i ++) {
+		const pair = vars[i].split('=');
+		qs[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+	};
+
+	const updateUrl = function(options) {
+		var kvp = [];
+		for (var k in qs) {
+			if (k) {
+				const key = encodeURI(k);
+				const val = qs[k] ? encodeURI(qs[k]) : null;
+				if (val) {
+					kvp.push(key + '=' + val);
+				}
+			};
+		};
+		if (options.withHash == false) {
+			$window[0].location.hash = '';
+		};
+		if (options.refresh == false) {
+			history.pushState(null, null, '?' + kvp.join('&'));
+		} else {
+			$window[0].location.search = kvp.join('&');
+		};
+	};
+
 	const $extract = $('button[name="extract"]').click(function(e) {
 		e.preventDefault();
-
 		if ((!targetLayer && !map.hasLayer(targetLayer)) ||
 			(!footprintLayer && !editableLayers.hasLayer(footprintLayer))) {
 			return;
 		};
-
 		if (footprintLayer instanceof L.FeatureGroup) {
 			// Normalement, footprintLayer.getLayers() == 1;
 			footprintLayer = footprintLayer.getLayers()[0];
@@ -221,17 +249,17 @@ $(function() {
 
 		const layer = targetLayer.options.layers;
 		const footprint = JSON.stringify(footprintLayer.toGeoJSON());
-		const srs = $('#crs').val();
-		const format = $('#format').val();
+		const crs = $('#crs').val();  // qs['crs']
+		const format = $('#format').val();  // qs['format']
 
-		if (!layer || !footprint || !srs || !format) {
+		if (!layer || !footprint || !crs || !format) {
 			return;
 		};
 
 		const $form = $('form').attr('method', 'POST');
 		$form.append($('<input type="text" name="layer"/>').hide().val(layer));
 		$form.append($('<input type="text" name="footprint"/>').hide().val(footprint));
-		$form.append($('<input type="text" name="srs"/>').hide().val(srs));
+		$form.append($('<input type="text" name="crs"/>').hide().val(crs));
 		$form.append($('<input type="text" name="format"/>').hide().val(format));
 
 		$modalHourglass.one('show.bs.modal', function(e) {
@@ -350,6 +378,9 @@ $(function() {
 	footprintLayer = L.geoJSON({{ task.details.query.footprint_geojson|safe }});
 	editableLayers.addLayer(footprintLayer.getLayers()[0]);
 	bounds = footprintLayer.getBounds();
+	{% elif footprint %}
+	footprintLayer =  L.geoJSON({{ footprint|safe }});
+	editableLayers.addLayer(footprintLayer.getLayers()[0]);
 	{% endif %}
 	layers.push(editableLayers);
 
@@ -405,14 +436,21 @@ $(function() {
 			} else {
 				editableLayers.addLayer(e.layer);
 			};
+			footprintLayer = e.layer;
+			qs['footprint'] = JSON.stringify(footprintLayer.toGeoJSON());
+			updateUrl({withHash: false, refresh: false});
 		});
 
 	$('#organisation').change(function(e) {
 		e.preventDefault();
 		const organisation = $(this).val();
 		const bounds = map.getBounds();
-		const bbox = bounds._southWest.lng + ',' + bounds._southWest.lat + ',' + bounds._northEast.lng + ',' + bounds._northEast.lat;
-		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + (organisation ? '&organisation=' + organisation : ''));
+		const bbox = bounds._southWest.lng.toFixed(2) + ',' + bounds._southWest.lat.toFixed(2) + ',' + bounds._northEast.lng.toFixed(2) + ',' + bounds._northEast.lat.toFixed(2);
+		qs['bbox'] = bbox;
+		if (organisation) {
+			qs['organisation'] = organisation;
+		};
+		updateUrl({withHash: false, refresh: true});
 	});
 
 	{% if organisation %}
@@ -420,8 +458,13 @@ $(function() {
 		e.preventDefault();
 		const dataset = $(this).val();
 		const bounds = map.getBounds();
-		const bbox = bounds._southWest.lng + ',' + bounds._southWest.lat + ',' + bounds._northEast.lng + ',' + bounds._northEast.lat;
-		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + '&organisation={{ organisation.ckan_slug }}' + (dataset ? '&dataset=' + dataset : ''));
+		const bbox = bounds._southWest.lng.toFixed(2) + ',' + bounds._southWest.lat.toFixed(2) + ',' + bounds._northEast.lng.toFixed(2) + ',' + bounds._northEast.lat.toFixed(2);
+		qs['bbox'] = bbox;
+		qs['organisation'] = '{{ organisation.ckan_slug }}';
+		if (dataset) {
+			qs['dataset'] = dataset;
+		};
+		updateUrl({withHash: false, refresh: true});
 	});
 	{% endif %}
 
@@ -430,9 +473,23 @@ $(function() {
 		e.preventDefault();
 		const resource = $(this).val();
 		const bounds = map.getBounds();
-		const bbox = bounds._southWest.lng + ',' + bounds._southWest.lat + ',' + bounds._northEast.lng + ',' + bounds._northEast.lat;
-		redirect('{% url "idgo_admin:extractor" %}?bbox=' + bbox + '&organisation={{ organisation.ckan_slug }}&dataset={{ dataset.ckan_slug }}' + (resource ? '&resource=' + resource : ''));
+		const bbox = bounds._southWest.lng.toFixed(2) + ',' + bounds._southWest.lat.toFixed(2) + ',' + bounds._northEast.lng.toFixed(2) + ',' + bounds._northEast.lat.toFixed(2);
+		qs['bbox'] = bbox;
+		qs['organisation'] = '{{ organisation.ckan_slug }}';
+		qs['dataset'] = '{{ dataset.ckan_slug }}';
+		if (resource) {
+			qs['resource'] = resource;
+		};
+		updateUrl({withHash: false, refresh: true});
 	});
+	{% endif %}
+
+	{% if format %}
+	$('#format').val('{{ format }}');
+	{% endif %}
+
+	{% if crs %}
+	$('#crs').val('{{ crs }}');
 	{% endif %}
 
 	$('#format, #crs').change(function(e) {
@@ -446,6 +503,8 @@ $(function() {
 		} else {
 			$extract.prop('disabled', true).addClass('disabled');
 		};
+		qs[this.id] = $(this).val();
+		updateUrl({withHash: false, refresh: false});
 	}).trigger('change');
 
 	$(window).keydown(function(evt) {
