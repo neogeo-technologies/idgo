@@ -342,7 +342,7 @@ $(function() {
 
 					if (ctrlPressed && footprintLayer) {
 						try {
-							geojson = turf.union(geojson, footprintLayer.getLayers()[0].toGeoJSON());
+							geojson = turf.union(geojson, footprintLayer.toGeoJSON());
 						} catch {
 							/* pass */
 						};
@@ -507,12 +507,12 @@ $(function() {
 		updateUrl({withHash: false, refresh: false});
 	}).trigger('change');
 
-	$(window).keydown(function(evt) {
-		if (evt.which == 17) {
+	$window.keydown(function(e) {
+		if (e.which == 17) {
 			ctrlPressed = true;
 		};
-	}).keyup(function(evt) {
-		if (evt.which == 17) {
+	}).keyup(function(e) {
+		if (e.which == 17) {
 			ctrlPressed = false;
 		};
 	});
