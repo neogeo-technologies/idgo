@@ -238,18 +238,7 @@ $(document).ajaxSend(function(e, xhr, settings) {
 		</div>
 		{% endblock main %}
 		{% block footer %}
-		<div class="footer-container">
-			<div class="footer navbar-fixed-bottom">
-				<div class="container">
-					<div class="row">
-						<div class="col-xs-12">
-						{% block footer_content %}
-							{% include "idgo_admin/footer.html" %}  | Tous droits réservés | Propulsé par <a href="http://www.neogeo.fr" target="blank">Neogeo-Technologies</a>
-						{% endblock footer_content %}
-						</div>
-					</div>
-				</div>
-			</div>
+			{% include "idgo_admin/footer.html" %}
 		{% endblock footer %}
 	{% endblock body %}
 	</body>

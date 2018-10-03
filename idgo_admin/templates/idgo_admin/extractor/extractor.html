@@ -133,6 +133,7 @@
 												</div>
 											</div>
 										</div>
+										<br />
 										<div class="{% if not dataset %} disabled{% endif %}">
 											<div class="form-group">
 												<label for="crs">Système de coordonnées</label>
@@ -180,18 +181,7 @@
 			</div>
 		</div>
 		{% block footer %}
-		<div class="footer-container">
-			<div class="footer navbar-fixed-bottom">
-				<div class="container">
-					<div class="row">
-						<div class="col-xs-12">
-						{% block footer_content %}
-							{% include "idgo_admin/footer.html" %}
-						{% endblock footer_content %}
-						</div>
-					</div>
-				</div>
-			</div>
+		{% include "idgo_admin/footer.html" %}
 		{% endblock footer %}
 	</div>
 	{% endblock main %}
@@ -268,10 +258,7 @@ $(function() {
 	});
 
 	const clear = function($target) {
-		$target.is('input[type="checkbox"]') && $target.prop('checked', false);
-		$target.is('input[type="text"]') && $target.val('');
-		$target.is('select') && $target.val($target.find('option:first').val());
-		$target.trigger('change');
+		$target.is('select') && $target.val($target.find('option:first').val()).trigger('change');
 	};
 
 	$('form').find('button[name="clear"]').click(function(e) {
@@ -449,6 +436,8 @@ $(function() {
 		qs['bbox'] = bbox;
 		if (organisation) {
 			qs['organisation'] = organisation;
+		} else {
+			qs['organisation'] = qs['dataset'] = qs['resource'] = '';
 		};
 		updateUrl({withHash: false, refresh: true});
 	});
@@ -463,6 +452,8 @@ $(function() {
 		qs['organisation'] = '{{ organisation.ckan_slug }}';
 		if (dataset) {
 			qs['dataset'] = dataset;
+		} else {
+			qs['dataset'] = qs['resource'] = '';
 		};
 		updateUrl({withHash: false, refresh: true});
 	});
@@ -477,9 +468,7 @@ $(function() {
 		qs['bbox'] = bbox;
 		qs['organisation'] = '{{ organisation.ckan_slug }}';
 		qs['dataset'] = '{{ dataset.ckan_slug }}';
-		if (resource) {
-			qs['resource'] = resource;
-		};
+		qs['resource'] = resource ? resource : '';
 		updateUrl({withHash: false, refresh: true});
 	});
 	{% endif %}

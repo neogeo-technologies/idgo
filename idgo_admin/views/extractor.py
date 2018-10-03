@@ -48,6 +48,8 @@ from uuid import UUID
 
 EXTRACTOR_URL = settings.EXTRACTOR_URL
 
+decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
@@ -76,7 +78,7 @@ def extractor_task(request, *args, **kwargs):
     return JsonResponse(data=data)
 
 
-@method_decorator([csrf_exempt], name='dispatch')
+@method_decorator(decorators, name='dispatch')
 class ExtractorDashboard(View):
 
     template = 'idgo_admin/extractor/dashboard.html'
@@ -128,7 +130,7 @@ class ExtractorDashboard(View):
         return render_with_info_profile(request, self.template, context=context)
 
 
-@method_decorator([csrf_exempt], name='dispatch')
+@method_decorator(decorators, name='dispatch')
 class Extractor(View):
 
     template = 'idgo_admin/extractor/extractor.html'
