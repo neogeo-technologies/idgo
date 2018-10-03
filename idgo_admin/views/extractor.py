@@ -222,8 +222,6 @@ class Extractor(View):
 
         if not context['layer'] and layers:
             context['layer'] = layers[0]
-        from pprint import pprint
-        pprint(context)
         return context
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -244,13 +242,16 @@ class Extractor(View):
         # except Exception as e:
         #     print(e)
         #     raise Http404
-
         context['basemaps'] = BaseMaps.objects.all()
-
         bbox = request.GET.get('bbox')
         if bbox:
             minx, miny, maxx, maxy = bbox.split(',')
             context['bounds'] = [[miny, minx], [maxy, maxx]]
+        context['crs'] = request.GET.get('crs', None)
+        footprint = request.GET.get('footprint', None)
+        if footprint:
+            context['footprint'] = json.loads(footprint)
+        context['format'] = request.GET.get('format', None)
 
         return render_with_info_profile(request, self.template, context=context)
 
@@ -274,10 +275,10 @@ class Extractor(View):
 
         footprint = json.loads(request.POST.get('footprint')).get('geometry')
         layer_name = request.POST.get('layer')
-        dst_srs = request.POST.get('srs')
+        dst_crs = request.POST.get('crs')
 
         source = 'PG:host=postgis-master user=datagis dbname=datagis'  # TODO
-        footprint_srs = 'EPSG:4326'  # TODO
+        footprint_crs = 'EPSG:4326'  # TODO
         dst_format = {'gdal_driver': 'ESRI Shapefile'}  # TODO
 
         data = {
@@ -289,9 +290,9 @@ class Extractor(View):
             'user_address': user.profile.organisation.full_address,
             'source': source,
             'dst_format': dst_format,
-            'dst_srs': dst_srs or 'EPSG:2154',
+            'dst_srs': dst_crs or 'EPSG:2154',
             'footprint': footprint,
-            'footprint_srs': footprint_srs,
+            'footprint_srs': footprint_crs,
             'layer': layer_name}
 
         r = requests.post(EXTRACTOR_URL, json=data)
