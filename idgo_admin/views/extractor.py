@@ -276,10 +276,12 @@ class Extractor(View):
         footprint = json.loads(request.POST.get('footprint')).get('geometry')
         layer_name = request.POST.get('layer')
         dst_crs = request.POST.get('crs')
+        format = request.POST.get('format')
+        if format:
+            dst_format = ExtractorSupportedFormat.objects.get(name=format).details
 
-        source = 'PG:host=postgis-master user=datagis dbname=datagis'  # TODO
-        footprint_crs = 'EPSG:4326'  # TODO
-        dst_format = {'gdal_driver': 'ESRI Shapefile'}  # TODO
+        source = 'PG:host=postgis-master user=datagis dbname=datagis'
+        footprint_crs = 'EPSG:4326'
 
         data = {
             'user_id': user.username,
