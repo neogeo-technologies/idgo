@@ -306,20 +306,43 @@ cd /idgo_venv
 
 Configurer Apache, ajouter dans le VirtualHost :
 ```
-	ProxyRequests Off
+    RewriteEngine On
+    RewriteMap anonymous_access "prg:/idgo_venv/idgo_admin/auth_ogc.py"
 
-    <Location />
+    RewriteCond %{HTTP:Authorization} ^$
+    # ALORS ON VA VERS LE RESULTAT RENVOYE PAR REMAP
+    RewriteRule (.*) ${anonymous_access:$1?%{QUERY_STRING}} [last,P,QSA]
+    RewriteRule (.*) http://localhost/private$1 [P,QSA]
+```
+
+Ca redirige vers http://localhost/public quand la ressource est accéssible aux
+utilisateurs anonymes et qu'il n'y a pas de login/mot de passe en BasicAuth.
+Sinon ça redirige vers http://localhost/private, qui vérifiera les droits
+d'authentification et les autorisations.
+
+Ensuite rajouter cette section:
+```
+<VirtualHost *:80>
+    ServerName localhost
+
+    ProxyRequests Off
+    <Location /private>
         WSGIAuthUserScript /idgo_venv/idgo_admin/auth_ogc.py application-group=idgo.com
         WSGIApplicationGroup auth
         AuthType Basic
         AuthName "DataSud authentification"
         AuthBasicProvider wsgi
-
         Require valid-user
 
         ProxyPass http://mapserver/
         ProxyPassReverse http://mapserver/
     </Location>
+    <Location /public>
+        ProxyPass http://mapserver/
+        ProxyPassReverse http://mapserver/
+    </Location>
+</VirtualHost>
+
 ```
 
 Utiliser le fichier auth\_ogc.py

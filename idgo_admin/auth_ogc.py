@@ -1,3 +1,4 @@
+#!/idgo_venv/bin/python3
 # Copyright (c) 2017-2018 Datasud.
 # All Rights Reserved.
 #
@@ -16,8 +17,10 @@
 
 import os
 import logging
+import sys
 
 import django
+sys.path.append("/idgo_venv/")
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 from django.contrib.auth.models import User  # noqa: E402
@@ -27,6 +30,9 @@ logger = logging.getLogger('auth_ogc')
 logger.setLevel(logging.DEBUG)
 
 AUTHORIZED_PREFIX = ['/maps/', '/wfs/', '/wms/', '/wxs/']
+# used for parsing address when basic auth is provided
+PRIVATE_AUTHORIZED_PREFIX = ["/private{prefix}".format(prefix=p)
+                             for p in AUTHORIZED_PREFIX]
 
 
 def check_password(environ, user, password):
@@ -38,7 +44,7 @@ def check_password(environ, user, password):
     # check path is authorized
 
     is_path_authorized = False
-    for prefix in AUTHORIZED_PREFIX:
+    for prefix in AUTHORIZED_PREFIX + PRIVATE_AUTHORIZED_PREFIX:
         if url.startswith(prefix):
             is_path_authorized = True
 
@@ -49,7 +55,7 @@ def check_password(environ, user, password):
     try:
         user = User.objects.get(username=user, is_active=True)
     except User.DoesNotExist:
-        logger.debug("User %s does not exist (or is not active :()" % user)
+        logger.debug("User %s does not exist (or is not active)" % user)
     else:
         if not user.check_password(password):
             logger.error("User %s provided bad password", user)
@@ -77,3 +83,28 @@ def check_password(environ, user, password):
             return False
 
     return True
+
+
+if __name__ == '__main__':
+    while True:
+        try:
+            line = sys.stdin.readline().strip()
+            logger.debug("REMAP ogc auth: %s" % line)
+            headers = {"REQUEST_URI": line}
+            # Remove querystring (handled by apache)
+            path = line.split("?")[0]
+
+            # if ressource is accessible by anonymous => public,
+            # otherwise check password (=> private)
+            if check_password(headers, "", ""):
+                response = "http://localhost/public{uri}".format(uri=path)
+            else:
+                response = "http://localhost/private{uri}".format(uri=path)
+
+            logger.debug("response : %s" % response)
+            sys.stdout.write(response + '\n')
+            sys.stdout.flush()
+        except Exception as e:
+            logger.error(e)
+            sys.stdout.write('NULL\n')
+            sys.stdout.flush()
