@@ -140,7 +140,7 @@
 													<select class="form-control" id="crs">
 														<option disabled selected>Sélectionnez un système de coordonnées</option>
 														{% for crs in supported_crs %}
-														<option value="{{ crs.authority }}"{% if task and task.details.query.dst_crs == crs.authority %} selected{% endif %}>{{ crs }}</option>
+														<option value="{{ crs.authority }}"{% if task and task.details.query.dst_srs == crs.authority or crs and crs == crs.authority %} selected{% endif %}>{{ crs }}</option>
 														{% endfor %}
 													</select>
 													<span class="input-group-btn">
@@ -156,7 +156,7 @@
 													<select class="form-control" id="format">
 														<option disabled selected>Sélectionnez un format</option>
 														{% for format in supported_format %}
-														<option value="{{ format.name }}"{% if task and task.details.query.dst_format == format.details %} selected{% endif %}>{{ format.description }}</option>
+														<option value="{{ format.name }}"{% if task and task.details.query.dst_format == format.details or format and format == format.name %} selected{% endif %}>{{ format.description }}</option>
 														{% endfor %}
 													</select>
 													<span class="input-group-btn">
@@ -482,14 +482,6 @@ $(function() {
 		};
 		updateUrl({withHash: false, refresh: true});
 	});
-	{% endif %}
-
-	{% if format %}
-	$('#format').val('{{ format }}');
-	{% endif %}
-
-	{% if crs %}
-	$('#crs').val('{{ crs }}');
 	{% endif %}
 
 	$('#format, #crs').change(function(e) {
