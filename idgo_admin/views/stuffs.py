@@ -28,7 +28,7 @@ import requests
 OWS_PREVIEW_URL = settings.OWS_PREVIEW_URL
 
 
-@method_decorator([csrf_exempt, ], name='dispatch')
+@method_decorator([csrf_exempt], name='dispatch')
 class DisplayLicenses(View):
 
     def get(self, request):
