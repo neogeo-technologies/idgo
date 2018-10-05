@@ -45,6 +45,7 @@ from idgo_admin.views.mdedit import mdhandler
 from idgo_admin.views.mdedit import ServiceMDEdit
 from idgo_admin.views.mdedit import ServiceMDEditTplEdit
 from idgo_admin.views.organization import all_organisations
+from idgo_admin.views.organization import CkanHarvesterEditor as OrganisationCkanHarvesterEditor
 from idgo_admin.views.organization import CreateOrganisation
 from idgo_admin.views.organization import organisation
 from idgo_admin.views.organization import OrganisationOWS
@@ -96,6 +97,8 @@ urlpatterns = [
     url('^organisation/(?P<id>(\d+))/?$', organisation, name='organization'),
     url('^organisation/(?P<id>(\d+))/edit/?$', UpdateOrganisation.as_view(), name='update_organization'),
     url('^organisation/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
+
+    url('^organisation/(?P<id>(\d+))/edit/remoteckan/?$', OrganisationCkanHarvesterEditor.as_view(), name='organisation_ckan_harvester_editor'),
 
     url('^password/(?P<process>(forget))/?$', PasswordManager.as_view(), name='password_manager'),
     url('^password/(?P<process>(initiate|reset))/(?P<key>(.+))/?$', PasswordManager.as_view(), name='password_manager'),

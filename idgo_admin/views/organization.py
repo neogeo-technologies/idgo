@@ -19,6 +19,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
@@ -34,6 +35,7 @@ from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.exceptions import UnexpectedError
+from idgo_admin.forms.organization import CkanHarvesterForm
 from idgo_admin.forms.organization import OrganizationForm as Form
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
@@ -44,6 +46,7 @@ from idgo_admin.models.mail import send_membership_confirmation_mail
 from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
 from idgo_admin.models.mail import send_referent_confirmation_mail
 from idgo_admin.models import Organisation
+from idgo_admin.models import OrganisationCkanHarvester as CkanHarvester
 from idgo_admin.models import Profile
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.shortcuts import on_profile_http404
@@ -231,7 +234,7 @@ def organisation(request, id=None):
 @method_decorator(decorators, name='dispatch')
 class CreateOrganisation(View):
 
-    template = 'idgo_admin/organisation/organisation.html'
+    template = 'idgo_admin/organisation/edit.html'
 
     @ExceptionsHandler(
         ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -284,7 +287,7 @@ class CreateOrganisation(View):
 
 @method_decorator(decorators, name='dispatch')
 class UpdateOrganisation(View):
-    template = 'idgo_admin/organisation/organisation.html'
+    template = 'idgo_admin/organisation/edit.html'
 
     @ExceptionsHandler(
         ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -431,3 +434,83 @@ class Subscription(View):
         return JsonResponse(data={})  # Bidon
         # return HttpResponseRedirect('{0}#{1}'.format(
         #     reverse(self.namespace), organisation.id))
+
+
+@method_decorator(decorators, name='dispatch')
+class CkanHarvesterEditor(View):
+
+    template = 'idgo_admin/organisation/remoteckan.html'
+
+    def get(self, request, id, *args, **kwargs):
+
+        user, profile = user_and_profile(request)
+
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation__id=id,
+            validated_on__isnull=False) and True or False
+
+        if is_referent or is_admin:
+
+            organisation = get_object_or_404(Organisation, id=id)
+            instance, created = \
+                CkanHarvester.objects.get_or_create(organisation=organisation)
+            form = CkanHarvesterForm(instance=instance)
+
+            datasets = Dataset.harvested.filter(organisation=organisation)
+
+            context = {
+                'datasets': datasets,
+                'form': form,
+                'organisation': organisation}
+
+            return render_with_info_profile(
+                request, self.template, context=context)
+
+        raise Http404()
+
+    def post(self, request, id, *args, **kwargs):
+
+        user, profile = user_and_profile(request)
+
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation__id=id,
+            validated_on__isnull=False) and True or False
+
+        if not(is_referent or is_admin):
+            raise Http404()
+
+        organisation = get_object_or_404(Organisation, id=id)
+        instance = get_object_or_404(CkanHarvester, organisation=organisation)
+        form = CkanHarvesterForm(request.POST, instance=instance)
+
+        context = {'form': form, 'organisation': organisation}
+
+        if not form.is_valid():
+            return render_with_info_profile(request, self.template, context=context)
+
+        for k, v in form.cleaned_data.items():
+            setattr(instance, k, v)
+        try:
+            with transaction.atomic():
+                instance.save()
+        except ValidationError as e:
+            messages.error(request, e.__str__())
+        except CkanNotFoundError as e:
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
+        except CkanSyncingError as e:
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
+        except CkanTimeoutError as e:
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
+        else:
+            messages.success(request, "Ok")
+
+        if 'continue' in request.POST:
+            return HttpResponseRedirect(
+                reverse('idgo_admin:update_organization', kwargs={'id': organisation.id}))
+
+        return render_with_info_profile(request, self.template, context=context)

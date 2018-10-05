@@ -15,6 +15,7 @@
 
 
 from django import forms
+from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.forms import AddressField
 from idgo_admin.forms import CityField
 from idgo_admin.forms import ContributorField
@@ -31,6 +32,7 @@ from idgo_admin.forms import PostcodeField
 from idgo_admin.forms import ReferentField
 from idgo_admin.forms import WebsiteField
 from idgo_admin.models import Organisation
+from idgo_admin.models import OrganisationCkanHarvester as CkanHarvester
 
 
 class OrganizationForm(forms.ModelForm):
@@ -93,3 +95,44 @@ class OrganizationForm(forms.ModelForm):
 
     def clean(self):
         return self.cleaned_data
+
+
+class CkanHarvesterForm(forms.ModelForm):
+
+    class Meta(object):
+        model = CkanHarvester
+        fields = (
+            'url',
+            'sync_with',
+            'sync_frequency')
+
+    url = forms.URLField(
+        error_messages={'invalid': "L'adresse URL est erronée."},
+        label='URL du catalogue CKAN à synchroniser',
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': "https://demo.ckan.org"}))
+
+    sync_with = forms.MultipleChoiceField(
+        label='Organisations à synchroniser',
+        choices=(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple())
+
+    sync_frequency = forms.ChoiceField(
+        label='Fréquence de synchronisation',
+        choices=Meta.model.FREQUENCY_CHOICES,
+        initial='never',
+        required=True)
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance', None)
+        super().__init__(*args, **kwargs)
+        if not instance.url:
+            self.fields['sync_with'].widget = forms.HiddenInput()
+            self.fields['sync_frequency'].widget = forms.HiddenInput()
+
+        remote_ckan = CkanBaseHandler(instance.url)
+        organisations = remote_ckan.get_all_organizations(all_fields=True, include_dataset_count=True)
+        self.fields['sync_with'].choices = (
+            (organisation['name'], '{} ({})'.format(organisation['display_name'], organisation['package_count']))
+            for organisation in organisations)
