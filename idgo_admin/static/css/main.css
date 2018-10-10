@@ -1485,6 +1485,10 @@ table tr.selected:hover td.crossed {
     z-index: 1000;
 }
 
+#extractor .leaflet-draw-tooltip {
+    z-index: 1010 !important;
+}
+
 /* ************************************************************************* */
 
 .progress-bar-modal .modal-body {
