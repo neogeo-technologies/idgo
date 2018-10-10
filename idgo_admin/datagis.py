@@ -82,6 +82,19 @@ def retreive_epsg_through_proj4(proj4):
         return candidate[0]
 
 
+def retreive_epsg_through_regex(text):
+
+    SupportedCrs = apps.get_model(
+        app_label='idgo_admin', model_name='SupportedCrs')
+
+    for supported_crs in SupportedCrs.objects.all():
+        if not supported_crs.regex:
+            continue
+        if re.match(supported_crs.regex, text, flags=re.IGNORECASE):
+            print(supported_crs)
+            return supported_crs.auth_code
+
+
 class OgrOpener(object):
 
     VSI_PROTOCOLE = (
@@ -194,6 +207,8 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                         epsg = layer.srs.auth_code('GEOGCS')
                 if not epsg:
                     epsg = retreive_epsg_through_proj4(layer.srs.proj4)
+            if not epsg:
+                epsg = retreive_epsg_through_regex(layer.srs.name)
             if not epsg:
                 raise NotFoundSrsError('SRS Not found')
 

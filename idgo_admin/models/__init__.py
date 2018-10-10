@@ -333,6 +333,9 @@ class SupportedCrs(models.Model):
     description = models.TextField(
         verbose_name='Description', blank=True, null=True)
 
+    regex = models.TextField(
+        verbose_name='Expression régulière', blank=True, null=True)
+
     class Meta(object):
         verbose_name = "CRS supporté par l'application"
         verbose_name_plural = "CRS supportés par l'application"
