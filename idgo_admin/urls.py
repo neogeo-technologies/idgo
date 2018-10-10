@@ -45,12 +45,15 @@ from idgo_admin.views.mdedit import mdhandler
 from idgo_admin.views.mdedit import ServiceMDEdit
 from idgo_admin.views.mdedit import ServiceMDEditTplEdit
 from idgo_admin.views.organization import all_organisations
-from idgo_admin.views.organization import CkanHarvesterEditor as OrganisationCkanHarvesterEditor
+from idgo_admin.views.organization import RemoteCkanEditor
 from idgo_admin.views.organization import CreateOrganisation
 from idgo_admin.views.organization import organisation
 from idgo_admin.views.organization import OrganisationOWS
 from idgo_admin.views.organization import Subscription
 from idgo_admin.views.organization import UpdateOrganisation
+
+from idgo_admin.views.organization import DeleteRemoteCkanLinked
+
 from idgo_admin.views.resource import LayerManager
 from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
@@ -68,17 +71,15 @@ urlpatterns = [
     url('^account/delete/?$', delete_account, name='deleteAccount'),
 
     url('^dataset/?$', dataset, name='dataset'),
+    url('^dataset/(?P<target>(all|mine|harvested))/?$', datasets, name='datasets'),
     url('^dataset/(?P<id>(new|(\d+)))/edit/?$', DatasetManager.as_view(), name='dataset_editor'),
-
     url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))$', LayerManager.as_view(), name='layer'),
+    url('^dataset/export/?$', Export.as_view(), name='export'),
 
     url('^extractor/?$', Extractor.as_view(), name='extractor'),
     url('^extractor/task/?$', extractor_task, name='extractor_task'),
     url('^extractor/dashboard/?$', ExtractorDashboard.as_view(), name='extractor_dashboard'),
-
-    url('^dataset/(?P<target>(all|mine))/?$', datasets, name='datasets'),
-    url('^dataset/export/?$', Export.as_view(), name='export'),
 
     url('^jurisdiction/(?P<code>(\d+))/edit/?$', JurisdictionView.as_view(), name='jurisdiction'),
 
@@ -98,7 +99,8 @@ urlpatterns = [
     url('^organisation/(?P<id>(\d+))/edit/?$', UpdateOrganisation.as_view(), name='update_organization'),
     url('^organisation/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
 
-    url('^organisation/(?P<id>(\d+))/edit/remoteckan/?$', OrganisationCkanHarvesterEditor.as_view(), name='organisation_ckan_harvester_editor'),
+    url('^organisation/(?P<id>(\d+))/remoteckan/edit/?$', RemoteCkanEditor.as_view(), name='edit_remote_ckan_link'),
+    url('^organisation/(?P<id>(\d+))/remoteckan/delete/?$', DeleteRemoteCkanLinked.as_view(), name='delete_remote_ckan_link'),
 
     url('^password/(?P<process>(forget))/?$', PasswordManager.as_view(), name='password_manager'),
     url('^password/(?P<process>(initiate|reset))/(?P<key>(.+))/?$', PasswordManager.as_view(), name='password_manager'),

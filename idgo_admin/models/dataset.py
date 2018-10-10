@@ -27,6 +27,7 @@ from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.managers import HarvestedDataset
 from idgo_admin.mra_client import MRAConflictError
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.mra_client import MRANotFoundError
@@ -40,88 +41,6 @@ CKAN_URL = settings.CKAN_URL
 GEONETWORK_URL = settings.GEONETWORK_URL
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 TODAY = timezone.now().date()
-
-
-class HarvestedDataset(models.Manager):
-
-    def update_or_create(self, **kwargs):
-
-        remote_dataset = kwargs.get('remote_dataset', None)
-
-        RemoteDataset = apps.get_model(
-            app_label='idgo_admin',
-            model_name='CkanHarvesterDataset')
-
-        try:
-            instance = self.get(remote_dataset=remote_dataset)
-        except RemoteDataset.DoesNotExist:
-            instance = self.create(**kwargs)
-            created = True
-        else:
-            created = False
-            harvested = RemoteDataset.objects.get(dataset=instance.id)
-            harvested.updated_on = timezone.now()
-            harvested.save()
-
-            for k, v in kwargs.items():
-                setattr(instance, k, v)
-            instance.save()
-
-        return instance, created
-
-    def create(self, **kwargs):
-        remote_dataset = kwargs.pop('remote_dataset', None)
-        remote_ckan = kwargs.pop('remote_ckan', None)
-        dataset = super().create(**kwargs)
-
-        RemoteDataset = apps.get_model(
-            app_label='idgo_admin',
-            model_name='CkanHarvesterDataset')
-
-        RemoteDataset.objects.create(
-            created_by=dataset.editor,
-            dataset=dataset,
-            remote_ckan=remote_ckan,
-            remote_dataset=remote_dataset)
-
-        return dataset
-
-    def filter(self, **kwargs):
-
-        RemoteDataset = apps.get_model(
-            app_label='idgo_admin',
-            model_name='CkanHarvesterDataset')
-
-        remote_ckan = kwargs.pop('remote_ckan', None)
-        remote_dataset = kwargs.pop('remote_dataset', None)
-        if remote_ckan or remote_dataset:
-            ids_list = [
-                entry.dataset.id for entry in RemoteDataset.objects.filter(
-                    remote_ckan=remote_ckan, remote_dataset=remote_dataset)]
-            return Dataset.objects.filter(id__in=ids_list)
-
-        return super().filter(**kwargs)
-
-    def get(self, **kwargs):
-
-        RemoteDataset = apps.get_model(
-            app_label='idgo_admin',
-            model_name='CkanHarvesterDataset')
-
-        remote_dataset = kwargs.pop('remote_dataset', None)
-        if remote_dataset:
-            return RemoteDataset.objects.get(remote_dataset=remote_dataset).dataset
-
-        return super().get(**kwargs)
-
-    def get_queryset(self, **kwargs):
-
-        RemoteDataset = apps.get_model(
-            app_label='idgo_admin',
-            model_name='CkanHarvesterDataset')
-
-        return Dataset.objects.filter(
-            id__in=[entry.dataset.id for entry in RemoteDataset.objects.all()])
 
 
 class Dataset(models.Model):
@@ -257,25 +176,6 @@ class Dataset(models.Model):
 
     def __str__(self):
         return self.name
-
-    @property
-    def updated_on(self):
-        CkanHarvesterDataset = apps.get_model(
-            app_label='idgo_admin',
-            model_name='CkanHarvesterDataset')
-        harvested = CkanHarvesterDataset.objects.get(dataset=self.id)
-        return harvested.updated_on
-
-    @updated_on.setter
-    def updated_on(self, value):
-        CkanHarvesterDataset = apps.get_model(
-            app_label='idgo_admin',
-            model_name='CkanHarvesterDataset')
-        try:
-            harvested = CkanHarvesterDataset.objects.get(dataset=self.id)
-        except CkanHarvesterDataset.DoesNotExist:
-            raise Dataset.IntegrityError
-        harvested.updated_on = value
 
     @property
     def private(self):

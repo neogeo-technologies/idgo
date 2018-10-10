@@ -35,7 +35,7 @@ from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.exceptions import UnexpectedError
-from idgo_admin.forms.organization import CkanHarvesterForm
+from idgo_admin.forms.organization import RemoteCkanForm
 from idgo_admin.forms.organization import OrganizationForm as Form
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
@@ -46,7 +46,7 @@ from idgo_admin.models.mail import send_membership_confirmation_mail
 from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
 from idgo_admin.models.mail import send_referent_confirmation_mail
 from idgo_admin.models import Organisation
-from idgo_admin.models import OrganisationCkanHarvester as CkanHarvester
+from idgo_admin.models import RemoteCkan
 from idgo_admin.models import Profile
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.shortcuts import on_profile_http404
@@ -437,9 +437,9 @@ class Subscription(View):
 
 
 @method_decorator(decorators, name='dispatch')
-class CkanHarvesterEditor(View):
+class RemoteCkanEditor(View):
 
-    template = 'idgo_admin/organisation/remoteckan.html'
+    template = 'idgo_admin/organisation/remoteckan/edit.html'
 
     def get(self, request, id, *args, **kwargs):
 
@@ -453,9 +453,13 @@ class CkanHarvesterEditor(View):
         if is_referent or is_admin:
 
             organisation = get_object_or_404(Organisation, id=id)
-            instance, created = \
-                CkanHarvester.objects.get_or_create(organisation=organisation)
-            form = CkanHarvesterForm(instance=instance)
+
+            try:
+                instance = RemoteCkan.objects.get(organisation=organisation)
+            except RemoteCkan.DoesNotExist:
+                form = RemoteCkanForm()
+            else:
+                form = RemoteCkanForm(instance=instance)
 
             datasets = Dataset.harvested.filter(organisation=organisation)
 
@@ -482,13 +486,15 @@ class CkanHarvesterEditor(View):
             raise Http404()
 
         organisation = get_object_or_404(Organisation, id=id)
-        instance = get_object_or_404(CkanHarvester, organisation=organisation)
-        form = CkanHarvesterForm(request.POST, instance=instance)
 
+        instance, created = \
+            RemoteCkan.objects.get_or_create(organisation=organisation)
+        form = RemoteCkanForm(request.POST, instance=instance)
         context = {'form': form, 'organisation': organisation}
 
         if not form.is_valid():
-            return render_with_info_profile(request, self.template, context=context)
+            return render_with_info_profile(
+                request, self.template, context=context)
 
         for k, v in form.cleaned_data.items():
             setattr(instance, k, v)
@@ -507,10 +513,57 @@ class CkanHarvesterEditor(View):
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
         else:
-            messages.success(request, "Ok")
+            context['datasets'] = \
+                Dataset.harvested.filter(organisation=organisation)
+            context['form'] = RemoteCkanForm(instance=instance)
+            if created:
+                msg = "Veuillez indiquez les organisations distantes à moissonner."
+            else:
+                msg = 'Les informations de moissonnage ont été mises à jour.'
+            messages.success(request, msg)
 
         if 'continue' in request.POST:
-            return HttpResponseRedirect(
-                reverse('idgo_admin:update_organization', kwargs={'id': organisation.id}))
+            return render_with_info_profile(
+                request, self.template, context=context)
 
-        return render_with_info_profile(request, self.template, context=context)
+        return HttpResponseRedirect(
+            reverse('idgo_admin:update_organization', kwargs={'id': organisation.id}))
+
+
+@method_decorator(decorators, name='dispatch')
+class DeleteRemoteCkanLinked(View):
+
+    def post(self, request, id, *args, **kwargs):
+
+        user, profile = user_and_profile(request)
+
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation__id=id,
+            validated_on__isnull=False) and True or False
+
+        if not(is_referent or is_admin):
+            raise Http404()
+
+        organisation = get_object_or_404(Organisation, id=id)
+        instance = get_object_or_404(RemoteCkan, organisation=organisation)
+
+        try:
+            with transaction.atomic():
+                instance.delete()
+        except ValidationError as e:
+            messages.error(request, e.__str__())
+        except CkanNotFoundError as e:
+            messages.error(request, e.__str__())
+        except CkanSyncingError as e:
+            messages.error(request, e.__str__())
+        except CkanTimeoutError as e:
+            messages.error(request, e.__str__())
+        else:
+            messages.success(request, (
+                'Les informations ainsi que les jeux de données et '
+                'ressources synchronisés avec le catalogue distant '
+                'ont été supprimés avec succès.'))
+
+        return HttpResponseRedirect(
+            reverse('idgo_admin:update_organization', kwargs={'id': organisation.id}))
