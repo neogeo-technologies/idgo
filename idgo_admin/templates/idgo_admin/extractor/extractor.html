@@ -293,6 +293,13 @@ $(function() {
 	});
 	layers.push(targetLayer);
 	bounds = {{ layer.mra_info.bbox|default:None|safe }};
+
+	delete qs['layer'];
+	qs['organisation'] = '{{ organisation.ckan_slug }}';
+	qs['dataset'] = '{{ dataset.ckan_slug }}';
+	qs['resource'] = '{{ resource.ckan_id }}';
+	updateUrl({withHash: false, refresh: false});
+
 	{% elif organisation and dataset %}
 		{% for instance in resources %}
 			{% for layer in instance.get_layers %}
@@ -436,8 +443,14 @@ $(function() {
 		qs['bbox'] = bbox;
 		if (organisation) {
 			qs['organisation'] = organisation;
+			delete qs['dataset'];
+			delete qs['resource'];
+			delete qs['layer'];
 		} else {
-			qs['organisation'] = qs['dataset'] = qs['resource'] = '';
+			delete qs['organisation'];
+			delete qs['dataset'];
+			delete qs['resource'];
+			delete qs['layer'];
 		};
 		updateUrl({withHash: false, refresh: true});
 	});
@@ -452,8 +465,12 @@ $(function() {
 		qs['organisation'] = '{{ organisation.ckan_slug }}';
 		if (dataset) {
 			qs['dataset'] = dataset;
+			delete qs['resource'];
+			delete qs['layer'];
 		} else {
-			qs['dataset'] = qs['resource'] = '';
+			delete qs['dataset'];
+			delete qs['resource'];
+			delete qs['layer'];
 		};
 		updateUrl({withHash: false, refresh: true});
 	});
@@ -468,7 +485,13 @@ $(function() {
 		qs['bbox'] = bbox;
 		qs['organisation'] = '{{ organisation.ckan_slug }}';
 		qs['dataset'] = '{{ dataset.ckan_slug }}';
-		qs['resource'] = resource ? resource : '';
+		if (resource) {
+			qs['resource'] = resource;
+			delete qs['layer'];
+		} else {
+			delete qs['resource'];
+			delete qs['layer'];
+		}
 		updateUrl({withHash: false, refresh: true});
 	});
 	{% endif %}
