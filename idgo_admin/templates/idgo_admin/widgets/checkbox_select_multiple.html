@@ -1,0 +1,13 @@
+{% with id=widget.attrs.id %}
+<div class="panel" style="overflow-y: scroll; height: 290px;">
+	<ul{% if id %} id="{{ id }}"{% endif %} class="list-group{% if widget.attrs.class %} {{ widget.attrs.class }}{% endif %}">
+	{% for group, options, index in widget.optgroups %}
+		{% for option in options %}
+		<li class="list-group-item">
+			{% include option.template_name with widget=option %}
+		</li>
+		{% endfor %}
+	{% endfor %}
+	</ul>
+</div>
+{% endwith %}

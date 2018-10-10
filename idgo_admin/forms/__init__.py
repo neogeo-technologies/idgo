@@ -21,6 +21,10 @@ from idgo_admin.models import License
 from idgo_admin.models import OrganisationType
 
 
+class CustomCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
+    template_name = 'idgo_admin/widgets/checkbox_select_multiple.html'
+
+
 class AddressField(forms.CharField):
 
     def __init__(self, *args, **kwargs):

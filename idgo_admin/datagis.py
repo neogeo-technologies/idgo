@@ -145,7 +145,7 @@ def handle_ogr_field_type(k, n=None, p=None):
         'OFTBinary': 'bytea',
         'OFTDate': 'date',
         'OFTTime': 'time',
-        'OFTDateTime': 'datetime',
+        'OFTDateTime': 'timestamp',
         'OFTInteger64': 'integer',
         'OFTInteger64List': 'integer[]'}.get(k, 'text').format(n=n, p=p)
 
@@ -264,7 +264,7 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                     attrs[k] = "{}".format(v)
 
             sql.append(INSERT_INTO.format(
-                attrs_name=', '.join(attrs.keys()),
+                attrs_name=', '.join(['"{}"'.format(x) for x in attrs.keys()]),
                 attrs_value=', '.join(attrs.values()),
                 epsg=epsg,
                 owner=OWNER,

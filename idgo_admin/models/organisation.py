@@ -13,16 +13,21 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.text import slugify
+from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.mra_client import MRAHandler
+import inspect
 import uuid
 
 
@@ -130,6 +135,201 @@ class Organisation(models.Model):
     def get_datasets(self, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
         return Dataset.objects.filter(organisation=self, **kwargs)
+
+
+class RemoteCkan(models.Model):
+
+    FREQUENCY_CHOICES = (
+        ('never', 'Jamais'),
+        ('daily', 'Quotidienne (tous les jours à minuit)'),
+        ('weekly', 'Hebdomadaire (tous les lundi)'),
+        ('bimonthly', 'Bimensuelle (1er et 15 de chaque mois)'),
+        ('monthly', 'Mensuelle (1er de chaque mois)'),
+        ('quarterly', 'Trimestrielle (1er des mois de janvier, avril, juillet, octobre)'),
+        ('biannual', 'Semestrielle (1er janvier et 1er juillet)'),
+        ('annual', 'Annuelle (1er janvier)'))
+
+    organisation = models.OneToOneField(to='Organisation', on_delete=models.CASCADE)
+
+    url = models.URLField(verbose_name='URL', blank=True)
+
+    sync_with = ArrayField(
+        models.SlugField(max_length=100),
+        verbose_name='Organisations synchronisées',
+        blank=True,
+        null=True)
+
+    sync_frequency = models.CharField(
+        verbose_name='Fréquence de synchronisation',
+        max_length=20,
+        blank=True,
+        null=True,
+        choices=FREQUENCY_CHOICES,
+        default='never')
+
+    class Meta(object):
+        verbose_name = 'Catalogue CKAN distant'
+        verbose_name_plural = 'Catalogues CKAN distants'
+
+    def __str__(self):
+        return self.url
+
+    def save(self, *args, **kwargs):
+
+        Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
+        License = apps.get_model(app_label='idgo_admin', model_name='License')
+        Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
+        ResourceFormats = apps.get_model(app_label='idgo_admin', model_name='ResourceFormats')
+
+        # (1) Supprimer les jeux de données qui ne sont plus synchronisés
+        previous = self.pk and RemoteCkan.objects.get(pk=self.pk)
+
+        if previous:
+            remote_organisation__in = [
+                x for x in (previous.sync_with or [])
+                if x not in (self.sync_with or [])]
+            Dataset.harvested.filter(
+                remote_ckan=previous,
+                remote_organisation__in=remote_organisation__in).delete()
+
+        # (2) Sauver l'instance
+        super().save(*args, **kwargs)
+
+        # (3) Créer/Mettre à jour les jeux de données synchronisés
+
+        # On récupère dans le `stack` l'utilisateur effectuant l'opération
+        editor = None
+        for entry in inspect.stack():
+            try:
+                editor = entry[0].f_locals['request'].user
+            except (KeyError, AttributeError):
+                continue
+            break
+
+        # Ouvre la connexion avec le CKAN distant
+        ckan = CkanBaseHandler(self.url)
+
+        # Puis on moissonne le catalogue
+        if self.sync_with:
+            for value in self.sync_with:
+                ckan_organisation = ckan.get_organization(
+                    value, include_datasets=True,
+                    include_groups=True, include_tags=True)
+
+                if not ckan_organisation.get('package_count', 0):
+                    continue
+                for package in ckan_organisation.get('packages'):
+                    if not package['state'] == 'active' \
+                            or not package['type'] == 'dataset':
+                        continue
+                    package = ckan.get_package(package['id'])
+
+                    ckan_id = uuid.UUID(package['id'])
+
+                    # categories = None
+
+                    for l in License.objects.all():
+                        license = None
+                        if l.ckan_id == license:
+                            license = l
+
+                    # for kvp in package.pop('extras', []):
+                    #     if kvp['key'] == 'spatial':
+                    #         geojson = kvp['value']
+
+                    kvp = {
+                        # 'bbox': bbox,
+                        'broadcaster_email': None,
+                        'broadcaster_name': None,
+                        # 'categories': categories,
+                        'ckan_slug': package.get('name', None),
+                        'date_creation': None,  # package.get('metadata_created', None),  # ???
+                        'date_modification': None,  # package.get('metadata_modified', None),  # ???
+                        'date_publication': None,  # ???
+                        # 'data_type': None,
+                        'description': package.get('notes', None),
+                        'editor': editor,
+                        'geocover': None,  # ???
+                        'geonet_id': None,
+                        'granularity': None,
+                        'is_inspire': False,
+                        # 'keywords': [tag['display_name'] for tag in package.get('tags')],
+                        # 'license': license,
+                        'name': package.get('title', None),
+                        'owner_email': package.get('author_email', None),
+                        'owner_name': package.get('author', None),
+                        'organisation': self.organisation,
+                        'published': not package.get('private', False),
+                        'thumbnail': None,
+                        'remote_ckan': self,
+                        'remote_dataset': ckan_id,
+                        'remote_organisation': value,
+                        'support': None,
+                        'update_freq': 'never'}
+
+                    dataset, created = Dataset.harvested.update_or_create(**kvp)
+
+                    for resource in package.get('resources', []):
+                        ckan_id = uuid.UUID(resource['id'])
+
+                        try:
+                            format_type = ResourceFormats.objects.get(
+                                extension=resource['format'].upper())
+                        except ResourceFormats.DoesNotExist:
+                            format_type = None
+
+                        kvp = {
+                            'ckan_id': ckan_id,
+                            'dataset': dataset,
+                            'format_type': format_type,
+                            'name': resource['name'],
+                            'referenced_url': resource['url']}
+
+                        try:
+                            resource = Resource.objects.get(ckan_id=ckan_id)
+                        except Resource.DoesNotExist:
+                            resource = Resource.objects.create(**kvp)
+                        else:
+                            for k, v in kvp.items():
+                                setattr(resource, k, v)
+                        resource.save(editor=editor, sync_ckan=True)
+
+    def delete(self, *args, **kwargs):
+        Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
+        Dataset.harvested.filter(remote_ckan=self).delete()
+        return super().delete(*args, **kwargs)
+
+
+class RemoteCkanDataset(models.Model):
+
+    remote_ckan = models.ForeignKey(
+        to='RemoteCkan', on_delete=models.CASCADE, to_field='id')
+
+    dataset = models.ForeignKey(
+        to='Dataset', on_delete=models.CASCADE, to_field='id')
+
+    remote_dataset = models.UUIDField(
+        verbose_name='Ckan UUID', editable=False,
+        blank=True, null=True, unique=True)
+
+    remote_organisation = models.SlugField(
+        max_length=100, verbose_name='Organisation distante', blank=True, null=True)
+
+    created_by = models.ForeignKey(
+        User, null=True, on_delete=models.SET_NULL,
+        verbose_name="Utilisateur", related_name='creates_dataset')
+
+    created_on = models.DateTimeField(auto_now_add=True)
+
+    updated_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return '{0} - {1}'.format(self.remote_ckan, self.dataset)
+
+    class Meta(object):
+        verbose_name = 'Jeu de données moissonné'
+        verbose_name_plural = 'Jeux de données moissonnés'
+        unique_together = ('remote_ckan', 'dataset')
 
 
 # Triggers

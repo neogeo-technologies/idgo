@@ -15,9 +15,13 @@
 
 
 from django import forms
+from idgo_admin.ckan_module import CkanBaseHandler
+from idgo_admin.ckan_module import CkanSyncingError
+from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.forms import AddressField
 from idgo_admin.forms import CityField
 from idgo_admin.forms import ContributorField
+from idgo_admin.forms import CustomCheckboxSelectMultiple
 from idgo_admin.forms import DescriptionField
 from idgo_admin.forms import EMailField
 from idgo_admin.forms import JurisdictionField
@@ -31,6 +35,7 @@ from idgo_admin.forms import PostcodeField
 from idgo_admin.forms import ReferentField
 from idgo_admin.forms import WebsiteField
 from idgo_admin.models import Organisation
+from idgo_admin.models import RemoteCkan
 
 
 class OrganizationForm(forms.ModelForm):
@@ -93,3 +98,60 @@ class OrganizationForm(forms.ModelForm):
 
     def clean(self):
         return self.cleaned_data
+
+
+class RemoteCkanForm(forms.ModelForm):
+
+    class Meta(object):
+        model = RemoteCkan
+        fields = (
+            'url',
+            'sync_with',
+            'sync_frequency')
+
+    url = forms.URLField(
+        error_messages={'invalid': "L'adresse URL est erronée."},
+        label='URL du catalogue CKAN à synchroniser',
+        required=True,
+        widget=forms.TextInput(attrs={'placeholder': "https://demo.ckan.org"}))
+
+    sync_with = forms.MultipleChoiceField(
+        label='Organisations à synchroniser',
+        choices=(),  # ckan api -> list_organizations
+        required=False,
+        widget=CustomCheckboxSelectMultiple(
+            attrs={'class': 'list-group-checkbox'}))
+
+    sync_frequency = forms.ChoiceField(
+        label='Fréquence de synchronisation',
+        choices=Meta.model.FREQUENCY_CHOICES,
+        initial='never',
+        required=True)
+
+    def __init__(self, *args, **kwargs):
+        self.cleaned_data = {}
+        super().__init__(*args, **kwargs)
+
+        instance = kwargs.get('instance', None)
+        if instance and instance.url:
+            self.fields['url'].widget.attrs['readonly'] = True
+            # Récupérer la liste des organisations
+            remote_ckan = CkanBaseHandler(instance.url)
+
+            try:
+                organisations = remote_ckan.get_all_organizations(
+                    all_fields=True, include_dataset_count=True)
+            except (CkanSyncingError, CkanTimeoutError) as e:
+                self.add_error('sync_with', (
+                    "Impossible de récupérer les informations depuis le "
+                    "catalogue CKAN. Le serveur retourne l'erreur suivante : "
+                    "{error}".format(error=e.__str__())))
+                self.add_error('url', "Vérifiez l'adresse URL du catalogue CKAN.")
+            else:
+                self.fields['sync_with'].choices = (
+                    (organisation['name'], '{} ({})'.format(
+                        organisation['display_name'], organisation['package_count']))
+                    for organisation in organisations)
+        else:
+            self.fields['sync_with'].widget = forms.HiddenInput()
+            self.fields['sync_frequency'].widget = forms.HiddenInput()
