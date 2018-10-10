@@ -47,6 +47,10 @@ from uuid import UUID
 
 
 EXTRACTOR_URL = settings.EXTRACTOR_URL
+try:
+    BOUNDS = settings.EXTRACTOR_BOUNDS
+except AttributeError:
+    BOUNDS = [[40, -14], [55, 28]]
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
@@ -244,6 +248,8 @@ class Extractor(View):
         if bbox:
             minx, miny, maxx, maxy = bbox.split(',')
             context['bounds'] = [[miny, minx], [maxy, maxx]]
+        else:
+            context['bounds'] = BOUNDS
         context['crs'] = request.GET.get('crs', None)
         footprint = request.GET.get('footprint', None)
         if footprint:
