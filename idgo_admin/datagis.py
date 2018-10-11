@@ -144,7 +144,7 @@ GRANT SELECT ON TABLE  {schema}."{table}" TO {mra_datagis_user};
 
 INSERT_INTO = '''
 INSERT INTO {schema}."{table}" ({attrs_name}, {the_geom})
-VALUES ({attrs_value}, ST_Transform(ST_GeomFromtext('{wkt}', {epsg}), {to_epsg}));'''
+VALUES ({attrs_value}, ST_Transform({geom}, {to_epsg}));'''
 
 
 def handle_ogr_field_type(k, n=None, p=None):
@@ -178,7 +178,7 @@ def handle_ogr_geom_type(ogr_geom_type):
         'multipolygon25d': 'MultiPolygonZ',
         'point25d': 'PointZ',
         'polygon25d': 'PolygonZ'
-        }.get(ogr_geom_type.__str__().lower(), 'geometry')
+        }.get(ogr_geom_type.__str__().lower(), 'Geometry')
 
 
 def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
@@ -253,8 +253,23 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
         #
         # Donc dans ce cas on définit le type de géométrie de la couche
         # comme générique (soit 'Geometry')
-        test = len(set(feat.geom.__class__.__qualname__ for feat in layer))
-        geometry = test > 1 and 'Geometry' or handle_ogr_geom_type(layer.geom_type)
+        # Mais ceci est moche :
+        test = set(feat.geom.__class__.__qualname__ for feat in layer)
+        if test == {'Polygon', 'MultiPolygon'}:
+            geometry = 'MultiPolygon'
+        elif test == {'Polygon25D', 'MultiPolygon25D'}:
+            geometry = 'MultiPolygon25D'
+        elif test == {'LineString', 'MultiLineString'}:
+            geometry = 'MultiLineString'
+        elif test == {'LineString25D', 'MultiLineString25D'}:
+            geometry = 'MultiLineString25D'
+        elif test == {'Point', 'MultiPoint'}:
+            geometry = 'MultiPoint'
+        elif test == {'Point25D', 'MultiPoint25D'}:
+            geometry = 'MultiPoint25D'
+        else:
+            geometry = len(test) > 1 \
+                and 'Geometry' or handle_ogr_geom_type(layer.geom_type)
 
         sql.append(CREATE_TABLE.format(
             attrs=',\n  '.join(
@@ -284,16 +299,20 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                 else:
                     attrs[k] = "{}".format(v)
 
+            if geometry.startswith('Multi'):
+                geom = "ST_Multi(ST_GeomFromtext('{wkt}', {epsg}))"
+            else:
+                geom = "ST_GeomFromtext('{wkt}', {epsg})"
+
             sql.append(INSERT_INTO.format(
                 attrs_name=', '.join(['"{}"'.format(x) for x in attrs.keys()]),
                 attrs_value=', '.join(attrs.values()),
-                epsg=epsg,
+                geom=geom.format(epsg=epsg, wkt=feature.geom),
                 owner=OWNER,
                 schema=SCHEMA,
                 table=str(table_id),
                 the_geom=THE_GEOM,
-                to_epsg=TO_EPSG,
-                wkt=feature.geom))
+                to_epsg=TO_EPSG))
 
     for table_id in update.values():
         rename_table(table_id, '_{}'.format(table_id))
