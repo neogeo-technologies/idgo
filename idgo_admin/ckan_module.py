@@ -516,7 +516,10 @@ class CkanManagerHandler(metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def purge_dataset(self, id):
-        return self.call_action('dataset_purge', id=id)
+        try:
+            return self.call_action('dataset_purge', id=id)
+        except CkanError.NotFound:
+            return None
 
     @CkanExceptionsHandler()
     def get_tags(self, query=None, all_fields=False, vocabulary_id=None):

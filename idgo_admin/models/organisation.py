@@ -272,11 +272,9 @@ class RemoteCkan(models.Model):
                     for resource in package.get('resources', []):
                         ckan_id = uuid.UUID(resource['id'])
 
-                        try:
-                            format_type = ResourceFormats.objects.get(
+                        format_type, _ = \
+                            ResourceFormats.objects.get_or_create(
                                 extension=resource['format'].upper())
-                        except ResourceFormats.DoesNotExist:
-                            format_type = None
 
                         kvp = {
                             'ckan_id': ckan_id,
