@@ -30,6 +30,7 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import drop_table
 from idgo_admin.datagis import get_extent
 from idgo_admin.datagis import ogr2postgis
+from idgo_admin.datagis import VSI_PROTOCOLES
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import NotFoundSrsError
 from idgo_admin.exceptions import NotOGRError
@@ -420,7 +421,7 @@ class Resource(models.Model):
                 # Pour les archives, toujours vérifier si contient des données SIG.
                 # Si c'est le cas, monter les données dans la base PostGIS dédiée,
                 # puis ajouter au service OGC:WxS de l'organisation.
-                if extension in ('zip', 'tar', 'geojson', 'shapezip'):
+                if extension in VSI_PROTOCOLES.keys():
                     existing_layers = {}
                     if previous and previous.datagis_id:
                         existing_layers = dict(

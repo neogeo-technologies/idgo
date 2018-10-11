@@ -35,6 +35,17 @@ DATABASE = settings.DATAGIS_DB
 OWNER = settings.DATABASES[DATABASE]['USER']
 MRA_DATAGIS_USER = settings.MRA['DATAGIS_DB_USER']
 
+try:
+    VSI_PROTOCOLES = settings.SUPPORTED_VSI_PROTOCOLES
+except AttributeError:
+    VSI_PROTOCOLES = {
+        'geojson': None,
+        'shapezip': 'vsizip',
+        'tab': 'vsizip',
+        'mif/mid': 'vsizip',
+        'tar': 'vsitar',
+        'zip': 'vsizip'}
+
 SCHEMA = 'public'
 THE_GEOM = 'the_geom'
 TO_EPSG = 4171
@@ -97,16 +108,12 @@ def retreive_epsg_through_regex(text):
 
 class OgrOpener(object):
 
-    VSI_PROTOCOLE = (
-        ('geojson', None),
-        ('shapezip', 'vsizip'),
-        ('tar', 'vsitar'),
-        ('zip', 'vsizip'))
+    VSI_PROTOCOLES = VSI_PROTOCOLES
 
     _datastore = None
 
     def __init__(self, filename, extension=None):
-        vsi = dict(self.VSI_PROTOCOLE).get(extension, False)
+        vsi = self.VSI_PROTOCOLES.get(extension, False)
 
         if vsi is False:
             raise NotOGRError(

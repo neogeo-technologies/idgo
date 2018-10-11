@@ -202,6 +202,14 @@ DEFAULTS_VALUES = {
     'JURISDICTION': 93,  # Code INSEE -> Région SUD
 }
 
+SUPPORTED_VSI_PROTOCOLES = {
+    'geojson': None,
+    'shapezip': 'vsizip',
+    'tab': 'vsizip',
+    'mif/mid': 'vsizip',
+    'tar': 'vsitar',
+    'zip': 'vsizip'}
+
 EXTRACTOR_BOUNDS = [[42.4, 3.3], [46.1, 10.8]]
 
 ```
