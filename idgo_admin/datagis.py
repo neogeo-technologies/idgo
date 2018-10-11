@@ -102,7 +102,6 @@ def retreive_epsg_through_regex(text):
         if not supported_crs.regex:
             continue
         if re.match(supported_crs.regex, text, flags=re.IGNORECASE):
-            print(supported_crs)
             return supported_crs.auth_code
 
 
