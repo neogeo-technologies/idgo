@@ -306,7 +306,8 @@ def get_datasets(profile, qs, strict=False, harvested=False):
     if harvested:
         D_ = Dataset.harvested
     else:
-        D_ = Dataset.objects
+        D_ = Dataset.objects.exclude(
+            pk__in=[x.pk for x in Dataset.harvested.all()])
 
     if strict:
         filters['editor'] = profile.user
