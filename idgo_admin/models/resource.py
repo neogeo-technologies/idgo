@@ -576,10 +576,14 @@ class Resource(models.Model):
             ckan_user.close()
             # Endif sync_ckan
 
-        if self.ogc_services:
-            self.enable_layers()
+        if self.datagis_id:
+            if self.ogc_services:
+                self.enable_layers()
+            else:
+                self.disable_layers()
         else:
-            self.disable_layers()
+            self.ogc_services = False
+            self.extractable = False
 
         self.dataset.save()
 
