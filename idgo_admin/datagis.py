@@ -178,7 +178,7 @@ def handle_ogr_geom_type(ogr_geom_type):
         'multipolygon25d': 'MultiPolygonZ',
         'point25d': 'PointZ',
         'polygon25d': 'PolygonZ'
-        }.get(ogr_geom_type.__str__().lower(), ogr_geom_type)
+        }.get(ogr_geom_type.__str__().lower(), 'geometry')
 
 
 def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
@@ -309,7 +309,10 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                 for table_id in update.values():
                     rename_table('_{}'.format(table_id), table_id)
                 # Puis retourner l'erreur
-                raise CriticalException(e.__str__())
+                print(e)
+                raise CriticalException((
+                    'Une erreur est survenu lors de la création du service OGC. '
+                    "Veuillez contacter l'administrateur du site."))
         cursor.close()
 
     for table_id in update.values():
