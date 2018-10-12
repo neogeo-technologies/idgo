@@ -35,6 +35,17 @@ DATABASE = settings.DATAGIS_DB
 OWNER = settings.DATABASES[DATABASE]['USER']
 MRA_DATAGIS_USER = settings.MRA['DATAGIS_DB_USER']
 
+try:
+    VSI_PROTOCOLES = settings.SUPPORTED_VSI_PROTOCOLES
+except AttributeError:
+    VSI_PROTOCOLES = {
+        'geojson': None,
+        'shapezip': 'vsizip',
+        'tab': 'vsizip',
+        'mif/mid': 'vsizip',
+        'tar': 'vsitar',
+        'zip': 'vsizip'}
+
 SCHEMA = 'public'
 THE_GEOM = 'the_geom'
 TO_EPSG = 4171
@@ -82,18 +93,26 @@ def retreive_epsg_through_proj4(proj4):
         return candidate[0]
 
 
+def retreive_epsg_through_regex(text):
+
+    SupportedCrs = apps.get_model(
+        app_label='idgo_admin', model_name='SupportedCrs')
+
+    for supported_crs in SupportedCrs.objects.all():
+        if not supported_crs.regex:
+            continue
+        if re.match(supported_crs.regex, text, flags=re.IGNORECASE):
+            return supported_crs.auth_code
+
+
 class OgrOpener(object):
 
-    VSI_PROTOCOLE = (
-        ('geojson', None),
-        ('shapezip', 'vsizip'),
-        ('tar', 'vsitar'),
-        ('zip', 'vsizip'))
+    VSI_PROTOCOLES = VSI_PROTOCOLES
 
     _datastore = None
 
     def __init__(self, filename, extension=None):
-        vsi = dict(self.VSI_PROTOCOLE).get(extension, False)
+        vsi = self.VSI_PROTOCOLES.get(extension, False)
 
         if vsi is False:
             raise NotOGRError(
@@ -125,7 +144,7 @@ GRANT SELECT ON TABLE  {schema}."{table}" TO {mra_datagis_user};
 
 INSERT_INTO = '''
 INSERT INTO {schema}."{table}" ({attrs_name}, {the_geom})
-VALUES ({attrs_value}, ST_Transform(ST_GeomFromtext('{wkt}', {epsg}), {to_epsg}));'''
+VALUES ({attrs_value}, ST_Transform({geom}, {to_epsg}));'''
 
 
 def handle_ogr_field_type(k, n=None, p=None):
@@ -145,7 +164,7 @@ def handle_ogr_field_type(k, n=None, p=None):
         'OFTBinary': 'bytea',
         'OFTDate': 'date',
         'OFTTime': 'time',
-        'OFTDateTime': 'datetime',
+        'OFTDateTime': 'timestamp',
         'OFTInteger64': 'integer',
         'OFTInteger64List': 'integer[]'}.get(k, 'text').format(n=n, p=p)
 
@@ -159,7 +178,7 @@ def handle_ogr_geom_type(ogr_geom_type):
         'multipolygon25d': 'MultiPolygonZ',
         'point25d': 'PointZ',
         'polygon25d': 'PolygonZ'
-        }.get(ogr_geom_type.__str__().lower(), ogr_geom_type)
+        }.get(ogr_geom_type.__str__().lower(), 'Geometry')
 
 
 def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
@@ -194,6 +213,8 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                         epsg = layer.srs.auth_code('GEOGCS')
                 if not epsg:
                     epsg = retreive_epsg_through_proj4(layer.srs.proj4)
+            if not epsg:
+                epsg = retreive_epsg_through_regex(layer.srs.name)
             if not epsg:
                 raise NotFoundSrsError('SRS Not found')
 
@@ -232,8 +253,23 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
         #
         # Donc dans ce cas on définit le type de géométrie de la couche
         # comme générique (soit 'Geometry')
-        test = len(set(feat.geom.__class__.__qualname__ for feat in layer))
-        geometry = test > 1 and 'Geometry' or handle_ogr_geom_type(layer.geom_type)
+        # Mais ceci est moche :
+        test = set(feat.geom.__class__.__qualname__ for feat in layer)
+        if test == {'Polygon', 'MultiPolygon'}:
+            geometry = 'MultiPolygon'
+        elif test == {'Polygon25D', 'MultiPolygon25D'}:
+            geometry = 'MultiPolygon25D'
+        elif test == {'LineString', 'MultiLineString'}:
+            geometry = 'MultiLineString'
+        elif test == {'LineString25D', 'MultiLineString25D'}:
+            geometry = 'MultiLineString25D'
+        elif test == {'Point', 'MultiPoint'}:
+            geometry = 'MultiPoint'
+        elif test == {'Point25D', 'MultiPoint25D'}:
+            geometry = 'MultiPoint25D'
+        else:
+            geometry = len(test) > 1 \
+                and 'Geometry' or handle_ogr_geom_type(layer.geom_type)
 
         sql.append(CREATE_TABLE.format(
             attrs=',\n  '.join(
@@ -263,16 +299,20 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                 else:
                     attrs[k] = "{}".format(v)
 
+            if geometry.startswith('Multi'):
+                geom = "ST_Multi(ST_GeomFromtext('{wkt}', {epsg}))"
+            else:
+                geom = "ST_GeomFromtext('{wkt}', {epsg})"
+
             sql.append(INSERT_INTO.format(
-                attrs_name=', '.join(attrs.keys()),
+                attrs_name=', '.join(['"{}"'.format(x) for x in attrs.keys()]),
                 attrs_value=', '.join(attrs.values()),
-                epsg=epsg,
+                geom=geom.format(epsg=epsg, wkt=feature.geom),
                 owner=OWNER,
                 schema=SCHEMA,
                 table=str(table_id),
                 the_geom=THE_GEOM,
-                to_epsg=TO_EPSG,
-                wkt=feature.geom))
+                to_epsg=TO_EPSG))
 
     for table_id in update.values():
         rename_table(table_id, '_{}'.format(table_id))
@@ -288,7 +328,10 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                 for table_id in update.values():
                     rename_table('_{}'.format(table_id), table_id)
                 # Puis retourner l'erreur
-                raise CriticalException(e.__str__())
+                print(e)
+                raise CriticalException((
+                    'Une erreur est survenu lors de la création du service OGC. '
+                    "Veuillez contacter l'administrateur du site."))
         cursor.close()
 
     for table_id in update.values():

@@ -47,6 +47,10 @@ from uuid import UUID
 
 
 EXTRACTOR_URL = settings.EXTRACTOR_URL
+try:
+    BOUNDS = settings.EXTRACTOR_BOUNDS
+except AttributeError:
+    BOUNDS = [[40, -14], [55, 28]]
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
@@ -181,30 +185,24 @@ class Extractor(View):
                 context['resource'] = task.layer.resource
                 context['dataset'] = task.layer.resource.dataset
                 context['organisation'] = task.layer.resource.dataset.organisation
-
-        if not context['organisation'] and organisation:
-            context['organisation'] = self.get_instance(Organisation, organisation)
-
-        if not context['dataset'] and dataset:
-            context['dataset'] = self.get_instance(Dataset, dataset)
-            if not context['organisation']:
-                context['organisation'] = context['dataset'].organisation
-
-        if not context['resource'] and resource:
-            context['resource'] = self.get_instance(Resource, resource)
-            if not context['dataset']:
-                context['dataset'] = context['resource'].dataset
-            if not context['organisation']:
-                context['organisation'] = context['dataset'].organisation
-
-        if not context['layer'] and layer:
-            context['layer'] = self.get_instance(Layer, layer)
-            if not context['resource']:
-                context['resource'] = context['layer'].resource
-            if not context['dataset']:
-                context['dataset'] = context['resource'].dataset
-            if not context['organisation']:
-                context['organisation'] = context['dataset'].organisation
+        elif layer:
+            layer = self.get_instance(Layer, layer)
+            context['layer'] = layer
+            context['resource'] = layer.resource
+            context['dataset'] = layer.resource.dataset
+            context['organisation'] = layer.resource.dataset.organisation
+        elif resource:
+            resource = self.get_instance(Resource, resource)
+            context['resource'] = resource
+            context['dataset'] = resource.dataset
+            context['organisation'] = resource.dataset.organisation
+        elif dataset:
+            dataset = self.get_instance(Dataset, dataset)
+            context['dataset'] = dataset
+            context['organisation'] = dataset.organisation
+        elif organisation:
+            organisation = self.get_instance(Organisation, organisation)
+            context['organisation'] = organisation
 
         context['organisations'] = Organisation.objects.filter(
             dataset__resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
@@ -224,6 +222,7 @@ class Extractor(View):
 
         if not context['layer'] and layers:
             context['layer'] = layers[0]
+
         return context
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -249,12 +248,13 @@ class Extractor(View):
         if bbox:
             minx, miny, maxx, maxy = bbox.split(',')
             context['bounds'] = [[miny, minx], [maxy, maxx]]
+        else:
+            context['bounds'] = BOUNDS
         context['crs'] = request.GET.get('crs', None)
         footprint = request.GET.get('footprint', None)
         if footprint:
             context['footprint'] = json.loads(footprint)
         context['format'] = request.GET.get('format', None)
-
         return render_with_info_profile(request, self.template, context=context)
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})

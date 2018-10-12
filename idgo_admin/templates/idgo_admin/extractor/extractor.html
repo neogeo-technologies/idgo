@@ -11,71 +11,48 @@
 <script src="{% static "libs/turf/turf.min.js" %}"></script>
 <link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
 <link rel="stylesheet" href="{% static "libs/leaflet.draw/leaflet.draw.css" %}"/>
-
 {% endblock head_extras %}
 
 {% block body %}
 <div id="extractor">
 	<div id="map" class="map"></div>
 	<div class="page-header">
-		<div class="container">
+		<div class="container-fluid">
 			<div class="row">
 				<div class="col-md-12">
 					{% block header_content %}
-					{% include "idgo_admin/header.html" %}
+					<div class="btn-group login">
+						{% if is_admin %}
+						<span class="user-status">admin</span>
+						{% endif %}
+						<button type="button" class="dropdown-toggle" data-toggle="dropdown">
+							{{ first_name}} {{ last_name }} <span class="glyphicon glyphicon-user"></span>
+						</button>
+						<ul class="dropdown-menu">
+							<li>
+								<a href="{% url "idgo_admin:update_account" %}">Mon profil</a>
+							</li>
+							<li>
+								<a href="{% url "idgo_admin:signOut" %}">Me déconnecter</a>
+							</li>
+							{% if is_crige %}
+							<li role="separator" class="divider"></li>
+							<li>
+								<a href="{% url "idgo_admin:extractor_dashboard" %}" aria-controls="all-extracts" role="tab">Mes extractions</a>
+							</li>
+							{% endif %}
+						</ul>
+					</div>
+					<h1>Outil d'extraction de données</h1>
 					{% endblock header_content %}
 				</div>
 			</div>
 		</div>
 	</div>
-	{% block nav %}
-	<div class="nav-container">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-12">
-					{% block nav_content %}
-					<ul id="menu" class="nav nav-default" role="tablist">
-						<li role="presentation">
-							<a href="{% url "idgo_admin:datasets" %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
-						</li>
-						{% if is_referent or is_admin  %}
-						<li role="presentation">
-							<a href="{% url "idgo_admin:datasets" target="all" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
-						</li>
-						{% endif %}
-						<li role="presentation">
-							<a href="{% url "idgo_admin:all_organizations" %}" aria-controls="all-organizations" role="tab">Les organisations</a>
-						</li>
-						{% if is_crige %}
-						<li role="presentation">
-							<a href="{% url "idgo_admin:extractor_dashboard" %}" aria-controls="all-extracts" role="tab">Mes extractions</a>
-						</li>
-						{% endif %}
-						{% block nav_content_extra %}
-						{% endblock nav_content_extra %}
-					</ul>
-					{% endblock nav_content %}
-				</div>
-			</div>
-		</div>
-	</div>
-	{% endblock nav %}
-	{% block breadcrumb %}
-	<div class="breadcrumb-container">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-12">
-					{% block breadcrumb_content %}
-					{% endblock breadcrumb_content %}
-				</div>
-			</div>
-		</div>
-	</div>
-	{% endblock breadcrumb %}
 	{% block main %}
 	<div class="main-container">
 		<div class="wrapper" style="pointer-events: none;">
-			<div class="container">
+			<div class="container-fluid">
 				{% include "idgo_admin/alert_messages.html" %}
 				<div class="row">
 					<div class="col-md-12">
@@ -293,6 +270,13 @@ $(function() {
 	});
 	layers.push(targetLayer);
 	bounds = {{ layer.mra_info.bbox|default:None|safe }};
+
+	delete qs['layer'];
+	qs['organisation'] = '{{ organisation.ckan_slug }}';
+	qs['dataset'] = '{{ dataset.ckan_slug }}';
+	qs['resource'] = '{{ resource.ckan_id }}';
+	updateUrl({withHash: false, refresh: false});
+
 	{% elif organisation and dataset %}
 		{% for instance in resources %}
 			{% for layer in instance.get_layers %}
@@ -376,6 +360,36 @@ $(function() {
 	boundsOptions = {};
 	{% endif %}
 
+	L.drawLocal.draw.toolbar.actions.title = 'Annuler le dessin';
+	L.drawLocal.draw.toolbar.actions.text = 'Annuler';
+	L.drawLocal.draw.toolbar.finish.title = 'Valider le dessin';
+	L.drawLocal.draw.toolbar.finish.text = 'Valider';
+	L.drawLocal.draw.toolbar.undo.title = 'Supprimer le dernier vertex dessiné';
+	L.drawLocal.draw.toolbar.undo.text = 'Supprimer le dernier vertex';
+	L.drawLocal.draw.toolbar.buttons.polygon = 'Dessiner un polygone';
+	L.drawLocal.draw.toolbar.buttons.rectangle = 'Dessiner un rectangle',
+	L.drawLocal.draw.toolbar.buttons.circle = 'Dessiner un cercle'
+	L.drawLocal.draw.handlers.circle.tooltip.start = 'Cliquez et faites glisser pour dessiner un cercle.';
+	L.drawLocal.draw.handlers.circle.radius = 'Rayon';
+	L.drawLocal.draw.handlers.circlemarker.tooltip.start = 'Cliquez sur la carte pour placer le centre du cercle.';
+	L.drawLocal.draw.handlers.polygon.tooltip.start = 'Cliquez sur la carte pour commencer.';
+	L.drawLocal.draw.handlers.polygon.tooltip.cont = 'Cliquez sur la carte pour continuer.';
+	L.drawLocal.draw.handlers.polygon.tooltip.end = 'Cliquez sur le premier vertex pour valider.'
+	L.drawLocal.draw.handlers.rectangle.tooltip.start = 'Cliquez et faites glisser pour dessiner un rectangle.';
+	L.drawLocal.edit.toolbar.actions.save.title = 'Sauvegarder les modifications';
+	L.drawLocal.edit.toolbar.actions.save.text = 'Sauvegarder';
+	L.drawLocal.edit.toolbar.actions.cancel.title = 'Annuler toutes les modifications';
+	L.drawLocal.edit.toolbar.actions.cancel.text = 'Annuler';
+	L.drawLocal.edit.toolbar.actions.clearAll.title = 'Effacer la couche « dessin »';
+	L.drawLocal.edit.toolbar.actions.clearAll.text = 'Effacer';
+	L.drawLocal.edit.toolbar.buttons.edit = 'Éditer';
+	L.drawLocal.edit.toolbar.buttons.editDisabled = 'Aucun objet à éditer';
+	L.drawLocal.edit.toolbar.buttons.remove = 'Supprimer';
+	L.drawLocal.edit.toolbar.buttons.removeDisabled = 'Aucun objet à supprimer';
+	L.drawLocal.edit.handlers.edit.tooltip.text = "Déplacer les vertex pour modifier l'objet.",
+	L.drawLocal.edit.handlers.edit.tooltip.subtext = 'Cliquez sur « Annuler » pour annuler les modification.'
+	L.drawLocal.edit.handlers.remove.tooltip.text = "Cliquez sur l'objet pour le supprimer.";
+
 	const map = L
 		.map('map', {
 			'layers': layers
@@ -388,6 +402,24 @@ $(function() {
 		}))
 		.addControl(new L.Control.Draw({
 			draw: {
+				toolbar: {
+					actions: {
+						title: 'Annuler',
+						text: 'Annuler'
+					},
+					finish: {
+						title: 'Valider',
+						text: 'Valider'
+					},
+					undo: {
+						title: 'Supprimer le dernier vertex',
+						text: 'Supprimer le dernier vertex'
+					},
+					buttons: {
+						polygon: 'Dessiner un polygone',
+						rectangle: 'Dessiner un rectangle'
+					}
+				},
 				polygon: {
 					allowIntersection: false,
 					drawError: {
@@ -418,7 +450,7 @@ $(function() {
 			editableLayers.clearLayers();
 			if (e.layer instanceof L.FeatureGroup) {
 				e.layer.eachLayer(function(layer) {
-    				editableLayers.addLayer(layer);
+				editableLayers.addLayer(layer);
 				});
 			} else {
 				editableLayers.addLayer(e.layer);
@@ -436,8 +468,14 @@ $(function() {
 		qs['bbox'] = bbox;
 		if (organisation) {
 			qs['organisation'] = organisation;
+			delete qs['dataset'];
+			delete qs['resource'];
+			delete qs['layer'];
 		} else {
-			qs['organisation'] = qs['dataset'] = qs['resource'] = '';
+			delete qs['organisation'];
+			delete qs['dataset'];
+			delete qs['resource'];
+			delete qs['layer'];
 		};
 		updateUrl({withHash: false, refresh: true});
 	});
@@ -452,8 +490,12 @@ $(function() {
 		qs['organisation'] = '{{ organisation.ckan_slug }}';
 		if (dataset) {
 			qs['dataset'] = dataset;
+			delete qs['resource'];
+			delete qs['layer'];
 		} else {
-			qs['dataset'] = qs['resource'] = '';
+			delete qs['dataset'];
+			delete qs['resource'];
+			delete qs['layer'];
 		};
 		updateUrl({withHash: false, refresh: true});
 	});
@@ -468,7 +510,13 @@ $(function() {
 		qs['bbox'] = bbox;
 		qs['organisation'] = '{{ organisation.ckan_slug }}';
 		qs['dataset'] = '{{ dataset.ckan_slug }}';
-		qs['resource'] = resource ? resource : '';
+		if (resource) {
+			qs['resource'] = resource;
+			delete qs['layer'];
+		} else {
+			delete qs['resource'];
+			delete qs['layer'];
+		}
 		updateUrl({withHash: false, refresh: true});
 	});
 	{% endif %}

@@ -3,7 +3,7 @@
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
 	<li><span class="glyphicon glyphicon-home"></span></li>
-	<li class="active">{% if all %}Tous les{% else %}Mes{% endif %} jeux de données</li>
+	<li class="active">{% if harvested %}Jeux de données moissonés{% else %}{% if all %}Tous les{% else %}Mes{% endif %} jeux de données{% endif %}</li>
 </ol>
 {% endblock breadcrumb_content %}
 
@@ -43,7 +43,9 @@
 				{% if total > 0 %}
 				{% include "idgo_admin/dataset/actions/export_csv.html" %}
 				{% endif %}
+				{% if not harvested %}
 				{% include "idgo_admin/dataset/actions/add_dataset.html" %}
+				{% endif %}
 			</div>
 			<br />
 			{% if total > 0 %}
@@ -58,7 +60,8 @@
 {% endif %}
 <script>
 $(function() {
-	$('#menu a[href="{% if all %}{% url "idgo_admin:datasets" target="all" %}{% else %}{% url "idgo_admin:datasets" %}{% endif %}"]').parent().addClass('active');
+	$('#menu a[name="datasets"]').parent().addClass('active');
+	$('#menu a[href="{% if all %}{% url "idgo_admin:datasets" target="all" %}{% elif harvested %}{% url "idgo_admin:datasets" target="harvested" %}{% else %}{% url "idgo_admin:datasets" %}{% endif %}"]').parent().addClass('active');
 });
 </script>
 {% endblock main_content %}

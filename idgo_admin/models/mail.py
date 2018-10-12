@@ -224,7 +224,7 @@ def send_organisation_creation_confirmation_mail(user, organisation, url):
 def send_dataset_creation_mail(user, dataset):
     return sender(
         'dataset_created',
-        bcc=get_referents_mails(dataset.organisation),
+        bcc=list(set(get_admins_mails() + get_referents_mails(dataset.organisation))),
         ckan_url=dataset.ckan_url,
         dataset=dataset.name,
         id=dataset.ckan_slug,
@@ -237,7 +237,7 @@ def send_dataset_creation_mail(user, dataset):
 def send_dataset_update_mail(user, dataset):
     return sender(
         'dataset_updated',
-        bcc=get_referents_mails(dataset.organisation),
+        bcc=list(set(get_admins_mails() + get_referents_mails(dataset.organisation))),
         ckan_url=dataset.ckan_url,
         dataset=dataset.name,
         full_name=user.get_full_name(),
@@ -250,7 +250,7 @@ def send_dataset_update_mail(user, dataset):
 def send_dataset_delete_mail(user, dataset):
     return sender(
         'dataset_deleted',
-        bcc=get_referents_mails(dataset.organisation),
+        bcc=list(set(get_admins_mails() + get_referents_mails(dataset.organisation))),
         dataset=dataset.name,
         full_name=user.get_full_name(),
         id=dataset.ckan_slug,
@@ -262,7 +262,7 @@ def send_dataset_delete_mail(user, dataset):
 def send_resource_creation_mail(user, resource):
     return sender(
         'resource_created',
-        bcc=get_referents_mails(resource.dataset.organisation),
+        bcc=list(set(get_admins_mails() + get_referents_mails(resource.dataset.organisation))),
         ckan_url=resource.ckan_url,
         dataset=resource.dataset.name,
         full_name=user.get_full_name(),
@@ -276,7 +276,7 @@ def send_resource_creation_mail(user, resource):
 def send_resource_update_mail(user, resource):
     return sender(
         'resource_updated',
-        bcc=get_referents_mails(resource.dataset.organisation),
+        bcc=list(set(get_admins_mails() + get_referents_mails(resource.dataset.organisation))),
         ckan_url=resource.ckan_url,
         dataset=resource.dataset.name,
         full_name=user.get_full_name(),
@@ -290,7 +290,7 @@ def send_resource_update_mail(user, resource):
 def send_resource_delete_mail(user, resource):
     return sender(
         'resource_deleted',
-        bcc=get_referents_mails(resource.dataset.organisation),
+        bcc=list(set(get_admins_mails() + get_referents_mails(resource.dataset.organisation))),
         dataset=resource.dataset.name,
         full_name=user.get_full_name(),
         id=resource.ckan_id,

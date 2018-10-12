@@ -109,6 +109,37 @@ class CkanExceptionsHandler(object):
         return type(exception) in self.ignore
 
 
+class CkanBaseHandler(object):
+
+    def __init__(self, url, api_key=None):
+        self.remote = RemoteCKAN(url, apikey=api_key)
+
+    @timeout
+    def call_action(self, action, **kwargs):
+        return self.remote.call_action(action, kwargs)
+
+    @CkanExceptionsHandler()
+    def get_all_organizations(self, *args, **kwargs):
+        return [
+            organization for organization
+            in self.call_action('organization_list', **kwargs)]
+
+    @CkanExceptionsHandler(ignore=[CkanError.NotFound])
+    def get_organization(self, id, **kwargs):
+        try:
+            return self.call_action('organization_show', id=id, **kwargs)
+        except CkanError.NotFound:
+            return None
+
+    @CkanExceptionsHandler(ignore=[CkanError.NotFound])
+    def get_package(self, id):
+        try:
+            return self.call_action(
+                'package_show', id=id, include_tracking=True)
+        except CkanError.NotFound:
+            return False
+
+
 class CkanUserHandler(object):
 
     def __init__(self, api_key):
@@ -283,9 +314,10 @@ class CkanManagerHandler(metaclass=Singleton):
         self.call_action('user_update', **ckan_user)
 
     @CkanExceptionsHandler()
-    def get_all_organizations(self):
-        return [organization
-                for organization in self.call_action('organization_list')]
+    def get_all_organizations(self, *args, **kwargs):
+        return [
+            organization for organization
+            in self.call_action('organization_list', **kwargs)]
 
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
     def get_organization(self, id, **kwargs):
@@ -495,7 +527,10 @@ class CkanManagerHandler(metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def purge_dataset(self, id):
-        return self.call_action('dataset_purge', id=id)
+        try:
+            return self.call_action('dataset_purge', id=id)
+        except CkanError.NotFound:
+            return None
 
     @CkanExceptionsHandler()
     def get_tags(self, query=None, all_fields=False, vocabulary_id=None):

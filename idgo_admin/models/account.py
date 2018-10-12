@@ -106,11 +106,11 @@ class Profile(models.Model):
 
     @property
     def is_contributor(self):
-        return self.contributions and True or False
+        return len(LiaisonsContributeurs.get_contribs(profile=self)) and True or False
 
     @property
     def is_referent(self):
-        return self.referents and True or False
+        return len(LiaisonsReferents.get_subordinated_organizations(profile=self)) and True or False
 
 
 class LiaisonsReferents(models.Model):

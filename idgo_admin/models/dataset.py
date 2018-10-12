@@ -27,6 +27,7 @@ from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.managers import HarvestedDataset
 from idgo_admin.mra_client import MRAConflictError
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.mra_client import MRANotFoundError
@@ -43,6 +44,9 @@ TODAY = timezone.now().date()
 
 
 class Dataset(models.Model):
+
+    objects = models.Manager()
+    harvested = HarvestedDataset()
 
     _current_editor = None
 
@@ -118,9 +122,9 @@ class Dataset(models.Model):
         verbose_name="Organisation à laquelle est rattaché ce jeu de données",
         blank=True, null=True, on_delete=models.CASCADE)
 
-    # Mandatory
+    # (Not) mandatory
     license = models.ForeignKey(
-        to='License', verbose_name='Licence')
+        to='License', verbose_name='Licence', null=True, blank=True)
 
     support = models.ForeignKey(
         to='Support', verbose_name='Support technique', null=True, blank=True)
@@ -156,7 +160,7 @@ class Dataset(models.Model):
     broadcaster_email = models.EmailField(
         verbose_name='E-mail du diffuseur', blank=True, null=True)
 
-    # Mandatory
+    # (Not) mandatory
     granularity = models.ForeignKey(
         to='Granularity',
         blank=True, null=True,  # blank=False, null=False, default='commune-francaise',
@@ -255,6 +259,12 @@ class Dataset(models.Model):
         for resource in Resource.objects.filter(dataset=self):
             ows = resource.ogc_services
 
+        if self.license and self.license.ckan_id in [
+                license['id'] for license in ckan.get_licenses()]:
+            license_id = self.license.ckan_id
+        else:
+            license_id = ''
+
         ckan_params = {
             'author': self.owner_name,
             'author_email': self.owner_email,
@@ -266,14 +276,11 @@ class Dataset(models.Model):
             'dataset_publication_date':
                 str(self.date_publication) if self.date_publication else '',
             'groups': [],
-            'geocover': self.geocover,
+            'geocover': self.geocover or '',
             'granularity': self.granularity and self.granularity.slug or None,
             'last_modified':
                 str(self.date_modification) if self.date_modification else '',
-            'license_id': (
-                self.license.ckan_id
-                in [license['id'] for license in ckan.get_licenses()]
-                ) and self.license.ckan_id or '',
+            'license_id': license_id,
             'maintainer': broadcaster_name,
             'maintainer_email': broadcaster_email,
             'name': self.ckan_slug,

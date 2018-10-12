@@ -35,6 +35,8 @@ from idgo_admin.models.mail import Mail
 from idgo_admin.models.organisation import get_all_users_for_organizations
 from idgo_admin.models.organisation import Organisation
 from idgo_admin.models.organisation import OrganisationType
+from idgo_admin.models.organisation import RemoteCkan
+from idgo_admin.models.organisation import RemoteCkanDataset
 from idgo_admin.models.resource import Resource
 from idgo_admin.models.resource import ResourceFormats
 from idgo_admin.models.resource import upload_resource
@@ -331,6 +333,9 @@ class SupportedCrs(models.Model):
     description = models.TextField(
         verbose_name='Description', blank=True, null=True)
 
+    regex = models.TextField(
+        verbose_name='Expression régulière', blank=True, null=True)
+
     class Meta(object):
         verbose_name = "CRS supporté par l'application"
         verbose_name_plural = "CRS supportés par l'application"
@@ -377,5 +382,5 @@ __all__ = [
     get_all_users_for_organizations, Granularity,
     Jurisdiction, JurisdictionCommune, Layer, License, LiaisonsContributeurs,
     LiaisonsResources, LiaisonsReferents, Mail, Organisation,
-    OrganisationType, Profile, Resource, ResourceFormats, Support,
-    SupportedCrs, Task, upload_resource]
+    OrganisationType, Profile, RemoteCkan, RemoteCkanDataset, Resource,
+    ResourceFormats, Support, SupportedCrs, Task, upload_resource]

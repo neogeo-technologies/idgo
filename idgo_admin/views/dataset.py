@@ -300,8 +300,14 @@ def get_all_datasets(profile, strict=False):
         } for instance in Dataset.objects.filter(**filters)]
 
 
-def get_datasets(profile, qs, strict=False):
+def get_datasets(profile, qs, strict=False, harvested=False):
     filters = {}
+
+    if harvested:
+        D_ = Dataset.harvested
+    else:
+        D_ = Dataset.objects.exclude(
+            pk__in=[x.pk for x in Dataset.harvested.all()])
 
     if strict:
         filters['editor'] = profile.user
@@ -342,7 +348,7 @@ def get_datasets(profile, qs, strict=False):
     if resource_format:
         filters['resource__format_type__extension'] = resource_format
 
-    return Dataset.objects.filter(**filters)
+    return D_.filter(**filters)
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -353,7 +359,8 @@ def datasets(request, target, *args, **kwargs):
     user, profile = user_and_profile(request)
 
     all = target == 'all'
-    if all:
+    harvested = target == 'harvested'
+    if all or harvested:
         # Réservé aux référents ou administrateurs IDGO
         roles = profile.get_roles()
         if not roles['is_referent'] and not roles['is_admin']:
@@ -374,7 +381,8 @@ def datasets(request, target, *args, **kwargs):
         {'id': choice[0], 'name': choice[1]}
         for choice in Resource.FREQUENCY_CHOICES]
 
-    datasets = get_datasets(profile, request.GET, strict=not all)
+    datasets = get_datasets(
+        profile, request.GET, strict=not all, harvested=harvested)
 
     # Gestion du tri
     order_by = request.GET.get('sortby', None)
@@ -411,6 +419,7 @@ def datasets(request, target, *args, **kwargs):
             'all_resourceformats': all_resourceformats,
             'all_update_frequencies': all_update_frequencies,
             'datasets': datasets[x:y],
+            'harvested': harvested,
             'pagination': {
                 'current': page_number,
                 'total': number_of_pages},
