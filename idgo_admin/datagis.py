@@ -143,7 +143,7 @@ GRANT SELECT ON TABLE  {schema}."{table}" TO {mra_datagis_user};
 
 
 INSERT_INTO = '''
-INSERT INTO {schema}."{table}" ({attrs_name}, {the_geom})
+INSERT INTO {schema}."{table}" ("{attrs_name}", {the_geom})
 VALUES ({attrs_value}, ST_Transform({geom}, {to_epsg}));'''
 
 
@@ -273,7 +273,7 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
 
         sql.append(CREATE_TABLE.format(
             attrs=',\n  '.join(
-                ['{} {}'.format(k, v) for k, v in attrs.items()]),
+                ['"{}" {}'.format(k, v) for k, v in attrs.items()]),
             description=layer.name,
             epsg=epsg,
             geometry=geometry,
