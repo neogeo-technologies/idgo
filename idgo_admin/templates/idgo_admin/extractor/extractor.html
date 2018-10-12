@@ -17,64 +17,42 @@
 <div id="extractor">
 	<div id="map" class="map"></div>
 	<div class="page-header">
-		<div class="container">
+		<div class="container-fluid">
 			<div class="row">
 				<div class="col-md-12">
 					{% block header_content %}
-					{% include "idgo_admin/header.html" %}
+					<div class="btn-group login">
+						{% if is_admin %}
+						<span class="user-status">admin</span>
+						{% endif %}
+						<button type="button" class="dropdown-toggle" data-toggle="dropdown">
+							{{ first_name}} {{ last_name }} <span class="glyphicon glyphicon-user"></span>
+						</button>
+						<ul class="dropdown-menu">
+							<li>
+								<a href="{% url "idgo_admin:update_account" %}">Mon profil</a>
+							</li>
+							<li>
+								<a href="{% url "idgo_admin:signOut" %}">Me déconnecter</a>
+							</li>
+							{% if is_crige %}
+							<li role="separator" class="divider"></li>
+							<li>
+								<a href="{% url "idgo_admin:extractor_dashboard" %}" aria-controls="all-extracts" role="tab">Mes extractions</a>
+							</li>
+							{% endif %}
+						</ul>
+					</div>
+					<h1>Outil d'extraction de données</h1>
 					{% endblock header_content %}
 				</div>
 			</div>
 		</div>
 	</div>
-	{% block nav %}
-	<div class="nav-container">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-12">
-					{% block nav_content %}
-					<ul id="menu" class="nav nav-default" role="tablist">
-						<li role="presentation">
-							<a href="{% url "idgo_admin:datasets" %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
-						</li>
-						{% if is_referent or is_admin  %}
-						<li role="presentation">
-							<a href="{% url "idgo_admin:datasets" target="all" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données<span></a>
-						</li>
-						{% endif %}
-						<li role="presentation">
-							<a href="{% url "idgo_admin:all_organizations" %}" aria-controls="all-organizations" role="tab">Les organisations</a>
-						</li>
-						{% if is_crige %}
-						<li role="presentation">
-							<a href="{% url "idgo_admin:extractor_dashboard" %}" aria-controls="all-extracts" role="tab">Mes extractions</a>
-						</li>
-						{% endif %}
-						{% block nav_content_extra %}
-						{% endblock nav_content_extra %}
-					</ul>
-					{% endblock nav_content %}
-				</div>
-			</div>
-		</div>
-	</div>
-	{% endblock nav %}
-	{% block breadcrumb %}
-	<div class="breadcrumb-container">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-12">
-					{% block breadcrumb_content %}
-					{% endblock breadcrumb_content %}
-				</div>
-			</div>
-		</div>
-	</div>
-	{% endblock breadcrumb %}
 	{% block main %}
 	<div class="main-container">
 		<div class="wrapper" style="pointer-events: none;">
-			<div class="container">
+			<div class="container-fluid">
 				{% include "idgo_admin/alert_messages.html" %}
 				<div class="row">
 					<div class="col-md-12">

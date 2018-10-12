@@ -1369,11 +1369,17 @@ table tr.selected:hover td.crossed {
 /* ************************************************************************* */
 
 #extractor .page-header {
-    background: linear-gradient(#fff 0, rgba(255,255,255,.8) 100%);
+    background: linear-gradient(#fff 0, rgba(255,255,255,.8) 80%, rgba(255,255,255,.7) 100%);
+    margin-bottom: 30px;
 }
 
-#extractor .nav-container {
-    background: linear-gradient(rgba(255,255,255,.8) 0, rgba(255,255,255,.75) 80%, rgba(255,255,255,.5) 100%);
+#extractor .page-header h1 {
+    margin: 0px;
+    padding: 0px;
+    color: #333;
+    font-size: 24px;
+    font-variant: small-caps;
+    line-height: 24px;
 }
 
 #extractor .footer-container .footer {
@@ -1390,7 +1396,12 @@ table tr.selected:hover td.crossed {
     min-width: 770px;
 }
 
-@media (min-width: 768px) {
+
+#extractor .well {
+    background: linear-gradient(#fff 0, rgba(255,255,255,.9) 75%, rgba(255,255,255,.88) 85%, rgba(255,255,255,.9) 90%, rgba(255,255,255,1) 100%);
+}
+
+/* @media (min-width: 768px) {
     #extractor .leaflet-control-container {
         width: 750px;
         min-width: 750px;
@@ -1407,7 +1418,7 @@ table tr.selected:hover td.crossed {
     #extractor .leaflet-control-container {
         width: 1170px;
     }
-}
+} */
 
 #extractor .leaflet-control-container {
     position: relative;
@@ -1421,6 +1432,10 @@ table tr.selected:hover td.crossed {
 #extractor .leaflet-control-layers-expanded {
     color: #333;
     background: #fff;
+}
+
+#extractor .leaflet-left {
+    margin-left: 5px;
 }
 
 #extractor .leaflet-right {
@@ -1437,7 +1452,7 @@ table tr.selected:hover td.crossed {
 }
 
 #extractor .leaflet-top {
-    top: 252px;
+    top: 114px;
 }
 
 #extractor .leaflet-bottom {
@@ -1461,7 +1476,9 @@ table tr.selected:hover td.crossed {
 #extractor .leaflet-control-zoom-in,
 #extractor .leaflet-control-zoom-out {
     margin-top: 5px;
-    background-color: #d0be91;
+    padding-right: 1px;
+    padding-bottom: 1px;
+    background-color: #0072bc;
     border-radius: 20px;
     color: #fff;
     -webkit-box-shadow: 0 2px 1px 0 rgba(187,171,130,.25);
@@ -1474,8 +1491,8 @@ table tr.selected:hover td.crossed {
 #extractor .leaflet-control-zoom-out.focus,
 #extractor .leaflet-control-zoom-out:focus,
 #extractor .leaflet-control-zoom-out:hover {
-    background-color: #bbab82;
-    color: #f8f6f2;
+    background-color: #005b96;
+    color: #e5f0f8;
     -webkit-box-shadow: 0 2px 1px 0 rgba(187,171,130,.5);
             box-shadow: 0 2px 1px 0 rgba(187,171,130,.5);
 }
