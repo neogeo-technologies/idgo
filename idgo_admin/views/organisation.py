@@ -35,8 +35,8 @@ from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.exceptions import UnexpectedError
-from idgo_admin.forms.organization import OrganizationForm as Form
-from idgo_admin.forms.organization import RemoteCkanForm
+from idgo_admin.forms.organisation import OrganizationForm as Form
+from idgo_admin.forms.organisation import RemoteCkanForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs

@@ -54,10 +54,10 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
-from idgo_admin.views.organization import contributor_subscribe_process
-from idgo_admin.views.organization import creation_process
-from idgo_admin.views.organization import member_subscribe_process
-from idgo_admin.views.organization import referent_subscribe_process
+from idgo_admin.views.organisation import contributor_subscribe_process
+from idgo_admin.views.organisation import creation_process
+from idgo_admin.views.organisation import member_subscribe_process
+from idgo_admin.views.organisation import referent_subscribe_process
 from mama_cas.compat import is_authenticated as mama_is_authenticated
 from mama_cas.models import ProxyGrantingTicket as MamaProxyGrantingTicket
 from mama_cas.models import ProxyTicket as MamaProxyTicket

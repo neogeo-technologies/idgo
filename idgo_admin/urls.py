@@ -44,16 +44,14 @@ from idgo_admin.views.mdedit import DatasetMDEditTplEdit
 from idgo_admin.views.mdedit import mdhandler
 from idgo_admin.views.mdedit import ServiceMDEdit
 from idgo_admin.views.mdedit import ServiceMDEditTplEdit
-from idgo_admin.views.organization import all_organisations
-from idgo_admin.views.organization import RemoteCkanEditor
-from idgo_admin.views.organization import CreateOrganisation
-from idgo_admin.views.organization import organisation
-from idgo_admin.views.organization import OrganisationOWS
-from idgo_admin.views.organization import Subscription
-from idgo_admin.views.organization import UpdateOrganisation
-
-from idgo_admin.views.organization import DeleteRemoteCkanLinked
-
+from idgo_admin.views.organisation import all_organisations
+from idgo_admin.views.organisation import CreateOrganisation
+from idgo_admin.views.organisation import DeleteRemoteCkanLinked
+from idgo_admin.views.organisation import organisation
+from idgo_admin.views.organisation import OrganisationOWS
+from idgo_admin.views.organisation import RemoteCkanEditor
+from idgo_admin.views.organisation import Subscription
+from idgo_admin.views.organisation import UpdateOrganisation
 from idgo_admin.views.resource import LayerManager
 from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
