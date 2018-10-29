@@ -82,7 +82,7 @@ table {
 }
 
 table>thead {
-    color: #333333;
+    color: #333;
 }
 
 table>thead a {
@@ -255,7 +255,7 @@ table tr.selected:hover td.crossed {
 
 .input-group .input-group-btn button[name="clear"] .glyphicon {
     border-radius: 20px;
-    margin: -5px;
+    top: -2px;
     padding: 5px;
     background-color: #ccc;
     color: #eee;
@@ -317,6 +317,9 @@ table tr.selected:hover td.crossed {
     color: #666;
     -webkit-box-shadow: none;
             box-shadow: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .btn.focus,
@@ -478,9 +481,26 @@ table tr.selected:hover td.crossed {
 
 /* ************************************************************************* */
 
-.nav-tabs>li:first-child.active>a {
-    border-left: none;
+.nav-tabs {
+    border-bottom-color: #fff;
 }
+
+.nav-tabs>li.active>a,
+.nav-tabs>li.active>a.focus,
+.nav-tabs>li.active>a:focus,
+.nav-tabs>li.active>a:hover {
+    border-top-color: #fff;
+    border-right-color: #fff;
+    border-bottom-color: transparent;
+    border-left-color: #fff;
+}
+
+.nav-tabs>li>a.focus
+.nav-tabs>li>a:focus,
+.nav-tabs>li>a:hover {
+    border-bottom: none;
+}
+
 
 /* ************************************************************************* */
 
@@ -898,6 +918,7 @@ table tr.selected:hover td.crossed {
     margin-top: 0px;
     margin-bottom: 0px;
     min-height: 50px;
+    padding: 15px 0;
 }
 
 .breadcrumb-container .breadcrumb {
@@ -979,25 +1000,10 @@ table tr.selected:hover td.crossed {
 .main-container .list-group-checkbox > .list-group-item > label {
     margin: 6px 9px;
     width: calc(100% - 18px);
-}
-
-.checkbox-select-multiple-widget {
-    overflow-y: scroll;
-    border: 1px solid #eee;
-    border-radius: 0;
-}
-
-.checkbox-select-multiple-widget label {
-    width: 100%;
-}
-
-.checkbox-select-multiple-widget .checkbox {
-    margin: 0;
-    padding: 6px 12px;
-}
-
-.checkbox-select-multiple-widget .checkbox:hover {
-    background-color: #eee;
+    font-weight: normal;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 /* ************************************************************************* */

@@ -18,6 +18,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django import forms
 from django.utils import timezone
+from idgo_admin.forms import CustomCheckboxSelectMultiple
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
@@ -105,14 +106,16 @@ class ResourceForm(forms.ModelForm):
         queryset=Profile.objects.filter(is_active=True).order_by('user__last_name'),
         required=False,
         to_field_name='pk',
-        widget=forms.CheckboxSelectMultiple())
+        widget=CustomCheckboxSelectMultiple(
+            attrs={'class': 'list-group-checkbox'}))
 
     organisations_allowed = forms.ModelMultipleChoiceField(
         label='Organisations autorisées',
         queryset=Organisation.objects.filter(is_active=True).order_by('name'),
         required=False,
         to_field_name='pk',
-        widget=forms.CheckboxSelectMultiple())
+        widget=CustomCheckboxSelectMultiple(
+            attrs={'class': 'list-group-checkbox'}))
 
     synchronisation = forms.BooleanField(
         initial=False,

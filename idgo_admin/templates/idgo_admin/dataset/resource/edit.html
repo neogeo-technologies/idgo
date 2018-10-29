@@ -146,18 +146,14 @@
 	<div class="row">
 		<div class="col-xs-offset-1 col-xs-5">
 			<div class="collapse" id="permitted-users">
-				<div class="checkbox-select-multiple-widget" style="height: 145px;">
-					{% bootstrap_field form.profiles_allowed show_label=False  %}
-				</div>
+				{{ form.profiles_allowed }}
 			</div>
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-xs-offset-1 col-xs-5">
 			<div class="collapse" id="permitted-organizations">
-				<div class="checkbox-select-multiple-widget" style="height: 145px;">
-					{% bootstrap_field form.organisations_allowed show_label=False  %}
-				</div>
+				{{ form.organisations_allowed }}
 			</div>
 		</div>
 	</div>

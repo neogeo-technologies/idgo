@@ -46,9 +46,7 @@
 								<input type="checkbox" name="check-all"> Sélectionner/Désélectionner tout
 							</label>
 						</div>
-						<div id="communes-container" class="checkbox-select-multiple-widget" style="height: 303px;">
-							{% bootstrap_field form.communes show_label=false %}
-						</div>
+						{{ form.communes }}
 					</div>
 				</div>
 				<div class="buttons-on-the-right-side">
