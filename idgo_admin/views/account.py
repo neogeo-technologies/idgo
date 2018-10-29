@@ -394,7 +394,7 @@ class SignUp(View):
         sign_up_process(request, profile)
 
         if form.create_organisation:
-            creation_process(request, profile, organisation)
+            creation_process(request, profile, organisation, mail=False)
 
         if form.is_member:
             member_subscribe_process(request, profile, organisation, mail=False)

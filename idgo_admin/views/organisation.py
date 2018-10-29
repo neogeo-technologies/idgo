@@ -266,7 +266,7 @@ class CreateOrganisation(View):
             return render_with_info_profile(
                 request, self.template, context={'form': form})
 
-        creation_process(request, profile, organisation)  # à revoir car cela ne fonctionne plus dans ce nouveau context
+        creation_process(request, profile, organisation)
 
         form.cleaned_data.get('rattachement_process', False) \
             and member_subscribe_process(request, profile, organisation)
