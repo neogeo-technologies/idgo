@@ -16,8 +16,6 @@
 
 from collections import OrderedDict
 import csv
-from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import F
 from django.db.models import Func
@@ -79,7 +77,7 @@ DATASUD_DATE_CREATION = F('date_creation')
 DATASUD_RESSOURCE_TYPES = FORMATS  # ???
 
 
-@method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
+@method_decorator([csrf_exempt], name='dispatch')
 class Export(View):
 
     def handle(self, request, *args, **kwargs):
