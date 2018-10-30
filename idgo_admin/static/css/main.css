@@ -1064,16 +1064,16 @@ table tr.selected:hover td.crossed {
 
 .buttons-on-the-right-side {
     text-align: right;
-    margin-bottom: 10px;
+    margin: none;
+}
+
+.buttons-on-the-right-side>.btn {
+    margin-left: 5px;
 }
 
 .floating-buttons-on-the-right-side {
     float: right;
     text-align: right;
-}
-
-.buttons-on-the-right-side>.btn {
-    margin-left: 5px;
 }
 
 /* ************************************************************************* */

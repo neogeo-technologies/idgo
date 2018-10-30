@@ -195,7 +195,7 @@ $(function() {
 					activateButton($('#resources button[name="delete-resource"]'));
 				};
 			};
-			var DATE_FORMAT = 'dddd Do MMMM YYYY';
+			var DATE_FORMAT = 'DD/MM/YY';
 			setCellRenderer('date_creation', new CellRenderer({
 				render: function(cell, value) {
 					cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
