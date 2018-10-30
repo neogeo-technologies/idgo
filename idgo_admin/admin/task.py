@@ -14,13 +14,20 @@
 # under the License.
 
 
-from idgo_admin.admin.category import *
-from idgo_admin.admin.dataset import *
-from idgo_admin.admin.granularity import *
-from idgo_admin.admin.jurisdiction import *
-from idgo_admin.admin.license import *
-from idgo_admin.admin.mail import *
-from idgo_admin.admin.organisation import *
-from idgo_admin.admin.supported_crs import *
-from idgo_admin.admin.task import *
-from idgo_admin.admin.user import *
+from django.contrib import admin
+from idgo_admin.models import Task
+
+
+class TaskAdmin(admin.ModelAdmin):
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+admin.site.register(Task, TaskAdmin)

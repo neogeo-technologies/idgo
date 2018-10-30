@@ -39,7 +39,7 @@ class Mail(models.Model):
         verbose_name_plural = 'e-mails'
 
     def __str__(self):
-        return self.name
+        return self.template_name
 
 
 def get_admins_mails():

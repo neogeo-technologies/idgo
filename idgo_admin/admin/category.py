@@ -14,13 +14,23 @@
 # under the License.
 
 
-from idgo_admin.admin.category import *
-from idgo_admin.admin.dataset import *
-from idgo_admin.admin.granularity import *
-from idgo_admin.admin.jurisdiction import *
-from idgo_admin.admin.license import *
-from idgo_admin.admin.mail import *
-from idgo_admin.admin.organisation import *
-from idgo_admin.admin.supported_crs import *
-from idgo_admin.admin.task import *
-from idgo_admin.admin.user import *
+from django.contrib import admin
+from idgo_admin.models import Category
+
+
+class CategoryAdmin(admin.ModelAdmin):
+    model = Category
+    readonly_fields = ['ckan_slug']
+    ordering = ('name',)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+
+admin.site.register(Category, CategoryAdmin)

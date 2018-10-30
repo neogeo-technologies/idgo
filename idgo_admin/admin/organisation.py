@@ -38,26 +38,23 @@ class OrganisationForm(forms.ModelForm):
 
 
 class OrganisationAdmin(geo_admin.OSMGeoAdmin):
-
-    list_display = ('name', 'organisation_type')
-    search_fields = ('name', )
-    list_filter = ('organisation_type',)
-    ordering = ('name',)
-    readonly_fields = ('ckan_slug', )
+    list_display = ['name', 'organisation_type']
+    search_fields = ['name']
+    list_filter = ['organisation_type']
+    ordering = ['name']
+    readonly_fields = ['ckan_slug']
     form = OrganisationForm
 
     def get_form(self, request, obj=None, **kwargs):
         if not request.user.is_superuser and not request.user.profile.is_crige_admin:
-            self.form._meta.exclude = ('is_crige_partner',)
+            self.form._meta.exclude = ['is_crige_partner']
         return super().get_form(request, obj, **kwargs)
 
 
-admin.site.register(Organisation, OrganisationAdmin)
-
-
 class OrganisationTypeAdmin(admin.ModelAdmin):
-    ordering = ('name', )
-    search_fields = ('name', 'code')
+    ordering = ['name']
+    search_fields = ['name', 'code']
 
 
+admin.site.register(Organisation, OrganisationAdmin)
 admin.site.register(OrganisationType, OrganisationTypeAdmin)

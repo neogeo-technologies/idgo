@@ -20,23 +20,13 @@ from idgo_admin.models import Mail
 
 class MailAdmin(admin.ModelAdmin):
     model = Mail
-    ordering = ('subject',)
+    ordering = ['subject']
+    list_display = ['subject']
 
-    # Vue dev:
-    # list_display = ('template_name', 'subject', )
-    # fieldsets = (
-    #     ('Personnalisation des messages automatiques',
-    #      {'fields': ('template_name', 'subject', 'message', 'from_email')}),)
-    # Fin vue dev
-
-    # Vue client:
-    list_display = ('subject', )
-    fieldsets = (
+    fieldsets = [
         ('Personnalisation des messages automatiques', {
-            'classes': ('wide', ),
-            'fields': ('subject', 'message', )
-            }),
-        )
+            'classes': ['wide'],
+            'fields': ['subject', 'message']})]
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -49,7 +39,6 @@ class MailAdmin(admin.ModelAdmin):
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
-    # Fin Vue client
 
 
 admin.site.register(Mail, MailAdmin)

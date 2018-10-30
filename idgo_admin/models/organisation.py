@@ -103,10 +103,6 @@ class Organisation(models.Model):
         to='License', on_delete=models.CASCADE,
         verbose_name='Licence', blank=True, null=True)
 
-    financier = models.ForeignKey(
-        to='Financier', on_delete=models.SET_NULL,
-        verbose_name="Financeur", blank=True, null=True)
-
     is_active = models.BooleanField('Organisation active', default=False)
 
     is_crige_partner = models.BooleanField(

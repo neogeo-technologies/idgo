@@ -25,7 +25,7 @@ from idgo_admin.models import ResourceFormats
 
 
 class ResourceFormatsAdmin(admin.ModelAdmin):
-    ordering = ("extension", )
+    ordering = ['extension']
 
     def __init__(self, *args, **kwargs):
         super(ResourceFormatsAdmin, self).__init__(*args, **kwargs)
@@ -45,8 +45,9 @@ class ResourceInlineFormset(BaseInlineFormSet):
             is_sync_requested = form.cleaned_data.get('synchronisation')
             frequency_not_set = form.cleaned_data.get('sync_frequency') == 'never'
             if is_sync_requested and frequency_not_set:
-                raise forms.ValidationError(
-                    'Une période de synchronisation est nécessaire si vous choisissez de sychroniser les données distantes')
+                raise forms.ValidationError((
+                    'Une période de synchronisation est nécessaire si vous '
+                    'choisissez de sychroniser les données distantes'))
 
 
 class ResourceInline(admin.StackedInline):
@@ -54,23 +55,26 @@ class ResourceInline(admin.StackedInline):
     formset = ResourceInlineFormset
     extra = 0
     can_delete = True
-
-    fieldsets = (
+    fieldsets = [
         ('Synchronisation distante', {
-            'classes': ('collapse',),
-            'fields': ('synchronisation', 'sync_frequency', ),
-            }),
+            'classes': ['collapse'],
+            'fields': [
+                'synchronisation',
+                'sync_frequency']}),
         (None, {
-            'classes': ('wide', ),
-            'fields': (
+            'classes': ['wide'],
+            'fields': [
                 ('name', 'description', ),
                 ('referenced_url', 'dl_url', 'up_file'),
                 'lang',
-                'format_type', 'restricted_level', 'profiles_allowed',
-                'organisations_allowed', 'bbox', 'geo_restriction',
-                'created_on', 'last_update',)
-            }),
-        )
+                'format_type',
+                'restricted_level',
+                'profiles_allowed',
+                'organisations_allowed',
+                'bbox',
+                'geo_restriction',
+                'created_on',
+                'last_update']})]
 
 
 class MyDataSetForm(forms.ModelForm):
@@ -88,25 +92,26 @@ class MyDataSetForm(forms.ModelForm):
 
 
 class DatasetAdmin(admin.ModelAdmin):
-
-    list_display = ('name', 'name_editor', 'nb_resources', )
-    inlines = (ResourceInline, )
-    ordering = ('name', )
+    list_display = ['name', 'name_editor', 'nb_resources']
+    inlines = [ResourceInline]
+    ordering = ['name']
     form = MyDataSetForm
     can_add_related = True
     can_delete_related = True
-    readonly_fields = ('ckan_id', 'ckan_slug', 'geonet_id')
-    search_fields = ('name', 'editor__username')
+    readonly_fields = ['ckan_id', 'ckan_slug', 'geonet_id']
+    search_fields = ['name', 'editor__username']
 
     def nb_resources(self, obj):
         return Resource.objects.filter(dataset=obj).count()
-    nb_resources.short_description = "Nombre de ressources"
+
+    nb_resources.short_description = 'Nombre de ressources'
 
     def name_editor(self, obj):
         first_name = obj.editor.first_name
         last_name = obj.editor.last_name
-        return "{} {}".format(first_name, last_name.upper())
-    name_editor.short_description = "Producteur (propriétaire)"
+        return '{} {}'.format(first_name, last_name.upper())
+
+    name_editor.short_description = 'Producteur (propriétaire)'
 
 
 admin.site.register(Dataset, DatasetAdmin)

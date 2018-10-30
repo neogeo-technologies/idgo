@@ -14,13 +14,12 @@
 # under the License.
 
 
-from idgo_admin.admin.category import *
-from idgo_admin.admin.dataset import *
-from idgo_admin.admin.granularity import *
-from idgo_admin.admin.jurisdiction import *
-from idgo_admin.admin.license import *
-from idgo_admin.admin.mail import *
-from idgo_admin.admin.organisation import *
-from idgo_admin.admin.supported_crs import *
-from idgo_admin.admin.task import *
-from idgo_admin.admin.user import *
+from django.contrib import admin
+from idgo_admin.models import SupportedCrs
+
+
+class SupportedCrsAdmin(admin.ModelAdmin):
+    list_display = ['description']
+
+
+admin.site.register(SupportedCrs, SupportedCrsAdmin)

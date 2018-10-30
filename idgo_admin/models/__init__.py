@@ -169,21 +169,6 @@ class DataType(models.Model):
         return self.name
 
 
-class Financier(models.Model):
-
-    name = models.CharField('Nom du financeur', max_length=250)
-
-    code = models.CharField('Code du financeur', max_length=250)
-
-    class Meta(object):
-        verbose_name = "Financeur d'une action"
-        verbose_name_plural = "Financeurs"
-        ordering = ('name', )
-
-    def __str__(self):
-        return self.name
-
-
 class Granularity(models.Model):
 
     slug = models.SlugField(
@@ -378,7 +363,7 @@ class Task(models.Model):
 
 __all__ = [
     AccountActions, AsyncExtractorTask, BaseMaps, Category, Commune,
-    Dataset, DataType, ExtractorSupportedFormat, Financier,
+    Dataset, DataType, ExtractorSupportedFormat,
     get_all_users_for_organizations, Granularity,
     Jurisdiction, JurisdictionCommune, Layer, License, LiaisonsContributeurs,
     LiaisonsResources, LiaisonsReferents, Mail, Organisation,
