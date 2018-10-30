@@ -4,32 +4,33 @@
 {% load static %}
 
 {% block head_extras %}
-<script src="{% static "libs/leaflet/leaflet.js" %}"></script>
-<script src="{% static "libs/leaflet/leaflet-nontiledlayer.js" %}"></script>
-<script src="{% static "libs/leaflet/leaflet-nontiledlayer-wms.js" %}"></script>
-<script src="{% static "libs/leaflet.draw/leaflet.draw.js" %}"></script>
-<script src="{% static "libs/bootstrap-slider/bootstrap-slider.js" %}"></script>
-<script src="{% static "libs/turf/turf.min.js" %}"></script>
-<link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
-<link rel="stylesheet" href="{% static "libs/leaflet.draw/leaflet.draw.css" %}"/>
+<script src="{% static 'libs/leaflet/leaflet.js' %}"></script>
+<script src="{% static 'libs/leaflet/leaflet-nontiledlayer.js' %}"></script>
+<script src="{% static 'libs/leaflet/leaflet-nontiledlayer-wms.js' %}"></script>
+<script src="{% static 'libs/leaflet.draw/leaflet.draw.js' %}"></script>
+<script src="{% static 'libs/bootstrap-slider/bootstrap-slider.js' %}"></script>
+<script src="{% static 'libs/turf/turf.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'libs/leaflet/leaflet.css' %}"/>
+<link rel="stylesheet" href="{% static 'libs/leaflet.draw/leaflet.draw.css' %}"/>
 {% endblock head_extras %}
 
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
 	<li><span class="glyphicon glyphicon-home"></span></li>
-	<li><a href="{% url "idgo_admin:all_organizations" %}#{{ organisation.id }}">Organisations</a></li>
-	<li><a href="{% url "idgo_admin:update_organization" id=organisation.id %}#">{{ organisation.name }}</a></li>
-	<li class="active">Territoire de compétence</li>
+	<li><a href="{% url 'idgo_admin:jurisdictions' %}">Territoires de compétence</a></li>
+	<li class="active">{% if instance %}{{ instance.name }}{% else %}Nouveau{% endif %}</li>
 </ol>
 {% endblock breadcrumb_content %}
 
 {% block main_content %}
-	<div class="row">
-		<div class="col-xs-8">
-			<div id="map" style="height: 606px;"></div>
-		</div>
-		<div class="col-xs-4">
-			<form method="post" action="" class="well">
+{% include "idgo_admin/alert_messages.html" %}
+<div id="jurisdiction">
+	<form method="post" action="" class="well">
+		<div class="row">
+			<div class="col-xs-8">
+				<div id="map" class="map"></div>
+			</div>
+			<div class="col-xs-4">
 				<div class="row">
 					<div class="col-xs-12">
 						{% bootstrap_field form.name %}
@@ -49,15 +50,15 @@
 						{{ form.communes }}
 					</div>
 				</div>
-				<div class="buttons-on-the-right-side">
-					{% if organisation %}
-					<a class="btn btn-default" href="{% url "idgo_admin:update_organization" id=organisation.id %}">Annuler</a>
-					{% endif %}
-					<button type="submit" class="btn btn-primary">Enregistrer</button>
-				</div>
-			</form>
+			</div>
 		</div>
-	</div>
+		<br />
+		<div class="buttons-on-the-right-side">
+			<a class="btn btn-default" href="{% url "idgo_admin:jurisdictions" %}">Annuler</a>
+			<button type="submit" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>
+			<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
+		</div>
+	</form>
 </div>
 <script>
 $(function() {
@@ -149,8 +150,9 @@ $(function() {
 						$checkbox.prop('checked', true);
 						layer.setStyle(selectStyle).bringToFront();
 					};
-					$('#communes-container').animate({
-						scrollTop: $checkbox.parent().offset().top - $('#communes-container').offset().top + $('#communes-container').scrollTop() - 7
+					const $frame = $('#id_{{ form.communes.name }}').parent();
+					$frame.animate({
+						scrollTop: $checkbox.parent().offset().top - $frame.offset().top + $frame.scrollTop() - 7
 					}, 303);
 				},
 				mouseover : function(e) {
@@ -194,7 +196,7 @@ $(function() {
 		});
 	};
 
-	$('.checkbox')
+	$('#id_{{ form.communes.name }} .list-group-item')
 		.mouseenter(function(e) {
 			$input = $(this).find('input[name="{{ form.communes.name }}"]')
 			getCommuneLayerByCode($input.val(), function(layer) {
@@ -215,10 +217,10 @@ $(function() {
 			});
 		});
 
-	$('.checkbox input[name="check-all"]')
+	$('input[name="check-all"]')
 		.change(function() {
 			const checked = $(this).is(':checked');
-			$('.checkbox').find('input[name="{{ form.communes.name }}"]').map(function() {
+			$('#id_{{ form.communes.name }}').find('input[name="{{ form.communes.name }}"]').map(function() {
 				$(this).prop('checked', checked);
 			});
 			communesLayers.setStyle(checked ? selectStyle : style);
@@ -237,11 +239,38 @@ $(function() {
 			});
 		});
 
-	$('input[name="{{ form.communes.name }}"]:checked').map(function() {
-		getCommuneLayerByCode($(this).val(), function(layer) {
-			layer.setStyle(selectStyle).bringToFront();
+	$('input[name="{{ form.communes.name }}"]:checked')
+		.map(function() {
+			getCommuneLayerByCode($(this).val(), function(layer) {
+				layer.setStyle(selectStyle).bringToFront();
+			});
+		})
+		.get();
+
+	function handleCheckAllInput() {
+		if ($('input[name="{{ form.communes.name }}"]:checked').length == $('input[name="{{ form.communes.name }}"]').length) {
+			$('input[name="check-all"]').prop('checked', true);
+		} else {
+			$('input[name="check-all"]').prop('checked', false);
+		};
+	};
+
+	$('input[name="{{ form.communes.name }}"]')
+		.change(function(e) {
+			e.preventDefault;
+			handleCheckAllInput();
+		})
+		.ready(function(e) {
+			e.preventDefault;
+			handleCheckAllInput();
 		});
-	}).get();
+
+	$('form button[type="submit"]').click(function(e) {
+		const $form = $('form[name="' + this.name + '"]');
+		$modalHourglass.one('show.bs.modal', function(e) {
+			$form.submit();
+		}).modal('show');
+	});
 
 });
 </script>

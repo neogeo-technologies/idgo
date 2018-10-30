@@ -33,6 +33,8 @@ from idgo_admin.views.extractor import Extractor
 from idgo_admin.views.extractor import extractor_task
 from idgo_admin.views.extractor import ExtractorDashboard
 from idgo_admin.views import home
+from idgo_admin.views.jurisdiction import jurisdiction
+from idgo_admin.views.jurisdiction import jurisdictions
 from idgo_admin.views.jurisdiction import JurisdictionView
 from idgo_admin.views.mailer import confirm_contribution
 from idgo_admin.views.mailer import confirm_new_orga
@@ -79,7 +81,9 @@ urlpatterns = [
     url('^extractor/task/?$', extractor_task, name='extractor_task'),
     url('^extractor/dashboard/?$', ExtractorDashboard.as_view(), name='extractor_dashboard'),
 
-    url('^jurisdiction/(?P<code>(\d+))/edit/?$', JurisdictionView.as_view(), name='jurisdiction'),
+    url('^jurisdiction/?$', jurisdiction, name='jurisdiction'),
+    url('^jurisdiction/all/?$', jurisdictions, name='jurisdictions'),
+    url('^jurisdiction/(?P<code>(new|(\d+)))/edit/?$', JurisdictionView.as_view(), name='jurisdiction_editor'),
 
     url('^mdedit/(?P<type>(dataset|service))/?$', mdhandler, name='mdhandler'),
     url('^mdedit/dataset/(?P<id>(\d+))/?$', DatasetMDEdit.as_view(), name='dataset_mdedit'),

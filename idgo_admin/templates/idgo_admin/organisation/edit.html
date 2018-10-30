@@ -85,22 +85,6 @@
 	</div>
 	<br />
 	<div class="row">
-		<div class="col-xs-12">
-			<div class="form-group">
-				<label>{{ form.jurisdiction.label }}</label>
-				<div class="form-inline">
-					{% bootstrap_field form.jurisdiction show_label=false %}
-					{% if form.jurisdiction.value %}
-					<a type="button" name="edit" class="btn btn-primary" href="{% url "idgo_admin:jurisdiction" code=form.jurisdiction.value %}?organisation={{ id }}">Éditer</a>
-					{% else %}
-					<a type="button" name="new" class="btn btn-primary" href="#">Ajouter [TODO]</a>
-					{% endif %}
-				</div>
-			</div>
-		</div>
-	</div>
-	<br />
-	<div class="row">
 		<div class="col-xs-10 col-sm-6">
 			{% bootstrap_field form.organisation_type %}
 		</div>
@@ -133,15 +117,6 @@ $(function() {
 	const $inputContribution = $('input[name="{{ form.contribution_requested.name }}"]').prop('checked', false);
 	const $inputReferent = $('input[name="{{ form.referent_requested.name }}"]').prop('checked', false).change(function() {
 		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
-	});
-
-	$('select[name="{{ form.jurisdiction.name }}"]').change(function(e) {
-		const $button = $('a[name="edit"]');
-		if (this.value != '{{ form.jurisdiction.value }}') {
-			$button.prop('disabled', true).addClass('disabled');
-		} else {
-			$button.prop('disabled', false).removeClass('disabled');
-		};
 	});
 
 	$('#menu a[href="{% url "idgo_admin:all_organizations" %}"]').parent().addClass('active');
