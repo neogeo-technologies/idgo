@@ -1,0 +1,23 @@
+{% extends "idgo_admin/dataset/resource/layer/base.html" %}
+
+{% include "idgo_admin/alert_messages.html" %}
+
+{% block layer_tab_content %}
+{% if layer.styles|length == 0 %}
+<div class="alert alert-warning" role="alert">
+	<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span> Aucun territoire de compétence n'est trouvé.
+</div>
+{% else %}
+<div class="buttons-on-the-right-side">
+	<a name="add-style" class="btn btn-default">Importer un SLD depuis une ressource</a>
+	<a name="create-style" class="btn btn-default">Créer un nouveau style</a>
+</div>
+<br />
+{% include "idgo_admin/dataset/resource/layer/style/table.html" %}
+{% endif %}
+<script>
+$(function() {
+	$('#layer_menu a[href="{% url "idgo_admin:layer_styles" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id %}"]').parent().addClass('active');
+});
+</script>
+{% endblock layer_tab_content %}

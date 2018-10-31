@@ -53,7 +53,7 @@ from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
-from idgo_admin.views.resource import get_layers
+from idgo_admin.views.layer import get_layers
 import json
 from math import ceil
 

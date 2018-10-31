@@ -36,6 +36,10 @@ from idgo_admin.views import home
 from idgo_admin.views.jurisdiction import jurisdiction
 from idgo_admin.views.jurisdiction import jurisdictions
 from idgo_admin.views.jurisdiction import JurisdictionView
+from idgo_admin.views.layer import LayerStyleEditorView
+from idgo_admin.views.layer import layer_styles
+from idgo_admin.views.layer import layer_style
+from idgo_admin.views.layer import LayerView
 from idgo_admin.views.mailer import confirm_contribution
 from idgo_admin.views.mailer import confirm_new_orga
 from idgo_admin.views.mailer import confirm_rattachement
@@ -54,7 +58,6 @@ from idgo_admin.views.organisation import OrganisationOWS
 from idgo_admin.views.organisation import RemoteCkanEditor
 from idgo_admin.views.organisation import Subscription
 from idgo_admin.views.organisation import UpdateOrganisation
-from idgo_admin.views.resource import LayerManager
 from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
 from idgo_admin.views.stuffs import ows_preview
@@ -74,7 +77,12 @@ urlpatterns = [
     url('^dataset/(?P<target>(all|mine|harvested))/?$', datasets, name='datasets'),
     url('^dataset/(?P<id>(new|(\d+)))/edit/?$', DatasetManager.as_view(), name='dataset_editor'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
-    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))$', LayerManager.as_view(), name='layer'),
+
+    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/edit/?$', LayerView.as_view(), name='layer_editor'),
+    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/?$', layer_style, name='layer_style'),
+    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/all/?$', layer_styles, name='layer_styles'),
+    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/(?P<style_id>([a-z0-9_]*))/edit/?$', LayerStyleEditorView.as_view(), name='layer_style_editor'),
+
     url('^dataset/export/?$', Export.as_view(), name='export'),
 
     url('^extractor/?$', Extractor.as_view(), name='extractor'),

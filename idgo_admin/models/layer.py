@@ -38,8 +38,9 @@ class Layer(models.Model):
     #     verbose_name='Chaîne de connexion à la source de données',
     #     blank=True, null=True)
 
-    @property
-    def mra_info(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         l = MRAHandler.get_layer(self.name)
         ft = MRAHandler.get_featuretype(
             self.resource.dataset.organisation.ckan_slug, 'public', self.name)
@@ -66,16 +67,45 @@ class Layer(models.Model):
                     'url': style['href'].replace('json', 'sld'),
                     'sld': MRAHandler.get_style(style['name'])})
 
-        return {
+        self.mra_info = {
             'name': l['name'],
             'title': l['title'],
             'type': l['type'],
             'enabled': l['enabled'],
+            'abstract': l['abstract'],
             'bbox': bbox,
             'attributes': attributes,
             'styles': {
                 'default': default_style_name,
                 'styles': styles}}
+
+    @property
+    def layername(self):
+        return self.mra_info['name']
+
+    @property
+    def geometry_type(self):
+        return {
+            'POLYGON': 'Polygone',
+            'POINT': 'Point',
+            'LINE': 'Ligne',
+            'RASTER': 'Raster'}.get(self.mra_info['type'])
+
+    @property
+    def is_enabled(self):
+        return self.mra_info['enabled']
+
+    @property
+    def title(self):
+        return self.mra_info['title']
+
+    @property
+    def abstract(self):
+        return self.mra_info['abstract']
+
+    @property
+    def styles(self):
+        return self.mra_info['styles']['styles']
 
     @property
     def id(self):
