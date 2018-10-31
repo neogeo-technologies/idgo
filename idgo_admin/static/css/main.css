@@ -221,6 +221,21 @@ table tr.selected:hover td.crossed {
            #bbb 100%);
 }
 
+table .table-cell-dropdown>.btn-link.dropdown-toggle,
+table .table-cell-dropdown>.btn-link.dropdown-toggle.focus,
+table .table-cell-dropdown>.btn-link.dropdown-toggle:focus,
+table .table-cell-dropdown>.btn-link.dropdown-toggle:hover {
+    text-align: right;
+    width: calc(100% + 12px);
+    background-color: transparent;
+    margin: -9px -6px;
+    padding: 9px 6px;
+}
+
+table .table-cell-dropdown>.dropdown-menu {
+    width: calc(100% + 2px);
+    margin: -2px -1px 0 -1px;
+}
 
 /* ************************************************************************* */
 

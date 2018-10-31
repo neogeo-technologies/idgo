@@ -1,41 +1,37 @@
 {% if count > 1 %}
 <nav style="text-align: center;">
-	<ul class="pagination pagination-sm">
-		<nav style="text-align: center;">
-			<ul id="paginator" class="pagination pagination-sm">
-				{% if count > 2 %}
-				<li {% if current == 1 %}class="disabled"{% endif %}>
-					<a name="page" href="#" value="1">
-						<span class="glyphicon glyphicon-fast-backward"></span>
-					</a>
-				</li>
-				{% endif %}
-				<li {% if current == 1 %}class="disabled"{% endif %}>
-					<a name="page" href="#" value="{{ current|add:"-1" }}">
-						<span class="glyphicon glyphicon-backward"></span>
-					</a>
-				</li>
-				{% with ''|center:count as range %}
-					{% for _ in range %}
-				<li {% if forloop.counter == current %}class="active"{% endif %}>
-					<a name="page" href="#" value="{{ forloop.counter }}">{{ forloop.counter }}</a>
-				</li>
-					{% endfor %}
-				{% endwith %}
-				<li {% if current == count %}class="disabled"{% endif %}>
-					<a name="page" href="#" value="{{ current|add:"1" }}">
-						<span class="glyphicon glyphicon-forward"></span>
-					</a>
-				</li>
-				{% if count > 2 %}
-				<li {% if current == count %}class="disabled"{% endif %}>
-					<a name="page" href="#" value="{{ count }}">
-						<span class="glyphicon glyphicon-fast-forward"></span>
-					</a>
-				</li>
-				{% endif %}
-			</ul>
-		</nav>
+	<ul id="paginator" class="pagination pagination-sm">
+		{% if count > 2 %}
+		<li {% if current == 1 %}class="disabled"{% endif %}>
+			<a name="page" href="#" value="1">
+				<span class="glyphicon glyphicon-fast-backward"></span>
+			</a>
+		</li>
+		{% endif %}
+		<li {% if current == 1 %}class="disabled"{% endif %}>
+			<a name="page" href="#" value='{{ current|add:"-1" }}'>
+				<span class="glyphicon glyphicon-backward"></span>
+			</a>
+		</li>
+		{% with ''|center:count as range %}
+			{% for _ in range %}
+		<li {% if forloop.counter == current %}class="active"{% endif %}>
+			<a name="page" href="#" value="{{ forloop.counter }}">{{ forloop.counter }}</a>
+		</li>
+			{% endfor %}
+		{% endwith %}
+		<li {% if current == count %}class="disabled"{% endif %}>
+			<a name="page" href="#" value='{{ current|add:"1" }}'>
+				<span class="glyphicon glyphicon-forward"></span>
+			</a>
+		</li>
+		{% if count > 2 %}
+		<li {% if current == count %}class="disabled"{% endif %}>
+			<a name="page" href="#" value="{{ count }}">
+				<span class="glyphicon glyphicon-fast-forward"></span>
+			</a>
+		</li>
+		{% endif %}
 	</ul>
 </nav>
 {% endif %}
