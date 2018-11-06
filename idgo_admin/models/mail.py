@@ -306,7 +306,6 @@ EXTRACTOR_URL = settings.EXTRACTOR_URL
 def send_extraction_successfully_mail(user, instance):
     return sender(
         'data_extraction_successfully',
-        dataset=instance.layer.resource.dataset.name,
         full_name=user.get_full_name(),
         to=[user.email],
         url=urljoin(EXTRACTOR_URL, 'jobs/{}/download'.format(instance.uuid)),
@@ -317,7 +316,6 @@ def send_extraction_successfully_mail(user, instance):
 def send_extraction_failure_mail(user, instance):
     return sender(
         'data_extraction_failure',
-        dataset=instance.dataset.name,
         full_name=user.get_full_name(),
         resource=instance.name,
         to=[user.email],

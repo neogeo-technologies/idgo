@@ -118,9 +118,12 @@ class OgrOpener(object):
             raise NotOGRError(
                 "The format '{}' is not supported.".format(extension))
         try:
+            print(vsi and '/{}/{}'.format(vsi, filename) or filename)
+
             self._datastore = DataSource(
                 vsi and '/{}/{}'.format(vsi, filename) or filename)
         except GDALException as e:
+            print(e)
             raise NotOGRError(
                 'The file received is not recognized as being a GIS data. {}'.format(e.__str__()))
 
@@ -143,7 +146,7 @@ GRANT SELECT ON TABLE  {schema}."{table}" TO {mra_datagis_user};
 
 
 INSERT_INTO = '''
-INSERT INTO {schema}."{table}" ("{attrs_name}", {the_geom})
+INSERT INTO {schema}."{table}" ({attrs_name}, {the_geom})
 VALUES ({attrs_value}, ST_Transform({geom}, {to_epsg}));'''
 
 
@@ -341,6 +344,8 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
 
 
 def get_extent(tables, schema='public'):
+    if not tables:
+        return None
 
     sub = 'SELECT {the_geom} as the_geom FROM {schema}."{table}"'
     sql = 'WITH all_geoms AS ({}) SELECT geometry(ST_Extent(the_geom)) FROM all_geoms;'.format(

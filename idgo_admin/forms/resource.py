@@ -210,22 +210,24 @@ class ResourceForm(forms.ModelForm):
                   'synchronisation': data['synchronisation'],
                   'up_file': data['up_file']}
 
-        if id:  # Mise à jour de la ressource
+        if data['restricted_level'] == '2':
+            data['profiles_allowed'] = data['profiles_allowed']
+        if data['restricted_level'] == '3':
+            data['organisations_allowed'] = [self._dataset.organisation]
+        if data['restricted_level'] == '4':
+            data['organisations_allowed'] = data['organisations_allowed']
+
+        kwargs = {'editor': user, 'file_extras': file_extras, 'sync_ckan': True}
+
+        if id:
+            # Mise à jour de la ressource
             resource = Resource.objects.get(pk=id)
             for key, value in params.items():
                 setattr(resource, key, value)
-            resource.save(editor=user, file_extras=file_extras)
-        else:  # Création d'une nouvelle ressource
+            resource.save(**kwargs)
+        else:
+            # Création d'une nouvelle ressource
             resource = Resource.objects.create(**params)
-
-        lvl = resource.restricted_level
-        if lvl == '2':
-            resource.profiles_allowed = data['profiles_allowed']
-        if lvl == '3':
-            resource.organisations_allowed = [self._dataset.organisation]
-        if lvl == '4':
-            resource.organisations_allowed = data['organisations_allowed']
-
-        resource.save(editor=user, file_extras=file_extras, sync_ckan=True)
+            resource.save(**kwargs)
 
         return resource

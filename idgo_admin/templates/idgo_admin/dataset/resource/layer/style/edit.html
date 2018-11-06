@@ -12,6 +12,12 @@
 {% endblock head_extras %}
 
 {% block layer_tab_extend %}
+<li role="presentation" class="active">
+	<a href="#" role="tab">Éditeur de style</a>
+</li>
+{% endblock layer_tab_extend %}
+
+{% block layer_tab_content %}
 <template id="class_well_template">
 	<div class="row">
 		<div class="col-xs-10">
@@ -50,7 +56,6 @@
 		</div>
 	</div>
 </template>
-
 <template id="filter_well_template">
 	<div class="form-group">
 		<label for="filter-operator" class="control-label">Opérateur</label>
@@ -75,7 +80,6 @@
 		</div>
 	</div>
 </template>
-
 <template  id="polygon_symbolizer_well_template">
 	<div class="row">
 		<div class="col-xs-6">
@@ -106,7 +110,6 @@
 		</div>
 	</div>
 </template>
-
 <template id="linestring_symbolizer_well_template">
 	<div class="row">
 		<div class="col-xs-6">
@@ -123,7 +126,6 @@
 		</div>
 	</div>
 </template>
-
 <template id="point_symbolizer_well_template">
 	<div class="row">
 		<div class="col-xs-6">
@@ -175,7 +177,6 @@
 		</div>
 	</div>
 </template>
-
 <template id="text_symbolizer_well_template">
 	<div class="row">
 		<div class="col-xs-8">
@@ -226,64 +227,67 @@
 		</div>
 	</div>
 </template>
-
-<li role="presentation" class="active">
-	<a href="#" role="tab">Éditeur de style</a>
-</li>
-{% endblock layer_tab_extend %}
-
-{% block layer_tab_content %}
-<div class="row">
-	<div class="col-xs-offset-4 col-sm-offset-5 col-md-offset-6 col-lg-offset-7 col-xs-8 col-sm-7 col-md-6 col-lg-5">
-		<div class="form-group">
-			<select name="style" class="form-control input-sm disabled" disabled></select>
+<form method="post">
+	<div class="row">
+		<div class="col-xs-offset-4 col-sm-offset-5 col-md-offset-6 col-lg-offset-7 col-xs-8 col-sm-7 col-md-6 col-lg-5">
+			<div class="input-group">
+				<select name="style" class="form-control input-sm disabled" disabled></select>
+				<span class="input-group-btn">
+					<button name="export-sld" class="btn btn-sm btn-default" type="button">Exporter le SLD</button>
+				</span>
+			</div>
 		</div>
 	</div>
-</div>
-<div class="row">
-	<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
-		<div id="map_well">
-			<div id="map" style="height: 606px;"></div>
+	<div class="row">
+		<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
+			<div id="map_well">
+				<div id="map" style="height: 606px;"></div>
+			</div>
 		</div>
-	</div>
-	<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
-		<!--
-		<div class="checkbox">
-			<label>
-				<input type="checkbox" name="is-default-style"></input> Style par défaut
-			</label>
-		</div>
-		-->
-		<div id="style-editor-container">
-			<div name="form" style="height: 650px">
-				<div class="form-group">
-					<label for="classes">Règles de représentation</label>
-					<div class="row">
-						<div class="col-xs-10">
-							<select class="form-control input-sm" id="classes" size="7" multiple style="height: 106px"></select>
-						</div>
-						<div class="col-xs-2">
-							<div class="btn-group-vertical" role="group">
-								<button type="button" name="up" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span></button>
-								<button type="button" name="down" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>
-								<button type="button" name="clone" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></button>
-								<button type="button" name="add" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
-								<button type="button" name="remove" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+		<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
+			<!--
+			<div class="checkbox">
+				<label>
+					<input type="checkbox" name="is-default-style"></input> Style par défaut
+				</label>
+			</div>
+			-->
+			<div id="style-editor-container">
+				<div name="form" style="height: 650px">
+					<div class="form-group">
+						<label for="classes">Règles de représentation</label>
+						<div class="row">
+							<div class="col-xs-10">
+								<select class="form-control input-sm" id="classes" size="7" multiple style="height: 106px"></select>
+							</div>
+							<div class="col-xs-2">
+								<div class="btn-group-vertical" role="group">
+									<button type="button" name="up" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span></button>
+									<button type="button" name="down" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>
+									<button type="button" name="clone" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></button>
+									<button type="button" name="add" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+									<button type="button" name="remove" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
-				<div id="class_well">
-					<!-- class_well_template -->
-				</div>
-				<div class="buttons-on-the-right-side" style="position: absolute; bottom: 0; right: 0; margin: 0 35px 40px 0;">
-					<a type="button" name="export-sld" class="btn btn-default">Exporter le SLD</a>
-					<button type="button" name="save" class="btn btn-primary disabled" disabled>Enregistrer</button>
+					<div id="class_well">
+						<!-- class_well_template -->
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-</div>
+	<div class="row">
+		<div class="col-xs-12">
+			<div class="buttons-on-the-right-side">
+				<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#resources">Annuler</a>
+				<button type="submit" name="continue" value="continue" class="btn btn-default disabled" disabled>Enregistrer et continuer les modifications</button>
+				<button type="submit" name="save" value="save" class="btn btn-primary disabled" disabled>Enregistrer</button>
+			</div>
+		</div>
+	</div>
+<form>
 <script>
 $(function() {
 	var glob = {};
@@ -455,7 +459,7 @@ $(function() {
 			$classes.append($('<option>', {value: value, text : value}));
 		});
 
-		const $exportSld = $('a[name="export-sld"]').click(function(e) {
+		const $exportSld = $('button[name="export-sld"]').click(function(e) {
 			const filename = $sld.children('namedlayer').last().children('name').last().text();
 			// const xmlstr = (new XMLSerializer()).serializeToString($sld);
 			const xmlstr = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
@@ -475,11 +479,13 @@ $(function() {
 			});
 			glob.map.addLayer(layer);
 
-			var $save = $('button[name="save"]').click(function(e) {
+			var $save = $('button[type="submit"]').click(function(e) {
 				e.preventDefault();
-				const $form = $('form').attr('method', 'POST');
+				const $form = $('form');
 				$form.append($('<input type="text"/>').prop('name', 'sldBody').val(sldBody));
-				$form.submit();
+				$modalHourglass.one('show.bs.modal', function(e) {
+					$form.submit();
+				}).modal('show');
 			});
 
 			$exportSld.click(function(e) {

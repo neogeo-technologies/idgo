@@ -346,22 +346,6 @@ class MRAHandler(metaclass=Singleton):
     # def disable_wcs(self, ws_name):
     #     self.disable_ows(ws_name, ows='wms')
 
-    def publish_layers_resource(self, resource):
-
-        organisation = resource.dataset.organisation
-        ws_name = organisation.ckan_slug
-        self.get_or_create_workspace(organisation)
-
-        ds_name = 'public'
-        self.get_or_create_datastore(ws_name, ds_name)
-
-        enabled = resource.ogc_services
-        for datagis_id in resource.datagis_id:
-            self.get_or_create_featuretype(
-                ws_name, ds_name, datagis_id, enabled=enabled)
-
-        self.enable_ows(ws_name=ws_name)
-
     @MRAExceptionsHandler()
     def get_layergroup(self, ws_name, lg_name):
         self.remote.get('workspaces', ws_name, 'layergroups', lg_name)['layerGroup']

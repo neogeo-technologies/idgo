@@ -73,13 +73,14 @@ class LayerView(View):
             return render_with_info_profile(request, self.template, context=context)
 
         try:
-            with transaction.atomic():
-                title = form.cleaned_data['title']
-                abstract = form.cleaned_data['abstract']
-                # TODO
-
+            MRAHandler.update_layer(layer_id, {
+                'name': layer_id,
+                'title': form.cleaned_data['title'],
+                'abstract': form.cleaned_data['abstract']})
         except ValidationError as e:
             messages.error(request, ' '.join(e))
+        except Exception as e:
+            messages.error(request, e.__str__())
         else:
             messages.success(request, 'Les informations ont été mise à jour avec succès.')
 
@@ -206,5 +207,33 @@ class LayerStyleEditorView(View):
 
         return render_with_info_profile(request, 'idgo_admin/dataset/resource/layer/style/edit.html', context=context)
 
-    def post(self, request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
-        pass
+    def post(self, request, dataset_id=None, resource_id=None, layer_id=None, style_id=None, *args, **kwargs):
+
+        user, profile = user_and_profile(request)
+
+        sld = request.POST.get('sldBody')
+
+        try:
+            MRAHandler.create_or_update_style(layer_id, data=sld.encode('utf-8'))
+            MRAHandler.update_layer_defaultstyle(layer_id, layer_id)
+        except ValidationError as e:
+            messages.error(request, ' '.join(e))
+        except Exception as e:
+            messages.error(request, e.__str__())
+        else:
+            message = 'Le style a été mis à jour avec succès.'
+            messages.success(request, message)
+
+        if 'save' in request.POST:
+            to = reverse('idgo_admin:layer_styles', kwargs={
+                'dataset_id': dataset_id,
+                'resource_id': resource_id,
+                'layer_id': layer_id})
+        else:
+            to = reverse('idgo_admin:layer_style_editor', kwargs={
+                'dataset_id': dataset_id,
+                'resource_id': resource_id,
+                'layer_id': layer_id,
+                'style_id': style_id})
+
+        return HttpResponseRedirect(to)

@@ -12,7 +12,7 @@
 			<tr id="{{ style.name }}" name="{{ style.name }}">
 				<td name="name">{{ style.name }}</td>
 				<td name="title">{{ style.text }}</td>
-				<td name="default">{{ style.default }}</td>
+				<td name="default">{% if style.default %}<span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
 			</tr>
 			{% endfor %}
 		</tbody>

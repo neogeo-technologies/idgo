@@ -15,6 +15,11 @@
 
 
 from django.contrib.gis.db import models
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.datagis import drop_table
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.mra_client import MRANotFoundError
 
@@ -41,7 +46,11 @@ class Layer(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        l = MRAHandler.get_layer(self.name)
+        try:
+            l = MRAHandler.get_layer(self.name)
+        except MRANotFoundError:
+            return
+
         ft = MRAHandler.get_featuretype(
             self.resource.dataset.organisation.ckan_slug, 'public', self.name)
         if not l or not ft:
@@ -79,6 +88,21 @@ class Layer(models.Model):
                 'default': default_style_name,
                 'styles': styles}}
 
+    def save(self, *args, **kwargs):
+
+        organisation = self.resource.dataset.organisation
+        ws_name = organisation.ckan_slug
+        ds_name = 'public'
+
+        MRAHandler.get_or_create_workspace(organisation)
+        MRAHandler.get_or_create_datastore(ws_name, ds_name)
+        MRAHandler.get_or_create_featuretype(
+            ws_name, ds_name, self.name, enabled=self.resource.ogc_services)
+
+        MRAHandler.enable_ows(ws_name=ws_name)
+
+        super().save(*args, **kwargs)
+
     @property
     def layername(self):
         return self.mra_info['name']
@@ -90,6 +114,12 @@ class Layer(models.Model):
             'POINT': 'Point',
             'LINE': 'Ligne',
             'RASTER': 'Raster'}.get(self.mra_info['type'])
+
+    def enable(self):
+        MRAHandler.enable_layer(self.name)
+
+    def disable(self):
+        MRAHandler.disable_layer(self.name)
 
     @property
     def is_enabled(self):
@@ -110,3 +140,22 @@ class Layer(models.Model):
     @property
     def id(self):
         return self.name
+
+
+@receiver(pre_delete, sender=Layer)
+def delete_ows_layer(sender, instance, **kwargs):
+    ft_name = instance.name
+    ds_name = 'public'
+    ws_name = instance.resource.dataset.organisation.ckan_slug
+
+    # On supprime la ressource CKAN
+    ckan_user = ckan_me(
+        ckan.get_user(instance.resource.dataset.editor.username)['apikey'])
+    ckan_user.delete_resource(ft_name)
+
+    # On supprime les objets MRA
+    MRAHandler.del_layer(ft_name)
+    MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
+
+    # On supprime la table de données postgis
+    drop_table(ft_name)

@@ -3,14 +3,14 @@
 {% load static %}
 
 {% block head_extras %}
-<script src="{% static "libs/leaflet/leaflet.js" %}"></script>
-<script src="{% static "libs/leaflet/leaflet-nontiledlayer.js" %}"></script>
-<script src="{% static "libs/leaflet/leaflet-nontiledlayer-wms.js" %}"></script>
-<script src="{% static "libs/leaflet.draw/leaflet.draw.js" %}"></script>
-<script src="{% static "libs/bootstrap-slider/bootstrap-slider.js" %}"></script>
-<script src="{% static "libs/turf/turf.min.js" %}"></script>
-<link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
-<link rel="stylesheet" href="{% static "libs/leaflet.draw/leaflet.draw.css" %}"/>
+<script src="{% static 'libs/leaflet/leaflet.js' %}"></script>
+<script src="{% static 'libs/leaflet/leaflet-nontiledlayer.js' %}"></script>
+<script src="{% static 'libs/leaflet/leaflet-nontiledlayer-wms.js' %}"></script>
+<script src="{% static 'libs/leaflet.draw/leaflet.draw.js' %}"></script>
+<script src="{% static 'libs/bootstrap-slider/bootstrap-slider.js' %}"></script>
+<script src="{% static 'libs/turf/turf.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'libs/leaflet/leaflet.css' %}"/>
+<link rel="stylesheet" href="{% static 'libs/leaflet.draw/leaflet.draw.css' %}"/>
 {% endblock head_extras %}
 
 {% block body %}
@@ -117,8 +117,8 @@
 												<div class="input-group input-group">
 													<select class="form-control" id="crs">
 														<option disabled selected>Sélectionnez un système de coordonnées</option>
-														{% for crs in supported_crs %}
-														<option value="{{ crs.authority }}"{% if task and task.details.query.dst_srs == crs.authority or crs and crs == crs.authority %} selected{% endif %}>{{ crs }}</option>
+														{% for item in supported_crs %}
+														<option value="{{ item.authority }}"{% if crs == item.authority %} selected{% endif %}>{{ item }}</option>
 														{% endfor %}
 													</select>
 													<span class="input-group-btn">
@@ -133,8 +133,8 @@
 												<div class="input-group input-group">
 													<select class="form-control" id="format">
 														<option disabled selected>Sélectionnez un format</option>
-														{% for format in supported_format %}
-														<option value="{{ format.name }}"{% if task and task.details.query.dst_format == format.details or format and format == format.name %} selected{% endif %}>{{ format.description }}</option>
+														{% for item in supported_format %}
+														<option value="{{ item.name }}"{% if format == item.details or format == item.name %} selected{% endif %}>{{ item.description }}</option>
 														{% endfor %}
 													</select>
 													<span class="input-group-btn">
@@ -205,7 +205,7 @@ $(function() {
 
 	const $extract = $('button[name="extract"]').click(function(e) {
 		e.preventDefault();
-		if ((!targetLayer && !map.hasLayer(targetLayer)) ||
+		if (//(!targetLayer && !map.hasLayer(targetLayer)) ||
 			(!footprintLayer && !editableLayers.hasLayer(footprintLayer))) {
 			return;
 		};
@@ -214,17 +214,24 @@ $(function() {
 			footprintLayer = footprintLayer.getLayers()[0];
 		};
 
-		const layer = targetLayer.options.layers;
+		const dataset = '{{ dataset.ckan_slug }}';
+		const resource = '{{ resource.ckan_id }}';
+		const layer = targetLayer ? targetLayer.options.layers : null;
+
 		const footprint = JSON.stringify(footprintLayer.toGeoJSON());
 		const crs = $('#crs').val();  // qs['crs']
 		const format = $('#format').val();  // qs['format']
 
-		if (!layer || !footprint || !crs || !format) {
+		if (!dataset || !footprint || !crs || !format) {
 			return;
 		};
 
 		const $form = $('form').attr('method', 'POST');
-		$form.append($('<input type="text" name="layer"/>').hide().val(layer));
+
+		layer && $form.append($('<input type="text" name="layer"/>').hide().val(layer));
+		dataset && $form.append($('<input type="text" name="dataset"/>').hide().val(dataset));
+		resource && $form.append($('<input type="text" name="resource"/>').hide().val(resource));
+
 		$form.append($('<input type="text" name="footprint"/>').hide().val(footprint));
 		$form.append($('<input type="text" name="crs"/>').hide().val(crs));
 		$form.append($('<input type="text" name="format"/>').hide().val(format));
@@ -525,7 +532,7 @@ $(function() {
 		e.preventDefault();
 		if ($('#organisation').val() &&
 			$('#dataset').val() &&
-			$('#resource').val() &&
+			// $('#resource').val() &&
 			$('#format').val() &&
 			$('#crs').val()) {
 			$extract.prop('disabled', false).removeClass('disabled');

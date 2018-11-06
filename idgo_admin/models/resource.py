@@ -21,8 +21,7 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import IntegrityError
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
+from django.db import transaction
 from django.http import Http404
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
@@ -40,7 +39,7 @@ from idgo_admin.models import get_all_users_for_organizations
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.mra_client import MRANotFoundError
 from idgo_admin.utils import download
-from idgo_admin.utils import remove_dir
+# from idgo_admin.utils import remove_dir
 from idgo_admin.utils import remove_file
 from idgo_admin.utils import slugify
 from idgo_admin.utils import three_suspension_points
@@ -235,18 +234,10 @@ class Resource(models.Model):
             self.dataset.ckan_slug, self.ckan_id))
 
     @property
-    def datagis_id(self):
+    def datagis_id(self):  # TODO: supprimer et utiliser `get_layers()` exclusivement
         Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
         qs = Layer.objects.filter(resource=self)
         return [l.name for l in qs]
-
-    @datagis_id.setter
-    def datagis_id(self, names):
-        Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
-        if not names:
-            return
-        for name in names:
-            Layer.objects.get_or_create(name=name, resource=self)
 
     @property
     def name_overflow(self):
@@ -257,14 +248,12 @@ class Resource(models.Model):
         return Layer.objects.filter(resource=self, **kwargs)
 
     def disable_layers(self):
-        if self.datagis_id:
-            for l_name in self.datagis_id:
-                MRAHandler.disable_layer(l_name)
+        for layer in self.get_layers():
+            layer.disable()
 
     def enable_layers(self):
-        if self.datagis_id:
-            for l_name in self.datagis_id:
-                MRAHandler.enable_layer(l_name)
+        for layer in self.get_layers():
+            layer.enable()
 
     @classmethod
     def get_resources_by_mapserver_url(cls, url):
@@ -308,30 +297,185 @@ class Resource(models.Model):
 
     def save(self, *args, **kwargs):
 
+        SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
+        Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
+
+        organisation = self.dataset.organisation
+
+        # On sauvegarde l'objet avant de le mettre à jour (s'il existe)
         previous = self.pk and Resource.objects.get(pk=self.pk) or None
 
-        sync_ckan = 'sync_ckan' in kwargs and kwargs.pop('sync_ckan') or False
-        file_extras = 'file_extras' in kwargs and kwargs.pop('file_extras') or None
-        editor = 'editor' in kwargs and kwargs.pop('editor') or None
-
-        if not previous:
-            # Valeur par défaut à la création de l'instance
+        # Quelques valeur par défaut à la création de l'instance
+        if previous:
+            self.geo_restriction = False
             self.ogc_services = True
             self.extractable = True
 
-        # La restriction au territoire de compétence désactive les services OGC
-        self.ogc_services = self.geo_restriction and False or self.ogc_services
+        # La restriction au territoire de compétence désactive toujours les services OGC
+        if self.geo_restriction:
+            self.ogc_services = False
 
-        super().save(*args, **kwargs)
+        # Quelques options :
+        sync_ckan = kwargs.pop('sync_ckan', False)
+        file_extras = kwargs.pop('file_extras', None)  # Des informations sur la ressource téléversée
+        editor = kwargs.pop('editor', None)  # L'éditeur de l'objet `request` (qui peut être celui du jeu de données ou un référent)
 
+        # Quelques contrôles sur les fichiers de données téléversée ou à télécharger
+
+        with_file = False
+        if self.up_file and file_extras:
+            filename = self.up_file.file.name
+            with_file = True
+        elif self.dl_url:
+            try:
+                directory, filename, content_type = download(
+                    self.dl_url, settings.MEDIA_ROOT, max_size=DOWNLOAD_SIZE_LIMIT)
+            except SizeLimitExceededError as e:
+                l = len(str(e.max_size))
+                if l > 6:
+                    m = '{0} mo'.format(Decimal(int(e.max_size) / 1024 / 1024))
+                elif l > 3:
+                    m = '{0} ko'.format(Decimal(int(e.max_size) / 1024))
+                else:
+                    m = '{0} octets'.format(int(e.max_size))
+                raise ValidationError(
+                    "La taille du fichier dépasse la limite autorisée : {0}.".format(m), code='dl_url')
+            except Exception as e:
+                if e.__class__.__name__ == 'HTTPError':
+                    if e.response.status_code == 404:
+                        msg = "La ressource distante ne semble pas exister. Assurez-vous que l'URL soit correcte."
+                    if e.response.status_code == 403:
+                        msg = "Vous n'avez pas l'autorisation pour accéder à la ressource."
+                    if e.response.status_code == 401:
+                        msg = "Une authentification est nécessaire pour accéder à la ressource."
+                else:
+                    msg = 'Le téléchargement du fichier a échoué.'
+                raise ValidationError(msg, code='dl_url')
+            with_file = True
+
+        # Détection des données SIG
+        # =========================
+
+        # /!\ Uniquement si l'utilisateur est membre partenaire du CRIGE
+        if with_file and editor.profile.crige_membership:
+
+            # On vérifie s'il s'agit de données SIG, uniquement pour
+            # les extensions de fichier autorisées..
+            extension = self.format_type.extension.lower()
+            if extension in VSI_PROTOCOLES.keys():
+                # Si c'est le cas, on monte les données dans la base PostGIS dédiée
+                # et on déclare la couche au service OGC:WxS de l'organisation.
+
+                # Mais d'abord, on vérifie si la ressource contient
+                # déjà des « Layers », auquel cas il faudra vérifier si
+                # la table de données a changée.
+                existing_layers = {}
+                if previous and previous.datagis_id:
+                    existing_layers = dict(
+                        (re.sub('^(\w+)_[a-z0-9]{7}$', '\g<1>', table_name), table_name)
+                        for table_name in previous.datagis_id)
+
+                # On convertit les données vers Postgis.
+                try:
+                    tables = ogr2postgis(
+                        filename,
+                        extension=extension,
+                        update=existing_layers,
+                        epsg=self.crs and self.crs.auth_code or None)
+
+                except NotOGRError as e:
+                    remove_file(filename)
+                    msg = (
+                        "Le fichier reçu n'est pas reconnu "
+                        'comme étant un jeu de données SIG correct.')
+                    raise ValidationError(msg, code='__all__')
+
+                except NotFoundSrsError as e:
+                    remove_file(filename)
+                    msg = (
+                        'Votre ressource semble contenir des données SIG '
+                        'mais nous ne parvenons pas à détecter le système '
+                        'de coordonnées. Merci de sélectionner le code du '
+                        'CRS dans la liste ci-dessous.')
+                    raise ValidationError(msg, code='crs')
+
+                except NotSupportedSrsError as e:
+                    remove_file(filename)
+                    msg = (
+                        'Votre ressource semble contenir des données SIG '
+                        'mais le système de coordonnées de celles-ci '
+                        "n'est pas supporté par l'application.")
+                    raise ValidationError(msg, code='__all__')
+
+                except ExceedsMaximumLayerNumberFixedError as e:
+                    remove_file(filename)
+                    raise ValidationError(e.__str__(), code='__all__')
+
+                # Ensuite, pour tous les jeux de données SIG trouvés,
+                # on crée le service ows à travers l'API MRA.
+                try:
+                    with transaction.atomic():
+                        for table in tables:
+                            Layer.objects.get_or_create(
+                                name=table['id'], resource=self)
+                except Exception as e:
+                    # self.clean_uploaded_data()
+                    for table in tables:
+                        drop_table(table)
+                    raise e
+
+                # On met à jour les champs de la ressource
+                self.crs = [
+                    SupportedCrs.objects.get(
+                        auth_name='EPSG', auth_code=table['epsg'])
+                    for table in tables][0]  # On prend la première valeur (c'est moche)
+
+                # Si les données changent
+                if existing_layers and \
+                        set(previous.datagis_id) != set(self.datagis_id):
+
+                    # Nettoyer les anciennes resources SIG..
+                    for table_id in previous.datagis_id:
+
+                        # Supprimer la ressource CKAN
+                        ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
+                        ckan_user.delete_resource(table_id)
+                        ckan_user.close()
+
+                        # Supprimer les objects MRA
+                        try:
+                            MRAHandler.del_layer(table_id)
+                            MRAHandler.del_featuretype(organisation.ckan_slug, 'public', table_id)
+                        except MRANotFoundError:
+                            pass
+
+                        # Supprimer les anciennes tables GIS
+                        drop_table(table_id)
+
+        # Puis on met à jour le jeu de données parent
+        self.dataset.bbox = get_extent([
+            item for sub in [
+                r.datagis_id for r in
+                Resource.objects.filter(dataset=self.dataset) if r.datagis_id]
+            for item in sub])
         self.dataset.date_modification = timezone.now().date()
+        self.dataset.save()
+
+        # Synchronisation avec CKAN
+        # =========================
 
         if sync_ckan:
 
-            SupportedCrs = apps.get_model(
-                app_label='idgo_admin', model_name='SupportedCrs')
+            # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+            # de données existant mais administrateur ou un référent technique,
+            # alors l'admin Ckan édite le jeu de données.
+            if editor == self.dataset.editor:
+                ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
+            else:
+                ckan_user = ckan_me(ckan.apikey)
 
             ckan_params = {
+                'crs': self.crs and self.crs.description or '',
                 'name': self.name,
                 'description': self.description,
                 'data_type': self.data_type,
@@ -343,32 +487,39 @@ class Resource(models.Model):
                 'restricted_by_jurisdiction': str(self.geo_restriction),
                 'url': ''}
 
-            restricted = {}
-
-            if self.restricted_level == '0':  # Public
+            # (0) Aucune restriction
+            if self.restricted_level == '0':
                 restricted = json.dumps({'level': 'public'})
 
-            if self.restricted_level == '1':  # Registered users
+            # (1) Uniquement pour un utilisateur connecté
+            elif self.restricted_level == '1':
                 restricted = json.dumps({'level': 'registered'})
 
-            if self.restricted_level == '2':  # Only allowed users
+            # (2) Seulement les utilisateurs indiquées
+            elif self.restricted_level == '2':
                 restricted = json.dumps({
                     'allowed_users': ','.join(
                         self.profiles_allowed.exists() and [
                             p.user.username for p in self.profiles_allowed.all()] or []),
                     'level': 'only_allowed_users'})
 
-            if self.restricted_level == '3':  # This organization
+            # (3) Les utilisateurs de cette organisation
+            elif self.restricted_level == '3':
                 restricted = json.dumps({
                     'allowed_users': ','.join(
                         get_all_users_for_organizations(self.organisations_allowed.all())),
                     'level': 'only_allowed_users'})
 
-            if self.restricted_level == '4':  # Any organization
+            # (3) Les utilisateurs des organisations indiquées
+            elif self.restricted_level == '4':
                 restricted = json.dumps({
                     'allowed_users': ','.join(
                         get_all_users_for_organizations(self.organisations_allowed.all())),
                     'level': 'only_allowed_users'})
+
+            # else:
+            #     # Cas impossible
+            #     raise Exception()
 
             ckan_params['restricted'] = restricted
 
@@ -378,235 +529,64 @@ class Resource(models.Model):
                     self.name, self.format_type.ckan_view)
 
             if self.dl_url:
-                try:
-                    directory, filename, content_type = download(
-                        self.dl_url, settings.MEDIA_ROOT,
-                        max_size=DOWNLOAD_SIZE_LIMIT)
-                except SizeLimitExceededError as e:
-                    l = len(str(e.max_size))
-                    if l > 6:
-                        m = '{0} mo'.format(Decimal(int(e.max_size) / 1024 / 1024))
-                    elif l > 3:
-                        m = '{0} ko'.format(Decimal(int(e.max_size) / 1024))
-                    else:
-                        m = '{0} octets'.format(int(e.max_size))
-                    raise ValidationError(
-                        "La taille du fichier dépasse la limite autorisée : {0}.".format(m), code='dl_url')
-                except Exception as e:
-                    if e.__class__.__name__ == 'HTTPError':
-                        if e.response.status_code == 404:
-                            msg = "La ressource distante ne semble pas exister. Assurez-vous que l'URL soit correcte."
-                        if e.response.status_code == 403:
-                            msg = "Vous n'avez pas l'autorisation pour accéder à la ressource."
-                        if e.response.status_code == 401:
-                            msg = "Une authentification est nécessaire pour accéder à la ressource."
-                    else:
-                        msg = 'Le téléchargement du fichier a échoué.'
-                    raise ValidationError(msg, code='dl_url')
-
                 downloaded_file = File(open(filename, 'rb'))
                 ckan_params['upload'] = downloaded_file
                 ckan_params['size'] = downloaded_file.size
                 ckan_params['mimetype'] = content_type
                 ckan_params['resource_type'] = Path(filename).name
 
-            if self.up_file and file_extras:  # Si nouveau fichier (uploaded)
+            if self.up_file and file_extras:
                 ckan_params['upload'] = self.up_file.file
                 ckan_params.update(file_extras)
-
                 filename = self.up_file.file.name
 
-            if self.dl_url or (self.up_file and file_extras):
-                extension = self.format_type.extension.lower()
-                # Pour les archives, toujours vérifier si contient des données SIG.
-                # Si c'est le cas, monter les données dans la base PostGIS dédiée,
-                # puis ajouter au service OGC:WxS de l'organisation.
-                if extension in VSI_PROTOCOLES.keys():
-                    existing_layers = {}
-                    if previous and previous.datagis_id:
-                        existing_layers = dict(
-                            (re.sub('^(\w+)_[a-z0-9]{7}$', '\g<1>', table_name), table_name)
-                            for table_name in previous.datagis_id)
-                    try:
-                        tables = ogr2postgis(
-                            filename, extension=extension, update=existing_layers,
-                            epsg=self.crs and self.crs.auth_code or None)
-                    except NotOGRError as e:
-                        if extension in ('geojson', 'shapezip'):
-                            if self.dl_url:
-                                remove_dir(directory)
-                            if self.up_file and file_extras:
-                                remove_file(filename)
-                            msg = (
-                                "Le fichier reçu n'est pas reconnu "
-                                'comme étant un jeu de données SIG correct.')
-                            raise ValidationError(msg, code='__all__')
-                        # else:
-                        #     pass
-                    except NotFoundSrsError as e:
-                        if self.dl_url:
-                            remove_dir(directory)
-                        if self.up_file and file_extras:
-                            remove_file(filename)
-                        msg = (
-                            'Votre ressource semble contenir des données SIG '
-                            'mais nous ne parvenons pas à détecter le système '
-                            'de coordonnées. Merci de sélectionner le code du '
-                            'CRS dans la liste ci-dessous.')
-                        raise ValidationError(msg, code='crs')
-                    except NotSupportedSrsError as e:
-                        if self.dl_url:
-                            remove_dir(directory)
-                        if self.up_file and file_extras:
-                            remove_file(filename)
-                        msg = (
-                            'Votre ressource semble contenir des données SIG '
-                            'mais le système de coordonnées de celles-ci '
-                            "n'est pas supporté par l'application.")
-                        raise ValidationError(msg, code='__all__')
-                    except ExceedsMaximumLayerNumberFixedError as e:
-                        if self.dl_url:
-                            remove_dir(directory)
-                        if self.up_file and file_extras:
-                            remove_file(filename)
-                        raise ValidationError(e.__str__(), code='__all__')
-                    except Exception as e:  # Toutes les autres exceptions
-                        if self.dl_url:
-                            remove_dir(directory)
-                        if self.up_file and file_extras:
-                            remove_file(filename)
-                        raise ValidationError(e.__str__(), code='__all__')
-                    else:
-                        datagis_id = []
-                        crs = []
-                        for table in tables:
-                            datagis_id.append(table['id'])
-                            crs.append(SupportedCrs.objects.get(
-                                auth_name='EPSG', auth_code=table['epsg']))
-                        self.datagis_id = datagis_id
-                        self.crs = crs[0]
-                        try:
-                            MRAHandler.publish_layers_resource(self)
-                        except Exception as e:
-                            for table_id in self.datagis_id:
-                                drop_table(str(table_id))
-                            raise e
-                        ckan_params['crs'] = self.crs.description
-                else:
-                    self.datagis_id = None
-                super().save()
-
-            # Puis supprimer les données
-            if self.dl_url:
-                remove_dir(directory)
-            if self.up_file and file_extras:
-                remove_file(filename)
-            # TODO FACTORISER
-
-            # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-            # de données existant mais administrateur ou un référent technique,
-            # alors l'admin Ckan édite le jeu de données..
-            if editor == self.dataset.editor:
-                ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
-            else:
-                ckan_user = ckan_me(ckan.apikey)
-
-            ws_name = self.dataset.organisation.ckan_slug
-            ds_name = 'public'
-
-            # TODO Gérer les erreurs + factoriser
-            if previous and previous.datagis_id and \
-                    set(previous.datagis_id) != set(self.datagis_id):
-                # Nettoyer les anciennes resources SIG..
-                for datagis_id in previous.datagis_id:
-                    ft_name = str(datagis_id)
-                    # Supprimer les objects MRA  (TODO en cascade dans MRA)
-                    try:
-                        MRAHandler.del_layer(ft_name)
-                        MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
-                    except MRANotFoundError:
-                        pass
-                    # Supprimer la ressource CKAN
-                    ckan_user.delete_resource(ft_name)
-                    # Supprimer les anciennes tables GIS
-                    drop_table(ft_name)
-
+            # On publie la ressource brute CKAN
             ckan_package = ckan_user.get_package(str(self.dataset.ckan_id))
             ckan_user.publish_resource(ckan_package, **ckan_params)
 
-            if self.datagis_id:
-                # Publier dans CKAN les resources de type OWS..
+            # Puis on publie dans CKAN les ressources de type service (à déplacer dans Layer ???)
+            for layer in self.get_layers():
 
-                for datagis_id in self.datagis_id:
-                    ft_name = str(datagis_id)
-                    # Publier la ressource si explicitement requis..
-                    if not self.ogc_services:
-                        # sinon supprimer la ressource CKAN.
-                        ckan_user.delete_resource(ft_name)
-                        continue
+                # Uniquement si explicitement demandé
+                if self.ogc_services:
 
                     getlegendgraphic = (
                         '{}?&version=1.1.1&service=WMS&request=GetLegendGraphic'
                         '&layer={}&format=image/png').format(
-                            OWS_URL_PATTERN.format(organisation=ws_name).replace('?', ''),
-                            ft_name)
+                            OWS_URL_PATTERN.format(
+                                organisation=organisation.ckan_slug
+                                ).replace('?', ''), layer.name)
+
+                    # Tous les services sont publiés en 4171 (TODO -> configurer dans settings)
+                    crs = SupportedCrs.objects.get(
+                        auth_name='EPSG', auth_code='4171').description
+
+                    url = '{0}#{1}'.format(
+                        OWS_URL_PATTERN.format(
+                            organisation=organisation.ckan_slug), layer.name)
 
                     ckan_params = {
-                        'id': ft_name,
+                        'id': layer.name,
                         'name': '{} (OGC:WMS)'.format(self.name),
                         'description': 'Visualiseur cartographique',
                         'getlegendgraphic': getlegendgraphic,
                         'data_type': 'service',
                         'extracting_service': str(self.extractable),
-                        'crs': SupportedCrs.objects.get(
-                            auth_name='EPSG', auth_code='4171').description,
+                        'crs': crs,
                         'lang': self.lang,
                         'format': 'WMS',
                         'restricted': restricted,
-                        'url': '{0}#{1}'.format(
-                            OWS_URL_PATTERN.format(organisation=ws_name), ft_name),
+                        'url': url,
                         'view_type': 'geo_view'}
-                    ckan_user.publish_resource(ckan_package, **ckan_params)
 
-                resources = Resource.objects.filter(dataset=self.dataset)
-                self.dataset.bbox = get_extent(
-                    [item for sub in [
-                        r.datagis_id for r in resources if r.datagis_id
-                        ] for item in sub])
+                    ckan_user.publish_resource(ckan_package, **ckan_params)
+                else:
+                    # Sinon on force la suppression de la ressource CKAN
+                    ckan_user.delete_resource(layer.name)
 
             ckan_user.close()
-            # Endif sync_ckan
 
-        if self.datagis_id:
-            if self.ogc_services:
-                self.enable_layers()
-            else:
-                self.disable_layers()
-        else:
-            self.ogc_services = False
-            self.extractable = False
+        super().save(*args, **kwargs)
 
-        self.dataset.save()
-
-
-# Triggers
-
-
-@receiver(post_delete, sender=Resource)
-def post_delete_resource(sender, instance, **kwargs):
-    ckan_user = ckan_me(ckan.get_user(instance.dataset.editor.username)['apikey'])
-    ws_name = instance.dataset.organisation.ckan_slug
-    ds_name = 'public'
-    if instance.datagis_id:
-        for datagis_id in instance.datagis_id:
-            ft_name = str(datagis_id)
-            # Supprimer les objects MRA  (TODO en cascade dans MRA)
-            try:
-                MRAHandler.del_layer(ft_name)
-                MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
-            except MRANotFoundError:
-                pass
-            # Supprimer la ressource CKAN
-            ckan_user.delete_resource(ft_name)
-            # Supprimer les anciennes tables GIS
-            drop_table(ft_name)
+        if with_file:
+            remove_file(filename)
