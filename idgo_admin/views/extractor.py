@@ -387,10 +387,6 @@ class Extractor(View):
                         {**extract_params, **{'layer': layer.name}})
 
                 if resource.data_type == 'annexe':
-
-                    print(0)
-                    print(resource.filename)
-
                     additional_files.append({
                         'file_name': resource.filename,
                         'dir_name': 'Documentation associée',

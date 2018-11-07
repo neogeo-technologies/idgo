@@ -36,13 +36,12 @@ from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin.models import get_all_users_for_organizations
-from idgo_admin.mra_client import MRAHandler
-from idgo_admin.mra_client import MRANotFoundError
 from idgo_admin.utils import download
 # from idgo_admin.utils import remove_dir
 from idgo_admin.utils import remove_file
 from idgo_admin.utils import slugify
 from idgo_admin.utils import three_suspension_points
+import itertools
 import json
 import os
 from pathlib import Path
@@ -253,13 +252,9 @@ class Resource(models.Model):
         Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
         return Layer.objects.filter(resource=self, **kwargs)
 
-    def disable_layers(self):
+    def update_enable_layers_status(self):
         for layer in self.get_layers():
-            layer.disable()
-
-    def enable_layers(self):
-        for layer in self.get_layers():
-            layer.enable()
+            layer.handle_enable_ows_status()
 
     @classmethod
     def get_resources_by_mapserver_url(cls, url):
@@ -299,7 +294,7 @@ class Resource(models.Model):
 
     @property
     def is_datagis(self):
-        return self.datagis_id and True or False
+        return self.get_layers() and True or False
 
     def save(self, *args, **kwargs):
 
@@ -309,10 +304,11 @@ class Resource(models.Model):
         organisation = self.dataset.organisation
 
         # On sauvegarde l'objet avant de le mettre à jour (s'il existe)
-        previous = self.pk and Resource.objects.get(pk=self.pk) or None
+        previous, created = self.pk \
+            and (Resource.objects.get(pk=self.pk), False) or (None, True)
 
         # Quelques valeur par défaut à la création de l'instance
-        if previous:
+        if created:
             self.geo_restriction = False
             self.ogc_services = True
             self.extractable = True
@@ -344,16 +340,20 @@ class Resource(models.Model):
                     m = '{0} ko'.format(Decimal(int(e.max_size) / 1024))
                 else:
                     m = '{0} octets'.format(int(e.max_size))
-                raise ValidationError(
-                    "La taille du fichier dépasse la limite autorisée : {0}.".format(m), code='dl_url')
+                raise ValidationError((
+                    'La taille du fichier dépasse '
+                    'la limite autorisée : {0}.').format(m), code='dl_url')
             except Exception as e:
                 if e.__class__.__name__ == 'HTTPError':
                     if e.response.status_code == 404:
-                        msg = "La ressource distante ne semble pas exister. Assurez-vous que l'URL soit correcte."
+                        msg = ('La ressource distante ne semble pas exister. '
+                               "Assurez-vous que l'URL soit correcte.")
                     if e.response.status_code == 403:
-                        msg = "Vous n'avez pas l'autorisation pour accéder à la ressource."
+                        msg = ("Vous n'avez pas l'autorisation pour "
+                               'accéder à la ressource.')
                     if e.response.status_code == 401:
-                        msg = "Une authentification est nécessaire pour accéder à la ressource."
+                        msg = ('Une authentification est nécessaire '
+                               'pour accéder à la ressource.')
                 else:
                     msg = 'Le téléchargement du fichier a échoué.'
                 raise ValidationError(msg, code='dl_url')
@@ -376,10 +376,10 @@ class Resource(models.Model):
                 # déjà des « Layers », auquel cas il faudra vérifier si
                 # la table de données a changée.
                 existing_layers = {}
-                if previous and previous.datagis_id:
-                    existing_layers = dict(
-                        (re.sub('^(\w+)_[a-z0-9]{7}$', '\g<1>', table_name), table_name)
-                        for table_name in previous.datagis_id)
+                if not created:
+                    existing_layers = dict((
+                        re.sub('^(\w+)_[a-z0-9]{7}$', '\g<1>', layer.name),
+                        layer.name) for layer in self.get_layers())
 
                 # On convertit les données vers Postgis.
                 try:
@@ -425,7 +425,7 @@ class Resource(models.Model):
                             Layer.objects.get_or_create(
                                 name=table['id'], resource=self)
                 except Exception as e:
-                    # self.clean_uploaded_data()
+                    remove_file(filename)
                     for table in tables:
                         drop_table(table)
                     raise e
@@ -436,36 +436,12 @@ class Resource(models.Model):
                         auth_name='EPSG', auth_code=table['epsg'])
                     for table in tables][0]  # On prend la première valeur (c'est moche)
 
-                # Si les données changent
+                # Si les données changent..
                 if existing_layers and \
-                        set(previous.datagis_id) != set(self.datagis_id):
-
-                    # Nettoyer les anciennes resources SIG..
-                    for table_id in previous.datagis_id:
-
-                        # Supprimer la ressource CKAN
-                        ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
-                        ckan_user.delete_resource(table_id)
-                        ckan_user.close()
-
-                        # Supprimer les objects MRA
-                        try:
-                            MRAHandler.del_layer(table_id)
-                            MRAHandler.del_featuretype(organisation.ckan_slug, 'public', table_id)
-                        except MRANotFoundError:
-                            pass
-
-                        # Supprimer les anciennes tables GIS
-                        drop_table(table_id)
-
-        # Puis on met à jour le jeu de données parent
-        self.dataset.bbox = get_extent([
-            item for sub in [
-                r.datagis_id for r in
-                Resource.objects.filter(dataset=self.dataset) if r.datagis_id]
-            for item in sub])
-        self.dataset.date_modification = timezone.now().date()
-        self.dataset.save()
+                        previous.get_layers() != self.get_layers():
+                    # on supprime les anciens `layers`..
+                    for layer in previous.get_layers():
+                        layer.delete()
 
         # Synchronisation avec CKAN
         # =========================
@@ -506,26 +482,25 @@ class Resource(models.Model):
                 restricted = json.dumps({
                     'allowed_users': ','.join(
                         self.profiles_allowed.exists() and [
-                            p.user.username for p in self.profiles_allowed.all()] or []),
+                            p.user.username for p
+                            in self.profiles_allowed.all()] or []),
                     'level': 'only_allowed_users'})
 
             # (3) Les utilisateurs de cette organisation
             elif self.restricted_level == '3':
                 restricted = json.dumps({
                     'allowed_users': ','.join(
-                        get_all_users_for_organizations(self.organisations_allowed.all())),
+                        get_all_users_for_organizations(
+                            self.organisations_allowed.all())),
                     'level': 'only_allowed_users'})
 
             # (3) Les utilisateurs des organisations indiquées
             elif self.restricted_level == '4':
                 restricted = json.dumps({
                     'allowed_users': ','.join(
-                        get_all_users_for_organizations(self.organisations_allowed.all())),
+                        get_all_users_for_organizations(
+                            self.organisations_allowed.all())),
                     'level': 'only_allowed_users'})
-
-            # else:
-            #     # Cas impossible
-            #     raise Exception()
 
             ckan_params['restricted'] = restricted
 
@@ -594,5 +569,20 @@ class Resource(models.Model):
 
         super().save(*args, **kwargs)
 
+        # Puis dans tous les cas..
+        # on met à jour le statut des couches du service cartographique..
+        if not created:
+            self.update_enable_layers_status()
+
+        # on met à jour le jeu de données parent..
+        layers = list(itertools.chain.from_iterable([
+            qs for qs in [
+                resource.get_layers() for resource
+                in Resource.objects.filter(dataset=self.dataset)]]))
+        self.dataset.bbox = get_extent([layer.name for layer in layers])
+        self.dataset.date_modification = timezone.now().date()
+        self.dataset.save()
+
+        # on supprime les données téléversées ou téléchargées..
         if with_file:
             remove_file(filename)

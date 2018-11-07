@@ -15,8 +15,10 @@
 <form method="post" action="" enctype="multipart/form-data" class="well">
 	{% csrf_token %}
 	<div class="buttons-on-the-right-side">
-		{% if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige %}
-			{% if resource.datagis_id and resource.datagis_id|length == 1 %}
+		{# if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige #}
+			{# if resource.datagis_id and resource.datagis_id|length == 1 #}
+		{% if user.profile.crige_membership %}
+			{% if resource.get_layers|length == 1 %}
 		<a class="btn btn-default" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ resource.datagis_id.0 }}">Éditer la ressource géographique</a>
 			{% else %}
 		<div class="btn-group">
@@ -24,9 +26,9 @@
 				Éditer les ressources géographiques <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
 			</button>
 			<ul class="dropdown-menu dropdown-menu-right">
-				{% for layer in resource.datagis_id %}
+				{% for layer in resource.get_layers %}
 				<li>
-					<a role="button" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ layer }}" style="text-align: right;">{{ layer }}</a>
+					<a role="button" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ layer.name }}" style="text-align: right;">{{ layer.name }}</a>
 				</li>
 				{% endfor %}
 			</ul>
@@ -157,7 +159,8 @@
 			</div>
 		</div>
 	</div>
-	{% if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige %}
+	{# if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige #}
+	{% if user.profile.crige_membership and resource.get_layers %}
 	<br />
 	<div>
 		<div class="row">

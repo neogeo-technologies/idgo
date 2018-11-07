@@ -211,6 +211,7 @@ $(function() {
 					.prop('class', 'form-control')
 					.prop('placeholder', 'Nom du jeu de données à supprimer')
 					.on('input', function(e) {
+						e.preventDefault();
 						if ($(this).val() === $row.find('td[name="name"]')[0].innerText) {
 							$button.removeClass('disabled').prop('disabled', false);
 						} else {

@@ -96,12 +96,11 @@ class Layer(models.Model):
 
         MRAHandler.get_or_create_workspace(organisation)
         MRAHandler.get_or_create_datastore(ws_name, ds_name)
-        MRAHandler.get_or_create_featuretype(
-            ws_name, ds_name, self.name, enabled=self.resource.ogc_services)
-
-        MRAHandler.enable_ows(ws_name=ws_name)
+        MRAHandler.get_or_create_featuretype(ws_name, ds_name, self.name)
 
         super().save(*args, **kwargs)
+
+        self.handle_enable_ows_status()
 
     @property
     def layername(self):
@@ -115,11 +114,12 @@ class Layer(models.Model):
             'LINE': 'Ligne',
             'RASTER': 'Raster'}.get(self.mra_info['type'])
 
-    def enable(self):
-        MRAHandler.enable_layer(self.name)
-
-    def disable(self):
-        MRAHandler.disable_layer(self.name)
+    def handle_enable_ows_status(self):
+        ws_name = self.resource.dataset.organisation.ckan_slug
+        if self.resource.ogc_services:
+            MRAHandler.enable_layer(ws_name, self.name)
+        else:
+            MRAHandler.disable_layer(ws_name, self.name)
 
     @property
     def is_enabled(self):
@@ -152,6 +152,7 @@ def delete_ows_layer(sender, instance, **kwargs):
     ckan_user = ckan_me(
         ckan.get_user(instance.resource.dataset.editor.username)['apikey'])
     ckan_user.delete_resource(ft_name)
+    ckan_user.close()
 
     # On supprime les objets MRA
     MRAHandler.del_layer(ft_name)

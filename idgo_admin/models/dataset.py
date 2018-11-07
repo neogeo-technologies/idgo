@@ -32,6 +32,7 @@ from idgo_admin.mra_client import MRAConflictError
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.mra_client import MRANotFoundError
 from idgo_admin.utils import three_suspension_points
+import itertools
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
 import uuid
@@ -351,30 +352,31 @@ class Dataset(models.Model):
             prev_ws_name = previous.organisation.ckan_slug
             ds_name = 'public'
             for resource in resources:
-                if resource.datagis_id:
-                    for datagis_id in resource.datagis_id:
-                        ft_name = str(datagis_id)
-                        try:
-                            MRAHandler.del_layer(ft_name)
-                            MRAHandler.del_featuretype(prev_ws_name, ds_name, ft_name)
-                        except MRANotFoundError:
-                            pass
-                        try:
-                            MRAHandler.publish_layers_resource(resource)
-                        except MRAConflictError:
-                            pass
-                        ckan_user.update_resource(
-                            ft_name,
-                            url='{0}#{1}'.format(
-                                OWS_URL_PATTERN.format(organisation=ws_name), ft_name))
+                for layer in resource.get_layers():
+                    ft_name = layer.name
+                    try:
+                        MRAHandler.del_layer(ft_name)
+                        MRAHandler.del_featuretype(prev_ws_name, ds_name, ft_name)
+                    except MRANotFoundError:
+                        pass
+                    try:
+                        MRAHandler.publish_layers_resource(resource)
+                    except MRAConflictError:
+                        pass
+                    ckan_user.update_resource(
+                        ft_name,
+                        url='{0}#{1}'.format(
+                            OWS_URL_PATTERN.format(organisation=ws_name), ft_name))
 
-        set = [r.datagis_id for r in
-               Resource.objects.filter(dataset=self).exclude(layer=None)]
-        if set:
+        layers = list(itertools.chain.from_iterable([
+            qs for qs in [
+                resource.get_layers() for resource
+                in Resource.objects.filter(dataset=self)]]))
+        if layers:
             data = {
                 'name': self.ckan_slug,
                 'title': self.name,
-                'layers': [item for sub in set for item in sub]}
+                'layers': [layer.name for layer in layers]}
             MRAHandler.create_or_update_layergroup(ws_name, data)
         else:
             MRAHandler.del_layergroup(ws_name, self.ckan_slug)

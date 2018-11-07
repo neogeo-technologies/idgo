@@ -301,32 +301,40 @@ class MRAHandler(metaclass=Singleton):
         self.remote.delete('layers', l_name)
 
     @MRAExceptionsHandler()
-    def update_layer(self, l_name, data):
+    def update_layer(self, l_name, data, ws_name=None):
+        if ws_name:
+            return self.remote.put('workspaces', ws_name,
+                                   'layers', l_name,
+                                   json={'layer': data})
         return self.remote.put('layers', l_name, json={'layer': data})
 
     @MRAExceptionsHandler()
-    def enable_layer(self, l_name):
-        self.update_layer(l_name, {'enabled': True})
+    def enable_layer(self, ws_name, l_name):
+        self.update_layer(l_name, {'enabled': True}, ws_name=ws_name)
 
     @MRAExceptionsHandler()
-    def disable_layer(self, l_name):
-        self.update_layer(l_name, {'enabled': False})
+    def disable_layer(self, ws_name, l_name):
+        self.update_layer(l_name, {'enabled': False}, ws_name=ws_name)
 
     @MRAExceptionsHandler()
     def get_ows_settings(self, ows, ws_name):
         return self.remote.get('services', ows, 'workspaces', ws_name, 'settings')[ows]
 
     @MRAExceptionsHandler()
-    def update_ows_settings(self, ows, ws_name, data):
-        self.remote.put('services', ows,
-                        'workspaces', ws_name,
-                        'settings', json={ows: data})
+    def update_ows_settings(self, ows, data, ws_name=None):
+        if ws_name:
+            self.remote.put('services', ows,
+                            'workspaces', ws_name,
+                            'settings', json={ows: data})
+        else:
+            self.remote.put('services', ows,
+                            'settings', json={ows: data})
 
-    def enable_ows(self, ws_name, ows='ows'):
-        self.update_ows_settings(ows, ws_name, {'enabled': True})
+    def enable_ows(self, ws_name=None, ows='ows'):
+        self.update_ows_settings(ows, {'enabled': True}, ws_name=ws_name)
 
-    def disable_ows(self, ws_name, ows='ows'):
-        self.update_ows_settings(ows, ws_name, {'enabled': False})
+    def disable_ows(self, ws_name=None, ows='ows'):
+        self.update_ows_settings(ows, {'enabled': False}, ws_name=ws_name)
 
     # def enable_wms(self, ws_name):
     #     self.enable_ows(ws_name, ows='wms')
