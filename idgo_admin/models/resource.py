@@ -229,6 +229,12 @@ class Resource(models.Model):
         return self.name
 
     @property
+    def filename(self):
+        if self.up_file:
+            return self.up_file.name
+        return '{}.{}'.format(slugify(self.name), self.format.lower())
+
+    @property
     def ckan_url(self):
         return urljoin(settings.CKAN_URL, 'dataset/{}/resource/{}'.format(
             self.dataset.ckan_slug, self.ckan_id))

@@ -310,7 +310,7 @@ class Extractor(View):
 
         context['crs'] = request.GET.get('crs', context.get('crs'))
         footprint = request.GET.get('footprint')
-        context['footprint'] = footprint and json.load(footprint) or context.get('footprint')
+        context['footprint'] = footprint and json.loads(footprint) or context.get('footprint')
         context['format'] = request.GET.get('format', context.get('format'))
 
         return render_with_info_profile(request, self.template, context=context)
@@ -387,8 +387,12 @@ class Extractor(View):
                         {**extract_params, **{'layer': layer.name}})
 
                 if resource.data_type == 'annexe':
+
+                    print(0)
+                    print(resource.filename)
+
                     additional_files.append({
-                        'file_name': '{}.{}'.format(resource.ckan_slug, format.lower()),
+                        'file_name': resource.filename,
                         'dir_name': 'Documentation associée',
                         'file_location': resource.ckan_url})
 
