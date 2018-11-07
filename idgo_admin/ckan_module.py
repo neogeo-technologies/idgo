@@ -553,5 +553,9 @@ class CkanManagerHandler(metaclass=Singleton):
     def get_licenses(self):
         return self.call_action('license_list')
 
+    @CkanExceptionsHandler()
+    def get_resource(self, id):
+        return self.call_action('resource_show', id=id)
+
 
 CkanHandler = CkanManagerHandler()

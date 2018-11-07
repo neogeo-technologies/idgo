@@ -25,6 +25,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import AsyncExtractorTask
@@ -390,7 +391,8 @@ class Extractor(View):
                     additional_files.append({
                         'file_name': resource.filename,
                         'dir_name': 'Documentation associée',
-                        'file_location': resource.ckan_url})
+                        'file_location': ckan.get_resource(
+                            str(resource.ckan_id)).get('url')})
 
         data = {
             'user_id': user.username,
