@@ -118,12 +118,9 @@ class OgrOpener(object):
             raise NotOGRError(
                 "The format '{}' is not supported.".format(extension))
         try:
-            print(vsi and '/{}/{}'.format(vsi, filename) or filename)
-
             self._datastore = DataSource(
                 vsi and '/{}/{}'.format(vsi, filename) or filename)
         except GDALException as e:
-            print(e)
             raise NotOGRError(
                 'The file received is not recognized as being a GIS data. {}'.format(e.__str__()))
 
@@ -324,14 +321,13 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
         for q in sql:
             try:
                 cursor.execute(q)
-            except Exception as e:
+            except Exception:
                 # Revenir à l'état initial
                 for table_id in [table['id'] for table in tables]:
                     drop_table(table_id)
                 for table_id in update.values():
                     rename_table('_{}'.format(table_id), table_id)
                 # Puis retourner l'erreur
-                print(e)
                 raise CriticalException((
                     'Une erreur est survenu lors de la création du service OGC. '
                     "Veuillez contacter l'administrateur du site."))
