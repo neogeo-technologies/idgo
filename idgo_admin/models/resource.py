@@ -108,6 +108,10 @@ class ResourceFormats(models.Model):
         return self.extension
 
 
+def only_reference_filename(instance, filename):
+    return filename
+
+
 class Resource(models.Model):
 
     FREQUENCY_CHOICES = (
@@ -147,6 +151,11 @@ class Resource(models.Model):
 
     description = models.TextField(
         verbose_name='Description', blank=True, null=True)
+
+    ftp_file = models.FileField(
+        verbose_name='Fichier déposé sur FTP',
+        blank=True, null=True,
+        upload_to=only_reference_filename)
 
     referenced_url = models.URLField(
         verbose_name='Référencer une URL',

@@ -25,12 +25,23 @@ from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
 from idgo_admin.models import SupportedCrs
 from idgo_admin.utils import readable_file_size
+import os
 
 
 try:
     DOWNLOAD_SIZE_LIMIT = settings.DOWNLOAD_SIZE_LIMIT
 except AttributeError:
     DOWNLOAD_SIZE_LIMIT = 104857600  # 100Mio
+
+FTP_DIR = settings.FTP_DIR
+
+
+def list_filenames_in_ftp_account(username):
+    filenames = []
+    for path, subdirs, files in os.walk(os.path.join(FTP_DIR, username)):
+        for name in files:
+            filenames.append(os.path.join(path, name))
+    return filenames
 
 
 def file_size(value):
@@ -52,6 +63,7 @@ class ResourceForm(forms.ModelForm):
                   'dl_url',
                   'extractable',
                   'format_type',
+                  'ftp_file',
                   'geo_restriction',
                   'lang',
                   'name',
@@ -69,6 +81,11 @@ class ResourceForm(forms.ModelForm):
 
     class CustomClearableFileInput(forms.ClearableFileInput):
         template_name = 'idgo_admin/widgets/file_drop_zone.html'
+
+    ftp_file = forms.ChoiceField(
+        label='Fichier déposé sur FTP',
+        choices=[],
+        required=False)
 
     up_file = forms.FileField(
         label='Téléversement',
@@ -155,7 +172,11 @@ class ResourceForm(forms.ModelForm):
         self.include_args = kwargs.pop('include', {})
         self._dataset = kwargs.pop('dataset', None)
         instance = kwargs.get('instance', None)
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
+        self.fields['ftp_file'].choices = [
+            (f, f) for f in list_filenames_in_ftp_account(user.username)]
 
         if instance and instance.up_file:
             self.fields['up_file'].widget.attrs['value'] = instance.up_file
@@ -165,10 +186,11 @@ class ResourceForm(forms.ModelForm):
         up_file = self.cleaned_data.get('up_file', None)
         dl_url = self.cleaned_data.get('dl_url', None)
         referenced_url = self.cleaned_data.get('referenced_url', None)
+        ftp_file = self.cleaned_data.get('ftp_file', None)
 
-        res_l = [up_file, dl_url, referenced_url]
+        res_l = [up_file, dl_url, referenced_url, ftp_file]
         if all(v is None for v in res_l):
-            for field in ('up_file', 'dl_url', 'referenced_url'):
+            for field in ('up_file', 'dl_url', 'referenced_url', 'ftp_file'):
                 self.add_error(field, 'Ce champ est obligatoire.')
 
         if sum(v is not None for v in res_l) > 1:
@@ -176,6 +198,7 @@ class ResourceForm(forms.ModelForm):
             up_file and self.add_error('up_file', error_msg)
             dl_url and self.add_error('dl_url', error_msg)
             referenced_url and self.add_error('referenced_url', error_msg)
+            ftp_file and self.add_error('ftp_file', error_msg)
 
         self.cleaned_data['last_update'] = timezone.now().date()
 
@@ -197,6 +220,7 @@ class ResourceForm(forms.ModelForm):
                   'dl_url': data['dl_url'],
                   'extractable': data['extractable'],
                   'format_type': data['format_type'],
+                  'ftp_file': data['ftp_file'],
                   'geo_restriction': data['geo_restriction'],
                   'lang': data['lang'],
                   'last_update': data['last_update'],

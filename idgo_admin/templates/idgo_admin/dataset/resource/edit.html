@@ -71,6 +71,8 @@
 				</div>
 			{% elif mode == 'referenced_url' %}
 				{% bootstrap_field form.referenced_url %}
+			{% elif mode == 'ftp_file' %}
+				{% bootstrap_field form.ftp_file %}
 			{% endif %}
 			</div>
 		{% else %}
@@ -83,6 +85,9 @@
 				</li>
 				<li role="presentation">
 					<a name="referenced_url" href="#referenced_url" aria-controls="referenced_url" role="tab" data-toggle="tab">Référencer une URL</a>
+				</li>
+				<li role="presentation">
+					<a name="ftp_file" href="#ftp_file" aria-controls="ftp_file" role="tab" data-toggle="tab">Dépôt FTP</a>
 				</li>
 			</ul>
 			<div class="tab-content" name="data-selector-panel">
@@ -106,6 +111,14 @@
 				<div role="tabpanel" class="tab-pane" id="referenced_url">
 					<p>Veuillez indiquer l'URL d'un jeu de données à référencer : </p>
 					{% bootstrap_field form.referenced_url show_label=False %}
+				</div>
+				<div role="tabpanel" class="tab-pane" id="ftp_file">
+				{% if user.profile.is_ftp_account_exists %}
+					<p>Veuillez sélectionner le fichier : </p>
+					{% bootstrap_field form.ftp_file show_label=False %}
+				{% else %}
+					<p>Votre compte FTP n'est pas activé pour l'activer, veuillez <a href="{% url 'idgo_admin:create_sftp_account' %}" class="btn btn-link">cliquez ici</a>.</p>
+				{% endif %}
 				</div>
 			</div>
 		{% endif %}
@@ -182,7 +195,7 @@
 	{% endif %}
 	<br />
 	<div class="buttons-on-the-right-side">
-		<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#resources">Annuler</a>
+		<a class="btn btn-default" href="{% url 'idgo_admin:dataset' %}?id={{ dataset.id }}#resources">Annuler</a>
 		<button type="submit" name="continue" value="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>
 		<button type="submit" name="save" value="save" class="btn btn-primary">Enregistrer</button>
 	</div>

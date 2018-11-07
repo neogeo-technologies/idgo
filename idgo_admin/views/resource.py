@@ -66,13 +66,15 @@ class ResourceManager(View):
             mode = (
                 resource.up_file and 'up_file' or
                 resource.dl_url and 'dl_url' or
-                resource.referenced_url and 'referenced_url'
+                resource.referenced_url and 'referenced_url' or
+                resource.ftp_file and 'ftp_file'
                 ) or None
         elif form:
             mode = (
                 form.files.get('up_file') and 'up_file' or
                 form.data.get('dl_url') and 'dl_url' or
-                form.data.get('referenced_url') and 'referenced_url'
+                form.data.get('referenced_url') and 'referenced_url' or
+                form.data.get('ftp_file') and 'ftp_file'
                 ) or None
 
         return {
@@ -103,7 +105,7 @@ class ResourceManager(View):
         instance = id and get_object_or_404_extended(
             Resource, user, include={'id': id, 'dataset_id': dataset.id}) or None
 
-        form = Form(instance=instance)
+        form = Form(instance=instance, user=user)
 
         context = self.get_context(form, profile, dataset, instance)
 
@@ -127,7 +129,8 @@ class ResourceManager(View):
             Resource, user, include={'id': id, 'dataset': dataset}) or None
 
         form = Form(
-            request.POST, request.FILES, instance=instance, dataset=dataset)
+            request.POST, request.FILES,
+            instance=instance, dataset=dataset, user=user)
 
         context = self.get_context(form, profile, dataset, instance)
 

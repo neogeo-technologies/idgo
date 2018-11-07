@@ -482,3 +482,44 @@ class UpdateAccount(View):
 
         return render_with_info_profile(
             request, self.template, context={'form': form}, status=200)
+
+
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def create_sftp_account(request):
+
+    user, profile = user_and_profile(request)
+
+    try:
+        profile.create_ftp_account()
+    except Exception as e:
+        print(e)
+        # TODO: Géré les exceptions
+        messages.error(
+            request, 'Une erreur est survenue lors de la création de votre compte FTP.')
+    else:
+        messages.success(request, (
+            'Le compte FTP a été créé avec succès. '
+            'Un mot de passe a été généré automatiquement. '
+            "Il n'est pas modifiable."))
+
+    return HttpResponseRedirect(reverse('idgo_admin:update_account'))
+
+
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def delete_sftp_account(request):
+
+    user, profile = user_and_profile(request)
+
+    try:
+        profile.delete_ftp_account()
+    except Exception as e:
+        print(e)
+        # TODO: Géré les exceptions
+        messages.error(
+            request, 'Une erreur est survenue lors de la suppression de votre compte FTP.')
+    else:
+        messages.success(request, 'Le compte FTP a été supprimé avec succès.')
+
+    return HttpResponseRedirect(reverse('idgo_admin:update_account'))
