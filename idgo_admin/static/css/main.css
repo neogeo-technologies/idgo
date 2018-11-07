@@ -268,12 +268,19 @@ table .table-cell-dropdown>.dropdown-menu {
             box-shadow: none;
 }
 
+.input-group .input-group-btn button[name="clear"] {
+    white-space: normal;
+    overflow: auto;
+    text-overflow: initial;
+}
+
 .input-group .input-group-btn button[name="clear"] .glyphicon {
     border-radius: 20px;
-    top: -2px;
+    top: 2px;
     padding: 5px;
     background-color: #ccc;
     color: #eee;
+    margin: -5px;
 }
 
 .input-group .input-group-btn.focus button[name="clear"] .glyphicon,
