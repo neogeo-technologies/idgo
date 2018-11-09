@@ -25,7 +25,7 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <form method="post" action="" enctype="multipart/form-data" class="well">
-	{% if id %}
+	{% if id and user.profile.is_admin %}
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-tertiary" href="{% url "idgo_admin:edit_remote_ckan_link" id=id %}">Synchroniser avec un catalogue CKAN</a>
 	</div>

@@ -305,6 +305,8 @@ def get_datasets(profile, qs, strict=False, harvested=False):
 
     if harvested:
         D_ = Dataset.harvested
+        # Si `harvested` est True, `strict` est tjs False
+        strict = False
     else:
         D_ = Dataset.objects.exclude(
             pk__in=[x.pk for x in Dataset.harvested.all()])
