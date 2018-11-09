@@ -432,6 +432,7 @@ class Resource(models.Model):
                 try:
                     gdalogr_obj = get_gdalogr_object(filename, extension)
                 except NotDataGISError:
+                    tables = []
                     pass
                 else:
                     if gdalogr_obj.__class__.__name__ == 'OgrOpener':
@@ -500,10 +501,12 @@ class Resource(models.Model):
                         # On référence les données matricielles vers Mapserver?
 
                 # On met à jour les champs de la ressource
-                self.crs = [
+                crs = [
                     SupportedCrs.objects.get(
                         auth_name='EPSG', auth_code=table['epsg'])
-                    for table in tables][0]  # On prend la première valeur (c'est moche)
+                    for table in tables]
+                # On prend la première valeur (c'est moche)
+                self.crs = crs and crs[0] or None
 
                 # Si les données changent..
                 if existing_layers and \

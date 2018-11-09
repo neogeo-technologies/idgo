@@ -179,6 +179,12 @@ class Dataset(models.Model):
         return self.name
 
     @property
+    def harvested(self):
+        if self in self.harvested.all():
+            print('self')
+            return True
+
+    @property
     def private(self):
         return not self.published
 

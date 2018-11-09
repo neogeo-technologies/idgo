@@ -186,6 +186,9 @@ class ResourceForm(forms.ModelForm):
             'referenced_url': self.cleaned_data.get('referenced_url', None),
             'ftp_file': self.cleaned_data.get('ftp_file', None)}
 
+        if res_l['ftp_file'] == '':
+            res_l['ftp_file'] = None
+
         if all(v is None for v in list(res_l.values())):
             for field in list(res_l.keys()):
                 self.add_error(field, 'Ce champ est obligatoire.')
@@ -212,6 +215,8 @@ class ResourceForm(forms.ModelForm):
 
         if data['ftp_file']:
             ftp_file = os.path.join(FTP_DIR, user.username, data['ftp_file'])
+        else:
+            ftp_file = None
 
         params = {'crs': data['crs'],
                   'data_type': data['data_type'],
