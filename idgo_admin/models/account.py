@@ -104,9 +104,9 @@ class Profile(models.Model):
                 profile=self,
                 validated_on__isnull=False).exists()
 
-        return {"is_admin": self.is_admin,
-                "is_referent": is_referent,
-                "is_editor": (self.user == dataset.editor) if dataset else False}
+        return {'is_admin': self.is_admin,
+                'is_referent': is_referent,
+                'is_editor': (self.user == dataset.editor) if dataset else False}
 
     @classmethod
     def get_crige_membership(cls):

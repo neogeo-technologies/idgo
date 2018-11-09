@@ -216,11 +216,14 @@ $(document).ajaxSend(function(e, xhr, settings) {
 								<a href="{% url "idgo_admin:jurisdictions" %}" role="tab">Territoires</a>
 							</li>
 							{% endif %}
-							{% if is_crige %}
+
+							{# L'onglet extracteur est uniquement visible pour les administrateurs CRIGE #}
+							{% if user.profile.is_crige_admin %}
 							<li role="presentation">
 								<a href="{% url "idgo_admin:extractor_dashboard" %}" role="tab">Extractions</a>
 							</li>
 							{% endif %}
+
 							{% block nav_content_extra %}
 							{% endblock nav_content_extra %}
 						</ul>
