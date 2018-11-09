@@ -102,9 +102,6 @@ def extractor_task(request, *args, **kwargs):
 @method_decorator(decorators, name='dispatch')
 class ExtractorDashboard(View):
 
-    template = 'idgo_admin/extractor/dashboard.html'
-    namespace = 'idgo_admin:extractor_dashboard'
-
     def get(self, request, *args, **kwargs):
 
         user, profile = user_and_profile(request)
@@ -147,7 +144,10 @@ class ExtractorDashboard(View):
             'supported_format': ExtractorSupportedFormat.objects.all(),
             'tasks': tasks[x:y]}
 
-        return render_with_info_profile(request, self.template, context=context)
+        print(context)
+
+        return render_with_info_profile(
+            request, 'idgo_admin/extractor/dashboard.html', context=context)
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def post(self, request, *args, **kwargs):

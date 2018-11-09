@@ -205,8 +205,6 @@ def confirm_rattachement(request, key):
                          last_name=user.last_name,
                          username=user.username,
                          organization_name=name)
-            status = 200
-
         else:
             action.profile.membership = True
             action.profile.organisation = action.organisation
@@ -222,11 +220,9 @@ def confirm_rattachement(request, key):
                          last_name=user.last_name,
                          username=user.username,
                          organization_name=name)
-            status = 200
             send_confirmed_membership_mail(user, action.organisation)
 
-    return render(request, 'idgo_admin/message.html',
-                  {'message': message}, status=status)
+    return render(request, 'idgo_admin/message.html', {'message': message})
 
 
 @ExceptionsHandler(ignore=[Http404])

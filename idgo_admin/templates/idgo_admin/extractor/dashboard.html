@@ -86,7 +86,13 @@
 				{% for task in tasks %}
 				<tr id="{{ task.uuid }}" name="{{ task.uuid }}" success="{{ task.success|yesno:'true,false,null' }}">
 					<td name="status">{{ task.status }}</td>
-					<td name="target"><a href="{% url 'idgo_admin:'|add:task.model|lower|add:'s' %}?id={{ task.target_object.id }}">{{ task.target_object }}</a></td>
+					<td name="target">
+						{% if task.model == 'Layer' %}
+						<a href="{% url 'idgo_admin:dataset_editor' id=task.target_object.resource.dataset.pk %}#resources/{{ task.target_object.resource.pk }}">{{ task.target_object }}</a>
+						{% else %}
+						<a href="{% url 'idgo_admin:'|add:task.model|lower|add:'s' %}?id={{ task.target_object.id }}">{{ task.target_object }}</a>
+						{% endif %}
+					</td>
 					<td name="submission">{{ task.submission_datetime|date:"d/m/Y H:i" }}</td>
 					<td name="start">{{ task.start_datetime|date:"d/m/Y H:i"|default:"" }}</td>
 					<td name="stop">{{ task.stop_datetime|date:"d/m/Y H:i"|default:"" }}</td>
