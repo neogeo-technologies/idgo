@@ -95,7 +95,7 @@ class DatasetManager(View):
 
         resources = []
         ogc_layers = []
-        for resource in Resource.custom.filter(dataset=dataset):
+        for resource in Resource.objects.filter(dataset=dataset):
             resources.append((
                 resource.pk,
                 resource.name,

@@ -33,7 +33,7 @@ class Command(BaseCommand):
         super().__init__(*args, **kwargs)
 
     def handle(self, *args, **options):
-        for instance in Resource.custom.all():
+        for instance in Resource.objects.all():
             if instance.dl_url and instance.synchronisation:
                 if self.is_to_synchronized(instance):
 

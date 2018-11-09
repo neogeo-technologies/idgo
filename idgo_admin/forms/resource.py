@@ -245,7 +245,7 @@ class ResourceForm(forms.ModelForm):
 
         if id:
             # Mise à jour de la ressource
-            resource = Resource.custom.get(pk=id)
+            resource = Resource.objects.get(pk=id)
             for key, value in params.items():
                 setattr(resource, key, value)
             resource.save(**kwargs)

@@ -265,15 +265,15 @@ class Extractor(View):
             context['organisation'] = organisation
 
         context['organisations'] = Organisation.objects.filter(
-            dataset__resource__in=Resource.custom.filter(extractable=True).exclude(layer=None)
+            dataset__resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
             ).distinct()
 
         context['datasets'] = Dataset.objects.filter(
             organisation=context['organisation'],
-            resource__in=Resource.custom.filter(extractable=True).exclude(layer=None)
+            resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
             ).distinct()
 
-        context['resources'] = Resource.custom.filter(
+        context['resources'] = Resource.objects.filter(
             dataset=context['dataset'],
             extractable=True
             ).exclude(layer=None)

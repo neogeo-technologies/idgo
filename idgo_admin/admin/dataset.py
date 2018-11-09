@@ -102,7 +102,7 @@ class DatasetAdmin(admin.ModelAdmin):
     search_fields = ['name', 'editor__username']
 
     def nb_resources(self, obj):
-        return Resource.custom.filter(dataset=obj).count()
+        return Resource.objects.filter(dataset=obj).count()
 
     nb_resources.short_description = 'Nombre de ressources'
 

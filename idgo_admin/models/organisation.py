@@ -280,9 +280,9 @@ class RemoteCkan(models.Model):
                             'referenced_url': resource['url']}
 
                         try:
-                            resource = Resource.custom.get(ckan_id=ckan_id)
+                            resource = Resource.objects.get(ckan_id=ckan_id)
                         except Resource.DoesNotExist:
-                            resource = Resource.custom.create(**kvp)
+                            resource = Resource.objects.create(**kvp)
                         else:
                             for k, v in kvp.items():
                                 setattr(resource, k, v)

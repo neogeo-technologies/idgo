@@ -242,6 +242,7 @@ class Resource(models.Model):
         to='SupportedCrs', verbose_name='CRS',
         on_delete=models.SET_NULL, blank=True, null=True)
 
+    objects = models.Manager()
     custom = ResourceManager()  # Renommer car pas très parlant...
 
     class Meta(object):
@@ -295,7 +296,7 @@ class Resource(models.Model):
             layers = qs.get('typenames')[-1].replace(' ', '').split(',')
         else:
             raise Http404()
-        return Resource.custom.filter(layer__name__in=layers).distinct()
+        return Resource.objects.filter(layer__name__in=layers).distinct()
 
     @property
     def anonymous_access(self):
@@ -328,7 +329,7 @@ class Resource(models.Model):
 
         # On sauvegarde l'objet avant de le mettre à jour (s'il existe)
         previous, created = self.pk \
-            and (Resource.custom.get(pk=self.pk), False) or (None, True)
+            and (Resource.objects.get(pk=self.pk), False) or (None, True)
 
         # Quelques valeur par défaut à la création de l'instance
         if created:
@@ -655,7 +656,7 @@ class Resource(models.Model):
         layers = list(itertools.chain.from_iterable([
             qs for qs in [
                 resource.get_layers() for resource
-                in Resource.custom.filter(dataset=self.dataset)]]))
+                in Resource.objects.filter(dataset=self.dataset)]]))
         self.dataset.bbox = get_extent([layer.name for layer in layers])
         self.dataset.date_modification = timezone.now().date()
         self.dataset.save()
