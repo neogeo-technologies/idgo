@@ -408,6 +408,11 @@ class Subscription(View):
                 'subscribe': referent_subscribe_process,
                 'unsubscribe': referent_unsubscribe_process}}
 
+        status_fr_label = {
+            'member': 'membre',
+            'contributor': 'contributeur',
+            'referent': 'référent'}
+
         try:
             actions[status][subscription](request, profile, organisation)
         except Exception as e:
@@ -415,14 +420,15 @@ class Subscription(View):
         else:
             if subscription == 'unsubscribe':
                 message = (
-                    "Vous n'êtes plus {0} de l'organisation <strong>{1}</strong>."
-                    ).format(status, organisation.name)
+                    "Vous n'êtes plus {} de l'organisation <strong>{1}</strong>."
+                    ).format(status_fr_label[status], organisation.name)
             elif subscription == 'subscribe':
                 message = (
-                    "Votre demande de statut de {0} de l'organisation "
-                    '<strong>{0}</strong> est en cours de traitement. '
+                    "Votre demande de statut de <strong>{}</strong> de l'organisation"
+                    '<strong>{}</strong> est en cours de traitement. '
                     "Celle-ci ne sera effective qu'après validation par "
-                    'un administrateur.').format(status, organisation.name)
+                    'un administrateur.').format(
+                        status_fr_label[status], organisation.name)
                 # Spécial CRIGE
                 if status == 'member':
                     messages.info(request, "L'organisation est partenaire du CRIGE.")
