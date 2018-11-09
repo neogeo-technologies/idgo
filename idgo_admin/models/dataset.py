@@ -188,7 +188,7 @@ class Dataset(models.Model):
 
     def get_resources(self, **kwargs):
         Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
-        return Resource.objects.filter(dataset=self, **kwargs)
+        return Resource.custom.filter(dataset=self, **kwargs)
 
     @property
     def name_overflow(self):
@@ -257,7 +257,7 @@ class Dataset(models.Model):
 
         ows = False
         Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
-        for resource in Resource.objects.filter(dataset=self):
+        for resource in Resource.custom.filter(dataset=self):
             ows = resource.ogc_services
 
         if self.license and self.license.ckan_id in [
@@ -348,7 +348,7 @@ class Dataset(models.Model):
         # Si l'organisation change
         ws_name = self.organisation.ckan_slug
         if previous and previous.organisation != self.organisation:
-            resources = Resource.objects.filter(dataset=previous)
+            resources = Resource.custom.filter(dataset=previous)
             prev_ws_name = previous.organisation.ckan_slug
             ds_name = 'public'
             for resource in resources:
@@ -371,7 +371,7 @@ class Dataset(models.Model):
         layers = list(itertools.chain.from_iterable([
             qs for qs in [
                 resource.get_layers() for resource
-                in Resource.objects.filter(dataset=self)]]))
+                in Resource.custom.filter(dataset=self)]]))
         if layers:
             data = {
                 'name': self.ckan_slug,
@@ -406,7 +406,7 @@ def pre_save_dataset(sender, instance, **kwargs):
 @receiver(pre_delete, sender=Dataset)
 def pre_delete_dataset(sender, instance, **kwargs):
     Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
-    Resource.objects.filter(dataset=instance).delete()
+    Resource.custom.filter(dataset=instance).delete()
     ckan.purge_dataset(instance.ckan_slug)
 
 

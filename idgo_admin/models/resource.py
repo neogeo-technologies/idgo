@@ -21,16 +21,18 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import IntegrityError
-from django.db import transaction
+# from django.db import transaction
 from django.http import Http404
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import drop_table
 from idgo_admin.datagis import get_extent
+from idgo_admin.datagis import get_gdalogr_object
 from idgo_admin.datagis import ogr2postgis
 from idgo_admin.datagis import VSI_PROTOCOLES
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
+from idgo_admin.exceptions import NotDataGISError
 from idgo_admin.exceptions import NotFoundSrsError
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedSrsError
@@ -110,6 +112,16 @@ class ResourceFormats(models.Model):
 
 def only_reference_filename(instance, filename):
     return filename
+
+
+class ResourceManager(models.Manager):
+
+    def create(self, **kwargs):
+        save_opts = kwargs.pop('save_opts', {})
+        obj = self.model(**kwargs)
+        self._for_write = True
+        obj.save(force_insert=True, using=self.db, **save_opts)
+        return obj
 
 
 class Resource(models.Model):
@@ -230,6 +242,8 @@ class Resource(models.Model):
         to='SupportedCrs', verbose_name='CRS',
         on_delete=models.SET_NULL, blank=True, null=True)
 
+    custom = ResourceManager()  # Renommer car pas très parlant...
+
     class Meta(object):
         verbose_name = 'Ressource'
 
@@ -281,7 +295,7 @@ class Resource(models.Model):
             layers = qs.get('typenames')[-1].replace(' ', '').split(',')
         else:
             raise Http404()
-        return Resource.objects.filter(layer__name__in=layers).distinct()
+        return Resource.custom.filter(layer__name__in=layers).distinct()
 
     @property
     def anonymous_access(self):
@@ -314,7 +328,7 @@ class Resource(models.Model):
 
         # On sauvegarde l'objet avant de le mettre à jour (s'il existe)
         previous, created = self.pk \
-            and (Resource.objects.get(pk=self.pk), False) or (None, True)
+            and (Resource.custom.get(pk=self.pk), False) or (None, True)
 
         # Quelques valeur par défaut à la création de l'instance
         if created:
@@ -332,11 +346,35 @@ class Resource(models.Model):
         editor = kwargs.pop('editor', None)  # L'éditeur de l'objet `request` (qui peut être celui du jeu de données ou un référent)
 
         # Quelques contrôles sur les fichiers de données téléversée ou à télécharger
+        filename = False
+        file_must_be_deleted = False  # permet d'indiquer si les fichiers doivent être supprimés à la fin de la chaine de traitement
+        publish_raw_resource = True  # permet d'indiquer si les ressources brutes sont publiées dans CKAN
 
-        with_file = False
-        if self.up_file and file_extras:
+        if self.ftp_file:
+            filename = self.ftp_file.file.name
+            # Si la taille de fichier dépasse la limite autorisée,
+            # on traite les données en fonciton du type détecté
+            if self.ftp_file.size > DOWNLOAD_SIZE_LIMIT:
+                extension = self.format_type.extension.lower()
+                if extension in VSI_PROTOCOLES.keys():
+                    try:
+                        gdalogr_obj = get_gdalogr_object(filename, extension)
+                    except NotDataGISError:
+                        # On essaye de traiter le jeux de données normalement, même si ça peut être long.
+                        pass
+                    else:
+                        if gdalogr_obj.__class__.__name__ == 'GdalOpener':
+                            raise ValidationError(
+                                'Le fichier raster dépasse la limite autorisée. '
+                                "Veuillez contacter l'administrateur du site.")
+                        # if gdalogr_obj.__class__.__name__ == 'OgrOpener':
+                        # On ne publie que le service OGC dans CKAN
+                        publish_raw_resource = False
+
+        elif (self.up_file and file_extras):
             filename = self.up_file.file.name
-            with_file = True
+            file_must_be_deleted = True
+
         elif self.dl_url:
             try:
                 directory, filename, content_type = download(
@@ -366,13 +404,13 @@ class Resource(models.Model):
                 else:
                     msg = 'Le téléchargement du fichier a échoué.'
                 raise ValidationError(msg, code='dl_url')
-            with_file = True
+            file_must_be_deleted = True
 
         # Détection des données SIG
         # =========================
 
         # /!\ Uniquement si l'utilisateur est membre partenaire du CRIGE
-        if with_file and editor.profile.crige_membership:
+        if filename and editor.profile.crige_membership:
 
             # On vérifie s'il s'agit de données SIG, uniquement pour
             # les extensions de fichier autorisées..
@@ -390,54 +428,75 @@ class Resource(models.Model):
                         re.sub('^(\w+)_[a-z0-9]{7}$', '\g<1>', layer.name),
                         layer.name) for layer in self.get_layers())
 
-                # On convertit les données vers Postgis.
                 try:
-                    tables = ogr2postgis(
-                        filename,
-                        extension=extension,
-                        update=existing_layers,
-                        epsg=self.crs and self.crs.auth_code or None)
+                    gdalogr_obj = get_gdalogr_object(filename, extension)
+                except NotDataGISError:
+                    pass
+                else:
+                    if gdalogr_obj.__class__.__name__ == 'OgrOpener':
+                        # On convertit les données vectorielles vers Postgis.
+                        try:
+                            tables = ogr2postgis(
+                                gdalogr_obj, update=existing_layers,
+                                epsg=self.crs and self.crs.auth_code or None)
 
-                except NotOGRError as e:
-                    remove_file(filename)
-                    msg = (
-                        "Le fichier reçu n'est pas reconnu "
-                        'comme étant un jeu de données SIG correct.')
-                    raise ValidationError(msg, code='__all__')
+                        except NotOGRError as e:
+                            file_must_be_deleted and remove_file(filename)
+                            msg = (
+                                "Le fichier reçu n'est pas reconnu "
+                                'comme étant un jeu de données SIG correct.')
+                            raise ValidationError(msg, code='__all__')
 
-                except NotFoundSrsError as e:
-                    remove_file(filename)
-                    msg = (
-                        'Votre ressource semble contenir des données SIG '
-                        'mais nous ne parvenons pas à détecter le système '
-                        'de coordonnées. Merci de sélectionner le code du '
-                        'CRS dans la liste ci-dessous.')
-                    raise ValidationError(msg, code='crs')
+                        except NotFoundSrsError as e:
+                            file_must_be_deleted and remove_file(filename)
+                            msg = (
+                                'Votre ressource semble contenir des données SIG '
+                                'mais nous ne parvenons pas à détecter le système '
+                                'de coordonnées. Merci de sélectionner le code du '
+                                'CRS dans la liste ci-dessous.')
+                            raise ValidationError(msg, code='crs')
 
-                except NotSupportedSrsError as e:
-                    remove_file(filename)
-                    msg = (
-                        'Votre ressource semble contenir des données SIG '
-                        'mais le système de coordonnées de celles-ci '
-                        "n'est pas supporté par l'application.")
-                    raise ValidationError(msg, code='__all__')
+                        except NotSupportedSrsError as e:
+                            file_must_be_deleted and remove_file(filename)
+                            msg = (
+                                'Votre ressource semble contenir des données SIG '
+                                'mais le système de coordonnées de celles-ci '
+                                "n'est pas supporté par l'application.")
+                            raise ValidationError(msg, code='__all__')
 
-                except ExceedsMaximumLayerNumberFixedError as e:
-                    remove_file(filename)
-                    raise ValidationError(e.__str__(), code='__all__')
+                        except ExceedsMaximumLayerNumberFixedError as e:
+                            file_must_be_deleted and remove_file(filename)
+                            raise ValidationError(e.__str__(), code='__all__')
 
-                # Ensuite, pour tous les jeux de données SIG trouvés,
-                # on crée le service ows à travers l'API MRA.
-                try:
-                    with transaction.atomic():
-                        for table in tables:
-                            Layer.objects.get_or_create(
-                                name=table['id'], resource=self)
-                except Exception as e:
-                    remove_file(filename)
-                    for table in tables:
-                        drop_table(table)
-                    raise e
+                        else:
+                            # Avant de créer des relations, l'objet doit exister
+                            if created:
+                                # S'il s'agit d'une création, alors on sauve l'objet.
+                                super().save(*args, **kwargs)
+                                kwargs['force_insert'] = False
+
+                            # Ensuite, pour tous les jeux de données SIG trouvés,
+                            # on crée le service ows à travers la création de `Layer`
+                            try:
+                                for table in tables:
+                                    Layer.objects.get_or_create(
+                                        name=table['id'], resource=self)
+                            except Exception as e:
+                                file_must_be_deleted and remove_file(filename)
+                                for table in tables:
+                                    drop_table(table)
+                                raise e
+
+                    if gdalogr_obj.__class__.__name__ == 'GdalOpener':
+                        raise Exception('TODO')  # TODO
+
+                        if created:
+                            # S'il s'agit d'une création, alors on sauve l'objet.
+                            super().save(*args, **kwargs)
+                            kwargs['force_insert'] = False
+
+                        # On pousse les données matricielles vers Mapserver?
+                        # On référence les données matricielles vers Mapserver?
 
                 # On met à jour les champs de la ressource
                 self.crs = [
@@ -527,12 +586,21 @@ class Resource(models.Model):
 
             if self.up_file and file_extras:
                 ckan_params['upload'] = self.up_file.file
-                ckan_params.update(file_extras)
-                filename = self.up_file.file.name
+                ckan_params['size'] = file_extras.get('size')
+                ckan_params['mimetype'] = file_extras.get('mimetype')
+                ckan_params['resource_type'] = file_extras.get('resource_type')
+
+            if self.ftp_file:  # and publish_raw_resource:
+                ckan_params['upload'] = self.ftp_file.file
+                ckan_params['size'] = self.ftp_file.size
+                ckan_params['mimetype'] = None  # TODO
+                ckan_params['resource_type'] = self.ftp_file.name  # TODO
+
+            ckan_package = ckan_user.get_package(str(self.dataset.ckan_id))
 
             # On publie la ressource brute CKAN
-            ckan_package = ckan_user.get_package(str(self.dataset.ckan_id))
-            ckan_user.publish_resource(ckan_package, **ckan_params)
+            if publish_raw_resource:
+                ckan_user.publish_resource(ckan_package, **ckan_params)
 
             # Puis on publie dans CKAN les ressources de type service (à déplacer dans Layer ???)
             for layer in self.get_layers():
@@ -587,11 +655,10 @@ class Resource(models.Model):
         layers = list(itertools.chain.from_iterable([
             qs for qs in [
                 resource.get_layers() for resource
-                in Resource.objects.filter(dataset=self.dataset)]]))
+                in Resource.custom.filter(dataset=self.dataset)]]))
         self.dataset.bbox = get_extent([layer.name for layer in layers])
         self.dataset.date_modification = timezone.now().date()
         self.dataset.save()
 
         # on supprime les données téléversées ou téléchargées..
-        if with_file:
-            remove_file(filename)
+        file_must_be_deleted and remove_file(filename)

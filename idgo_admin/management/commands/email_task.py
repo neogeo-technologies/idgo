@@ -51,7 +51,7 @@ class Command(BaseCommand):
         data = [('state', 'starting', 'end', 'dataset_id', 'dataset_name',
                  'resource_id', 'resource_name', 'error')]
         for item in query:
-            resource = Resource.objects.get(id=item.extras['resource'])
+            resource = Resource.custom.get(id=item.extras['resource'])
             dataset = resource.dataset
             data.append((
                 item.state, item.starting.isoformat(),

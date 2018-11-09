@@ -111,7 +111,7 @@ class Layer(models.Model):
         return {
             'POLYGON': 'Polygone',
             'POINT': 'Point',
-            'LINE': 'Ligne',
+            'LINESTRING': 'Ligne',
             'RASTER': 'Raster'}.get(self.mra_info['type'])
 
     def handle_enable_ows_status(self):

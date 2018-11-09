@@ -44,7 +44,15 @@ class GenericException(Exception):
 
 
 class NotOGRError(GenericException):
-    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données géographiques."
+    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données vectoriel."
+
+
+class NotGDALError(GenericException):
+    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données matriciel."
+
+
+class NotDataGISError(GenericException):
+    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données SIG."
 
 
 class ExceedsMaximumLayerNumberFixedError(GenericException):

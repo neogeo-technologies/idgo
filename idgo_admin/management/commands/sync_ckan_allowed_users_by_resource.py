@@ -31,7 +31,7 @@ class Command(BaseCommand):
         super(Command, self).__init__(*args, **kwargs)
 
     def handle(self, *args, **options):
-        for resource in Resource.objects.exclude(organisations_allowed=None):
+        for resource in Resource.custom.exclude(organisations_allowed=None):
             dataset = resource.dataset
 
             ckan_user = ckan_me(

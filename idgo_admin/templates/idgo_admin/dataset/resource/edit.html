@@ -18,7 +18,8 @@
 		{# if dataset.organisation.is_crige_partner and resource.is_datagis and is_crige #}
 			{# if resource.datagis_id and resource.datagis_id|length == 1 #}
 		{% if user.profile.crige_membership %}
-			{% if resource.get_layers|length == 1 %}
+			{% if not resource.get_layers|length %}
+			{% elif resource.get_layers|length == 1 %}
 		<a class="btn btn-default" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ resource.datagis_id.0 }}">Éditer la ressource géographique</a>
 			{% else %}
 		<div class="btn-group">
@@ -114,7 +115,7 @@
 				</div>
 				<div role="tabpanel" class="tab-pane" id="ftp_file">
 				{% if user.profile.is_ftp_account_exists %}
-					<p>Veuillez sélectionner le fichier : </p>
+					<p>Les fichiers que vous avez déposés sur votre compte FTP apparaîssent dans la liste ci-dessous.</p>
 					{% bootstrap_field form.ftp_file show_label=False %}
 				{% else %}
 					<p>Votre compte FTP n'est pas activé pour l'activer, veuillez <a href="{% url 'idgo_admin:create_sftp_account' %}" class="btn btn-link">cliquez ici</a>.</p>
@@ -208,6 +209,16 @@ $(function() {
 
 	const $crsInputContainer = $('#{{ form.crs.name }}_container').hide();
 
+	{% if form.errors %}
+		{% for field in form %}
+			{% for error in field.errors %}
+				{% if form.crs.name == field.name %}
+$crsInputContainer.show();
+				{% endif %}
+			{% endfor %}
+		{% endfor %}
+	{% endif %}
+
 	$('button[name="continue,save"]').prop('type', 'button');
 
 	const $permittedUsers = $('#permitted-users').collapse({toggle: false}).on('hidden.bs.collapse', function() {
@@ -237,6 +248,11 @@ $(function() {
 			$permittedOrganizations.collapse('hide');
 		};
 	};
+
+	$selectFtpFile = $('select[name="{{ form.ftp_file.name }}"]').change(function() {
+		$this = $('select[name="{{ form.ftp_file.name }}"] option:selected')
+		$('input[name="{{ form.name.name }}"]').val($this.text());
+	});
 
 	$selectAccess = $('select[name="{{ form.restricted_level.name }}"]').change(function() {
 		getAccessSelectedOption($(this));

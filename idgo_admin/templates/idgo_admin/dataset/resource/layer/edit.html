@@ -8,7 +8,17 @@
 		<div class="row">
 			<div class="col-xs-4">
 				<div class="form-group">
-					<label class="control-label" for="id_layername">Identifiant de la couche de données</label>
+					<label class="control-label" for="id_resource_name">Ressource de données géographiques</label>
+					<input type="text" name="title" id="id_resource_name" class="form-control" value="{{ layer.resource.name }}" disabled>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12">
+				<label class="control-label" for="id_layername">Identifiant de la couche de données disponible sur le service cartographique OGC</label>
+			</div>
+			<div class="col-xs-4">
+				<div class="form-group">
 					<input type="text" name="title" id="id_layername" class="form-control" value="{{ layer.layername }}" disabled>
 				</div>
 			</div>

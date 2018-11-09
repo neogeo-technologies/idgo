@@ -25,9 +25,11 @@ class LayerForm(forms.ModelForm):
         model = Layer
         fields = '__all__'
 
-    title = forms.CharField(label='Titre')
+    title = forms.CharField(
+        label="Titre (tel qu'il apparaîtra sur le service cartographique OGC)")
 
-    abstract = DescriptionField()
+    abstract = DescriptionField(
+        label='Description du jeu de données')
 
     def __init__(self, *args, **kwargs):
         include = kwargs.pop('include', {})

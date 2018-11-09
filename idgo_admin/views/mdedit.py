@@ -127,7 +127,7 @@ def prefill_dataset_model(dataset):
         if iso_topic:
             data['dataTopicCategories'].append(iso_topic)
 
-    resources = Resource.objects.filter(dataset=dataset)
+    resources = Resource.custom.filter(dataset=dataset)
     for resource in resources:
         entry = {
             'name': resource.name,

@@ -20,10 +20,13 @@ from django.conf import settings
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.gdal.error import SRSException
+from django.contrib.gis.gdal import GDALRaster
 from django.db import connections
 from idgo_admin.exceptions import CriticalException
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import NotFoundSrsError
+from idgo_admin.exceptions import NotDataGISError
+from idgo_admin.exceptions import NotGDALError
 from idgo_admin.exceptions import NotOGRError
 from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.utils import slugify
@@ -105,6 +108,18 @@ def retreive_epsg_through_regex(text):
             return supported_crs.auth_code
 
 
+class GdalOpener(object):
+
+    _raster = None
+
+    def __init__(self, filename, extension=None):
+        try:
+            self._raster = GDALRaster(filename)
+        except GDALException as e:
+            raise NotGDALError(
+                'The file received is not recognized as being a GIS raster data. {}'.format(e.__str__()))
+
+
 class OgrOpener(object):
 
     VSI_PROTOCOLES = VSI_PROTOCOLES
@@ -122,10 +137,20 @@ class OgrOpener(object):
                 vsi and '/{}/{}'.format(vsi, filename) or filename)
         except GDALException as e:
             raise NotOGRError(
-                'The file received is not recognized as being a GIS data. {}'.format(e.__str__()))
+                'The file received is not recognized as being a GIS vector data. {}'.format(e.__str__()))
 
     def get_layers(self):
         return self._datastore
+
+
+def get_gdalogr_object(filename, extension):
+    try:
+        return GdalOpener(filename, extension=extension)
+    except NotGDALError:
+        try:
+            return OgrOpener(filename, extension=extension)
+        except NotOGRError:
+            raise NotDataGISError()
 
 
 CREATE_TABLE = '''
@@ -181,9 +206,7 @@ def handle_ogr_geom_type(ogr_geom_type):
         }.get(ogr_geom_type.__str__().lower(), 'Geometry')
 
 
-def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
-    ds = OgrOpener(filename, extension=extension)
-
+def ogr2postgis(ds, epsg=None, limit_to=1, update={}):
     sql = []
     tables = []
 
@@ -213,8 +236,8 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                         epsg = layer.srs.auth_code('GEOGCS')
                 if not epsg:
                     epsg = retreive_epsg_through_proj4(layer.srs.proj4)
-            if not epsg:
-                epsg = retreive_epsg_through_regex(layer.srs.name)
+                if not epsg:
+                    epsg = retreive_epsg_through_regex(layer.srs.name)
             if not epsg:
                 raise NotFoundSrsError('SRS Not found')
 
