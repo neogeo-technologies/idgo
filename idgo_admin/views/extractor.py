@@ -78,7 +78,7 @@ def extractor_task(request, *args, **kwargs):
     elif instance.model == 'Resource':
         layers = [layer for layer in instance.target_object.get_layers()]
     elif instance.model == 'Layer':
-        layers = [layer]
+        layers = [instance.target_object]
 
     data = {
         'crs': crs.description,
