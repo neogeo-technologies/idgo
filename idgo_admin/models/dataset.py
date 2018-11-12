@@ -178,9 +178,17 @@ class Dataset(models.Model):
     def __str__(self):
         return self.name
 
-    @property
-    def is_harvested(self):
-        return self in Dataset.harvested.all()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+        try:
+            remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
+        except RemoteCkanDataset.DoesNotExist:
+            remote_ckan_dataset = None
+
+        self.is_harvested = remote_ckan_dataset and True or False
+        self.remote_ckan_dataset = remote_ckan_dataset or None
 
     @property
     def private(self):

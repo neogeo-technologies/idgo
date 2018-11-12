@@ -3,7 +3,7 @@
     "pk": 1,
     "fields": {
         "name": "Données ouvertes",
-        "description": "Donn\u00e9es ouvertes",
+        "description": "Données ouvertes",
         "ckan_slug": "donnees-ouvertes"
     }
 }, {
@@ -11,7 +11,7 @@
     "pk": 2,
     "fields": {
         "name": "Données intelligentes",
-        "description": "Donn\u00e9es intelligentes",
+        "description": "Données intelligentes",
         "ckan_slug": "donnees-intelligentes"
     }
 }, {
@@ -19,7 +19,15 @@
     "pk": 3,
     "fields": {
         "name": "Données géographiques",
-        "description": "Donn\u00e9es géographiques",
+        "description": "Données géographiques",
         "ckan_slug": "donnees-geographiques"
+    }
+}, {
+    "model": "idgo_admin.datatype",
+    "pk": 4,
+    "fields": {
+        "name": "Données moissonnées",
+        "description": "Données moissonnées",
+        "ckan_slug": "donnees-moissonnees"
     }
 }]

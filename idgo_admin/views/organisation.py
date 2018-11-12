@@ -457,22 +457,20 @@ class RemoteCkanEditor(View):
             validated_on__isnull=False) and True or False
 
         if is_referent or is_admin:
-
             organisation = get_object_or_404(Organisation, id=id)
+
+            context = {'organisation': organisation}
 
             try:
                 instance = RemoteCkan.objects.get(organisation=organisation)
             except RemoteCkan.DoesNotExist:
                 form = RemoteCkanForm()
             else:
+                context['datasets'] = Dataset.harvested.filter(organisation=organisation)
+                context['instance'] = instance
                 form = RemoteCkanForm(instance=instance)
 
-            datasets = Dataset.harvested.filter(organisation=organisation)
-
-            context = {
-                'datasets': datasets,
-                'form': form,
-                'organisation': organisation}
+            context['form'] = form
 
             return render_with_info_profile(
                 request, self.template, context=context)
@@ -493,10 +491,23 @@ class RemoteCkanEditor(View):
 
         organisation = get_object_or_404(Organisation, id=id)
 
-        instance, created = \
-            RemoteCkan.objects.get_or_create(organisation=organisation)
-        form = RemoteCkanForm(request.POST, instance=instance)
-        context = {'form': form, 'organisation': organisation}
+        context = {'organisation': organisation}
+
+        url = request.POST.get('url')
+        try:
+            with transaction.atomic():
+                instance, created = \
+                    RemoteCkan.objects.get_or_create(
+                        organisation=organisation, url=url)
+        except ValidationError as e:
+            form = RemoteCkanForm(request.POST)
+            form.add_error(e.code, e.message)
+        else:
+            context['datasets'] = Dataset.harvested.filter(organisation=organisation)
+            context['instance'] = instance
+            form = RemoteCkanForm(request.POST, instance=instance)
+
+        context['form'] = form
 
         if not form.is_valid():
             return render_with_info_profile(

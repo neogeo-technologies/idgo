@@ -75,6 +75,14 @@ select[multiple] {
     border-radius: 2px;
 }
 
+dl {
+    margin: 0;
+}
+
+dl dt:not(:first-child) {
+    padding-top: 10px;
+}
+
 /* ************************************************************************* */
 
 table {

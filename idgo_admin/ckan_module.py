@@ -103,6 +103,9 @@ class CkanBaseHandler(object):
     def __init__(self, url, api_key=None):
         self.remote = RemoteCKAN(url, apikey=api_key)
 
+    def close(self):
+        self.remote.close()
+
     @timeout
     def call_action(self, action, **kwargs):
         return self.remote.call_action(action, kwargs)

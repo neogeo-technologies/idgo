@@ -19,15 +19,21 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import ValidationError
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_save
+from django.db import transaction
 from django.dispatch import receiver
 from django.utils.text import slugify
+from functools import reduce
 from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanSyncingError
+from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.mra_client import MRAHandler
 import inspect
+from urllib.parse import urljoin
 import uuid
 
 
@@ -187,6 +193,19 @@ class RemoteCkan(models.Model):
             Dataset.harvested.filter(
                 remote_ckan=previous,
                 remote_organisation__in=remote_organisation__in).delete()
+        else:
+            # Dans le cas d'une création, on vérifie si l'URL CKAN est valide
+            try:
+                ckan = CkanBaseHandler(self.url)
+                ckan.get_all_organizations(
+                    all_fields=True, include_dataset_count=True)
+            except (CkanSyncingError, CkanTimeoutError) as e:
+                msg = (
+                    'Impossible de récupérer les informations depuis le '
+                    "catalogue CKAN. Veuillez vérifier l'url du service.")
+                raise ValidationError(msg, code='url')
+            finally:
+                ckan.close()
 
         # (2) Sauver l'instance
         super().save(*args, **kwargs)
@@ -207,86 +226,98 @@ class RemoteCkan(models.Model):
 
         # Puis on moissonne le catalogue
         if self.sync_with:
-            for value in self.sync_with:
-                ckan_organisation = ckan.get_organization(
-                    value, include_datasets=True,
-                    include_groups=True, include_tags=True)
+            try:
+                with transaction.atomic():
 
-                if not ckan_organisation.get('package_count', 0):
-                    continue
-                for package in ckan_organisation.get('packages'):
-                    if not package['state'] == 'active' \
-                            or not package['type'] == 'dataset':
-                        continue
-                    package = ckan.get_package(package['id'])
+                    # TODO: Factoriser
+                    for value in self.sync_with:
+                        ckan_organisation = ckan.get_organization(
+                            value, include_datasets=True,
+                            include_groups=True, include_tags=True)
 
-                    ckan_id = uuid.UUID(package['id'])
+                        if not ckan_organisation.get('package_count', 0):
+                            continue
+                        for package in ckan_organisation.get('packages'):
+                            if not package['state'] == 'active' \
+                                    or not package['type'] == 'dataset':
+                                continue
+                            package = ckan.get_package(package['id'])
 
-                    # categories = None
+                            ckan_id = uuid.UUID(package['id'])
 
-                    for l in License.objects.all():
-                        license = None
-                        if l.ckan_id == license:
-                            license = l
+                            # categories = None
 
-                    # for kvp in package.pop('extras', []):
-                    #     if kvp['key'] == 'spatial':
-                    #         geojson = kvp['value']
+                            for l in License.objects.all():
+                                license = None
+                                if l.ckan_id == license:
+                                    license = l
 
-                    kvp = {
-                        # 'bbox': bbox,
-                        'broadcaster_email': None,
-                        'broadcaster_name': None,
-                        # 'categories': categories,
-                        'ckan_slug': package.get('name', None),
-                        'date_creation': None,  # package.get('metadata_created', None),  # ???
-                        'date_modification': None,  # package.get('metadata_modified', None),  # ???
-                        'date_publication': None,  # ???
-                        # 'data_type': None,
-                        'description': package.get('notes', None),
-                        'editor': editor,
-                        'geocover': None,  # ???
-                        'geonet_id': None,
-                        'granularity': None,
-                        'is_inspire': False,
-                        # 'keywords': [tag['display_name'] for tag in package.get('tags')],
-                        # 'license': license,
-                        'name': package.get('title', None),
-                        'owner_email': package.get('author_email', None),
-                        'owner_name': package.get('author', None),
-                        'organisation': self.organisation,
-                        'published': not package.get('private', False),
-                        'thumbnail': None,
-                        'remote_ckan': self,
-                        'remote_dataset': ckan_id,
-                        'remote_organisation': value,
-                        'support': None,
-                        'update_freq': 'never'}
+                            # for kvp in package.pop('extras', []):
+                            #     if kvp['key'] == 'spatial':
+                            #         geojson = kvp['value']
 
-                    dataset, created = Dataset.harvested.update_or_create(**kvp)
+                            kvp = {
+                                # 'bbox': bbox,
+                                'broadcaster_email': None,
+                                'broadcaster_name': None,
+                                # 'categories': categories,
+                                'ckan_slug': package.get('name', None),
+                                'date_creation': None,  # package.get('metadata_created', None),  # ???
+                                'date_modification': None,  # package.get('metadata_modified', None),  # ???
+                                'date_publication': None,  # ???
+                                # 'data_type': None,
+                                'description': package.get('notes', None),
+                                'editor': editor,
+                                'geocover': None,  # ???
+                                'geonet_id': None,
+                                'granularity': None,
+                                'is_inspire': False,
+                                # 'keywords': [tag['display_name'] for tag in package.get('tags')],
+                                # 'license': license,
+                                'name': package.get('title', None),
+                                'owner_email': package.get('author_email', None),
+                                'owner_name': package.get('author', None),
+                                'organisation': self.organisation,
+                                'published': not package.get('private', False),
+                                'thumbnail': None,
+                                'remote_ckan': self,
+                                'remote_dataset': ckan_id,
+                                'remote_organisation': value,
+                                'support': None,
+                                'update_freq': 'never'}
 
-                    for resource in package.get('resources', []):
-                        ckan_id = uuid.UUID(resource['id'])
+                            dataset, created = Dataset.harvested.update_or_create(**kvp)
 
-                        format_type, _ = \
-                            ResourceFormats.objects.get_or_create(
-                                extension=resource['format'].upper())
+                            for resource in package.get('resources', []):
+                                ckan_id = uuid.UUID(resource['id'])
 
-                        kvp = {
-                            'ckan_id': ckan_id,
-                            'dataset': dataset,
-                            'format_type': format_type,
-                            'name': resource['name'],
-                            'referenced_url': resource['url']}
+                                format_type, _ = \
+                                    ResourceFormats.objects.get_or_create(
+                                        extension=resource['format'].upper())
 
-                        try:
-                            resource = Resource.objects.get(ckan_id=ckan_id)
-                        except Resource.DoesNotExist:
-                            resource = Resource.objects.create(**kvp)
-                        else:
-                            for k, v in kvp.items():
-                                setattr(resource, k, v)
-                        resource.save(editor=editor, sync_ckan=True)
+                                kvp = {
+                                    'ckan_id': ckan_id,
+                                    'dataset': dataset,
+                                    'format_type': format_type,
+                                    'name': resource['name'],
+                                    'referenced_url': resource['url']}
+
+                                try:
+                                    resource = Resource.objects.get(ckan_id=ckan_id)
+                                except Resource.DoesNotExist:
+                                    resource = Resource.objects.create(**kvp)
+                                else:
+                                    for k, v in kvp.items():
+                                        setattr(resource, k, v)
+                                resource.save(editor=editor, sync_ckan=True)
+                        # end for package in ckan_organisation.get('packages')
+                    # end for value in self.sync_with
+
+            except Exception as e:
+                # TODO: Gérer les exceptions
+                raise e
+            finally:
+                ckan.close()
 
     def delete(self, *args, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
@@ -324,6 +355,12 @@ class RemoteCkanDataset(models.Model):
         verbose_name = 'Jeu de données moissonné'
         verbose_name_plural = 'Jeux de données moissonnés'
         unique_together = ('remote_ckan', 'dataset')
+
+    @property
+    def url(self):
+        return reduce(
+            urljoin, (
+                self.remote_ckan.url, '/dataset/', str(self.remote_dataset)))
 
 
 # Triggers
