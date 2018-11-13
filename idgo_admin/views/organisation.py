@@ -412,14 +412,15 @@ class Subscription(View):
         else:
             if subscription == 'unsubscribe':
                 message = (
-                    "Vous n'êtes plus {} de l'organisation <strong>{1}</strong>."
+                    "Vous n'êtes plus {} de l'organisation "
+                    '« <strong>{}</strong> ».'
                     ).format(status_fr_label[status], organisation.name)
             elif subscription == 'subscribe':
                 message = (
-                    "Votre demande de statut de <strong>{}</strong> de l'organisation"
-                    '<strong>{}</strong> est en cours de traitement. '
-                    "Celle-ci ne sera effective qu'après validation par "
-                    'un administrateur.').format(
+                    'Votre demande de statut de <strong>{}</strong> de '
+                    "l'organisation « <strong>{}</strong> » est en cours de "
+                    "traitement. Celle-ci ne sera effective qu'après "
+                    'validation par un administrateur.').format(
                         status_fr_label[status], organisation.name)
                 # Spécial CRIGE
                 if status == 'member':
