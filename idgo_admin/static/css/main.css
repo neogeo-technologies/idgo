@@ -979,7 +979,7 @@ table .table-cell-dropdown>.dropdown-menu {
 
 .main-container {
     padding-top: 0px;
-    padding-bottom: 200px;
+    min-height: 300px;
     bottom: 0;
     background: linear-gradient(#eee 0px, #eee 50px, #fefefe 300px);
 }
