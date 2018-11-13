@@ -27,9 +27,17 @@ class JurisdictionForm(forms.ModelForm):
         property_fields = ('name', 'code',)
         fields = property_fields + ('communes',)
 
-    name = forms.CharField(label='Nom', required=False)
+    name = forms.CharField(
+        label='Nom',
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': 'Le nom du territoire'}))
 
-    code = forms.CharField(label='Code INSEE', required=False)
+    code = forms.CharField(
+        label="Code d'identification",
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': 'Par exemple le code INSEE'}))
 
     communes = forms.ModelMultipleChoiceField(
         label='Communes',

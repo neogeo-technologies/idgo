@@ -267,9 +267,7 @@ $(function() {
 
 	$('form button[type="submit"]').click(function(e) {
 		const $form = $('form[name="' + this.name + '"]');
-		$modalHourglass.one('show.bs.modal', function(e) {
-			$form.submit();
-		}).modal('show');
+		$form.submit();
 	});
 
 });
