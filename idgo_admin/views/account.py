@@ -34,7 +34,7 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from idgo_admin.ckan_module import CkanBaseError
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.account import SignInForm

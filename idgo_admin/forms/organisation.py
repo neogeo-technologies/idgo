@@ -15,8 +15,8 @@
 
 
 from django import forms
-from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.ckan_module import CkanBaseHandler
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.forms import AddressField
 from idgo_admin.forms import CityField
 from idgo_admin.forms import ContributorField

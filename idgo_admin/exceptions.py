@@ -18,8 +18,8 @@ from django.http import Http404
 from functools import wraps
 
 
-class ProfileHttp404(Http404):
-    pass
+# Définition des exceptions
+# =========================
 
 
 class GenericException(Exception):
@@ -43,16 +43,16 @@ class GenericException(Exception):
         return ' '.join(self.args)
 
 
-class NotOGRError(GenericException):
-    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données vectoriel."
+class ConflictError(GenericException):
+    pass
 
 
-class NotGDALError(GenericException):
-    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données matriciel."
+class CkanBaseError(GenericException):
+    pass
 
 
-class NotDataGISError(GenericException):
-    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données SIG."
+class DatagisBaseError(GenericException):
+    pass
 
 
 class ExceedsMaximumLayerNumberFixedError(GenericException):
@@ -70,32 +70,11 @@ class ExceedsMaximumLayerNumberFixedError(GenericException):
         return ' '.join(sentences)
 
 
-class NotFoundSrsError(GenericException):
-    message = "Le système de coordonnées n'est pas reconnu."
-
-
-class NotSupportedSrsError(GenericException):
-    message = "Le système de coordonnées n'est pas supporté par l'application."
-
-
-class UnexpectedError(GenericException):
-    pass
-
-
-class CriticalException(GenericException):
-    pass
-
-
-class ConflictError(GenericException):
-    pass
-
-
-class FakeError(GenericException):
+class ProfileHttp404(Http404):
     pass
 
 
 class SizeLimitExceededError(GenericException):
-
     message = 'La taille de la pièce jointe dépasse la limite autorisée.'
 
     def __init__(self, *args, **kwargs):
@@ -106,8 +85,8 @@ class SizeLimitExceededError(GenericException):
         super().__init__(*args, **kwargs)
 
 
-class ErrorOnDeleteAccount(Exception):
-    pass
+# Utilitaires
+# ===========
 
 
 class ExceptionsHandler(object):

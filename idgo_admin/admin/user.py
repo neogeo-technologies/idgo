@@ -31,7 +31,6 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.exceptions import ErrorOnDeleteAccount
 from idgo_admin.forms.account import DeleteAdminForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
@@ -280,17 +279,13 @@ class ProfileAdmin(admin.ModelAdmin):
                     'user_id': user.id,
                     'related_datasets': related_datasets})
             if form.is_valid():
-                try:
-                    form.delete_controller(user, form.cleaned_data.get("new_user"), related_datasets)
-                except ErrorOnDeleteAccount:
-                    raise
-                else:
-                    self.message_user(
-                        request, 'Le compte utilisateur a bien été supprimé.')
-                    url = reverse(
-                        'admin:idgo_admin_profile_changelist',
-                        current_app=self.admin_site.name)
-                    return HttpResponseRedirect(url)
+                form.delete_controller(user, form.cleaned_data.get("new_user"), related_datasets)
+                self.message_user(
+                    request, 'Le compte utilisateur a bien été supprimé.')
+                url = reverse(
+                    'admin:idgo_admin_profile_changelist',
+                    current_app=self.admin_site.name)
+                return HttpResponseRedirect(url)
 
         context = self.admin_site.each_context(request)
         context['opts'] = self.model._meta

@@ -29,13 +29,13 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import drop_table
 from idgo_admin.datagis import get_extent
 from idgo_admin.datagis import get_gdalogr_object
+from idgo_admin.datagis import NotDataGISError
+from idgo_admin.datagis import NotFoundSrsError
+from idgo_admin.datagis import NotOGRError
+from idgo_admin.datagis import NotSupportedSrsError
 from idgo_admin.datagis import ogr2postgis
 from idgo_admin.datagis import VSI_PROTOCOLES
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
-from idgo_admin.exceptions import NotDataGISError
-from idgo_admin.exceptions import NotFoundSrsError
-from idgo_admin.exceptions import NotOGRError
-from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin.models import get_all_users_for_organizations
 from idgo_admin.utils import download

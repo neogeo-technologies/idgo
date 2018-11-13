@@ -27,7 +27,7 @@ from django.db import transaction
 from django.dispatch import receiver
 from django.utils.text import slugify
 from functools import reduce
-from idgo_admin.ckan_module import CkanBaseError
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.mra_client import MRAHandler

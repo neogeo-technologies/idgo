@@ -22,13 +22,8 @@ from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.gdal.error import SRSException
 from django.contrib.gis.gdal import GDALRaster
 from django.db import connections
-from idgo_admin.exceptions import CriticalException
+from idgo_admin.exceptions import DatagisBaseError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
-from idgo_admin.exceptions import NotFoundSrsError
-from idgo_admin.exceptions import NotDataGISError
-from idgo_admin.exceptions import NotGDALError
-from idgo_admin.exceptions import NotOGRError
-from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.utils import slugify
 import re
 from uuid import uuid4
@@ -52,6 +47,30 @@ except AttributeError:
 SCHEMA = 'public'
 THE_GEOM = 'the_geom'
 TO_EPSG = 4171
+
+
+class NotDataGISError(DatagisBaseError):
+    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données SIG."
+
+
+class NotFoundSrsError(DatagisBaseError):
+    message = "Le système de coordonnées n'est pas reconnu."
+
+
+class NotGDALError(DatagisBaseError):
+    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données matriciel."
+
+
+class NotOGRError(DatagisBaseError):
+    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données vectoriel."
+
+
+class NotSupportedSrsError(DatagisBaseError):
+    message = "Le système de coordonnées n'est pas supporté par l'application."
+
+
+class SQLError(DatagisBaseError):
+    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données SIG."
 
 
 def is_valid_epsg(code):
@@ -344,17 +363,14 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}):
         for q in sql:
             try:
                 cursor.execute(q)
-            except Exception:
+            except Exception as e:
                 # Revenir à l'état initial
                 for table_id in [table['id'] for table in tables]:
                     drop_table(table_id)
                 for table_id in update.values():
                     rename_table('_{}'.format(table_id), table_id)
                 # Puis retourner l'erreur
-                raise CriticalException((
-                    'Une erreur est survenu lors de la création du service OGC. '
-                    "Veuillez contacter l'administrateur du site."))
-        cursor.close()
+                raise SQLError(e.__str__())
 
     for table_id in update.values():
         drop_table('_{}'.format(table_id))

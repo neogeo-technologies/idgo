@@ -21,8 +21,7 @@ from datetime import datetime
 from django.conf import settings
 from django.db import IntegrityError
 from functools import wraps
-from idgo_admin.exceptions import ConflictError
-from idgo_admin.exceptions import GenericException
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.utils import Singleton
 import timeout_decorator
 import unicodedata
@@ -51,14 +50,6 @@ def timeout(fun):
     return wrapper
 
 
-# Exceptions CKAN
-# ===============
-
-
-class CkanBaseError(GenericException):
-    pass
-
-
 class CkanReadError(CkanBaseError):
     message = "L'url ne semble pas indiquer un site CKAN."
 
@@ -69,6 +60,10 @@ class CkanApiError(CkanBaseError):
 
 class CkanTimeoutError(CkanBaseError):
     message = 'Le site CKAN met du temps à répondre, celui-ci est peut-être temporairement inaccessible.'
+
+
+class CkanNotFoundError(CkanBaseError):
+    message = 'La ressource CKAN ne semble pas exister.'
 
 
 class CkanSyncingError(CkanBaseError):
@@ -84,9 +79,11 @@ class CkanSyncingError(CkanBaseError):
                 kwargs.update(**m)
         super().__init__(*args, **kwargs)
 
-
-class CkanNotFoundError(CkanBaseError):
-    pass
+    def __str__(self):
+        try:
+            return '{} {}'.format(self.message, ' '.join(self.name))
+        except AttributeError:
+            return super().__str__()
 
 
 class CkanExceptionsHandler(object):

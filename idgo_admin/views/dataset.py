@@ -28,7 +28,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from idgo_admin.ckan_module import CkanBaseError
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler

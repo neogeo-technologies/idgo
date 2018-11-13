@@ -29,10 +29,10 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import functools
-from idgo_admin.ckan_module import CkanBaseError
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
-from idgo_admin.exceptions import UnexpectedError
+from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.organisation import OrganizationForm as Form
 from idgo_admin.forms.organisation import RemoteCkanForm
 from idgo_admin.models import AccountActions
@@ -84,7 +84,7 @@ def member_subscribe_process(request, profile, organisation, mail=True):
 
 def member_unsubscribe_process(request, profile, organisation):
     if profile.organisation != organisation:
-        raise UnexpectedError('Echec')
+        raise GenericException()
     if profile.organisation.is_crige_partner:
         profile.crige_membership = False
     profile.organisation = None
