@@ -28,10 +28,8 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanNotFoundError
-from idgo_admin.ckan_module import CkanSyncingError
-from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
@@ -151,14 +149,6 @@ class ResourceManager(View):
         try:
             with transaction.atomic():
                 instance = form.handle_me(request, dataset, id=id)
-        except CkanSyncingError as e:
-            error = {'__all__': [e.__str__()]}
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-        except CkanTimeoutError:
-            error = {'__all__': [e.__str__()]}
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
         except ValidationError as e:
             if e.code == 'crs':
                 form.add_error(e.code, '')
@@ -168,6 +158,10 @@ class ResourceManager(View):
             messages.error(request, ' '.join(e))
             error = dict(
                 [(k, [str(m) for m in v]) for k, v in form.errors.items()])
+        except CkanBaseError as e:
+            error = {'__all__': [e.__str__()]}
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
         else:
             if id:
                 send_resource_update_mail(user, instance)
@@ -225,10 +219,7 @@ class ResourceManager(View):
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
             ckan_user.delete_resource(ckan_id)
-        except CkanNotFoundError as e:
-            status = 500
-            messages.error(request, e.__str__())
-        except CkanSyncingError as e:
+        except CkanBaseError as e:
             status = 500
             messages.error(request, e.__str__())
         else:

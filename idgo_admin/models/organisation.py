@@ -27,10 +27,9 @@ from django.db import transaction
 from django.dispatch import receiver
 from django.utils.text import slugify
 from functools import reduce
+from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanSyncingError
-from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.mra_client import MRAHandler
 import inspect
 from urllib.parse import urljoin
@@ -197,14 +196,9 @@ class RemoteCkan(models.Model):
             # Dans le cas d'une création, on vérifie si l'URL CKAN est valide
             try:
                 ckan = CkanBaseHandler(self.url)
-                ckan.get_all_organizations(
-                    all_fields=True, include_dataset_count=True)
-            except (CkanSyncingError, CkanTimeoutError) as e:
-                msg = (
-                    'Impossible de récupérer les informations depuis le '
-                    "catalogue CKAN. Veuillez vérifier l'url du service.")
-                raise ValidationError(msg, code='url')
-            finally:
+            except CkanBaseError as e:
+                raise ValidationError(e.__str__(), code='url')
+            else:
                 ckan.close()
 
         # (2) Sauver l'instance

@@ -51,7 +51,29 @@ def timeout(fun):
     return wrapper
 
 
-class CkanSyncingError(GenericException):
+# Exceptions CKAN
+# ===============
+
+
+class CkanBaseError(GenericException):
+    pass
+
+
+class CkanReadError(CkanBaseError):
+    message = "L'url ne semble pas indiquer un site CKAN."
+
+
+class CkanApiError(CkanBaseError):
+    message = "L'API CKAN n'est pas accessible."
+
+
+class CkanTimeoutError(CkanBaseError):
+    message = 'Le site CKAN met du temps à répondre, celui-ci est peut-être temporairement inaccessible.'
+
+
+class CkanSyncingError(CkanBaseError):
+    message = "Une erreur de synchronisation avec l'instance de CKAN est survenue."
+
     def __init__(self, *args, **kwargs):
         for item in self.args:
             try:
@@ -60,18 +82,11 @@ class CkanSyncingError(GenericException):
                 continue
             if isinstance(m, dict):
                 kwargs.update(**m)
-            # else: TODO
         super().__init__(*args, **kwargs)
 
 
-class CkanNotFoundError(GenericException):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-
-class CkanTimeoutError(CkanSyncingError):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class CkanNotFoundError(CkanBaseError):
+    pass
 
 
 class CkanExceptionsHandler(object):
@@ -100,8 +115,17 @@ class CkanExceptionsHandler(object):
 
 class CkanBaseHandler(object):
 
-    def __init__(self, url, api_key=None):
-        self.remote = RemoteCKAN(url, apikey=api_key)
+    def __init__(self, url, apikey=None):
+        self.apikey = apikey
+        self.remote = RemoteCKAN(url, apikey=self.apikey)
+        try:
+            res = self.call_action('site_read')
+        except Exception:
+            raise CkanReadError()
+        else:
+            if not res:
+                self.close()
+                raise CkanApiError()
 
     def close(self):
         self.remote.close()
@@ -122,27 +146,6 @@ class CkanBaseHandler(object):
             return self.call_action('organization_show', id=id, **kwargs)
         except CkanError.NotFound:
             return None
-
-    @CkanExceptionsHandler(ignore=[CkanError.NotFound])
-    def get_package(self, id):
-        try:
-            return self.call_action(
-                'package_show', id=id, include_tracking=True)
-        except CkanError.NotFound:
-            return False
-
-
-class CkanUserHandler(object):
-
-    def __init__(self, api_key):
-        self.remote = RemoteCKAN(CKAN_URL, apikey=api_key)
-
-    def close(self):
-        self.remote.close()
-
-    @timeout
-    def call_action(self, action, **kwargs):
-        return self.remote.call_action(action, kwargs)
 
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
     def get_package(self, id):
@@ -240,16 +243,16 @@ class CkanUserHandler(object):
             return None
 
 
-class CkanManagerHandler(metaclass=Singleton):
+class CkanUserHandler(CkanBaseHandler):
 
-    apikey = CKAN_API_KEY
+    def __init__(self, apikey):
+        super().__init__(CKAN_URL, apikey=apikey)
+
+
+class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
 
     def __init__(self):
-        self.remote = RemoteCKAN(CKAN_URL, apikey=self.apikey)
-
-    @timeout
-    def call_action(self, action, **kwargs):
-        return self.remote.call_action(action, kwargs)
+        super().__init__(CKAN_URL, apikey=CKAN_API_KEY)
 
     def get_all_users(self):
         return [(user['name'], user['display_name'])
@@ -304,19 +307,6 @@ class CkanManagerHandler(metaclass=Singleton):
         ckan_user = self.get_user(username)
         ckan_user.update({'state': 'active'})
         self.call_action('user_update', **ckan_user)
-
-    @CkanExceptionsHandler()
-    def get_all_organizations(self, *args, **kwargs):
-        return [
-            organization for organization
-            in self.call_action('organization_list', **kwargs)]
-
-    @CkanExceptionsHandler(ignore=[CkanError.NotFound])
-    def get_organization(self, id, **kwargs):
-        try:
-            return self.call_action('organization_show', id=id, **kwargs)
-        except CkanError.NotFound:
-            return None
 
     def is_organization_exists(self, id):
         return self.get_organization(id) and True or False

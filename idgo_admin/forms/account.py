@@ -14,7 +14,7 @@
 # under the License.
 
 
-from django.conf import settings
+# from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login

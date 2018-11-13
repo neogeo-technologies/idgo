@@ -15,9 +15,8 @@
 
 
 from django import forms
+from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.ckan_module import CkanBaseHandler
-from idgo_admin.ckan_module import CkanSyncingError
-from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.forms import AddressField
 from idgo_admin.forms import CityField
 from idgo_admin.forms import ContributorField
@@ -36,11 +35,6 @@ from idgo_admin.forms import ReferentField
 from idgo_admin.forms import WebsiteField
 from idgo_admin.models import Organisation
 from idgo_admin.models import RemoteCkan
-from idgo_admin.ckan_module import CkanBaseHandler
-# from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanSyncingError
-from idgo_admin.ckan_module import CkanTimeoutError
-from django.core.exceptions import ValidationError
 
 
 class OrganizationForm(forms.ModelForm):
@@ -146,10 +140,8 @@ class RemoteCkanForm(forms.ModelForm):
             try:
                 organisations = ckan.get_all_organizations(
                     all_fields=True, include_dataset_count=True)
-            except (CkanSyncingError, CkanTimeoutError) as e:
-                print(e)
-                self.add_error(
-                    'url', "L'api du catalogue CKAN semble inaccessible.")
+            except CkanBaseError as e:
+                self.add_error('url', e.message)
             else:
                 self.fields['sync_with'].choices = (
                     (organisation['name'], '{} ({})'.format(

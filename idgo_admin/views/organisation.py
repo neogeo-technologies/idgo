@@ -29,9 +29,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import functools
-from idgo_admin.ckan_module import CkanNotFoundError
-from idgo_admin.ckan_module import CkanSyncingError
-from idgo_admin.ckan_module import CkanTimeoutError
+from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.exceptions import UnexpectedError
@@ -329,13 +327,7 @@ class UpdateOrganisation(View):
             instance.save()
         except ValidationError as e:
             messages.error(request, e.__str__())
-        except CkanNotFoundError as e:
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-        except CkanSyncingError as e:
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-        except CkanTimeoutError as e:
+        except CkanBaseError as e:
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
         else:
@@ -499,6 +491,9 @@ class RemoteCkanEditor(View):
                 instance, created = \
                     RemoteCkan.objects.get_or_create(
                         organisation=organisation, url=url)
+        except CkanBaseError as e:
+            form = RemoteCkanForm(request.POST)
+            form.add_error('url', e.__str__())
         except ValidationError as e:
             form = RemoteCkanForm(request.POST)
             form.add_error(e.code, e.message)
@@ -521,15 +516,7 @@ class RemoteCkanEditor(View):
         except ValidationError as e:
             error = True
             messages.error(request, e.__str__())
-        except CkanNotFoundError as e:
-            error = True
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-        except CkanSyncingError as e:
-            error = True
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-        except CkanTimeoutError as e:
+        except CkanBaseError as e:
             error = True
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
@@ -575,11 +562,7 @@ class DeleteRemoteCkanLinked(View):
                 instance.delete()
         except ValidationError as e:
             messages.error(request, e.__str__())
-        except CkanNotFoundError as e:
-            messages.error(request, e.__str__())
-        except CkanSyncingError as e:
-            messages.error(request, e.__str__())
-        except CkanTimeoutError as e:
+        except CkanBaseError as e:
             messages.error(request, e.__str__())
         else:
             messages.success(request, (

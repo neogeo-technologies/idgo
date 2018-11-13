@@ -34,9 +34,8 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanSyncingError
-from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.account import SignInForm
 from idgo_admin.forms.account import SignUpForm
@@ -381,11 +380,7 @@ class SignUp(View):
         except ValidationError as e:
             messages.error(request, e.__str__())
             return render(request, self.template, context={'form': form})
-        except CkanSyncingError as e:
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-            return render(request, self.template, context={'form': form})
-        except CkanTimeoutError as e:
+        except CkanBaseError as e:
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
             return render(request, self.template, context={'form': form})
@@ -467,12 +462,7 @@ class UpdateAccount(View):
             messages.error(request, e.__str__())
             return render_with_info_profile(
                 request, self.template, context={'form': form})
-        except CkanSyncingError as e:
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-            return render_with_info_profile(
-                request, self.template, context={'form': form})
-        except CkanTimeoutError as e:
+        except CkanBaseError as e:
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
             return render_with_info_profile(
