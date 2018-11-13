@@ -29,7 +29,7 @@ import requests
 import uuid
 
 
-FTP_URL = settings.FTP_URL
+FTP_SERVICE_URL = settings.FTP_SERVICE_URL
 
 
 class Profile(models.Model):
@@ -121,7 +121,7 @@ class Profile(models.Model):
         return len(LiaisonsReferents.get_subordinated_organizations(profile=self)) and True or False
 
     def create_ftp_account(self):
-        r = requests.get(FTP_URL, params={
+        r = requests.get(FTP_SERVICE_URL, params={
             'action': 'create',
             'login': self.user.username})
         if r.status_code == 200:
@@ -130,7 +130,7 @@ class Profile(models.Model):
             self.save()
 
     def delete_ftp_account(self):
-        r = requests.get(FTP_URL, params={
+        r = requests.get(FTP_SERVICE_URL, params={
             'action': 'delete',
             'login': self.user.username})
         if r.status_code == 200:

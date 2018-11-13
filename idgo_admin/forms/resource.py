@@ -33,7 +33,12 @@ try:
 except AttributeError:
     DOWNLOAD_SIZE_LIMIT = 104857600  # 100Mio
 
-FTP_DIR = os.path.join(settings.MEDIA_ROOT, 'ftp')
+
+FTP_DIR = settings.FTP_DIR
+try:
+    FTP_UPLOADS_DIR = settings.FTP_UPLOADS_DIR
+except AttributeError:
+    FTP_UPLOADS_DIR = 'uploads'
 
 
 def file_size(value):
@@ -167,9 +172,9 @@ class ResourceForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        dir = os.path.join(FTP_DIR, user.username)
+        dir = os.path.join(FTP_DIR, user.username, FTP_UPLOADS_DIR)
         choices = [(None, 'Veuillez sélectionner un fichier')]
-        for path, subdirs, files in os.walk(os.path.join(FTP_DIR, user.username)):
+        for path, subdirs, files in os.walk(dir):
             for name in files:
                 filename = os.path.join(path, name)
                 choices.append((filename, filename[len(dir) + 1:]))
