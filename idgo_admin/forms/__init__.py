@@ -14,11 +14,20 @@
 # under the License.
 
 
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core import validators
 from django import forms
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
 from idgo_admin.models import OrganisationType
+import re
+
+
+try:
+    PHONE_REGEX = settings.PHONE_REGEX
+except AttributeError:
+    PHONE_REGEX = '^0\d{9}$'
 
 
 class CustomCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
@@ -203,6 +212,11 @@ class PasswordField(forms.CharField):
 
 class PhoneField(forms.CharField):
 
+    def validator(self, value):
+        if not re.match(PHONE_REGEX, value):
+            raise ValidationError(
+                'Erreur de validation du numéro de téléphone', code='invalid')
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('error_messages', {
             'invalid': 'Le numéro est invalide.'})
@@ -210,6 +224,7 @@ class PhoneField(forms.CharField):
         kwargs.setdefault('max_length', 30)
         kwargs.setdefault('min_length', 10)
         kwargs.setdefault('required', False)
+        kwargs.setdefault('validators', [self.validator])
         kwargs.setdefault('widget', forms.TextInput(
             attrs={
                 'class': 'phone',
