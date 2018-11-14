@@ -373,6 +373,11 @@ class Resource(models.Model):
                         publish_raw_resource = False
 
         elif (self.up_file and file_extras):
+            # GDAL/OGR ne semble pas prendre de fichier en mémoire..
+            # ..à vérifier mais si c'est possible comment indiquer le vsi en préfixe du filename ?
+            super().save(*args, **kwargs)
+            kwargs['force_insert'] = False
+
             filename = self.up_file.file.name
             file_must_be_deleted = True
 
