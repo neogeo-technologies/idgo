@@ -14,9 +14,10 @@
 # under the License.
 
 
+from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
-from django.conf.urls import url
+from django.conf.urls import url, include
 from idgo_admin.views.account import create_sftp_account
 from idgo_admin.views.account import delete_account
 from idgo_admin.views.account import delete_sftp_account
@@ -63,7 +64,6 @@ from idgo_admin.views.organisation import UpdateOrganisation
 from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
 from idgo_admin.views.stuffs import ows_preview
-
 
 urlpatterns = [
     url('^$', home, name='datasets'),
@@ -129,7 +129,10 @@ urlpatterns = [
     url('^action/$', ActionsManager.as_view(), name='action'),
     url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
 
-    url('^owspreview/$', ows_preview, name='ows_preview')]
+    url('^owspreview/$', ows_preview, name='ows_preview'),
+    
+    url('^commandes/', include('commandes.urls'))
+    ]
 
 
 if settings.DEBUG:
