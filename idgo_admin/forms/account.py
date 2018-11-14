@@ -106,7 +106,7 @@ class UserResetPassword(forms.Form):
 class SignInForm(MamaLoginForm):
 
     username = UsernameField()
-    password = PasswordField()
+    password = PasswordField(required=True)
 
     def clean(self):
         username = self.cleaned_data.get('username')
