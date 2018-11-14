@@ -54,14 +54,6 @@ class OrganisationType(models.Model):
         return self.name
 
 
-def get_all_users_for_organizations(list_id):
-    Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
-    return [
-        profile.user.username
-        for profile in Profile.objects.filter(
-            organisation__in=list_id, organisation__is_active=True)]
-
-
 class Organisation(models.Model):
 
     name = models.CharField(

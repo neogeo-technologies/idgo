@@ -17,9 +17,16 @@
 from django.core.management.base import BaseCommand
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.models import get_all_users_for_organizations
+from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 import json
+
+
+def get_all_users_for_organizations(list_id):
+    return [
+        profile.user.username
+        for profile in Profile.objects.filter(
+            organisation__in=list_id, organisation__is_active=True)]
 
 
 class Command(BaseCommand):

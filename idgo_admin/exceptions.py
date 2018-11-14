@@ -70,6 +70,10 @@ class ExceedsMaximumLayerNumberFixedError(GenericException):
         return ' '.join(sentences)
 
 
+class MraBaseError(GenericException):
+    pass
+
+
 class ProfileHttp404(Http404):
     pass
 

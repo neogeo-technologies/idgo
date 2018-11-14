@@ -18,7 +18,7 @@ import ast
 from django.conf import settings
 from functools import reduce
 from functools import wraps
-from idgo_admin.exceptions import GenericException
+from idgo_admin.exceptions import MraBaseError
 from idgo_admin.utils import Singleton
 from requests import request
 import timeout_decorator
@@ -45,7 +45,7 @@ def timeout(fun):
     return wrapper
 
 
-class MRASyncingError(GenericException):
+class MRASyncingError(MraBaseError):
     def __init__(self, *args, **kwargs):
         for item in self.args:
             try:
@@ -58,7 +58,7 @@ class MRASyncingError(GenericException):
         super().__init__(*args, **kwargs)
 
 
-class MRANotFoundError(GenericException):
+class MRANotFoundError(MraBaseError):
 
     message = "Not Found"
 
@@ -66,7 +66,7 @@ class MRANotFoundError(GenericException):
         super().__init__(*args, **kwargs)
 
 
-class MRAConflictError(GenericException):
+class MRAConflictError(MraBaseError):
 
     message = "Conflict"
 
@@ -74,7 +74,7 @@ class MRAConflictError(GenericException):
         super().__init__(*args, **kwargs)
 
 
-class MRATimeoutError(MRASyncingError):
+class MRATimeoutError(MraBaseError):
 
     message = "Time out"
 

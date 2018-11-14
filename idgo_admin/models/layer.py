@@ -14,23 +14,44 @@
 # under the License.
 
 
+from django.apps import apps
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import drop_table
+from idgo_admin.mra_client import MraBaseError
 from idgo_admin.mra_client import MRAHandler
-from idgo_admin.mra_client import MRANotFoundError
+import itertools
+import json
+import re
+
+
+MRA = settings.MRA
+OWS_URL_PATTERN = settings.OWS_URL_PATTERN
+
+
+def get_all_users_for_organizations(list_id):
+    Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
+    return [
+        profile.user.username
+        for profile in Profile.objects.filter(
+            organisation__in=list_id, organisation__is_active=True)]
+
+
+class LayerManager(models.Manager):
+
+    def create(self, **kwargs):
+        save_opts = kwargs.pop('save_opts', {})
+        obj = self.model(**kwargs)
+        self._for_write = True
+        obj.save(force_insert=True, using=self.db, **save_opts)
+        return obj
 
 
 class Layer(models.Model):
-
-    class Meta(object):
-        verbose_name = 'Couche de données'
-
-    def __str__(self):
-        return self.name
 
     name = models.SlugField(
         verbose_name='Nom de la couche', primary_key=True, editable=False)
@@ -43,18 +64,32 @@ class Layer(models.Model):
     #     verbose_name='Chaîne de connexion à la source de données',
     #     blank=True, null=True)
 
+    objects = models.Manager()
+    custom = LayerManager()
+
+    class Meta(object):
+        verbose_name = 'Couche de données'
+
+    def __str__(self):
+        return self.name
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         try:
             l = MRAHandler.get_layer(self.name)
-        except MRANotFoundError:
+        except MraBaseError:
             return
 
-        ft = MRAHandler.get_featuretype(
-            self.resource.dataset.organisation.ckan_slug, 'public', self.name)
+        try:
+            ft = MRAHandler.get_featuretype(
+                self.resource.dataset.organisation.ckan_slug, 'public', self.name)
+        except MraBaseError:
+            return
+
         if not l or not ft:
-            raise MRANotFoundError
+            # raise MRANotFoundError
+            return
 
         ll = ft['featureType']['latLonBoundingBox']
         bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
@@ -90,9 +125,33 @@ class Layer(models.Model):
 
     def save(self, *args, **kwargs):
 
+        SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
+
+        editor = kwargs.pop('editor', None)
+
         organisation = self.resource.dataset.organisation
         ws_name = organisation.ckan_slug
         ds_name = 'public'
+
+        if self.pk:
+            try:
+                previous = Layer.objects.get(pk=self.pk)
+            except Layer.DoesNotExist:
+                pass
+            else:
+                # On vérifie si l'organisation du jeu de données a changée,
+                # auquel cas il est nécessaire de supprimer les objets MRA
+                # afin de les recréer dans le bon workspace (c-à-d Mapfile).
+                previous_layer = MRAHandler.get_layer(self.name)
+                regex = '/workspaces/(?P<ws_name>[a-z_\-]+)/datastores/'
+
+                matched = re.search(regex, previous_layer['resource']['href'])
+                if matched:
+                    previous_ws_name = matched.group('ws_name')
+                    if not ws_name == previous_ws_name:
+                        MRAHandler.del_layer(self.name)
+                        MRAHandler.del_featuretype(
+                            previous_ws_name, ds_name, self.name)
 
         MRAHandler.get_or_create_workspace(organisation)
         MRAHandler.get_or_create_datastore(ws_name, ds_name)
@@ -101,6 +160,87 @@ class Layer(models.Model):
         super().save(*args, **kwargs)
 
         self.handle_enable_ows_status()
+        self.handle_layergroup()
+
+        # Synchronisation CKAN
+        # ====================
+
+        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+        # de données existant mais administrateur ou un référent technique,
+        # alors l'admin Ckan édite le jeu de données.
+        if editor == self.resource.dataset.editor:
+            ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
+        else:
+            ckan_user = ckan_me(ckan.apikey)
+
+        if self.resource.ogc_services:
+            # TODO: Factoriser
+
+            # (0) Aucune restriction
+            if self.resource.restricted_level == '0':
+                restricted = json.dumps({'level': 'public'})
+            # (1) Uniquement pour un utilisateur connecté
+            elif self.resource.restricted_level == '1':
+                restricted = json.dumps({'level': 'registered'})
+            # (2) Seulement les utilisateurs indiquées
+            elif self.resource.restricted_level == '2':
+                restricted = json.dumps({
+                    'allowed_users': ','.join(
+                        self.resource.profiles_allowed.exists() and [
+                            profile.user.username for profile
+                            in self.resource.profiles_allowed.all()] or []),
+                    'level': 'only_allowed_users'})
+            # (3) Les utilisateurs de cette organisation
+            elif self.resource.restricted_level == '3':
+                restricted = json.dumps({
+                    'allowed_users': ','.join(
+                        get_all_users_for_organizations(
+                            self.resource.organisations_allowed.all())),
+                    'level': 'only_allowed_users'})
+            # (3) Les utilisateurs des organisations indiquées
+            elif self.resource.restricted_level == '4':
+                restricted = json.dumps({
+                    'allowed_users': ','.join(
+                        get_all_users_for_organizations(
+                            self.resource.organisations_allowed.all())),
+                    'level': 'only_allowed_users'})
+
+            getlegendgraphic = (
+                '{}?&version=1.1.1&service=WMS&request=GetLegendGraphic'
+                '&layer={}&format=image/png').format(
+                    OWS_URL_PATTERN.format(
+                        organisation=organisation.ckan_slug
+                        ).replace('?', ''), self.name)
+
+            # Tous les services sont publiés en 4171 (TODO -> configurer dans settings)
+            crs = SupportedCrs.objects.get(
+                auth_name='EPSG', auth_code='4171').description
+
+            url = '{0}#{1}'.format(
+                OWS_URL_PATTERN.format(
+                    organisation=organisation.ckan_slug), self.name)
+
+            ckan_params = {
+                'id': self.name,
+                'name': '{} (OGC:WMS)'.format(self.resource.name),
+                'description': self.resource.description,
+                'getlegendgraphic': getlegendgraphic,
+                'data_type': 'service',
+                'extracting_service': str(self.resource.extractable),
+                'crs': crs,
+                'lang': self.resource.lang,
+                'format': 'WMS',
+                'restricted': restricted,
+                'url': url,
+                'view_type': 'geo_view'}
+
+            ckan_package = ckan_user.get_package(str(self.resource.dataset.ckan_id))
+            ckan_user.publish_resource(ckan_package, **ckan_params)
+        else:
+            # Sinon on force la suppression de la ressource CKAN
+            ckan_user.delete_resource(self.name)
+
+        ckan_user.close()
 
     @property
     def layername(self):
@@ -113,13 +253,6 @@ class Layer(models.Model):
             'POINT': 'Point',
             'LINESTRING': 'Ligne',
             'RASTER': 'Raster'}.get(self.mra_info['type'])
-
-    def handle_enable_ows_status(self):
-        ws_name = self.resource.dataset.organisation.ckan_slug
-        if self.resource.ogc_services:
-            MRAHandler.enable_layer(ws_name, self.name)
-        else:
-            MRAHandler.disable_layer(ws_name, self.name)
 
     @property
     def is_enabled(self):
@@ -140,6 +273,26 @@ class Layer(models.Model):
     @property
     def id(self):
         return self.name
+
+    def handle_enable_ows_status(self):
+        ws_name = self.resource.dataset.organisation.ckan_slug
+        if self.resource.ogc_services:
+            MRAHandler.enable_layer(ws_name, self.name)
+        else:
+            MRAHandler.disable_layer(ws_name, self.name)
+
+    def handle_layergroup(self):
+        dataset = self.resource.dataset
+        layers = list(itertools.chain.from_iterable([
+            qs for qs in [
+                resource.get_layers() for resource
+                in dataset.get_resources()]]))
+
+        MRAHandler.create_or_update_layergroup(
+            dataset.organisation.ckan_slug, {
+                'name': dataset.ckan_slug,
+                'title': dataset.name,
+                'layers': [layer.name for layer in layers]})
 
 
 @receiver(pre_delete, sender=Layer)

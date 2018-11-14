@@ -35,7 +35,6 @@ from idgo_admin.models.jurisdiction import Jurisdiction
 from idgo_admin.models.jurisdiction import JurisdictionCommune
 from idgo_admin.models.layer import Layer
 from idgo_admin.models.mail import Mail
-from idgo_admin.models.organisation import get_all_users_for_organizations
 from idgo_admin.models.organisation import Organisation
 from idgo_admin.models.organisation import OrganisationType
 from idgo_admin.models.organisation import RemoteCkan
@@ -289,8 +288,8 @@ class Task(models.Model):
 __all__ = [
     AccountActions, AsyncExtractorTask, BaseMaps, Category, Commune,
     Dataset, DataType, ExtractorSupportedFormat,
-    get_all_users_for_organizations, Granularity,
-    Jurisdiction, JurisdictionCommune, Layer, License, LiaisonsContributeurs,
-    LiaisonsResources, LiaisonsReferents, Mail, Organisation,
-    OrganisationType, Profile, RemoteCkan, RemoteCkanDataset, Resource,
-    ResourceFormats, Support, SupportedCrs, Task, upload_resource]
+    Granularity, Jurisdiction, JurisdictionCommune, Layer, License,
+    LiaisonsContributeurs, LiaisonsResources, LiaisonsReferents,
+    Mail, Organisation, OrganisationType, Profile,
+    RemoteCkan, RemoteCkanDataset, Resource, ResourceFormats,
+    Support, SupportedCrs, Task, upload_resource]

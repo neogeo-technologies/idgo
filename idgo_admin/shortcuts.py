@@ -14,6 +14,7 @@
 # under the License.
 
 
+from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect

@@ -37,7 +37,6 @@ from idgo_admin.datagis import ogr2postgis
 from idgo_admin.datagis import VSI_PROTOCOLES
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import SizeLimitExceededError
-from idgo_admin.models import get_all_users_for_organizations
 from idgo_admin.utils import download
 # from idgo_admin.utils import remove_dir
 from idgo_admin.utils import remove_file
@@ -77,6 +76,14 @@ except Exception:
     AUTHORIZED_PROTOCOL = None
 
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
+
+
+def get_all_users_for_organizations(list_id):
+    Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
+    return [
+        profile.user.username
+        for profile in Profile.objects.filter(
+            organisation__in=list_id, organisation__is_active=True)]
 
 
 def upload_resource(instance, filename):
@@ -325,7 +332,7 @@ class Resource(models.Model):
         SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
         Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
 
-        organisation = self.dataset.organisation
+        # organisation = self.dataset.organisation
 
         # On sauvegarde l'objet avant de le mettre à jour (s'il existe)
         previous, created = self.pk \
@@ -486,8 +493,13 @@ class Resource(models.Model):
                             # on crée le service ows à travers la création de `Layer`
                             try:
                                 for table in tables:
-                                    Layer.objects.get_or_create(
-                                        name=table['id'], resource=self)
+                                    try:
+                                        Layer.objects.get(
+                                            name=table['id'], resource=self)
+                                    except Layer.DoesNotExist:
+                                        Layer.custom.create(
+                                            name=table['id'], resource=self,
+                                            save_opts={'editor': editor})
                             except Exception as e:
                                 file_must_be_deleted and remove_file(filename)
                                 for table in tables:
@@ -546,14 +558,14 @@ class Resource(models.Model):
                 'restricted_by_jurisdiction': str(self.geo_restriction),
                 'url': ''}
 
+            # TODO: Factoriser
+
             # (0) Aucune restriction
             if self.restricted_level == '0':
                 restricted = json.dumps({'level': 'public'})
-
             # (1) Uniquement pour un utilisateur connecté
             elif self.restricted_level == '1':
                 restricted = json.dumps({'level': 'registered'})
-
             # (2) Seulement les utilisateurs indiquées
             elif self.restricted_level == '2':
                 restricted = json.dumps({
@@ -562,7 +574,6 @@ class Resource(models.Model):
                             p.user.username for p
                             in self.profiles_allowed.all()] or []),
                     'level': 'only_allowed_users'})
-
             # (3) Les utilisateurs de cette organisation
             elif self.restricted_level == '3':
                 restricted = json.dumps({
@@ -570,7 +581,6 @@ class Resource(models.Model):
                         get_all_users_for_organizations(
                             self.organisations_allowed.all())),
                     'level': 'only_allowed_users'})
-
             # (3) Les utilisateurs des organisations indiquées
             elif self.restricted_level == '4':
                 restricted = json.dumps({
@@ -611,45 +621,46 @@ class Resource(models.Model):
             if publish_raw_resource:
                 ckan_user.publish_resource(ckan_package, **ckan_params)
 
-            # Puis on publie dans CKAN les ressources de type service (à déplacer dans Layer ???)
-            for layer in self.get_layers():
-
-                # Uniquement si explicitement demandé
-                if self.ogc_services:
-
-                    getlegendgraphic = (
-                        '{}?&version=1.1.1&service=WMS&request=GetLegendGraphic'
-                        '&layer={}&format=image/png').format(
-                            OWS_URL_PATTERN.format(
-                                organisation=organisation.ckan_slug
-                                ).replace('?', ''), layer.name)
-
-                    # Tous les services sont publiés en 4171 (TODO -> configurer dans settings)
-                    crs = SupportedCrs.objects.get(
-                        auth_name='EPSG', auth_code='4171').description
-
-                    url = '{0}#{1}'.format(
-                        OWS_URL_PATTERN.format(
-                            organisation=organisation.ckan_slug), layer.name)
-
-                    ckan_params = {
-                        'id': layer.name,
-                        'name': '{} (OGC:WMS)'.format(self.name),
-                        'description': 'Visualiseur cartographique',
-                        'getlegendgraphic': getlegendgraphic,
-                        'data_type': 'service',
-                        'extracting_service': str(self.extractable),
-                        'crs': crs,
-                        'lang': self.lang,
-                        'format': 'WMS',
-                        'restricted': restricted,
-                        'url': url,
-                        'view_type': 'geo_view'}
-
-                    ckan_user.publish_resource(ckan_package, **ckan_params)
-                else:
-                    # Sinon on force la suppression de la ressource CKAN
-                    ckan_user.delete_resource(layer.name)
+            # Puis on publie dans CKAN les ressources de type service
+            # TODO: à déplacer dans Layer
+            # for layer in self.get_layers():
+            #
+            #     # Uniquement si explicitement demandé
+            #     if self.ogc_services:
+            #
+            #         getlegendgraphic = (
+            #             '{}?&version=1.1.1&service=WMS&request=GetLegendGraphic'
+            #             '&layer={}&format=image/png').format(
+            #                 OWS_URL_PATTERN.format(
+            #                     organisation=organisation.ckan_slug
+            #                     ).replace('?', ''), layer.name)
+            #
+            #         # Tous les services sont publiés en 4171 (TODO -> configurer dans settings)
+            #         crs = SupportedCrs.objects.get(
+            #             auth_name='EPSG', auth_code='4171').description
+            #
+            #         url = '{0}#{1}'.format(
+            #             OWS_URL_PATTERN.format(
+            #                 organisation=organisation.ckan_slug), layer.name)
+            #
+            #         ckan_params = {
+            #             'id': layer.name,
+            #             'name': '{} (OGC:WMS)'.format(self.name),
+            #             'description': 'Visualiseur cartographique',
+            #             'getlegendgraphic': getlegendgraphic,
+            #             'data_type': 'service',
+            #             'extracting_service': str(self.extractable),
+            #             'crs': crs,
+            #             'lang': self.lang,
+            #             'format': 'WMS',
+            #             'restricted': restricted,
+            #             'url': url,
+            #             'view_type': 'geo_view'}
+            #
+            #         ckan_user.publish_resource(ckan_package, **ckan_params)
+            #     else:
+            #         # Sinon on force la suppression de la ressource CKAN
+            #         ckan_user.delete_resource(layer.name)
 
             ckan_user.close()
 

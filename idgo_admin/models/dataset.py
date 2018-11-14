@@ -28,11 +28,7 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.managers import HarvestedDataset
-from idgo_admin.mra_client import MRAConflictError
-from idgo_admin.mra_client import MRAHandler
-from idgo_admin.mra_client import MRANotFoundError
 from idgo_admin.utils import three_suspension_points
-import itertools
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
 import uuid
@@ -357,41 +353,19 @@ class Dataset(models.Model):
 
         ckan_user.close()
 
-        # Si l'organisation change
+        # On vérifie si l'organisation du jeu de données change.
+        # Si c'est le cas, il est nécessaire de sauvegarder tous
+        # les `Layers` rattachés au jeu de données afin de forcer
+        # la modification du `Workspace` (c'est-à-dire du Mapfile)
         ws_name = self.organisation.ckan_slug
-        if previous and previous.organisation != self.organisation:
-            resources = Resource.objects.filter(dataset=previous)
-            prev_ws_name = previous.organisation.ckan_slug
-            ds_name = 'public'
-            for resource in resources:
+        if previous and not previous.organisation == self.organisation:
+            for resource in previous.get_resources():
                 for layer in resource.get_layers():
-                    ft_name = layer.name
-                    try:
-                        MRAHandler.del_layer(ft_name)
-                        MRAHandler.del_featuretype(prev_ws_name, ds_name, ft_name)
-                    except MRANotFoundError:
-                        pass
-                    try:
-                        MRAHandler.publish_layers_resource(resource)
-                    except MRAConflictError:
-                        pass
+                    layer.save()
+                    # TODO: déplacer dans Layer.save()
                     ckan_user.update_resource(
-                        ft_name,
-                        url='{0}#{1}'.format(
-                            OWS_URL_PATTERN.format(organisation=ws_name), ft_name))
-
-        layers = list(itertools.chain.from_iterable([
-            qs for qs in [
-                resource.get_layers() for resource
-                in Resource.objects.filter(dataset=self)]]))
-        if layers:
-            data = {
-                'name': self.ckan_slug,
-                'title': self.name,
-                'layers': [layer.name for layer in layers]}
-            MRAHandler.create_or_update_layergroup(ws_name, data)
-        else:
-            MRAHandler.del_layergroup(ws_name, self.ckan_slug)
+                        layer.name, url='{0}#{1}'.format(
+                            OWS_URL_PATTERN.format(organisation=ws_name), layer.name))
 
         self.ckan_id = uuid.UUID(ckan_dataset['id'])
         super().save()  # self.save(sync_ckan=False)

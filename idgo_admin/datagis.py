@@ -25,6 +25,7 @@ from django.db import connections
 from idgo_admin.exceptions import DatagisBaseError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.utils import slugify
+from pathlib import Path
 import re
 from uuid import uuid4
 
@@ -39,6 +40,7 @@ except AttributeError:
     VSI_PROTOCOLES = {
         'geojson': None,
         'shapezip': 'vsizip',
+        'shp': None,
         'tab': 'vsizip',
         'mif/mid': 'vsizip',
         'tar': 'vsitar',
@@ -225,7 +227,7 @@ def handle_ogr_geom_type(ogr_geom_type):
         }.get(ogr_geom_type.__str__().lower(), 'Geometry')
 
 
-def ogr2postgis(ds, epsg=None, limit_to=1, update={}):
+def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None):
     sql = []
     tables = []
 
@@ -235,8 +237,11 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}):
             count=len(layers), maximum=limit_to)
     # else:
     for layer in layers:
-
         layername = slugify(layer.name)
+
+        if layername == 'ogrgeojson':
+            p = Path(ds._datastore.name)
+            layername = slugify(p.name[:-len(p.suffix)]).replace('-', '_')
 
         if epsg and is_valid_epsg(epsg):
             pass
@@ -357,7 +362,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}):
                 to_epsg=TO_EPSG))
 
     for table_id in update.values():
-        rename_table(table_id, '_{}'.format(table_id))
+        rename_table(table_id, '__{}'.format(table_id))
 
     with connections[DATABASE].cursor() as cursor:
         for q in sql:
@@ -368,12 +373,12 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}):
                 for table_id in [table['id'] for table in tables]:
                     drop_table(table_id)
                 for table_id in update.values():
-                    rename_table('_{}'.format(table_id), table_id)
+                    rename_table('__{}'.format(table_id), table_id)
                 # Puis retourner l'erreur
                 raise SQLError(e.__str__())
 
     for table_id in update.values():
-        drop_table('_{}'.format(table_id))
+        drop_table('__{}'.format(table_id))
 
     return tables
 
