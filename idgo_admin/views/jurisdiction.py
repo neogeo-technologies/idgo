@@ -199,14 +199,13 @@ class JurisdictionView(View):
             raise Http404
 
         user, profile = user_and_profile(request)
-
         jurisdiction = get_object_or_404(Jurisdiction, code=code)
 
         try:
             with transaction.atomic():
                 jurisdiction.delete()
         except Exception as e:
-            messages.error(request, ' '.join(e))
+            messages.error(request, e.__str__())
         else:
             messages.success(request, 'Le territoire de compétence a été supprimé avec succès.')
 

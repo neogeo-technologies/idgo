@@ -40,6 +40,16 @@
 					<div class="col-xs-12">
 						{% bootstrap_field form.code %}
 					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-12">
+						<div class="form-group">
+							<label class="control-label" for="id_insee_list">Liste de code INSEE (séparé par la virgule)</label>
+							<input type="text" name="insee_list" class="form-control" id="id_insee_list" placeholder="Par exemple : 05061, 05013, 05037...">
+						</div>
+					</div>
+				</div>
+				<div class="row">
 					<div class="col-xs-12">
 						<label>{{ form.communes.label }}</label>
 						<div class="checkbox">
@@ -217,6 +227,23 @@ $(function() {
 			});
 		});
 
+	$inseeList = $('input[name="insee_list"]')
+		.change(function(e) {
+			const values = $(this).val().split(',');
+			$('input[name="check-all"]').prop('checked', false).trigger('change');
+			for (var i = 0; i < values.length; i ++) {
+				const $checkbox = $('input[name="{{ form.communes.name }}"][value="' + values[i].trim() + '"]');
+				$checkbox.prop('checked', true).trigger('change');
+			};
+		})
+		.keyup(function(e) {
+			var code = e.keyCode ? e.keyCode : e.which;
+			if ((e.keyCode || e.which) == 13) {
+				$(this).trigger('change');
+				return;
+			}
+		});
+
 	$('input[name="check-all"]')
 		.change(function() {
 			const checked = $(this).is(':checked');
@@ -229,7 +256,8 @@ $(function() {
 	$('input[name="{{ form.communes.name }}"]')
 		.change(function(e) {
 			const checked = $(this).is(':checked');
-			getCommuneLayerByCode($(this).val(), function(layer) {
+			const value = $(this).val();
+			getCommuneLayerByCode(value, function(layer) {
 				if (checked) {
 					layer.setStyle(selectStyle).bringToFront();
 					map.fitBounds(communesLayers.getBounds()).panTo(layer.getBounds().getCenter());

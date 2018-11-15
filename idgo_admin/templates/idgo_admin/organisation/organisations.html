@@ -92,7 +92,9 @@
 						<ul id="table-members-paginator" class="pagination pagination-sm"></ul>
 					</nav>
 					<div class="buttons-on-the-right-side">
-						{% if user.profile.is_crige_admin %}<button role="button" name="send-mail-to-crige-member" class="btn btn-default">Envoyer un e-mail aux membres CRIGE</button>{% endif %}
+						{% if user.profile.is_crige_admin %}
+						<!-- <button role="button" name="send-mail-to-crige-member" class="btn btn-default">Envoyer un e-mail aux membres CRIGE</button> -->
+						{% endif %}
 						<button role="button" name="ckan-card" class="btn btn-default">Ouvrir la fiche Ckan</button>
 						<div class="btn-group">
 							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
