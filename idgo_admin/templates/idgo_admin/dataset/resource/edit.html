@@ -118,7 +118,7 @@
 					<p>Les fichiers que vous avez déposés sur votre compte FTP apparaîssent dans la liste ci-dessous.</p>
 					{% bootstrap_field form.ftp_file show_label=False %}
 				{% else %}
-					<p>Votre compte FTP n'est pas activé pour l'activer, veuillez <a href="{% url 'idgo_admin:create_sftp_account' %}" class="btn btn-link">cliquez ici</a>.</p>
+					<p>Votre compte FTP n'est pas activé. Pour l'activer, veuillez <a href="{% url 'idgo_admin:create_sftp_account' %}" class="btn btn-link">cliquez ici</a>.</p>
 				{% endif %}
 				</div>
 			</div>

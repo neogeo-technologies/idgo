@@ -437,19 +437,19 @@ $(function() {
 						datatype: 'boolean'
 					}, {
 						name: 'is_referent',
-						label: 'Référent technique',
+						label: 'Référent',
 						editable: false,
 						datatype: 'boolean'
 					}, {
 					{% if user.profile.is_crige_admin %}
 						name: 'is_crige_member',
-						label: 'Membre partenaire du CRIGE',
+						label: 'Partenaire CRIGE',
 						editable: false,
 						datatype: 'boolean'
 					}, {
 					{% endif %}
 						name: 'datasets_count',
-						label: 'Nombre de jeux de données',
+						label: 'Jeux de données',
 						editable: false,
 						datatype: 'integer'
 					}, {
@@ -480,7 +480,7 @@ $(function() {
 				})(data.members)
 			});
 
-			membersGrid.renderGrid(tableId, 'table table-striped table-bordered table-hover table-condensed');
+			membersGrid.renderGrid(tableId, 'board table table-striped table-bordered table-hover table-condensed');
 			membersGrid.initializeGrid();
 			membersGrid.refreshGrid();
 
