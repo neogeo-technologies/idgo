@@ -2,5 +2,5 @@ from django.conf.urls import include, url
 from . import views
 
 urlpatterns = [
-    url('^$', views.get_name, name='index')
+    url('^$', views.upload_file, name='index')
     ]

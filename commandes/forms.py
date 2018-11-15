@@ -1,43 +1,63 @@
 from django import forms
+from django.utils import timezone
+from idgo_admin.models import Organisation
+from idgo_admin.models import Profile
+from idgo_admin.forms import CustomCheckboxSelectMultiple
 
 from .models import Order
 
-STATUS_CHOICES = (
-    (1, "En cours"),
-    (2, "Validée"),
-    (3, "Refusée")
-)
 
 class OrderForm(forms.ModelForm):
     class Meta(object):
         model = Order
         fields = [
-            # 'applicant',
-            # 'date',
+            'organisation',
             'dpo_cnil',
             'acte_engagement'
         ]
 
+        organisation = forms.ModelMultipleChoiceField(
+            label='Organisation',
+            queryset=None,
+            required=True,
+            to_field_name='pk',
+            widget=CustomCheckboxSelectMultiple(
+                attrs={'class': 'list-group-checkbox'}))
 
-    # applicant = forms.CharField(label='nom utilisateur', max_length=100)# à recupérer automatiquement ?
-    # date = forms.DateField('Date de la demande', disabled =True)
-    # dpo_cnil = forms.FileField()
-    # acte_engagement = forms.FileField()
+    def __init__(self, *args, **kwargs):
+        '''
+        recupere l'identifiant du user depuis view.py pour que l'utilisateur
+        ne voie que ses organisations
+        '''
+        user = kwargs.pop('user', None)
+        super(OrderForm, self).__init__(*args, **kwargs)
+        self.fields['organisation'].queryset = Organisation.objects.filter(
+            id=Profile.objects.get(user=user).organisation_id)
 
+    def clean(self):
+        '''
+        checks if the user has already ordered files
+        (order status = 'validée') in the current year
+        '''
+        cleaned_data = super(OrderForm, self).clean()
 
-    # def clean(self):
-    #     '''
-    #     checks if the user has already ordered files (order status = 'validée') in the current year
-    #     '''
-    #     cleaned_data = super(OrderForm, self).clean()
+        year = timezone.now().date().year
+        organisation = cleaned_data.get("organisation")
+
+        STATUS_CHOICES = (
+            (0, "En cours"),
+            (1, "Validée"),
+            (2, "Refusée"))
+
+        match = Order.objects.filter(
+                date__year=year,
+                organisation=organisation,
+                status=STATUS_CHOICES[1]
+                )
         
-    #     year = cleaned_data.get(year=date.year)# possibilité de récuperer la date depuis le modèle ?
-    #     organisation = Order.object.get # comment récuperer l'organisation ? (table User ?)
+        er_mess = "Une demande a déjà été approuvée pour l'organisation dans l'année en cours."
 
-    #     try:
-    #         match = Order.objects.get(year=year)
-    #     except User.DoesNotExist:
-    #         return 
-        
-    #     raise forms.ValidationError("Une demande a déjà été approuvée pour l'organisation dans l'année en cours.")
-    
+        if (match):
+            raise forms.ValidationError(er_mess)
+        else:
+            return cleaned_data

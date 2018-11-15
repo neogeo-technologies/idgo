@@ -1,35 +1,59 @@
+from django.conf import settings
+from django.core.mail import EmailMessage
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
-from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from .forms import OrderForm
 
 # CKAN_URL = settings.CKAN_URL
 
-# decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+decorators = [login_required(login_url=settings.LOGIN_URL)]
 
+TODAY = timezone.now().date()
 
-# # Imaginary function to handle an uploaded file.
-# from somewhere import handle_uploaded_file # https://docs.djangoproject.com/en/1.11/topics/http/file-uploads/
-
-def get_name(request):
-#     # if this is a POST request we need to process the form data
+@login_required(login_url=settings.LOGIN_URL)
+def upload_file(request):
     if request.method == 'POST':
-#         # create a form instance and populate it with data from the request:
-        form = OrderForm(request.POST)
+        # create a form instance and populate it with data from the request:
+        form = OrderForm(request.POST, request.FILES, user=request.user)
     #         # check whether it's valid:
         if form.is_valid():
-            dpo_cnil = forms.FileField()
-            acte_engagement = forms.FileField()
+            order = form.save(commit=False)
+            order.applicant = request.user
+            order.save()
 
-#             recipients = [User.email] #a verifier
+            # send mail
+            recipients = ['ameillet@neogeo.fr']#[request.user.email]
+            sender = 'ameillet@neogeo.fr'
+            subject = "Confirmation d'envoi de commande de fichiers fonciers"
+            message = ("L'instruction de votre commande est en cours. " +
+            'recapitulatif : Nom: ' + request.user.last_name +
+            "\n" + "Prénom: " + request.user.first_name +
+            "\n" + "courriel: " + recipients)
+            #"\n date: " + TODAY.strftime('%d/%m/%Y'))
 
-#             send.mail(subject, message, sender, recipients) # a completer (https://docs.djangoproject.com/en/1.11/topics/email/)
-            
-#             return HttpResponseRedirect('/thanks/')
+            msg=EmailMessage(
+                subject=subject,
+                body=message,
+                from_email=sender,
+                to=recipients)
+            # attach two files
+            msg.attach_file(settings.MEDIA_URL+OrderForm.get("dpo_cnil"))
+            msg.attach_file(settings.MEDIA_URL+OrderForm.get("acte_engagement"))
+
+            # page de confirmation
+            messageOrder = ("Votre commande de fichiers fonciers"
+                            'a bien été envoyée.'
+                            ' Vous recevrez un e-mail récapitulatif '
+                            "d'ici quelques minutes. ")
+
+            status = 200
+
+            return render(request, 'idgo_admin/message.html',
+                        {'message': messageOrder}, status=status)
 
     # if a GET (or any other method) we'll create a blank form
     else:
-        form = OrderForm()
-
+        form = OrderForm(user=request.user)
     return render(request, 'commandes.html', {'form': form})
