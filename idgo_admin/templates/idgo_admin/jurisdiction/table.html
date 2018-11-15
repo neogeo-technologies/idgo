@@ -1,47 +1,49 @@
-<div id="jurisdictions" class="table-responsive">
-	<table class="board table table-striped table-bordered table-hover table-condensed">
-		<thead>
-			<tr>
-				<th name="code">Code <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
-				<th name="name">Nom <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
-				<th name="organisations">Organisations rattachées</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for jurisdiction in jurisdictions %}
-			<tr id="{{ jurisdiction.code }}" name="{{ jurisdiction.code }}">
-				<td name="code">{{ jurisdiction.code }}</td>
-				<td name="name">{{ jurisdiction.name }}</td>
-				{% if jurisdiction.organisations|length > 1 %}
-				<td name="organisations" class="dropdown table-cell-dropdown">
-					<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">
-						Voir les {{ jurisdiction.organisations|length }} organisations <span class="caret"></span>
-					</button>
-					<ul class="dropdown-menu">{% for organisation in jurisdiction.organisations %}
-						<li>
-							<a href="{% url 'idgo_admin:all_organizations' %}#{{ organisation.pk }}">{{ organisation.name }}</a>
-						</li>{% endfor %}
-					</ul>
-				</td>
-				{% else %}
-				<td name="organisations">
-					{% if jurisdiction.organisations|length == 1 %}
-						{% with jurisdiction.organisations|first as organisation %}
-					<a href='{% url "idgo_admin:all_organizations" %}#{{ organisation.pk }}'>{{ organisation.name }}</a>
-						{% endwith %}
+<div id="jurisdictions">
+	<div class="table-responsive">
+		<table class="board table table-striped table-bordered table-hover table-condensed">
+			<thead>
+				<tr>
+					<th name="code">Code <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
+					<th name="name">Nom <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
+					<th name="organisations">Organisations rattachées</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for jurisdiction in jurisdictions %}
+				<tr id="{{ jurisdiction.code }}" name="{{ jurisdiction.code }}">
+					<td name="code">{{ jurisdiction.code }}</td>
+					<td name="name">{{ jurisdiction.name }}</td>
+					{% if jurisdiction.organisations|length > 1 %}
+					<td name="organisations" class="dropdown table-cell-dropdown">
+						<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">
+							Voir les {{ jurisdiction.organisations|length }} organisations <span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu">{% for organisation in jurisdiction.organisations %}
+							<li>
+								<a href="{% url 'idgo_admin:all_organizations' %}#{{ organisation.pk }}">{{ organisation.name }}</a>
+							</li>{% endfor %}
+						</ul>
+					</td>
+					{% else %}
+					<td name="organisations">
+						{% if jurisdiction.organisations|length == 1 %}
+							{% with jurisdiction.organisations|first as organisation %}
+						<a href='{% url "idgo_admin:all_organizations" %}#{{ organisation.pk }}'>{{ organisation.name }}</a>
+							{% endwith %}
+						{% endif %}
+					</td>
 					{% endif %}
-				</td>
-				{% endif %}
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-</div>
-<div id="actions" class="buttons-on-the-right-side">
-	<a role="button" name="edit" class="btn btn-default disabled">Éditer</a>
-	<button type="button" name="delete" class="btn btn-danger disabled" data-toggle="modal" data-target="#modal" disabled>
-		Supprimer <span class="glyphicon glyphicon-trash"></span>
-	</button>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	<div id="actions" class="buttons-on-the-right-side">
+		<a role="button" name="edit" class="btn btn-default disabled">Éditer</a>
+		<button type="button" name="delete" class="btn btn-danger disabled" data-toggle="modal" data-target="#modal" disabled>
+			Supprimer <span class="glyphicon glyphicon-trash"></span>
+		</button>
+	</div>
 </div>
 {% include "idgo_admin/widgets/paginator.html" with count=pagination.total current=pagination.current %}
 
@@ -77,9 +79,9 @@ $(function() {
 	};
 
 	const $div = $('#jurisdictions');
-
-	const $delete = $div.find('[name="delete"]');
-	const $edit = $div.find('[name="edit"]');
+	const $actions = $div.find('#actions');
+	const $delete = $actions.find('[name="delete"]');
+	const $edit = $actions.find('[name="edit"]');
 
 	const $table = $div.find('table');
 
@@ -107,7 +109,6 @@ $(function() {
 			});
 
 			$edit.prop('href', '{% url "idgo_admin:jurisdiction" %}?id=' + id);
-
 			$delete.off('click').on('click', function(e) {
 				e.preventDefault();
 
@@ -138,7 +139,7 @@ $(function() {
 					.prop('class', 'form-control')
 					.prop('placeholder', 'Nom du jeu de données à supprimer')
 					.on('input', function(e) {
-						if ($(this).val() === $row.find('td[name="name"]')[0].innerText) {
+						if ($(this).val() === $row.find('td[name="name"]')[0].innerText.trim()) {
 							$button.removeClass('disabled').prop('disabled', false);
 						} else {
 							$button.addClass('disabled').prop('disabled', true);

@@ -24,6 +24,26 @@
 
 {% include "idgo_admin/alert_messages.html" %}
 
+{% if not organisation.jurisdiction %}
+<div class="alert alert-info">
+	<p>
+		<span class="glyphicon glyphicon-bell" aria-hidden="true"></span>
+		L'organisation n'est rattachée à aucun territoire de compétence.
+	{% if user.profile.is_crige_admin %}
+	</p>
+	<hr>
+	<div class="row">
+		<div class="col-sm-6">
+	{% bootstrap_field form.jurisdiction %}
+		</div>
+	</div>
+	{% else %}
+		Vous pouvez en faire la demande en cliquant ici : <a class="btn btn-link" href="#">définir le territoire de compétence</a>
+	</p>
+	{% endif %}
+</div>
+{% endif %}
+
 <form method="post" action="" enctype="multipart/form-data" class="well">
 	{% if id and user.profile.is_admin %}
 	<div class="buttons-on-the-right-side">
@@ -89,7 +109,15 @@
 			{% bootstrap_field form.organisation_type %}
 		</div>
 	</div>
+	{% if organisation.jurisdiction and user.profile.is_crige_admin %}
+	<div class="row">
+		<div class="col-xs-10 col-sm-6">
+			{% bootstrap_field form.jurisdiction %}
+		</div>
+	</div>
+	{% else %}
 	<br />
+	{% endif %}
 	<div class="row">
 		<div class="col-xs-10 col-sm-6">
 			{% bootstrap_field form.license %}
