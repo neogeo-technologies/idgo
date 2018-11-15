@@ -30,9 +30,11 @@ from idgo_admin.models.account import Profile
 from idgo_admin.models.dataset import Dataset
 from idgo_admin.models.extractor import AsyncExtractorTask
 from idgo_admin.models.extractor import ExtractorSupportedFormat
+from idgo_admin.models.jurisdiction import Commune
+from idgo_admin.models.jurisdiction import Jurisdiction
+from idgo_admin.models.jurisdiction import JurisdictionCommune
 from idgo_admin.models.layer import Layer
 from idgo_admin.models.mail import Mail
-from idgo_admin.models.organisation import get_all_users_for_organizations
 from idgo_admin.models.organisation import Organisation
 from idgo_admin.models.organisation import OrganisationType
 from idgo_admin.models.organisation import RemoteCkan
@@ -130,27 +132,6 @@ def pre_delete_category(sender, instance, **kwargs):
         ckan.del_group(str(instance.ckan_id))
 
 
-class Commune(models.Model):
-
-    code = models.CharField(
-        verbose_name='Code INSEE', max_length=5, primary_key=True)
-
-    name = models.CharField(verbose_name='Nom', max_length=100)
-
-    geom = models.MultiPolygonField(
-        verbose_name='Geometrie', srid=4326, blank=True, null=True)
-
-    objects = models.GeoManager()
-
-    class Meta(object):
-        verbose_name = 'Commune'
-        verbose_name_plural = 'Communes'
-        ordering = ['name']
-
-    def __str__(self):
-        return '{} ({})'.format(self.name, self.code)
-
-
 class DataType(models.Model):
 
     name = models.CharField(verbose_name='Nom', max_length=100)
@@ -164,21 +145,6 @@ class DataType(models.Model):
     class Meta(object):
         verbose_name = 'Type de donnée'
         verbose_name_plural = 'Types de données'
-
-    def __str__(self):
-        return self.name
-
-
-class Financier(models.Model):
-
-    name = models.CharField('Nom du financeur', max_length=250)
-
-    code = models.CharField('Code du financeur', max_length=250)
-
-    class Meta(object):
-        verbose_name = "Financeur d'une action"
-        verbose_name_plural = "Financeurs"
-        ordering = ('name', )
 
     def __str__(self):
         return self.name
@@ -199,63 +165,6 @@ class Granularity(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class Jurisdiction(models.Model):
-
-    code = models.CharField(
-        verbose_name='Code INSEE', max_length=10, primary_key=True)
-
-    name = models.CharField(verbose_name='Nom', max_length=100)
-
-    communes = models.ManyToManyField(
-        to='Commune', through='JurisdictionCommune',
-        verbose_name='Communes',
-        related_name='jurisdiction_communes')
-
-    objects = models.GeoManager()
-
-    class Meta(object):
-        verbose_name = 'Territoire de compétence'
-        verbose_name_plural = 'Territoires de compétence'
-
-    def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        old = kwargs.pop('old', None)
-        super().save(*args, **kwargs)
-
-        if old and old != self.code:
-            instance_to_del = Jurisdiction.objects.get(code=old)
-            JurisdictionCommune.objects.filter(jurisdiction=instance_to_del).delete()
-            Organisation.objects.filter(jurisdiction=instance_to_del).update(jurisdiction=self)
-            instance_to_del.delete()
-
-
-class JurisdictionCommune(models.Model):
-
-    jurisdiction = models.ForeignKey(
-        to='Jurisdiction', on_delete=models.CASCADE,
-        verbose_name='Territoire de compétence', to_field='code')
-
-    commune = models.ForeignKey(
-        to='Commune', on_delete=models.CASCADE,
-        verbose_name='Commune', to_field='code')
-
-    created_on = models.DateField(auto_now_add=True)
-
-    created_by = models.ForeignKey(
-        to="Profile", null=True, on_delete=models.SET_NULL,
-        verbose_name="Profil de l'utilisateur",
-        related_name='creates_jurisdiction')
-
-    class Meta(object):
-        verbose_name = 'Territoire de compétence / Commune'
-        verbose_name_plural = 'Territoires de compétence / Communes'
-
-    def __str__(self):
-        return '{0}: {1}'.format(self.jurisdiction, self.commune)
 
 
 class License(models.Model):
@@ -378,9 +287,9 @@ class Task(models.Model):
 
 __all__ = [
     AccountActions, AsyncExtractorTask, BaseMaps, Category, Commune,
-    Dataset, DataType, ExtractorSupportedFormat, Financier,
-    get_all_users_for_organizations, Granularity,
-    Jurisdiction, JurisdictionCommune, Layer, License, LiaisonsContributeurs,
-    LiaisonsResources, LiaisonsReferents, Mail, Organisation,
-    OrganisationType, Profile, RemoteCkan, RemoteCkanDataset, Resource,
-    ResourceFormats, Support, SupportedCrs, Task, upload_resource]
+    Dataset, DataType, ExtractorSupportedFormat,
+    Granularity, Jurisdiction, JurisdictionCommune, Layer, License,
+    LiaisonsContributeurs, LiaisonsResources, LiaisonsReferents,
+    Mail, Organisation, OrganisationType, Profile,
+    RemoteCkan, RemoteCkanDataset, Resource, ResourceFormats,
+    Support, SupportedCrs, Task, upload_resource]

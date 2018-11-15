@@ -18,7 +18,7 @@ import ast
 from django.conf import settings
 from functools import reduce
 from functools import wraps
-from idgo_admin.exceptions import GenericException
+from idgo_admin.exceptions import MraBaseError
 from idgo_admin.utils import Singleton
 from requests import request
 import timeout_decorator
@@ -45,7 +45,7 @@ def timeout(fun):
     return wrapper
 
 
-class MRASyncingError(GenericException):
+class MRASyncingError(MraBaseError):
     def __init__(self, *args, **kwargs):
         for item in self.args:
             try:
@@ -58,7 +58,7 @@ class MRASyncingError(GenericException):
         super().__init__(*args, **kwargs)
 
 
-class MRANotFoundError(GenericException):
+class MRANotFoundError(MraBaseError):
 
     message = "Not Found"
 
@@ -66,7 +66,7 @@ class MRANotFoundError(GenericException):
         super().__init__(*args, **kwargs)
 
 
-class MRAConflictError(GenericException):
+class MRAConflictError(MraBaseError):
 
     message = "Conflict"
 
@@ -74,7 +74,7 @@ class MRAConflictError(GenericException):
         super().__init__(*args, **kwargs)
 
 
-class MRATimeoutError(MRASyncingError):
+class MRATimeoutError(MraBaseError):
 
     message = "Time out"
 
@@ -301,32 +301,40 @@ class MRAHandler(metaclass=Singleton):
         self.remote.delete('layers', l_name)
 
     @MRAExceptionsHandler()
-    def update_layer(self, l_name, data):
+    def update_layer(self, l_name, data, ws_name=None):
+        if ws_name:
+            return self.remote.put('workspaces', ws_name,
+                                   'layers', l_name,
+                                   json={'layer': data})
         return self.remote.put('layers', l_name, json={'layer': data})
 
     @MRAExceptionsHandler()
-    def enable_layer(self, l_name):
-        self.update_layer(l_name, {'enabled': True})
+    def enable_layer(self, ws_name, l_name):
+        self.update_layer(l_name, {'enabled': True}, ws_name=ws_name)
 
     @MRAExceptionsHandler()
-    def disable_layer(self, l_name):
-        self.update_layer(l_name, {'enabled': False})
+    def disable_layer(self, ws_name, l_name):
+        self.update_layer(l_name, {'enabled': False}, ws_name=ws_name)
 
     @MRAExceptionsHandler()
     def get_ows_settings(self, ows, ws_name):
         return self.remote.get('services', ows, 'workspaces', ws_name, 'settings')[ows]
 
     @MRAExceptionsHandler()
-    def update_ows_settings(self, ows, ws_name, data):
-        self.remote.put('services', ows,
-                        'workspaces', ws_name,
-                        'settings', json={ows: data})
+    def update_ows_settings(self, ows, data, ws_name=None):
+        if ws_name:
+            self.remote.put('services', ows,
+                            'workspaces', ws_name,
+                            'settings', json={ows: data})
+        else:
+            self.remote.put('services', ows,
+                            'settings', json={ows: data})
 
-    def enable_ows(self, ws_name, ows='ows'):
-        self.update_ows_settings(ows, ws_name, {'enabled': True})
+    def enable_ows(self, ws_name=None, ows='ows'):
+        self.update_ows_settings(ows, {'enabled': True}, ws_name=ws_name)
 
-    def disable_ows(self, ws_name, ows='ows'):
-        self.update_ows_settings(ows, ws_name, {'enabled': False})
+    def disable_ows(self, ws_name=None, ows='ows'):
+        self.update_ows_settings(ows, {'enabled': False}, ws_name=ws_name)
 
     # def enable_wms(self, ws_name):
     #     self.enable_ows(ws_name, ows='wms')
@@ -345,22 +353,6 @@ class MRAHandler(metaclass=Singleton):
 
     # def disable_wcs(self, ws_name):
     #     self.disable_ows(ws_name, ows='wms')
-
-    def publish_layers_resource(self, resource):
-
-        organisation = resource.dataset.organisation
-        ws_name = organisation.ckan_slug
-        self.get_or_create_workspace(organisation)
-
-        ds_name = 'public'
-        self.get_or_create_datastore(ws_name, ds_name)
-
-        enabled = resource.ogc_services
-        for datagis_id in resource.datagis_id:
-            self.get_or_create_featuretype(
-                ws_name, ds_name, datagis_id, enabled=enabled)
-
-        self.enable_ows(ws_name=ws_name)
 
     @MRAExceptionsHandler()
     def get_layergroup(self, ws_name, lg_name):

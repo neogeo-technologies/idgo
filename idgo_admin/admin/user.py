@@ -31,7 +31,6 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.exceptions import ErrorOnDeleteAccount
 from idgo_admin.forms.account import DeleteAdminForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
@@ -48,6 +47,7 @@ from taggit.admin import Tag
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
 geo_admin.GeoModelAdmin.default_zoom = 14
+
 
 admin.site.unregister(Group)
 admin.site.unregister(User)
@@ -79,39 +79,31 @@ class LiaisonReferentsInline(admin.TabularInline):
     model = LiaisonsReferents
     form = CustomLiaisonsReferentsModelForm
     extra = 0
-    verbose_name_plural = "Organisations pour lesquelles l'utilisateur est référent technique"
-    verbose_name = "Organisation"
+    verbose_name_plural = \
+        "Organisations pour lesquelles l'utilisateur est référent technique"
+    verbose_name = 'Organisation'
 
 
 class LiaisonsContributeursInline(admin.TabularInline):
     model = LiaisonsContributeurs
     form = CustomLiaisonsContributeursModelForm
     extra = 0
-    verbose_name_plural = "Organisations pour lesquelles l'utilisateur est contributeur"
-    verbose_name = "Organisation"
+    verbose_name_plural = \
+        "Organisations pour lesquelles l'utilisateur est contributeur"
+    verbose_name = 'Organisation'
 
 
 class AccountActionsInline(admin.TabularInline):
     model = AccountActions
-    verbose_name_plural = "Actions de validation"
-    verbose_name = "Action de validation"
-    ordering = ('closed', 'created_on', )
+    verbose_name_plural = 'Actions de validation'
+    verbose_name = 'Action de validation'
+    ordering = ['closed', 'created_on']
     can_delete = False
     extra = 0
-    fields = (
-        'action',
-        'orga_name',
-        'created_on',
-        'closed',
-        'change_link',
-        )
-    readonly_fields = (
-        'action',
-        'change_link',
-        'closed',
-        'created_on',
-        'orga_name'
-        )
+    fields = [
+        'action', 'change_link', 'closed', 'created_on', 'orga_name']
+    readonly_fields = [
+        'action', 'change_link', 'closed', 'created_on', 'orga_name']
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -120,23 +112,16 @@ class AccountActionsInline(admin.TabularInline):
         # Si extra != 0 les instances supplémentaires se voient attribuer une url
         # par sécurité on empeche d'afficher un lien si pas d'instance.
         if obj.pk:
-            return mark_safe('<a href="{}">Valider l\'action</a>'.format(obj.get_path()))
-    change_link.short_description = "Lien de validation"
+            mark = '<a href="{}">Valider l\'action</a>'.format(obj.get_path())
+            return mark_safe(mark)
+    change_link.short_description = 'Lien de validation'
 
 
 class ProfileAddForm(forms.ModelForm):
 
     class Meta(object):
         model = Profile
-        fields = (
-            'user',
-            'phone',
-            'organisation',
-            # 'is_active',
-            # 'membership',
-            # 'crige_membership',
-            # 'is_admin',
-            )
+        fields = ['organisation', 'phone', 'user']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -150,7 +135,9 @@ class ProfileAddForm(forms.ModelForm):
         if self.cleaned_data.get('organisation'):
             self.cleaned_data.update(membership=True)
         if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
-            raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé.")
+            raise forms.ValidationError((
+                'Un utilisateur sans organisation de rattachement '
+                'ne peut avoir son état de rattachement confirmé.'))
         return self.cleaned_data
 
 
@@ -158,15 +145,9 @@ class BaseProfileChangeForm(forms.ModelForm):
 
     class Meta(object):
         model = Profile
-        fields = (
-            'user',
-            'phone',
-            'organisation',
-            'membership',
-            'crige_membership',
-            'is_active',
-            'is_admin',
-            )
+        fields = [
+            'crige_membership', 'is_active', 'is_admin',
+            'membership', 'organisation', 'phone', 'user']
 
     def clean(self):
         if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
@@ -189,20 +170,9 @@ class ProfileAdmin(admin.ModelAdmin):
     inlines = (LiaisonReferentsInline, LiaisonsContributeursInline, AccountActionsInline)
     models = Profile
     form = ProfileAddForm
-    list_display = (
-        'full_name',
-        'username',
-        'is_admin',
-        'delete_account_action'
-        )
-    search_fields = (
-        'user__username',
-        'user__last_name'
-        )
-    ordering = (
-        'user__last_name',
-        'user__first_name'
-        )
+    list_display = ['username', 'full_name', 'is_admin', 'delete_account_action']
+    search_fields = ['user__last_name', 'user__username']
+    ordering = ['user__last_name', 'user__first_name']
 
     def get_form(self, request, obj=None, **kwargs):
         profile = request.user.profile
@@ -221,7 +191,7 @@ class ProfileAdmin(admin.ModelAdmin):
 
     def full_name(self, obj):
         return " ".join((obj.user.last_name.upper(), obj.user.first_name.capitalize()))
-    full_name.short_description = "Nom et prénom"
+    full_name.short_description = 'Nom et prénom'
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -235,22 +205,16 @@ class ProfileAdmin(admin.ModelAdmin):
     def create_related_liason_contrib(self, instance):
         try:
             LiaisonsContributeurs.objects.get(
-                organisation=instance.organisation,
-                profile=instance.profile
-                )
+                organisation=instance.organisation, profile=instance.profile)
         except LiaisonsContributeurs.DoesNotExist:
             LiaisonsContributeurs.objects.create(
-                organisation=instance.organisation,
-                profile=instance.profile,
-                validated_on=timezone.now().date()
-                )
+                organisation=instance.organisation, profile=instance.profile,
+                validated_on=timezone.now().date())
 
     def current_instance_is_new(self, instance):
         try:
             LiaisonsContributeurs.objects.get(
-                organisation=instance.organisation,
-                profile=instance.profile
-                )
+                organisation=instance.organisation, profile=instance.profile)
         except LiaisonsContributeurs.DoesNotExist:
             return True
         return False
@@ -285,14 +249,15 @@ class ProfileAdmin(admin.ModelAdmin):
         formset.save_m2m()
 
     def save_model(self, request, obj, form, change):
-        # A la creation uniquement
+        # Uniquement lors d'une creation
         if not change:
             obj.save()
             user = obj.user
-            action = AccountActions.objects.create(profile=obj, action="set_password_admin")
+            action = AccountActions.objects.create(
+                profile=obj, action='set_password_admin')
             url = request.build_absolute_uri(reverse(
-                "idgo_admin:password_manager",
-                kwargs={'process': 'initiate', 'key': action.key}))
+                'idgo_admin:password_manager', kwargs={
+                    'process': 'initiate', 'key': action.key}))
             send_account_creation_mail(user, url)
         super().save_model(request, obj, form, change)
 
@@ -306,34 +271,21 @@ class ProfileAdmin(admin.ModelAdmin):
             form = action_form(
                 include={
                     'user_id': user.id,
-                    'related_datasets': related_datasets
-                    }
-                )
-
+                    'related_datasets': related_datasets})
         else:
             form = action_form(
                 request.POST,
                 include={
                     'user_id': user.id,
-                    'related_datasets': related_datasets
-                    }
-                )
+                    'related_datasets': related_datasets})
             if form.is_valid():
-                try:
-                    form.delete_controller(user, form.cleaned_data.get("new_user"), related_datasets)
-                except ErrorOnDeleteAccount:
-                    raise
-
-                else:
-                    self.message_user(
-                        request,
-                        'Le compte utilisateur a bien été supprimé.'
-                        )
-                    url = reverse(
-                        'admin:idgo_admin_profile_changelist',
-                        current_app=self.admin_site.name
-                        )
-                    return HttpResponseRedirect(url)
+                form.delete_controller(user, form.cleaned_data.get("new_user"), related_datasets)
+                self.message_user(
+                    request, 'Le compte utilisateur a bien été supprimé.')
+                url = reverse(
+                    'admin:idgo_admin_profile_changelist',
+                    current_app=self.admin_site.name)
+                return HttpResponseRedirect(url)
 
         context = self.admin_site.each_context(request)
         context['opts'] = self.model._meta
@@ -343,9 +295,7 @@ class ProfileAdmin(admin.ModelAdmin):
         context['related_datasets'] = related_datasets
 
         return TemplateResponse(
-            request,
-            'admin/idgo_admin/user_action.html',
-            context)
+            request, 'admin/idgo_admin/user_action.html', context)
 
     def process_deleting(self, request, profile_id, *args, **kwargs):
         return self.process_action(
@@ -356,13 +306,10 @@ class ProfileAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         urls = super().get_urls()
-        custom_urls = [
-            url(
-                r'^(?P<profile_id>.+)/delete-account/$',
-                self.admin_site.admin_view(self.process_deleting),
-                name='delete-account'
-                )
-            ]
+        custom_urls = [url(
+            '^(?P<profile_id>.+)/delete-account/$',
+            self.admin_site.admin_view(self.process_deleting),
+            name='delete-account')]
         return custom_urls + urls
 
     def delete_account_action(self, obj):
@@ -381,14 +328,13 @@ class MyUserChangeForm(UserChangeForm):
 
     class Meta(object):
         model = User
-        # fields = ('first_name', 'last_name', 'email', 'username')
         fields = '__all__'
 
     def clean(self):
         if 'email' in self.changed_data:
             email = self.cleaned_data['email']
             if User.objects.filter(email=email).exists():
-                raise forms.ValidationError("Cette adresse est reservée.")
+                raise forms.ValidationError('Cette adresse est reservée.')
         return self.cleaned_data
 
     def save(self, commit=True, *args, **kwargs):
@@ -396,7 +342,8 @@ class MyUserChangeForm(UserChangeForm):
         try:
             ckan.update_user(user)
         except Exception as e:
-            raise forms.ValidationError("La modification de l'utilisateur sur CKAN a échoué: {}.".format(e))
+            raise forms.ValidationError(
+                "La modification de l'utilisateur sur CKAN a échoué: {}.".format(e))
         if commit:
             user.save()
         return user
@@ -406,7 +353,7 @@ class MyUserCreationForm(UserCreationForm):
 
     class Meta(object):
         model = User
-        fields = ('first_name', 'last_name', 'email', 'username')
+        fields = ['first_name', 'last_name', 'email', 'username']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -417,8 +364,8 @@ class MyUserCreationForm(UserCreationForm):
         self.fields['password2'].required = False
 
     def clean(self):
-        self.cleaned_data['password1'] = "new_password_will_be_generated"
-        self.cleaned_data['password2'] = "new_password_will_be_generated"
+        self.cleaned_data['password1'] = 'new_password_will_be_generated'
+        self.cleaned_data['password2'] = 'new_password_will_be_generated'
         return self.cleaned_data
 
     def password_generator(self, N=8):
@@ -427,23 +374,21 @@ class MyUserCreationForm(UserCreationForm):
     def clean_username(self):
         username = self.cleaned_data['username']
         if User.objects.filter(username=username).exists() or ckan.is_user_exists(username):
-            raise forms.ValidationError("Ce nom d'utilisateur est reservé.")
+            raise forms.ValidationError("Ce nom d'utilisateur est réservé.")
         return username
 
     def clean_email(self):
         email = self.cleaned_data['email']
         if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("Cette adresse est reservée")
+            raise forms.ValidationError('Cette adresse est réservée.')
         return email
 
     def clean_password2(self):
-        password1 = self.cleaned_data.get("password1", "new_password_will_be_generated")
-        password2 = self.cleaned_data.get("password2", "new_password_will_be_generated")
+        password1 = self.cleaned_data.get('password1', 'new_password_will_be_generated')
+        password2 = self.cleaned_data.get('password2', 'new_password_will_be_generated')
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError(
-                self.error_messages['password_mismatch'],
-                code='password_mismatch',
-                )
+                self.error_messages['password_mismatch'], code='password_mismatch')
 
     def save(self, commit=True, *args, **kwargs):
         user = super().save(commit=False)
@@ -452,8 +397,7 @@ class MyUserCreationForm(UserCreationForm):
             ckan.add_user(user, pass_generated, state='active')
         except Exception as e:
             raise ValidationError(
-                "L'ajout de l'utilisateur sur CKAN a échoué: {}.".format(e)
-                )
+                "L'ajout de l'utilisateur sur CKAN a échoué: {}.".format(e))
         user.set_password(pass_generated)
         if commit:
             user.save()
@@ -463,36 +407,14 @@ class MyUserCreationForm(UserCreationForm):
 class UserAdmin(AuthUserAdmin):
     add_form = MyUserCreationForm
     form = MyUserChangeForm
-    list_display = (
-        'full_name',
-        'username',
-        'is_superuser',
-        'is_active'
-        )
-    list_display_links = (
-        'username',
-        )
-    ordering = (
-        'last_name',
-        'first_name'
-        )
-    prepopulated_fields = {
-        'username': (
-            'first_name',
-            'last_name',
-            )
-        }
-    add_fieldsets = (
+    list_display = ['full_name', 'username', 'is_superuser', 'is_active']
+    list_display_links = ['username']
+    ordering = ['last_name', 'first_name']
+    prepopulated_fields = {'username': ['first_name', 'last_name']}
+    add_fieldsets = [
         (None, {
-            'classes': ('wide',),
-            'fields': (
-                'first_name',
-                'last_name',
-                'username',
-                'email'
-                ),
-            }),
-        )
+            'classes': ['wide'],
+            'fields': ['first_name', 'last_name', 'username', 'email']})]
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -504,8 +426,8 @@ class UserAdmin(AuthUserAdmin):
         return actions
 
     def full_name(self, obj):
-        return " ".join((obj.last_name.upper(), obj.first_name.capitalize()))
-    full_name.short_description = "Nom et prénom"
+        return ' '.join((obj.last_name.upper(), obj.first_name.capitalize()))
+    full_name.short_description = 'Nom et prénom'
 
 
 admin.site.register(User, UserAdmin)

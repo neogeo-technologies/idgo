@@ -15,6 +15,7 @@
 
 
 from django.apps import apps
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.db.models.signals import post_save
@@ -24,7 +25,11 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
+import requests
 import uuid
+
+
+FTP_SERVICE_URL = settings.FTP_SERVICE_URL
 
 
 class Profile(models.Model):
@@ -68,6 +73,9 @@ class Profile(models.Model):
         verbose_name="Administrateur IDGO",
         default=False)
 
+    sftp_password = models.CharField(
+        verbose_name='Mot de passe sFTP', max_length=10, blank=True, null=True)
+
     class Meta(object):
         verbose_name = 'Profil utilisateur'
         verbose_name_plural = 'Profils des utilisateurs'
@@ -96,9 +104,9 @@ class Profile(models.Model):
                 profile=self,
                 validated_on__isnull=False).exists()
 
-        return {"is_admin": self.is_admin,
-                "is_referent": is_referent,
-                "is_editor": (self.user == dataset.editor) if dataset else False}
+        return {'is_admin': self.is_admin,
+                'is_referent': is_referent,
+                'is_editor': (self.user == dataset.editor) if dataset else False}
 
     @classmethod
     def get_crige_membership(cls):
@@ -111,6 +119,27 @@ class Profile(models.Model):
     @property
     def is_referent(self):
         return len(LiaisonsReferents.get_subordinated_organizations(profile=self)) and True or False
+
+    def create_ftp_account(self):
+        r = requests.get(FTP_SERVICE_URL, params={
+            'action': 'create',
+            'login': self.user.username})
+        if r.status_code == 200:
+            details = r.json()
+            self.sftp_password = details.get('message')
+            self.save()
+
+    def delete_ftp_account(self):
+        r = requests.get(FTP_SERVICE_URL, params={
+            'action': 'delete',
+            'login': self.user.username})
+        if r.status_code == 200:
+            self.sftp_password = None
+            self.save()
+
+    @property
+    def is_ftp_account_exists(self):
+        return self.sftp_password and True or False
 
 
 class LiaisonsReferents(models.Model):

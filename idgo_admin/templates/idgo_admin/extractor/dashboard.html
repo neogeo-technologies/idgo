@@ -3,10 +3,10 @@
 {% load static %}
 
 {% block head_extras %}
-<script src="{% static "libs/leaflet/leaflet.js" %}"></script>
-<script src="{% static "libs/leaflet/leaflet-nontiledlayer.js" %}"></script>
-<script src="{% static "libs/leaflet/leaflet-nontiledlayer-wms.js" %}"></script>
-<link rel="stylesheet" href="{% static "libs/leaflet/leaflet.css" %}"/>
+<script src="{% static 'libs/leaflet/leaflet.js' %}"></script>
+<script src="{% static 'libs/leaflet/leaflet-nontiledlayer.js' %}"></script>
+<script src="{% static 'libs/leaflet/leaflet-nontiledlayer-wms.js' %}"></script>
+<link rel="stylesheet" href="{% static 'libs/leaflet/leaflet.css' %}"/>
 {% endblock head_extras %}
 
 {% block breadcrumb_content %}
@@ -21,95 +21,30 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <template id="modal-body-template-on-success">
-	<form>
-		<div class="row">
-			<div class="col-xs-6">
-				<div class="form-group form-group-sm">
-					<label for="user" class="control-label">Utilisateur</label>
-					<input type="text" class="form-control disabled" id="user" disabled>
-				</div>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-xs-10">
-				<div class="form-group form-group-sm">
-					<label for="dataset" class="control-label">Jeu de données</label>
-					<input type="text" class="form-control disabled" id="dataset" disabled>
-				</div>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-xs-10">
-				<div class="form-group form-group-sm">
-					<label for="resource" class="control-label">Ressource</label>
-					<input type="text" class="form-control disabled" id="resource" disabled>
-				</div>
-			</div>
-		</div>
-		<!-- <div class="row">
-			<div class="col-xs-10">
-				<div class="form-group form-group-sm">
-					<label for="layer" class="control-label">Nom de la couche</label>
-					<input type="text" class="form-control disabled" id="layer" disabled>
-				</div>
-			</div>
-		</div> -->
-		<div class="row">
-			<div class="col-xs-7">
-				<div class="form-group form-group-sm">
-					<label for="crs">Système de coordonnées</label>
-					<select class="form-control disabled" id="crs" disabled>
-						<option disabled selected>Sélectionnez un système de coordonnées</option>
-						{% for crs in supported_crs %}
-						<option value="{{ crs.authority }}">{{ crs }}</option>
-						{% endfor %}
-					</select>
-				</div>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-xs-7">
-				<div class="form-group form-group-sm">
-					<label for="format">Format de données</label>
-					<select class="form-control disabled" id="format" disabled>
-						<option disabled selected>Sélectionnez un format</option>
-						{% for format in supported_format %}
-						<option value="{{ format.name }}">{{ format }}</option>
-						{% endfor %}
-					</select>
-				</div>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-xs-5">
-				<div class="form-group form-group-sm">
-					<label for="submission" class="control-label">Date de la demande</label>
-					<input type="datetime-local" class="form-control disabled" id="submission" step="1" disabled>
-				</div>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-xs-5">
-				<div class="form-group form-group-sm">
-					<label for="start" class="control-label">Date de début du traitement</label>
-					<input type="datetime-local" class="form-control disabled" id="start" step="1" disabled>
-				</div>
-			</div>
-			<div class="col-xs-5">
-				<div class="form-group form-group-sm">
-					<label for="stop" class="control-label">Date de fin du traitement</label>
-					<input type="datetime-local" class="form-control disabled" id="stop" step="1" disabled>
-				</div>
-			</div>
-		</div>
+	<div>
+		<dl>
+			<dt>Utilisateur</dt>
+			<dd name="user"></dd>
+			<dt>Cible</dt>
+			<dd name="target"></dd>
+			<dt>Système de coordonnées</dt>
+			<dd name="crs"></dd>
+			<dt>Format de données</dt>
+			<dd name="format"></dd>
+			<dt>Date de la demande</dt>
+			<dd name="submission" type="datetime-local"></dd>
+			<dt>Date de début du traitement</dt>
+			<dd name="start" type="datetime-local"></dd>
+			<dt>Date de fin de traitement</dt>
+			<dd name="stop" type="datetime-local"></dd>
+		</dl>
 		<div class="form-group">
 			<label for="submission" class="control-label">Aperçu</label>
 			<div id="map" style="height: 238px;"></div>
 		</div>
-	</form>
+	</div>
 	<div class="buttons-on-the-right-side">
-		<a type="button" name="modify" class="btn btn-default">Modifier</a>
-		<button type="button" name="again" class="btn btn-default disabled" disabled>Relancer [TODO]</button>
+		<a type="button" name="modify" class="btn btn-default">Ouvrir l'extracteur</a>
 		<button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
 	</div>
 </template>
@@ -125,6 +60,7 @@
 	<div name="actions" class="buttons-on-the-right-side">
 		<a type="button" class="btn btn-primary" href="{% url "idgo_admin:extractor" %}">Nouvelle extraction</a>
 	</div>
+	<br />
 {% if tasks|length == 0 %}
 	{% if is_admin %}
 	<div role="alert" class="alert alert-info">
@@ -136,47 +72,40 @@
 	</div>
 	{% endif %}
 {% else %}
-	<div class="table-responsive">
-		<table id="extractor-dashboard" class="table table-striped table-bordered table-hover table-condensed">
-			<tr>
-				<th name="status">État <a name="sort" href="#"><span class="glyphicon glyphicon-sort" style="float: right;"></span></a></th>
-				<th name="dataset">Jeu de données</th>
-				<th name="resource">Ressource</th>
-				<th name="submission">Demande <a name="sort" href="#"><span class="glyphicon glyphicon-sort" style="float: right;"></span></a></th>
-				<th name="start">Début du traitement</th>
-				<th name="stop">Fin de traitement</th>
-				<th name="elapsed-time">Temps écoulé</th>
-			</tr>
-			{% for task in tasks %}
-			<tr id="{{ task.uuid }}">
-				<td name="status">{{ task.status }}</td>
-				<td name="dataset"><a href="{% url "idgo_admin:dataset" %}?id={{ task.layer.resource.dataset.id }}">{{ task.layer.resource.dataset.name }}</a></td>
-				<td name="resource"><a href="{% url "idgo_admin:resource" dataset_id=task.layer.resource.dataset.id %}?id={{ task.layer.resource.id }}">{{ task.layer.resource.name }}</a></td>
-				<td name="submission">{{ task.submission_datetime|date:"d/m/Y H:i" }}</td>
-				<td name="start">{{ task.start_datetime|date:"d/m/Y H:i"|default:"" }}</td>
-				<td name="stop">{{ task.stop_datetime|date:"d/m/Y H:i"|default:"" }}</td>
-				<td name="elapsed-time">{{ task.elapsed_time|default:"inf. à 1s" }}</td>
-			</tr>
-			{% endfor %}
-		</table>
-	</div>
-	<div name="actions" class="buttons-on-the-right-side">
-	{# if is_admin #}
-		<button type="button" name="open" class="btn btn-default">Ouvrir</button>
-		<!-- <button type="button" name="revoke" class="btn btn-default">Révoquer [TODO]</button> -->
-		<!-- <div class="btn-group">
-			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-				Prioriser [TODO] <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
-			</button>
-			<ul class="dropdown-menu dropdown-menu-right">
-				<li><a role="button" style="text-align: right;">Priorité forte</a></li>
-				<li><a role="button" style="text-align: right;">Priorité faible</a></li>
-			</ul>
-		</div> -->
-	{# else #}
-		<button type="button" name="warn" class="btn btn-default">Signaler une erreur [TODO]</button>
-	{# endif #}
-	</div>
+	<form method="POST">
+		<div class="table-responsive">
+			<table id="extractor-dashboard" class="table table-striped table-bordered table-hover table-condensed">
+				<tr>
+					<th name="status">État <a name="sort" href="#"><span class="glyphicon glyphicon-sort" style="float: right;"></span></a></th>
+					<th name="target">Cible</th>
+					<th name="submission">Demande <a name="sort" href="#"><span class="glyphicon glyphicon-sort" style="float: right;"></span></a></th>
+					<th name="start">Début du traitement</th>
+					<th name="stop">Fin de traitement</th>
+					<th name="elapsed-time">Temps écoulé</th>
+				</tr>
+				{% for task in tasks %}
+				<tr id="{{ task.uuid }}" name="{{ task.uuid }}" success="{{ task.success|yesno:'true,false,null' }}">
+					<td name="status">{{ task.status }}</td>
+					<td name="target">
+						{% if task.model == 'Layer' %}
+						<a href="{% url 'idgo_admin:dataset_editor' id=task.target_object.resource.dataset.pk %}#resources/{{ task.target_object.resource.pk }}">{{ task.target_object }}</a>
+						{% else %}
+						<a href="{% url 'idgo_admin:'|add:task.model|lower|add:'s' %}?id={{ task.target_object.id }}">{{ task.target_object }}</a>
+						{% endif %}
+					</td>
+					<td name="submission">{{ task.submission_datetime|date:"d/m/Y H:i" }}</td>
+					<td name="start">{{ task.start_datetime|date:"d/m/Y H:i"|default:"" }}</td>
+					<td name="stop">{{ task.stop_datetime|date:"d/m/Y H:i"|default:"" }}</td>
+					<td name="elapsed-time">{{ task.elapsed_time|default:"inf. à 1s" }}</td>
+				</tr>
+				{% endfor %}
+			</table>
+		</div>
+		<div name="actions" class="buttons-on-the-right-side">
+			<button type="button" name="open" class="btn btn-default disabled" disabled>Ouvrir</button>
+			<button type="submit" name="revoke" class="btn btn-danger disabled" disabled>Révoquer</button>
+		</div>
+	</form>
 	{% include "idgo_admin/widgets/paginator.html" with count=pagination.total current=pagination.current %}
 </div>
 
@@ -221,15 +150,12 @@ $(function() {
 					const $content = $($template.prop('content')).clone();
 
 					for (const k in data) {
-						const $target = $content.find('#' + k);
-						if ($target.prop('type') == 'datetime-local') {
-							$target.val(moment(data[k]).toJSON().slice(0, 19));
-						} else {
-							$target.val(data[k]);
-						};
+						const $target = $content.find('dd[name="' + k + '"]');
+						const text = ($target.attr('type') == 'datetime-local') ? moment(data[k]).format('DD/MM/YY HH:MM') : data[k];
+						$target.text(text);
 					};
 
-					$modal.find('.modal-title').text('Tâche « ' + taskId + ' »');
+					$modal.find('.modal-title').html('<code>' + taskId + '</code>');
 					$modal.find('.modal-body').append($content);
 					$modal.find('a[name="modify"]').attr('href', '{% url "idgo_admin:extractor" %}?task=' + taskId);
 
@@ -282,7 +208,7 @@ $(function() {
 					const $template = $('#modal-body-template-on-error');
 					const $content = $($template.prop('content')).clone();
 
-					$modal.find('.modal-title').text('Tâche « ' + taskId + ' »');
+					$modal.find('.modal-title').html('<code>' + taskId + '</code>');
 					$modal.find('.modal-body').append($content);
 					$modal.modal('show');
 				}
@@ -290,18 +216,16 @@ $(function() {
 		}).modal('show');
 	};
 
-	const warnCmd = function(taskId) {
-		console.log(taskId);
-
-	};
-
 	const revokeCmd = function(taskId) {
-		console.log(taskId);
-
+		const $form = $('form').attr('method', 'POST');
+		$form.append($('<input type="text" name="revoke"/>').hide());
+		$form.append($('<input type="text" name="task"/>').hide().val(taskId));
+		$modalHourglass.one('show.bs.modal', function(e) {
+			$form.submit();
+		}).modal('show');
 	};
 
 	const $open = $('[name="open"]');
-	const $warn = $('[name="warn"]');
 	const $revoke = $('[name="revoke"]');
 
 	const $table = $('#extractor-dashboard');
@@ -318,19 +242,20 @@ $(function() {
 	$table.find('tr')
 		.on('row.selected', function(e) {
 			const $row = $(this);
+
+			const success = $row.attr('success');
+
 			$row.prop('selected', true).addClass('selected');
 			$('[name="actions"]').find('button, a[role="button"]').each(function() {
+				if ($(this).prop('name') == 'revoke' && success != 'null') {
+					return;
+				};
 				$(this).prop('disabled', false).removeClass('disabled');
 			});
 
 			$open.off('click').on('click', function(e) {
 				e.preventDefault();
 				openCmd($row.prop('id'));
-			});
-
-			$warn.off('click').on('click', function(e) {
-				e.preventDefault();
-				warnCmd($row.prop('id'));
 			});
 
 			$revoke.off('click').on('click', function(e) {

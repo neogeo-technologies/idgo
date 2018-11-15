@@ -5,6 +5,7 @@
 <div class="buttons-on-the-right-side">
 	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}">Ajouter une nouvelle ressource</a>
 </div>
+<br />
 <div id="table-resources" class="table-responsive"></div>
 <nav aria-label="Page navigation" style="text-align: center;">
 	<ul id="table-resources-paginator" class="pagination pagination-sm"></ul>
@@ -195,7 +196,7 @@ $(function() {
 					activateButton($('#resources button[name="delete-resource"]'));
 				};
 			};
-			var DATE_FORMAT = 'dddd Do MMMM YYYY';
+			var DATE_FORMAT = 'DD/MM/YY';
 			setCellRenderer('date_creation', new CellRenderer({
 				render: function(cell, value) {
 					cell.innerHTML = value ? moment(value).format(DATE_FORMAT) : '-';
@@ -241,7 +242,7 @@ $(function() {
 		});
 		if (data.length > 0) {
 			grid.load({'metadata': metadata, 'data': data});
-			grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
+			grid.renderGrid(containerId, 'board table table-striped table-bordered table-hover table-condensed');
 			grid.initializeGrid();
 			grid.refreshGrid();
 			$containerId.show();

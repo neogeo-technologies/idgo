@@ -29,14 +29,12 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import functools
-from idgo_admin.ckan_module import CkanNotFoundError
-from idgo_admin.ckan_module import CkanSyncingError
-from idgo_admin.ckan_module import CkanTimeoutError
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
-from idgo_admin.exceptions import UnexpectedError
-from idgo_admin.forms.organization import OrganizationForm as Form
-from idgo_admin.forms.organization import RemoteCkanForm
+from idgo_admin.exceptions import GenericException
+from idgo_admin.forms.organisation import OrganizationForm as Form
+from idgo_admin.forms.organisation import RemoteCkanForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
@@ -86,7 +84,7 @@ def member_subscribe_process(request, profile, organisation, mail=True):
 
 def member_unsubscribe_process(request, profile, organisation):
     if profile.organisation != organisation:
-        raise UnexpectedError('Echec')
+        raise GenericException()
     if profile.organisation.is_crige_partner:
         profile.crige_membership = False
     profile.organisation = None
@@ -266,7 +264,7 @@ class CreateOrganisation(View):
             return render_with_info_profile(
                 request, self.template, context={'form': form})
 
-        creation_process(request, profile, organisation)  # à revoir car cela ne fonctionne plus dans ce nouveau context
+        creation_process(request, profile, organisation)
 
         form.cleaned_data.get('rattachement_process', False) \
             and member_subscribe_process(request, profile, organisation)
@@ -329,13 +327,7 @@ class UpdateOrganisation(View):
             instance.save()
         except ValidationError as e:
             messages.error(request, e.__str__())
-        except CkanNotFoundError as e:
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-        except CkanSyncingError as e:
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-        except CkanTimeoutError as e:
+        except CkanBaseError as e:
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
         else:
@@ -408,6 +400,11 @@ class Subscription(View):
                 'subscribe': referent_subscribe_process,
                 'unsubscribe': referent_unsubscribe_process}}
 
+        status_fr_label = {
+            'member': 'membre',
+            'contributor': 'contributeur',
+            'referent': 'référent'}
+
         try:
             actions[status][subscription](request, profile, organisation)
         except Exception as e:
@@ -415,14 +412,16 @@ class Subscription(View):
         else:
             if subscription == 'unsubscribe':
                 message = (
-                    "Vous n'êtes plus {0} de l'organisation <strong>{1}</strong>."
-                    ).format(status, organisation.name)
+                    "Vous n'êtes plus {} de l'organisation "
+                    '« <strong>{}</strong> ».'
+                    ).format(status_fr_label[status], organisation.name)
             elif subscription == 'subscribe':
                 message = (
-                    "Votre demande de statut de {0} de l'organisation "
-                    '<strong>{0}</strong> est en cours de traitement. '
-                    "Celle-ci ne sera effective qu'après validation par "
-                    'un administrateur.').format(status, organisation.name)
+                    'Votre demande de statut de <strong>{}</strong> de '
+                    "l'organisation « <strong>{}</strong> » est en cours de "
+                    "traitement. Celle-ci ne sera effective qu'après "
+                    'validation par un administrateur.').format(
+                        status_fr_label[status], organisation.name)
                 # Spécial CRIGE
                 if status == 'member':
                     messages.info(request, "L'organisation est partenaire du CRIGE.")
@@ -451,22 +450,20 @@ class RemoteCkanEditor(View):
             validated_on__isnull=False) and True or False
 
         if is_referent or is_admin:
-
             organisation = get_object_or_404(Organisation, id=id)
+
+            context = {'organisation': organisation}
 
             try:
                 instance = RemoteCkan.objects.get(organisation=organisation)
             except RemoteCkan.DoesNotExist:
                 form = RemoteCkanForm()
             else:
+                context['datasets'] = Dataset.harvested.filter(organisation=organisation)
+                context['instance'] = instance
                 form = RemoteCkanForm(instance=instance)
 
-            datasets = Dataset.harvested.filter(organisation=organisation)
-
-            context = {
-                'datasets': datasets,
-                'form': form,
-                'organisation': organisation}
+            context['form'] = form
 
             return render_with_info_profile(
                 request, self.template, context=context)
@@ -487,10 +484,26 @@ class RemoteCkanEditor(View):
 
         organisation = get_object_or_404(Organisation, id=id)
 
-        instance, created = \
-            RemoteCkan.objects.get_or_create(organisation=organisation)
-        form = RemoteCkanForm(request.POST, instance=instance)
-        context = {'form': form, 'organisation': organisation}
+        context = {'organisation': organisation}
+
+        url = request.POST.get('url')
+        try:
+            with transaction.atomic():
+                instance, created = \
+                    RemoteCkan.objects.get_or_create(
+                        organisation=organisation, url=url)
+        except CkanBaseError as e:
+            form = RemoteCkanForm(request.POST)
+            form.add_error('url', e.__str__())
+        except ValidationError as e:
+            form = RemoteCkanForm(request.POST)
+            form.add_error(e.code, e.message)
+        else:
+            context['datasets'] = Dataset.harvested.filter(organisation=organisation)
+            context['instance'] = instance
+            form = RemoteCkanForm(request.POST, instance=instance)
+
+        context['form'] = form
 
         if not form.is_valid():
             return render_with_info_profile(
@@ -504,15 +517,7 @@ class RemoteCkanEditor(View):
         except ValidationError as e:
             error = True
             messages.error(request, e.__str__())
-        except CkanNotFoundError as e:
-            error = True
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-        except CkanSyncingError as e:
-            error = True
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-        except CkanTimeoutError as e:
+        except CkanBaseError as e:
             error = True
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
@@ -558,11 +563,7 @@ class DeleteRemoteCkanLinked(View):
                 instance.delete()
         except ValidationError as e:
             messages.error(request, e.__str__())
-        except CkanNotFoundError as e:
-            messages.error(request, e.__str__())
-        except CkanSyncingError as e:
-            messages.error(request, e.__str__())
-        except CkanTimeoutError as e:
+        except CkanBaseError as e:
             messages.error(request, e.__str__())
         else:
             messages.success(request, (

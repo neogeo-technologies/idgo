@@ -14,6 +14,7 @@
 # under the License.
 
 
+from django.apps import apps
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
@@ -53,8 +54,11 @@ class AsyncExtractorTask(models.Model):
 
     user = models.ForeignKey(to=User, verbose_name='User')
 
-    layer = models.ForeignKey(
-        to='Layer', verbose_name='Layers', on_delete=models.CASCADE)
+    foreign_value = models.CharField(max_length=100, blank=True, null=True)
+
+    foreign_field = models.CharField(max_length=100, blank=True, null=True)
+
+    model = models.CharField(max_length=100, blank=True, null=True)
 
     success = models.NullBooleanField(verbose_name='Succès')
 
@@ -87,6 +91,11 @@ class AsyncExtractorTask(models.Model):
             return self.stop_datetime - self.submission_datetime
         else:
             return timezone.now() - self.submission_datetime
+
+    @property
+    def target_object(self):
+        Model = apps.get_model(app_label='idgo_admin', model_name=self.model)
+        return Model.objects.get(**{self.foreign_field: self.foreign_value})
 
 
 # Triggers

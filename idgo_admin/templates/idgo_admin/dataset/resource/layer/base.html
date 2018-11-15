@@ -1,0 +1,56 @@
+{% extends "idgo_admin/base.html" %}
+
+{% load static %}
+
+{% block head_extras %}
+{% endblock head_extras %}
+
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li>{% if all %}Tous les{% else %}Mes{% endif %} jeux de données</li>
+	<li>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ layer.resource.dataset.id }}#dataset/{{ layer.resource.dataset.id }}">{{ layer.resource.dataset.name_overflow }}</a>
+	</li>
+	<!-- <li>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ layer.resource.dataset.id }}#resources/{{ layer.resource.id }}">Ressources</a>
+	</li>
+	<li>
+		<a href="{% url "idgo_admin:resource" dataset_id=layer.resource.dataset.id %}?id={{ layer.resource.id }}">{{ layer.resource.name_overflow }}</a>
+	</li> -->
+	<li>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ layer.resource.dataset.id }}#owslayers/{{ layer.id }}">Service Géo-Datasud</a>
+	</li>
+	<li class="active">
+		<a href="{% url "idgo_admin:layer_editor" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id%}">{{ layer.resource.name_overflow }}</a>
+	</li>
+</ol>
+{% endblock breadcrumb_content %}
+{% block main_content %}
+{% include "idgo_admin/alert_messages.html" %}
+<div id="layer-container">
+	{% if layer.resource.extractable %}
+	<div class="floating-buttons-on-the-right-side">
+		<a href="{% url "idgo_admin:extractor" %}?layer={{ layer.id }}" name="extractor" type="button" class="btn btn-secondary">Service d'extraction</a>
+	</div>
+	{% endif %}
+	<ul id="layer_menu" class="nav nav-tabs" role="tablist">
+		<li role="presentation">
+			<a href="{% url "idgo_admin:layer_editor" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id %}" role="tab">
+				Configuration générale
+			</a>
+		</li>
+		<li role="presentation">
+			<a href="{% url "idgo_admin:layer_styles" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id %}" role="tab">
+				Gestion des styles
+			</a>
+		</li>
+		{% block layer_tab_extend %}
+		{% endblock layer_tab_extend %}
+	</ul>
+	<div class="tab-content well">
+		{% block layer_tab_content %}
+		{% endblock layer_tab_content %}
+	</div>
+</div>
+{% endblock main_content %}

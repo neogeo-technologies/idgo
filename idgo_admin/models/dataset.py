@@ -28,9 +28,6 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.managers import HarvestedDataset
-from idgo_admin.mra_client import MRAConflictError
-from idgo_admin.mra_client import MRAHandler
-from idgo_admin.mra_client import MRANotFoundError
 from idgo_admin.utils import three_suspension_points
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
@@ -176,6 +173,18 @@ class Dataset(models.Model):
 
     def __str__(self):
         return self.name
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+        try:
+            remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
+        except RemoteCkanDataset.DoesNotExist:
+            remote_ckan_dataset = None
+
+        self.is_harvested = remote_ckan_dataset and True or False
+        self.remote_ckan_dataset = remote_ckan_dataset or None
 
     @property
     def private(self):
@@ -344,40 +353,19 @@ class Dataset(models.Model):
 
         ckan_user.close()
 
-        # Si l'organisation change
+        # On vérifie si l'organisation du jeu de données change.
+        # Si c'est le cas, il est nécessaire de sauvegarder tous
+        # les `Layers` rattachés au jeu de données afin de forcer
+        # la modification du `Workspace` (c'est-à-dire du Mapfile)
         ws_name = self.organisation.ckan_slug
-        if previous and previous.organisation != self.organisation:
-            resources = Resource.objects.filter(dataset=previous)
-            prev_ws_name = previous.organisation.ckan_slug
-            ds_name = 'public'
-            for resource in resources:
-                if resource.datagis_id:
-                    for datagis_id in resource.datagis_id:
-                        ft_name = str(datagis_id)
-                        try:
-                            MRAHandler.del_layer(ft_name)
-                            MRAHandler.del_featuretype(prev_ws_name, ds_name, ft_name)
-                        except MRANotFoundError:
-                            pass
-                        try:
-                            MRAHandler.publish_layers_resource(resource)
-                        except MRAConflictError:
-                            pass
-                        ckan_user.update_resource(
-                            ft_name,
-                            url='{0}#{1}'.format(
-                                OWS_URL_PATTERN.format(organisation=ws_name), ft_name))
-
-        set = [r.datagis_id for r in
-               Resource.objects.filter(dataset=self).exclude(layer=None)]
-        if set:
-            data = {
-                'name': self.ckan_slug,
-                'title': self.name,
-                'layers': [item for sub in set for item in sub]}
-            MRAHandler.create_or_update_layergroup(ws_name, data)
-        else:
-            MRAHandler.del_layergroup(ws_name, self.ckan_slug)
+        if previous and not previous.organisation == self.organisation:
+            for resource in previous.get_resources():
+                for layer in resource.get_layers():
+                    layer.save()
+                    # TODO: déplacer dans Layer.save()
+                    ckan_user.update_resource(
+                        layer.name, url='{0}#{1}'.format(
+                            OWS_URL_PATTERN.format(organisation=ws_name), layer.name))
 
         self.ckan_id = uuid.UUID(ckan_dataset['id'])
         super().save()  # self.save(sync_ckan=False)

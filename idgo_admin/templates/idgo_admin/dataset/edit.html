@@ -25,6 +25,27 @@
 			{% bootstrap_field form.ckan_slug %}
 		</div>
 	</div>
+	{% if dataset.is_harvested %}
+	<br />
+	<div class="row">
+		<div class="col-xs-12">
+			<div class="well">
+				<dl>
+					<dt>CKAN distant</dt>
+					<dd>
+						<a type="button" class="btn btn-link" href="{{ dataset.remote_ckan_dataset.remote_ckan.url }}">{{ dataset.remote_ckan_dataset.remote_ckan.url }}</a>
+					</dd>
+					<dt>Lien vers la fiche CKAN distante</dt>
+					<dd>
+						<a type="button" class="btn btn-link" href="{{ dataset.remote_ckan_dataset.url }}">{{ dataset.remote_ckan_dataset.url }}</a>
+					</dd>
+					<dt>Dernier moissonnage</dt>
+					<dd>{{ dataset.remote_ckan_dataset.updated_on|date:"d/m/y"|default:"" }}</dd>
+				</dl>
+			</div>
+		</div>
+	</div>
+	{% endif %}
 	<br />
 	<div class="row">
 		<div class="col-xs-8">

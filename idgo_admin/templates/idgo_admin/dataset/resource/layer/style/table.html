@@ -1,0 +1,84 @@
+<div id="styles" class="table-responsive">
+	<table class="board table table-striped table-bordered table-hover table-condensed">
+		<thead>
+			<tr>
+				<th name="name">Nom</th>
+				<th name="title">Titre</th>
+				<th name="default">Style par défaut</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for style in layer.styles %}
+			<tr id="{{ style.name }}" name="{{ style.name }}">
+				<td name="name">{{ style.name }}</td>
+				<td name="title">{{ style.text }}</td>
+				<td name="default">{% if style.default %}<span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+<div id="actions" class="buttons-on-the-right-side">
+	<a href="#" role="button" name="edit" class="btn btn-default disabled">Éditer</a>
+</div>
+<script>
+$(function() {
+	const $window = $(window);
+	const $document = $(document);
+	const $div = $('#styles');
+	const $edit = $div.siblings().find('.btn[name="edit"]');
+	const $table = $div.find('table');
+
+	$table.find('tr')
+		.on('row.selected', function(e) {
+			const $row = $(this);
+			const id = $row.attr('id');
+
+			if (!id) {
+				return;
+			};
+
+			$row.prop('selected', true).addClass('selected');
+			$('#actions').find('.btn').each(function() {
+				$(this).prop('disabled', false).removeClass('disabled');
+			});
+
+			$edit.prop('href', '{% url "idgo_admin:layer_style" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id %}?id=' + id);
+		})
+		.on('row.unselected', function(e) {
+			const $row = $(this);
+			$row.prop('selected', false).removeClass('selected');
+			$('#actions').find('.btn').each(function() {
+				$(this).prop('disabled', true).addClass('disabled');
+			});
+		})
+		.on('click', function(e) {
+			const $that = $table.find('tr:selected');
+			const $this = $(this);
+			if ($that) {
+				$that.trigger('row.unselected');
+				if ($this.index() != $that.index()) {
+					history.pushState(null, null, '#' + $this.attr('name'));
+					$this.trigger('row.selected');
+				} else {
+					history.pushState(null, null, '#');
+				};
+			};
+		});
+
+	$window
+		.bind('hashchange', function(e) {
+			const name = $window[0].location.hash.substring(1);
+			const $that = $table.find('tr:selected');
+			const $this = name ? $table.find('tr[name="' + name + '"]') : '';
+			if ($that) {
+				$that.trigger('row.unselected');
+				if ($this && ($this.index() != $that.index())) {
+					$this.trigger('row.selected');
+				};
+			};
+		})
+		.trigger('hashchange');
+
+});
+</script>

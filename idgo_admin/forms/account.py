@@ -14,7 +14,7 @@
 # under the License.
 
 
-from django.conf import settings
+# from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
@@ -43,18 +43,17 @@ from idgo_admin.forms import ReferentField
 from idgo_admin.forms import UsernameField
 from idgo_admin.forms import WebsiteField
 from idgo_admin.models import Dataset
-from idgo_admin.models import Jurisdiction
+# from idgo_admin.models import Jurisdiction
 from idgo_admin.models import Organisation
 from mama_cas.forms import LoginForm as MamaLoginForm
 
 
-try:
-    JURISDICTION_CODE = settings.DEFAULTS_VALUES.get('JURISDICTION')
-    JURISDICTION = Jurisdiction.objects.get(code=JURISDICTION_CODE)
-except:
-    JURISDICTION_CODE = None
-    JURISDICTION = None
-  
+# try:
+#     JURISDICTION_CODE = settings.DEFAULTS_VALUES.get('JURISDICTION')
+# except AttributeError:
+#     JURISDICTION = None
+# else:
+#     JURISDICTION = Jurisdiction.objects.get(code=JURISDICTION_CODE)
 
 
 class UserForgetPassword(forms.Form):
@@ -107,7 +106,7 @@ class UserResetPassword(forms.Form):
 class SignInForm(MamaLoginForm):
 
     username = UsernameField()
-    password = PasswordField()
+    password = PasswordField(required=True)
 
     def clean(self):
         username = self.cleaned_data.get('username')
@@ -333,8 +332,8 @@ class SignUpForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if JURISDICTION:
-            self.fields['jurisdiction'].initial = JURISDICTION
+        # if JURISDICTION:
+        #     self.fields['jurisdiction'].initial = JURISDICTION
 
         self.fields['password1'].widget.attrs['placeholder'] = 'Mot de passe*'
         self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le mot de passe*'

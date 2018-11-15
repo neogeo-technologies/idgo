@@ -34,9 +34,8 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanSyncingError
-from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.account import SignInForm
 from idgo_admin.forms.account import SignUpForm
@@ -54,10 +53,10 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
-from idgo_admin.views.organization import contributor_subscribe_process
-from idgo_admin.views.organization import creation_process
-from idgo_admin.views.organization import member_subscribe_process
-from idgo_admin.views.organization import referent_subscribe_process
+from idgo_admin.views.organisation import contributor_subscribe_process
+from idgo_admin.views.organisation import creation_process
+from idgo_admin.views.organisation import member_subscribe_process
+from idgo_admin.views.organisation import referent_subscribe_process
 from mama_cas.compat import is_authenticated as mama_is_authenticated
 from mama_cas.models import ProxyGrantingTicket as MamaProxyGrantingTicket
 from mama_cas.models import ProxyTicket as MamaProxyTicket
@@ -381,11 +380,7 @@ class SignUp(View):
         except ValidationError as e:
             messages.error(request, e.message)
             return render(request, self.template, context={'form': form})
-        except CkanSyncingError as e:
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-            return render(request, self.template, context={'form': form})
-        except CkanTimeoutError as e:
+        except CkanBaseError as e:
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
             return render(request, self.template, context={'form': form})
@@ -394,7 +389,7 @@ class SignUp(View):
         sign_up_process(request, profile)
 
         if form.create_organisation:
-            creation_process(request, profile, organisation)
+            creation_process(request, profile, organisation, mail=False)
 
         if form.is_member:
             member_subscribe_process(request, profile, organisation, mail=False)
@@ -467,12 +462,7 @@ class UpdateAccount(View):
             messages.error(request, e.message)
             return render_with_info_profile(
                 request, self.template, context={'form': form})
-        except CkanSyncingError as e:
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-            return render_with_info_profile(
-                request, self.template, context={'form': form})
-        except CkanTimeoutError as e:
+        except CkanBaseError as e:
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
             return render_with_info_profile(
@@ -482,3 +472,44 @@ class UpdateAccount(View):
 
         return render_with_info_profile(
             request, self.template, context={'form': form}, status=200)
+
+
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def create_sftp_account(request):
+
+    user, profile = user_and_profile(request)
+
+    try:
+        profile.create_ftp_account()
+    except Exception as e:
+        print(e)
+        # TODO: Géré les exceptions
+        messages.error(
+            request, 'Une erreur est survenue lors de la création de votre compte FTP.')
+    else:
+        messages.success(request, (
+            'Le compte FTP a été créé avec succès. '
+            'Un mot de passe a été généré automatiquement. '
+            "Il n'est pas modifiable."))
+
+    return HttpResponseRedirect(reverse('idgo_admin:update_account'))
+
+
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def delete_sftp_account(request):
+
+    user, profile = user_and_profile(request)
+
+    try:
+        profile.delete_ftp_account()
+    except Exception as e:
+        print(e)
+        # TODO: Géré les exceptions
+        messages.error(
+            request, 'Une erreur est survenue lors de la suppression de votre compte FTP.')
+    else:
+        messages.success(request, 'Le compte FTP a été supprimé avec succès.')
+
+    return HttpResponseRedirect(reverse('idgo_admin:update_account'))

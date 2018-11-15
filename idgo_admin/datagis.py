@@ -20,13 +20,12 @@ from django.conf import settings
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.gdal.error import SRSException
+from django.contrib.gis.gdal import GDALRaster
 from django.db import connections
-from idgo_admin.exceptions import CriticalException
+from idgo_admin.exceptions import DatagisBaseError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
-from idgo_admin.exceptions import NotFoundSrsError
-from idgo_admin.exceptions import NotOGRError
-from idgo_admin.exceptions import NotSupportedSrsError
 from idgo_admin.utils import slugify
+from pathlib import Path
 import re
 from uuid import uuid4
 
@@ -41,6 +40,7 @@ except AttributeError:
     VSI_PROTOCOLES = {
         'geojson': None,
         'shapezip': 'vsizip',
+        'shp': None,
         'tab': 'vsizip',
         'mif/mid': 'vsizip',
         'tar': 'vsitar',
@@ -49,6 +49,30 @@ except AttributeError:
 SCHEMA = 'public'
 THE_GEOM = 'the_geom'
 TO_EPSG = 4171
+
+
+class NotDataGISError(DatagisBaseError):
+    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données SIG."
+
+
+class NotFoundSrsError(DatagisBaseError):
+    message = "Le système de coordonnées n'est pas reconnu."
+
+
+class NotGDALError(DatagisBaseError):
+    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données matriciel."
+
+
+class NotOGRError(DatagisBaseError):
+    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données vectoriel."
+
+
+class NotSupportedSrsError(DatagisBaseError):
+    message = "Le système de coordonnées n'est pas supporté par l'application."
+
+
+class SQLError(DatagisBaseError):
+    message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données SIG."
 
 
 def is_valid_epsg(code):
@@ -105,6 +129,18 @@ def retreive_epsg_through_regex(text):
             return supported_crs.auth_code
 
 
+class GdalOpener(object):
+
+    _raster = None
+
+    def __init__(self, filename, extension=None):
+        try:
+            self._raster = GDALRaster(filename)
+        except GDALException as e:
+            raise NotGDALError(
+                'The file received is not recognized as being a GIS raster data. {}'.format(e.__str__()))
+
+
 class OgrOpener(object):
 
     VSI_PROTOCOLES = VSI_PROTOCOLES
@@ -122,10 +158,20 @@ class OgrOpener(object):
                 vsi and '/{}/{}'.format(vsi, filename) or filename)
         except GDALException as e:
             raise NotOGRError(
-                'The file received is not recognized as being a GIS data. {}'.format(e.__str__()))
+                'The file received is not recognized as being a GIS vector data. {}'.format(e.__str__()))
 
     def get_layers(self):
         return self._datastore
+
+
+def get_gdalogr_object(filename, extension):
+    try:
+        return GdalOpener(filename, extension=extension)
+    except NotGDALError:
+        try:
+            return OgrOpener(filename, extension=extension)
+        except NotOGRError:
+            raise NotDataGISError()
 
 
 CREATE_TABLE = '''
@@ -181,9 +227,7 @@ def handle_ogr_geom_type(ogr_geom_type):
         }.get(ogr_geom_type.__str__().lower(), 'Geometry')
 
 
-def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
-    ds = OgrOpener(filename, extension=extension)
-
+def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None):
     sql = []
     tables = []
 
@@ -193,8 +237,11 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
             count=len(layers), maximum=limit_to)
     # else:
     for layer in layers:
-
         layername = slugify(layer.name)
+
+        if layername == 'ogrgeojson':
+            p = Path(ds._datastore.name)
+            layername = slugify(p.name[:-len(p.suffix)]).replace('-', '_')
 
         if epsg and is_valid_epsg(epsg):
             pass
@@ -213,8 +260,8 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                         epsg = layer.srs.auth_code('GEOGCS')
                 if not epsg:
                     epsg = retreive_epsg_through_proj4(layer.srs.proj4)
-            if not epsg:
-                epsg = retreive_epsg_through_regex(layer.srs.name)
+                if not epsg:
+                    epsg = retreive_epsg_through_regex(layer.srs.name)
             if not epsg:
                 raise NotFoundSrsError('SRS Not found')
 
@@ -273,7 +320,7 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
 
         sql.append(CREATE_TABLE.format(
             attrs=',\n  '.join(
-                ['{} {}'.format(k, v) for k, v in attrs.items()]),
+                ['"{}" {}'.format(k, v) for k, v in attrs.items()]),
             description=layer.name,
             epsg=epsg,
             geometry=geometry,
@@ -315,7 +362,7 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                 to_epsg=TO_EPSG))
 
     for table_id in update.values():
-        rename_table(table_id, '_{}'.format(table_id))
+        rename_table(table_id, '__{}'.format(table_id))
 
     with connections[DATABASE].cursor() as cursor:
         for q in sql:
@@ -326,21 +373,19 @@ def ogr2postgis(filename, extension='zip', epsg=None, limit_to=1, update={}):
                 for table_id in [table['id'] for table in tables]:
                     drop_table(table_id)
                 for table_id in update.values():
-                    rename_table('_{}'.format(table_id), table_id)
+                    rename_table('__{}'.format(table_id), table_id)
                 # Puis retourner l'erreur
-                print(e)
-                raise CriticalException((
-                    'Une erreur est survenu lors de la création du service OGC. '
-                    "Veuillez contacter l'administrateur du site."))
-        cursor.close()
+                raise SQLError(e.__str__())
 
     for table_id in update.values():
-        drop_table('_{}'.format(table_id))
+        drop_table('__{}'.format(table_id))
 
     return tables
 
 
 def get_extent(tables, schema='public'):
+    if not tables:
+        return None
 
     sub = 'SELECT {the_geom} as the_geom FROM {schema}."{table}"'
     sql = 'WITH all_geoms AS ({}) SELECT geometry(ST_Extent(the_geom)) FROM all_geoms;'.format(

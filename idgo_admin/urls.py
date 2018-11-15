@@ -17,7 +17,9 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import url
+from idgo_admin.views.account import create_sftp_account
 from idgo_admin.views.account import delete_account
+from idgo_admin.views.account import delete_sftp_account
 from idgo_admin.views.account import PasswordManager
 from idgo_admin.views.account import ReferentAccountManager
 from idgo_admin.views.account import SignIn
@@ -33,7 +35,13 @@ from idgo_admin.views.extractor import Extractor
 from idgo_admin.views.extractor import extractor_task
 from idgo_admin.views.extractor import ExtractorDashboard
 from idgo_admin.views import home
+from idgo_admin.views.jurisdiction import jurisdiction
+from idgo_admin.views.jurisdiction import jurisdictions
 from idgo_admin.views.jurisdiction import JurisdictionView
+from idgo_admin.views.layer import LayerStyleEditorView
+from idgo_admin.views.layer import layer_styles
+from idgo_admin.views.layer import layer_style
+from idgo_admin.views.layer import LayerView
 from idgo_admin.views.mailer import confirm_contribution
 from idgo_admin.views.mailer import confirm_new_orga
 from idgo_admin.views.mailer import confirm_rattachement
@@ -44,17 +52,14 @@ from idgo_admin.views.mdedit import DatasetMDEditTplEdit
 from idgo_admin.views.mdedit import mdhandler
 from idgo_admin.views.mdedit import ServiceMDEdit
 from idgo_admin.views.mdedit import ServiceMDEditTplEdit
-from idgo_admin.views.organization import all_organisations
-from idgo_admin.views.organization import RemoteCkanEditor
-from idgo_admin.views.organization import CreateOrganisation
-from idgo_admin.views.organization import organisation
-from idgo_admin.views.organization import OrganisationOWS
-from idgo_admin.views.organization import Subscription
-from idgo_admin.views.organization import UpdateOrganisation
-
-from idgo_admin.views.organization import DeleteRemoteCkanLinked
-
-from idgo_admin.views.resource import LayerManager
+from idgo_admin.views.organisation import all_organisations
+from idgo_admin.views.organisation import CreateOrganisation
+from idgo_admin.views.organisation import DeleteRemoteCkanLinked
+from idgo_admin.views.organisation import organisation
+from idgo_admin.views.organisation import OrganisationOWS
+from idgo_admin.views.organisation import RemoteCkanEditor
+from idgo_admin.views.organisation import Subscription
+from idgo_admin.views.organisation import UpdateOrganisation
 from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
 from idgo_admin.views.stuffs import ows_preview
@@ -70,18 +75,28 @@ urlpatterns = [
     url('^account/update/?$', UpdateAccount.as_view(), name='update_account'),
     url('^account/delete/?$', delete_account, name='deleteAccount'),
 
+    url('^account/sftp/create/?$', create_sftp_account, name='create_sftp_account'),
+    url('^account/sftp/delete/?$', delete_sftp_account, name='delete_sftp_account'),
+
     url('^dataset/?$', dataset, name='dataset'),
     url('^dataset/(?P<target>(all|mine|harvested))/?$', datasets, name='datasets'),
     url('^dataset/(?P<id>(new|(\d+)))/edit/?$', DatasetManager.as_view(), name='dataset_editor'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
-    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))$', LayerManager.as_view(), name='layer'),
+
+    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/edit/?$', LayerView.as_view(), name='layer_editor'),
+    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/?$', layer_style, name='layer_style'),
+    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/all/?$', layer_styles, name='layer_styles'),
+    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/(?P<style_id>([a-z0-9_]*))/edit/?$', LayerStyleEditorView.as_view(), name='layer_style_editor'),
+
     url('^dataset/export/?$', Export.as_view(), name='export'),
 
     url('^extractor/?$', Extractor.as_view(), name='extractor'),
     url('^extractor/task/?$', extractor_task, name='extractor_task'),
     url('^extractor/dashboard/?$', ExtractorDashboard.as_view(), name='extractor_dashboard'),
 
-    url('^jurisdiction/(?P<code>(\d+))/edit/?$', JurisdictionView.as_view(), name='jurisdiction'),
+    url('^jurisdiction/?$', jurisdiction, name='jurisdiction'),
+    url('^jurisdiction/all/?$', jurisdictions, name='jurisdictions'),
+    url('^jurisdiction/(?P<code>(new|(\d+)))/edit/?$', JurisdictionView.as_view(), name='jurisdiction_editor'),
 
     url('^mdedit/(?P<type>(dataset|service))/?$', mdhandler, name='mdhandler'),
     url('^mdedit/dataset/(?P<id>(\d+))/?$', DatasetMDEdit.as_view(), name='dataset_mdedit'),

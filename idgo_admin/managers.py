@@ -29,6 +29,10 @@ class HarvestedDataset(models.Manager):
 
         dataset = super().create(**kwargs)
 
+        DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
+        dataset.data_type = DataType.objects.filter(ckan_slug='donnees-moissonnees')
+        dataset.save()
+
         RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
 
         RemoteCkanDataset.objects.create(

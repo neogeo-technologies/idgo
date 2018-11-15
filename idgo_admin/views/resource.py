@@ -28,10 +28,8 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanNotFoundError
-from idgo_admin.ckan_module import CkanSyncingError
-from idgo_admin.ckan_module import CkanTimeoutError
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
@@ -41,7 +39,6 @@ from idgo_admin.models.mail import send_resource_creation_mail
 from idgo_admin.models.mail import send_resource_delete_mail
 from idgo_admin.models.mail import send_resource_update_mail
 from idgo_admin.models import Resource
-from idgo_admin.mra_client import MRAHandler
 from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
@@ -50,7 +47,6 @@ import json
 
 
 CKAN_URL = settings.CKAN_URL
-MRA = settings.MRA
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -68,13 +64,15 @@ class ResourceManager(View):
             mode = (
                 resource.up_file and 'up_file' or
                 resource.dl_url and 'dl_url' or
-                resource.referenced_url and 'referenced_url'
+                resource.referenced_url and 'referenced_url' or
+                resource.ftp_file and 'ftp_file'
                 ) or None
         elif form:
             mode = (
                 form.files.get('up_file') and 'up_file' or
                 form.data.get('dl_url') and 'dl_url' or
-                form.data.get('referenced_url') and 'referenced_url'
+                form.data.get('referenced_url') and 'referenced_url' or
+                form.data.get('ftp_file') and 'ftp_file'
                 ) or None
 
         return {
@@ -96,7 +94,7 @@ class ResourceManager(View):
         _layer = request.GET.get('layer')
         if _resource and _layer:
             return redirect(
-                reverse('idgo_admin:layer', kwargs={
+                reverse('idgo_admin:layer_editor', kwargs={
                     'dataset_id': dataset.id,
                     'resource_id': _resource,
                     'layer_id': _layer}))
@@ -105,7 +103,7 @@ class ResourceManager(View):
         instance = id and get_object_or_404_extended(
             Resource, user, include={'id': id, 'dataset_id': dataset.id}) or None
 
-        form = Form(instance=instance)
+        form = Form(instance=instance, user=user)
 
         context = self.get_context(form, profile, dataset, instance)
 
@@ -129,7 +127,8 @@ class ResourceManager(View):
             Resource, user, include={'id': id, 'dataset': dataset}) or None
 
         form = Form(
-            request.POST, request.FILES, instance=instance, dataset=dataset)
+            request.POST, request.FILES,
+            instance=instance, dataset=dataset, user=user)
 
         context = self.get_context(form, profile, dataset, instance)
 
@@ -150,14 +149,6 @@ class ResourceManager(View):
         try:
             with transaction.atomic():
                 instance = form.handle_me(request, dataset, id=id)
-        except CkanSyncingError as e:
-            error = {'__all__': [e.__str__()]}
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-        except CkanTimeoutError:
-            error = {'__all__': [e.__str__()]}
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
         except ValidationError as e:
             if e.code == 'crs':
                 form.add_error(e.code, '')
@@ -167,6 +158,10 @@ class ResourceManager(View):
             messages.error(request, ' '.join(e))
             error = dict(
                 [(k, [str(m) for m in v]) for k, v in form.errors.items()])
+        except CkanBaseError as e:
+            error = {'__all__': [e.__str__()]}
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
         else:
             if id:
                 send_resource_update_mail(user, instance)
@@ -224,10 +219,7 @@ class ResourceManager(View):
         ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
         try:
             ckan_user.delete_resource(ckan_id)
-        except CkanNotFoundError as e:
-            status = 500
-            messages.error(request, e.__str__())
-        except CkanSyncingError as e:
+        except CkanBaseError as e:
             status = 500
             messages.error(request, e.__str__())
         else:
@@ -241,123 +233,3 @@ class ResourceManager(View):
             ckan_user.close()
 
         return HttpResponse(status=status)
-
-
-def get_layer(resource, datagis_id):
-    if datagis_id not in resource.datagis_id:
-        raise Http404
-
-    datagis_id = str(datagis_id)
-    layer = MRAHandler.get_layer(datagis_id)
-    ft = MRAHandler.get_featuretype(resource.dataset.organisation.ckan_slug, 'public', datagis_id)
-
-    ll = ft['featureType']['latLonBoundingBox']
-    bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
-    attributes = [item['name'] for item in ft['featureType']['attributes']]
-
-    default_style_name = layer['defaultStyle']['name']
-
-    styles = [{
-        'name': 'default',
-        'text': 'Style par défaut',
-        'url': layer['defaultStyle']['href'].replace('json', 'sld'),
-        'sld': MRAHandler.get_style(layer['defaultStyle']['name'])}]
-
-    if layer.get('styles'):
-        for style in layer.get('styles')['style']:
-            styles.append({
-                'name': style['name'],
-                'text': style['name'],
-                'url': style['href'].replace('json', 'sld'),
-                'sld': MRAHandler.get_style(style['name'])})
-
-    return {
-        'id': datagis_id,
-        'name': layer['name'],
-        'title': layer['title'],
-        'type': layer['type'],
-        'enabled': layer['enabled'],
-        'bbox': bbox,
-        'attributes': attributes,
-        'styles': {'default': default_style_name, 'styles': styles}}
-
-
-def get_layers(resource):
-    layers = []
-    for datagis_id in resource.datagis_id:
-        data = get_layer(resource, datagis_id)
-        layers.append([
-            data['id'],
-            data['name'],
-            data['title'],
-            data['type'],
-            data['enabled'],
-            data['bbox'],
-            data['attributes'],
-            data['styles']])
-    return(layers)
-
-
-@method_decorator(decorators, name='dispatch')
-class LayerManager(View):
-
-    template = 'idgo_admin/dataset/resource/layer/layer.html'
-    namespace = 'idgo_admin:layer'
-
-    @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
-
-        user, profile = user_and_profile(request)
-
-        instance = get_object_or_404_extended(
-            Resource, user, include={'id': resource_id, 'dataset_id': dataset_id})
-
-        dataset = instance.dataset
-
-        layer = get_layer(instance, layer_id)
-
-        context = {
-            'dataset': dataset,
-            'resource': instance,
-            'fonts_asjson': json.dumps(MRAHandler.get_fonts()),
-            'layer': layer,
-            'layer_asjson': json.dumps(layer)}
-
-        return render_with_info_profile(request, self.template, context)
-
-    @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
-    def post(self, request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
-
-        user, profile = user_and_profile(request)
-
-        instance = get_object_or_404_extended(
-            Resource, user, include={'id': resource_id, 'dataset_id': dataset_id})
-
-        if layer_id not in instance.datagis_id:
-            return Http404
-
-        dataset = instance.dataset
-
-        sld = request.POST.get('sldBody')
-
-        try:
-            MRAHandler.create_or_update_style(layer_id, data=sld.encode('utf-8'))
-            MRAHandler.update_layer_defaultstyle(layer_id, layer_id)
-        except ValidationError as e:
-            messages.error(request, ' '.join(e))
-        except Exception as e:
-            messages.error(request, e.__str__())
-        else:
-            message = 'Le style a été mis à jour avec succès.'
-            messages.success(request, message)
-
-        layer = get_layer(instance, layer_id)
-
-        context = {
-            'dataset': dataset,
-            'resource': instance,
-            'fonts_asjson': json.dumps(MRAHandler.get_fonts()),
-            'layer': layer,
-            'layer_asjson': json.dumps(layer)}
-
-        return render_with_info_profile(request, self.template, context)

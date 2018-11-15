@@ -15,6 +15,7 @@
 
 
 from django import forms
+from idgo_admin.forms import CustomCheckboxSelectMultiple
 from idgo_admin.models import Commune
 from idgo_admin.models import Jurisdiction
 
@@ -26,16 +27,25 @@ class JurisdictionForm(forms.ModelForm):
         property_fields = ('name', 'code',)
         fields = property_fields + ('communes',)
 
-    name = forms.CharField(label='Nom', required=False)
+    name = forms.CharField(
+        label='Nom',
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': 'Le nom du territoire'}))
 
-    code = forms.CharField(label='Code INSEE', required=False)
+    code = forms.CharField(
+        label="Code d'identification",
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': 'Par exemple le code INSEE'}))
 
     communes = forms.ModelMultipleChoiceField(
         label='Communes',
         queryset=Commune.objects.all(),
         required=False,
         to_field_name='code',
-        widget=forms.CheckboxSelectMultiple())
+        widget=CustomCheckboxSelectMultiple(
+            attrs={'class': 'list-group-checkbox'}))
 
     def __init__(self, *args, **kwargs):
         include = kwargs.pop('include', {})

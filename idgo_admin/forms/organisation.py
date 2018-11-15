@@ -16,8 +16,7 @@
 
 from django import forms
 from idgo_admin.ckan_module import CkanBaseHandler
-from idgo_admin.ckan_module import CkanSyncingError
-from idgo_admin.ckan_module import CkanTimeoutError
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.forms import AddressField
 from idgo_admin.forms import CityField
 from idgo_admin.forms import ContributorField
@@ -136,21 +135,20 @@ class RemoteCkanForm(forms.ModelForm):
         if instance and instance.url:
             self.fields['url'].widget.attrs['readonly'] = True
             # Récupérer la liste des organisations
-            remote_ckan = CkanBaseHandler(instance.url)
+            ckan = CkanBaseHandler(instance.url)
 
             try:
-                organisations = remote_ckan.get_all_organizations(
+                organisations = ckan.get_all_organizations(
                     all_fields=True, include_dataset_count=True)
-            except (CkanSyncingError, CkanTimeoutError) as e:
-                self.add_error('sync_with', (
-                    "Impossible de récupérer les informations depuis le "
-                    "catalogue CKAN. Le serveur retourne l'erreur suivante : "
-                    "{error}".format(error=e.__str__())))
-                self.add_error('url', "Vérifiez l'adresse URL du catalogue CKAN.")
+            except CkanBaseError as e:
+                self.add_error('url', e.message)
             else:
                 self.fields['sync_with'].choices = (
                     (organisation['name'], '{} ({})'.format(
-                        organisation['display_name'], organisation['package_count']))
+                        organisation['display_name'],
+                        organisation.get(
+                            'package_count',
+                            organisation.get('packages', None))))
                     for organisation in organisations)
         else:
             self.fields['sync_with'].widget = forms.HiddenInput()

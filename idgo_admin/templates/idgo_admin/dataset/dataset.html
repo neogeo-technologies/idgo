@@ -20,7 +20,7 @@
 	<li role="presentation">
 		<a href="#resources" aria-controls="resources" role="tab" data-toggle="tab">Ressource(s) associée(s)</a>
 	</li>
-			{% if is_crige and dataset.organisation.is_crige_partner %}
+			{% if user.profile.crige_membership %}
 	<li role="presentation">
 		<a href="#owslayers" aria-controls="service" role="tab" data-toggle="tab">Service Géo-DataSud</a>
 	</li>
@@ -39,7 +39,7 @@
 		<br />
 		{% include "idgo_admin/dataset/resource/resources.html" %}
 	</div>
-			{% if is_crige and dataset.organisation.is_crige_partner %}
+			{% if user.profile.crige_membership %}
 	<div id="owslayers" role="tabpanel" class="tab-pane fade in">
 		<br />
 		{% include "idgo_admin/dataset/resource/layer/layers.html" %}

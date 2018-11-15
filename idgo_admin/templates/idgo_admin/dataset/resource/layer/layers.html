@@ -12,7 +12,7 @@
 	<button name="extractor" class="btn btn-default">Service d'extraction</button>
 	{% endif %}
 	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
-	<button name="edit-layer" class="btn btn-default">Éditer</button>
+	<button name="edit-layer" class="btn btn-default">Configurer le service</button>
 </div>
 
 <script>
@@ -28,11 +28,6 @@ $(function() {
 		}, {
 			name: 'title',
 			label: 'Titre de la couche',
-			editable: false,
-			datatype: 'string'
-		}, {
-			name: 'type',
-			label: 'Type',
 			editable: false,
 			datatype: 'string'
 		}, {
@@ -52,7 +47,7 @@ $(function() {
 			datatype: 'string'
 		}, {
 			name: 'geo_restrictions',
-			label: "Au territoire de compétence",
+			label: "Restriction au territoire de compétence",
 			editable: false,
 			datatype: 'boolean'
 		}, {
@@ -171,7 +166,7 @@ $(function() {
 		});
 		if (data.length > 0) {
 			grid.load({'metadata': metadata, 'data': data});
-			grid.renderGrid(containerId, 'table table-striped table-bordered table-hover table-condensed');
+			grid.renderGrid(containerId, 'board table table-striped table-bordered table-hover table-condensed');
 			grid.initializeGrid();
 			grid.refreshGrid();
 			$containerId.show();
@@ -200,9 +195,7 @@ $(function() {
 					id: i,
 					values: [
 						data[i][1],  // resource_name
-						// data[i][8],  // name
 						data[i][9],  // title
-						data[i][2],  // type
 						data[i][6],  // ogc_enabled
 						data[i][5],  // extractor_enabled
 						data[i][3],  // restrictions

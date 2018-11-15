@@ -59,11 +59,11 @@
 	{% endfor %}
 	<br />
 	<div class="buttons-on-the-right-side">
-		{% if form.url.value %}
+		{% if instance %}
 		<button type="button" name="delete" class="btn btn-danger">Supprimer</button>
 		{% endif %}
 		<a class="btn btn-default" href="{% url "idgo_admin:update_organization" id=organisation.id %}">Annuler</a>
-		{% if form.url.value %}
+		{% if instance %}
 		<button type="submit" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>
 		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
 		{% else %}

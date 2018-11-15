@@ -18,18 +18,27 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django import forms
 from django.utils import timezone
+from idgo_admin.forms import CustomCheckboxSelectMultiple
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
 from idgo_admin.models import SupportedCrs
 from idgo_admin.utils import readable_file_size
+import os
 
 
 try:
     DOWNLOAD_SIZE_LIMIT = settings.DOWNLOAD_SIZE_LIMIT
 except AttributeError:
     DOWNLOAD_SIZE_LIMIT = 104857600  # 100Mio
+
+
+FTP_DIR = settings.FTP_DIR
+try:
+    FTP_UPLOADS_DIR = settings.FTP_UPLOADS_DIR
+except AttributeError:
+    FTP_UPLOADS_DIR = 'uploads'
 
 
 def file_size(value):
@@ -51,6 +60,7 @@ class ResourceForm(forms.ModelForm):
                   'dl_url',
                   'extractable',
                   'format_type',
+                  'ftp_file',
                   'geo_restriction',
                   'lang',
                   'name',
@@ -68,6 +78,11 @@ class ResourceForm(forms.ModelForm):
 
     class CustomClearableFileInput(forms.ClearableFileInput):
         template_name = 'idgo_admin/widgets/file_drop_zone.html'
+
+    ftp_file = forms.ChoiceField(
+        label='Fichier déposé sur FTP',
+        choices=[],
+        required=False)
 
     up_file = forms.FileField(
         label='Téléversement',
@@ -105,14 +120,16 @@ class ResourceForm(forms.ModelForm):
         queryset=Profile.objects.filter(is_active=True).order_by('user__last_name'),
         required=False,
         to_field_name='pk',
-        widget=forms.CheckboxSelectMultiple())
+        widget=CustomCheckboxSelectMultiple(
+            attrs={'class': 'list-group-checkbox'}))
 
     organisations_allowed = forms.ModelMultipleChoiceField(
         label='Organisations autorisées',
         queryset=Organisation.objects.filter(is_active=True).order_by('name'),
         required=False,
         to_field_name='pk',
-        widget=forms.CheckboxSelectMultiple())
+        widget=CustomCheckboxSelectMultiple(
+            attrs={'class': 'list-group-checkbox'}))
 
     synchronisation = forms.BooleanField(
         initial=False,
@@ -152,27 +169,40 @@ class ResourceForm(forms.ModelForm):
         self.include_args = kwargs.pop('include', {})
         self._dataset = kwargs.pop('dataset', None)
         instance = kwargs.get('instance', None)
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
+        dir = os.path.join(FTP_DIR, user.username, FTP_UPLOADS_DIR)
+        choices = [(None, 'Veuillez sélectionner un fichier')]
+        for path, subdirs, files in os.walk(dir):
+            for name in files:
+                filename = os.path.join(path, name)
+                choices.append((filename, filename[len(dir) + 1:]))
+        self.fields['ftp_file'].choices = choices
 
         if instance and instance.up_file:
             self.fields['up_file'].widget.attrs['value'] = instance.up_file
 
     def clean(self):
 
-        up_file = self.cleaned_data.get('up_file', None)
-        dl_url = self.cleaned_data.get('dl_url', None)
-        referenced_url = self.cleaned_data.get('referenced_url', None)
+        res_l = {
+            'up_file': self.cleaned_data.get('up_file', None),
+            'dl_url': self.cleaned_data.get('dl_url', None),
+            'referenced_url': self.cleaned_data.get('referenced_url', None),
+            'ftp_file': self.cleaned_data.get('ftp_file', None)}
 
-        res_l = [up_file, dl_url, referenced_url]
-        if all(v is None for v in res_l):
-            for field in ('up_file', 'dl_url', 'referenced_url'):
+        if res_l['ftp_file'] == '':
+            res_l['ftp_file'] = None
+
+        if all(v is None for v in list(res_l.values())):
+            for field in list(res_l.keys()):
                 self.add_error(field, 'Ce champ est obligatoire.')
 
-        if sum(v is not None for v in res_l) > 1:
+        if sum(v is not None for v in list(res_l.values())) > 1:
             error_msg = "Un seul type de ressource n'est autorisé."
-            up_file and self.add_error('up_file', error_msg)
-            dl_url and self.add_error('dl_url', error_msg)
-            referenced_url and self.add_error('referenced_url', error_msg)
+            for k, v in res_l.items():
+                if v:
+                    self.add_error(k, error_msg)
 
         self.cleaned_data['last_update'] = timezone.now().date()
 
@@ -187,6 +217,12 @@ class ResourceForm(forms.ModelForm):
             'size': memory_up_file.size} or None
 
         data = self.cleaned_data
+
+        if data['ftp_file']:
+            ftp_file = os.path.join(FTP_DIR, user.username, data['ftp_file'])
+        else:
+            ftp_file = None
+
         params = {'crs': data['crs'],
                   'data_type': data['data_type'],
                   'dataset': dataset,
@@ -194,6 +230,7 @@ class ResourceForm(forms.ModelForm):
                   'dl_url': data['dl_url'],
                   'extractable': data['extractable'],
                   'format_type': data['format_type'],
+                  'ftp_file': ftp_file,
                   'geo_restriction': data['geo_restriction'],
                   'lang': data['lang'],
                   'last_update': data['last_update'],
@@ -207,22 +244,23 @@ class ResourceForm(forms.ModelForm):
                   'synchronisation': data['synchronisation'],
                   'up_file': data['up_file']}
 
-        if id:  # Mise à jour de la ressource
+        if data['restricted_level'] == '2':
+            data['profiles_allowed'] = data['profiles_allowed']
+        if data['restricted_level'] == '3':
+            data['organisations_allowed'] = [self._dataset.organisation]
+        if data['restricted_level'] == '4':
+            data['organisations_allowed'] = data['organisations_allowed']
+
+        kwargs = {'editor': user, 'file_extras': file_extras, 'sync_ckan': True}
+
+        if id:
+            # Mise à jour de la ressource
             resource = Resource.objects.get(pk=id)
             for key, value in params.items():
                 setattr(resource, key, value)
-            resource.save(editor=user, file_extras=file_extras)
-        else:  # Création d'une nouvelle ressource
-            resource = Resource.objects.create(**params)
-
-        lvl = resource.restricted_level
-        if lvl == '2':
-            resource.profiles_allowed = data['profiles_allowed']
-        if lvl == '3':
-            resource.organisations_allowed = [self._dataset.organisation]
-        if lvl == '4':
-            resource.organisations_allowed = data['organisations_allowed']
-
-        resource.save(editor=user, file_extras=file_extras, sync_ckan=True)
+            resource.save(**kwargs)
+        else:
+            # Création d'une nouvelle ressource
+            resource = Resource.custom.create(save_opts=kwargs, **params)
 
         return resource

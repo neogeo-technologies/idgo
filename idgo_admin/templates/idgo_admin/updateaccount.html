@@ -16,6 +16,7 @@
 {% endblock nav_content_extra %}
 
 {% block main_content %}
+{% include "idgo_admin/alert_messages.html" %}
 <form method="post" class="well">
 	{% csrf_token %}
 	<div class="row">
@@ -56,8 +57,23 @@
 		<button type="submit" class="btn btn-primary">Valider</button>
 	</div>
 </form>
+
+<div class="well">
+	<h4 class="modal-title">Compte FTP</h4>
+	<br />
+{% if not user.profile.is_ftp_account_exists %}
+	<p>Votre compte FTP n'est pas encore activé.</p>
+	<a class="btn btn-default" href="{% url "idgo_admin:create_sftp_account" %}">Créer mon compte FTP</a>
+{% else %}
+	<p>Adresse FTP : <strong>{{ ftp_url }}</strong></p>
+	<p>Votre compte FTP est activé : <em>compte utilisateur</em> <strong>{{ user.username }}</strong> / <em>mot de passe</em> <strong>{{ user.profile.sftp_password }}</strong></p>
+	<a class="btn btn-default" href="{% url "idgo_admin:delete_sftp_account" %}">Supprimer mon compte FTP</a></li>
+{% endif %}
+</div>
+
 <div class="well">
 	<h4 class="modal-title">Supprimer mon compte</h4>
+	<br />
 	<p>Cette action est irreversible et supprimera définitivement votre compte.</p>
 	<div>
 		<a class="btn btn-danger" href="{% url "idgo_admin:deleteAccount" %}">Supprimer mon compte</a></li>

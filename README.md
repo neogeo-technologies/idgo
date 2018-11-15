@@ -165,6 +165,9 @@ STATIC_ROOT = '/var/www/html/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/var/www/html/media/'
 
+FTP_URL = 'http://ftp.dev.idgo.neogeo.fr/cgi-bin/ftp.cgi?'
+FTP_DIR = '/var/ftp/'
+
 CKAN_URL = 'http://ckan'
 CKAN_API_KEY = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
 CKAN_TIMEOUT = 36000

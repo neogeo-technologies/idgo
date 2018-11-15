@@ -23,7 +23,7 @@
 				<a href="#service" aria-controls="service" role="tab" data-toggle="tab">Service OGC</a>
 			</li>
 		</ul>
-		<div class="tab-content">
+		<div class="tab-content well">
 			<div role="tabpanel" class="tab-pane active" id="info">
 				<div class="tab-pane-content">
 					<div class="row">
@@ -185,6 +185,15 @@
 			{% else %}
 			<div class="alert alert-info" role="alert">Aucune organisation n'est disponible</div>
 			{% endif %}
+		</div>
+		<div class="col-md-8">
+			<div class="buttons-on-the-right-side">
+				<a href='{% url "idgo_admin:create_organization" %}' class="btn btn-primary">Ajouter une organisation</a>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-4">
 			<div class="btn-group-vertical btn-block scrolling-box well" data-toggle="buttons" style="padding: 0;">
 				{% for item in organizations %}
 				<label for="id_organization_{{ item.pk }}" class="btn btn-radio">
@@ -194,17 +203,13 @@
 						{% if item.referent %}<span class="badge badge-circle"><span class="glyphicon glyphicon-certificate" aria-hidden="true"></span></span>{% endif %}
 						{% if item.member %}<span class="badge badge-circle"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></span>{% endif %}
 					</span>
-
 					<input type="radio" name="organizations" value="{{ item.pk }}" id="id_organization_{{ item.pk }}"></input>
 				</label>
 				{% endfor %}
 			</div>
 		</div>
 		<div class="col-md-8">
-			<div class="buttons-on-the-right-side">
-				<a href='{% url "idgo_admin:create_organization" %}' class="btn btn-primary">Ajouter une organisation</a>
-			</div>
-			<div id='organization_well' class="well">
+			<div id="organization_well">
 				<!-- template -->
 			</div>
 		</div>
@@ -434,19 +439,19 @@ $(function() {
 						datatype: 'boolean'
 					}, {
 						name: 'is_referent',
-						label: 'Référent technique',
+						label: 'Référent',
 						editable: false,
 						datatype: 'boolean'
 					}, {
 					{% if user.profile.is_crige_admin %}
 						name: 'is_crige_member',
-						label: 'Membre partenaire du CRIGE',
+						label: 'Partenaire CRIGE',
 						editable: false,
 						datatype: 'boolean'
 					}, {
 					{% endif %}
 						name: 'datasets_count',
-						label: 'Nombre de jeux de données',
+						label: 'Jeux de données',
 						editable: false,
 						datatype: 'integer'
 					}, {
@@ -477,7 +482,7 @@ $(function() {
 				})(data.members)
 			});
 
-			membersGrid.renderGrid(tableId, 'table table-striped table-bordered table-hover table-condensed');
+			membersGrid.renderGrid(tableId, 'board table table-striped table-bordered table-hover table-condensed');
 			membersGrid.initializeGrid();
 			membersGrid.refreshGrid();
 

@@ -1,6 +1,6 @@
 <div id="datasets">
 	<div class="table-responsive">
-		<table class="table table-striped table-bordered table-hover table-condensed">
+		<table class="board table table-striped table-bordered table-hover table-condensed">
 			<tr>
 				<th name="name">Nom <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
 				<th name="date_creation">Créé <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
@@ -192,18 +192,20 @@ $(function() {
 					.on('click', function(e) {
 						e.preventDefault();
 						closeAllModalDialog();
-						$.ajax({
-							type: 'DELETE',
-							// success: function() {},
-							url: '{% url "idgo_admin:dataset" %}?id=' + id
-						})
-						.done(function(response, textStatus, jqXHR) {
-							location.reload();
-						})
-						.fail(function(jqXHR, textStatus, errorThrown) {
-							location.reload();
-						});
-						e.stopPropagation();
+						$modalHourglass.one('shown.bs.modal', function(e) {
+							$.ajax({
+								type: 'DELETE',
+								// success: function() {},
+								url: '{% url "idgo_admin:dataset" %}?id=' + id
+							})
+							.done(function(response, textStatus, jqXHR) {
+								location.reload();
+							})
+							.fail(function(jqXHR, textStatus, errorThrown) {
+								location.reload();
+							});
+							e.stopPropagation();
+						}).modal('show');
 					});
 
 				const $input = $('<input/>')
@@ -211,7 +213,8 @@ $(function() {
 					.prop('class', 'form-control')
 					.prop('placeholder', 'Nom du jeu de données à supprimer')
 					.on('input', function(e) {
-						if ($(this).val() === $row.find('td[name="name"]')[0].innerText) {
+						e.preventDefault();
+						if ($(this).val().trim() === $row.find('td[name="name"]')[0].innerText.trim()) {
 							$button.removeClass('disabled').prop('disabled', false);
 						} else {
 							$button.addClass('disabled').prop('disabled', true);

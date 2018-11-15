@@ -105,12 +105,14 @@
 	</div>
 	<div class="panel panel-default">
 		<div class="panel-body">
-			<button role="button" name="clear-all" class="btn btn-sm btn-default">
-				Réinitialiser <span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-			</button>
-			<button role="button" name="submit" class="btn btn-sm btn-default">
-				Rechercher <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-			</button>
+			<div class="buttons-on-the-right-side">
+				<button type="button" name="clear-all" class="btn btn-sm btn-default">
+					Réinitialiser <span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+				</button>
+				<button type="button" name="submit" class="btn btn-sm btn-default">
+					Rechercher <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+				</button>
+			</div>
 		</div>
 	</div>
 </div>
@@ -118,11 +120,6 @@
 $(function() {
 
 	const $div = $('#datasets-filter');
-
-	// $div.find('[name="clear"]').popover({
-	// 	'trigger': 'hover',
-	// 	'content': 'Effacer'
-	// });
 
 	var query = window.location.search.substring(1);
 
@@ -136,18 +133,25 @@ $(function() {
 	};
 
 	$div.find('input.typeahead[name="dataset"]')
-		// Recherche libre et filtre strict sur jeu de données
+		// Recherche libre ou filtre strict sur jeu de données
+		// Recherche libre sur paramètre `q` (« on change »)
+		// Recherche strict sur paramètre `dataset` (« on select »)
 		.on('input', function() {
 			qs['q'] = this.value;
 		})
+		.keypress(function(e) {
+			if (this.value && (e.which == 13 || e.keyCode == 13)) {
+				$submit.trigger('click');
+				return false;
+			};
+		})
 		.typeahead({
-			source: (function() {
-				var arr = [];
-				{% for item in all_datasets %}
-				arr.push({'id': '{{ item.id }}', 'name': '{{ item.name }}'});
-				{% endfor %}
-				return arr;
-			})(),
+			source: [{% for item in all_datasets %}
+				{
+					id: '{{ item.id }}',
+					name: '{{ item.name }}'
+				},{% endfor %}
+			],
 			autoSelect: false,
 			fitToElement: false,
 			afterSelect: function(val) {
@@ -162,13 +166,12 @@ $(function() {
 			qs['organisation'] = this.value;
 		})
 		.typeahead({
-			source: (function() {
-				var arr = [];
-				{% for item in all_organisations %}
-				arr.push({'id': '{{ item.id }}', 'name': '{{ item.name }}'});
-				{% endfor %}
-				return arr;
-			})(),
+			source: [{% for item in all_organisations %}
+				{
+					id: '{{ item.id }}',
+					name: '{{ item.name }}'
+				},{% endfor %}
+			],
 			autoSelect: false,
 			fitToElement: false,
 			afterSelect: function(val) {
@@ -195,7 +198,7 @@ $(function() {
 	const $selectSyncFrequency = $div.find('select[name="syncfrequency"]')
 		// Recherche strict sur fréquence de synchronisation
 		// ..nécessite de cocher le checkbox `input[name="sync"]`
-				.on('change', function() {
+		.on('change', function() {
 			qs['syncfrequency'] = this.value;
 		});
 
@@ -237,7 +240,11 @@ $(function() {
 		$target.is('input[type="checkbox"]') && $target.prop('checked', false);
 		$target.is('input[type="text"]') && $target.val('');
 		$target.is('select') && $target.val($target.find('option:first').val());
-		delete qs[$target.prop('name')];
+		const targetName = $target.prop('name');
+		delete qs[targetName];
+		if (targetName == 'dataset') {  // Cas particulier de `q`
+			delete qs['q'];
+		};
 	};
 
 	$div.find('button[name="clear"]').click(function(e) {

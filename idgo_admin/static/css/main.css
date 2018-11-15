@@ -75,103 +75,111 @@ select[multiple] {
     border-radius: 2px;
 }
 
+dl {
+    margin: 0;
+}
+
+dl dt:not(:first-child) {
+    padding-top: 10px;
+}
+
 /* ************************************************************************* */
 
-table {
+table.board {
     font-size: 13px;
 }
 
-table>thead {
-    color: #333333;
+table.board>thead {
+    color: #333;
 }
 
-table>thead a {
+table.board>thead a {
     color: inherit;
 }
 
-table>thead a.focus,
-table>thead a:focus,
-table>thead a:hover {
+table.board>thead a.focus,
+table.board>thead a:focus,
+table.board>thead a:hover {
     text-decoration: underline;
     color: inherit;
 }
 
-table.table-hover>tbody>tr {
+table.board.table-hover>tbody>tr {
     cursor: pointer;
 }
 
-table tr.disabled,
-table tr.disabled.focus,
-table tr.disabled:focus,
-table tr.disabled:hover {
+table.board tr.disabled,
+table.board tr.disabled.focus,
+table.board tr.disabled:focus,
+table.board tr.disabled:hover {
     pointer-events: none;
     cursor: not-allowed;
     color: #aaa;
 }
 
-table tr th,
-table tr td {
+table.board tr th,
+table.board tr td {
     padding: 9px 6px !important;
 }
 
-table tr th {
+table.board tr th {
     pointer-events: none;
     white-space: nowrap;
 }
 
-table tr th a {
+table.board tr th a {
     pointer-events: auto;
     white-space: nowrap;
 }
 
-table tr.selected td {
+table.board tr.selected td {
     background: #ccc;
     border-top-color: #ccc;
     border-bottom-color: #ccc;
 }
 
-table tr.selected td:first-child {
+table.board tr.selected td:first-child {
     border-left-color: #ccc;
 }
 
-table tr.selected td:last-child {
+table.board tr.selected td:last-child {
     border-right-color: #ccc;
 }
 
-table tr.selected.focus td,
-table tr.selected:focus td,
-table tr.selected:hover td,
-table tr.selected.focus td.crossed,
-table tr.selected:focus td.crossed,
-table tr.selected:hover td.crossed {
+table.board tr.selected.focus td,
+table.board tr.selected:focus td,
+table.board tr.selected:hover td,
+table.board tr.selected.focus td.crossed,
+table.board tr.selected:focus td.crossed,
+table.board tr.selected:hover td.crossed {
     background: #bbb;
     border-top-color: #bbb;
     border-bottom-color: #bbb;
 }
 
-table tr td a,
-table tr td a.focus,
-table tr td a:focus,
-table tr td a:hover,
-table tr.selected td a,
-table tr.selected td a.focus,
-table tr.selected td a:focus,
-table tr.selected td a:hover {
+table.board tr td a,
+table.board tr td a.focus,
+table.board tr td a:focus,
+table.board tr td a:hover,
+table.board tr.selected td a,
+table.board tr.selected td a.focus,
+table.board tr.selected td a:focus,
+table.board tr.selected td a:hover {
     color: #333;
 }
 
-table tr.selected td:first-child {
+table.board tr.selected td:first-child {
     border-left-color: #bbb;
 }
 
-table tr.selected td:last-child {
+table.board tr.selected td:last-child {
     border-right-color: #bbb;
 }
 
-table tr td.crossed,
-table tr.focus td.crossed,
-table tr.focus td.crossed,
-table tr.hover td.crossed {
+table.board tr td.crossed,
+table.board tr.focus td.crossed,
+table.board tr.focus td.crossed,
+table.board tr.hover td.crossed {
     background:
        linear-gradient(to top left,
            rgba(204,204,204,0) 0%,
@@ -187,7 +195,7 @@ table tr.hover td.crossed {
            rgba(204,204,204,0) 100%);
 }
 
-table tr.selected td.crossed {
+table.board tr.selected td.crossed {
     background:
        linear-gradient(to top left,
            transparent 0%,
@@ -203,9 +211,9 @@ table tr.selected td.crossed {
            #ccc 100%);
 }
 
-table tr.selected.focus td.crossed,
-table tr.selected:focus td.crossed,
-table tr.selected:hover td.crossed {
+table.board tr.selected.focus td.crossed,
+table.board tr.selected:focus td.crossed,
+table.board tr.selected:hover td.crossed {
     background:
        linear-gradient(to top left,
            transparent 0%,
@@ -221,6 +229,21 @@ table tr.selected:hover td.crossed {
            #bbb 100%);
 }
 
+table.board .table-cell-dropdown>.btn-link.dropdown-toggle,
+table.board .table-cell-dropdown>.btn-link.dropdown-toggle.focus,
+table.board .table-cell-dropdown>.btn-link.dropdown-toggle:focus,
+table.board .table-cell-dropdown>.btn-link.dropdown-toggle:hover {
+    text-align: right;
+    width: calc(100% + 12px);
+    background-color: transparent;
+    margin: -9px -6px;
+    padding: 9px 6px;
+}
+
+table.board .table-cell-dropdown>.dropdown-menu {
+    width: calc(100% + 2px);
+    margin: -2px -1px 0 -1px;
+}
 
 /* ************************************************************************* */
 
@@ -253,12 +276,19 @@ table tr.selected:hover td.crossed {
             box-shadow: none;
 }
 
+.input-group .input-group-btn button[name="clear"] {
+    white-space: normal;
+    overflow: auto;
+    text-overflow: initial;
+}
+
 .input-group .input-group-btn button[name="clear"] .glyphicon {
     border-radius: 20px;
-    margin: -5px;
+    top: 2px;
     padding: 5px;
     background-color: #ccc;
     color: #eee;
+    margin: -5px;
 }
 
 .input-group .input-group-btn.focus button[name="clear"] .glyphicon,
@@ -317,6 +347,9 @@ table tr.selected:hover td.crossed {
     color: #666;
     -webkit-box-shadow: none;
             box-shadow: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .btn.focus,
@@ -478,9 +511,26 @@ table tr.selected:hover td.crossed {
 
 /* ************************************************************************* */
 
-.nav-tabs>li:first-child.active>a {
-    border-left: none;
+.nav-tabs {
+    border-bottom-color: #fff;
 }
+
+.nav-tabs>li.active>a,
+.nav-tabs>li.active>a.focus,
+.nav-tabs>li.active>a:focus,
+.nav-tabs>li.active>a:hover {
+    border-top-color: #fff;
+    border-right-color: #fff;
+    border-bottom-color: transparent;
+    border-left-color: #fff;
+}
+
+.nav-tabs>li>a.focus
+.nav-tabs>li>a:focus,
+.nav-tabs>li>a:hover {
+    border-bottom: none;
+}
+
 
 /* ************************************************************************* */
 
@@ -878,6 +928,7 @@ table tr.selected:hover td.crossed {
     font-weight: 400;
     text-transform: uppercase;
     font-size: 13px;
+    letter-spacing: -0.0125em;
 }
 
 .nav-container .dropdown-menu li.active>a,
@@ -898,6 +949,7 @@ table tr.selected:hover td.crossed {
     margin-top: 0px;
     margin-bottom: 0px;
     min-height: 50px;
+    padding: 15px 0;
 }
 
 .breadcrumb-container .breadcrumb {
@@ -927,7 +979,7 @@ table tr.selected:hover td.crossed {
 
 .main-container {
     padding-top: 0px;
-    padding-bottom: 200px;
+    min-height: 300px;
     bottom: 0;
     background: linear-gradient(#eee 0px, #eee 50px, #fefefe 300px);
 }
@@ -979,25 +1031,10 @@ table tr.selected:hover td.crossed {
 .main-container .list-group-checkbox > .list-group-item > label {
     margin: 6px 9px;
     width: calc(100% - 18px);
-}
-
-.checkbox-select-multiple-widget {
-    overflow-y: scroll;
-    border: 1px solid #eee;
-    border-radius: 0;
-}
-
-.checkbox-select-multiple-widget label {
-    width: 100%;
-}
-
-.checkbox-select-multiple-widget .checkbox {
-    margin: 0;
-    padding: 6px 12px;
-}
-
-.checkbox-select-multiple-widget .checkbox:hover {
-    background-color: #eee;
+    font-weight: normal;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 /* ************************************************************************* */
@@ -1058,16 +1095,16 @@ table tr.selected:hover td.crossed {
 
 .buttons-on-the-right-side {
     text-align: right;
-    margin-bottom: 10px;
+    margin: none;
+}
+
+.buttons-on-the-right-side>.btn {
+    margin-left: 5px;
 }
 
 .floating-buttons-on-the-right-side {
     float: right;
     text-align: right;
-}
-
-.buttons-on-the-right-side>.btn {
-    margin-left: 5px;
 }
 
 /* ************************************************************************* */
@@ -1388,11 +1425,19 @@ table tr.selected:hover td.crossed {
             box-shadow: 0 -1px 2px 0px rgba(255,255,255,1);
 }
 
+.map {
+    width: 100%;
+    z-index: 0;
+}
+
+#jurisdiction .map {
+    height: 514px;
+    margin-bottom: 20px;
+}
+
 #extractor .map {
     position: absolute;
-    width: 100%;
     height: 100%;
-    z-index: 0;
     min-width: 770px;
 }
 
