@@ -3,9 +3,46 @@
 {% load bootstrap3 %}
 
 {% block main_content %}
+
+<!-- {% include "idgo_admin/alert_messages.html" %} -->
+
 <form names = "order" action="/commandes/" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form }}
+
+    {% for hidden_field in form.hidden_fields %}
+    {{ hidden_field }}
+    {% endfor %}
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}
+                {{ error }}
+            {% endfor %}
+        </div>
+
+        
+    {% endif %}
+    
+    <br />
+	<div class="row">
+		<div class="col-xs-6">
+			{% bootstrap_field form.organisation %}
+		</div>
+	</div>
+    <br />
+    <div class="row">
+		<div class="col-xs-6">
+			{% bootstrap_field form.dpo_cnil %}
+		</div>
+	</div>
+    <br />
+    <div class="row">
+		<div class="col-xs-6">
+			{% bootstrap_field form.acte_engagement %}
+		</div>
+	</div>
+    <br />
+    <!--{{ form }}-->
     <input type="submit" value="Valider votre commande" />
 </form>
 {% endblock main_content %}

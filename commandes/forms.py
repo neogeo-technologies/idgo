@@ -20,9 +20,14 @@ class OrderForm(forms.ModelForm):
             label='Organisation',
             queryset=None,
             required=True,
-            to_field_name='pk',
+            # empty_label=None  # could prevent the ---- 
+            # https://docs.djangoproject.com/en/2.1/ref/forms/fields/#django.forms.ModelChoiceField
+            # causes __init__ error
+            # to_field_name='pk',
             widget=CustomCheckboxSelectMultiple(
                 attrs={'class': 'list-group-checkbox'}))
+
+        status = forms.ChoiceField(choices=Order.STATUS_CHOICES)
 
     def __init__(self, *args, **kwargs):
         '''
@@ -44,20 +49,17 @@ class OrderForm(forms.ModelForm):
         year = timezone.now().date().year
         organisation = cleaned_data.get("organisation")
 
-        STATUS_CHOICES = (
-            (0, "En cours"),
-            (1, "Validée"),
-            (2, "Refusée"))
-
         match = Order.objects.filter(
                 date__year=year,
                 organisation=organisation,
-                status=STATUS_CHOICES[1]
+                status=1
                 )
-        
-        er_mess = "Une demande a déjà été approuvée pour l'organisation dans l'année en cours."
+
+        er_mess = ("Une demande a déjà été approuvée pour cette organisation"
+                    " dans l'année civile en cours.")
 
         if (match):
+            # self.add_error('__all__',er_mess)
             raise forms.ValidationError(er_mess)
         else:
             return cleaned_data

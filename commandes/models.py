@@ -5,15 +5,15 @@ from idgo_admin.models import Organisation
 
 TODAY = timezone.now().date()
 
-objects = models.Manager()
+#objects = models.Manager()
 
 
 class Order(models.Model):
 
     STATUS_CHOICES = (
-        (1, "En cours"),
-        (2, "Validée"),
-        (3, "Refusée"))
+        (0, "En cours"),
+        (1, "Validée"),
+        (2, "Refusée"))
 
     date = models.DateField(
         verbose_name='Date de la demande', 
@@ -21,9 +21,10 @@ class Order(models.Model):
         default=TODAY
         )
 
-    status = models.CharField(
-        verbose_name='Staut de la demande', default=0,
-        max_length=30,
+    status = models.IntegerField(
+        verbose_name='Staut de la demande',
+        default=0,
+        #max_length=30,
         choices=STATUS_CHOICES
         )
 
