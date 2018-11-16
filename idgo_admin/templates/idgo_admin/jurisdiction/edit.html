@@ -41,17 +41,22 @@
 						{% bootstrap_field form.code %}
 					</div>
 				</div>
+				<hr />
+				<div class="row">
+					<div class="col-xs-12">
+						<h4>{{ form.communes.label }}</h4>
+					</div>
+				</div>
 				<div class="row">
 					<div class="col-xs-12">
 						<div class="form-group">
-							<label class="control-label" for="id_insee_list">Liste de code INSEE (séparé par la virgule)</label>
+							<p>Liste de codes INSEE séparés par la virgule</p>
 							<input type="text" name="insee_list" class="form-control" id="id_insee_list" placeholder="Par exemple : 05061, 05013, 05037...">
 						</div>
 					</div>
 				</div>
 				<div class="row">
 					<div class="col-xs-12">
-						<label>{{ form.communes.label }}</label>
 						<div class="checkbox">
 							<label>
 								<input type="checkbox" name="check-all"> Sélectionner/Désélectionner tout
