@@ -108,6 +108,11 @@ class SignInForm(MamaLoginForm):
     username = UsernameField()
     password = PasswordField(required=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs['placeholder'] = "Nom d'utilisateur"
+        self.fields['password'].widget.attrs['placeholder'] = 'Mot de passe'
+
     def clean(self):
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
@@ -294,15 +299,15 @@ class SignUpForm(forms.Form):
         fields = user_fields + profile_fields + organisation_fields + extended_fields
 
     # User fields
-    username = UsernameField()
-    first_name = FirstNameField()
-    last_name = LastNameField()
-    email = EMailField()
-    password1 = PasswordField()
-    password2 = PasswordField()
+    username = UsernameField(required=True)
+    first_name = FirstNameField(required=True)
+    last_name = LastNameField(required=True)
+    email = EMailField(required=True)
+    password1 = PasswordField(required=True)
+    password2 = PasswordField(required=True)
 
     # Profile fields
-    phone = PhoneField()
+    phone = PhoneField(required=False)
 
     organisation = ModelOrganisationField(
         required=False,
