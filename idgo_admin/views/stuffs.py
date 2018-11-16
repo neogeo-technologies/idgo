@@ -27,6 +27,11 @@ import requests
 
 OWS_PREVIEW_URL = settings.OWS_PREVIEW_URL
 
+try:
+    MAPSERV_TIMEOUT = settings.MAPSERV_TIMEOUT
+except AttributeError:
+    MAPSERV_TIMEOUT = 60
+
 
 @method_decorator([csrf_exempt], name='dispatch')
 class DisplayLicenses(View):
@@ -51,6 +56,7 @@ class DisplayLicenses(View):
 def ows_preview(request):
     user, profile = user_and_profile(request)
 
-    r = requests.get(OWS_PREVIEW_URL, params=dict(request.GET), timeout=5)
+    r = requests.get(
+        OWS_PREVIEW_URL, params=dict(request.GET), timeout=MAPSERV_TIMEOUT)
     r.raise_for_status()
     return HttpResponse(r.content, content_type=r.headers['Content-Type'])
