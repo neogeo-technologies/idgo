@@ -303,7 +303,7 @@ class UpdateOrganisation(View):
                 request, self.template, context={
                     'id': id,
                     'update': True,
-                    'organisation_name': instance.name,
+                    'organisation': instance,
                     'form': Form(instance=instance,
                                  include={'user': user, 'id': id})})
         raise Http404()
@@ -338,6 +338,7 @@ class UpdateOrganisation(View):
             context = {
                 'id': id,
                 'update': True,
+                'organisation': instance,
                 'form': Form(
                     instance=instance, include={'user': user, 'id': id})}
             return render_with_info_profile(
