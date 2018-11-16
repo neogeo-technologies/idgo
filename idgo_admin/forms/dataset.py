@@ -17,6 +17,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django import forms
+from django.forms.models import ModelChoiceIterator
 from django.utils import timezone
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
@@ -38,6 +39,35 @@ CKAN_URL = settings.CKAN_URL
 
 TODAY = timezone.now().date()
 TODAY_STR = TODAY.strftime('%d/%m/%Y')
+
+
+class DatatypeModelIterator(ModelChoiceIterator):
+
+    def __iter__(self):
+        if self.field.empty_label is not None:
+            yield ("", self.field.empty_label)
+        queryset = self.queryset
+        if not queryset._prefetch_related_lookups:
+            queryset = queryset.iterator()
+        for obj in queryset:
+            if obj.ckan_slug == 'donnees-moissonnees':
+                continue
+            yield self.choice(obj)
+
+
+class DatatypeModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+    iterator = DatatypeModelIterator
+
+
+class DatatypeField(DatatypeModelMultipleChoiceField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label', 'Type de données')
+        kwargs.setdefault('required', False)
+        kwargs.setdefault('widget', forms.CheckboxSelectMultiple())
+        kwargs.setdefault('queryset', DataType.objects.all())
+
+        super().__init__(*args, **kwargs)
 
 
 class DatasetForm(forms.ModelForm):
@@ -116,11 +146,7 @@ class DatasetForm(forms.ModelForm):
         required=False,
         widget=forms.CheckboxSelectMultiple())
 
-    data_type = forms.ModelMultipleChoiceField(
-        label='Type de données',
-        queryset=DataType.objects.all(),
-        required=False,
-        widget=forms.CheckboxSelectMultiple())
+    data_type = DatatypeField()
 
     date_creation = forms.DateField(
         label='Date de création',
