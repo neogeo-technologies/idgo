@@ -204,8 +204,9 @@ class Dataset(models.Model):
 
     @property
     def bounds(self):
-        minx, miny, maxx, maxy = self.bbox.extent
-        return [[miny, minx], [maxy, maxx]]
+        if self.bbox:
+            minx, miny, maxx, maxy = self.bbox.extent
+            return [[miny, minx], [maxy, maxx]]
 
     def is_contributor(self, profile):
         LiaisonsContributeurs = apps.get_model(
