@@ -490,8 +490,9 @@ def create_sftp_account(request):
     else:
         messages.success(request, (
             'Le compte FTP a été créé avec succès. '
+            "Le processus d'activation peut prendre quelques minutes. "
             'Un mot de passe a été généré automatiquement. '
-            "Il n'est pas modifiable."))
+            "Celui-ci n'est pas modifiable."))
 
     return HttpResponseRedirect(reverse('idgo_admin:update_account'))
 
