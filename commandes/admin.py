@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django_admin_listfilter_dropdown.filters import DropdownFilter  #, RelatedDropdownFilter
+from django_admin_listfilter_dropdown.filters import DropdownFilter, RelatedDropdownFilter
 
 from .models import Order
 from .actions import download_csv
@@ -29,14 +29,8 @@ class OrderAdmin(admin.ModelAdmin):
     actions = [download_csv]
     download_csv.short_description = "Exporter en CSV"
 
-    # list_filter = (('status', DropdownFilter),)  # erreur : Cannot resolve 
-    # keyword 'organisation' into field. Choices are: accountactions, address, 
-    # city, ckan_id, ckan_slug, dataset, description, email, geonet_id, id, 
-    # is_active, is_crige_partner, jurisdiction, jurisdiction_id, 
-    # liaisonscontributeurs, liaisonsreferents, license, license_id, logo, name, 
-    # order, organisation_type, organisation_type_id, phone, postcode, profile,
-    # profile_contributions, profile_referents, remoteckan, resource, website
-
+    list_filter = (('organisation', RelatedDropdownFilter),)
+    
 # def send_email(modeladmin, request, queryset):
 #     form = SendEmailForm(initial={'email': queryset})
 #     return render(request, 'users/send_email.html', {'form': form})
