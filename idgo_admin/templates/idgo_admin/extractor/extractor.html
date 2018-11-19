@@ -11,6 +11,7 @@
 <script src="{% static 'libs/turf/turf.min.js' %}"></script>
 <link rel="stylesheet" href="{% static 'libs/leaflet/leaflet.css' %}"/>
 <link rel="stylesheet" href="{% static 'libs/leaflet.draw/leaflet.draw.css' %}"/>
+<link rel="stylesheet" href="{% static 'css/extractor.css' %}"/>
 {% endblock head_extras %}
 
 {% block body %}
@@ -20,13 +21,21 @@
 		<div class="container-fluid">
 			<div class="row">
 				<div class="col-md-12">
-					{% block header_content %}
 					<div class="btn-group login">
+						<button type="button" class="btn btn-default link">
+							<span class="glyphicon glyphicon-envelope"></span>
+						</button>
+						<button type="button" class="btn btn-default link">
+							<span class="glyphicon glyphicon-earphone"></span>
+						</button>
+						<button type="button" class="btn btn-default link">
+							<span class="glyphicon glyphicon-user"></span>
+						</button>
 						{% if is_admin %}
 						<span class="user-status">admin</span>
 						{% endif %}
 						<button type="button" class="dropdown-toggle" data-toggle="dropdown">
-							{{ first_name}} {{ last_name }} <span class="glyphicon glyphicon-user"></span>
+							{{ first_name}} {{ last_name }}
 						</button>
 						<ul class="dropdown-menu">
 							<li>
@@ -43,8 +52,16 @@
 							{% endif %}
 						</ul>
 					</div>
-					<h1>Outil d'extraction de données</h1>
-					{% endblock header_content %}
+					<span>
+						<img class="logo-crige" src="{% static 'img/logo_crige_greenforest_court.png' %}"/>
+					</span>
+					<h1 class=title>Extracteur de données</h1>
+					<div class="logo-title">
+						<span class="logo-title-background"></span>
+						<span class="logo-title-image">
+							<img src="{% static 'img/logo_geodatasud.png' %}"/>
+						</span>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -59,96 +76,103 @@
 						{% block main_content %}
 							<div class="row">
 								<div class="col-xs-offset-8 col-xs-4">
-									<form class="well" style="pointer-events: auto;">
-										<div>
-											<div class="form-group{% if not organisations %} disabled{% endif %}">
-												<label for="organisation">Organisation</label>
-												<div class="input-group input-group">
-													<select class="form-control" id="organisation">
-														<option disabled {% if not organisation %}selected{% endif %}>Sélectionnez une organisation</option>
-														{% for instance in organisations %}
-														<option value="{{ instance.ckan_slug }}" {% if instance.id == organisation.id %}selected{% endif %}>{{ instance.name }}</option>
-														{% endfor %}
-													</select>
-													<span class="input-group-btn">
-														<button class="btn btn-default" type="button" name="clear">
-															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-														</button>
-													</span>
-												</div>
-											</div>
-											<div class="form-group{% if not datasets %} disabled{% endif %}">
-												<label for="dataset">Jeu de données</label>
-												<div class="input-group input-group">
-													<select class="form-control" id="dataset">
-														<option disabled {% if not dataset %}selected{% endif %}>Sélectionnez un jeu de données</option>
-														{% for instance in datasets %}
-														<option value="{{ instance.ckan_slug }}" {% if instance.id == dataset.id %}selected{% endif %}>{{ instance.name }}</option>
-														{% endfor %}
-													</select>
-													<span class="input-group-btn">
-														<button class="btn btn-default" type="button" name="clear">
-															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-														</button>
-													</span>
-												</div>
-											</div>
-											<div class="form-group{% if not resources %} disabled{% endif %}">
-												<label for="resource">Ressource</label>
-												<div class="input-group input-group">
-													<select class="form-control" id="resource">
-														<option disabled {% if not resource %}selected{% endif %}>Sélectionnez une ressource</option>
-														{% for instance in resources %}
-														<option value="{{ instance.ckan_id }}" {% if instance.id == resource.id %}selected{% endif %}>{{ instance.name }}</option>
-														{% endfor %}
-													</select>
-													<span class="input-group-btn">
-														<button class="btn btn-default" type="button" name="clear">
-															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-														</button>
-													</span>
-												</div>
-											</div>
+									<div class="panel panel-default" style="pointer-events: auto;">
+										<div class="panel-heading">
+											<h1 class="panel-title">Paramètre</h1>
 										</div>
-										<br />
-										<div class="{% if not dataset %} disabled{% endif %}">
-											<div class="form-group">
-												<label for="crs">Système de coordonnées</label>
-												<div class="input-group input-group">
-													<select class="form-control" id="crs">
-														<option disabled selected>Sélectionnez un système de coordonnées</option>
-														{% for item in supported_crs %}
-														<option value="{{ item.authority }}"{% if crs == item.authority %} selected{% endif %}>{{ item }}</option>
-														{% endfor %}
-													</select>
-													<span class="input-group-btn">
-														<button class="btn btn-default" type="button" name="clear">
-															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-														</button>
-													</span>
+										<div class="panel-body">
+											<form>
+												<div>
+													<div class="form-group{% if not organisations %} disabled{% endif %}">
+														<label for="organisation">Organisation</label>
+														<div class="input-group input-group">
+															<select class="form-control" id="organisation">
+																<option disabled {% if not organisation %}selected{% endif %}>Sélectionnez une organisation</option>
+																{% for instance in organisations %}
+																<option value="{{ instance.ckan_slug }}" {% if instance.id == organisation.id %}selected{% endif %}>{{ instance.name }}</option>
+																{% endfor %}
+															</select>
+															<span class="input-group-btn">
+																<button class="btn btn-default" type="button" name="clear">
+																	<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+																</button>
+															</span>
+														</div>
+													</div>
+													<div class="form-group{% if not datasets %} disabled{% endif %}">
+														<label for="dataset">Jeu de données</label>
+														<div class="input-group input-group">
+															<select class="form-control" id="dataset">
+																<option disabled {% if not dataset %}selected{% endif %}>Sélectionnez un jeu de données</option>
+																{% for instance in datasets %}
+																<option value="{{ instance.ckan_slug }}" {% if instance.id == dataset.id %}selected{% endif %}>{{ instance.name }}</option>
+																{% endfor %}
+															</select>
+															<span class="input-group-btn">
+																<button class="btn btn-default" type="button" name="clear">
+																	<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+																</button>
+															</span>
+														</div>
+													</div>
+													<div class="form-group{% if not resources %} disabled{% endif %}">
+														<label for="resource">Ressource</label>
+														<div class="input-group input-group">
+															<select class="form-control" id="resource">
+																<option disabled {% if not resource %}selected{% endif %}>Sélectionnez une ressource</option>
+																{% for instance in resources %}
+																<option value="{{ instance.ckan_id }}" {% if instance.id == resource.id %}selected{% endif %}>{{ instance.name }}</option>
+																{% endfor %}
+															</select>
+															<span class="input-group-btn">
+																<button class="btn btn-default" type="button" name="clear">
+																	<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+																</button>
+															</span>
+														</div>
+													</div>
 												</div>
-											</div>
-											<div class="form-group">
-												<label for="format">Format de données</label>
-												<div class="input-group input-group">
-													<select class="form-control" id="format">
-														<option disabled selected>Sélectionnez un format</option>
-														{% for item in supported_format %}
-														<option value="{{ item.name }}"{% if format == item.details or format == item.name %} selected{% endif %}>{{ item.description }}</option>
-														{% endfor %}
-													</select>
-													<span class="input-group-btn">
-														<button class="btn btn-default{% if not datasets %} disabled{% endif %}" type="button" name="clear">
-															<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-														</button>
-													</span>
+												<br />
+												<div class="{% if not dataset %} disabled{% endif %}">
+													<div class="form-group">
+														<label for="crs">Système de coordonnées</label>
+														<div class="input-group input-group">
+															<select class="form-control" id="crs">
+																<option disabled selected>Sélectionnez un système de coordonnées</option>
+																{% for item in supported_crs %}
+																<option value="{{ item.authority }}"{% if crs == item.authority %} selected{% endif %}>{{ item }}</option>
+																{% endfor %}
+															</select>
+															<span class="input-group-btn">
+																<button class="btn btn-default" type="button" name="clear">
+																	<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+																</button>
+															</span>
+														</div>
+													</div>
+													<div class="form-group">
+														<label for="format">Format de données</label>
+														<div class="input-group input-group">
+															<select class="form-control" id="format">
+																<option disabled selected>Sélectionnez un format</option>
+																{% for item in supported_format %}
+																<option value="{{ item.name }}"{% if format == item.details or format == item.name %} selected{% endif %}>{{ item.description }}</option>
+																{% endfor %}
+															</select>
+															<span class="input-group-btn">
+																<button class="btn btn-default{% if not datasets %} disabled{% endif %}" type="button" name="clear">
+																	<span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
+																</button>
+															</span>
+														</div>
+													</div>
+													<div class="{% if not dataset %} disabled{% endif %}" style="text-align: center; margin-top: 30px; margin-bottom: 30px;">
+														<button type="button" name="extract" class="btn btn-default">Extraire <span class="glyphicon glyphicon-chevron-right"></span></button>
+													</div>
 												</div>
-											</div>
-											<div class="buttons-on-the-right-side{% if not dataset %} disabled{% endif %}">
-												<button type="button" name="extract" class="btn btn-primary">Exporter</button>
-											</div>
+											</form>
 										</div>
-									</form>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -158,7 +182,37 @@
 			</div>
 		</div>
 		{% block footer %}
-		{% include "idgo_admin/footer.html" %}
+		<div class="footer-container">
+			<div class="footer navbar-fixed-bottom">
+				<div class="container-fluid">
+					<div class="row">
+						<div class="col-xs-3">
+							<span style="font-size: 18px;">
+								<span style="color: #bdcb1c;">
+									<strong>Une question ?</strong> <span class="glyphicon glyphicon-earphone"></span>
+								</span>
+								<span style="color: #fff">
+									04 42 90 71 22
+								</span>
+							</span>
+						</div>
+						<div class="col-xs-6">
+							<span>
+								© Tous droits réservés - <span name="current-year"></span> - <a href="http://www.crige-paca.org" target="blank">CRIGE Provence-Alpes-Côte d'Azur</a>
+							</span>
+						</div>
+						<div class="col-xs-2">
+							<span style="font-size: 12px;">
+								Propulsé par <a href="http://www.neogeo.fr" target="_blank">Neogeo-Technologies</a> & <a href="http://www.spatialys.fr" target="_blank">Spatialys</a>
+							</span>
+						</div>
+						<div class="col-xs-1">
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 		{% endblock footer %}
 	</div>
 	{% endblock main %}
@@ -307,7 +361,7 @@ $(function() {
 			weight: 1.2,
 			fillColor: "#fff",
 			fillOpacity: 0,
-			color: '#327368',
+			color: '#167374',
 			opacity: .9
 		},
 		onEachFeature: function (feature, layer) {
@@ -328,7 +382,7 @@ $(function() {
 
 					footprintLayer = L.geoJSON(geojson).setStyle({
 						weight: 3,
-						color: '#f6546a'
+						color: '#ec6446'
 					});
 
 					map.fire(L.Draw.Event.CREATED, {layerType: 'featureCollection', layer: footprintLayer.getLayers()[0]});
