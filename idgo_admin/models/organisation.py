@@ -37,6 +37,8 @@ import uuid
 
 
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
+DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
+DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
 
 
 class OrganisationType(models.Model):
@@ -261,8 +263,10 @@ class RemoteCkan(models.Model):
                                 # 'keywords': [tag['display_name'] for tag in package.get('tags')],
                                 # 'license': license,
                                 'name': package.get('title', None),
-                                'owner_email': package.get('author_email', None),
-                                'owner_name': package.get('author', None),
+                                # 'owner_email': package.get('author_email', None),
+                                'owner_email': self.organisation.email or DEFAULT_CONTACT_EMAIL,
+                                # 'owner_name': package.get('author', None),
+                                'owner_name': self.organisation.name or DEFAULT_PLATFORM_NAME,
                                 'organisation': self.organisation,
                                 'published': not package.get('private', False),
                                 'thumbnail': None,

@@ -215,6 +215,9 @@ SUPPORTED_VSI_PROTOCOLES = {
 
 EXTRACTOR_BOUNDS = [[42.4, 3.3], [46.1, 10.8]]
 
+DEFAULT_PLATFORM_NAME = 'my website'
+DEFAULT_CONTACT_EMAIL = 'contact@mywebsite.org'
+
 ```
 
 Puis :

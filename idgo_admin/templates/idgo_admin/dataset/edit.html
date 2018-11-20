@@ -189,8 +189,8 @@ $(function() {
 			name = supports[this.value]['name'];
 			email = supports[this.value]['email'];
 		} else {
-			name = 'Plateforme DataSud';
-			email = 'contact@datasud.fr';
+			name = {{ platform_name }};
+			email = {{ contact_email }};
 		};
 		$('input[name="{{ form.broadcaster_name.name }}"]').prop('placeholder', name)
 		$('input[name="{{ form.broadcaster_email.name }}"]').prop('placeholder', email)

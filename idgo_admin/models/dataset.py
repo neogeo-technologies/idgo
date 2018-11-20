@@ -37,6 +37,9 @@ import uuid
 CKAN_URL = settings.CKAN_URL
 GEONETWORK_URL = settings.GEONETWORK_URL
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
+DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
+DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
+
 TODAY = timezone.now().date()
 
 
@@ -251,9 +254,9 @@ class Dataset(models.Model):
             self.owner_email = self.editor.email
 
         broadcaster_name = self.broadcaster_name or \
-            self.support and self.support.name or 'Plateforme DataSud'
+            self.support and self.support.name or DEFAULT_PLATFORM_NAME
         broadcaster_email = self.broadcaster_email or \
-            self.support and self.support.email or 'contact@datasud.fr'
+            self.support and self.support.email or DEFAULT_CONTACT_EMAIL
 
         super().save(*args, **kwargs)
 

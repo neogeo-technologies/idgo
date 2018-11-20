@@ -35,7 +35,8 @@ from taggit.forms import TagWidget
 DOMAIN_NAME = settings.DOMAIN_NAME
 GEONETWORK_URL = settings.GEONETWORK_URL
 CKAN_URL = settings.CKAN_URL
-
+DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
+DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
 
 TODAY = timezone.now().date()
 TODAY_STR = TODAY.strftime('%d/%m/%Y')
@@ -265,9 +266,9 @@ class DatasetForm(forms.ModelForm):
             '{} (valeur par défaut)'.format(owner.email)
 
         self.fields['broadcaster_name'].widget.attrs['placeholder'] = \
-            instance and instance.support and instance.support.name or 'Plateforme DataSud'
+            instance and instance.support and instance.support.name or DEFAULT_PLATFORM_NAME
         self.fields['broadcaster_email'].widget.attrs['placeholder'] = \
-            instance and instance.support and instance.support.email or 'contact@datasud.fr'
+            instance and instance.support and instance.support.email or DEFAULT_CONTACT_EMAIL
 
         if instance and instance.thumbnail:
             self.fields['thumbnail'].widget.attrs['value'] = instance.thumbnail.url

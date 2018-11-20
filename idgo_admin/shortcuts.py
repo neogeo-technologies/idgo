@@ -33,6 +33,8 @@ from idgo_admin.models import Resource
 CKAN_URL = settings.CKAN_URL
 WORDPRESS_URL = settings.WORDPRESS_URL
 READTHEDOC_URL = settings.READTHEDOC_URL
+DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
+DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
 FTP_URL = settings.FTP_URL
 
 
@@ -78,6 +80,8 @@ def render_with_info_profile(
         in LiaisonsReferents.get_pending(profile=profile)]
 
     context.update({
+        'contact_email': DEFAULT_CONTACT_EMAIL,
+        'platform_name': DEFAULT_PLATFORM_NAME,
         'ftp_url': FTP_URL,
         'doc_url': READTHEDOC_URL,
         'wordpress_url': WORDPRESS_URL,
