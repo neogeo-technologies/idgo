@@ -80,6 +80,7 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 DOMAIN_NAME = 'http://localhost'
 
 INSTALLED_APPS = [
+    'django_admin_listfilter_dropdown',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -87,10 +88,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+    'django_extensions',
     'taggit',
     'bootstrap3',
     'mama_cas',
-    'idgo_admin']
+    'idgo_admin',
+    'commandes']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
