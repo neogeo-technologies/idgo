@@ -54,6 +54,14 @@
 				</div>
 				<br />
 			</div>
+			<div id='{{ form.encoding.name }}_container'>
+				<div class="row">
+					<div class="col-xs-8">
+						{% bootstrap_field form.encoding %}
+					</div>
+				</div>
+				<br />
+			</div>
 		{% if mode %}
 			<div class="well">
 			{% if mode == 'up_file' %}
@@ -208,12 +216,15 @@
 $(function() {
 
 	const $crsInputContainer = $('#{{ form.crs.name }}_container').hide();
+	const $encodingInputContainer = $('#{{ form.encoding.name }}_container').hide();
 
 	{% if form.errors %}
 		{% for field in form %}
 			{% for error in field.errors %}
 				{% if form.crs.name == field.name %}
 $crsInputContainer.show();
+				{% elif form.encoding.name == field.name %}
+$encodingInputContainer.show();
 				{% endif %}
 			{% endfor %}
 		{% endfor %}
@@ -364,6 +375,9 @@ $crsInputContainer.show();
 										const val = data.error[key].join();
 										if (key == '{{ form.crs.name }}') {
 											$crsInputContainer.show();
+										};
+										if (key == '{{ form.encoding.name }}') {
+											$encodingInputContainer.show();
 										};
 										if (key == '__all__') {
 											$('.container-message').append('<div name="message-tags" class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>' + val + '</div>');

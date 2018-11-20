@@ -22,6 +22,7 @@ from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.gdal.error import SRSException
 from django.contrib.gis.gdal import GDALRaster
 from django.db import connections
+from django.utils.encoding import DjangoUnicodeDecodeError
 from idgo_admin.exceptions import DatagisBaseError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.utils import slugify
@@ -69,6 +70,10 @@ class NotOGRError(DatagisBaseError):
 
 class NotSupportedSrsError(DatagisBaseError):
     message = "Le système de coordonnées n'est pas supporté par l'application."
+
+
+class DataDecodingError(DatagisBaseError):
+    message = "Impossible de décoder les données correctement."
 
 
 class SQLError(DatagisBaseError):
@@ -227,7 +232,7 @@ def handle_ogr_geom_type(ogr_geom_type):
         }.get(ogr_geom_type.__str__().lower(), 'Geometry')
 
 
-def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None):
+def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='utf-8'):
     sql = []
     tables = []
 
@@ -235,6 +240,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None):
     if len(layers) > limit_to:
         raise ExceedsMaximumLayerNumberFixedError(
             count=len(layers), maximum=limit_to)
+    layers.encoding = encoding
     # else:
     for layer in layers:
         layername = slugify(layer.name)
@@ -332,11 +338,13 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None):
             to_epsg=TO_EPSG))
 
         for feature in layer:
-
             attrs = {}
             for field in feature.fields:
                 k = field.decode()
-                v = feature.get(k)
+                try:
+                    v = feature.get(k)
+                except DjangoUnicodeDecodeError as e:
+                    raise DataDecodingError()
                 if isinstance(v, type(None)):
                     attrs[k] = 'null'
                 elif isinstance(v, (datetime.date, datetime.time, datetime.datetime)):

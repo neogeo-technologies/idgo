@@ -28,9 +28,9 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.resource import ResourceForm as Form
@@ -151,6 +151,9 @@ class ResourceManager(View):
                 instance = form.handle_me(request, dataset, id=id)
         except ValidationError as e:
             if e.code == 'crs':
+                form.add_error(e.code, '')
+                form.add_error('__all__', e.message)
+            elif e.code == 'encoding':
                 form.add_error(e.code, '')
                 form.add_error('__all__', e.message)
             else:

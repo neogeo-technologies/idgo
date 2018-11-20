@@ -29,6 +29,7 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import drop_table
 from idgo_admin.datagis import get_extent
 from idgo_admin.datagis import get_gdalogr_object
+from idgo_admin.datagis import DataDecodingError
 from idgo_admin.datagis import NotDataGISError
 from idgo_admin.datagis import NotFoundSrsError
 from idgo_admin.datagis import NotOGRError
@@ -252,11 +253,22 @@ class Resource(models.Model):
     objects = models.Manager()
     custom = ResourceManager()  # Renommer car pas très parlant...
 
+    _encoding = 'utf-8'
+
     class Meta(object):
         verbose_name = 'Ressource'
 
     def __str__(self):
         return self.name
+
+    @property
+    def encoding(self):
+        return self._encoding
+
+    @encoding.setter
+    def encoding(self, value):
+        if value:
+            self._encoding = value
 
     @property
     def filename(self):
@@ -452,7 +464,8 @@ class Resource(models.Model):
                         try:
                             tables = ogr2postgis(
                                 gdalogr_obj, update=existing_layers,
-                                epsg=self.crs and self.crs.auth_code or None)
+                                epsg=self.crs and self.crs.auth_code or None,
+                                encoding=self.encoding)
 
                         except NotOGRError as e:
                             file_must_be_deleted and remove_file(filename)
@@ -460,6 +473,14 @@ class Resource(models.Model):
                                 "Le fichier reçu n'est pas reconnu "
                                 'comme étant un jeu de données SIG correct.')
                             raise ValidationError(msg, code='__all__')
+
+                        except DataDecodingError as e:
+                            file_must_be_deleted and remove_file(filename)
+                            msg = (
+                                'Impossible de décoder correctement les '
+                                "données. Merci d'indiquer l'encodage "
+                                'ci-dessous.')
+                            raise ValidationError(msg, code='encoding')
 
                         except NotFoundSrsError as e:
                             file_must_be_deleted and remove_file(filename)

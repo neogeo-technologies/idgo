@@ -58,6 +58,7 @@ class ResourceForm(forms.ModelForm):
                   'data_type',
                   'description',
                   'dl_url',
+                  'encoding',
                   'extractable',
                   'format_type',
                   'ftp_file',
@@ -160,6 +161,12 @@ class ResourceForm(forms.ModelForm):
         required=False,
         to_field_name='auth_code')
 
+    encoding = forms.CharField(
+        label="Encodage des données (« UTF-8 » par défaut)",
+        required=False,
+        widget=forms.TextInput(
+            attrs={'placeholder': 'Par exemple: Latin1, ISO_8859-1, etc.'}))
+
     restricted_level = forms.ChoiceField(
         choices=Meta.model.LEVEL_CHOICES,
         label="Restriction d'accès",
@@ -223,26 +230,28 @@ class ResourceForm(forms.ModelForm):
         else:
             ftp_file = None
 
-        params = {'crs': data['crs'],
-                  'data_type': data['data_type'],
-                  'dataset': dataset,
-                  'description': data['description'],
-                  'dl_url': data['dl_url'],
-                  'extractable': data['extractable'],
-                  'format_type': data['format_type'],
-                  'ftp_file': ftp_file,
-                  'geo_restriction': data['geo_restriction'],
-                  'lang': data['lang'],
-                  'last_update': data['last_update'],
-                  'name': data['name'],
-                  'ogc_services': data['ogc_services'],
-                  # 'organizations_allowed': None,
-                  # 'profiles_allowed': None,
-                  'referenced_url': data['referenced_url'],
-                  'restricted_level': data['restricted_level'],
-                  'sync_frequency': data['sync_frequency'],
-                  'synchronisation': data['synchronisation'],
-                  'up_file': data['up_file']}
+        params = {
+            'crs': data['crs'],
+            'data_type': data['data_type'],
+            'dataset': dataset,
+            'description': data['description'],
+            'dl_url': data['dl_url'],
+            'encoding': data.get('encoding') or None,  # Et pas `data.get('encoding', None)`
+            'extractable': data['extractable'],
+            'format_type': data['format_type'],
+            'ftp_file': ftp_file,
+            'geo_restriction': data['geo_restriction'],
+            'lang': data['lang'],
+            'last_update': data['last_update'],
+            'name': data['name'],
+            'ogc_services': data['ogc_services'],
+            # 'organizations_allowed': None,
+            # 'profiles_allowed': None,
+            'referenced_url': data['referenced_url'],
+            'restricted_level': data['restricted_level'],
+            'sync_frequency': data['sync_frequency'],
+            'synchronisation': data['synchronisation'],
+            'up_file': data['up_file']}
 
         if data['restricted_level'] == '2':
             data['profiles_allowed'] = data['profiles_allowed']
