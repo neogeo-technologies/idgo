@@ -121,6 +121,8 @@ class JurisdictionView(View):
         organisation_pk = request.GET.get('organisation')
         if organisation_pk:
             organisation = get_object_or_404(Organisation, pk=organisation_pk)
+        else:
+            organisation = None
 
         form = Form(instance=jurisdiction, include={'user': user})
 
@@ -153,6 +155,8 @@ class JurisdictionView(View):
         organisation_pk = request.GET.get('organisation')
         if organisation_pk:
             organisation = get_object_or_404(Organisation, pk=organisation_pk)
+        else:
+            organisation = None
 
         form = Form(request.POST, instance=jurisdiction, include={'user': user})
 
