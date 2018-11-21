@@ -228,7 +228,7 @@ class Extractor(View):
                     context['layer'] = task.target_object
                     context['resource'] = task.target_object.resource
                     context['dataset'] = task.target_object.resource.dataset
-                    context['organisation'] = task.target_object.resource.organisation
+                    context['organisation'] = task.target_object.resource.dataset.organisation
                 elif task.model == 'Resource':
                     context['task'] = task
                     context['layer'] = task.target_object.get_layers()[-1]  # Dans la version actuelle relation 1-1
