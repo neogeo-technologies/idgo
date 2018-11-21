@@ -260,16 +260,18 @@ class Dataset(models.Model):
             self.support and self.support.email or DEFAULT_CONTACT_EMAIL
 
         if not self.bbox and self.organisation:
-            extent = self.organisation.jurisdiction.communes.envelope().aggregate(models.Extent('geom'))
-            xmin, ymin, xmax, ymax = extent.get('geom__extent')
-            self.bbox = json.dumps({
-                'type': 'Polygon',
-                'coordinates': [[
-                    [xmin, ymin],
-                    [xmax, ymin],
-                    [xmax, ymax],
-                    [xmin, ymax],
-                    [xmin, ymin]]]})
+            jurisdiction = self.organisation.jurisdiction
+            if jurisdiction and jurisdiction.communes:
+                extent = jurisdiction.communes.envelope().aggregate(models.Extent('geom'))
+                xmin, ymin, xmax, ymax = extent.get('geom__extent')
+                self.bbox = json.dumps({
+                    'type': 'Polygon',
+                    'coordinates': [[
+                        [xmin, ymin],
+                        [xmax, ymin],
+                        [xmax, ymax],
+                        [xmin, ymax],
+                        [xmin, ymin]]]})
 
         super().save(*args, **kwargs)
 
