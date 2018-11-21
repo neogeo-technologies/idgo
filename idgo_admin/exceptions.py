@@ -55,6 +55,10 @@ class DatagisBaseError(GenericException):
     pass
 
 
+class FakeError(GenericException):
+    message = "Ceci n'est pas une erreur."
+
+
 class ExceedsMaximumLayerNumberFixedError(GenericException):
     message = "Votre ficher contient plus de jeux de données que ne l'autorise l'application."
 

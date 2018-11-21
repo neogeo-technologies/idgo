@@ -31,11 +31,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 # from idgo_admin.exceptions import ExceptionsHandler
 # from idgo_admin.exceptions import ProfileHttp404
+from idgo_admin.exceptions import FakeError
 from idgo_admin.forms.jurisdiction import JurisdictionForm as Form
 from idgo_admin.models import BaseMaps
 from idgo_admin.models import Commune
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import JurisdictionCommune
+from idgo_admin.models.mail import send_mail_asking_for_jurisdiction_creation
 from idgo_admin.models import Organisation
 # from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
@@ -107,14 +109,18 @@ class JurisdictionView(View):
     template = 'idgo_admin/jurisdiction/edit.html'
 
     def get(self, request, code):
-
         user, profile = user_and_profile(request)
 
-        if code != 'new':
+        if code not in ('for', 'new'):
             jurisdiction = get_object_or_404(Jurisdiction, code=code)
         else:
-            code = None
+            fake = (code == 'for')
             jurisdiction = None
+            code = None
+
+        organisation_pk = request.GET.get('organisation')
+        if organisation_pk:
+            organisation = get_object_or_404(Organisation, pk=organisation_pk)
 
         form = Form(instance=jurisdiction, include={'user': user})
 
@@ -126,8 +132,10 @@ class JurisdictionView(View):
         context = {
             'basemaps': basemaps,
             'communes': communes,
+            'fake': fake,
             'form': form,
-            'instance': jurisdiction}
+            'instance': jurisdiction,
+            'organisation': organisation}
 
         return render_with_info_profile(request, self.template, context=context)
 
@@ -135,11 +143,16 @@ class JurisdictionView(View):
 
         user, profile = user_and_profile(request)
 
-        if code != 'new':
+        if code not in ('for', 'new'):
             jurisdiction = get_object_or_404(Jurisdiction, code=code)
         else:
-            code = None
+            fake = (code == 'for')
             jurisdiction = None
+            code = None
+
+        organisation_pk = request.GET.get('organisation')
+        if organisation_pk:
+            organisation = get_object_or_404(Organisation, pk=organisation_pk)
 
         form = Form(request.POST, instance=jurisdiction, include={'user': user})
 
@@ -151,8 +164,10 @@ class JurisdictionView(View):
         context = {
             'basemaps': basemaps,
             'communes': communes,
+            'fake': fake,
             'form': form,
-            'instance': jurisdiction}
+            'instance': jurisdiction,
+            'organisation': organisation}
 
         if not form.is_valid():
             return render_with_info_profile(request, self.template, context=context)
@@ -160,8 +175,9 @@ class JurisdictionView(View):
         try:
             with transaction.atomic():
                 if not code:
-                    jurisdiction = Jurisdiction.objects.create(
-                        **dict((item, form.cleaned_data[item]) for item in form.Meta.property_fields))
+                    jurisdiction = Jurisdiction.objects.create(**dict(
+                        (item, form.cleaned_data[item])
+                        for item in form.Meta.property_fields))
                 else:
                     for item in form.Meta.property_fields:
                         setattr(jurisdiction, item, form.cleaned_data[item])
@@ -177,8 +193,16 @@ class JurisdictionView(View):
                     except JurisdictionCommune.DoesNotExist:
                         kvp['created_by'] = profile
                         JurisdictionCommune.objects.create(**kvp)
+                if fake:
+                    send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation)
+                    raise FakeError('Force atomic to roll back.')
+
         except ValidationError as e:
             messages.error(request, ' '.join(e))
+        except FakeError as e:
+            messages.success(request, (
+                'Votre demande de création de territoire '
+                'de compétence a été envoyée aux administrateurs.'))
         else:
             messages.success(request, (
                 'Le territoire de compétence a été '
@@ -189,7 +213,13 @@ class JurisdictionView(View):
                 reverse('idgo_admin:jurisdictions'), jurisdiction.code)
         else:
             to = reverse(
-                'idgo_admin:jurisdiction_editor', kwargs={'code': jurisdiction.code})
+                'idgo_admin:jurisdiction_editor',
+                kwargs={'code': jurisdiction.code})
+
+        if fake:
+            # S'il s'agit d'une simple demande on revient
+            # toujours sur la liste des organisations
+            to = reverse('idgo_admin:all_organizations')
 
         return HttpResponseRedirect(to)
 

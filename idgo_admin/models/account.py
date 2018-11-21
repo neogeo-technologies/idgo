@@ -120,6 +120,10 @@ class Profile(models.Model):
     def is_referent(self):
         return len(LiaisonsReferents.get_subordinated_organizations(profile=self)) and True or False
 
+    @property
+    def referent_for(self):
+        return LiaisonsReferents.get_subordinated_organizations(profile=self)
+
     def create_ftp_account(self):
         r = requests.get(FTP_SERVICE_URL, params={
             'action': 'create',

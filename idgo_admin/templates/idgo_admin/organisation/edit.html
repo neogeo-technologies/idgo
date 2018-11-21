@@ -25,15 +25,14 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <form method="post" action="" enctype="multipart/form-data">
-	{% if not organisation.jurisdiction %}
+	{% if organisation in user.profile.referent_for %}
+		{% if not organisation.jurisdiction %}
 	<div class="alert alert-info">
 		<div class="row">
 			<div class="col-xs-12">
-				<p>
-					L'organisation n'est rattachée à aucun territoire de compétence.
-		{% if user.profile.is_crige_admin %}
-					Vous pouvez sélectionner le territoire de compétence dans la liste ci-dessous :
-				</p>
+				L'organisation n'est rattachée à aucun territoire de compétence.
+				{% if user.profile.is_crige_admin %}
+				Vous pouvez sélectionner le territoire de compétence dans la liste ci-dessous :<br/>
 			</div>
 		</div>
 		<div class="row">
@@ -44,13 +43,13 @@
 				</div>
 			</div>
 		</div>
-		{% else %}
-					Vous pouvez en faire la demande en cliquant ici : <a class="btn btn-link" href="#">définir le territoire de compétence</a>
-				</p>
+			{% else %}
+				Vous pouvez en faire la demande en cliquant ici : <a class="btn btn-link" href="{% url 'idgo_admin:jurisdiction_editor' code='for' %}?organisation={{ organisation.pk }}">définir le territoire de compétence</a>
 			</div>
 		</div>
-		{% endif %}
+			{% endif %}
 	</div>
+		{% endif %}
 	{% endif %}
 	<div class="well">
 		{% if id and user.profile.is_admin %}

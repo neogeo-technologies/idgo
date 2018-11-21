@@ -19,6 +19,7 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.mail import get_connection
 from django.core.mail.message import EmailMultiAlternatives
+# from django.urls import reverse
 from idgo_admin.utils import PartialFormatter
 from urllib.parse import urljoin
 
@@ -42,10 +43,13 @@ class Mail(models.Model):
         return self.template_name
 
 
-def get_admins_mails():
+def get_admins_mails(crige=False):
     Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
-
-    return [p.user.email for p in Profile.objects.filter(is_active=True, is_admin=True)]
+    kwargs = {'is_active': True, 'is_admin': True}
+    if crige:
+        kwargs['crige_membership'] = True
+    return [
+        p.user.email for p in Profile.objects.filter(**kwargs)]
 
 
 def get_referents_mails(organisation):
@@ -296,6 +300,30 @@ def send_resource_delete_mail(user, resource):
         id=resource.ckan_id,
         resource=resource.name,
         to=[user.email],
+        username=user.username)
+
+
+# Pour demander la création d'un territoire de compétence
+def send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation):
+    JurisdictionCommune = apps.get_model(
+        app_label='idgo_admin', model_name='JurisdictionCommune')
+    communes = [
+        instance.commune for instance
+        in JurisdictionCommune.objects.filter(jurisdiction=jurisdiction)]
+    # url = '{}?organisation={}'.format(
+    #     reverse('idgo_admin:jurisdiction_editor', kwargs={'code': 'new'}), organisation.pk)
+    return sender(
+        'ask_for_jursidiction_creation',
+        bcc=[user.email],
+        full_name=user.get_full_name(),
+        name=jurisdiction.name,
+        code=jurisdiction.code,
+        communes=','.join([commune.code for commune in communes]),
+        user_email=user.email,
+        # url=url,
+        organisation=organisation.name,
+        organisation_pk=organisation.pk,
+        to=get_admins_mails(crige=True),
         username=user.username)
 
 

@@ -96,7 +96,7 @@ urlpatterns = [
 
     url('^jurisdiction/?$', jurisdiction, name='jurisdiction'),
     url('^jurisdiction/all/?$', jurisdictions, name='jurisdictions'),
-    url('^jurisdiction/(?P<code>(new|(\w+)))/edit/?$', JurisdictionView.as_view(), name='jurisdiction_editor'),
+    url('^jurisdiction/(?P<code>(for|new|(\w+)))/edit/?$', JurisdictionView.as_view(), name='jurisdiction_editor'),
 
     url('^mdedit/(?P<type>(dataset|service))/?$', mdhandler, name='mdhandler'),
     url('^mdedit/dataset/(?P<id>(\d+))/?$', DatasetMDEdit.as_view(), name='dataset_mdedit'),

@@ -70,8 +70,12 @@
 		<br />
 		<div class="buttons-on-the-right-side">
 			<a class="btn btn-default" href="{% url "idgo_admin:jurisdictions" %}">Annuler</a>
+		{% if fake %}
+			<button type="submit" name="save" class="btn btn-primary">Valider la demande</button>
+		{% else %}
 			<button type="submit" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>
 			<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
+		{% endif %}
 		</div>
 		<hr />
 		<div class="row">
