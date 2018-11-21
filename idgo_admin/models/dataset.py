@@ -29,6 +29,7 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.managers import HarvestedDataset
 from idgo_admin.utils import three_suspension_points
+import json
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
 import uuid
@@ -257,6 +258,18 @@ class Dataset(models.Model):
             self.support and self.support.name or DEFAULT_PLATFORM_NAME
         broadcaster_email = self.broadcaster_email or \
             self.support and self.support.email or DEFAULT_CONTACT_EMAIL
+
+        if not self.bbox and self.organisation:
+            extent = self.organisation.jurisdiction.communes.envelope().aggregate(models.Extent('geom'))
+            xmin, ymin, xmax, ymax = extent.get('geom__extent')
+            self.bbox = json.dumps({
+                'type': 'Polygon',
+                'coordinates': [[
+                    [xmin, ymin],
+                    [xmax, ymin],
+                    [xmax, ymax],
+                    [xmin, ymax],
+                    [xmin, ymin]]]})
 
         super().save(*args, **kwargs)
 
