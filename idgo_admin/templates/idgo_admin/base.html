@@ -217,8 +217,8 @@ $(document).ajaxSend(function(e, xhr, settings) {
 							</li>
 							{% endif %}
 
-							{# L'onglet extracteur est uniquement visible pour les administrateurs CRIGE #}
-							{% if user.profile.is_crige_admin %}
+							{# L'onglet extracteur est uniquement visible pour les utilisateurs CRIGE #}
+							{% if user.profile.crige_membership %}
 							<li role="presentation">
 								<a href="{% url "idgo_admin:extractor_dashboard" %}" role="tab">Extractions</a>
 							</li>
