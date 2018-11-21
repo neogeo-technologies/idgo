@@ -18,7 +18,9 @@ class OrderForm(forms.ModelForm):
         required=True,
         empty_label='Sélectionnez une organisation')
 
-    status = forms.ChoiceField(choices=Order.STATUS_CHOICES)
+    # status = forms.ChoiceField(
+    #     choices=Order.STATUS_CHOICES,
+    #     required=False)
 
     dpo_cnil = forms.FileField(
         label='DPO CNIL*',
@@ -57,10 +59,9 @@ class OrderForm(forms.ModelForm):
         organisation = cleaned_data.get("organisation")
 
         match = Order.objects.filter(
-                date__year=year,
-                organisation=organisation,
-                status=1
-                )
+            date__year=year,
+            organisation=organisation,
+            status=1)
 
         er_mess = ("Une demande a déjà été approuvée pour cette organisation"
                     " dans l'année civile en cours.")

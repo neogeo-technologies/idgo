@@ -57,7 +57,7 @@ def get_referents_mails(organisation):
             organisation=organisation, validated_on__isnull=False)]
 
 
-def sender(template_name, to=None, cc=None, bcc=None, **kvp):
+def sender(template_name, to=None, cc=None, bcc=None, attach_files=[], **kvp):
     try:
         tmpl = Mail.objects.get(template_name=template_name)
     except Mail.DoesNotExist:
@@ -86,6 +86,9 @@ def sender(template_name, to=None, cc=None, bcc=None, **kvp):
         subject=subject, body=body,
         from_email=from_email, to=to,
         cc=cc, bcc=bcc, connection=connection)
+
+    for attach_file in attach_files:
+        mail.attach_file(attach_file)
 
     return mail.send()
 
