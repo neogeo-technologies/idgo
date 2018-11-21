@@ -3,46 +3,44 @@
 {% load bootstrap3 %}
 
 {% block main_content %}
-
-<!-- {% include "idgo_admin/alert_messages.html" %} -->
-
-<form names = "order" action="/commandes/" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-
-    {% for hidden_field in form.hidden_fields %}
-    {{ hidden_field }}
-    {% endfor %}
-
-    {% if form.non_field_errors %}
-        <div class="alert alert-danger" role="alert">
-            {% for error in form.non_field_errors %}
-                {{ error }}
-            {% endfor %}
-        </div>
-
-        
-    {% endif %}
-    
-    <br />
+	{% for hidden_field in form.hidden_fields %}
+	{{ hidden_field }}
+	{% endfor %}
+	{% if form.non_field_errors %}
+<div class="alert alert-danger" role="alert">
+	{% for error in form.non_field_errors %}
+	{{ error }}
+	{% endfor %}
+</div>
+	{% endif %}
+<form names="order" action="/commandes/" method="post" enctype="multipart/form-data" class="well">
+	{% csrf_token %}
+	<h2>Commande de fichiers fonciers</h2>
+	<br />
 	<div class="row">
-		<div class="col-xs-6">
+		<div class="col-md-8 col-lg-7">
 			{% bootstrap_field form.organisation %}
 		</div>
 	</div>
-    <br />
-    <div class="row">
-		<div class="col-xs-6">
+	<div class="row">
+		<div class="col-md-8 col-lg-7">
 			{% bootstrap_field form.dpo_cnil %}
 		</div>
 	</div>
-    <br />
-    <div class="row">
-		<div class="col-xs-6">
+	<div class="row">
+		<div class="col-md-8 col-lg-7">
 			{% bootstrap_field form.acte_engagement %}
 		</div>
 	</div>
-    <br />
-    <!--{{ form }}-->
-    <input type="submit" value="Valider votre commande" />
+	<br />
+	<div class="buttons-on-the-right-side">
+		<button type="submit" class="btn btn-primary">Valider votre commande</button>
+	</div>
+	<hr />
+	<div class="row">
+		<div class="col-xs-12">
+			<small>* Les champs marqués d'un astérisque sont obligatoires.</small>
+		</div>
+	</div>
 </form>
 {% endblock main_content %}

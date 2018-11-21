@@ -17,9 +17,11 @@ $(function() {
 	$inputFile.ezdz({
 		text: '<button class="btn btn-default">Parcourir...</button> ou déposez le fichier dans cette zone.',
 		value: {% if widget.is_initial %}'{{ widget.attrs.value }}'{% else %}null{% endif %},
+		{% if widget.attrs.max_size_info %}
 		validators: {
 			maxSize: {{ widget.attrs.max_size_info }}
 		},
+		{% endif %}
 		accept: function(file) {
 			$inputFile.parent().parent().parent().parent().removeClass('has-error');
 			$inputFile.parent().parent().parent().siblings('.help-block').remove();

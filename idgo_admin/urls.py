@@ -130,8 +130,7 @@ urlpatterns = [
     url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
 
     url('^owspreview/$', ows_preview, name='ows_preview'),
-    
-    url('^commandes/', include('commandes.urls'))
+
     ]
 
 
