@@ -553,6 +553,13 @@ class Resource(models.Model):
                     for layer in previous.get_layers():
                         layer.delete()
 
+        # Si la ressource n'est pas de type SIG, on passe les trois arguments
+        # qui concernent exclusivement ces dernières à « False ».
+        if not self.get_layers():
+            self.geo_restriction = False
+            self.ogc_services = False
+            self.extractable = False
+
         # Synchronisation avec CKAN
         # =========================
 
