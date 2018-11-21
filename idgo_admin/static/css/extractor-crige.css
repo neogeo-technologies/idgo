@@ -21,7 +21,7 @@
 }
 
 .page-header {
-    background: linear-gradient(rgba(22,115,116) 0, rgba(22,115,116,.8) 80%, rgba(22,115,116,.7) 100%);
+    background: linear-gradient(rgba(22,115,116) 0, rgba(22,115,116,.95) 80%, rgba(22,115,116,.9) 100%);
     padding-top: 30px;
     padding-bottom: 30px;
     margin-bottom: 100px;
@@ -48,9 +48,10 @@
 
 .page-header .logo-title {
     pointer-events: none;
+    background-color: rgba(255,255,255,.75);
 }
 
-.page-header .logo-title-background {
+/* .page-header .logo-title-background {
     position: absolute;
     background: linear-gradient(transparent 0,
                                 transparent calc(50% + 4px),
@@ -61,14 +62,18 @@
     transform: translateX(50%);
     height: 150px;
     top: -25px;
-}
+} */
 
 .page-header .logo-title img {
     position: absolute;
     top: calc(100% + 30px);
     left: 50%;
     transform: translateX(-50%);
-    margin-top: 15px;
+    /* margin-top: 15px; */
+    background-color: rgba(255,255,255,.65);
+    padding: 15px;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
 }
 
 
@@ -300,43 +305,62 @@
 }
 
 #extractor .panel {
-    border-radius: 0px;
+    border-radius: 4px;
+    border-color: #eee;
+    background-image: linear-gradient(
+       135deg,
+       rgba(238,238,238,0.85) 25%,
+       rgba(242,242,242,0.85) 25%,
+       rgba(242,242,242,0.85) 50%,
+       rgba(238,238,238,0.85) 50%,
+       rgba(238,238,238,0.85) 75%,
+       rgba(242,242,242,0.85) 75%,
+       rgba(242,242,242,0.85)
+    );
+    background-size: 5px 5px;
+    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.25);
+            box-shadow: 0 2px 1px 0 rgba(0,0,0,.25);
 }
 
 #extractor .panel-heading {
-    background: linear-gradient(135deg, #23adad 0%, #23adad 70%, #eee 70%, #eee 100%);
+    /* background: linear-gradient(135deg, #23adad 0%, #23adad 70%, #eee 70%, #eee 100%); */
+    /* background: linear-gradient(180deg, #f1f1f1 0%, #eee 25%, #eee 100%); */
+    background: transparent;
     padding: 15px;
     border-color: #eee;
+    border-top: none;
 }
 
 #extractor .panel-heading .panel-title {
-    background: repeating-linear-gradient(135deg, transparent 0px, transparent 7px, #23adad 7px, #23adad 8px, transparent 8px, transparent 14px);
-    color: #fff;
-    line-height: 20px;
+    /* background: repeating-linear-gradient(135deg, transparent 0px, transparent 7px, #23adad 7px, #23adad 8px, transparent 8px, transparent 14px); */
+    color: #167374;
+    line-height: 21px;
     font-family: PoppinsRegular;
-    font-size: 20px;
+    font-size: 21px;
+    font-weight: 600;
 }
 
-@media (min-width: 768px) {
+/* @media (min-width: 768px) {
     #extractor .panel-heading {
         background: linear-gradient(135deg, #23adad 0%, #23adad 70%, #eee 70%, #eee 100%);
     }
-}
+} */
 
-@media (min-width: 992px) {
+/* @media (min-width: 992px) {
     #extractor .panel-heading {
         background: linear-gradient(135deg, #23adad 0%, #23adad 60%, #eee 60%, #eee 100%);
     }
-}
+} */
 
-@media (min-width: 1200px) {
+/* @media (min-width: 1200px) {
     #extractor .panel-heading {
         background: linear-gradient(135deg, #23adad 0%, #23adad 50%, #eee 50%, #eee 100%);
     }
-}
+} */
 
 #extractor .panel-body {
-    background-color: #eee;
+    /* background-color: #eee; */
+    background: transparent;
 }
 
 #extractor .panel-body .form-group label {
@@ -370,7 +394,8 @@
 }
 
 .btn[name="extract"].disabled {
-    background-color: #eee;
+    background-color: #cecece;
+    color: #eee;
 }
 
 .btn[name="extract"].focus,
@@ -383,7 +408,17 @@
 
 .footer-container .footer {
     height: 80px;
-    background-color: rgba(0,0,0,.85);
+    background-image: linear-gradient(
+       135deg,
+       rgba(0,0,0,0.85) 25%,
+       rgba(17,17,17,.85) 25%,
+       rgba(17,17,17,.85) 50%,
+       rgba(0,0,0,0.85) 50%,
+       rgba(0,0,0,0.85) 75%,
+       rgba(17,17,17,.85) 75%,
+       rgba(17,17,17,.85)
+       );
+    background-size: 5px 5px;
     padding-top: 30px;
     padding-bottom: 30px;
     line-height: 20px;
@@ -391,6 +426,8 @@
     text-align: center;
     z-index: 1000;
     color: #fff;
+    -webkit-box-shadow: none;
+            box-shadow: none;
 }
 
 .footer-container .footer a {
