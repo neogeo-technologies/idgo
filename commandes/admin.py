@@ -1,10 +1,25 @@
+# Copyright (c) 2017-2018 Datasud.
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
 from django.contrib import admin
 from django_admin_listfilter_dropdown.filters import DropdownFilter, RelatedDropdownFilter
 from django.utils.html import format_html
 from datetime import datetime
 
-from .models import Order
-from .actions import download_csv
+from commandes.models import Order
+from commandes.actions import download_csv
 
 # def send_email(modeladmin, request, queryset):
 #     queryset.update(status='p')
@@ -30,7 +45,7 @@ class OrderAdmin(admin.ModelAdmin):
     actions = [download_csv]
     download_csv.short_description = "Exporter en CSV"
 
-    # filter by year of the orders
+    # filtre des commandes par année
     class YearListFilter(admin.SimpleListFilter):
 
         title = ('année de la demande')
