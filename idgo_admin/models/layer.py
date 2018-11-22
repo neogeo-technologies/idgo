@@ -287,6 +287,7 @@ class Layer(models.Model):
             qs for qs in [
                 resource.get_layers() for resource
                 in dataset.get_resources()]]))
+        # TODO remplacer par `layers = dataset.get_layers()`
 
         MRAHandler.create_or_update_layergroup(
             dataset.organisation.ckan_slug, {

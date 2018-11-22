@@ -50,6 +50,11 @@ class Jurisdiction(models.Model):
             Organisation.objects.filter(jurisdiction=instance_to_del).update(jurisdiction=self)
             instance_to_del.delete()
 
+    def get_bounds(self):
+        extent = self.communes.envelope().aggregate(models.Extent('geom')).get('geom__extent')
+        if extent:
+            return ((extent[1], extent[0]), (extent[3], extent[2]))
+
     @property
     def organisations(self):
         Organisation = apps.get_model(app_label='idgo_admin', model_name='Organisation')

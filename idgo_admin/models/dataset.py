@@ -27,9 +27,10 @@ from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.datagis import get_extent
 from idgo_admin.managers import HarvestedDataset
 from idgo_admin.utils import three_suspension_points
-import json
+import itertools
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
 import uuid
@@ -40,6 +41,23 @@ GEONETWORK_URL = settings.GEONETWORK_URL
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
 DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
+
+
+def bounds_to_wkt(xmin, ymin, xmax, ymax):
+    return (
+        'POLYGON(({xmin} {ymin}, {xmax} {ymin}, {xmax} {ymax}, {xmin} {ymax}, {xmin} {ymin}))'
+        ).format(xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax)
+
+try:
+    BOUNDS = settings.DEFAULTS_VALUES['BOUNDS']
+except AttributeError:
+    xmin, ymin = -180, -90
+    xmax, ymax = 180, 90
+else:
+    xmin, ymin = BOUNDS[0][1], BOUNDS[0][0]
+    xmax, ymax = BOUNDS[1][1], BOUNDS[1][0]
+finally:
+    DEFAULT_BBOX = bounds_to_wkt(xmin, ymin, xmax, ymax)
 
 TODAY = timezone.now().date()
 
@@ -52,13 +70,9 @@ class Dataset(models.Model):
     _current_editor = None
 
     GEOCOVER_CHOICES = (
+        (None, 'Indéfinie'),
         ('regionale', 'Régionale'),
-        ('international', 'Internationale'),
-        ('european', 'Européenne'),
-        ('national', 'Nationale'),
-        ('departementale', 'Départementale'),
-        ('intercommunal', 'Inter-Communale'),
-        ('communal', 'Communale'))
+        ('jurisdiction', 'Territoire de compétence'))
 
     FREQUENCY_CHOICES = (
         ('asneeded', 'Lorsque nécessaire'),
@@ -115,7 +129,7 @@ class Dataset(models.Model):
 
     geocover = models.CharField(
         verbose_name='Couverture géographique', blank=True, null=True,
-        default='regionale', max_length=30, choices=GEOCOVER_CHOICES)
+        default=None, max_length=30, choices=GEOCOVER_CHOICES)
 
     # Mandatory
     organisation = models.ForeignKey(
@@ -212,6 +226,11 @@ class Dataset(models.Model):
             minx, miny, maxx, maxy = self.bbox.extent
             return [[miny, minx], [maxy, maxx]]
 
+    def get_layers(self):
+        return list(itertools.chain.from_iterable([
+            qs for qs in [
+                resource.get_layers() for resource in self.get_resources()]]))
+
     def is_contributor(self, profile):
         LiaisonsContributeurs = apps.get_model(
             app_label='idgo_admin', model_name='LiaisonsContributeurs')
@@ -259,19 +278,31 @@ class Dataset(models.Model):
         broadcaster_email = self.broadcaster_email or \
             self.support and self.support.email or DEFAULT_CONTACT_EMAIL
 
-        if not self.bbox and self.organisation:
-            jurisdiction = self.organisation.jurisdiction
-            if jurisdiction and jurisdiction.communes:
-                extent = jurisdiction.communes.envelope().aggregate(models.Extent('geom'))
-                xmin, ymin, xmax, ymax = extent.get('geom__extent')
-                self.bbox = json.dumps({
-                    'type': 'Polygon',
-                    'coordinates': [[
-                        [xmin, ymin],
-                        [xmax, ymin],
-                        [xmax, ymax],
-                        [xmin, ymax],
-                        [xmin, ymin]]]})
+        if not self.bbox:
+            if not self.geocover and (
+                    self.organisation and self.organisation.jurisdiction):
+                setattr(self, 'geocover', 'jurisdiction')
+
+        layers = self.get_layers()
+        if not layers:
+            # Seulement s'il n'y a pas de layers rattachés au jeu de données.
+            # car sinon la bbox devrait être celle des couches
+            if self.geocover == 'jurisdiction':
+                # Prend l'étendue du territoire de compétence
+                if self.organisation:
+                    jurisdiction = self.organisation.jurisdiction
+                    if jurisdiction and jurisdiction.communes:
+                        bounds = jurisdiction.get_bounds()
+                        if bounds:
+                            xmin, ymin = bounds[0][1], bounds[0][0]
+                            xmax, ymax = bounds[1][1], bounds[1][0]
+                            setattr(self, 'bbox', bounds_to_wkt(xmin, ymin, xmax, ymax))
+            elif self.geocover == 'regionale':
+                # Prend l'étendue par défaut définie en settings
+                setattr(self, 'bbox', DEFAULT_BBOX)
+        else:
+            bbox = get_extent([layer.name for layer in layers])
+            setattr(self, 'bbox', bbox)
 
         super().save(*args, **kwargs)
 
