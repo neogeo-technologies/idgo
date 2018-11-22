@@ -112,6 +112,7 @@ class JurisdictionView(View):
         user, profile = user_and_profile(request)
 
         if code not in ('for', 'new'):
+            fake = None
             jurisdiction = get_object_or_404(Jurisdiction, code=code)
         else:
             fake = (code == 'for')
@@ -146,6 +147,7 @@ class JurisdictionView(View):
         user, profile = user_and_profile(request)
 
         if code not in ('for', 'new'):
+            fake = None
             jurisdiction = get_object_or_404(Jurisdiction, code=code)
         else:
             fake = (code == 'for')
