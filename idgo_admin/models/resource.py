@@ -21,15 +21,18 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import IntegrityError
+from django.db.models.signals import post_delete
+from django.db.models.signals import post_save
 # from django.db import transaction
+from django.dispatch import receiver
 from django.http import Http404
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.datagis import drop_table
-from idgo_admin.datagis import get_extent
-from idgo_admin.datagis import get_gdalogr_object
 from idgo_admin.datagis import DataDecodingError
+from idgo_admin.datagis import drop_table
+# from idgo_admin.datagis import get_extent
+from idgo_admin.datagis import get_gdalogr_object
 from idgo_admin.datagis import NotDataGISError
 from idgo_admin.datagis import NotFoundSrsError
 from idgo_admin.datagis import NotOGRError
@@ -43,7 +46,7 @@ from idgo_admin.utils import download
 from idgo_admin.utils import remove_file
 from idgo_admin.utils import slugify
 from idgo_admin.utils import three_suspension_points
-import itertools
+# import itertools
 import json
 import os
 from pathlib import Path
@@ -699,14 +702,13 @@ class Resource(models.Model):
         if not created:
             self.update_enable_layers_status()
 
-        # on met à jour le jeu de données parent..
-        layers = list(itertools.chain.from_iterable([
-            qs for qs in [
-                resource.get_layers() for resource
-                in Resource.objects.filter(dataset=self.dataset)]]))
-        self.dataset.bbox = get_extent([layer.name for layer in layers])
-        self.dataset.date_modification = timezone.now().date()
-        self.dataset.save()
-
         # on supprime les données téléversées ou téléchargées..
         file_must_be_deleted and remove_file(filename)
+
+
+@receiver(post_save, sender=Resource)
+@receiver(post_delete, sender=Resource)
+def force_save_dataset(sender, instance, **kwargs):
+    dataset = instance.dataset
+    dataset.date_modification = timezone.now().date()
+    dataset.save()
