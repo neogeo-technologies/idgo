@@ -80,4 +80,4 @@ def upload_file(request):
     # si on reçoit un GET (ou autre méthode) un formulaire vide est renvoyé
     else:
         form = OrderForm(user=request.user)
-    return render(request, 'commandes.html', {'form': form})
+    return render(request, 'commandes/commandes.html', {'form': form})

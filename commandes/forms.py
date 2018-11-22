@@ -17,48 +17,53 @@ from django import forms
 from django.utils import timezone
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
-from idgo_admin.forms import CustomCheckboxSelectMultiple
 
 from commandes.models import Order
 
 
+class CustomClearableFileInput(forms.ClearableFileInput):
+    template_name = 'idgo_admin/widgets/file_drop_zone.html'
+
+
 class OrderForm(forms.ModelForm):
+
+    organisation = forms.ModelChoiceField(
+        label='Organisation*',
+        queryset=None,
+        required=True,
+        empty_label='Sélectionnez une organisation')
+
+    dpo_cnil = forms.FileField(
+        label='DPO CNIL*',
+        required=True,
+        widget=CustomClearableFileInput(attrs={'value': None}))
+
+    acte_engagement = forms.FileField(
+        label="Acte d'engagement*",
+        required=True,
+        widget=CustomClearableFileInput(attrs={'value': None}))
+
     class Meta(object):
         model = Order
         fields = [
             'organisation',
             'dpo_cnil',
-            'acte_engagement'
-        ]
+            'acte_engagement']
 
-        organisation = forms.ModelMultipleChoiceField(
-            label='Organisation',
-            queryset=None,
-            required=True,
-            # empty_label=None  # could prevent the ---- 
-            # https://docs.djangoproject.com/en/2.1/ref/forms/fields/#django.forms.ModelChoiceField
-            # causes __init__ error
-            # to_field_name='pk',
-            widget=CustomCheckboxSelectMultiple(
-                attrs={'class': 'list-group-checkbox'}))
-
-        status = forms.ChoiceField(choices=Order.STATUS_CHOICES)
-
-    def __init__(self, *args, **kwargs):
-        '''
+    def __init__(self, *args, user=None, **kwargs):
+        """
         recupere l'identifiant du user depuis view.py pour que l'utilisateur
         ne voie que ses organisations
-        '''
-        user = kwargs.pop('user', None)
-        super(OrderForm, self).__init__(*args, **kwargs)
+        """
+        super().__init__(*args, **kwargs)
         self.fields['organisation'].queryset = Organisation.objects.filter(
             id=Profile.objects.get(user=user).organisation_id)
 
     def clean(self):
-        '''
+        """
         checks if the user has already ordered files
         (order status = 'validée') in the current year
-        '''
+        """
         cleaned_data = super(OrderForm, self).clean()
 
         year = timezone.now().date().year

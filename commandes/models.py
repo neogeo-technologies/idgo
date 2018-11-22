@@ -47,12 +47,16 @@ class Order(models.Model):
 
     organisation = models.ForeignKey(
         Organisation,
-        verbose_name='Organisation'
+        verbose_name='Organisation*'
         )
 
-    dpo_cnil = models.FileField(upload_to='commandes/')
+    dpo_cnil = models.FileField(
+        upload_to='commandes/',
+        verbose_name='DPO CNIL*')
 
-    acte_engagement = models.FileField(upload_to='commandes/')
+    acte_engagement = models.FileField(
+        upload_to='commandes/',
+        verbose_name="Acte d'engagement*")
 
     class Meta(object):
         verbose_name = 'Commande de fichiers fonciers'

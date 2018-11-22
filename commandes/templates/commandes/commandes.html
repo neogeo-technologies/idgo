@@ -2,6 +2,24 @@
 
 {% load bootstrap3 %}
 
+{% block header %}
+		<div class="page-header">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-12">
+						{% block header_content %}
+						{% include "commandes/header.html" %}
+						{% endblock header_content %}
+					</div>
+				</div>
+			</div>
+		</div>
+		{% endblock header %}
+
+{% block nav_content %}
+
+{% endblock nav_content %}
+
 {% block main_content %}
 	{% for hidden_field in form.hidden_fields %}
 	{{ hidden_field }}
@@ -15,8 +33,6 @@
 	{% endif %}
 <form names="order" action="/commandes/" method="post" enctype="multipart/form-data" class="well">
 	{% csrf_token %}
-	<h2>Commande de fichiers fonciers</h2>
-	<br />
 	<div class="row">
 		<div class="col-md-8 col-lg-7">
 			{% bootstrap_field form.organisation %}
@@ -44,3 +60,7 @@
 	</div>
 </form>
 {% endblock main_content %}
+
+{% block footer %}
+	{% include "commandes/footer.html" %}
+{% endblock footer %}
