@@ -344,17 +344,24 @@ class Resource(models.Model):
 
     def save(self, *args, **kwargs):
 
+        # Modèles
         SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
         Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
 
-        # organisation = self.dataset.organisation
+        # Quelques options :
+        sync_ckan = kwargs.pop('sync_ckan', False)
+        file_extras = kwargs.pop('file_extras', None)  # Des informations sur la ressource téléversée
+        editor = kwargs.pop('editor', None)  # L'éditeur de l'objet `request` (qui peut être celui du jeu de données ou un référent)
 
         # On sauvegarde l'objet avant de le mettre à jour (s'il existe)
         previous, created = self.pk \
             and (Resource.objects.get(pk=self.pk), False) or (None, True)
 
         # Quelques valeur par défaut à la création de l'instance
-        if created:
+        if created \
+                or not editor.profile.crige_membership:
+                # Ou si l'éditeur n'est pas partenaire du CRIGE
+
             self.geo_restriction = False
             self.ogc_services = True
             self.extractable = True
@@ -362,11 +369,6 @@ class Resource(models.Model):
         # La restriction au territoire de compétence désactive toujours les services OGC
         if self.geo_restriction:
             self.ogc_services = False
-
-        # Quelques options :
-        sync_ckan = kwargs.pop('sync_ckan', False)
-        file_extras = kwargs.pop('file_extras', None)  # Des informations sur la ressource téléversée
-        editor = kwargs.pop('editor', None)  # L'éditeur de l'objet `request` (qui peut être celui du jeu de données ou un référent)
 
         # Quelques contrôles sur les fichiers de données téléversée ou à télécharger
         filename = False
@@ -437,9 +439,7 @@ class Resource(models.Model):
         # Détection des données SIG
         # =========================
 
-        # /!\ Uniquement si l'utilisateur est membre partenaire du CRIGE
-        if filename and editor.profile.crige_membership:
-
+        if filename:
             # On vérifie s'il s'agit de données SIG, uniquement pour
             # les extensions de fichier autorisées..
             extension = self.format_type.extension.lower()
@@ -651,47 +651,6 @@ class Resource(models.Model):
             # On publie la ressource brute CKAN
             if publish_raw_resource:
                 ckan_user.publish_resource(ckan_package, **ckan_params)
-
-            # Puis on publie dans CKAN les ressources de type service
-            # TODO: à déplacer dans Layer
-            # for layer in self.get_layers():
-            #
-            #     # Uniquement si explicitement demandé
-            #     if self.ogc_services:
-            #
-            #         getlegendgraphic = (
-            #             '{}?&version=1.1.1&service=WMS&request=GetLegendGraphic'
-            #             '&layer={}&format=image/png').format(
-            #                 OWS_URL_PATTERN.format(
-            #                     organisation=organisation.ckan_slug
-            #                     ).replace('?', ''), layer.name)
-            #
-            #         # Tous les services sont publiés en 4171 (TODO -> configurer dans settings)
-            #         crs = SupportedCrs.objects.get(
-            #             auth_name='EPSG', auth_code='4171').description
-            #
-            #         url = '{0}#{1}'.format(
-            #             OWS_URL_PATTERN.format(
-            #                 organisation=organisation.ckan_slug), layer.name)
-            #
-            #         ckan_params = {
-            #             'id': layer.name,
-            #             'name': '{} (OGC:WMS)'.format(self.name),
-            #             'description': 'Visualiseur cartographique',
-            #             'getlegendgraphic': getlegendgraphic,
-            #             'data_type': 'service',
-            #             'extracting_service': str(self.extractable),
-            #             'crs': crs,
-            #             'lang': self.lang,
-            #             'format': 'WMS',
-            #             'restricted': restricted,
-            #             'url': url,
-            #             'view_type': 'geo_view'}
-            #
-            #         ckan_user.publish_resource(ckan_package, **ckan_params)
-            #     else:
-            #         # Sinon on force la suppression de la ressource CKAN
-            #         ckan_user.delete_resource(layer.name)
 
             ckan_user.close()
 

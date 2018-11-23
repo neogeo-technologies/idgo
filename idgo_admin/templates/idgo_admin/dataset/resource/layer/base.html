@@ -29,11 +29,15 @@
 {% block main_content %}
 {% include "idgo_admin/alert_messages.html" %}
 <div id="layer-container">
-	{% if layer.resource.extractable %}
 	<div class="floating-buttons-on-the-right-side">
+	{% if layer.resource.extractable %}
+		{% if user.profile.crige_membership %}
 		<a href="{% url "idgo_admin:extractor" %}?layer={{ layer.id }}" name="extractor" type="button" class="btn btn-secondary">Service d'extraction</a>
-	</div>
+		{% else %}
+		{% include "idgo_admin/extras/crige_restricted_access/link.html" with text="Service d'extraction" class="btn btn-secondary" name="extractor" %}
+		{% endif %}
 	{% endif %}
+	</div>
 	<ul id="layer_menu" class="nav nav-tabs" role="tablist">
 		<li role="presentation">
 			<a href="{% url "idgo_admin:layer_editor" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id %}" role="tab">
@@ -41,10 +45,15 @@
 			</a>
 		</li>
 		<li role="presentation">
+			{% if user.profile.crige_membership %}
 			<a href="{% url "idgo_admin:layer_styles" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id %}" role="tab">
 				Gestion des styles
 			</a>
+			{% else %}
+			{% include "idgo_admin/extras/crige_restricted_access/link.html" with text="Gestion des styles" %}
+			{% endif %}
 		</li>
+
 		{% block layer_tab_extend %}
 		{% endblock layer_tab_extend %}
 	</ul>

@@ -2,14 +2,16 @@
 
 {% include "idgo_admin/alert_messages.html" %}
 
-
+<br />
 <div id="table-layers" class="table-responsive"></div>
 <nav aria-label="Page navigation" style="text-align: center;">
 	<ul id="table-layers-paginator" class="pagination pagination-sm"></ul>
 </nav>
 <div class="buttons-on-the-right-side">
-	{% if is_crige %}
+	{% if user.profile.crige_membership %}
 	<button name="extractor" class="btn btn-default">Service d'extraction</button>
+	{% else %}
+	{% include "idgo_admin/extras/crige_restricted_access/button.html" with class="btn btn-default" text="Service d'extraction" name="extractor" %}
 	{% endif %}
 	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
 	<button name="edit-layer" class="btn btn-default">Configurer le service</button>
@@ -78,7 +80,7 @@ $(function() {
 		}
 	];
 
-	{% if is_crige %}
+	{% if user.profile.crige_membership %}
 	$('button[name="extractor"]').on('click', function(e) {
 		e.preventDefault();
 		const data = tableGrid.getRowValues(tableGrid.lastSelectedRowIndex);
@@ -117,11 +119,9 @@ $(function() {
 				if (pRowIdx != nRowIdx) {
 					window.location = '#owslayers/' + getRowValues(nRowIdx).id;
 					$(grid.getRow(nRowIdx)).addClass('selected');
-					{% if is_crige %}
 					if (getRowValues(nRowIdx).extractor_enabled) {
 						activateButton($('button[name="extractor"]'));
 					};
-					{% endif %}
 					if (getRowValues(nRowIdx).ogc_enabled) {
 						activateButton($('button[name="view-ckan"]'));
 					};

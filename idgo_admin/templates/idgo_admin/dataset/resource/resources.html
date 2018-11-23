@@ -11,11 +11,13 @@
 	<ul id="table-resources-paginator" class="pagination pagination-sm"></ul>
 </nav>
 <div class="buttons-on-the-right-side">
-	{% if is_crige %}
+	{% if user.profile.crige_membership %}
 	<button name="resource-extractor" class="btn btn-default">Service d'extraction</button>
+	{% else %}
+	{% include "idgo_admin/extras/crige_restricted_access/button.html" with class="btn btn-default" text="Service d'extraction" name="resource-extractor" %}
 	{% endif %}
 	<button name="view-ckan-resource" class="btn btn-default">Ouvrir dans CKAN</button>
-	<button name="edit-resource" class="btn btn-secondary">Éditer  <span class="glyphicon glyphicon-pencil"></span></button>
+	<button name="edit-resource" class="btn btn-secondary">Éditer <span class="glyphicon glyphicon-pencil"></span></button>
 	<button name="delete-resource" class="btn btn-danger" data-toggle="modal" data-target="#modal">Supprimer <span class="glyphicon glyphicon-trash"></span></button>
 </div>
 
@@ -85,7 +87,7 @@ $(function() {
 
 	var tableGrid = new EditableGrid('Resources', {pageSize: 10});
 
-	{% if is_crige %}
+	{% if user.profile.crige_membership %}
 	$('button[name="resource-extractor"]').on('click', function(e) {
 		e.preventDefault();
 		redirect('{% url "idgo_admin:extractor"%}?&resource=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id'])

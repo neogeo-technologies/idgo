@@ -167,6 +167,9 @@ $(document).ajaxSend(function(e, xhr, settings) {
 				</div>
 			</div>
 		</div>
+		{% block body_extras %}
+		{% include "idgo_admin/extras/body/content.html" %}
+		{% endblock body_extras %}
 		{% block body %}
 		{% block header %}
 		<div class="page-header">
