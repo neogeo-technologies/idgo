@@ -27,11 +27,24 @@
 		"message": "Bonjour,\n\nL'utilisateur {full_name} ({user_email}) demande la cr\u00e9ation d'un nouveau territoire de comp\u00e9tence :\n\n* Nom : {name}\n* Code : {code}\n* Codes INSEE des communes : {communes}\n\n* Organisation de rattachement : {organisation} (Code d'identification : {organisation_pk})\n\nCliquez sur le lien ci-dessous pour cr\u00e9er le territoire :\n\n{url}\n\nVous pouvez copier la liste des code INSEE fournie plus haut dans ce message et l'ins\u00e9rer directement dans le formulaire de cr\u00e9ation du nouveau territoire.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
 	}
 }, {
+	"pk": "cadastre_order",
+	"fields": {
+		"subject": "Confirmation d'envoi de commande de fichiers fonciers",
+		"message": "Bonjour {full_name},\n\nL'instruction de votre commande est en cours. Vous trouverez le r\u00e9capitulatif ci-dessous :\n\n* Nom : {last_name}\n* Pr\u00e9nom : {first_name}\n* Adresse e-mail : {email}\n* Date : {date}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
 	"model": "idgo_admin.mail",
 	"pk": "confirm_account_creation",
 	"fields": {
 		"subject": "Confirmer votre inscription sur la plateforme Datasud",
 		"message": "Bonjour {full_name} ({username}),\n\nAfin de valider votre inscription sur la plateforme Datasud, veuillez cliquer sur le lien suivant :\n\n{url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
+	"model": "idgo_admin.mail",
+	"pk": "confirm_cadastre_order",
+	"fields": {
+		"subject": "Commande de fichiers fonciers",
+		"message": "Bonjour {full_name},\n\nL'instruction de votre commande est en cours. Vous trouverez le r\u00e9capitulatif ci-dessous :\n\n* Nom : {last_name}\n* Pr\u00e9nom : {first_name}\n* Adresse e-mail : {email}\n* Date : {date}\n\nPour valider la commande, suivez le lien suivant :\n{url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
 	}
 }, {
 	"model": "idgo_admin.mail",

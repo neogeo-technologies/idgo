@@ -1,0 +1,66 @@
+{% extends "idgo_admin/base.html" %}
+
+{% load bootstrap3 %}
+
+{% block header %}
+		<div class="page-header">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-12">
+						{% block header_content %}
+						{% include "commandes/header.html" %}
+						{% endblock header_content %}
+					</div>
+				</div>
+			</div>
+		</div>
+		{% endblock header %}
+
+{% block nav_content %}
+
+{% endblock nav_content %}
+
+{% block main_content %}
+	{% for hidden_field in form.hidden_fields %}
+	{{ hidden_field }}
+	{% endfor %}
+	{% if form.non_field_errors %}
+<div class="alert alert-danger" role="alert">
+	{% for error in form.non_field_errors %}
+	{{ error }}
+	{% endfor %}
+</div>
+	{% endif %}
+<form names="order" action="/commandes/" method="post" enctype="multipart/form-data" class="well">
+	{% csrf_token %}
+	<div class="row">
+		<div class="col-md-8 col-lg-7">
+			{% bootstrap_field form.organisation %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-8 col-lg-7">
+			{% bootstrap_field form.dpo_cnil %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-8 col-lg-7">
+			{% bootstrap_field form.acte_engagement %}
+		</div>
+	</div>
+	<br />
+	<div class="buttons-on-the-right-side">
+		<button type="submit" class="btn btn-primary">Valider votre commande</button>
+	</div>
+	<hr />
+	<div class="row">
+		<div class="col-xs-12">
+			<small>* Les champs marqués d'un astérisque sont obligatoires.</small>
+		</div>
+	</div>
+</form>
+{% endblock main_content %}
+
+{% block footer %}
+	{% include "commandes/footer.html" %}
+{% endblock footer %}

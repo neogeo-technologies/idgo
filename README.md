@@ -29,6 +29,8 @@
 (idgo_venv) /idgo_venv> pip install ckanapi
 (idgo_venv) /idgo_venv> pip install owslib
 (idgo_venv) /idgo_venv> pip install django-queryset-csv
+(idgo_venv) /idgo_venv> pip install django-admin-list-filter-dropdown
+(idgo_venv) /idgo_venv> pip install django-extensions
 ```
 
 #### Récupérer les codes sources
@@ -80,7 +82,8 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 DOMAIN_NAME = 'http://localhost'
 
 INSTALLED_APPS = [
-    'django.contrib.sites',
+    'django_admin_listfilter_dropdown',
+    'django.contrib.sites'
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -88,10 +91,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+    'django_extensions',
     'taggit',
     'bootstrap3',
     'mama_cas',
-    'idgo_admin']
+    'idgo_admin',
+    'commandes']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
