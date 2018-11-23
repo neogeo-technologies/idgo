@@ -124,6 +124,9 @@ class Profile(models.Model):
     def referent_for(self):
         return LiaisonsReferents.get_subordinated_organizations(profile=self)
 
+    def is_referent_for(self, organisation):
+        return organisation in self.user.profile.referent_for
+
     def create_ftp_account(self):
         r = requests.get(FTP_SERVICE_URL, params={
             'action': 'create',

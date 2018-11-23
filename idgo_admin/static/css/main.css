@@ -46,6 +46,10 @@ br {
     line-height: 300%;
 }
 
+address>br {
+    line-height: normal;
+}
+
 hr {
     margin-top: 10px;
     margin-bottom: 10px;

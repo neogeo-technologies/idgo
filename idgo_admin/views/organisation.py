@@ -178,15 +178,15 @@ def organisation(request, id=None):
         'id': instance.id,
         'name': instance.name,
         # logo -> see below
-        'type': instance.organisation_type and instance.organisation_type.name or '',
+        'type': instance.organisation_type and instance.organisation_type.name or '-',
         'jurisdiction':
-            instance.jurisdiction and instance.jurisdiction.name or '',
-        'address': instance.address,
+            instance.jurisdiction and instance.jurisdiction.name or '-',
+        'address': instance.address or '-',
         'postcode': instance.postcode,
         'city': instance.city,
-        'phone': instance.phone,
-        'website': instance.website,
-        'email': instance.email,
+        'phone': instance.phone or '-',
+        'website': instance.website or '-',
+        'email': instance.email or '-',
         'description': instance.description,
         'members': [{
             'username': member.user.username,

@@ -33,6 +33,7 @@ from idgo_admin.forms import PhoneField
 from idgo_admin.forms import PostcodeField
 from idgo_admin.forms import ReferentField
 from idgo_admin.forms import WebsiteField
+from idgo_admin.models import Jurisdiction
 from idgo_admin.models import Organisation
 from idgo_admin.models import RemoteCkan
 
@@ -86,6 +87,8 @@ class OrganizationForm(forms.ModelForm):
         self.include_args = kwargs.pop('include', {})
         self.extended = self.include_args.get('extended', False)
         instance = kwargs.get('instance', None)
+        self.user = self.include_args.get('user')
+
         super().__init__(*args, **kwargs)
 
         if not self.extended:
@@ -94,6 +97,12 @@ class OrganizationForm(forms.ModelForm):
 
         if instance and instance.logo:
             self.fields['logo'].widget.attrs['value'] = instance.logo.url
+
+        if not self.user.profile.is_crige_admin:
+            self.fields['jurisdiction'].queryset = \
+                Jurisdiction.objects.filter(pk__in=[instance.jurisdiction.pk])
+            self.fields['jurisdiction'].widget.attrs['disabled'] = 'disabled'
+            self.fields['jurisdiction'].widget.attrs['class'] = 'disabled'
 
     def clean(self):
         return self.cleaned_data

@@ -41,41 +41,30 @@
 					</div>
 					<div class="row">
 						<div class="col-sm-12 contact">
+							<div>TERRITOIRE DE COMPÉTENCE</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<hr />
+							<span name="jurisdiction"></span>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-12 contact">
 							<div>CONTACT</div>
 						</div>
 					</div>
 					<div class="row">
 						<div class="col-sm-6">
 							<hr />
-							<div class="row">
-								<div class="col-sm-12">
-									<div class="row">
-										<div class="col-md-12">
-											<span class="glyphicon glyphicon-home" aria-hidden="true"></span> <span name="address"></span>
-										</div>
-									</div>
-									<div class="row">
-										<div class="col-md-12">
-											<span class="glyphicon glyphicon-home" style="color:#fcfcfc;" aria-hidden="true"></span> <span name="postcode"></span> <span name="city"></span>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="row">
-								<div class="col-sm-12">
-									<span class="glyphicon glyphicon-earphone" aria-hidden="true"></span> <span name="phone"></span>
-								</div>
-							</div>
-							<div class="row">
-								<div class="col-sm-12">
-									<span class="glyphicon glyphicon-envelope" aria-hidden="true"></span> <a name="email"></a>
-								</div>
-							</div>
-							<div class="row">
-								<div class="col-sm-12">
-									<span class="glyphicon glyphicon-globe" aria-hidden="true"></span> <a target="_blank" name="website"></a></span>
-								</div>
-							</div>
+							<address>
+								<span class="glyphicon glyphicon-home" aria-hidden="true"></span> <span name="address"></span><br />
+								<span class="glyphicon glyphicon-home" style="color: transparent;" aria-hidden="true"></span> <span name="postcode"></span> <span name="city"></span><br />
+								<span class="glyphicon glyphicon-earphone" aria-hidden="true"></span> <span name="phone"></span><br />
+								<span class="glyphicon glyphicon-envelope" aria-hidden="true"></span> <a href="mailto:#" name="email"></a><br />
+								<span class="glyphicon glyphicon-globe" aria-hidden="true"></span> <a target="_blank" name="website"></a><br />
+							</address>
 						</div>
 						<div class="col-sm-6">
 							<button role="button" name="switch-member" class="btn btn-default btn-block">J'appartiens à l'organisation</button>
@@ -320,7 +309,7 @@ $(function() {
 				$content.find('[name="' + k + '"]').prop('href', data[k]);
 			};
 			if (k == 'email') {
-				$content.find('[name="' + k + '"]').prop('href', 'mailto:' + data[k] + '?subject=Datasud');
+				$content.find('[name="' + k + '"]').prop('href', 'mailto:' + data[k] + '?subject={{ platform_name }}');
 			};
 			if (k == 'logo') {
 				$content.find('[name="' + k + '"]').prop('src', data[k]);
