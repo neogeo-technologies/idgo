@@ -291,16 +291,28 @@ table.board .table-cell-dropdown>.dropdown-menu {
     margin: -5px;
 }
 
-.input-group .input-group-btn.focus button[name="clear"] .glyphicon,
-.input-group .input-group-btn:focus button[name="clear"] .glyphicon,
-.input-group .input-group-btn:hover button[name="clear"] .glyphicon {
+.disabled .input-group .input-group-btn input {
+    background-color: transparent;
+    -webkit-box-shadow: none;
+            box-shadow: none;
+}
+
+.disabled .input-group .input-group-btn .btn {
+    background-color: transparent;
+    -webkit-box-shadow: none;
+            box-shadow: none;
+}
+
+.input-group .input-group-btn.focus .btn[name="clear"] .glyphicon,
+.input-group .input-group-btn:focus .btn[name="clear"] .glyphicon,
+.input-group .input-group-btn:hover .btn[name="clear"] .glyphicon {
     background-color: #edc167;
     color: #fbf2e0;
 }
 
-.disabled .input-group .input-group-btn button[name="clear"] .glyphicon {
-    background-color: #f0f0f0;
-    color: #fff;
+.disabled .input-group .input-group-btn .btn[name="clear"] .glyphicon {
+    background-color: transparent;
+    color: #ccc;
 }
 
 .input-group .btn-primary {
@@ -525,7 +537,7 @@ table.board .table-cell-dropdown>.dropdown-menu {
     border-left-color: #fff;
 }
 
-.nav-tabs>li>a.focus
+.nav-tabs>li>a.focus,
 .nav-tabs>li>a:focus,
 .nav-tabs>li>a:hover {
     border-bottom: none;
