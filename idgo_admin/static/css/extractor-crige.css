@@ -304,84 +304,75 @@
     z-index: 1010 !important;
 }
 
+#extractor .leaflet-draw-toolbar,
+#extractor .leaflet-control-layers,
 #extractor .panel {
-    border-radius: 4px;
+    font-family: "PoppinsRegular";
+    border-radius: 0;
     border-color: #eee;
+    background-color: transparent;
     background-image: linear-gradient(
        135deg,
-       rgba(238,238,238,0.85) 25%,
-       rgba(242,242,242,0.85) 25%,
-       rgba(242,242,242,0.85) 50%,
-       rgba(238,238,238,0.85) 50%,
-       rgba(238,238,238,0.85) 75%,
-       rgba(242,242,242,0.85) 75%,
-       rgba(242,242,242,0.85)
+       rgba(238,238,238,0.98) 25%,
+       rgba(242,242,242,0.98) 25%,
+       rgba(242,242,242,0.98) 50%,
+       rgba(238,238,238,0.98) 50%,
+       rgba(238,238,238,0.98) 75%,
+       rgba(242,242,242,0.98) 75%,
+       rgba(242,242,242,0.98)
     );
     background-size: 5px 5px;
     -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.25);
             box-shadow: 0 2px 1px 0 rgba(0,0,0,.25);
 }
 
-#extractor .panel-heading {
-    /* background: linear-gradient(135deg, #23adad 0%, #23adad 70%, #eee 70%, #eee 100%); */
-    /* background: linear-gradient(180deg, #f1f1f1 0%, #eee 25%, #eee 100%); */
-    background: transparent;
+#extractor .leaflet-control-layers a,
+#extractor .leaflet-draw-toolbar a {
     padding: 15px;
-    border-color: #eee;
-    border-top: none;
+    font-size: 2em;
+    background-color: transparent;
 }
 
-#extractor .panel-heading .panel-title {
-    /* background: repeating-linear-gradient(135deg, transparent 0px, transparent 7px, #23adad 7px, #23adad 8px, transparent 8px, transparent 14px); */
+#extractor .panel-heading {
+    background: transparent;
+    padding: 15px;
+    border-bottom: none;
+}
+
+#extractor .panel-title {
     color: #167374;
     line-height: 21px;
-    font-family: PoppinsRegular;
     font-size: 21px;
     font-weight: 600;
 }
 
-/* @media (min-width: 768px) {
-    #extractor .panel-heading {
-        background: linear-gradient(135deg, #23adad 0%, #23adad 70%, #eee 70%, #eee 100%);
-    }
-} */
-
-/* @media (min-width: 992px) {
-    #extractor .panel-heading {
-        background: linear-gradient(135deg, #23adad 0%, #23adad 60%, #eee 60%, #eee 100%);
-    }
-} */
-
-/* @media (min-width: 1200px) {
-    #extractor .panel-heading {
-        background: linear-gradient(135deg, #23adad 0%, #23adad 50%, #eee 50%, #eee 100%);
-    }
-} */
-
 #extractor .panel-body {
-    /* background-color: #eee; */
     background: transparent;
 }
 
-#extractor .panel-body .form-group label {
+#extractor .form-group label {
     color: #167374;
 }
 
-#extractor .panel-body .form-group .input-group {
-    margin-left: 15px;
-    -webkit-box-shadow: 0 0 0 1px rgba(255,255,255,75%);
-            box-shadow: 0 0 0 1px rgba(255,255,255,75%);
+#extractor .form-group.disabled label {
+    color: #ccc;
 }
 
-.input-group .input-group-btn .btn-default {
-    background-color: #fff;
-    color: #666;
+#extractor .form-group .input-group {
+    margin-left: 15px;
+    -webkit-box-shadow: 0 0 0 1px #efefef;
+            box-shadow: 0 0 0 1px #efefef;
+}
+
+#extractor .form-group.disabled .input-group {
+    margin-left: 15px;
     -webkit-box-shadow: none;
             box-shadow: none;
 }
 
+/* ************************************************************************* */
+
 .btn[name="extract"] {
-    font-family: "PoppinsRegular";
     padding: 10px 40px;
     border-radius: 50px;
     background-color: #ed8121;
