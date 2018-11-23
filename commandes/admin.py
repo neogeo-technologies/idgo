@@ -19,7 +19,7 @@ from django.utils.html import format_html
 from datetime import datetime
 
 from commandes.models import Order
-from commandes.actions import export_as_csv_action, send_multiple_emails
+from commandes.actions import export_as_csv_action, email_cadastre_wrong_files, email_cadastre_habilitation
 
 # def send_email(modeladmin, request, queryset):
 #     queryset.update(status='p')
@@ -42,9 +42,14 @@ class OrderAdmin(admin.ModelAdmin):
     terr.short_description = 'Territoire de compétences'
 
     # action d'export en csv
-    actions = [export_as_csv_action("Export CSV"), send_multiple_emails]
+    actions = [
+        export_as_csv_action("Export CSV"),
+        email_cadastre_wrong_files,
+        email_cadastre_habilitation]
+
     export_as_csv_action.short_description = "Exporter en CSV"
-    send_multiple_emails.short_description = "Envoyer un email"
+    email_cadastre_wrong_files.short_description = "Email documents invalides"
+    email_cadastre_habilitation.short_description = "Email pas d'habilitation"
 
     # filtre des commandes par année
     class YearListFilter(admin.SimpleListFilter):

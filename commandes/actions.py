@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.http import HttpResponse
-from django.utils.html import format_html
+
+from idgo_admin.models.mail import sender as mail_sender
 
 import unicodecsv
 import webbrowser
@@ -38,11 +39,56 @@ def export_as_csv_action(description="Export selected objects as CSV file",
     return export_as_csv_cadastre
 
 
-def send_multiple_emails(modeladmin, request, queryset):
+def mail_list(modeladmin, request, queryset):
     mailList = []
+
     for obj in queryset:
         user = getattr(obj, 'applicant')
         email = User.objects.get(username=user).email
         mailList.append(email)
+    return(mailList)
+
+
+def mail_date_organisation(modeladmin, request, queryset, obj):
+
+    user = getattr(obj, 'applicant')
+
+    emailInfo = dict(
+        email=User.objects.get(username=user).email,
+        organisation=getattr(obj, 'organisation'),
+        date=getattr(obj, 'date'))
+
+    return emailInfo
+
+
+def send_multiple_emails(modeladmin, request, queryset):
+    mailList = mail_list(modeladmin, request, queryset)
     return webbrowser.open('mailto:?to={0}, &subject={1}'.format(','.join(mailList), 'Commande fichiers fonciers'))
     send_multiple_emails.short_description = "Envoyer un email"
+
+
+def email_cadastre_wrong_files(modeladmin, request, queryset):
+
+    for obj in queryset:
+
+        emailInfo = mail_date_organisation(modeladmin, request, queryset, obj)
+
+        return mail_sender(
+                    'cadastre_wrong_file',
+                    to=[emailInfo["email"]],
+                    date=emailInfo["date"],
+                    organisation=emailInfo["organisation"])
+
+
+def email_cadastre_habilitation(modeladmin, request, queryset):
+
+    for obj in queryset:
+
+        emailInfo = mail_date_organisation(modeladmin, request, queryset, obj)
+
+        return mail_sender(
+                    'cadastre_no_habilitation',
+                    to=[emailInfo["email"]],
+                    date=emailInfo["date"],
+                    organisation=emailInfo["organisation"]
+                    )
