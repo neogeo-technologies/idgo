@@ -80,6 +80,7 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 DOMAIN_NAME = 'http://localhost'
 
 INSTALLED_APPS = [
+    'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -217,6 +218,8 @@ EXTRACTOR_BOUNDS = [[42.4, 3.3], [46.1, 10.8]]
 
 DEFAULT_PLATFORM_NAME = 'my website'
 DEFAULT_CONTACT_EMAIL = 'contact@mywebsite.org'
+
+SITE_ID = 1
 
 ```
 
