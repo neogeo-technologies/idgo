@@ -22,6 +22,9 @@ from django.utils import timezone
 
 from idgo_admin.models.mail import sender as mail_sender
 
+from idgo_admin.models import Profile
+from idgo_admin.models import Organisation
+
 from commandes.forms import OrderForm
 
 # CKAN_URL = settings.CKAN_URL
@@ -46,6 +49,7 @@ def upload_file(request):
             order = form.save(commit=False)
             # peuplement de l'instance applicant du modèle form (= user_id)
             order.applicant = request.user
+            order.organisation = Organisation.objects.get(id=Profile.objects.get(user_id=request.user).organisation_id)
             order.save()
 
             attach_files = [

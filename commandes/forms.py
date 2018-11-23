@@ -27,12 +27,6 @@ class CustomClearableFileInput(forms.ClearableFileInput):
 
 class OrderForm(forms.ModelForm):
 
-    organisation = forms.ModelChoiceField(
-        label='Organisation*',
-        queryset=None,
-        required=True,
-        empty_label='Sélectionnez une organisation')
-
     dpo_cnil = forms.FileField(
         label='DPO CNIL*',
         required=True,
@@ -46,18 +40,16 @@ class OrderForm(forms.ModelForm):
     class Meta(object):
         model = Order
         fields = [
-            'organisation',
             'dpo_cnil',
             'acte_engagement']
 
-    def __init__(self, *args, user=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
-        recupere l'identifiant du user depuis view.py pour que l'utilisateur
-        ne voie que ses organisations
+        recupere l'identifiant du user depuis view.py récuperer 
+        l'organisation
         """
-        super().__init__(*args, **kwargs)
-        self.fields['organisation'].queryset = Organisation.objects.filter(
-            id=Profile.objects.get(user=user).organisation_id)
+        self.user = kwargs.pop('user', None)
+        super(OrderForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         """
@@ -67,7 +59,8 @@ class OrderForm(forms.ModelForm):
         cleaned_data = super(OrderForm, self).clean()
 
         year = timezone.now().date().year
-        organisation = cleaned_data.get("organisation")
+
+        organisation = Organisation.objects.get(id=Profile.objects.get(user_id=self.user).organisation_id)
 
         match = Order.objects.filter(
                 date__year=year,

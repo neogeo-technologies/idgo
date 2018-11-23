@@ -16,7 +16,9 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+
 from idgo_admin.models import Organisation
+from idgo_admin.models import Profile
 
 TODAY = timezone.now().date()
 
@@ -41,12 +43,14 @@ class Order(models.Model):
         )
 
     applicant = models.ForeignKey(
-        User, on_delete=models.CASCADE,
+        User,
+        on_delete=models.CASCADE,
         verbose_name='Demandeur'
         )
 
     organisation = models.ForeignKey(
         Organisation,
+        default=92,
         verbose_name='Organisation*'
         )
 
