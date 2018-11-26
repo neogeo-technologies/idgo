@@ -41,13 +41,25 @@ def get_all_users_for_organizations(list_id):
             organisation__in=list_id, organisation__is_active=True)]
 
 
-class LayerManager(models.Manager):
+class LayerRasterManager(models.Manager):
 
     def create(self, **kwargs):
         save_opts = kwargs.pop('save_opts', {})
         obj = self.model(**kwargs)
         self._for_write = True
-        obj.save(force_insert=True, using=self.db, **save_opts)
+        obj.save(
+            force_insert=True, using=self.db, manager='raster', **save_opts)
+        return obj
+
+
+class LayerVectorManager(models.Manager):
+
+    def create(self, **kwargs):
+        save_opts = kwargs.pop('save_opts', {})
+        obj = self.model(**kwargs)
+        self._for_write = True
+        obj.save(
+            force_insert=True, using=self.db, manager='vector', **save_opts)
         return obj
 
 
@@ -65,7 +77,8 @@ class Layer(models.Model):
     #     blank=True, null=True)
 
     objects = models.Manager()
-    custom = LayerManager()
+    vector = LayerVectorManager()
+    raster = LayerRasterManager()
 
     class Meta(object):
         verbose_name = 'Couche de données'
@@ -123,11 +136,10 @@ class Layer(models.Model):
                 'default': default_style_name,
                 'styles': styles}}
 
-    def save(self, *args, **kwargs):
+    def save_raster(self, *args, **kwargs):
+        raise Exception('TODO')
 
-        SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
-
-        editor = kwargs.pop('editor', None)
+    def save_vector(self, *args, **kwargs):
 
         organisation = self.resource.dataset.organisation
         ws_name = organisation.ckan_slug
@@ -156,6 +168,18 @@ class Layer(models.Model):
         MRAHandler.get_or_create_workspace(organisation)
         MRAHandler.get_or_create_datastore(ws_name, ds_name)
         MRAHandler.get_or_create_featuretype(ws_name, ds_name, self.name)
+
+    def save(self, *args, **kwargs):
+
+        SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
+
+        editor = kwargs.pop('editor', None)
+
+        manager = kwargs.pop('manager')
+        if manager == 'vector':
+            self.save_vector()
+        elif manager == 'raster':
+            self.save_raster()
 
         super().save(*args, **kwargs)
 
@@ -204,6 +228,8 @@ class Layer(models.Model):
                         get_all_users_for_organizations(
                             self.resource.organisations_allowed.all())),
                     'level': 'only_allowed_users'})
+
+            organisation = self.resource.dataset.organisation
 
             getlegendgraphic = (
                 '{}?&version=1.1.1&service=WMS&request=GetLegendGraphic'

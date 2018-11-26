@@ -443,135 +443,12 @@ class Resource(models.Model):
                 raise ValidationError(msg, code='dl_url')
             file_must_be_deleted = True
 
-        # Détection des données SIG
-        # =========================
-
-        if filename:
-            # On vérifie s'il s'agit de données SIG, uniquement pour
-            # les extensions de fichier autorisées..
-            extension = self.format_type.extension.lower()
-            if self.format_type.is_gis_format:
-                # Si c'est le cas, on monte les données dans la base PostGIS dédiée
-                # et on déclare la couche au service OGC:WxS de l'organisation.
-
-                # Mais d'abord, on vérifie si la ressource contient
-                # déjà des « Layers », auquel cas il faudra vérifier si
-                # la table de données a changée.
-                existing_layers = {}
-                if not created:
-                    existing_layers = dict((
-                        re.sub('^(\w+)_[a-z0-9]{7}$', '\g<1>', layer.name),
-                        layer.name) for layer in self.get_layers())
-
-                try:
-                    gdalogr_obj = get_gdalogr_object(filename, extension)
-                except NotDataGISError:
-                    tables = []
-                    pass
-                else:
-                    if gdalogr_obj.__class__.__name__ == 'OgrOpener':
-                        # On convertit les données vectorielles vers Postgis.
-                        try:
-                            tables = ogr2postgis(
-                                gdalogr_obj, update=existing_layers,
-                                epsg=self.crs and self.crs.auth_code or None,
-                                encoding=self.encoding)
-
-                        except NotOGRError as e:
-                            file_must_be_deleted and remove_file(filename)
-                            msg = (
-                                "Le fichier reçu n'est pas reconnu "
-                                'comme étant un jeu de données SIG correct.')
-                            raise ValidationError(msg, code='__all__')
-
-                        except DataDecodingError as e:
-                            file_must_be_deleted and remove_file(filename)
-                            msg = (
-                                'Impossible de décoder correctement les '
-                                "données. Merci d'indiquer l'encodage "
-                                'ci-dessous.')
-                            raise ValidationError(msg, code='encoding')
-
-                        except NotFoundSrsError as e:
-                            file_must_be_deleted and remove_file(filename)
-                            msg = (
-                                'Votre ressource semble contenir des données SIG '
-                                'mais nous ne parvenons pas à détecter le système '
-                                'de coordonnées. Merci de sélectionner le code du '
-                                'CRS dans la liste ci-dessous.')
-                            raise ValidationError(msg, code='crs')
-
-                        except NotSupportedSrsError as e:
-                            file_must_be_deleted and remove_file(filename)
-                            msg = (
-                                'Votre ressource semble contenir des données SIG '
-                                'mais le système de coordonnées de celles-ci '
-                                "n'est pas supporté par l'application.")
-                            raise ValidationError(msg, code='__all__')
-
-                        except ExceedsMaximumLayerNumberFixedError as e:
-                            file_must_be_deleted and remove_file(filename)
-                            raise ValidationError(e.__str__(), code='__all__')
-
-                        else:
-                            # Avant de créer des relations, l'objet doit exister
-                            if created:
-                                # S'il s'agit d'une création, alors on sauve l'objet.
-                                super().save(*args, **kwargs)
-                                kwargs['force_insert'] = False
-
-                            # Ensuite, pour tous les jeux de données SIG trouvés,
-                            # on crée le service ows à travers la création de `Layer`
-                            try:
-                                for table in tables:
-                                    try:
-                                        Layer.objects.get(
-                                            name=table['id'], resource=self)
-                                    except Layer.DoesNotExist:
-                                        Layer.custom.create(
-                                            name=table['id'], resource=self,
-                                            save_opts={'editor': editor})
-                            except Exception as e:
-                                file_must_be_deleted and remove_file(filename)
-                                for table in tables:
-                                    drop_table(table)
-                                raise e
-
-                    if gdalogr_obj.__class__.__name__ == 'GdalOpener':
-                        raise Exception('TODO')  # TODO
-
-                        if created:
-                            # S'il s'agit d'une création, alors on sauve l'objet.
-                            super().save(*args, **kwargs)
-                            kwargs['force_insert'] = False
-
-                        # On pousse les données matricielles vers Mapserver?
-                        # On référence les données matricielles vers Mapserver?
-
-                # On met à jour les champs de la ressource
-                crs = [
-                    SupportedCrs.objects.get(
-                        auth_name='EPSG', auth_code=table['epsg'])
-                    for table in tables]
-                # On prend la première valeur (c'est moche)
-                self.crs = crs and crs[0] or None
-
-                # Si les données changent..
-                if existing_layers and \
-                        previous.get_layers() != self.get_layers():
-                    # on supprime les anciens `layers`..
-                    for layer in previous.get_layers():
-                        layer.delete()
-
-        # Si la ressource n'est pas de type SIG, on passe les trois arguments
-        # qui concernent exclusivement ces dernières à « False ».
-        if not self.get_layers():
-            self.geo_restriction = False
-            self.ogc_services = False
-            self.extractable = False
-
         # Synchronisation avec CKAN
         # =========================
+
+        # La synchronisation doit s'effectuer avant la publication des
+        # éventuelles couches de données SIG car dans le cas des données
+        # de type « raster », nous utilisons le filestore de CKAN.
 
         if sync_ckan:
 
@@ -660,6 +537,133 @@ class Resource(models.Model):
                 ckan_user.publish_resource(ckan_package, **ckan_params)
 
             ckan_user.close()
+
+        # Détection des données SIG
+        # =========================
+
+        if filename:
+            # On vérifie s'il s'agit de données SIG, uniquement pour
+            # les extensions de fichier autorisées..
+            extension = self.format_type.extension.lower()
+            if self.format_type.is_gis_format:
+                # Si c'est le cas, on monte les données dans la base PostGIS dédiée
+                # et on déclare la couche au service OGC:WxS de l'organisation.
+
+                # Mais d'abord, on vérifie si la ressource contient
+                # déjà des « Layers », auquel cas il faudra vérifier si
+                # la table de données a changée.
+                existing_layers = {}
+                if not created:
+                    existing_layers = dict((
+                        re.sub('^(\w+)_[a-z0-9]{7}$', '\g<1>', layer.name),
+                        layer.name) for layer in self.get_layers())
+
+                try:
+                    gdalogr_obj = get_gdalogr_object(filename, extension)
+                except NotDataGISError:
+                    tables = []
+                    pass
+                else:
+                    if gdalogr_obj.__class__.__name__ == 'OgrOpener':
+                        # On convertit les données vectorielles vers Postgis.
+                        try:
+                            tables = ogr2postgis(
+                                gdalogr_obj, update=existing_layers,
+                                epsg=self.crs and self.crs.auth_code or None,
+                                encoding=self.encoding)
+
+                        except NotOGRError as e:
+                            file_must_be_deleted and remove_file(filename)
+                            msg = (
+                                "Le fichier reçu n'est pas reconnu "
+                                'comme étant un jeu de données SIG correct.')
+                            raise ValidationError(msg, code='__all__')
+
+                        except DataDecodingError as e:
+                            file_must_be_deleted and remove_file(filename)
+                            msg = (
+                                'Impossible de décoder correctement les '
+                                "données. Merci d'indiquer l'encodage "
+                                'ci-dessous.')
+                            raise ValidationError(msg, code='encoding')
+
+                        except NotFoundSrsError as e:
+                            file_must_be_deleted and remove_file(filename)
+                            msg = (
+                                'Votre ressource semble contenir des données SIG '
+                                'mais nous ne parvenons pas à détecter le système '
+                                'de coordonnées. Merci de sélectionner le code du '
+                                'CRS dans la liste ci-dessous.')
+                            raise ValidationError(msg, code='crs')
+
+                        except NotSupportedSrsError as e:
+                            file_must_be_deleted and remove_file(filename)
+                            msg = (
+                                'Votre ressource semble contenir des données SIG '
+                                'mais le système de coordonnées de celles-ci '
+                                "n'est pas supporté par l'application.")
+                            raise ValidationError(msg, code='__all__')
+
+                        except ExceedsMaximumLayerNumberFixedError as e:
+                            file_must_be_deleted and remove_file(filename)
+                            raise ValidationError(e.__str__(), code='__all__')
+
+                        else:
+                            # Avant de créer des relations, l'objet doit exister
+                            if created:
+                                # S'il s'agit d'une création, alors on sauve l'objet.
+                                super().save(*args, **kwargs)
+                                kwargs['force_insert'] = False
+
+                            # Ensuite, pour tous les jeux de données SIG trouvés,
+                            # on crée le service ows à travers la création de `Layer`
+                            try:
+                                for table in tables:
+                                    try:
+                                        Layer.objects.get(
+                                            name=table['id'], resource=self)
+                                    except Layer.DoesNotExist:
+                                        Layer.vector.create(
+                                            name=table['id'], resource=self,
+                                            save_opts={'editor': editor})
+                            except Exception as e:
+                                file_must_be_deleted and remove_file(filename)
+                                for table in tables:
+                                    drop_table(table)
+                                raise e
+
+                    if gdalogr_obj.__class__.__name__ == 'GdalOpener':
+                        raise Exception('TODO')  # TODO
+
+                        if created:
+                            # S'il s'agit d'une création, alors on sauve l'objet.
+                            super().save(*args, **kwargs)
+                            kwargs['force_insert'] = False
+
+                        # On pousse les données matricielles vers Mapserver?
+                        # On référence les données matricielles vers Mapserver?
+
+                # On met à jour les champs de la ressource
+                crs = [
+                    SupportedCrs.objects.get(
+                        auth_name='EPSG', auth_code=table['epsg'])
+                    for table in tables]
+                # On prend la première valeur (c'est moche)
+                self.crs = crs and crs[0] or None
+
+                # Si les données changent..
+                if existing_layers and \
+                        previous.get_layers() != self.get_layers():
+                    # on supprime les anciens `layers`..
+                    for layer in previous.get_layers():
+                        layer.delete()
+
+        # Si la ressource n'est pas de type SIG, on passe les trois arguments
+        # qui concernent exclusivement ces dernières à « False ».
+        if not self.get_layers():
+            self.geo_restriction = False
+            self.ogc_services = False
+            self.extractable = False
 
         super().save(*args, **kwargs)
 
