@@ -38,7 +38,6 @@ from idgo_admin.datagis import NotFoundSrsError
 from idgo_admin.datagis import NotOGRError
 from idgo_admin.datagis import NotSupportedSrsError
 from idgo_admin.datagis import ogr2postgis
-from idgo_admin.datagis import VSI_PROTOCOLES
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin.utils import download
@@ -96,8 +95,6 @@ def upload_resource(instance, filename):
 
 class ResourceFormats(models.Model):
 
-    PROTOCOL_CHOICES = AUTHORIZED_PROTOCOL
-
     CKAN_CHOICES = (
         (None, 'N/A'),
         ('text_view', 'text_view'),
@@ -105,20 +102,30 @@ class ResourceFormats(models.Model):
         ('recline_view', 'recline_view'),
         ('pdf_view', 'pdf_view'))
 
-    extension = models.CharField('Format', max_length=30, unique=True)
-
     ckan_view = models.CharField(
         'Vue', max_length=100, choices=CKAN_CHOICES, blank=True, null=True)
 
+    description = models.TextField(
+        verbose_name='Description', blank=True, null=True)
+
+    extension = models.CharField('Format', max_length=10)
+
+    is_gis_format = models.BooleanField(
+        verbose_name='Est un format de données SIG',
+        blank=False, null=False, default=False)
+
+    PROTOCOL_CHOICES = AUTHORIZED_PROTOCOL
+
     protocol = models.CharField(
-        'Protocole', max_length=100, blank=True, null=True, choices=PROTOCOL_CHOICES)
+        'Protocole', max_length=100, blank=True, null=True,
+        choices=PROTOCOL_CHOICES)
 
     class Meta(object):
         verbose_name = 'Format de ressource'
         verbose_name_plural = 'Formats de ressource'
 
     def __str__(self):
-        return self.extension
+        return self.description
 
 
 def only_reference_filename(instance, filename):
@@ -381,7 +388,7 @@ class Resource(models.Model):
             # on traite les données en fonciton du type détecté
             if self.ftp_file.size > DOWNLOAD_SIZE_LIMIT:
                 extension = self.format_type.extension.lower()
-                if extension in VSI_PROTOCOLES.keys():
+                if self.format_type.is_datagis:
                     try:
                         gdalogr_obj = get_gdalogr_object(filename, extension)
                     except NotDataGISError:
@@ -443,7 +450,7 @@ class Resource(models.Model):
             # On vérifie s'il s'agit de données SIG, uniquement pour
             # les extensions de fichier autorisées..
             extension = self.format_type.extension.lower()
-            if extension in VSI_PROTOCOLES.keys():
+            if self.format_type.is_gis_format:
                 # Si c'est le cas, on monte les données dans la base PostGIS dédiée
                 # et on déclare la couche au service OGC:WxS de l'organisation.
 

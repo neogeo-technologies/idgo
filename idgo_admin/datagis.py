@@ -35,17 +35,6 @@ DATABASE = settings.DATAGIS_DB
 OWNER = settings.DATABASES[DATABASE]['USER']
 MRA_DATAGIS_USER = settings.MRA['DATAGIS_DB_USER']
 
-try:
-    VSI_PROTOCOLES = settings.SUPPORTED_VSI_PROTOCOLES
-except AttributeError:
-    VSI_PROTOCOLES = {
-        'geojson': None,
-        'shapezip': 'vsizip',
-        'shp': None,
-        'tab': 'vsizip',
-        'mif/mid': 'vsizip',
-        'tar': 'vsitar',
-        'zip': 'vsizip'}
 
 SCHEMA = 'public'
 THE_GEOM = 'the_geom'
@@ -139,28 +128,31 @@ class GdalOpener(object):
     _raster = None
 
     def __init__(self, filename, extension=None):
+
+        if extension == 'zip':
+            filename = '/vsizip/{}'.format(filename)
+
         try:
             self._raster = GDALRaster(filename)
         except GDALException as e:
             raise NotGDALError(
                 'The file received is not recognized as being a GIS raster data. {}'.format(e.__str__()))
 
+    def get_raster(self):
+        return self._raster
+
 
 class OgrOpener(object):
-
-    VSI_PROTOCOLES = VSI_PROTOCOLES
 
     _datastore = None
 
     def __init__(self, filename, extension=None):
-        vsi = self.VSI_PROTOCOLES.get(extension, False)
 
-        if vsi is False:
-            raise NotOGRError(
-                "The format '{}' is not supported.".format(extension))
+        if extension == 'zip':
+            filename = '/vsizip/{}'.format(filename)
+
         try:
-            self._datastore = DataSource(
-                vsi and '/{}/{}'.format(vsi, filename) or filename)
+            self._datastore = DataSource(filename)
         except GDALException as e:
             raise NotOGRError(
                 'The file received is not recognized as being a GIS vector data. {}'.format(e.__str__()))
