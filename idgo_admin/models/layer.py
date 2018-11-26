@@ -29,8 +29,10 @@ import json
 import re
 
 
+
 MRA = settings.MRA
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
+CKAN_STORAGE_PATH = settings.CKAN_STORAGE_PATH
 
 
 def get_all_users_for_organizations(list_id):
@@ -45,6 +47,7 @@ class LayerRasterManager(models.Manager):
 
     def create(self, **kwargs):
         save_opts = kwargs.pop('save_opts', {})
+        kwargs['type'] = 'raster'
         obj = self.model(**kwargs)
         self._for_write = True
         obj.save(
@@ -56,6 +59,7 @@ class LayerVectorManager(models.Manager):
 
     def create(self, **kwargs):
         save_opts = kwargs.pop('save_opts', {})
+        kwargs['type'] = 'vector'
         obj = self.model(**kwargs)
         self._for_write = True
         obj.save(
@@ -75,6 +79,13 @@ class Layer(models.Model):
     # data_source = models.TextField(
     #     verbose_name='Chaîne de connexion à la source de données',
     #     blank=True, null=True)
+
+    TYPE_CHOICES = (
+        ('raster', 'raster'),
+        ('vector', 'vector'))
+
+    type = models.CharField(
+        'type', max_length=6, blank=True, null=True, choices=TYPE_CHOICES)
 
     objects = models.Manager()
     vector = LayerVectorManager()
