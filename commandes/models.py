@@ -16,9 +16,9 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.core.validators import FileExtensionValidator
 
 from idgo_admin.models import Organisation
-from idgo_admin.models import Profile
 
 TODAY = timezone.now().date()
 
@@ -29,6 +29,8 @@ class Order(models.Model):
         (0, "En cours"),
         (1, "Validée"),
         (2, "Refusée"))
+
+    allowed_extensions = ['pdf', 'png', 'doc', 'docx', 'odt']
 
     date = models.DateField(
         verbose_name='Date de la demande', 
@@ -56,11 +58,13 @@ class Order(models.Model):
 
     dpo_cnil = models.FileField(
         upload_to='commandes/',
-        verbose_name='DPO CNIL*')
+        verbose_name='DPO CNIL*',
+        validators=[FileExtensionValidator(allowed_extensions=allowed_extensions)])
 
     acte_engagement = models.FileField(
         upload_to='commandes/',
-        verbose_name="Acte d'engagement*")
+        verbose_name="Acte d'engagement*",
+        validators=[FileExtensionValidator(allowed_extensions=allowed_extensions)])
 
     class Meta(object):
         verbose_name = 'Commande de fichiers fonciers'

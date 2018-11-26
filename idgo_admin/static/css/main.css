@@ -46,6 +46,7 @@ br {
     line-height: 300%;
 }
 
+p>br,
 address>br {
     line-height: normal;
 }

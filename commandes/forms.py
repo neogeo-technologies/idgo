@@ -28,12 +28,12 @@ class CustomClearableFileInput(forms.ClearableFileInput):
 class OrderForm(forms.ModelForm):
 
     dpo_cnil = forms.FileField(
-        label='DPO CNIL*',
+        label="Déclaration CNIL désignant le DPO de l'organisation *",
         required=True,
         widget=CustomClearableFileInput(attrs={'value': None}))
 
     acte_engagement = forms.FileField(
-        label="Acte d'engagement*",
+        label="Acte d'engagement DGFIP*",
         required=True,
         widget=CustomClearableFileInput(attrs={'value': None}))
 
