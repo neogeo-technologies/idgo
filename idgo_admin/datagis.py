@@ -224,6 +224,42 @@ def handle_ogr_geom_type(ogr_geom_type):
         }.get(ogr_geom_type.__str__().lower(), 'Geometry')
 
 
+def get_epsg(obj):
+    if obj.srs:
+        try:
+            epsg = obj.srs.identify_epsg()
+        except SRSException:
+            epsg = None
+        if not epsg:
+            if obj.srs.projected \
+                    and obj.srs.auth_name('PROJCS') == 'EPSG':
+                epsg = obj.srs.auth_code('PROJCS')
+            if obj.srs.geographic \
+                    and obj.srs.auth_name('GEOGCS') == 'EPSG':
+                epsg = obj.srs.auth_code('GEOGCS')
+        if not epsg:
+            epsg = retreive_epsg_through_proj4(obj.srs.proj4)
+        if not epsg:
+            epsg = retreive_epsg_through_regex(obj.srs.name)
+    if not epsg:
+        raise NotFoundSrsError('SRS Not found')
+    return epsg
+
+
+def gdalinfo(cs, update={}):
+
+    p = Path(cs.name)
+    layername = slugify(p.name[:-len(p.suffix)]).replace('-', '_')
+    table_id = update.get(
+        layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))
+    xmin, ymin, xmax, ymax = cs.extent
+
+    return {
+        'id': table_id,
+        'epsg': get_epsg(cs),
+        'extent': ((xmin, ymin), (xmax, ymax))}
+
+
 def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='utf-8'):
     sql = []
     tables = []
@@ -244,24 +280,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
         if epsg and is_valid_epsg(epsg):
             pass
         else:
-            if layer.srs:
-                try:
-                    epsg = layer.srs.identify_epsg()
-                except SRSException:
-                    epsg = None
-                if not epsg:
-                    if layer.srs.projected \
-                            and layer.srs.auth_name('PROJCS') == 'EPSG':
-                        epsg = layer.srs.auth_code('PROJCS')
-                    if layer.srs.geographic \
-                            and layer.srs.auth_name('GEOGCS') == 'EPSG':
-                        epsg = layer.srs.auth_code('GEOGCS')
-                if not epsg:
-                    epsg = retreive_epsg_through_proj4(layer.srs.proj4)
-                if not epsg:
-                    epsg = retreive_epsg_through_regex(layer.srs.name)
-            if not epsg:
-                raise NotFoundSrsError('SRS Not found')
+            epsg = get_epsg(layer)
 
         SupportedCrs = apps.get_model(
             app_label='idgo_admin', model_name='SupportedCrs')
