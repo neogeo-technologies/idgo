@@ -39,7 +39,7 @@ FTP_URL = settings.FTP_URL
 
 
 def on_profile_http404():
-    return HttpResponseRedirect(reverse('idgo_admin:signIn'))
+    return HttpResponseRedirect(reverse('server_cas:signIn'))
 
 
 @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})

@@ -82,6 +82,6 @@ class SignOut(MamaLogoutView):
         logout_user(request)
         if service and follow_url:
             return mama_redirect(service)
-        return mama_redirect('idgo_admin:signIn')
+        return mama_redirect('server_cas:signIn')
 
 

@@ -138,7 +138,7 @@ def confirmation_mail(request, key):
     context = {
         'message': message,
         'button': {
-            'href': reverse('idgo_admin:signIn'),
+            'href': reverse('server_cas:signIn'),
             'label': 'Se connecter'}}
 
     return render(request, 'idgo_admin/message.html', context, status=200)
