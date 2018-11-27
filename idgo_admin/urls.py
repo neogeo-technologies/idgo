@@ -23,8 +23,6 @@ from idgo_admin.views.account import delete_account
 from idgo_admin.views.account import delete_sftp_account
 from idgo_admin.views.account import PasswordManager
 from idgo_admin.views.account import ReferentAccountManager
-from idgo_admin.views.account import SignIn
-from idgo_admin.views.account import SignOut
 from idgo_admin.views.account import SignUp
 from idgo_admin.views.account import UpdateAccount
 from idgo_admin.views.action import ActionsManager
@@ -67,9 +65,6 @@ from idgo_admin.views.stuffs import ows_preview
 
 urlpatterns = [
     url('^$', home, name='datasets'),
-
-    url('^signin/?$', SignIn.as_view(), name='signIn'),
-    url('^signout/?$', SignOut.as_view(), name='signOut'),
 
     url('^account/create/?$', SignUp.as_view(), name='sign_up'),
     url('^account/update/?$', UpdateAccount.as_view(), name='update_account'),
