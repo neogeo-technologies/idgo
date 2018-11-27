@@ -46,6 +46,7 @@ br {
     line-height: 300%;
 }
 
+p>br,
 address>br {
     line-height: normal;
 }
@@ -792,7 +793,10 @@ table.board .table-cell-dropdown>.dropdown-menu {
 .page-header .login button,
 .page-header .login button.focus
 .page-header .login button:focus {
-    background: linear-gradient(rgba(238,238,238,1) 0%, rgba(238,238,238,.5) 5%, transparent 20%);
+    background: linear-gradient(
+        rgba(238,238,238,.8) 0%,
+        rgba(238,238,238,.4) 5%,
+        transparent 20%);
     padding: 5px 12px;
     border-radius: 0;
     border-top: 0;
@@ -997,7 +1001,11 @@ table.board .table-cell-dropdown>.dropdown-menu {
     padding-top: 0px;
     min-height: 300px;
     bottom: 0;
-    background: linear-gradient(#eee 0px, #eee 50px, #fefefe 300px);
+    background: linear-gradient(
+        #eee 0px,
+        #eee 50px,
+        #fefefe 300px);
+    padding-bottom: 40px;
 }
 
 .main-container .panel,

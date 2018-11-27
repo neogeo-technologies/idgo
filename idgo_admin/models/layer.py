@@ -26,11 +26,13 @@ from idgo_admin.mra_client import MraBaseError
 from idgo_admin.mra_client import MRAHandler
 import itertools
 import json
+import os
 import re
 
 
 MRA = settings.MRA
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
+CKAN_STORAGE_PATH = settings.CKAN_STORAGE_PATH
 
 
 def get_all_users_for_organizations(list_id):
@@ -41,13 +43,27 @@ def get_all_users_for_organizations(list_id):
             organisation__in=list_id, organisation__is_active=True)]
 
 
-class LayerManager(models.Manager):
+class LayerRasterManager(models.Manager):
 
     def create(self, **kwargs):
         save_opts = kwargs.pop('save_opts', {})
+        kwargs['type'] = 'raster'
         obj = self.model(**kwargs)
         self._for_write = True
-        obj.save(force_insert=True, using=self.db, **save_opts)
+        obj.save(
+            force_insert=True, using=self.db, manager='raster', **save_opts)
+        return obj
+
+
+class LayerVectorManager(models.Manager):
+
+    def create(self, **kwargs):
+        save_opts = kwargs.pop('save_opts', {})
+        kwargs['type'] = 'vector'
+        obj = self.model(**kwargs)
+        self._for_write = True
+        obj.save(
+            force_insert=True, using=self.db, manager='vector', **save_opts)
         return obj
 
 
@@ -64,8 +80,16 @@ class Layer(models.Model):
     #     verbose_name='Chaîne de connexion à la source de données',
     #     blank=True, null=True)
 
+    TYPE_CHOICES = (
+        ('raster', 'raster'),
+        ('vector', 'vector'))
+
+    type = models.CharField(
+        'type', max_length=6, blank=True, null=True, choices=TYPE_CHOICES)
+
     objects = models.Manager()
-    custom = LayerManager()
+    vector = LayerVectorManager()
+    raster = LayerRasterManager()
 
     class Meta(object):
         verbose_name = 'Couche de données'
@@ -81,35 +105,53 @@ class Layer(models.Model):
         except MraBaseError:
             return
 
-        try:
-            ft = MRAHandler.get_featuretype(
-                self.resource.dataset.organisation.ckan_slug, 'public', self.name)
-        except MraBaseError:
-            return
+        if self.type == 'vector':
+            try:
+                ft = MRAHandler.get_featuretype(
+                    self.resource.dataset.organisation.ckan_slug, 'public', self.name)
+            except MraBaseError:
+                return
 
-        if not l or not ft:
-            # raise MRANotFoundError
-            return
+            if not l or not ft:
+                # raise MRANotFoundError
+                return
 
-        ll = ft['featureType']['latLonBoundingBox']
-        bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
-        attributes = [item['name'] for item in ft['featureType']['attributes']]
+            ll = ft['featureType']['latLonBoundingBox']
+            bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
+            attributes = [item['name'] for item in ft['featureType']['attributes']]
 
-        default_style_name = l['defaultStyle']['name']
+            default_style_name = l['defaultStyle']['name']
 
-        styles = [{
-            'name': 'default',
-            'text': 'Style par défaut',
-            'url': l['defaultStyle']['href'].replace('json', 'sld'),
-            'sld': MRAHandler.get_style(l['defaultStyle']['name'])}]
+            styles = [{
+                'name': 'default',
+                'text': 'Style par défaut',
+                'url': l['defaultStyle']['href'].replace('json', 'sld'),
+                'sld': MRAHandler.get_style(l['defaultStyle']['name'])}]
 
-        if l.get('styles'):
-            for style in l.get('styles')['style']:
-                styles.append({
-                    'name': style['name'],
-                    'text': style['name'],
-                    'url': style['href'].replace('json', 'sld'),
-                    'sld': MRAHandler.get_style(style['name'])})
+            if l.get('styles'):
+                for style in l.get('styles')['style']:
+                    styles.append({
+                        'name': style['name'],
+                        'text': style['name'],
+                        'url': style['href'].replace('json', 'sld'),
+                        'sld': MRAHandler.get_style(style['name'])})
+
+        elif self.type == 'raster':
+            try:
+                c = MRAHandler.get_coverage(
+                    self.resource.dataset.organisation.ckan_slug, self.name, self.name)
+            except MraBaseError:
+                return
+
+            if not l or not c:
+                # raise MRANotFoundError
+                return
+
+            ll = c['coverage']['latLonBoundingBox']
+            bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
+            attributes = []
+            default_style_name = None
+            styles = []
 
         self.mra_info = {
             'name': l['name'],
@@ -123,11 +165,37 @@ class Layer(models.Model):
                 'default': default_style_name,
                 'styles': styles}}
 
-    def save(self, *args, **kwargs):
+    def save_raster(self, *args, **kwargs):
 
-        SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
+        organisation = self.resource.dataset.organisation
+        ws_name = organisation.ckan_slug
+        cs_name = self.name
 
-        editor = kwargs.pop('editor', None)
+        if self.pk:
+            try:
+                previous = Layer.objects.get(pk=self.pk)
+            except Layer.DoesNotExist:
+                pass
+            else:
+                # On vérifie si l'organisation du jeu de données a changée,
+                # auquel cas il est nécessaire de supprimer les objets MRA
+                # afin de les recréer dans le bon workspace (c-à-d Mapfile).
+                previous_layer = MRAHandler.get_layer(self.name)
+                regex = '/workspaces/(?P<ws_name>[a-z_\-]+)/coveragestores/'
+
+                matched = re.search(regex, previous_layer['resource']['href'])
+                if matched:
+                    previous_ws_name = matched.group('ws_name')
+                    if not ws_name == previous_ws_name:
+                        MRAHandler.del_layer(self.name)
+                        MRAHandler.del_coverage(
+                            previous_ws_name, cs_name, self.name)
+
+        MRAHandler.get_or_create_workspace(organisation)
+        MRAHandler.get_or_create_coveragestore(ws_name, cs_name, filename=self.filename)
+        MRAHandler.get_or_create_coverage(ws_name, cs_name, self.name)
+
+    def save_vector(self, *args, **kwargs):
 
         organisation = self.resource.dataset.organisation
         ws_name = organisation.ckan_slug
@@ -156,6 +224,18 @@ class Layer(models.Model):
         MRAHandler.get_or_create_workspace(organisation)
         MRAHandler.get_or_create_datastore(ws_name, ds_name)
         MRAHandler.get_or_create_featuretype(ws_name, ds_name, self.name)
+
+    def save(self, *args, **kwargs):
+
+        SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
+
+        editor = kwargs.pop('editor', None)
+
+        manager = kwargs.pop('manager')
+        if manager == 'vector':
+            self.save_vector()
+        elif manager == 'raster':
+            self.save_raster()
 
         super().save(*args, **kwargs)
 
@@ -204,6 +284,8 @@ class Layer(models.Model):
                         get_all_users_for_organizations(
                             self.resource.organisations_allowed.all())),
                     'level': 'only_allowed_users'})
+
+            organisation = self.resource.dataset.organisation
 
             getlegendgraphic = (
                 '{}?&version=1.1.1&service=WMS&request=GetLegendGraphic'
@@ -273,6 +355,17 @@ class Layer(models.Model):
     @property
     def id(self):
         return self.name
+
+    @property
+    def filename(self):
+        if self.type == 'vector':
+            # Peut-être quelque chose à retourner ici ?
+            return None
+        if self.type == 'raster':
+            x = str(self.resource.ckan_id)
+            filename = os.path.join(
+                CKAN_STORAGE_PATH, x[:3], x[3:6], x[6:])
+            return filename
 
     def handle_enable_ows_status(self):
         ws_name = self.resource.dataset.organisation.ckan_slug

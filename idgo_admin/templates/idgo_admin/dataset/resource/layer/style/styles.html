@@ -3,13 +3,15 @@
 {% block layer_tab_content %}
 {% if layer.styles|length == 0 %}
 <div class="alert alert-warning" role="alert">
-	<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span> Aucun territoire de compétence n'est trouvé.
+	<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span> Aucun style n'est trouvé.
 </div>
 {% else %}
+<!--
 <div class="buttons-on-the-right-side">
-	<!-- <a name="add-style" class="btn btn-default">Importer un SLD depuis une ressource</a> -->
-	<!-- <a name="create-style" class="btn btn-default">Créer un nouveau style</a> -->
+	<a name="add-style" class="btn btn-default">Importer un SLD depuis une ressource</a>
+	<a name="create-style" class="btn btn-default">Créer un nouveau style</a>
 </div>
+-->
 <br />
 {% include "idgo_admin/dataset/resource/layer/style/table.html" %}
 {% endif %}

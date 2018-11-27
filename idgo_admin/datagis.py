@@ -35,17 +35,6 @@ DATABASE = settings.DATAGIS_DB
 OWNER = settings.DATABASES[DATABASE]['USER']
 MRA_DATAGIS_USER = settings.MRA['DATAGIS_DB_USER']
 
-try:
-    VSI_PROTOCOLES = settings.SUPPORTED_VSI_PROTOCOLES
-except AttributeError:
-    VSI_PROTOCOLES = {
-        'geojson': None,
-        'shapezip': 'vsizip',
-        'shp': None,
-        'tab': 'vsizip',
-        'mif/mid': 'vsizip',
-        'tar': 'vsitar',
-        'zip': 'vsizip'}
 
 SCHEMA = 'public'
 THE_GEOM = 'the_geom'
@@ -139,28 +128,31 @@ class GdalOpener(object):
     _raster = None
 
     def __init__(self, filename, extension=None):
+
+        if extension == 'zip':
+            filename = '/vsizip/{}'.format(filename)
+
         try:
             self._raster = GDALRaster(filename)
         except GDALException as e:
             raise NotGDALError(
                 'The file received is not recognized as being a GIS raster data. {}'.format(e.__str__()))
 
+    def get_raster(self):
+        return self._raster
+
 
 class OgrOpener(object):
-
-    VSI_PROTOCOLES = VSI_PROTOCOLES
 
     _datastore = None
 
     def __init__(self, filename, extension=None):
-        vsi = self.VSI_PROTOCOLES.get(extension, False)
 
-        if vsi is False:
-            raise NotOGRError(
-                "The format '{}' is not supported.".format(extension))
+        if extension == 'zip':
+            filename = '/vsizip/{}'.format(filename)
+
         try:
-            self._datastore = DataSource(
-                vsi and '/{}/{}'.format(vsi, filename) or filename)
+            self._datastore = DataSource(filename)
         except GDALException as e:
             raise NotOGRError(
                 'The file received is not recognized as being a GIS vector data. {}'.format(e.__str__()))
@@ -229,7 +221,43 @@ def handle_ogr_geom_type(ogr_geom_type):
         'multipolygon25d': 'MultiPolygonZ',
         'point25d': 'PointZ',
         'polygon25d': 'PolygonZ'
-        }.get(ogr_geom_type.__str__().lower(), 'Geometry')
+        }.get(ogr_geom_type.name.lower(), ogr_geom_type.name)  # 'Geometry')
+
+
+def get_epsg(obj):
+    if obj.srs:
+        try:
+            epsg = obj.srs.identify_epsg()
+        except SRSException:
+            epsg = None
+        if not epsg:
+            if obj.srs.projected \
+                    and obj.srs.auth_name('PROJCS') == 'EPSG':
+                epsg = obj.srs.auth_code('PROJCS')
+            if obj.srs.geographic \
+                    and obj.srs.auth_name('GEOGCS') == 'EPSG':
+                epsg = obj.srs.auth_code('GEOGCS')
+        if not epsg:
+            epsg = retreive_epsg_through_proj4(obj.srs.proj4)
+        if not epsg:
+            epsg = retreive_epsg_through_regex(obj.srs.name)
+    if not epsg:
+        raise NotFoundSrsError('SRS Not found')
+    return epsg
+
+
+def gdalinfo(cs, update={}):
+
+    p = Path(cs.name)
+    layername = slugify(p.name[:-len(p.suffix)]).replace('-', '_')
+    table_id = update.get(
+        layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))
+    xmin, ymin, xmax, ymax = cs.extent
+
+    return {
+        'id': table_id,
+        'epsg': get_epsg(cs),
+        'extent': ((xmin, ymin), (xmax, ymax))}
 
 
 def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='utf-8'):
@@ -252,24 +280,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
         if epsg and is_valid_epsg(epsg):
             pass
         else:
-            if layer.srs:
-                try:
-                    epsg = layer.srs.identify_epsg()
-                except SRSException:
-                    epsg = None
-                if not epsg:
-                    if layer.srs.projected \
-                            and layer.srs.auth_name('PROJCS') == 'EPSG':
-                        epsg = layer.srs.auth_code('PROJCS')
-                    if layer.srs.geographic \
-                            and layer.srs.auth_name('GEOGCS') == 'EPSG':
-                        epsg = layer.srs.auth_code('GEOGCS')
-                if not epsg:
-                    epsg = retreive_epsg_through_proj4(layer.srs.proj4)
-                if not epsg:
-                    epsg = retreive_epsg_through_regex(layer.srs.name)
-            if not epsg:
-                raise NotFoundSrsError('SRS Not found')
+            epsg = get_epsg(layer)
 
         SupportedCrs = apps.get_model(
             app_label='idgo_admin', model_name='SupportedCrs')

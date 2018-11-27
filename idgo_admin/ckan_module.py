@@ -67,6 +67,10 @@ class CkanNotFoundError(CkanBaseError):
     message = 'La ressource CKAN ne semble pas exister.'
 
 
+class CkanConflictError(CkanBaseError):
+    message = 'La ressource CKAN existe déjà.'
+
+
 class CkanSyncingError(CkanBaseError):
     message = "Une erreur de synchronisation avec l'instance de CKAN est survenue."
 
@@ -213,7 +217,7 @@ class CkanBaseHandler(object):
 
     def check_dataset_integrity(self, name):
         if self.is_package_name_already_used(name):
-            raise ConflictError('Dataset already exists')
+            raise CkanConflictError('Dataset already exists')
 
     @CkanExceptionsHandler()
     def publish_dataset(self, id=None, resources=None, **kwargs):

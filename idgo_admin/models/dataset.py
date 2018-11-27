@@ -301,7 +301,8 @@ class Dataset(models.Model):
                 # Prend l'étendue par défaut définie en settings
                 setattr(self, 'bbox', DEFAULT_BBOX)
         else:
-            bbox = get_extent([layer.name for layer in layers])
+            # TODO ajouter les raster !
+            bbox = get_extent([layer.name for layer in layers if layer.type == 'vector'])
             setattr(self, 'bbox', bbox)
 
         super().save(*args, **kwargs)

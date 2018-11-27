@@ -86,7 +86,7 @@ class SizeLimitExceededError(GenericException):
     message = 'La taille de la pièce jointe dépasse la limite autorisée.'
 
     def __init__(self, *args, **kwargs):
-        self.message, = \
+        self.message = \
             kwargs.get('max_size') \
             and '{0} La taille est limité à {1}o'.format(
                 self.message, kwargs['max_size'])

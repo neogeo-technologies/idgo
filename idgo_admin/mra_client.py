@@ -156,6 +156,9 @@ class MRAHandler(metaclass=Singleton):
         self.remote = MRAClient(
             MRA['URL'], username=MRA['USERNAME'], password=MRA['PASSWORD'])
 
+    # Workspace
+    # =========
+
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def is_workspace_exists(self, ws_name):
         try:
@@ -191,6 +194,9 @@ class MRAHandler(metaclass=Singleton):
         except MRANotFoundError:
             pass
         return self.create_workspace(organisation)
+
+    # Data store
+    # ==========
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_datastore(self, ws_name, ds_name):
@@ -261,6 +267,77 @@ class MRAHandler(metaclass=Singleton):
             pass
         return self.create_featuretype(ws_name, ds_name, ft_name, enabled=enabled)
 
+    # Coverage store
+    # ==============
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def get_coveragestore(self, ws_name, cs_name):
+        return self.remote.get('workspaces', ws_name,
+                               'coveragestores', cs_name)
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def del_coveragestore(self, ws_name, cs_name):
+        self.remote.delete('workspaces', ws_name,
+                           'coveragestores', cs_name)
+
+    @MRAExceptionsHandler()
+    def create_coveragestore(self, ws_name, cs_name, filename=None):
+        json = {
+            'coverageStore': {
+                'name': cs_name,
+                'connectionParameters': {
+                    'url': 'file://{}'.format(filename)}}}
+
+        self.remote.post('workspaces', ws_name,
+                         'coveragestores', json=json)
+
+        return self.get_coveragestore(ws_name, cs_name)
+
+    def get_or_create_coveragestore(self, ws_name, cs_name, **kwargs):
+        try:
+            return self.get_coveragestore(ws_name, cs_name)
+        except MRANotFoundError:
+            pass
+        return self.create_coveragestore(ws_name, cs_name, **kwargs)
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def get_coverage(self, ws_name, cs_name, c_name):
+        return self.remote.get('workspaces', ws_name,
+                               'coveragestores', cs_name,
+                               'coverages', c_name)
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def del_coverage(self, ws_name, cs_name, c_name):
+        self.remote.delete('workspaces', ws_name,
+                           'coveragestores', cs_name,
+                           'coverages', c_name)
+
+    @MRAExceptionsHandler()
+    def create_coverage(self, ws_name, cs_name, c_name, enabled=True):
+        json = {
+            'coverage': {
+                'name': c_name,
+                'title': c_name,
+                'abstract': c_name,
+                # 'enabled': enabled  # TODO dans MRA
+                }}
+
+        self.remote.post('workspaces', ws_name,
+                         'coveragestores', cs_name,
+                         'coverages', json=json)
+
+        return self.get_coverage(ws_name, cs_name, c_name)
+
+    def get_or_create_coverage(self, ws_name, cs_name, c_name, enabled=True):
+        try:
+            return self.get_coverage(ws_name, cs_name, c_name)
+        except MRANotFoundError:
+            pass
+        return self.create_coverage(ws_name, cs_name, c_name, enabled=enabled)
+
+    # Style
+    # =====
+
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_style(self, s_name, as_sld=True):
         return self.remote.get('styles', s_name, extension='sld',
@@ -284,6 +361,9 @@ class MRAHandler(metaclass=Singleton):
             self.update_style(s_name, data)
         except MRANotFoundError:
             self.create_style(s_name, data)
+
+    # Layer
+    # =====
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_layer(self, l_name):
@@ -315,6 +395,9 @@ class MRAHandler(metaclass=Singleton):
     @MRAExceptionsHandler()
     def disable_layer(self, ws_name, l_name):
         self.update_layer(l_name, {'enabled': False}, ws_name=ws_name)
+
+    # Service
+    # =======
 
     @MRAExceptionsHandler()
     def get_ows_settings(self, ows, ws_name):
@@ -354,6 +437,9 @@ class MRAHandler(metaclass=Singleton):
     # def disable_wcs(self, ws_name):
     #     self.disable_ows(ws_name, ows='wms')
 
+    # Layergroup
+    # ==========
+
     @MRAExceptionsHandler()
     def get_layergroup(self, ws_name, lg_name):
         self.remote.get('workspaces', ws_name, 'layergroups', lg_name)['layerGroup']
@@ -382,6 +468,9 @@ class MRAHandler(metaclass=Singleton):
     def del_layergroup(self, ws_name, lg_name):
         if self.is_layergroup_exists(ws_name, lg_name):
             self.remote.delete('workspaces', ws_name, 'layergroups', lg_name)
+
+    # Miscellaneous
+    # =============
 
     @MRAExceptionsHandler()
     def get_fonts(self, ws_name=None):

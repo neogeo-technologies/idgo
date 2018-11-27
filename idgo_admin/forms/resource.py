@@ -108,7 +108,7 @@ class ResourceForm(forms.ModelForm):
     format_type = forms.ModelChoiceField(
         empty_label='Sélectionnez un format',
         label='Format*',
-        queryset=ResourceFormats.objects.all(),
+        queryset=ResourceFormats.objects.all().order_by('extension'),
         required=True)
 
     data_type = forms.ChoiceField(
