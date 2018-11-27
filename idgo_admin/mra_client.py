@@ -246,13 +246,13 @@ class MRAHandler(metaclass=Singleton):
                            'featuretypes', ft_name)
 
     @MRAExceptionsHandler()
-    def create_featuretype(self, ws_name, ds_name, ft_name, enabled=True):
+    def create_featuretype(self, ws_name, ds_name, ft_name, **kwargs):
         json = {
             'featureType': {
                 'name': ft_name,
-                'title': ft_name,
-                'abstract': ft_name,
-                'enabled': enabled}}
+                'title': kwargs.get('title', ft_name),
+                'abstract': kwargs.get('abstract', ft_name),
+                'enabled': kwargs.get('enabled', True)}}
 
         self.remote.post('workspaces', ws_name,
                          'datastores', ds_name,
@@ -260,12 +260,12 @@ class MRAHandler(metaclass=Singleton):
 
         return self.get_featuretype(ws_name, ds_name, ft_name)
 
-    def get_or_create_featuretype(self, ws_name, ds_name, ft_name, enabled=True):
+    def get_or_create_featuretype(self, ws_name, ds_name, ft_name, **kwargs):
         try:
             return self.get_featuretype(ws_name, ds_name, ft_name)
         except MRANotFoundError:
             pass
-        return self.create_featuretype(ws_name, ds_name, ft_name, enabled=enabled)
+        return self.create_featuretype(ws_name, ds_name, ft_name, **kwargs)
 
     # Coverage store
     # ==============
@@ -313,14 +313,13 @@ class MRAHandler(metaclass=Singleton):
                            'coverages', c_name)
 
     @MRAExceptionsHandler()
-    def create_coverage(self, ws_name, cs_name, c_name, enabled=True):
+    def create_coverage(self, ws_name, cs_name, c_name, **kwargs):
         json = {
             'coverage': {
                 'name': c_name,
-                'title': c_name,
-                'abstract': c_name,
-                # 'enabled': enabled  # TODO dans MRA
-                }}
+                'title': kwargs.get('title', c_name),
+                'abstract': kwargs.get('abstract', c_name),
+                'enabled': kwargs.get('enabled', True)}}
 
         self.remote.post('workspaces', ws_name,
                          'coveragestores', cs_name,
@@ -328,12 +327,12 @@ class MRAHandler(metaclass=Singleton):
 
         return self.get_coverage(ws_name, cs_name, c_name)
 
-    def get_or_create_coverage(self, ws_name, cs_name, c_name, enabled=True):
+    def get_or_create_coverage(self, ws_name, cs_name, c_name, **kwargs):
         try:
             return self.get_coverage(ws_name, cs_name, c_name)
         except MRANotFoundError:
             pass
-        return self.create_coverage(ws_name, cs_name, c_name, enabled=enabled)
+        return self.create_coverage(ws_name, cs_name, c_name, **kwargs)
 
     # Style
     # =====

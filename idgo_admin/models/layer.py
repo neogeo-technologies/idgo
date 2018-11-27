@@ -193,7 +193,9 @@ class Layer(models.Model):
 
         MRAHandler.get_or_create_workspace(organisation)
         MRAHandler.get_or_create_coveragestore(ws_name, cs_name, filename=self.filename)
-        MRAHandler.get_or_create_coverage(ws_name, cs_name, self.name)
+        MRAHandler.get_or_create_coverage(
+            ws_name, cs_name, self.name, enabled=True,
+            title=self.resource.name, abstract=self.resource.description)
 
     def save_vector(self, *args, **kwargs):
 
@@ -223,7 +225,9 @@ class Layer(models.Model):
 
         MRAHandler.get_or_create_workspace(organisation)
         MRAHandler.get_or_create_datastore(ws_name, ds_name)
-        MRAHandler.get_or_create_featuretype(ws_name, ds_name, self.name)
+        MRAHandler.get_or_create_featuretype(
+            ws_name, ds_name, self.name, enabled=True,
+            title=self.resource.name, abstract=self.resource.description)
 
     def save(self, *args, **kwargs):
 
