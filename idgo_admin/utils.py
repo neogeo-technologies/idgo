@@ -125,7 +125,7 @@ def download(url, media_root, **kwargs):
                 remove_dir(directory)
                 raise SizeLimitExceededError(max_size=max_size)
 
-    return directory, filename, r.headers['Content-Type']
+    return directory, filename, r.headers.get('Content-Type')
 
 
 class PartialFormatter(string.Formatter):
