@@ -221,7 +221,7 @@ def handle_ogr_geom_type(ogr_geom_type):
         'multipolygon25d': 'MultiPolygonZ',
         'point25d': 'PointZ',
         'polygon25d': 'PolygonZ'
-        }.get(ogr_geom_type.__str__().lower(), 'Geometry')
+        }.get(ogr_geom_type.name.lower(), ogr_geom_type.name)  # 'Geometry')
 
 
 def get_epsg(obj):
