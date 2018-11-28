@@ -445,7 +445,6 @@ class Resource(models.Model):
         # Modèles
         SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
         Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
-
         # Quelques options :
         sync_ckan = kwargs.pop('sync_ckan', False)
         file_extras = kwargs.pop('file_extras', None)  # Des informations sur la ressource téléversée
@@ -543,7 +542,6 @@ class Resource(models.Model):
         # La synchronisation doit s'effectuer avant la publication des
         # éventuelles couches de données SIG car dans le cas des données
         # de type « raster », nous utilisons le filestore de CKAN.
-
         if sync_ckan and publish_raw_resource:
             self.synchronize_ckan(
                 filename=filename, content_type=content_type,
@@ -692,6 +690,13 @@ class Resource(models.Model):
                     # Roll-back sur la création de la ressource CKAN
                     ckan_user = ckan_me(ckan.apikey)
                     ckan_user.delete_resource(str(self.ckan_id))
+
+                    for layer in self.get_layers():
+                        ckan_user.delete_resource(self.name)
+                        if layer.attached_ckan_resources:
+                            for id in layer.attached_ckan_resources:
+                                ckan_user.delete_resource(str(id))
+
                     ckan_user.close()
                     # Puis on « raise » l'erreur
                     raise e
@@ -729,6 +734,10 @@ class Resource(models.Model):
         # on supprime les données téléversées ou téléchargées..
         file_must_be_deleted and remove_file(filename)
 
+        self.synchronize_ckan(extracting_service=self.extractable)
+        for layer in self.get_layers():
+            layer.save()
+
 
 @receiver(post_save, sender=Resource)
 @receiver(post_delete, sender=Resource)
@@ -738,8 +747,8 @@ def force_save_dataset(sender, instance, **kwargs):
     dataset.save()
 
 
-@receiver(post_save, sender=Resource)
-def updated_ckan_ressource(sender, instance, **kwargs):
-    instance.synchronize_ckan(extracting_service=instance.extractable)
-    for layer in instance.get_layers():
-        layer.save()
+# @receiver(post_save, sender=Resource)
+# def updated_ckan_ressource(sender, instance, **kwargs):
+#     instance.synchronize_ckan(extracting_service=instance.extractable)
+#     for layer in instance.get_layers():
+#         layer.save()

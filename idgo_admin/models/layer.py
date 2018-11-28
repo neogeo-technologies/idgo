@@ -53,7 +53,7 @@ class LayerRasterManager(models.Manager):
         obj = self.model(**kwargs)
         self._for_write = True
         obj.save(
-            force_insert=True, using=self.db, manager='raster', **save_opts)
+            force_insert=True, using=self.db, **save_opts)
         return obj
 
 
@@ -65,7 +65,7 @@ class LayerVectorManager(models.Manager):
         obj = self.model(**kwargs)
         self._for_write = True
         obj.save(
-            force_insert=True, using=self.db, manager='vector', **save_opts)
+            force_insert=True, using=self.db, **save_opts)
         return obj
 
 
@@ -240,13 +240,9 @@ class Layer(models.Model):
 
         editor = kwargs.pop('editor', None)
 
-        if not self.type:
-            manager = kwargs.pop('manager')
-        else:
-            manager = self.type
-        if manager == 'vector':
+        if self.type == 'vector':
             self.save_vector()
-        elif manager == 'raster':
+        elif self.type == 'raster':
             self.save_raster()
 
         super().save(*args, **kwargs)
@@ -334,7 +330,7 @@ class Layer(models.Model):
                     ckan_user.delete_resource(id.__str__())
 
             attached_ckan_resources = []
-            if manager == 'vector':
+            if self.type == 'vector':
                 new_ckan_id = uuid.uuid4()
                 attached_ckan_resources.append(new_ckan_id)
                 ckan_params['id'] = new_ckan_id.__str__()
@@ -380,6 +376,12 @@ class Layer(models.Model):
                     ckan_params['url'] = '{}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAME={}&outputFormat=geojson'.format(
                         OWS_URL_PATTERN.format(organisation=organisation.ckan_slug), self.name)
                     ckan_user.publish_resource(ckan_package, **ckan_params)
+
+            elif self.type == 'raster':
+                # TODO?
+                pass
+
+            # Puis
             if attached_ckan_resources:
                 self.attached_ckan_resources = attached_ckan_resources
                 kwargs['force_insert'] = False
