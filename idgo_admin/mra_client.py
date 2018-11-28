@@ -15,6 +15,7 @@
 
 
 import ast
+from django.apps import apps
 from django.conf import settings
 from functools import reduce
 from functools import wraps
@@ -23,6 +24,9 @@ from idgo_admin.utils import Singleton
 from requests import request
 import timeout_decorator
 from urllib.parse import urljoin
+#
+from idgo_admin.utils import kill_all_special_characters
+#
 
 
 MRA = settings.MRA
@@ -178,14 +182,18 @@ class MRAHandler(metaclass=Singleton):
 
     @MRAExceptionsHandler()
     def create_workspace(self, organisation):
+        SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
+        srs = [crs.authority for crs in SupportedCrs.objects.all()]
+
         json = {
             'workspace': {
                 'name': organisation.ckan_slug,
-                'title': organisation.name,
-                'description': organisation.description}}
-
+                # TODO: Corriger le problème d'encodage dans MRA
+                'title': kill_all_special_characters(organisation.name),
+                'abstract': kill_all_special_characters(organisation.description),
+                # END TODO
+                'srs': srs}}
         self.remote.post('workspaces', json=json)
-
         return self.get_workspace(organisation.ckan_slug)
 
     def get_or_create_workspace(self, organisation):

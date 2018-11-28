@@ -17,6 +17,7 @@
 from django.apps import apps
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from idgo_admin.ckan_module import CkanHandler as ckan
@@ -28,6 +29,7 @@ import itertools
 import json
 import os
 import re
+import uuid
 
 
 MRA = settings.MRA
@@ -86,6 +88,9 @@ class Layer(models.Model):
 
     type = models.CharField(
         'type', max_length=6, blank=True, null=True, choices=TYPE_CHOICES)
+
+    attached_ckan_resources = ArrayField(
+        models.UUIDField(), size=None, blank=True, null=True)
 
     objects = models.Manager()
     vector = LayerVectorManager()
@@ -235,7 +240,10 @@ class Layer(models.Model):
 
         editor = kwargs.pop('editor', None)
 
-        manager = kwargs.pop('manager')
+        if not self.type:
+            manager = kwargs.pop('manager')
+        else:
+            manager = self.type
         if manager == 'vector':
             self.save_vector()
         elif manager == 'raster':
@@ -298,10 +306,6 @@ class Layer(models.Model):
                         organisation=organisation.ckan_slug
                         ).replace('?', ''), self.name)
 
-            # Tous les services sont publiés en 4171 (TODO -> configurer dans settings)
-            crs = SupportedCrs.objects.get(
-                auth_name='EPSG', auth_code='4171').description
-
             url = '{0}#{1}'.format(
                 OWS_URL_PATTERN.format(
                     organisation=organisation.ckan_slug), self.name)
@@ -312,8 +316,9 @@ class Layer(models.Model):
                 'description': self.resource.description,
                 'getlegendgraphic': getlegendgraphic,
                 'data_type': 'service',
-                'extracting_service': str(self.resource.extractable),
-                'crs': crs,
+                'extracting_service': str(self.resource.extractable),  # I <3 CKAN
+                'crs': SupportedCrs.objects.get(
+                    auth_name='EPSG', auth_code='4171').description,
                 'lang': self.resource.lang,
                 'format': 'WMS',
                 'restricted': restricted,
@@ -322,6 +327,64 @@ class Layer(models.Model):
 
             ckan_package = ckan_user.get_package(str(self.resource.dataset.ckan_id))
             ckan_user.publish_resource(ckan_package, **ckan_params)
+
+            # Ugly time...
+            if self.attached_ckan_resources:
+                for id in self.attached_ckan_resources:
+                    ckan_user.delete_resource(id.__str__())
+
+            attached_ckan_resources = []
+            if manager == 'vector':
+                new_ckan_id = uuid.uuid4()
+                attached_ckan_resources.append(new_ckan_id)
+                ckan_params['id'] = new_ckan_id.__str__()
+                ckan_params['name'] = '{} (OGC:WFS)'.format(self.resource.name)
+                ckan_params['format'] = 'WFS'
+                ckan_params['data_type'] = 'service'
+                ckan_params['view_type'] = None
+                ckan_user.publish_resource(ckan_package, **ckan_params)
+
+                if self.resource.format_type.extension.lower() in ('json', 'geojson'):
+                    if self.resource.crs:
+                        crs = self.resource.crs.description
+                        crsname = self.resource.crs.description
+                    else:
+                        crs_obj = SupportedCrs.objects.get(
+                            auth_name='EPSG', auth_code='2154')
+                        crs = crs_obj.description
+                        crsname = crs_obj.authority
+                    new_ckan_id = uuid.uuid4()
+                    attached_ckan_resources.append(new_ckan_id)
+                    ckan_params['id'] = new_ckan_id.__str__()
+                    ckan_params['name'] = self.resource.name
+                    ckan_params['extracting_service'] = str(False)  # I <3 CKAN
+                    ckan_params['format'] = 'ZIP'
+                    ckan_params['data_type'] = 'service'
+                    ckan_params['view_type'] = None
+                    ckan_params['crs'] = crs
+                    ckan_params['url'] = '{}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAME={}&outputFormat=shapezip&CRSNAME={}'.format(
+                        OWS_URL_PATTERN.format(organisation=organisation.ckan_slug), self.name, crsname)
+                    ckan_user.publish_resource(ckan_package, **ckan_params)
+
+                elif self.resource.format_type.extension.lower() in ('zip', 'tar'):
+                    new_ckan_id = uuid.uuid4()
+                    attached_ckan_resources.append(new_ckan_id)
+                    ckan_params['id'] = new_ckan_id.__str__()
+                    ckan_params['name'] = self.resource.name
+                    ckan_params['extracting_service'] = str(False)  # I <3 CKAN
+                    ckan_params['format'] = 'GEOJSON'
+                    ckan_params['data_type'] = 'service'
+                    ckan_params['view_type'] = 'geo_view'
+                    ckan_params['crs'] = SupportedCrs.objects.get(
+                        auth_name='EPSG', auth_code='4326').description,
+                    ckan_params['url'] = '{}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAME={}&outputFormat=geojson'.format(
+                        OWS_URL_PATTERN.format(organisation=organisation.ckan_slug), self.name)
+                    ckan_user.publish_resource(ckan_package, **ckan_params)
+            if attached_ckan_resources:
+                self.attached_ckan_resources = attached_ckan_resources
+                kwargs['force_insert'] = False
+                super().save(*args, **kwargs)
+
         else:
             # Sinon on force la suppression de la ressource CKAN
             ckan_user.delete_resource(self.name)
@@ -375,8 +438,10 @@ class Layer(models.Model):
         ws_name = self.resource.dataset.organisation.ckan_slug
         if self.resource.ogc_services:
             MRAHandler.enable_layer(ws_name, self.name)
+            # TODO: Comment on gère les ressources CKAN service ???
         else:
             MRAHandler.disable_layer(ws_name, self.name)
+            # TODO: Comment on gère les ressources CKAN service ???
 
     def handle_layergroup(self):
         dataset = self.resource.dataset
@@ -390,6 +455,7 @@ class Layer(models.Model):
             dataset.organisation.ckan_slug, {
                 'name': dataset.ckan_slug,
                 'title': dataset.name,
+                'abstract': dataset.description,
                 'layers': [layer.name for layer in layers]})
 
 
@@ -399,15 +465,23 @@ def delete_ows_layer(sender, instance, **kwargs):
     ds_name = 'public'
     ws_name = instance.resource.dataset.organisation.ckan_slug
 
-    # On supprime la ressource CKAN
     ckan_user = ckan_me(
         ckan.get_user(instance.resource.dataset.editor.username)['apikey'])
+
+    # On supprime la ressource CKAN
     ckan_user.delete_resource(ft_name)
-    ckan_user.close()
+    # Puis on supprime les ressources CKAN annexées à la couche
+    if instance.attached_ckan_resources:
+        for id in instance.attached_ckan_resources:
+            ckan_user.delete_resource(id.__str__())
+        ckan_user.close()
 
     # On supprime les objets MRA
-    MRAHandler.del_layer(ft_name)
-    MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
+    try:
+        MRAHandler.del_layer(ft_name)
+        MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
+    except:
+        pass
 
     # On supprime la table de données postgis
     drop_table(ft_name)

@@ -207,6 +207,11 @@ def slugify(value, allow_unicode=False, exclude_dot=True):
     return mark_safe(re.sub(r'[-\s]+', '-', value))
 
 
+@keep_lazy(str, SafeText)
+def kill_all_special_characters(value):
+    return unicodedata.normalize('NFKD', str(value)).encode('ascii', 'ignore').decode('ascii')
+
+
 def unzip_zipped(zipped, target_dir=None):
     with ZipFile(zipped) as zf:
         print(zf)

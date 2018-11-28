@@ -352,6 +352,94 @@ class Resource(models.Model):
     def is_datagis(self):
         return self.get_layers() and True or False
 
+    def synchronize_ckan(
+            self, filename=None, content_type=None,
+            file_extras=None, extracting_service=False):
+
+        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+        # de données existant mais administrateur ou un référent technique,
+        # alors l'admin Ckan édite le jeu de données.
+        if self.editor == self.dataset.editor:
+            ckan_user = ckan_me(ckan.get_user(self.editor.username)['apikey'])
+        else:
+            ckan_user = ckan_me(ckan.apikey)
+
+        ckan_params = {
+            'crs': self.crs and self.crs.description or '',
+            'name': self.name,
+            'description': self.description,
+            'data_type': self.data_type,
+            'extracting_service': str(extracting_service),  # I <3 CKAN
+            'format': self.format_type.extension,
+            'view_type': self.format_type.ckan_view,
+            'id': str(self.ckan_id),
+            'lang': self.lang,
+            'restricted_by_jurisdiction': str(self.geo_restriction),
+            'url': ''}
+
+        # TODO: Factoriser
+
+        # (0) Aucune restriction
+        if self.restricted_level == '0':
+            restricted = json.dumps({'level': 'public'})
+        # (1) Uniquement pour un utilisateur connecté
+        elif self.restricted_level == '1':
+            restricted = json.dumps({'level': 'registered'})
+        # (2) Seulement les utilisateurs indiquées
+        elif self.restricted_level == '2':
+            restricted = json.dumps({
+                'allowed_users': ','.join(
+                    self.profiles_allowed.exists() and [
+                        p.user.username for p
+                        in self.profiles_allowed.all()] or []),
+                'level': 'only_allowed_users'})
+        # (3) Les utilisateurs de cette organisation
+        elif self.restricted_level == '3':
+            restricted = json.dumps({
+                'allowed_users': ','.join(
+                    get_all_users_for_organizations(
+                        self.organisations_allowed.all())),
+                'level': 'only_allowed_users'})
+        # (3) Les utilisateurs des organisations indiquées
+        elif self.restricted_level == '4':
+            restricted = json.dumps({
+                'allowed_users': ','.join(
+                    get_all_users_for_organizations(
+                        self.organisations_allowed.all())),
+                'level': 'only_allowed_users'})
+
+        ckan_params['restricted'] = restricted
+
+        if self.referenced_url:
+            ckan_params['url'] = self.referenced_url
+            ckan_params['resource_type'] = '{0}.{1}'.format(
+                self.name, self.format_type.ckan_view)
+
+        if self.dl_url:
+            downloaded_file = File(open(filename, 'rb'))
+            ckan_params['upload'] = downloaded_file
+            ckan_params['size'] = downloaded_file.size
+            ckan_params['mimetype'] = content_type
+            ckan_params['resource_type'] = Path(filename).name
+
+        if self.up_file and file_extras:
+            ckan_params['upload'] = self.up_file.file
+            ckan_params['size'] = file_extras.get('size')
+            ckan_params['mimetype'] = file_extras.get('mimetype')
+            ckan_params['resource_type'] = file_extras.get('resource_type')
+
+        if self.ftp_file:
+            ckan_params['upload'] = self.ftp_file.file
+            ckan_params['size'] = self.ftp_file.size
+            ckan_params['mimetype'] = None  # TODO
+            ckan_params['resource_type'] = self.ftp_file.name  # TODO
+
+        ckan_package = ckan_user.get_package(str(self.dataset.ckan_id))
+
+        ckan_user.publish_resource(ckan_package, **ckan_params)
+
+        ckan_user.close()
+
     def save(self, *args, **kwargs):
 
         # Modèles
@@ -361,7 +449,7 @@ class Resource(models.Model):
         # Quelques options :
         sync_ckan = kwargs.pop('sync_ckan', False)
         file_extras = kwargs.pop('file_extras', None)  # Des informations sur la ressource téléversée
-        editor = kwargs.pop('editor', None)  # L'éditeur de l'objet `request` (qui peut être celui du jeu de données ou un référent)
+        self.editor = kwargs.pop('editor', None)  # L'éditeur de l'objet `request` (qui peut être celui du jeu de données ou un référent)
 
         # On sauvegarde l'objet avant de le mettre à jour (s'il existe)
         previous, created = self.pk \
@@ -369,9 +457,11 @@ class Resource(models.Model):
 
         # Quelques valeur par défaut à la création de l'instance
         if created \
-                or not editor.profile.crige_membership:
+                or not self.editor.profile.crige_membership:
                 # Ou si l'éditeur n'est pas partenaire du CRIGE
 
+            # Mais seulement s'il s'agit de données SIG, sauf
+            # qu'on ne le sait pas encore...
             self.geo_restriction = False
             self.ogc_services = True
             self.extractable = True
@@ -382,6 +472,7 @@ class Resource(models.Model):
 
         # Quelques contrôles sur les fichiers de données téléversée ou à télécharger
         filename = False
+        content_type = None
         file_must_be_deleted = False  # permet d'indiquer si les fichiers doivent être supprimés à la fin de la chaine de traitement
         publish_raw_resource = True  # permet d'indiquer si les ressources brutes sont publiées dans CKAN
 
@@ -453,93 +544,10 @@ class Resource(models.Model):
         # éventuelles couches de données SIG car dans le cas des données
         # de type « raster », nous utilisons le filestore de CKAN.
 
-        if sync_ckan:
-
-            # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-            # de données existant mais administrateur ou un référent technique,
-            # alors l'admin Ckan édite le jeu de données.
-            if editor == self.dataset.editor:
-                ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
-            else:
-                ckan_user = ckan_me(ckan.apikey)
-
-            ckan_params = {
-                'crs': self.crs and self.crs.description or '',
-                'name': self.name,
-                'description': self.description,
-                'data_type': self.data_type,
-                'extracting_service': str(self.extractable),
-                'format': self.format_type.extension,
-                'view_type': self.format_type.ckan_view,
-                'id': str(self.ckan_id),
-                'lang': self.lang,
-                'restricted_by_jurisdiction': str(self.geo_restriction),
-                'url': ''}
-
-            # TODO: Factoriser
-
-            # (0) Aucune restriction
-            if self.restricted_level == '0':
-                restricted = json.dumps({'level': 'public'})
-            # (1) Uniquement pour un utilisateur connecté
-            elif self.restricted_level == '1':
-                restricted = json.dumps({'level': 'registered'})
-            # (2) Seulement les utilisateurs indiquées
-            elif self.restricted_level == '2':
-                restricted = json.dumps({
-                    'allowed_users': ','.join(
-                        self.profiles_allowed.exists() and [
-                            p.user.username for p
-                            in self.profiles_allowed.all()] or []),
-                    'level': 'only_allowed_users'})
-            # (3) Les utilisateurs de cette organisation
-            elif self.restricted_level == '3':
-                restricted = json.dumps({
-                    'allowed_users': ','.join(
-                        get_all_users_for_organizations(
-                            self.organisations_allowed.all())),
-                    'level': 'only_allowed_users'})
-            # (3) Les utilisateurs des organisations indiquées
-            elif self.restricted_level == '4':
-                restricted = json.dumps({
-                    'allowed_users': ','.join(
-                        get_all_users_for_organizations(
-                            self.organisations_allowed.all())),
-                    'level': 'only_allowed_users'})
-
-            ckan_params['restricted'] = restricted
-
-            if self.referenced_url:
-                ckan_params['url'] = self.referenced_url
-                ckan_params['resource_type'] = '{0}.{1}'.format(
-                    self.name, self.format_type.ckan_view)
-
-            if self.dl_url:
-                downloaded_file = File(open(filename, 'rb'))
-                ckan_params['upload'] = downloaded_file
-                ckan_params['size'] = downloaded_file.size
-                ckan_params['mimetype'] = content_type
-                ckan_params['resource_type'] = Path(filename).name
-
-            if self.up_file and file_extras:
-                ckan_params['upload'] = self.up_file.file
-                ckan_params['size'] = file_extras.get('size')
-                ckan_params['mimetype'] = file_extras.get('mimetype')
-                ckan_params['resource_type'] = file_extras.get('resource_type')
-
-            if self.ftp_file:  # and publish_raw_resource:
-                ckan_params['upload'] = self.ftp_file.file
-                ckan_params['size'] = self.ftp_file.size
-                ckan_params['mimetype'] = None  # TODO
-                ckan_params['resource_type'] = self.ftp_file.name  # TODO
-
-            ckan_package = ckan_user.get_package(str(self.dataset.ckan_id))
-
-            # On publie la ressource brute CKAN
-            if publish_raw_resource:
-                ckan_user.publish_resource(ckan_package, **ckan_params)
-
-            ckan_user.close()
+        if sync_ckan and publish_raw_resource:
+            self.synchronize_ckan(
+                filename=filename, content_type=content_type,
+                file_extras=file_extras, extracting_service=False)
 
         # Détection des données SIG
         # =========================
@@ -633,7 +641,7 @@ class Resource(models.Model):
                                         except Layer.DoesNotExist:
                                             Layer.vector.create(
                                                 name=table['id'], resource=self,
-                                                save_opts={'editor': editor})
+                                                save_opts={'editor': self.editor})
                                 except Exception as e:
                                     file_must_be_deleted and remove_file(filename)
                                     for table in tables:
@@ -675,7 +683,7 @@ class Resource(models.Model):
                                     except Layer.DoesNotExist:
                                         Layer.raster.create(
                                             name=table['id'], resource=self,
-                                            save_opts={'editor': editor})
+                                            save_opts={'editor': self.editor})
                             except Exception as e:
                                 file_must_be_deleted and remove_file(filename)
                                 raise e
@@ -728,3 +736,10 @@ def force_save_dataset(sender, instance, **kwargs):
     dataset = instance.dataset
     dataset.date_modification = timezone.now().date()
     dataset.save()
+
+
+@receiver(post_save, sender=Resource)
+def updated_ckan_ressource(sender, instance, **kwargs):
+    instance.synchronize_ckan(extracting_service=instance.extractable)
+    for layer in instance.get_layers():
+        layer.save()
