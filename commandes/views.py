@@ -16,6 +16,7 @@
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.http import Http404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -24,6 +25,8 @@ from idgo_admin.models.mail import sender as mail_sender
 
 from idgo_admin.models import Profile
 from idgo_admin.models import Organisation
+
+from idgo_admin.shortcuts import user_and_profile
 
 from commandes.forms import OrderForm
 
@@ -40,6 +43,9 @@ CADASTRE_CONTACT_EMAIL = settings.CADASTRE_CONTACT_EMAIL
 def upload_file(request):
 
     user = request.user
+    user, profile = user_and_profile(request)
+    if not profile.crige_membership:
+        raise Http404
 
     if request.method == 'POST':
         # crée une instance formulaire et la peuple avec des données provenant de la requête
