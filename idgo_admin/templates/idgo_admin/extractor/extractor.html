@@ -320,7 +320,9 @@ $(function() {
 	targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 		format: 'image/png',
 		layers: '{{ layer.mra_info.name }}',
+		{% if layer.mra_info.styles.default %}
 		styles: '{{ layer.mra_info.styles.default }}',
+		{% endif %}
 		transparent: true
 	});
 	layers.push(targetLayer);
