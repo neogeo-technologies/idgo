@@ -46,6 +46,7 @@ from idgo_admin.models.mail import send_referent_confirmation_mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import RemoteCkan
+from idgo_admin.models import SupportedCrs
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
@@ -366,9 +367,10 @@ class OrganisationOWS(View):
         if is_referent or is_admin:
             json = {
                 'abstract': request.POST.get('abstract', None),
+                'srs': [crs.authority for crs in SupportedCrs.objects.all()],
                 'title': request.POST.get('title', None)}
             try:
-                MRAHandler.update_ows_settings('ows', instance.ckan_slug, json)
+                MRAHandler.update_ows_settings('ows', json, ws_name=instance.ckan_slug)
             except Exception as e:
                 messages.error(request, e.__str__())
             else:
