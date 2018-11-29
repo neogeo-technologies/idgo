@@ -16,9 +16,17 @@
 
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
-	<li><span class="glyphicon glyphicon-home"></span></li>
-	<li><a href="{% url 'idgo_admin:jurisdictions' %}">Territoires de compétence</a></li>
+	<li>
+		<span class="glyphicon glyphicon-home"></span>
+	</li>
+	{% if user.profile.crige_membership %}
+	<li>
+		<a href="{% url 'idgo_admin:jurisdictions' %}">Territoires de compétence</a>
+	</li>
 	<li class="active">{% if instance %}{{ instance.name }}{% else %}Nouveau{% endif %}</li>
+	{% else %}
+	<li class="active">{% if instance %}{{ instance.name }}{% else %}Demande de création d'un territoire de compétence{% endif %}</li>
+	{% endif %}
 </ol>
 {% endblock breadcrumb_content %}
 
