@@ -200,7 +200,12 @@ class JurisdictionView(View):
                         kvp['created_by'] = profile
                         JurisdictionCommune.objects.create(**kvp)
                 if fake:
-                    send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation)
+                    url = '{}?organisation={}'.format(
+                        request.build_absolute_uri(reverse(
+                            'idgo_admin:jurisdiction_editor', kwargs={'code': 'new'})),
+                        organisation.pk)
+
+                    send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation, url)
                     raise FakeError('Force atomic to roll back.')
 
         except ValidationError as e:

@@ -307,14 +307,12 @@ def send_resource_delete_mail(user, resource):
 
 
 # Pour demander la création d'un territoire de compétence
-def send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation):
+def send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation, url):
     JurisdictionCommune = apps.get_model(
         app_label='idgo_admin', model_name='JurisdictionCommune')
     communes = [
         instance.commune for instance
         in JurisdictionCommune.objects.filter(jurisdiction=jurisdiction)]
-    # url = '{}?organisation={}'.format(
-    #     reverse('idgo_admin:jurisdiction_editor', kwargs={'code': 'new'}), organisation.pk)
     return sender(
         'ask_for_jursidiction_creation',
         bcc=[user.email],
@@ -323,7 +321,7 @@ def send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation)
         code=jurisdiction.code,
         communes=','.join([commune.code for commune in communes]),
         user_email=user.email,
-        # url=url,
+        url=url,
         organisation=organisation.name,
         organisation_pk=organisation.pk,
         to=get_admins_mails(crige=True),
