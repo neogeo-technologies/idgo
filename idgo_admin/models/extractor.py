@@ -39,6 +39,13 @@ class ExtractorSupportedFormat(models.Model):
 
     details = JSONField(verbose_name='Détails')
 
+    TYPE_CHOICES = (
+        ('raster', 'raster'),
+        ('vector', 'vector'))
+
+    type = models.CharField(
+        'type', max_length=6, blank=True, null=True, choices=TYPE_CHOICES)
+
     def __str__(self):
         return self.description
 
