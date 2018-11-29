@@ -159,6 +159,8 @@ class Granularity(models.Model):
 
     name = models.TextField(verbose_name='Nom')
 
+    order = models.IntegerField(unique=True, blank=True, null=True)
+
     class Meta(object):
         verbose_name = 'Granularité de la couverture territoriale'
         verbose_name_plural = 'Granularités des couvertures territoriales'

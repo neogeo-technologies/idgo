@@ -189,7 +189,7 @@ class DatasetForm(forms.ModelForm):
     granularity = forms.ModelChoiceField(
         empty_label='Sélectionnez une valeur',
         label='Granularité de la couverture territoriale',
-        queryset=Granularity.objects.all(),
+        queryset=Granularity.objects.all().order_by('order'),
         required=False)
 
     organisation = forms.ModelChoiceField(
@@ -272,6 +272,9 @@ class DatasetForm(forms.ModelForm):
 
         if instance and instance.thumbnail:
             self.fields['thumbnail'].widget.attrs['value'] = instance.thumbnail.url
+
+        if not instance:
+            self.fields['granularity'].initial = 'indefinie'
 
     def clean(self):
 
