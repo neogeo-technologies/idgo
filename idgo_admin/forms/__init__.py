@@ -227,6 +227,7 @@ class PhoneField(forms.CharField):
         kwargs.setdefault('validators', [self.validator])
         kwargs.setdefault('widget', forms.TextInput(
             attrs={
+                'type': 'tel',
                 'class': 'phone',
                 'placeholder': 'Téléphone'}))
 
