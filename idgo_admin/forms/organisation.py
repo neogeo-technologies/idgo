@@ -100,7 +100,7 @@ class OrganizationForm(forms.ModelForm):
 
         if not self.user.profile.is_crige_admin:
             self.fields['jurisdiction'].queryset = \
-                Jurisdiction.objects.filter(pk__in=[instance.jurisdiction.pk])
+                Jurisdiction.objects.filter(pk__in=instance.jurisdiction and [instance.jurisdiction.pk] or [])
             self.fields['jurisdiction'].widget.attrs['disabled'] = 'disabled'
             self.fields['jurisdiction'].widget.attrs['class'] = 'disabled'
 
