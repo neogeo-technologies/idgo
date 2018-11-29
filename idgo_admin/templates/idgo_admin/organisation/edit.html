@@ -116,13 +116,7 @@
 				{% bootstrap_field form.organisation_type %}
 			</div>
 		</div>
-		{% if organisation.jurisdiction and user.profile.is_crige_admin %}
-		<div class="row">
-			<div class="col-xs-10 col-sm-6">
-				{% bootstrap_field form.jurisdiction %}
-			</div>
-		</div>
-		{% else %}
+		{% if organisation.jurisdiction %}
 		<div class="row">
 			<div class="col-xs-10 col-sm-6">
 				{% bootstrap_field form.jurisdiction %}
