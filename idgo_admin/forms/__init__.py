@@ -268,6 +268,7 @@ class UsernameField(forms.CharField):
         kwargs.setdefault('min_length', 3)
         kwargs.setdefault('required', True)
         kwargs.setdefault('validators', [validators.validate_slug])
+        # TODO Le validateur ne voit pas les MAJ (à corriger..)
         kwargs.setdefault('widget', forms.TextInput(
             attrs={
                 'placeholder': "Nom d'utilisateur*"}))
