@@ -131,6 +131,11 @@ class Organisation(models.Model):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
         return Dataset.objects.filter(organisation=self, **kwargs)
 
+    def get_crige_membership(self):
+        Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
+        qs = Profile.objects.filter(organisation=self, crige_membership=True)
+        return [profile.user for profile in qs]
+
 
 class RemoteCkan(models.Model):
 

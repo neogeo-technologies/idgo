@@ -17,6 +17,7 @@
 from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
 from django import forms
+from idgo_admin.models.mail import sender as mail_sender
 from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
 
@@ -24,6 +25,18 @@ from idgo_admin.models import OrganisationType
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
 geo_admin.GeoModelAdmin.default_zoom = 14
+
+
+def send_email_to_crige_membership(modeladmin, request, queryset):
+    for organisation in queryset:
+        if not organisation.is_crige_partner:
+            continue
+        for user in organisation.get_crige_membership():
+            mail_sender(
+                'inform_user_he_is_crige',
+                to=[user.email],
+                full_name=user.get_full_name(),
+                username=user.username)
 
 
 class OrganisationForm(forms.ModelForm):
@@ -44,6 +57,10 @@ class OrganisationAdmin(geo_admin.OSMGeoAdmin):
     ordering = ['name']
     readonly_fields = ['ckan_slug']
     form = OrganisationForm
+    actions = [send_email_to_crige_membership]
+
+    send_email_to_crige_membership.short_description = \
+        'Envoyer e-mail aux utilisateurs CRIGE'
 
     def get_form(self, request, obj=None, **kwargs):
         if not request.user.is_superuser and not request.user.profile.is_crige_admin:
