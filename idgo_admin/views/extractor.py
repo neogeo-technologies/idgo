@@ -144,8 +144,6 @@ class ExtractorDashboard(View):
             'supported_format': ExtractorSupportedFormat.objects.all(),
             'tasks': tasks[x:y]}
 
-        print(context)
-
         return render_with_info_profile(
             request, 'idgo_admin/extractor/dashboard.html', context=context)
 
@@ -278,6 +276,9 @@ class Extractor(View):
             extractable=True
             ).exclude(layer=None)
 
+        if len(context['resources']) == 1 and not context['resource']:
+            context['resource'] = context['resources'][0]
+
         layers = Layer.objects.filter(resource=context['resource'])
 
         if not context['layer'] and layers:
@@ -309,9 +310,38 @@ class Extractor(View):
         else:
             context['bounds'] = BOUNDS
 
-        context['crs'] = request.GET.get('crs', context.get('crs'))
-        footprint = request.GET.get('footprint')
-        context['footprint'] = footprint and json.loads(footprint) or context.get('footprint')
+        try:
+            default_crs = \
+                SupportedCrs.objects.get(auth_name='EPSG', auth_code=2154).authority
+        except SupportedCrs.DoesNotExist:
+            default_crs = None
+
+        context['crs'] = request.GET.get('crs', default_crs)
+
+        try:
+            default_vector_format = \
+                ExtractorSupportedFormat.objects.get(
+                    name='shapefile', type='vector').name
+        except ExtractorSupportedFormat.DoesNotExist:
+            default_vector_format = None
+        context['format_vector'] = request.GET.get('format_vector', default_vector_format)
+
+        try:
+            default_raster_format = \
+                ExtractorSupportedFormat.objects.get(
+                    name='geotiff_no_compressed', type='raster').details
+        except ExtractorSupportedFormat.DoesNotExist:
+            default_raster_format = None
+        context['format_raster'] = request.GET.get('format_raster', default_raster_format)
+
+        if bool(request.GET.get('jurisdiction')):
+            context['jurisdiction'] = True
+            context['footprint'] = user.profile.organisation.jurisdiction.geom.geojson
+        else:
+            context['jurisdiction'] = False
+            footprint = request.GET.get('footprint')
+            context['footprint'] = footprint and json.loads(footprint) or context.get('footprint')
+
         context['format'] = request.GET.get('format', context.get('format'))
 
         return render_with_info_profile(request, self.template, context=context)
@@ -333,27 +363,37 @@ class Extractor(View):
                 task=request.GET.get('task'))
         except Exception:
             raise Http404
-
-        footprint = json.loads(request.POST.get('footprint')).get('geometry')
-
+        footprint = request.POST.get('footprint') or None
+        footprint = footprint and json.loads(request.POST.get('footprint')).get('geometry')
         layer_name = request.POST.get('layer')
         resource_name = request.POST.get('resource')
         dataset_name = request.POST.get('dataset')
-
         dst_crs = request.POST.get('crs')
-        format = request.POST.get('format')
-        if format:
-            dst_format = ExtractorSupportedFormat.objects.get(name=format).details
+
+        format_vector = request.POST.get('format-vector') or None
+        if format_vector:
+            dst_format = ExtractorSupportedFormat.objects.get(
+                name=format_vector, type='vector').details
+
+        format_raster = request.POST.get('format-raster') or None
+        if format_raster:
+            dst_format = ExtractorSupportedFormat.objects.get(
+                name=format_raster, type='raster').details
 
         source = 'PG:host=postgis-master user=datagis dbname=datagis'
         footprint_crs = 'EPSG:4326'
 
-        extract_params = {
+        extract_params_vector = {**{
             'source': source,
-            'dst_format': dst_format,
             'dst_srs': dst_crs or 'EPSG:2154',
             'footprint': footprint,
-            'footprint_srs': footprint_crs}
+            'footprint_srs': footprint_crs}, **dst_format}
+
+        extract_params_raster = {**{
+            'source': source,
+            'dst_srs': dst_crs or 'EPSG:2154',
+            'footprint': footprint,
+            'footprint_srs': footprint_crs}, **dst_format}
 
         data_extractions = []
         additional_files = []
@@ -364,7 +404,12 @@ class Extractor(View):
             foreign_value = layer_name
 
             layer = get_object_or_404(Layer, **{foreign_field: foreign_value})
-            data_extractions.append({**extract_params, **{'layer': layer.name}})
+            if layer.type == 'raster':
+                data_extractions.append(
+                    {**extract_params_vector, **{'layer': layer.name}})
+            if layer.type == 'vector':
+                data_extractions.append(
+                    {**extract_params_raster, **{'layer': layer.name}})
 
         elif resource_name:
             model = 'Resource'
@@ -373,8 +418,12 @@ class Extractor(View):
 
             for layer in get_object_or_404(
                     Resource, **{foreign_field: foreign_value}).get_layers():
-                data_extractions.append(
-                    {**extract_params, **{'layer': layer.name}})
+                if layer.type == 'raster':
+                    data_extractions.append(
+                        {**extract_params_vector, **{'layer': layer.name}})
+                if layer.type == 'vector':
+                    data_extractions.append(
+                        {**extract_params_raster, **{'layer': layer.name}})
 
         elif dataset_name:
             model = 'Dataset'
@@ -384,8 +433,21 @@ class Extractor(View):
             for resource in get_object_or_404(
                     Dataset, **{foreign_field: foreign_value}).get_resources():
                 for layer in resource.get_layers():
-                    data_extractions.append(
-                        {**extract_params, **{'layer': layer.name}})
+
+                    if resource.geo_restriction:
+                        if footprint:
+                            # extract_params_vector['footprint'] = ...
+                            pass
+                        else:
+                            extract_params_vector['footprint'] = \
+                                user.profile.organisation.jurisdiction.geom.geojson
+
+                    if layer.type == 'raster':
+                        data_extractions.append(
+                            {**extract_params_vector, **{'layer': layer.name}})
+                    if layer.type == 'vector':
+                        data_extractions.append(
+                            {**extract_params_raster, **{'layer': layer.name}})
 
                 if resource.data_type == 'annexe':
                     additional_files.append({

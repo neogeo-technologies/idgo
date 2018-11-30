@@ -16,6 +16,7 @@
 
 from django.apps import apps
 from django.contrib.gis.db import models
+from django.contrib.gis.db.models import Union
 
 
 class Jurisdiction(models.Model):
@@ -30,6 +31,9 @@ class Jurisdiction(models.Model):
         verbose_name='Communes',
         related_name='jurisdiction_communes')
 
+    geom = models.MultiPolygonField(
+        verbose_name='Geometrie', srid=4326, blank=True, null=True)
+
     objects = models.GeoManager()
 
     class Meta(object):
@@ -39,8 +43,19 @@ class Jurisdiction(models.Model):
     def __str__(self):
         return self.name
 
+    def set_geom(self):
+        geom__union = self.communes.aggregate(Union('geom'))['geom__union']
+        if geom__union:
+            self.geom = geom__union
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.set_geom()
+    #     self.save()
+
     def save(self, *args, **kwargs):
         old = kwargs.pop('old', None)
+        self.set_geom()
         super().save(*args, **kwargs)
 
         if old and old != self.code:

@@ -336,6 +336,7 @@ def send_extraction_successfully_mail(user, instance):
     return sender(
         'data_extraction_successfully',
         full_name=user.get_full_name(),
+        title=instance.target_object.__str__(),
         to=[user.email],
         url=urljoin(EXTRACTOR_URL, 'jobs/{}/download'.format(instance.uuid)),
         username=user.username)
@@ -346,6 +347,6 @@ def send_extraction_failure_mail(user, instance):
     return sender(
         'data_extraction_failure',
         full_name=user.get_full_name(),
-        resource=instance.name,
+        title=instance.target_object.__str__(),
         to=[user.email],
         username=user.username)

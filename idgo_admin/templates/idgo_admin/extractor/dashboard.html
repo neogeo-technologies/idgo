@@ -88,7 +88,11 @@
 					<td name="status">{{ task.status }}</td>
 					<td name="target">
 						{% if task.model == 'Layer' %}
+							{% if task.target_object %}
 						<a href="{% url 'idgo_admin:dataset_editor' id=task.target_object.resource.dataset.pk %}#resources/{{ task.target_object.resource.pk }}">{{ task.target_object }}</a>
+							{% else %}
+						La ressource n'existe plus
+							{% endif %}
 						{% else %}
 						<a href="{% url 'idgo_admin:'|add:task.model|lower|add:'s' %}?id={{ task.target_object.id }}">{{ task.target_object }}</a>
 						{% endif %}

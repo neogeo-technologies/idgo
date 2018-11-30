@@ -101,14 +101,14 @@
 	"pk": "data_extraction_failure",
 	"fields": {
 		"subject": "\u00c9chec de l'extraction",
-		"message": "Bonjour {full_name} ({username}),\n\nL'extraction du jeu de donn\u00e9es \u00ab {dataset} \u00bb a \u00e9chou\u00e9e.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+		"message": "Bonjour {full_name} ({username}),\n\nL'extraction du jeu de donn\u00e9es \u00ab {title} \u00bb a \u00e9chou\u00e9e.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
 	}
 }, {
 	"model": "idgo_admin.mail",
 	"pk": "data_extraction_successfully",
 	"fields": {
 		"subject": "Lien de t\u00e9l\u00e9chargement",
-		"message": "Bonjour {full_name} ({username}),\n\nPour t\u00e9l\u00e9charger votre jeu de donn\u00e9es, veuillez cliquer sur le lien ci-dessous :\n\n{url}\n\nLe lien est disponible 15 jours.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+		"message": "Bonjour {full_name} ({username}),\n\nPour t\u00e9l\u00e9charger le jeu de donn\u00e9es \u00ab {title} \u00bb, veuillez cliquer sur le lien ci-dessous :\n\n{url}\n\nLe lien est disponible 15 jours.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
 	}
 }, {
 	"model": "idgo_admin.mail",

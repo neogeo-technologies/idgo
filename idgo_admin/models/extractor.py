@@ -80,6 +80,9 @@ class AsyncExtractorTask(models.Model):
 
     details = JSONField(verbose_name='Details', blank=True, null=True)
 
+    def __str__(self):
+        return self.target_object.__str__()
+
     @property
     def status(self):
         if self.success is True:
@@ -128,16 +131,21 @@ def synchronize_extractor_task(sender, *args, **kwargs):
                 if instance.success is None:
                     url = instance.details['possible_requests']['status']['url']
                     r = requests.get(url)
+
                     if r.status_code == 200:
                         details = r.json()
 
                         instance.success = {
                             'SUCCESS': True,
-                            'FAILED': False
+                            'FAILURE': False
                             }.get(details['status'], None)
 
                         instance.start_datetime = details.get('start_datetime', None)
-                        instance.stop_datetime = details.get('start_datetime', None)
+                        if instance.success is False:
+                            instance.stop_datetime = timezone.now()
+                        else:
+                            instance.stop_datetime = details.get('end_datetime', None)
+
                         instance.save()
 
                         if instance.success is True:
