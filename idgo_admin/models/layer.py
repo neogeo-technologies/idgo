@@ -100,7 +100,8 @@ class Layer(models.Model):
         verbose_name = 'Couche de données'
 
     def __str__(self):
-        return self.name
+        # On retourne le __str__() de la ressource.
+        return self.resource.__str__()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -338,6 +339,7 @@ class Layer(models.Model):
                 ckan_params['format'] = 'WFS'
                 ckan_params['data_type'] = 'service'
                 ckan_params['view_type'] = None
+                ckan_params['url'] = OWS_URL_PATTERN.format(organisation=organisation.ckan_slug)
                 ckan_user.publish_resource(ckan_package, **ckan_params)
 
                 if self.resource.format_type.extension.lower() in ('json', 'geojson'):
