@@ -65,8 +65,12 @@
 	<p>Votre compte FTP n'est pas encore activé.</p>
 	<a class="btn btn-default" href="{% url "idgo_admin:create_sftp_account" %}">Créer mon compte FTP</a>
 {% else %}
+
+
+
 	<p>Adresse FTP : <strong>{{ ftp_url }}</strong></p>
 	<p>Votre compte FTP est activé : <em>compte utilisateur</em> <strong>{{ user.username }}</strong> / <em>mot de passe</em> <strong>{{ user.profile.sftp_password }}</strong></p>
+	<p>Attention, l'accès à ce compte FTP est sécurisé. Il ne peut se faire qu'avec le protocole SFTP (sur le port 22), donc avec une application spécifique comme FileZilla (<a class="link" href="https://filezilla-project.org">https://filezilla-project.org</a>)</p>
 	<a class="btn btn-default" href="{% url "idgo_admin:delete_sftp_account" %}">Supprimer mon compte FTP</a></li>
 {% endif %}
 </div>
