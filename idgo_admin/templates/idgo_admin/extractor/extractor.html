@@ -264,16 +264,17 @@ $(function() {
 		const dataset = '{{ dataset.ckan_slug }}' || undefined;
 		const resource = '{{ resource.ckan_id }}' || undefined;
 		const layer = targetLayer ? targetLayer.options.layers : undefined;
+		const geojson = editableLayers.toGeoJSON()
 
-		const geojson = footprintLayer ? JSON.stringify(footprintLayer.toGeoJSON()) : undefined;
-
+		var footprint;
 		if (geojson.type == 'FeatureCollection') {
-			// TODO Convert to GeometryCollection
-			const combined = turf.dissolve(geojson);
-			const footprint = combined;
+			footprint = geojson.features[0].geometry
 		} else {
-			const footprint = geojson;
+			footprint = geojson;
 		};
+
+		console.log(footprint)
+		return;
 
 		const crs = $('#crs').val();
 		const formatVector = $('#format[name="vector"]').val();
@@ -283,14 +284,10 @@ $(function() {
 		layer && $form.append($('<input type="text" name="layer"/>').hide().val(layer));
 		dataset && $form.append($('<input type="text" name="dataset"/>').hide().val(dataset));
 		resource && $form.append($('<input type="text" name="resource"/>').hide().val(resource));
-		$form.append($('<input type="text" name="footprint"/>').hide().val(footprint));
+		$form.append($('<input type="text" name="footprint"/>').hide().val(JSON.stringify(footprint)));
 		$form.append($('<input type="text" name="crs"/>').hide().val(crs));
 		$form.append($('<input type="text" name="format-vector"/>').hide().val(formatVector));
 		$form.append($('<input type="text" name="format-raster"/>').hide().val(formatRaster));
-
-		console.log(footprint)
-
-		return
 
 		$modalHourglass.one('show.bs.modal', function(e) {
 			$form.submit();
@@ -412,13 +409,12 @@ $(function() {
 	layers.push(communesLayers);
 
 	const editableLayers = new L.FeatureGroup();
+
 	{% if task %}
-	footprintLayer = L.geoJSON({{ task.details.query.footprint_geojson|safe }});
-	editableLayers.addLayer(footprintLayer.getLayers()[0]);
-	bounds = footprintLayer.getBounds();
+	editableLayers.addLayer(L.geoJSON({{ task.details.query.footprint_geojson|safe }}));
+	// bounds = footprintLayer.getBounds();
 	{% elif footprint %}
-	footprintLayer = L.geoJSON({{ footprint|safe }});
-	editableLayers.addLayer(footprintLayer.getLayers()[0]);
+	editableLayers.addLayer(L.geoJSON({{ footprint|safe }}));
 	{% endif %}
 	layers.push(editableLayers);
 

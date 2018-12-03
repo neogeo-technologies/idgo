@@ -363,8 +363,9 @@ class Extractor(View):
                 task=request.GET.get('task'))
         except Exception:
             raise Http404
+
         footprint = request.POST.get('footprint') or None
-        footprint = footprint and json.loads(request.POST.get('footprint')).get('geometry')
+        footprint = footprint and json.loads(footprint)
         layer_name = request.POST.get('layer')
         resource_name = request.POST.get('resource')
         dataset_name = request.POST.get('dataset')
