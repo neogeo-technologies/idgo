@@ -23,15 +23,14 @@ from django.core.files import File
 from django.db import IntegrityError
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
-# from django.db import transaction
 from django.dispatch import receiver
 from django.http import Http404
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin.datagis import DataDecodingError
 from idgo_admin.datagis import drop_table
-# from idgo_admin.datagis import get_extent
 from idgo_admin.datagis import gdalinfo
 from idgo_admin.datagis import get_gdalogr_object
 from idgo_admin.datagis import NotDataGISError
@@ -42,11 +41,9 @@ from idgo_admin.datagis import ogr2postgis
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin.utils import download
-# from idgo_admin.utils import remove_dir
 from idgo_admin.utils import remove_file
 from idgo_admin.utils import slugify
 from idgo_admin.utils import three_suspension_points
-# import itertools
 import json
 import os
 from pathlib import Path
@@ -224,7 +221,7 @@ class Resource(models.Model):
         on_delete=models.SET_NULL, blank=True, null=True)
 
     bbox = models.PolygonField(
-        verbose_name='Rectangle englobant', blank=True, null=True)
+        verbose_name='Rectangle englobant', blank=True, null=True, srid=4171)
 
     geo_restriction = models.BooleanField(
         verbose_name='Restriction géographique', default=False)
@@ -638,7 +635,9 @@ class Resource(models.Model):
                                                 name=table['id'], resource=self)
                                         except Layer.DoesNotExist:
                                             Layer.vector.create(
-                                                name=table['id'], resource=self,
+                                                name=table['id'],
+                                                resource=self,
+                                                bbox=table['bbox'],
                                                 save_opts={'editor': self.editor})
                                 except Exception as e:
                                     file_must_be_deleted and remove_file(filename)
@@ -680,7 +679,9 @@ class Resource(models.Model):
                                             name=table['id'], resource=self)
                                     except Layer.DoesNotExist:
                                         Layer.raster.create(
-                                            name=table['id'], resource=self,
+                                            name=table['id'],
+                                            resource=self,
+                                            bbox=table['bbox'],
                                             save_opts={'editor': self.editor})
                             except Exception as e:
                                 file_must_be_deleted and remove_file(filename)
@@ -723,6 +724,14 @@ class Resource(models.Model):
             self.geo_restriction = False
             self.ogc_services = False
             self.extractable = False
+
+        if self.get_layers():
+            extent = self.get_layers().aggregate(models.Extent('bbox')).get('bbox__extent')
+            if extent:
+                xmin, ymin = extent[0], extent[1]
+                xmax, ymax = extent[2], extent[3]
+
+                setattr(self, 'bbox', bounds_to_wkt(xmin, ymin, xmax, ymax))
 
         super().save(*args, **kwargs)
 

@@ -69,7 +69,10 @@ def extractor_task(request, *args, **kwargs):
 
     auth_name, auth_code = extract_params.get('dst_srs').split(':')
     crs = SupportedCrs.objects.get(auth_name=auth_name, auth_code=auth_code)
-    format = ExtractorSupportedFormat.objects.get(details=extract_params.get('dst_format'))
+
+    details = {'dst_format': extract_params.get('dst_format')}
+
+    format = ExtractorSupportedFormat.objects.get(details=details)
 
     if instance.model == 'Dataset':
         layers = list(itertools.chain.from_iterable([layer for layer in [
@@ -81,6 +84,7 @@ def extractor_task(request, *args, **kwargs):
         layers = [instance.target_object]
 
     data = {
+        'bounds': None,
         'crs': crs.description,
         'footprint': extract_params.get('footprint'),
         'format': format.description,
@@ -182,7 +186,6 @@ class Extractor(View):
     namespace = 'idgo_admin:extractor'
 
     def get_instance(self, ModelObj, value):
-
         m = re.match('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', value)
         if m:
             key = 'ckan_id'
@@ -373,82 +376,116 @@ class Extractor(View):
 
         format_vector = request.POST.get('format-vector') or None
         if format_vector:
-            dst_format = ExtractorSupportedFormat.objects.get(
+            dst_format_vector = ExtractorSupportedFormat.objects.get(
                 name=format_vector, type='vector').details
 
         format_raster = request.POST.get('format-raster') or None
         if format_raster:
-            dst_format = ExtractorSupportedFormat.objects.get(
+            dst_format_raster = ExtractorSupportedFormat.objects.get(
                 name=format_raster, type='raster').details
-
-        source = 'PG:host=postgis-master user=datagis dbname=datagis'
-        footprint_crs = 'EPSG:4326'
-
-        extract_params_vector = {**{
-            'source': source,
-            'dst_srs': dst_crs or 'EPSG:2154',
-            'footprint': footprint,
-            'footprint_srs': footprint_crs}, **dst_format}
-
-        extract_params_raster = {**{
-            'source': source,
-            'dst_srs': dst_crs or 'EPSG:2154',
-            'footprint': footprint,
-            'footprint_srs': footprint_crs}, **dst_format}
 
         data_extractions = []
         additional_files = []
+
+        # TODO Factoriser !
 
         if layer_name:
             model = 'Layer'
             foreign_field = 'name'
             foreign_value = layer_name
 
-            layer = get_object_or_404(Layer, **{foreign_field: foreign_value})
+            layer = get_object_or_404(Layer, name=layer_name)
             if layer.type == 'raster':
-                data_extractions.append(
-                    {**extract_params_vector, **{'layer': layer.name}})
+                data_extractions.append({
+                    **{
+                        'layer': layer.name,
+                        'source': layer.filename,
+                        'dst_srs': dst_crs or 'EPSG:2154',
+                        'footprint': footprint,
+                        'footprint_srs': 'EPSG:4326'
+                        },
+                    **dst_format_raster})
+
             if layer.type == 'vector':
-                data_extractions.append(
-                    {**extract_params_raster, **{'layer': layer.name}})
+                data_extractions.append({
+                    **{
+                        'layer': layer.name,
+                        'source': 'PG:host=postgis-master user=datagis dbname=datagis',
+                        'dst_srs': dst_crs or 'EPSG:2154',
+                        'footprint': footprint,
+                        'footprint_srs': 'EPSG:4326'
+                        },
+                    **dst_format_vector})
 
         elif resource_name:
             model = 'Resource'
-            foreign_field = 'name'
+            foreign_field = 'ckan_id'
             foreign_value = resource_name
 
-            for layer in get_object_or_404(
-                    Resource, **{foreign_field: foreign_value}).get_layers():
+            resource = get_object_or_404(Resource, ckan_id=resource_name)
+            if resource.geo_restriction:
+                pass  # TODO
+
+            for layer in resource.get_layers():
                 if layer.type == 'raster':
-                    data_extractions.append(
-                        {**extract_params_vector, **{'layer': layer.name}})
-                if layer.type == 'vector':
-                    data_extractions.append(
-                        {**extract_params_raster, **{'layer': layer.name}})
+                    data_extractions.append({
+                        **{
+                            'layer': layer.name,
+                            'source': layer.filename,
+                            'dst_srs': dst_crs or 'EPSG:2154',
+                            'footprint': footprint,
+                            'footprint_srs': 'EPSG:4326'
+                            },
+                        **dst_format_raster})
+
+                elif layer.type == 'vector':
+                    data_extractions.append({
+                        **{
+                            'layer': layer.name,
+                            'source': 'PG:host=postgis-master user=datagis dbname=datagis',
+                            'dst_srs': dst_crs or 'EPSG:2154',
+                            'footprint': footprint,
+                            'footprint_srs': 'EPSG:4326'
+                            },
+                        **dst_format_vector})
 
         elif dataset_name:
             model = 'Dataset'
             foreign_field = 'ckan_slug'
             foreign_value = dataset_name
 
-            for resource in get_object_or_404(
-                    Dataset, **{foreign_field: foreign_value}).get_resources():
+            dataset = get_object_or_404(Dataset, ckan_slug=dataset_name)
+            for resource in dataset.get_resources():
                 for layer in resource.get_layers():
-
-                    if resource.geo_restriction:
-                        if footprint:
-                            # extract_params_vector['footprint'] = ...
-                            pass
-                        else:
-                            extract_params_vector['footprint'] = \
-                                user.profile.organisation.jurisdiction.geom.geojson
+                    # if resource.geo_restriction:
+                    #     if footprint:
+                    #         # extract_params_vector['footprint'] = ...
+                    #         pass
+                    #     else:
+                    #         extract_params_vector['footprint'] = \
+                    #             user.profile.organisation.jurisdiction.geom.geojson
 
                     if layer.type == 'raster':
-                        data_extractions.append(
-                            {**extract_params_vector, **{'layer': layer.name}})
-                    if layer.type == 'vector':
-                        data_extractions.append(
-                            {**extract_params_raster, **{'layer': layer.name}})
+                        data_extractions.append({
+                            **{
+                                'layer': layer.name,
+                                'source': layer.filename,
+                                'dst_srs': dst_crs or 'EPSG:2154',
+                                'footprint': footprint,
+                                'footprint_srs': 'EPSG:4326'
+                                },
+                            **dst_format_raster})
+
+                    elif layer.type == 'vector':
+                        data_extractions.append({
+                            **{
+                                'layer': layer.name,
+                                'source': 'PG:host=postgis-master user=datagis dbname=datagis',
+                                'dst_srs': dst_crs or 'EPSG:2154',
+                                'footprint': footprint,
+                                'footprint_srs': 'EPSG:4326'
+                                },
+                            **dst_format_vector})
 
                 if resource.data_type == 'annexe':
                     additional_files.append({

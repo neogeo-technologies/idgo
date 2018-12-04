@@ -266,15 +266,10 @@ $(function() {
 		const layer = targetLayer ? targetLayer.options.layers : undefined;
 		const geojson = editableLayers.toGeoJSON()
 
-		var footprint;
-		if (geojson.type == 'FeatureCollection') {
+		var footprint = undefined;
+		if (geojson.type == 'FeatureCollection' && geojson.features.length == 1) {
 			footprint = geojson.features[0].geometry
-		} else {
-			footprint = geojson;
 		};
-
-		console.log(footprint)
-		return;
 
 		const crs = $('#crs').val();
 		const formatVector = $('#format[name="vector"]').val();
@@ -331,7 +326,7 @@ $(function() {
 		transparent: true
 	});
 	layers.push(targetLayer);
-	bounds = {{ layer.mra_info.bbox|default:None|safe }};
+	// bounds = {{ layer.mra_info.bbox|default:None|safe }};
 
 	delete qs['layer'];
 	qs['organisation'] = '{{ organisation.ckan_slug }}';

@@ -23,6 +23,7 @@ from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -50,6 +51,35 @@ CKAN_URL = settings.CKAN_URL
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+
+
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def resource(request, dataset_id=None, *args, **kwargs):
+    user, profile = user_and_profile(request)
+
+    id = request.GET.get('id', request.GET.get('ckan_id'))
+    if not id:
+        raise Http404
+
+    kvp = {}
+    try:
+        id = int(id)
+    except ValueError:
+        kvp['ckan_id'] = id
+    else:
+        kvp['id'] = id
+    finally:
+        instance = get_object_or_404(Resource, **kvp)
+
+    # TODO:
+    # return redirect(reverse('idgo_admin:resource_editor', kwargs={
+    #     'dataset_id': instance.dataset.id, 'resource_id': instance.id}))
+    return redirect(
+        '{}?id={}'.format(
+            reverse(
+                'idgo_admin:resource', kwargs={'dataset_id': instance.dataset.id}),
+            instance.id))
 
 
 @method_decorator(decorators, name='dispatch')

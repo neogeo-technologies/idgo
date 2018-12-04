@@ -252,12 +252,21 @@ def gdalinfo(cs, update={}):
     layername = slugify(p.name[:-len(p.suffix)]).replace('-', '_')
     table_id = update.get(
         layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))
+
     xmin, ymin, xmax, ymax = cs.extent
+    epsg = get_epsg(cs)
 
     return {
         'id': table_id,
         'epsg': get_epsg(cs),
+        'bbox': transform(bounds_to_wkt(xmin, ymin, xmax, ymax), epsg),
         'extent': ((xmin, ymin), (xmax, ymax))}
+
+
+def bounds_to_wkt(xmin, ymin, xmax, ymax):
+    return (
+        'POLYGON(({xmin} {ymin}, {xmax} {ymin}, {xmax} {ymax}, {xmin} {ymax}, {xmin} {ymin}))'
+        ).format(xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax)
 
 
 def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='utf-8'):
@@ -290,9 +299,18 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
         except SupportedCrs.DoesNotExist:
             raise NotSupportedSrsError('SRS Not Supported')
 
+        xmin = layer.extent.min_x
+        ymin = layer.extent.min_y
+        xmax = layer.extent.max_x
+        ymax = layer.extent.max_y
+
         table_id = update.get(
             layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))
-        tables.append({'id': table_id, 'epsg': epsg})
+        tables.append({
+            'id': table_id,
+            'epsg': epsg,
+            'bbox': bounds_to_wkt(xmin, ymin, xmax, ymax),
+            'extent': ((xmin, ymin), (xmax, ymax))})
 
         attrs = {}
         for i, k in enumerate(layer.fields):
@@ -476,3 +494,21 @@ def drop_table(table, schema=SCHEMA):
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         cursor.close()
+
+
+def transform(wkt, epsg_in, epsg_out=4174):
+
+    sql = '''
+SELECT ST_AsText(ST_Transform(ST_GeomFromText('{wkt}', {epsg_in}), {epsg_out})) AS wkt;
+'''.format(wkt=wkt, epsg_in=epsg_in, epsg_out=epsg_out)
+
+    with connections[DATABASE].cursor() as cursor:
+        try:
+            cursor.execute(sql)
+        except Exception as e:
+            if e.__class__.__qualname__ != 'ProgrammingError':
+                raise e
+        else:
+            records = cursor.fetchall()
+            cursor.close()
+            return records[0][0]

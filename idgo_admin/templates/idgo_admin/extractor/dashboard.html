@@ -186,8 +186,14 @@ $(function() {
 						transparent: true
 					});
 
-					const footprintLayer = L.geoJSON(data.footprint, {});
-					const bounds = footprintLayer.getBounds();
+					let layers = [baseMaps[defaultBaseMap], wmsLayer];
+
+					const footprintLayer = data.footprint ? L.geoJSON(data.footprint, {}) : undefined;
+					const bounds = footprintLayer ? footprintLayer.getBounds() : {{  }};
+
+					if (footprintLayer) {
+						layers.push(footprintLayer)
+					};
 
 					const map = L
 						.map('map', {

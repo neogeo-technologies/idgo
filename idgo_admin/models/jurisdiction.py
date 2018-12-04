@@ -67,6 +67,9 @@ class Jurisdiction(models.Model):
 
     def get_bounds(self):
         extent = self.communes.envelope().aggregate(models.Extent('geom')).get('geom__extent')
+        # xmin, ymin = extent[0], extent[1]
+        # xmax, ymax = extent[2], extent[3]
+
         if extent:
             return ((extent[1], extent[0]), (extent[3], extent[2]))
 

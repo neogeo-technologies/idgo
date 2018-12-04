@@ -59,6 +59,7 @@ from idgo_admin.views.organisation import OrganisationOWS
 from idgo_admin.views.organisation import RemoteCkanEditor
 from idgo_admin.views.organisation import Subscription
 from idgo_admin.views.organisation import UpdateOrganisation
+from idgo_admin.views.resource import resource
 from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
 from idgo_admin.views.stuffs import ows_preview
@@ -76,7 +77,10 @@ urlpatterns = [
     url('^dataset/?$', dataset, name='dataset'),
     url('^dataset/(?P<target>(all|mine|harvested))/?$', datasets, name='datasets'),
     url('^dataset/(?P<id>(new|(\d+)))/edit/?$', DatasetManager.as_view(), name='dataset_editor'),
+
+    url('^resource/?$', resource, name='resources'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
+    # TODO: url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/?$', ResourceEditor.as_view(), name='resource_editor'),
 
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/edit/?$', LayerView.as_view(), name='layer_editor'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/?$', layer_style, name='layer_style'),

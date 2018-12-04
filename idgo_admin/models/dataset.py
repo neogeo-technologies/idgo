@@ -27,10 +27,9 @@ from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
-from idgo_admin.datagis import get_extent
+from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin.managers import HarvestedDataset
 from idgo_admin.utils import three_suspension_points
-import itertools
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
 import uuid
@@ -42,11 +41,6 @@ OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
 DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
 
-
-def bounds_to_wkt(xmin, ymin, xmax, ymax):
-    return (
-        'POLYGON(({xmin} {ymin}, {xmax} {ymin}, {xmax} {ymax}, {xmin} {ymax}, {xmin} {ymin}))'
-        ).format(xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax)
 
 try:
     BOUNDS = settings.DEFAULTS_VALUES['BOUNDS']
@@ -227,9 +221,8 @@ class Dataset(models.Model):
             return [[miny, minx], [maxy, maxx]]
 
     def get_layers(self):
-        return list(itertools.chain.from_iterable([
-            qs for qs in [
-                resource.get_layers() for resource in self.get_resources()]]))
+        Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
+        return Layer.objects.filter(resource__dataset__pk=self.pk)
 
     def is_contributor(self, profile):
         LiaisonsContributeurs = apps.get_model(
@@ -278,15 +271,20 @@ class Dataset(models.Model):
         broadcaster_email = self.broadcaster_email or \
             self.support and self.support.email or DEFAULT_CONTACT_EMAIL
 
-        if not self.bbox:
-            if not self.geocover and (
-                    self.organisation and self.organisation.jurisdiction):
-                setattr(self, 'geocover', 'jurisdiction')
+        if not self.bbox and (not self.geocover and (
+                self.organisation and self.organisation.jurisdiction)):
+            setattr(self, 'geocover', 'jurisdiction')
 
         layers = self.get_layers()
-        if not layers:
-            # Seulement s'il n'y a pas de layers rattachés au jeu de données.
-            # car sinon la bbox devrait être celle des couches
+        if layers:
+            # On calcule la BBOX de l'ensemble des Layers rattachés au Dataset
+            extent = layers.aggregate(models.Extent('bbox')).get('bbox__extent')
+            if extent:
+                xmin, ymin = extent[0], extent[1]
+                xmax, ymax = extent[2], extent[3]
+                setattr(self, 'bbox', bounds_to_wkt(xmin, ymin, xmax, ymax))
+        else:
+            # Sinon, on regarde la valeur de `geocover` renseignée
             if self.geocover == 'jurisdiction':
                 # Prend l'étendue du territoire de compétence
                 if self.organisation:
@@ -297,13 +295,9 @@ class Dataset(models.Model):
                             xmin, ymin = bounds[0][1], bounds[0][0]
                             xmax, ymax = bounds[1][1], bounds[1][0]
                             setattr(self, 'bbox', bounds_to_wkt(xmin, ymin, xmax, ymax))
-            elif self.geocover == 'regionale':
+            else:  # self.geocover == 'regionale'
                 # Prend l'étendue par défaut définie en settings
                 setattr(self, 'bbox', DEFAULT_BBOX)
-        else:
-            # TODO ajouter les raster !
-            bbox = get_extent([layer.name for layer in layers if layer.type == 'vector'])
-            setattr(self, 'bbox', bbox)
 
         super().save(*args, **kwargs)
 

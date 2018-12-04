@@ -19,12 +19,15 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import pre_delete
+from django.db.models.signals import post_init
 from django.dispatch import receiver
+from django.http import Http404
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import drop_table
 from idgo_admin.mra_client import MraBaseError
 from idgo_admin.mra_client import MRAHandler
+from idgo_admin.mra_client import MRANotFoundError
 import itertools
 import json
 import os
@@ -92,6 +95,9 @@ class Layer(models.Model):
     attached_ckan_resources = ArrayField(
         models.UUIDField(), size=None, blank=True, null=True)
 
+    bbox = models.PolygonField(
+        verbose_name='Rectangle englobant', blank=True, null=True, srid=4171)
+
     objects = models.Manager()
     vector = LayerVectorManager()
     raster = LayerRasterManager()
@@ -119,7 +125,6 @@ class Layer(models.Model):
                 return
 
             if not l or not ft:
-                # raise MRANotFoundError
                 return
 
             ll = ft['featureType']['latLonBoundingBox']
@@ -141,7 +146,6 @@ class Layer(models.Model):
                         'text': style['name'],
                         'url': style['href'].replace('json', 'sld'),
                         'sld': MRAHandler.get_style(style['name'])})
-
         elif self.type == 'raster':
             try:
                 c = MRAHandler.get_coverage(
@@ -150,7 +154,6 @@ class Layer(models.Model):
                 return
 
             if not l or not c:
-                # raise MRANotFoundError
                 return
 
             ll = c['coverage']['latLonBoundingBox']
