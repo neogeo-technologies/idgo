@@ -15,6 +15,26 @@
 {% endblock head_extras %}
 
 {% block body %}
+{% if messages %}
+<div id="messageModal" class="modal fade" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-body">
+	{% for message in messages %}
+		{% if message.tags == 'error' %}
+				<div name='message-tags' class="alert alert-danger" role="alert">
+					<span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>{{ message | escape | safe }}
+				</div>
+		{% endif %}
+	{% endfor %}
+				<div class="buttons-on-the-right-side">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endif %}
 <div id="extractor">
 	<div id="map" class="map"></div>
 	<div class="page-header">
@@ -66,7 +86,6 @@
 	<div class="main-container">
 		<div class="wrapper" style="pointer-events: none;">
 			<div class="container-fluid">
-				{% include "idgo_admin/alert_messages.html" %}
 				<div class="row">
 					<div class="col-md-12">
 						{% block main_content %}
@@ -146,7 +165,7 @@
 												</div>
 												<div class="form-group{% if not dataset %} disabled{% endif %}">
 													<label for="format">Format de données vectoriel</label>
-													<select class="form-control" id="format" name="vector" required>
+													<select class="form-control" id="format_vector" name="vector" required>
 														<option value="" disabled selected>Sélectionnez un format</option>
 														{% for item in supported_format %}
 															{% if item.type == 'vector' %}
@@ -157,7 +176,7 @@
 												</div>
 												<div class="form-group{% if not dataset %} disabled{% endif %}">
 													<label for="format">Format de données raster</label>
-													<select class="form-control" id="format" name="raster" required>
+													<select class="form-control" id="format_raster" name="raster" required>
 														<option value="" disabled selected>Sélectionnez un format</option>
 														{% for item in supported_format %}
 															{% if item.type == 'raster' %}
@@ -272,8 +291,8 @@ $(function() {
 		};
 
 		const crs = $('#crs').val();
-		const formatVector = $('#format[name="vector"]').val();
-		const formatRaster = $('#format[name="raster"]').val();
+		const formatVector = $('#format_vector').val();
+		const formatRaster = $('#format_raster').val();
 
 		const $form = $('form').attr('method', 'POST');
 		layer && $form.append($('<input type="text" name="layer"/>').hide().val(layer));
@@ -341,7 +360,7 @@ $(function() {
 		new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 			format: 'image/png',
 			layers: '{{ layer.mra_info.name }}',
-			styles: '{{ layer.mra_info.styles.default }}',
+			// styles: '{{ layer.mra_info.styles.default }}',
 			transparent: true
 		})
 	);
@@ -406,11 +425,13 @@ $(function() {
 	const editableLayers = new L.FeatureGroup();
 
 	{% if task %}
-	editableLayers.addLayer(L.geoJSON({{ task.details.query.footprint_geojson|safe }}));
-	// bounds = footprintLayer.getBounds();
-	{% elif footprint %}
+	delete qs['task'];
+	{% endif %}
+
+	{% if footprint %}
 	editableLayers.addLayer(L.geoJSON({{ footprint|safe }}));
 	{% endif %}
+
 	layers.push(editableLayers);
 
 	{% if bounds %}
@@ -585,13 +606,12 @@ $(function() {
 		updateUrl({withHash: false, refresh: true});
 	});
 
-	/*
-	$('#format, #crs').change(function(e) {
+	$('#format_vector, #format_raster, #crs').change(function(e) {
 		e.preventDefault();
 		if ($('#organisation').val() &&
 			$('#dataset').val() &&
-			// $('#resource').val() &&
-			$('#format').val() &&
+			$('#format_vector').val() &&
+			$('#format_raster').val() &&
 			$('#crs').val()) {
 			$extract.prop('disabled', false).removeClass('disabled');
 		} else {
@@ -600,7 +620,6 @@ $(function() {
 		qs[this.id] = $(this).val();
 		updateUrl({withHash: false, refresh: false});
 	}).trigger('change');
-	*/
 
 	$window.keydown(function(e) {
 		if (e.which == 17) {
@@ -611,6 +630,10 @@ $(function() {
 			ctrlPressed = false;
 		};
 	});
+
+	{% if messages %}
+	$('#messageModal').modal('show');
+	{% endif %}
 
 });
 </script>

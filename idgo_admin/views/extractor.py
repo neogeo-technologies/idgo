@@ -26,6 +26,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.datagis import intersect
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import AsyncExtractorTask
@@ -40,7 +41,6 @@ from idgo_admin.models import SupportedCrs
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
-import itertools
 import json
 from math import ceil
 import re
@@ -65,30 +65,40 @@ def extractor_task(request, *args, **kwargs):
     instance = get_object_or_404(AsyncExtractorTask, uuid=request.GET.get('id'))
     query = instance.details['query']
 
-    extract_params = query['data_extractions'][-1]
+    extract_params = {}
+    format_raster, format_vector = None, None
+    for data_extraction in query['data_extractions']:
+        for format in ExtractorSupportedFormat.objects.all():
+            if format.details.get('dst_format') == data_extraction.get('dst_format'):
+                if format.type == 'raster':
+                    format_raster = format
+                if format.type == 'vector':
+                    format_vector = format
+        extract_params = data_extraction
 
     auth_name, auth_code = extract_params.get('dst_srs').split(':')
     crs = SupportedCrs.objects.get(auth_name=auth_name, auth_code=auth_code)
 
-    details = {'dst_format': extract_params.get('dst_format')}
-
-    format = ExtractorSupportedFormat.objects.get(details=details)
-
     if instance.model == 'Dataset':
-        layers = list(itertools.chain.from_iterable([layer for layer in [
-            resource.get_layers() for resource
-            in instance.target_object.get_resources()]]))
+        dataset = instance.target_object
+        bounds = dataset.bbox.extent
+        layers = [layer for layer in dataset.get_layers()]
     elif instance.model == 'Resource':
-        layers = [layer for layer in instance.target_object.get_layers()]
+        resource = instance.target_object
+        bounds = resource.bbox.extent
+        layers = [layer for layer in resource.get_layers()]
     elif instance.model == 'Layer':
+        layer = instance.target_object
+        bounds = layer.bbox.extent
         layers = [instance.target_object]
 
     data = {
-        'bounds': None,
+        'bounds': bounds,
         'crs': crs.description,
         'footprint': extract_params.get('footprint'),
-        'format': format.description,
-        'layer': [layer.name for layer in layers],
+        'format_raster': format_raster and format_raster.description or '-',
+        'format_vector': format_vector and format_vector.description or '-',
+        'layer': [l.name for l in layers],
         'start': instance.start_datetime,
         'stop': instance.stop_datetime,
         'target': '{} : {}'.format(
@@ -99,6 +109,9 @@ def extractor_task(request, *args, **kwargs):
         'target_model': instance.model.lower(),
         'submission': instance.details.get('submission_datetime'),
         'user': instance.user.get_full_name()}
+
+    if instance.success is False:
+        data['error'] = instance.details.get('exception', 'Une erreur est survenu.')
 
     return JsonResponse(data=data)
 
@@ -140,6 +153,7 @@ class ExtractorDashboard(View):
         number_of_pages = ceil(len(tasks) / items_per_page)
 
         context = {
+            'bounds': BOUNDS,
             'basemaps': BaseMaps.objects.all(),
             'pagination': {
                 'current': page_number,
@@ -202,8 +216,8 @@ class Extractor(View):
         except (ModelObj.DoesNotExist, ValueError):
             raise Http404
 
-    def get_context(self, user, organisation=None, dataset=None,
-                    resource=None, layer=None, task=None):
+    def _context(self, user, organisation=None, dataset=None,
+                 resource=None, layer=None, task=None):
 
         context = {
             'organisations': None,
@@ -216,7 +230,9 @@ class Extractor(View):
             'task': None,
             'communes': Commune.objects.all().transform(srid=4326),
             'supported_crs': SupportedCrs.objects.all(),
-            'supported_format': ExtractorSupportedFormat.objects.all()}
+            'supported_format': ExtractorSupportedFormat.objects.all(),
+            'format_raster': None,
+            'format_vector': None}
 
         if task:
             try:
@@ -232,18 +248,25 @@ class Extractor(View):
                     context['organisation'] = task.target_object.resource.dataset.organisation
                 elif task.model == 'Resource':
                     context['task'] = task
-                    context['layer'] = task.target_object.get_layers()[-1]  # Dans la version actuelle relation 1-1
+                    context['layer'] = task.target_object.get_layers()[0]  # Dans la version actuelle relation 1-1
                     context['resource'] = task.target_object
                     context['dataset'] = task.target_object.dataset
-                    context['organisation'] = task.target_object.organisation
+                    context['organisation'] = task.target_object.dataset.organisation
                 elif task.model == 'Dataset':
                     context['dataset'] = task.target_object
                     context['organisation'] = task.target_object.organisation
 
-                extract_params = task.details['query']['data_extractions'][-1]
-                context['footprint'] = extract_params.get('footprint')
-                context['crs'] = extract_params.get('dst_srs')
-                context['format'] = extract_params.get('dst_format')
+                data_extractions = task.details['query']['data_extractions']
+                for entry in data_extractions:
+                    context['footprint'] = entry.get('footprint')
+                    context['crs'] = entry.get('dst_srs')
+
+                    for format in ExtractorSupportedFormat.objects.all():
+                        if format.details.get('dst_format') == entry.get('dst_format'):
+                            if format.type == 'raster':
+                                context['format_raster'] = format.name
+                            if format.type == 'vector':
+                                context['format_vector'] = format.name
 
         # Les paramètres Layer Resource Dataset et Organisation écrase Task
         if layer:
@@ -289,14 +312,9 @@ class Extractor(View):
 
         return context
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def get(self, request, *args, **kwargs):
+    def get_context(self, request, user):
 
-        user, profile = user_and_profile(request)
-        if not profile.crige_membership:
-            raise Http404
-
-        context = self.get_context(
+        context = self._context(
             user,
             organisation=request.GET.get('organisation'),
             dataset=request.GET.get('dataset'),
@@ -327,7 +345,7 @@ class Extractor(View):
                     name='shapefile', type='vector').name
         except ExtractorSupportedFormat.DoesNotExist:
             default_vector_format = None
-        context['format_vector'] = request.GET.get('format_vector', default_vector_format)
+        context['format_vector'] = request.GET.get('format_vector', context['format_vector'] or default_vector_format)
 
         try:
             default_raster_format = \
@@ -335,7 +353,7 @@ class Extractor(View):
                     name='geotiff_no_compressed', type='raster').details
         except ExtractorSupportedFormat.DoesNotExist:
             default_raster_format = None
-        context['format_raster'] = request.GET.get('format_raster', default_raster_format)
+        context['format_raster'] = request.GET.get('format_raster', context['format_raster'] or default_raster_format)
 
         if bool(request.GET.get('jurisdiction')):
             context['jurisdiction'] = True
@@ -347,25 +365,25 @@ class Extractor(View):
 
         context['format'] = request.GET.get('format', context.get('format'))
 
-        return render_with_info_profile(request, self.template, context=context)
+        return context
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-    def post(self, request, *args, **kwargs):
-
+    def get(self, request, *args, **kwargs):
         user, profile = user_and_profile(request)
         if not profile.crige_membership:
             raise Http404
 
-        try:
-            context = self.get_context(
-                user,
-                organisation=request.GET.get('organisation'),
-                dataset=request.GET.get('dataset'),
-                resource=request.GET.get('resource'),
-                layer=request.GET.get('layer'),
-                task=request.GET.get('task'))
-        except Exception:
+        return render_with_info_profile(
+            request, self.template,
+            context=self.get_context(request, user))
+
+    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+    def post(self, request, *args, **kwargs):
+        user, profile = user_and_profile(request)
+        if not profile.crige_membership:
             raise Http404
+
+        context = self.get_context(request, user)
 
         footprint = request.POST.get('footprint') or None
         footprint = footprint and json.loads(footprint)
@@ -387,105 +405,80 @@ class Extractor(View):
         data_extractions = []
         additional_files = []
 
-        # TODO Factoriser !
+        if layer_name or resource_name:
+            if layer_name:
+                model = 'Layer'
+                foreign_field = 'name'
+                foreign_value = layer_name
+                layer = get_object_or_404(Layer, name=layer_name)
+                resource = layer.resource
 
-        if layer_name:
-            model = 'Layer'
-            foreign_field = 'name'
-            foreign_value = layer_name
+            if resource_name:
+                model = 'Resource'
+                foreign_field = 'ckan_id'
+                foreign_value = resource_name
+                resource = get_object_or_404(Resource, ckan_id=resource_name)
+                layer = resource.get_layers()[0]  # Car relation 1-1
 
-            layer = get_object_or_404(Layer, name=layer_name)
             if layer.type == 'raster':
-                data_extractions.append({
-                    **{
-                        'layer': layer.name,
-                        'source': layer.filename,
-                        'dst_srs': dst_crs or 'EPSG:2154',
-                        'footprint': footprint,
-                        'footprint_srs': 'EPSG:4326'
-                        },
-                    **dst_format_raster})
+                data_extraction = {**{
+                    'source': layer.filename,
+                    }, **dst_format_raster}
+            elif layer.type == 'vector':
+                data_extraction = {**{
+                    'layer': layer.name,
+                    'source': 'PG:host=postgis-master user=datagis dbname=datagis',
+                    }, **dst_format_vector}
 
-            if layer.type == 'vector':
-                data_extractions.append({
-                    **{
-                        'layer': layer.name,
-                        'source': 'PG:host=postgis-master user=datagis dbname=datagis',
-                        'dst_srs': dst_crs or 'EPSG:2154',
-                        'footprint': footprint,
-                        'footprint_srs': 'EPSG:4326'
-                        },
-                    **dst_format_vector})
+            data_extraction['dst_srs'] = dst_crs or 'EPSG:2154'
 
-        elif resource_name:
-            model = 'Resource'
-            foreign_field = 'ckan_id'
-            foreign_value = resource_name
-
-            resource = get_object_or_404(Resource, ckan_id=resource_name)
             if resource.geo_restriction:
-                pass  # TODO
+                footprint_restriction = \
+                    user.profile.organisation.jurisdiction.geom.geojson
+                if footprint:
+                    data_extraction['footprint'] = intersect(json.dumps(footprint), footprint_restriction)
+                else:
+                    data_extraction['footprint'] = footprint_restriction
+                data_extraction['footprint_srs'] = 'EPSG:4326'
+            elif footprint:
+                data_extraction['footprint'] = footprint
+                data_extraction['footprint_srs'] = 'EPSG:4326'
 
-            for layer in resource.get_layers():
-                if layer.type == 'raster':
-                    data_extractions.append({
-                        **{
-                            'layer': layer.name,
-                            'source': layer.filename,
-                            'dst_srs': dst_crs or 'EPSG:2154',
-                            'footprint': footprint,
-                            'footprint_srs': 'EPSG:4326'
-                            },
-                        **dst_format_raster})
-
-                elif layer.type == 'vector':
-                    data_extractions.append({
-                        **{
-                            'layer': layer.name,
-                            'source': 'PG:host=postgis-master user=datagis dbname=datagis',
-                            'dst_srs': dst_crs or 'EPSG:2154',
-                            'footprint': footprint,
-                            'footprint_srs': 'EPSG:4326'
-                            },
-                        **dst_format_vector})
+            data_extractions.append(data_extraction)
+            # Pas d'`additional_files` dans le cas présent.
 
         elif dataset_name:
             model = 'Dataset'
             foreign_field = 'ckan_slug'
             foreign_value = dataset_name
-
             dataset = get_object_or_404(Dataset, ckan_slug=dataset_name)
+
             for resource in dataset.get_resources():
                 for layer in resource.get_layers():
-                    # if resource.geo_restriction:
-                    #     if footprint:
-                    #         # extract_params_vector['footprint'] = ...
-                    #         pass
-                    #     else:
-                    #         extract_params_vector['footprint'] = \
-                    #             user.profile.organisation.jurisdiction.geom.geojson
-
                     if layer.type == 'raster':
-                        data_extractions.append({
-                            **{
-                                'layer': layer.name,
-                                'source': layer.filename,
-                                'dst_srs': dst_crs or 'EPSG:2154',
-                                'footprint': footprint,
-                                'footprint_srs': 'EPSG:4326'
-                                },
-                            **dst_format_raster})
-
+                        data_extraction = {**{
+                            'source': layer.filename,
+                            }, **dst_format_raster}
                     elif layer.type == 'vector':
-                        data_extractions.append({
-                            **{
-                                'layer': layer.name,
-                                'source': 'PG:host=postgis-master user=datagis dbname=datagis',
-                                'dst_srs': dst_crs or 'EPSG:2154',
-                                'footprint': footprint,
-                                'footprint_srs': 'EPSG:4326'
-                                },
-                            **dst_format_vector})
+                        data_extraction = {**{
+                            'layer': layer.name,
+                            'source': 'PG:host=postgis-master user=datagis dbname=datagis',
+                            }, **dst_format_vector}
+                    data_extraction['dst_srs'] = dst_crs or 'EPSG:2154'
+
+                    if resource.geo_restriction:
+                        footprint_restriction = \
+                            user.profile.organisation.jurisdiction.geom.geojson
+                        if footprint:
+                            data_extraction['footprint'] = intersect(json.dumps(footprint), footprint_restriction)
+                        else:
+                            data_extraction['footprint'] = footprint_restriction
+                        data_extraction['footprint_srs'] = 'EPSG:4326'
+                    elif footprint:
+                        data_extraction['footprint'] = footprint
+                        data_extraction['footprint_srs'] = 'EPSG:4326'
+
+                    data_extractions.append(data_extraction)
 
                 if resource.data_type == 'annexe':
                     additional_files.append({
@@ -525,7 +518,9 @@ class Extractor(View):
             return HttpResponseRedirect(reverse('idgo_admin:extractor_dashboard'))
         else:
             if r.status_code == 400:
-                msg = r.json().get('detail')
+                details = r.json().get('detail')
+                msg = '{}: {}'.format(details.get('title', 'Error'),
+                                      ' '.join(details.get('list', 'Error')))
             else:
                 msg = "L'extracteur n'est pas disponible pour le moment."
             messages.error(request, msg)

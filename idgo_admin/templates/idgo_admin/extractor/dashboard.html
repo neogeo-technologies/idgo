@@ -29,8 +29,10 @@
 			<dd name="target"></dd>
 			<dt>Système de coordonnées</dt>
 			<dd name="crs"></dd>
-			<dt>Format de données</dt>
-			<dd name="format"></dd>
+			<dt>Format de données vecteur</dt>
+			<dd name="format_vector"></dd>
+			<dt>Format de données raster</dt>
+			<dd name="format_raster"></dd>
 			<dt>Date de la demande</dt>
 			<dd name="submission" type="datetime-local"></dd>
 			<dt>Date de début du traitement</dt>
@@ -151,7 +153,11 @@ $(function() {
 				url: '{% url "idgo_admin:extractor_task" %}?id=' + taskId,
 				success: function(data, status, xhr) {
 					const $template = $('#modal-body-template-on-success');
-					const $content = $($template.prop('content')).clone();
+					var $content = $($template.prop('content')).clone();
+
+					if (data.error) {
+						$content = $content.prepend('<dl><dt>Erreur</dt><dd>' + data.error + '</dd></dl>');
+					};
 
 					for (const k in data) {
 						const $target = $content.find('dd[name="' + k + '"]');
@@ -189,7 +195,7 @@ $(function() {
 					let layers = [baseMaps[defaultBaseMap], wmsLayer];
 
 					const footprintLayer = data.footprint ? L.geoJSON(data.footprint, {}) : undefined;
-					const bounds = footprintLayer ? footprintLayer.getBounds() : {{  }};
+					const bounds = footprintLayer ? footprintLayer.getBounds() : {{ bounds }};
 
 					if (footprintLayer) {
 						layers.push(footprintLayer)

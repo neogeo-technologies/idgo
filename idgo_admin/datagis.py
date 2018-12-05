@@ -26,6 +26,7 @@ from django.utils.encoding import DjangoUnicodeDecodeError
 from idgo_admin.exceptions import DatagisBaseError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.utils import slugify
+import json
 from pathlib import Path
 import re
 from uuid import uuid4
@@ -494,6 +495,25 @@ def drop_table(table, schema=SCHEMA):
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         cursor.close()
+
+
+def intersect(geojson1, geojson2):
+
+    sql = '''
+SELECT ST_AsGeoJSON(ST_Intersection(
+    ST_GeomFromGeoJSON('{geojson1}'), ST_GeomFromGeoJSON('{geojson2}'))) AS geojson;
+'''.format(geojson1=geojson1, geojson2=geojson2)
+
+    with connections[DATABASE].cursor() as cursor:
+        try:
+            cursor.execute(sql)
+        except Exception as e:
+            if e.__class__.__qualname__ != 'ProgrammingError':
+                raise e
+        else:
+            records = cursor.fetchall()
+            cursor.close()
+            return json.loads(records[0][0])
 
 
 def transform(wkt, epsg_in, epsg_out=4174):

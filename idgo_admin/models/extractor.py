@@ -140,11 +140,14 @@ def synchronize_extractor_task(sender, *args, **kwargs):
                             'FAILURE': False
                             }.get(details['status'], None)
 
-                        instance.start_datetime = details.get('start_datetime', None)
+                        instance.details = {**instance.details, **details}
                         if instance.success is False:
                             instance.stop_datetime = timezone.now()
                         else:
-                            instance.stop_datetime = details.get('end_datetime', None)
+                            instance.stop_datetime = details.get('end_datetime')
+
+                        instance.start_datetime = \
+                            details.get('start_datetime') or instance.stop_datetime
 
                         instance.save()
 
