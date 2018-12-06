@@ -60,14 +60,14 @@
 						</button>
 						<ul class="dropdown-menu">
 							<li>
-								<a href="{% url "idgo_admin:update_account" %}">Mon profil</a>
+								<a href="{% url 'idgo_admin:update_account' site_name='admin' %}">Mon profil</a>
 							</li>
 							<li>
-								<a href="{% url "server_cas:signOut" %}">Me déconnecter</a>
+								<a href="{% url 'server_cas:signOut' site_name='admin' %}">Me déconnecter</a>
 							</li>
 							<li role="separator" class="divider"></li>
 							<li>
-								<a href="{% url "idgo_admin:extractor_dashboard" %}" aria-controls="all-extracts" role="tab">Mes extractions</a>
+								<a href="{% url 'idgo_admin:extractor_dashboard' site_name='admin' %}" aria-controls="all-extracts" role="tab">Mes extractions</a>
 							</li>
 						</ul>
 					</div>
@@ -337,7 +337,7 @@ $(function() {
 	};
 
 	{% if organisation and dataset and resource and layer %}
-	targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+	targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" site_name="admin" %}', {
 		format: 'image/png',
 		layers: '{{ layer.mra_info.name }}',
 		{% if layer.mra_info.styles.default %}
@@ -358,7 +358,7 @@ $(function() {
 		{% for instance in resources %}
 			{% for layer in instance.get_layers %}
 	layers.push(
-		new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+		new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" site_name="admin" %}', {
 			format: 'image/png',
 			layers: '{{ layer.mra_info.name }}',
 			// styles: '{{ layer.mra_info.styles.default }}',
