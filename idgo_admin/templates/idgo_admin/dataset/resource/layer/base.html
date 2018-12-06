@@ -1,6 +1,7 @@
 {% extends "idgo_admin/base.html" %}
 
 {% load static %}
+{% load extra_tags %}
 
 {% block head_extras %}
 {% endblock head_extras %}
@@ -10,19 +11,19 @@
 	<li><span class="glyphicon glyphicon-home"></span></li>
 	<li>{% if all %}Tous les{% else %}Mes{% endif %} jeux de données</li>
 	<li>
-		<a href="{% url "idgo_admin:dataset" %}?id={{ layer.resource.dataset.id }}#dataset/{{ layer.resource.dataset.id }}">{{ layer.resource.dataset.name_overflow }}</a>
+		<a href="{% url 'idgo_admin:dataset' %}?id={{ layer.resource.dataset.id }}#dataset/{{ layer.resource.dataset.id }}">{{ layer.resource.dataset.name_overflow }}</a>
 	</li>
 	<!-- <li>
-		<a href="{% url "idgo_admin:dataset" %}?id={{ layer.resource.dataset.id }}#resources/{{ layer.resource.id }}">Ressources</a>
+		<a href="{% url 'idgo_admin:dataset' %}?id={{ layer.resource.dataset.id }}#resources/{{ layer.resource.id }}">Ressources</a>
 	</li>
 	<li>
-		<a href="{% url "idgo_admin:resource" dataset_id=layer.resource.dataset.id %}?id={{ layer.resource.id }}">{{ layer.resource.name_overflow }}</a>
+		<a href="{% url 'idgo_admin:resource' dataset_id=layer.resource.dataset.id %}?id={{ layer.resource.id }}">{{ layer.resource.name_overflow }}</a>
 	</li> -->
 	<li>
-		<a href="{% url "idgo_admin:dataset" %}?id={{ layer.resource.dataset.id }}#owslayers/{{ layer.id }}">Service Géo-Datasud</a>
+		<a href="{% url 'idgo_admin:dataset' %}?id={{ layer.resource.dataset.id }}#owslayers/{{ layer.id }}">Service Géo-Datasud</a>
 	</li>
 	<li class="active">
-		<a href="{% url "idgo_admin:layer_editor" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id%}">{{ layer.resource.name_overflow }}</a>
+		<a href="{% url 'idgo_admin:layer_editor' dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id%}">{{ layer.resource.name_overflow }}</a>
 	</li>
 </ol>
 {% endblock breadcrumb_content %}
@@ -32,7 +33,7 @@
 	<div class="floating-buttons-on-the-right-side">
 	{% if layer.resource.extractable %}
 		{% if user.profile.crige_membership %}
-		<a href="{% url "idgo_admin:extractor" %}?layer={{ layer.id }}" name="extractor" type="button" class="btn btn-secondary">Service d'extraction</a>
+		<a href="{% url 'idgo_admin:extractor' site_name='extractor' %}?layer={{ layer.id }}" name="extractor" type="button" class="btn btn-secondary">Service d'extraction</a>
 		{% else %}
 		{% include "idgo_admin/extras/crige_restricted_access/link.html" with text="Service d'extraction" class="btn btn-secondary" name="extractor" %}
 		{% endif %}

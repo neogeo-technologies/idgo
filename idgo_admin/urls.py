@@ -14,10 +14,9 @@
 # under the License.
 
 
-from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
-from django.conf.urls import url, include
+from django.conf.urls import url
 from idgo_admin.views.account import create_sftp_account
 from idgo_admin.views.account import delete_account
 from idgo_admin.views.account import delete_sftp_account
@@ -37,9 +36,9 @@ from idgo_admin.views import home
 from idgo_admin.views.jurisdiction import jurisdiction
 from idgo_admin.views.jurisdiction import jurisdictions
 from idgo_admin.views.jurisdiction import JurisdictionView
-from idgo_admin.views.layer import LayerStyleEditorView
-from idgo_admin.views.layer import layer_styles
 from idgo_admin.views.layer import layer_style
+from idgo_admin.views.layer import layer_styles
+from idgo_admin.views.layer import LayerStyleEditorView
 from idgo_admin.views.layer import LayerView
 from idgo_admin.views.mailer import confirm_contribution
 from idgo_admin.views.mailer import confirm_new_orga
@@ -90,8 +89,8 @@ urlpatterns = [
     url('^dataset/export/?$', Export.as_view(), name='export'),
 
     url('^extractor/?$', Extractor.as_view(), name='extractor'),
-    url('^extractor/task/?$', extractor_task, name='extractor_task'),
-    url('^extractor/dashboard/?$', ExtractorDashboard.as_view(), name='extractor_dashboard'),
+    url('^extraction/task/?$', extractor_task, name='extractor_task'),
+    url('^extraction/dashboard/?$', ExtractorDashboard.as_view(), name='extractor_dashboard'),
 
     url('^jurisdiction/?$', jurisdiction, name='jurisdiction'),
     url('^jurisdiction/all/?$', jurisdictions, name='jurisdictions'),
@@ -129,7 +128,6 @@ urlpatterns = [
     url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
 
     url('^owspreview/$', ows_preview, name='ows_preview'),
-
     ]
 
 

@@ -23,12 +23,12 @@
 </div>
 		{% if user.profile.is_contributor %}
 <div role="alert" class="alert alert-warning">
-	<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n'avez aucun jeu de données. <a href="{% url "idgo_admin:dataset_editor" id="new" %}">Créer un nouveau jeu de données</a> pour commencer.
+	<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n'avez aucun jeu de données. <a href="{% url 'idgo_admin:dataset_editor' id='new' %}">Créer un nouveau jeu de données</a> pour commencer.
 <div/>
 		{% else %}
 <div role="alert" class="alert alert-warning">
 	<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>
-	Vous n'êtes contributeur d'aucune organisation. Dans le menu <a href="{% url "idgo_admin:all_organizations" %}">Les Organisations</a>, vous pouvez choisir une organisation à laquelle contribuer ou bien en créer <a href="{% url "idgo_admin:create_organization" %}">une nouvelle</a>.
+	Vous n'êtes contributeur d'aucune organisation. Dans le menu <a href="{% url 'idgo_admin:all_organizations' %}">Les Organisations</a>, vous pouvez choisir une organisation à laquelle contribuer ou bien en créer <a href="{% url 'idgo_admin:create_organization' %}">une nouvelle</a>.
 </div>
 		{% endif %}
 	{% endif %}
@@ -61,7 +61,7 @@
 <script>
 $(function() {
 	$('#menu a[name="datasets"]').parent().addClass('active');
-	$('#menu a[href="{% if all %}{% url "idgo_admin:datasets" target="all" %}{% elif harvested %}{% url "idgo_admin:datasets" target="harvested" %}{% else %}{% url "idgo_admin:datasets" %}{% endif %}"]').parent().addClass('active');
+	$('#menu a[href="{% if all %}{% url 'idgo_admin:datasets' target='all' %}{% elif harvested %}{% url 'idgo_admin:datasets' target='harvested' %}{% else %}{% url 'idgo_admin:datasets' %}{% endif %}"]').parent().addClass('active');
 });
 </script>
 {% endblock main_content %}

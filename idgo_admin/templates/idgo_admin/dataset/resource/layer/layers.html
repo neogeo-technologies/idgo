@@ -1,4 +1,5 @@
 {% load bootstrap3 %}
+{% load extra_tags %}
 
 {% include "idgo_admin/alert_messages.html" %}
 
@@ -84,7 +85,7 @@ $(function() {
 	$('button[name="extractor"]').on('click', function(e) {
 		e.preventDefault();
 		const data = tableGrid.getRowValues(tableGrid.lastSelectedRowIndex);
-		redirect('{% url "idgo_admin:extractor"%}?&layer=' + data['id'])
+		redirect('{% url "idgo_admin:extractor" site_name="extractor" %}?&layer=' + data['id'])
 		e.stopPropagation();
 	});
 	{% endif %}

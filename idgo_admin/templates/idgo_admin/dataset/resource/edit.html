@@ -33,7 +33,7 @@
 		{% if not resource.get_layers|length %}
 		{# TODO #}
 		{% elif resource.get_layers|length == 1 %}
-		<a class="btn btn-default" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ resource.datagis_id.0 }}">Éditer la ressource géographique</a>
+		<a class="btn btn-default" href="{% url 'idgo_admin:resource' dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ resource.datagis_id.0 }}">Éditer la ressource géographique</a>
 		{% else %}
 		<div class="btn-group">
 			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -42,7 +42,7 @@
 			<ul class="dropdown-menu dropdown-menu-right">
 				{% for layer in resource.get_layers %}
 				<li>
-					<a role="button" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ layer.name }}" style="text-align: right;">{{ layer.name }}</a>
+					<a role="button" href="{% url 'idgo_admin:resource' dataset_id=dataset.id %}?resource={{ resource.id }}&layer={{ layer.name }}" style="text-align: right;">{{ layer.name }}</a>
 				</li>
 				{% endfor %}
 			</ul>
@@ -390,7 +390,7 @@ $encodingInputContainer.show();
 				e.preventDefault();
 				$.ajax({
 					type: 'POST',
-					url: '{% url "idgo_admin:resource" dataset_id=dataset.id %}?id={{ resource.id }}',
+					url: '{% url 'idgo_admin:resource' dataset_id=dataset.id %}?id={{ resource.id }}',
 					data: data,
 					contentType: false,
 					processData: false,

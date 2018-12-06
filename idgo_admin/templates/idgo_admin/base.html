@@ -190,40 +190,41 @@ $(document).ajaxSend(function(e, xhr, settings) {
 				<div class="row">
 					<div class="col-md-12">
 						{% block nav_content %}
+						{% load extra_tags %}
 						<ul id="menu" class="nav nav-default" role="tablist">
 							{% if is_referent or is_admin  %}
 							<li class="dropdown" role="presentation">
 								<a name="datasets" class="dropdown-toggle" data-toggle="dropdown" href="#">Jeux de données <span class="glyphicon glyphicon-triangle-bottom"></span></a>
 								<ul class="dropdown-menu dropdown-menu-right">
 									<li>
-										<a href="{% url "idgo_admin:datasets" %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
+										<a href="{{ admin_dns }}{% url 'idgo_admin:datasets' %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
 									</li>
 									<li>
-										<a href="{% url "idgo_admin:datasets" target="all" %}" aria-controls="all-datasets" role="tab">Tous les jeux de données</a>
+										<a href="{{ admin_dns }}{% url 'idgo_admin:datasets' target='all' %}" aria-controls="all-datasets" role="tab">Tous les jeux de données</a>
 									</li>
 									<li>
-										<a href="{% url "idgo_admin:datasets" target="harvested" %}" aria-controls="harvested-datasets" role="tab">Jeux de données moissonnés</a>
+										<a href="{{ admin_dns }}{% url 'idgo_admin:datasets' target='harvested' %}" aria-controls="harvested-datasets" role="tab">Jeux de données moissonnés</a>
 									</li>
 								</ul>
 							</li>
 							{% else %}
 							<li role="presentation">
-								<a href="{% url "idgo_admin:datasets" %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
+								<a href="{% url 'idgo_admin:datasets' %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
 							</li>
 							{% endif %}
 							<li role="presentation">
-								<a href="{% url "idgo_admin:all_organizations" %}" aria-controls="all-organizations" role="tab">Organisations</a>
+								<a href="{% url 'idgo_admin:all_organizations' %}" aria-controls="all-organizations" role="tab">Organisations</a>
 							</li>
 							{% if is_admin %}
 							<li role="presentation">
-								<a href="{% url "idgo_admin:jurisdictions" %}" role="tab">Territoires</a>
+								<a href="{% url 'idgo_admin:jurisdictions' %}" role="tab">Territoires</a>
 							</li>
 							{% endif %}
 
 							{# L'onglet extracteur est uniquement visible pour les utilisateurs CRIGE #}
 							{% if user.profile.crige_membership %}
 							<li role="presentation">
-								<a href="{% url "idgo_admin:extractor_dashboard" %}" role="tab">Extractions</a>
+								<a href="{% url 'idgo_admin:extractor_dashboard' %}" role="tab">Extractions</a>
 							</li>
 							{% endif %}
 
