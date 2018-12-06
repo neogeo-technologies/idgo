@@ -17,6 +17,7 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.sites.models import Site
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
@@ -515,7 +516,12 @@ class Extractor(View):
                 "L'extraction a été ajoutée à la liste de tâche. "
                 "Vous allez recevoir un e-mail une fois l'extraction réalisée."))
 
-            return HttpResponseRedirect(reverse('idgo_admin:extractor_dashboard'))
+            domain = Site.objects.get(name='admin').domain
+            url = 'http{secure}://{domain}{path}'.format(
+                secure=request.is_secure and 's' or '',
+                domain=domain,
+                path=reverse('idgo_admin:extractor_dashboard'))
+            return HttpResponseRedirect(url)
         else:
             if r.status_code == 400:
                 details = r.json().get('detail')
