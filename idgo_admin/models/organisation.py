@@ -27,9 +27,9 @@ from django.db import transaction
 from django.dispatch import receiver
 from django.utils.text import slugify
 from functools import reduce
-from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.mra_client import MRAHandler
 import inspect
 from urllib.parse import urljoin
@@ -43,14 +43,14 @@ DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
 
 class OrganisationType(models.Model):
 
-    name = models.CharField(verbose_name="Type d'organisation", max_length=250)
+    code = models.CharField(verbose_name="Code", max_length=100)
 
-    code = models.CharField(verbose_name="Code", max_length=250)
+    name = models.TextField(verbose_name="Type d'organisation")
 
     class Meta(object):
         verbose_name = "Type d'organisation"
         verbose_name_plural = "Types d'organisations"
-        ordering = ('name', )
+        ordering = ['name']
 
     def __str__(self):
         return self.name
