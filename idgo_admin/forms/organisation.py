@@ -98,7 +98,7 @@ class OrganizationForm(forms.ModelForm):
         if instance and instance.logo:
             self.fields['logo'].widget.attrs['value'] = instance.logo.url
 
-        if not self.user.profile.is_crige_admin:
+        if instance and not self.user.profile.is_crige_admin:
             self.fields['jurisdiction'].queryset = \
                 Jurisdiction.objects.filter(pk__in=instance.jurisdiction and [instance.jurisdiction.pk] or [])
             self.fields['jurisdiction'].widget.attrs['disabled'] = 'disabled'
