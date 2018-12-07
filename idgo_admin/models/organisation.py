@@ -62,7 +62,7 @@ class Organisation(models.Model):
 
     organisation_type = models.ForeignKey(
         to='OrganisationType', verbose_name="Type d'organisation",
-        default='1', blank=True, null=True, on_delete=models.SET_NULL)
+        blank=True, null=True, on_delete=models.SET_NULL)
 
     jurisdiction = models.ForeignKey(
         to='Jurisdiction', blank=True, null=True,
