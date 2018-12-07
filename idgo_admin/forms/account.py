@@ -105,13 +105,11 @@ class UserResetPassword(forms.Form):
 
 class SignInForm(MamaLoginForm):
 
-    username = UsernameField()
+    username = UsernameField(required=True)
     password = PasswordField(required=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['username'].widget.attrs['placeholder'] = "Nom d'utilisateur"
-        self.fields['password'].widget.attrs['placeholder'] = 'Mot de passe'
 
     def clean(self):
         username = self.cleaned_data.get('username')
@@ -337,11 +335,8 @@ class SignUpForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # if JURISDICTION:
-        #     self.fields['jurisdiction'].initial = JURISDICTION
-
-        self.fields['password1'].widget.attrs['placeholder'] = 'Mot de passe*'
-        self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le mot de passe*'
+        self.fields['password1'].widget.attrs['placeholder'] = 'Mot de passe'
+        self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le mot de passe'
 
     def clean(self):
 

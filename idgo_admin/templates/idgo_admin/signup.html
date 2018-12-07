@@ -21,25 +21,27 @@
 						{% csrf_token %}
 						<div class="row">
 							<div class="col-xs-12 col-sm-6">
-								{% bootstrap_field form.first_name show_label=False %}
+								{% bootstrap_field form.first_name %}
 							</div>
 							<div class="col-xs-12 col-sm-6">
-								{% bootstrap_field form.last_name show_label=False %}
+								{% bootstrap_field form.last_name %}
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-xs-12 col-sm-4">
-								{% bootstrap_field form.username show_label=False %}
+								{% bootstrap_field form.username %}
 							</div>
 							<div class="col-xs-12 col-sm-8">
-								{% bootstrap_field form.email show_label=False %}
+								{% bootstrap_field form.email %}
 							</div>
 						</div>
 						<div class="row">
-							<div class="col-xs-3">
-								{% bootstrap_field form.phone show_label=False %}
+							<div class="col-xs-4">
+								{% bootstrap_field form.phone %}
 							</div>
 						</div>
+						<label>Mot de passe*</label>
+						<p><small>Assurez-vous que votre mot de passe comporte au minimum 6 caractères, et que celui-ci contienne des chiffres, lettres minuscules et caractères spéciaux.</small></p>
 						<div class="row">
 							<div class="col-xs-12 col-sm-6">
 								{% bootstrap_field form.password1 show_label=False %}
@@ -67,7 +69,7 @@
 								<br />
 								<div class="row">
 									<div class="col-sm-12">
-										{% bootstrap_field form.new_orga show_label=False %}
+										{% bootstrap_field form.new_orga %}
 									</div>
 								</div>
 								<br />

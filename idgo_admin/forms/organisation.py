@@ -65,13 +65,13 @@ class OrganizationForm(forms.ModelForm):
         fields = organisation_fields + extended_fields
 
     # Organisation fields
-    name = OrganisatioNameField()
+    name = OrganisatioNameField(required=True)
     logo = OrganisationLogoField()
     address = AddressField()
     city = CityField()
     postcode = PostcodeField()
     org_phone = PhoneField()
-    email = EMailField(required=False)
+    email = EMailField()
     website = WebsiteField()
     description = DescriptionField()
     jurisdiction = JurisdictionField()

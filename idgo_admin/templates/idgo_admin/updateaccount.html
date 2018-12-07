@@ -31,14 +31,15 @@
 		<div class="col-xs-5">
 			{% bootstrap_field form.email %}
 		</div>
-		<div class="col-xs-2">
+		<div class="col-xs-3">
 			{% bootstrap_field form.phone %}
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-xs-6">
+		<div class="col-xs-8">
 			<div class="well">
-				<p>Entrez votre nouveau mot de passe ci-dessous si vous souhaitez le modifier.</p>
+				<label>Entrez votre nouveau mot de passe ci-dessous si vous souhaitez le modifier.</label>
+				<p><small>Assurez-vous que votre mot de passe comporte au minimum 6 caractères, et que celui-ci contienne des chiffres, lettres minuscules et caractères spéciaux.</small></p>
 				<div class="row">
 					<div class="col-xs-8">
 						{% bootstrap_field form.password1 show_label=False %}
@@ -65,9 +66,6 @@
 	<p>Votre compte FTP n'est pas encore activé.</p>
 	<a class="btn btn-default" href="{% url "idgo_admin:create_sftp_account" %}">Créer mon compte FTP</a>
 {% else %}
-
-
-
 	<p>Adresse FTP : <strong>{{ ftp_url }}</strong></p>
 	<p>Votre compte FTP est activé : <em>compte utilisateur</em> <strong>{{ user.username }}</strong> / <em>mot de passe</em> <strong>{{ user.profile.sftp_password }}</strong></p>
 	<p>Attention, l'accès à ce compte FTP est sécurisé. Il ne peut se faire qu'avec le protocole SFTP (sur le port 22), donc avec une application spécifique comme FileZilla (<a class="link" href="https://filezilla-project.org">https://filezilla-project.org</a>)</p>
@@ -76,11 +74,11 @@
 </div>
 
 <div class="well">
-	<h4 class="modal-title">Supprimer mon compte</h4>
+	<h3 class="modal-title">Supprimer mon compte</h3>
 	<br />
-	<p>Cette action est irreversible et supprimera définitivement votre compte.</p>
+	<p>Attention, cette action est irreversible et supprimera <strong>définitivement</strong> votre compte.</p>
 	<div>
-		<a class="btn btn-danger" href="{% url "idgo_admin:deleteAccount" %}">Supprimer mon compte</a></li>
+		<a class="btn btn-danger" href="{% url "idgo_admin:deleteAccount" %}">Je souhaite supprimer mon compte</a></li>
 	</div>
 </div>
 <script>

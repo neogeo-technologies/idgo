@@ -92,7 +92,7 @@ class EMailField(forms.CharField):
         kwargs.setdefault('validators', [validators.validate_email])
         kwargs.setdefault('widget', forms.EmailInput(
             attrs={
-                'placeholder': 'Adresse e-mail*'}))
+                'placeholder': 'Adresse e-mail'}))
 
         super().__init__(*args, **kwargs)
 
@@ -105,7 +105,7 @@ class FirstNameField(forms.CharField):
         kwargs.setdefault('min_length', 1)
         kwargs.setdefault('widget', forms.TextInput(
             attrs={
-                'placeholder': 'Prénom*'}))
+                'placeholder': 'Prénom'}))
 
         super().__init__(*args, **kwargs)
 
@@ -140,7 +140,7 @@ class LastNameField(forms.CharField):
         kwargs.setdefault('min_length', 1)
         kwargs.setdefault('widget', forms.TextInput(
             attrs={
-                'placeholder': 'Nom*'}))
+                'placeholder': 'Nom'}))
 
         super().__init__(*args, **kwargs)
 
@@ -170,7 +170,7 @@ class OrganisatioNameField(forms.CharField):
         kwargs.setdefault('required', False)
         kwargs.setdefault('widget', forms.TextInput(
             attrs={
-                'placeholder': "Dénomination sociale*"}))
+                'placeholder': "Dénomination sociale"}))
 
         super().__init__(*args, **kwargs)
 
@@ -205,7 +205,7 @@ class PasswordField(forms.CharField):
         kwargs.setdefault('required', False)
         kwargs.setdefault('widget', forms.PasswordInput(
             attrs={
-                'placeholder': 'Mot de passe*'}))
+                'placeholder': 'Mot de passe'}))
 
         super().__init__(*args, **kwargs)
 
@@ -220,7 +220,7 @@ class PhoneField(forms.CharField):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('error_messages', {
             'invalid': 'Le numéro est invalide.'})
-        kwargs.setdefault('label', "Téléphone")
+        kwargs.setdefault('label', "Numéro de téléphone")
         kwargs.setdefault('max_length', 30)
         kwargs.setdefault('min_length', 10)
         kwargs.setdefault('required', False)
@@ -229,7 +229,7 @@ class PhoneField(forms.CharField):
             attrs={
                 'type': 'tel',
                 'class': 'phone',
-                'placeholder': 'Téléphone'}))
+                'placeholder': 'Numéro de téléphone'}))
 
         super().__init__(*args, **kwargs)
 
@@ -272,7 +272,7 @@ class UsernameField(forms.CharField):
         # TODO Le validateur ne voit pas les MAJ (à corriger..)
         kwargs.setdefault('widget', forms.TextInput(
             attrs={
-                'placeholder': "Nom d'utilisateur*"}))
+                'placeholder': "Nom d'utilisateur"}))
 
         super().__init__(*args, **kwargs)
 
