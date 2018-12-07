@@ -148,12 +148,11 @@
 </form>
 <script>
 $(function() {
-	const $inputMember = $('input[name="{{ form.member_requested.name }}"]').prop('checked', false);
-	const $inputContribution = $('input[name="{{ form.contribution_requested.name }}"]').prop('checked', false);
-	const $inputReferent = $('input[name="{{ form.referent_requested.name }}"]').prop('checked', false).change(function() {
+	const $inputMember = $('input[name="{{ form.rattachement_process.name }}"]').prop('checked', false);
+	const $inputContribution = $('input[name="{{ form.contributor_process.name }}"]').prop('checked', false);
+	const $inputReferent = $('input[name="{{ form.referent_process.name }}"]').prop('checked', false).change(function() {
 		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
 	});
-
 	$('#menu a[href="{% url "idgo_admin:all_organizations" %}"]').parent().addClass('active');
 });
 </script>
