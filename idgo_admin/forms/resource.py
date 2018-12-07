@@ -17,6 +17,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django import forms
+from django.forms.models import ModelChoiceIterator
 from django.utils import timezone
 from idgo_admin.forms import CustomCheckboxSelectMultiple
 from idgo_admin.models import Organisation
@@ -48,6 +49,77 @@ def file_size(value):
             'Le fichier {0} ({1}) dépasse la limite de taille autorisée {2}.'.format(
                 value.name, readable_file_size(value.size), readable_file_size(size_limit))
         raise ValidationError(message)
+
+
+class FormatTypeSelect(forms.Select):
+
+    @staticmethod
+    def _choice_has_empty_value(choice):
+        """Return True if the choice's value is empty string or None."""
+        value, _, extension = choice
+        return value is None or value == ''
+
+    def optgroups(self, name, value, attrs=None):
+        """Return a list of optgroups for this widget."""
+        groups = []
+        has_selected = False
+
+        for index, (option_value, option_label, option_extension) in enumerate(self.choices):
+            if option_value is None:
+                option_value = ''
+
+            subgroup = []
+            if isinstance(option_label, (list, tuple)):
+                group_name = option_value
+                subindex = 0
+                choices = option_label
+            else:
+                group_name = None
+                subindex = None
+                choices = [(option_value, option_label, option_extension)]
+            groups.append((group_name, subgroup, index))
+
+            for subvalue, sublabel, subextra in choices:
+                selected = (
+                    str(subvalue) in value and
+                    (not has_selected or self.allow_multiple_selected))
+
+                has_selected |= selected
+                subgroup.append(
+                    self.create_option(
+                        name, subvalue, sublabel, selected, index,
+                        subindex=subindex, extension=option_extension))
+                if subindex is not None:
+                    subindex += 1
+        return groups
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None, extension=None):
+        result = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        if extension:
+            result['attrs']['extension'] = extension
+        return result
+
+
+class ModelOrganisationIterator(ModelChoiceIterator):
+
+    def __iter__(self):
+        if self.field.empty_label is not None:
+            yield ("", self.field.empty_label, "")
+        queryset = self.queryset
+        if not queryset._prefetch_related_lookups:
+            queryset = queryset.iterator()
+        for obj in queryset:
+            yield self.choice(obj)
+
+    def choice(self, obj):
+        return (
+            self.field.prepare_value(obj),
+            self.field.label_from_instance(obj),
+            obj.extension.lower() == obj.ckan_format.lower() and obj.extension or '')
+
+
+class ModelFormatTypeField(forms.ModelChoiceField):
+    iterator = ModelOrganisationIterator
 
 
 class ResourceForm(forms.ModelForm):
@@ -105,11 +177,12 @@ class ResourceForm(forms.ModelForm):
         widget=forms.Textarea(
             attrs={'placeholder': 'Vous pouvez utiliser le langage Markdown ici'}))
 
-    format_type = forms.ModelChoiceField(
+    format_type = ModelFormatTypeField(
         empty_label='Sélectionnez un format',
         label='Format*',
         queryset=ResourceFormats.objects.all().order_by('extension'),
-        required=True)
+        required=True,
+        widget=FormatTypeSelect())
 
     data_type = forms.ChoiceField(
         label='Type',
