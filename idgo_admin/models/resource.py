@@ -103,12 +103,17 @@ class ResourceFormats(models.Model):
         ('pdf_view', 'pdf_view'))
 
     ckan_view = models.CharField(
-        'Vue', max_length=100, choices=CKAN_CHOICES, blank=True, null=True)
+        verbose_name='Vue', max_length=100,
+        choices=CKAN_CHOICES, blank=True, null=True)
+
+    ckan_format = models.CharField(
+        verbose_name='type de format CKAN',
+        max_length=10, blank=True, null=True)
 
     description = models.TextField(
         verbose_name='Description', blank=True, null=True)
 
-    extension = models.CharField('Format', max_length=10)
+    extension = models.CharField('Extension du fichier', max_length=10)
 
     is_gis_format = models.BooleanField(
         verbose_name='Est un format de données SIG',
@@ -367,7 +372,7 @@ class Resource(models.Model):
             'description': self.description,
             'data_type': self.data_type,
             'extracting_service': str(extracting_service),  # I <3 CKAN
-            'format': self.format_type.extension,
+            'format': self.format_type.ckan_format,
             'view_type': self.format_type.ckan_view,
             'id': str(self.ckan_id),
             'lang': self.lang,
@@ -475,7 +480,7 @@ class Resource(models.Model):
         if self.ftp_file:
             filename = self.ftp_file.file.name
             # Si la taille de fichier dépasse la limite autorisée,
-            # on traite les données en fonciton du type détecté
+            # on traite les données en fonction du type détecté
             if self.ftp_file.size > DOWNLOAD_SIZE_LIMIT:
                 extension = self.format_type.extension.lower()
                 if self.format_type.is_datagis:
@@ -575,6 +580,15 @@ class Resource(models.Model):
                         tables = []
                         pass
                     else:
+
+                        try:
+                            self.format_type = ResourceFormats.objects.get(
+                                extension=extension, ckan_format=gdalogr_obj.format)
+                        # except ResourceFormats.MultipleObjectsReturned:
+                        #     pass
+                        except Exception:
+                            pass
+
                         if gdalogr_obj.__class__.__name__ == 'OgrOpener':
                             # On convertit les données vectorielles vers Postgis.
                             try:
@@ -646,8 +660,7 @@ class Resource(models.Model):
                                     raise e
 
                         if gdalogr_obj.__class__.__name__ == 'GdalOpener':
-
-                            coverage = gdalogr_obj.get_raster()
+                            coverage = gdalogr_obj.get_coverage()
                             try:
                                 tables = [gdalinfo(coverage, update=existing_layers)]
                             except NotFoundSrsError as e:

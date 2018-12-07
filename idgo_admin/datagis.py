@@ -70,6 +70,13 @@ class SQLError(DatagisBaseError):
     message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données SIG."
 
 
+def get_format_driver(name):
+    return {
+        'ESRI Shapefile': 'SHP',
+        'GTiff': 'TIFF'
+        }.get(name, name)
+
+
 def is_valid_epsg(code):
     sql = '''SELECT * FROM public.spatial_ref_sys WHERE auth_srid = '{}';'''.format(code)
     with connections[DATABASE].cursor() as cursor:
@@ -126,7 +133,7 @@ def retreive_epsg_through_regex(text):
 
 class GdalOpener(object):
 
-    _raster = None
+    _coverage = None
 
     def __init__(self, filename, extension=None):
 
@@ -134,13 +141,17 @@ class GdalOpener(object):
             filename = '/vsizip/{}'.format(filename)
 
         try:
-            self._raster = GDALRaster(filename)
+            self._coverage = GDALRaster(filename)
         except GDALException as e:
             raise NotGDALError(
                 'The file received is not recognized as being a GIS raster data. {}'.format(e.__str__()))
 
-    def get_raster(self):
-        return self._raster
+    def get_coverage(self):
+        return self._coverage
+
+    @property
+    def format(self):
+        return get_format_driver(self._coverage.driver.name)
 
 
 class OgrOpener(object):
@@ -160,6 +171,10 @@ class OgrOpener(object):
 
     def get_layers(self):
         return self._datastore
+
+    @property
+    def format(self):
+        return get_format_driver(self._datastore.driver.name)
 
 
 def get_gdalogr_object(filename, extension):
@@ -247,19 +262,19 @@ def get_epsg(obj):
     return epsg
 
 
-def gdalinfo(cs, update={}):
+def gdalinfo(coverage, update={}):
 
-    p = Path(cs.name)
+    p = Path(coverage.name)
     layername = slugify(p.name[:-len(p.suffix)]).replace('-', '_')
     table_id = update.get(
         layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))
 
-    xmin, ymin, xmax, ymax = cs.extent
-    epsg = get_epsg(cs)
+    xmin, ymin, xmax, ymax = coverage.extent
+    epsg = get_epsg(coverage)
 
     return {
         'id': table_id,
-        'epsg': get_epsg(cs),
+        'epsg': get_epsg(coverage),
         'bbox': transform(bounds_to_wkt(xmin, ymin, xmax, ymax), epsg),
         'extent': ((xmin, ymin), (xmax, ymax))}
 
