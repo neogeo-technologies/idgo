@@ -16,7 +16,7 @@
 {% endblock head_extras %}
 
 {% block body %}
-{% if messages %}
+{% if messages|length %}
 <div id="messageModal" class="modal fade" tabindex="-1" role="dialog">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
@@ -633,8 +633,7 @@ $(function() {
 			ctrlPressed = false;
 		};
 	});
-
-	{% if messages %}
+	{% if messages|length %}
 	$('#messageModal').modal('show');
 	{% endif %}
 
