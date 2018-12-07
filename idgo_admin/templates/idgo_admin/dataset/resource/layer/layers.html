@@ -180,9 +180,9 @@ $(function() {
 				deactivateButton($(this));
 				$(this).hide();
 			});
-			$containerId.before('<div role="alert" class="alert alert-warning"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n\'avez encore jamais ajouté de ressource. <a name="add-resource" href="{% url "idgo_admin:resource" dataset_id=dataset.id %}">Créer une nouvelle ressource</a> pour commencer.<div/>');
+			$containerId.before('<div role="alert" class="alert alert-warning"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n\'avez encore aucun service Géo-Datasud.<div/>');
+			$containerId.before('<div role="alert" class="alert alert-info"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>Un service se crée automatiquement lorsque vous déposerez une ressource de données de type géographique.<div/>');
 		};
-
 	};
 
 	updateTableGrid(
