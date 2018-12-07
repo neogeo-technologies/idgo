@@ -78,6 +78,8 @@ class AsyncExtractorTask(models.Model):
     stop_datetime = models.DateTimeField(
         verbose_name='Stop', null=True, blank=True)
 
+    query = JSONField(verbose_name='Query', blank=True, null=True)
+
     details = JSONField(verbose_name='Details', blank=True, null=True)
 
     def __str__(self):
@@ -133,14 +135,15 @@ def synchronize_extractor_task(sender, *args, **kwargs):
                     r = requests.get(url)
 
                     if r.status_code == 200:
-                        details = r.json()
+                        details = instance.details
+                        details.update(r.json())
 
                         instance.success = {
                             'SUCCESS': True,
                             'FAILURE': False
                             }.get(details['status'], None)
 
-                        instance.details = {**instance.details, **details}
+                        instance.details = details
                         if instance.success is False:
                             instance.stop_datetime = timezone.now()
                         else:

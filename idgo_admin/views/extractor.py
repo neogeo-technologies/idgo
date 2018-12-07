@@ -64,10 +64,11 @@ decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 def extractor_task(request, *args, **kwargs):
     user, profile = user_and_profile(request)
     instance = get_object_or_404(AsyncExtractorTask, uuid=request.GET.get('id'))
-    query = instance.details['query']
+    query = instance.query or instance.details.get['query']
 
     extract_params = {}
     format_raster, format_vector = None, None
+
     for data_extraction in query['data_extractions']:
         for format in ExtractorSupportedFormat.objects.all():
             if format.details.get('dst_format') == data_extraction.get('dst_format'):
@@ -488,7 +489,7 @@ class Extractor(View):
                         'file_location': ckan.get_resource(
                             str(resource.ckan_id)).get('url')})
 
-        data = {
+        query = {
             'user_id': user.username,
             'user_email_address': user.email,
             'user_name': user.last_name,
@@ -498,7 +499,7 @@ class Extractor(View):
             'data_extractions': data_extractions,
             'additional_files': additional_files}
 
-        r = requests.post(EXTRACTOR_URL, json=data)
+        r = requests.post(EXTRACTOR_URL, json=query)
 
         if r.status_code == 201:
             details = r.json()
@@ -508,6 +509,7 @@ class Extractor(View):
                 foreign_field=foreign_field,
                 foreign_value=foreign_value,
                 model=model,
+                query=query,
                 submission_datetime=details.get('submission_datetime'),
                 uuid=UUID(details.get('task_id')),
                 user=user)
