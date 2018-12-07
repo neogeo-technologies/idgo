@@ -43,8 +43,7 @@ DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
 
 class OrganisationType(models.Model):
 
-    code = models.CharField(verbose_name="Code", max_length=100)
-
+    code = models.CharField(verbose_name="Code", max_length=100, primary_key=True)
     name = models.TextField(verbose_name="Type d'organisation")
 
     class Meta(object):
