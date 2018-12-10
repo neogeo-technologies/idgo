@@ -27,7 +27,7 @@
 				{% endif %}
 				<td name="private" style="text-align: center;">{% if dataset.private %}<span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
 				{% if dataset.organisation.is_crige_partner and user.profile.crige_membership %}
-				<td name="is_inspire" style="text-align: center;">{% if not dataset.is_inspire %}<span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
+				<td name="is_inspire" style="text-align: center;">{% if dataset.is_inspire %}<span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
 				{% elif user.profile.crige_membership %}
 				<td name="is_inspire" class="crossed"></td>
 				{% endif %}
