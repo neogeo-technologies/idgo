@@ -202,7 +202,7 @@ class DatasetManager(View):
                     'Le jeu de données a été créé avec succès. Souhaitez-vous '
                     '<a href="{0}">créer un nouveau jeu de données</a> ? ou '
                     '<a href="{1}">ajouter une ressource</a> ? ou bien '
-                    '<a href="{2}/dataset/{4}" target="_blank">voir le jeu '
+                    '<a href="{2}/dataset/{3}" target="_blank">voir le jeu '
                     'de données dans CKAN</a> ?').format(
                         reverse('idgo_admin:dataset_editor', kwargs={'id': instance.id}),
                         reverse('idgo_admin:resource', kwargs={'dataset_id': instance.id}),
