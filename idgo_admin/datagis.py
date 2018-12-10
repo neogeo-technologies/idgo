@@ -523,6 +523,9 @@ SELECT ST_AsGeoJSON(ST_Intersection(
         try:
             cursor.execute(sql)
         except Exception as e:
+            if e.__class__.__qualname__ == 'TopologyException':
+                print(e)
+                raise SQLError()
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         else:

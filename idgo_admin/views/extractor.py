@@ -359,11 +359,14 @@ class Extractor(View):
 
         if bool(request.GET.get('jurisdiction')):
             context['jurisdiction'] = True
-            context['footprint'] = user.profile.organisation.jurisdiction.geom.geojson
+            context['footprint'] = json.loads(user.profile.organisation.jurisdiction.geom.geojson)
         else:
             context['jurisdiction'] = False
             footprint = request.GET.get('footprint')
-            context['footprint'] = footprint and json.loads(footprint) or context.get('footprint')
+            if footprint:
+                context['footprint'] = json.loads(footprint)
+            else:
+                context['footprint'] = context.get('footprint')
 
         context['format'] = request.GET.get('format', context.get('format'))
 
@@ -386,7 +389,6 @@ class Extractor(View):
             raise Http404
 
         context = self.get_context(request, user)
-
         footprint = request.POST.get('footprint') or None
         footprint = footprint and json.loads(footprint)
         layer_name = request.POST.get('layer')
@@ -436,9 +438,14 @@ class Extractor(View):
 
             if resource.geo_restriction:
                 footprint_restriction = \
-                    user.profile.organisation.jurisdiction.geom.geojson
+                    json.loads(user.profile.organisation.jurisdiction.geom.geojson)
                 if footprint:
-                    data_extraction['footprint'] = intersect(json.dumps(footprint), footprint_restriction)
+                    try:
+                        data_extraction['footprint'] = intersect(json.dumps(footprint), json.dumps(footprint_restriction))
+                    except Exception as e:
+                        msg = "La zone d'extraction génère une erreur"
+                        messages.error(request, msg)
+                        return render_with_info_profile(request, self.template, context=context)
                 else:
                     data_extraction['footprint'] = footprint_restriction
                 data_extraction['footprint_srs'] = 'EPSG:4326'
@@ -470,9 +477,9 @@ class Extractor(View):
 
                     if resource.geo_restriction:
                         footprint_restriction = \
-                            user.profile.organisation.jurisdiction.geom.geojson
+                            json.loads(user.profile.organisation.jurisdiction.geom.geojson)
                         if footprint:
-                            data_extraction['footprint'] = intersect(json.dumps(footprint), footprint_restriction)
+                            data_extraction['footprint'] = intersect(json.dumps(footprint), json.dumps(footprint_restriction))
                         else:
                             data_extraction['footprint'] = footprint_restriction
                         data_extraction['footprint_srs'] = 'EPSG:4326'
