@@ -37,7 +37,7 @@ import uuid
 
 MRA = settings.MRA
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
-CKAN_STORAGE_PATH = settings.CKAN_STORAGE_PATH
+MAPSERV_STORAGE_PATH = settings.MAPSERV_STORAGE_PATH
 
 
 def get_all_users_for_organizations(list_id):
@@ -438,7 +438,7 @@ class Layer(models.Model):
         if self.type == 'raster':
             x = str(self.resource.ckan_id)
             filename = os.path.join(
-                CKAN_STORAGE_PATH, x[:3], x[3:6], x[6:])
+                MAPSERV_STORAGE_PATH, x[:3], x[3:6], x[6:])
             return filename
 
     def handle_enable_ows_status(self):

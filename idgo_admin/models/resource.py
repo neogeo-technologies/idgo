@@ -26,6 +26,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.http import Http404
 from django.utils import timezone
+from functools import reduce
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import bounds_to_wkt
@@ -48,6 +49,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 from urllib.parse import parse_qs
 from urllib.parse import urljoin
 from urllib.parse import urlparse
@@ -57,7 +59,7 @@ import uuid
 try:
     DOWNLOAD_SIZE_LIMIT = settings.DOWNLOAD_SIZE_LIMIT
 except AttributeError:
-    DOWNLOAD_SIZE_LIMIT = 104857600  # 100Mio
+    DOWNLOAD_SIZE_LIMIT = 104857600
 
 if settings.STATIC_ROOT:
     locales_path = os.path.join(
@@ -76,9 +78,9 @@ try:
 except Exception:
     AUTHORIZED_PROTOCOL = None
 
-CKAN_STORAGE_PATH = '/ckan_storage/resources/'
-
+CKAN_STORAGE_PATH = settings.CKAN_STORAGE_PATH
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
+CKAN_URL = settings.CKAN_URL
 
 
 def get_all_users_for_organizations(list_id):
@@ -293,7 +295,7 @@ class Resource(models.Model):
 
     @property
     def ckan_url(self):
-        return urljoin(settings.CKAN_URL, 'dataset/{}/resource/{}'.format(
+        return urljoin(settings.CKAN_URL, 'dataset/{}/resource/{}/'.format(
             self.dataset.ckan_slug, self.ckan_id))
 
     @property
@@ -355,7 +357,7 @@ class Resource(models.Model):
         return self.get_layers() and True or False
 
     def synchronize_ckan(
-            self, filename=None, content_type=None,
+            self, url=None, filename=None, content_type=None,
             file_extras=None, extracting_service=False):
 
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
@@ -377,7 +379,7 @@ class Resource(models.Model):
             'id': str(self.ckan_id),
             'lang': self.lang,
             'restricted_by_jurisdiction': str(self.geo_restriction),
-            'url': ''}
+            'url': url and url or ''}
 
         # TODO: Factoriser
 
@@ -434,7 +436,7 @@ class Resource(models.Model):
             ckan_params['upload'] = self.ftp_file.file
             ckan_params['size'] = self.ftp_file.size
             ckan_params['mimetype'] = None  # TODO
-            ckan_params['resource_type'] = self.ftp_file.name  # TODO
+            ckan_params['resource_type'] = Path(self.ftp_file.name).name
 
         ckan_package = ckan_user.get_package(str(self.dataset.ckan_id))
 
@@ -483,7 +485,7 @@ class Resource(models.Model):
             # on traite les données en fonction du type détecté
             if self.ftp_file.size > DOWNLOAD_SIZE_LIMIT:
                 extension = self.format_type.extension.lower()
-                if self.format_type.is_datagis:
+                if self.format_type.is_gis_format:
                     try:
                         gdalogr_obj = get_gdalogr_object(filename, extension)
                     except NotDataGISError:
@@ -491,9 +493,12 @@ class Resource(models.Model):
                         pass
                     else:
                         if gdalogr_obj.__class__.__name__ == 'GdalOpener':
-                            raise ValidationError(
-                                'Le fichier raster dépasse la limite autorisée. '
-                                "Veuillez contacter l'administrateur du site.")
+                            s0 = str(self.ckan_id)
+                            s1, s2, s3 = s0[:3], s0[3:6], s0[6:]
+                            dir = os.path.join(CKAN_STORAGE_PATH, s1, s2)
+                            os.makedirs(dir, mode=0o777, exist_ok=True)
+                            shutil.copyfile(filename, os.path.join(dir, s3))
+
                         # if gdalogr_obj.__class__.__name__ == 'OgrOpener':
                         # On ne publie que le service OGC dans CKAN
                         publish_raw_resource = False
@@ -548,6 +553,10 @@ class Resource(models.Model):
             self.synchronize_ckan(
                 filename=filename, content_type=content_type,
                 file_extras=file_extras, extracting_service=False)
+        elif sync_ckan and not publish_raw_resource:
+            url = reduce(urljoin, [self.ckan_url, 'download/', Path(self.ftp_file.name).name])
+            self.synchronize_ckan(
+                url=url, extracting_service=False)
 
         # Détection des données SIG
         # =========================
