@@ -258,7 +258,7 @@ class Extractor(View):
                     context['dataset'] = task.target_object
                     context['organisation'] = task.target_object.organisation
 
-                data_extractions = task.details['query']['data_extractions']
+                data_extractions = task.query['data_extractions']
                 for entry in data_extractions:
                     context['footprint'] = entry.get('footprint')
                     context['crs'] = entry.get('dst_srs')
