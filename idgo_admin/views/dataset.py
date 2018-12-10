@@ -195,17 +195,18 @@ class DatasetManager(View):
             else:
                 send_dataset_creation_mail(user, instance)
 
-            messages.success(request, (
-                'Le jeu de données a été {0} avec succès. Souhaitez-vous '
-                '<a href="{1}">créer un nouveau jeu de données</a> ? ou '
-                '<a href="{2}">ajouter une ressource</a> ? ou bien '
-                '<a href="{3}/dataset/{4}" target="_blank">voir le jeu '
-                'de données dans CKAN</a> ?').format(
-                    id and 'mis à jour' or 'créé',
-                    reverse('idgo_admin:dataset_editor', kwargs={'id': instance.id}),
-                    reverse('idgo_admin:resource', kwargs={'dataset_id': instance.id}),
-                    CKAN_URL,
-                    instance.ckan_slug))
+            if id:
+                messages.success(request, 'Le jeu de données a été mis à jour avec succès.')
+            else:
+                messages.success(request, (
+                    'Le jeu de données a été créé avec succès. Souhaitez-vous '
+                    '<a href="{0}">créer un nouveau jeu de données</a> ? ou '
+                    '<a href="{1}">ajouter une ressource</a> ? ou bien '
+                    '<a href="{2}/dataset/{4}" target="_blank">voir le jeu '
+                    'de données dans CKAN</a> ?').format(
+                        reverse('idgo_admin:dataset_editor', kwargs={'id': instance.id}),
+                        reverse('idgo_admin:resource', kwargs={'dataset_id': instance.id}),
+                        CKAN_URL, instance.ckan_slug))
 
             if 'continue' in request.POST:
                 return HttpResponseRedirect(
