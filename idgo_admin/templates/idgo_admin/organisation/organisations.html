@@ -141,19 +141,23 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <div id="allorganizations">
-	{% if awaiting_member_status or awaiting_contributor_status|length > 0 or awaiting_referent_statut|length > 0 %}
+{% if awaiting_member_status or awaiting_contributor_status|length > 0 or awaiting_referent_statut|length > 0 %}
+	{% if awaiting_member_status|length > 0 %}
 	<div class="alert alert-info">
-		{% if awaiting_member_status|length > 0 %}
 		<p><span class="glyphicon glyphicon-bell" aria-hidden="true"></span>Demande de <strong>rattachement</strong> à l'organisation « <strong>{{ awaiting_member_status.1 }}</strong> » en attente de validation.</p>
-		{% endif %}
-		{% if awaiting_contributor_status|length > 0 %}
-		<p><span class="glyphicon glyphicon-bell" aria-hidden="true"></span>Demande(s) de statut de <strong>contributeur</strong> en attente de validation pour : {% for organization in awaiting_contributor_status %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</p>
-		{% endif %}
-		{% if awaiting_referent_statut|length > 0 %}
-		<p><span class="glyphicon glyphicon-bell" aria-hidden="true"></span>Demande(s) de statut de <strong>référent technique</strong> en attente de validation pour : {% for organization in awaiting_referent_statut %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</p>
-		{% endif %}
 	</div>
 	{% endif %}
+	{% if awaiting_contributor_status|length > 0 %}
+	<div class="alert alert-info">
+		<p><span class="glyphicon glyphicon-bell" aria-hidden="true"></span>Demande(s) de statut de <strong>contributeur</strong> en attente de validation pour : {% for organization in awaiting_contributor_status %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</p>
+	</div>
+	{% endif %}
+	{% if awaiting_referent_statut|length > 0 %}
+	<div class="alert alert-info">
+		<p><span class="glyphicon glyphicon-bell" aria-hidden="true"></span>Demande(s) de statut de <strong>référent technique</strong> en attente de validation pour : {% for organization in awaiting_referent_statut %}<strong class="comma-separated-list">{{ organization.1 }}</strong>{% endfor %}</p>
+	</div>
+	{% endif %}
+{% endif %}
 	<div class="row">
 		<div class="col-md-4">
 			{% if organizations|length > 10 %}

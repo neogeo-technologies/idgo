@@ -11,24 +11,23 @@
 		<div class="progress-status">-</div>
 	</div>
 </template>
-
-<form method="post" action="" enctype="multipart/form-data" class="well">
-	{% csrf_token %}
-	{% if resource.get_layers|length %}
-	<div class="alert alert-info">
-		<div class="row">
-			<div class="col-xs-12">
-				<p>
-					Votre ressource fait l'objet d'une couche géographique publiée à travers l'API OGC de votre organisation. Ce service est disponible à l'adresse suivante :
-					<a target="_blank" href="{{ resource.dataset.organisation.ows_url }}">{{ resource.dataset.organisation.ows_url }}</a>
-				</p>
-				{% if not user.profile.crige_membership %}
-				<p>Pour configurer votre service, veuillez contacter le CRIGE.</p>
-				{% endif %}
-			</div>
+{% if resource.get_layers|length %}
+<div class="alert alert-info">
+	<div class="row">
+		<div class="col-xs-12">
+			<p>
+				Votre ressource fait l'objet d'une couche géographique publiée à travers l'API OGC de votre organisation. Ce service est disponible à l'adresse suivante :
+				<a target="_blank" href="{{ resource.dataset.organisation.ows_url }}">{{ resource.dataset.organisation.ows_url }}</a>
+			</p>
+			{% if not user.profile.crige_membership %}
+			<p>Pour configurer votre service, veuillez contacter le CRIGE.</p>
+			{% endif %}
 		</div>
 	</div>
-	{% endif %}
+</div>
+{% endif %}
+<form method="post" action="" enctype="multipart/form-data" class="well">
+	{% csrf_token %}
 	<div class="buttons-on-the-right-side">
 		{% if not resource.get_layers|length %}
 		{# TODO #}
