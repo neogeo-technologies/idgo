@@ -10,6 +10,7 @@
 <script src="{% static 'libs/leaflet.draw/leaflet.draw.js' %}"></script>
 <script src="{% static 'libs/bootstrap-slider/bootstrap-slider.js' %}"></script>
 <script src="{% static 'libs/turf/turf.min.js' %}"></script>
+<script src="{% static 'libs/wicket/wicket.js' %}"></script>
 <link rel="stylesheet" href="{% static 'libs/leaflet/leaflet.css' %}"/>
 <link rel="stylesheet" href="{% static 'libs/leaflet.draw/leaflet.draw.css' %}"/>
 <link rel="stylesheet" href="{% static 'css/extractor-crige.css' %}"/>
@@ -433,6 +434,12 @@ $(function() {
 
 	{% if footprint %}
 	editableLayers.addLayer(L.geoJSON({{ footprint|safe }}));
+	{% else %}
+	if (qs['footprint']) {
+		var wicket = new Wkt.Wkt();
+		wicket.read(qs['footprint']);
+		editableLayers.addLayer(L.geoJSON(wicket.toJson()));
+	};
 	{% endif %}
 
 	layers.push(editableLayers);
@@ -538,7 +545,9 @@ $(function() {
 				editableLayers.addLayer(e.layer);
 			};
 			footprintLayer = e.layer;
-			// qs['footprint'] = JSON.stringify(footprintLayer.toGeoJSON());
+			var wicket = new Wkt.Wkt();
+			wicket.read(JSON.stringify(footprintLayer.toGeoJSON()));
+			qs['footprint'] = wicket.write();
 			updateUrl({withHash: false, refresh: false});
 		}){% endif %};
 

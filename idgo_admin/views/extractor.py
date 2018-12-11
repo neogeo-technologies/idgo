@@ -362,11 +362,11 @@ class Extractor(View):
             context['footprint'] = json.loads(user.profile.organisation.jurisdiction.geom.geojson)
         else:
             context['jurisdiction'] = False
-            footprint = request.GET.get('footprint')
-            if footprint:
-                context['footprint'] = json.loads(footprint)
-            else:
-                context['footprint'] = context.get('footprint')
+            # footprint = request.GET.get('footprint')
+            # if footprint:
+            #     context['footprint'] = json.loads(footprint)
+            # else:
+            context['footprint'] = context.get('footprint')
 
         context['format'] = request.GET.get('format', context.get('format'))
 
