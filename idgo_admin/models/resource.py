@@ -372,7 +372,7 @@ class Resource(models.Model):
             'name': self.name,
             'description': self.description,
             'data_type': self.data_type,
-            'extracting_service': False,  # I <3 CKAN
+            'extracting_service': 'False',  # I <3 CKAN
             'format': self.format_type.ckan_format,
             'view_type': self.format_type.ckan_view,
             'id': str(self.ckan_id),
@@ -554,7 +554,11 @@ class Resource(models.Model):
                 filename=filename, content_type=content_type, file_extras=file_extras)
         elif sync_ckan and not publish_raw_resource:
             self.synchronize_ckan(
-                url=reduce(urljoin, [self.ckan_url, 'download/', Path(self.ftp_file.name).name]))
+                url=reduce(urljoin, [
+                    settings.CKAN_URL,
+                    'dataset/', str(self.dataset.ckan_id) + '/',
+                    'resource/', str(self.ckan_id) + '/',
+                    'download/', Path(self.ftp_file.name).name]))
 
         # Détection des données SIG
         # =========================
