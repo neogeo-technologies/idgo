@@ -17,6 +17,7 @@
 from django.apps import apps
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Union
+from django.contrib.gis.geos import MultiPolygon
 
 
 class Jurisdiction(models.Model):
@@ -46,12 +47,10 @@ class Jurisdiction(models.Model):
     def set_geom(self):
         geom__union = self.communes.aggregate(Union('geom'))['geom__union']
         if geom__union:
-            self.geom = geom__union
-
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     self.set_geom()
-    #     self.save()
+            try:
+                self.geom = geom__union
+            except TypeError:
+                self.geom = MultiPolygon(geom__union)
 
     def save(self, *args, **kwargs):
         old = kwargs.pop('old', None)
