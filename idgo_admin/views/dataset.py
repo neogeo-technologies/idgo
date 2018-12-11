@@ -97,7 +97,7 @@ class DatasetManager(View):
             resources.append((
                 resource.pk,
                 resource.name,
-                resource.format_type.extension,
+                resource.format_type.description,
                 resource.get_data_type_display(),
                 resource.created_on.isoformat() if resource.created_on else None,
                 resource.last_update.isoformat() if resource.last_update else None,
