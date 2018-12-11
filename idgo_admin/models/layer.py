@@ -75,7 +75,8 @@ class LayerVectorManager(models.Manager):
 class Layer(models.Model):
 
     name = models.SlugField(
-        verbose_name='Nom de la couche', primary_key=True, editable=False)
+        verbose_name='Nom de la couche', primary_key=True,
+        editable=False, max_length=100)
 
     resource = models.ForeignKey(
         to='Resource', verbose_name='Ressource',
