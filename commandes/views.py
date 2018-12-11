@@ -14,21 +14,18 @@
 # under the License.
 
 
+from commandes.forms import OrderForm
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
-
 from idgo_admin.models.mail import sender as mail_sender
-
-from idgo_admin.models import Profile
 from idgo_admin.models import Organisation
-
+from idgo_admin.models import Profile
 from idgo_admin.shortcuts import user_and_profile
 
-from commandes.forms import OrderForm
 
 # CKAN_URL = settings.CKAN_URL
 

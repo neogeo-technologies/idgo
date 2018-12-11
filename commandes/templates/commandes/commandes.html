@@ -3,36 +3,36 @@
 {% load bootstrap3 %}
 
 {% block header %}
-		<div class="page-header">
-			<div class="container">
-				<div class="row">
-					<div class="col-md-12">
-						{% block header_content %}
-						{% include "commandes/header.html" %}
-						{% endblock header_content %}
-					</div>
-				</div>
+<div class="page-header">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				{% block header_content %}
+				{% include "commandes/header.html" %}
+				{% endblock header_content %}
 			</div>
 		</div>
-		{% endblock header %}
+	</div>
+</div>
+{% endblock header %}
 
 {% block nav_content %}
 
 {% endblock nav_content %}
 
 {% block main_content %}
-	{% for hidden_field in form.hidden_fields %}
-	{{ hidden_field }}
-	{% endfor %}
-	{% if form.non_field_errors %}
+{% for hidden_field in form.hidden_fields %}
+{{ hidden_field }}
+{% endfor %}
+{% if form.non_field_errors %}
 <div class="alert alert-danger" role="alert">
 	{% for error in form.non_field_errors %}
 	{{ error }}
 	{% endfor %}
 </div>
-	{% endif %}
+{% endif %}
 <form names="order" action="/commandes/" method="post" enctype="multipart/form-data" class="well">
-	<p>Toute organisation partenaire CRIGE DATA a le droit à une commande 
+	<p>Toute organisation partenaire CRIGE DATA a le droit à une commande
 		de fichiers fonciers <abbr title="Mise À Jour des Informations Cadastrales">MAJIC</abbr> III par an. <br>
 		A chaque demande, Les deux documents suivants doivent être fournis:
 		<ul>
@@ -43,7 +43,7 @@
 			</li>
 		</ul>
 		Ces documents peuvent être téléversés via le formulaire ci-dessous. Un mail de confirmation vous sera envoyé et votre demande sera traitée sous 15 jours par l'administrateur du CRIGE-PACA.
-		</p><br>
+	</p><br>
 	{% csrf_token %}
 	<div class="row">
 		<div class="col-md-8 col-lg-7">
@@ -69,5 +69,5 @@
 {% endblock main_content %}
 
 {% block footer %}
-	{% include "commandes/footer.html" %}
+{% include "commandes/footer.html" %}
 {% endblock footer %}

@@ -13,13 +13,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.contrib import admin
-from django_admin_listfilter_dropdown.filters import DropdownFilter, RelatedDropdownFilter
-from django.utils.html import format_html
-from datetime import datetime
 
+from commandes.actions import email_cadastre_habilitation
+from commandes.actions import email_cadastre_wrong_files
+from commandes.actions import export_as_csv_action
 from commandes.models import Order
-from commandes.actions import export_as_csv_action, email_cadastre_wrong_files, email_cadastre_habilitation
+from datetime import datetime
+from django.contrib import admin
+from django.utils.html import format_html
+from django_admin_listfilter_dropdown.filters import DropdownFilter
+from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+
 
 # def send_email(modeladmin, request, queryset):
 #     queryset.update(status='p')

@@ -13,12 +13,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+
+from commandes.models import Order
 from django import forms
 from django.utils import timezone
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
-
-from commandes.models import Order
 
 
 class CustomClearableFileInput(forms.ClearableFileInput):
@@ -45,7 +45,7 @@ class OrderForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         """
-        recupere l'identifiant du user depuis view.py récuperer 
+        recupere l'identifiant du user depuis view.py récuperer
         l'organisation
         """
         self.user = kwargs.pop('user', None)

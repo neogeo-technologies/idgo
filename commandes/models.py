@@ -13,12 +13,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.db import models
-from django.utils import timezone
+
 from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
-
+from django.db import models
+from django.utils import timezone
 from idgo_admin.models import Organisation
+
 
 TODAY = timezone.now().date()
 
@@ -33,7 +34,7 @@ class Order(models.Model):
     allowed_extensions = ['pdf', 'png', 'doc', 'docx', 'odt']
 
     date = models.DateField(
-        verbose_name='Date de la demande', 
+        verbose_name='Date de la demande',
         null=True,
         default=TODAY
         )

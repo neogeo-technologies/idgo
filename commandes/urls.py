@@ -13,9 +13,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.conf.urls import url
+
 from commandes import views
+from django.conf.urls import url
+
 
 urlpatterns = [
-    url('^commandes/?', views.upload_file, name='index')
-    ]
+    url('^commandes/?', views.upload_file, name='index')]
