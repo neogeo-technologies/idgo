@@ -357,8 +357,7 @@ class Resource(models.Model):
         return self.get_layers() and True or False
 
     def synchronize_ckan(
-            self, url=None, filename=None, content_type=None,
-            file_extras=None, extracting_service=False):
+            self, url=None, filename=None, content_type=None, file_extras=None):
 
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
         # de données existant mais administrateur ou un référent technique,
@@ -373,7 +372,7 @@ class Resource(models.Model):
             'name': self.name,
             'description': self.description,
             'data_type': self.data_type,
-            'extracting_service': str(extracting_service),  # I <3 CKAN
+            'extracting_service': False,  # I <3 CKAN
             'format': self.format_type.ckan_format,
             'view_type': self.format_type.ckan_view,
             'id': str(self.ckan_id),
@@ -433,7 +432,8 @@ class Resource(models.Model):
             ckan_params['resource_type'] = file_extras.get('resource_type')
 
         if self.ftp_file:
-            ckan_params['upload'] = self.ftp_file.file
+            if not url:
+                ckan_params['upload'] = self.ftp_file.file
             ckan_params['size'] = self.ftp_file.size
             ckan_params['mimetype'] = None  # TODO
             ckan_params['resource_type'] = Path(self.ftp_file.name).name
@@ -551,12 +551,10 @@ class Resource(models.Model):
         # de type « raster », nous utilisons le filestore de CKAN.
         if sync_ckan and publish_raw_resource:
             self.synchronize_ckan(
-                filename=filename, content_type=content_type,
-                file_extras=file_extras, extracting_service=False)
+                filename=filename, content_type=content_type, file_extras=file_extras)
         elif sync_ckan and not publish_raw_resource:
-            url = reduce(urljoin, [self.ckan_url, 'download/', Path(self.ftp_file.name).name])
             self.synchronize_ckan(
-                url=url, extracting_service=False)
+                url=reduce(urljoin, [self.ckan_url, 'download/', Path(self.ftp_file.name).name]))
 
         # Détection des données SIG
         # =========================
@@ -765,7 +763,16 @@ class Resource(models.Model):
         # on supprime les données téléversées ou téléchargées..
         file_must_be_deleted and remove_file(filename)
 
-        self.synchronize_ckan(extracting_service=self.extractable)
+        # Super crado
+        if self.editor == self.dataset.editor:
+            ckan_user = ckan_me(ckan.get_user(self.editor.username)['apikey'])
+        else:
+            ckan_user = ckan_me(ckan.apikey)
+        ckan_user.update_resource(
+            str(self.ckan_id), extracting_service=str(self.extractable))
+        ckan_user.close()
+        #
+
         for layer in self.get_layers():
             layer.save()
 
