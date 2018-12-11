@@ -665,7 +665,7 @@ class Resource(models.Model):
                                 except Exception as e:
                                     file_must_be_deleted and remove_file(filename)
                                     for table in tables:
-                                        drop_table(table)
+                                        drop_table(table['id'])
                                     raise e
 
                         if gdalogr_obj.__class__.__name__ == 'GdalOpener':
