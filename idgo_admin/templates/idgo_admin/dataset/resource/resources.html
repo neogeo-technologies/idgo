@@ -91,7 +91,7 @@ $(function() {
 	{% if user.profile.crige_membership %}
 	$('button[name="resource-extractor"]').on('click', function(e) {
 		e.preventDefault();
-		redirect('{% url "idgo_admin:extractor" site_name="extractor" %}?&resource=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id'])
+		window.location.replace('{% url "idgo_admin:extractor" site_name="extractor" %}?&resource=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
 		e.stopPropagation();
 	});
 	{% endif %}
