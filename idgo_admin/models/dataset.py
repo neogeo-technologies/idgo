@@ -79,7 +79,7 @@ class Dataset(models.Model):
         ('bimonthly', 'Bi-mensuelle'),
         ('monthly', 'Mensuelle'),
         ('quarterly', 'Trimestrielle'),
-        ('biannual', 'Bi-annuelle'),
+        ('semiannual', 'Bi-annuelle'),
         ('annual', 'Annuelle'),
         ('unknow', 'Inconnue'))
 
