@@ -285,6 +285,7 @@ class ResourceForm(forms.ModelForm):
                     self.add_error(k, error_msg)
 
         self.cleaned_data['last_update'] = timezone.now().date()
+        return self.cleaned_data
 
     def handle_me(self, request, dataset, id=None):
 
@@ -327,11 +328,11 @@ class ResourceForm(forms.ModelForm):
             'up_file': data['up_file']}
 
         if data['restricted_level'] == '2':
-            data['profiles_allowed'] = data['profiles_allowed']
+            params['profiles_allowed'] = data['profiles_allowed']
         if data['restricted_level'] == '3':
-            data['organisations_allowed'] = [self._dataset.organisation]
+            params['organisations_allowed'] = [self._dataset.organisation]
         if data['restricted_level'] == '4':
-            data['organisations_allowed'] = data['organisations_allowed']
+            params['organisations_allowed'] = data['organisations_allowed']
 
         kwargs = {'editor': user, 'file_extras': file_extras, 'sync_ckan': True}
 
