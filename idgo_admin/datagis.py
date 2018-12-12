@@ -296,7 +296,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
     layers.encoding = encoding
     # else:
     for layer in layers:
-        layername = slugify(layer.name)
+        layername = slugify(layer.name).replace('-', '_')
 
         if layername == 'ogrgeojson':
             p = Path(ds._datastore.name)
