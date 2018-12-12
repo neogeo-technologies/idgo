@@ -359,7 +359,10 @@ class Extractor(View):
 
         if bool(request.GET.get('jurisdiction')):
             context['jurisdiction'] = True
-            context['footprint'] = json.loads(user.profile.organisation.jurisdiction.geom.geojson)
+            if user.profile.organisation and user.profile.organisation.jurisdiction:
+                context['footprint'] = json.loads(user.profile.organisation.jurisdiction.geom.geojson)
+            else:
+                context['footprint'] = None
         else:
             context['jurisdiction'] = False
             # footprint = request.GET.get('footprint')
@@ -501,8 +504,8 @@ class Extractor(View):
             'user_email_address': user.email,
             'user_name': user.last_name,
             'user_first_name': user.first_name,
-            'user_company': user.profile.organisation.name,
-            'user_address': user.profile.organisation.full_address,
+            'user_company': user.profile.organisation and user.profile.organisation.name or '',
+            'user_address': user.profile.organisation and user.profile.organisation.full_address or '',
             'data_extractions': data_extractions,
             'additional_files': additional_files}
 
@@ -525,7 +528,7 @@ class Extractor(View):
                 "L'extraction a été ajoutée à la liste de tâche. "
                 "Vous allez recevoir un e-mail une fois l'extraction réalisée."))
 
-            domain = Site.objects.get(name='admin').domain
+            domain = Site.objects.get(name='extractor').domain
             url = 'http{secure}://{domain}{path}'.format(
                 secure=request.is_secure and 's' or '',
                 domain=domain,

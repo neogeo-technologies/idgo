@@ -89,12 +89,12 @@ urlpatterns = [
     url('^dataset/export/?$', Export.as_view(), name='export'),
 
     url('^extractor/?$', Extractor.as_view(), name='extractor'),
-    url('^extraction/task/?$', extractor_task, name='extractor_task'),
-    url('^extraction/dashboard/?$', ExtractorDashboard.as_view(), name='extractor_dashboard'),
+    url('^extractor/task/?$', extractor_task, name='extractor_task'),
+    url('^extractor/dashboard/?$', ExtractorDashboard.as_view(), name='extractor_dashboard'),
 
     url('^jurisdiction/?$', jurisdiction, name='jurisdiction'),
     url('^jurisdiction/all/?$', jurisdictions, name='jurisdictions'),
-    url('^jurisdiction/(?P<code>(for|new|(\w+)))/edit/?$', JurisdictionView.as_view(), name='jurisdiction_editor'),
+    url('^jurisdiction/(?P<code>(for|new|(.+)))/edit/?$', JurisdictionView.as_view(), name='jurisdiction_editor'),
 
     url('^mdedit/(?P<type>(dataset|service))/?$', mdhandler, name='mdhandler'),
     url('^mdedit/dataset/(?P<id>(\d+))/?$', DatasetMDEdit.as_view(), name='dataset_mdedit'),

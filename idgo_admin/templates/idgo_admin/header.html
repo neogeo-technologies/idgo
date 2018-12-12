@@ -1,5 +1,6 @@
 {% load static %}
 {% load bootstrap3 %}
+{% load extra_tags %}
 
 <span class="title">
 	<a href="{{ wordpress_url }}">
@@ -16,7 +17,7 @@
 		{{ first_name}} {{ last_name }} <span class="glyphicon glyphicon-user"></span>
 	</button>
 	<ul class="dropdown-menu">
-		<li><a href="{% url "idgo_admin:update_account" %}">Mon profil</a></li>
-		<li><a href="{% url "server_cas:signOut" %}">Me déconnecter</a></li>
+		<li><a href="{% url 'idgo_admin:update_account' site_name='admin' %}">Mon profil</a></li>
+		<li><a href="{% url 'server_cas:signOut' %}">Me déconnecter</a></li>
 	</ul>
 </div>

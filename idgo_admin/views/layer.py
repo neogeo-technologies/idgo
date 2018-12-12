@@ -136,27 +136,31 @@ def get_layer(resource, datagis_id):
 
     datagis_id = str(datagis_id)
     layer = MRAHandler.get_layer(datagis_id)
-    ft = MRAHandler.get_featuretype(resource.dataset.organisation.ckan_slug, 'public', datagis_id)
-
-    ll = ft['featureType']['latLonBoundingBox']
-    bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
-    attributes = [item['name'] for item in ft['featureType']['attributes']]
-
-    default_style_name = layer['defaultStyle']['name']
-
-    styles = [{
-        'name': 'default',
-        'text': 'Style par défaut',
-        'url': layer['defaultStyle']['href'].replace('json', 'sld'),
-        'sld': MRAHandler.get_style(layer['defaultStyle']['name'])}]
-
-    if layer.get('styles'):
-        for style in layer.get('styles')['style']:
-            styles.append({
-                'name': style['name'],
-                'text': style['name'],
-                'url': style['href'].replace('json', 'sld'),
-                'sld': MRAHandler.get_style(style['name'])})
+    if layer['type'] == 'RASTER':
+        c = MRAHandler.get_coverage(resource.dataset.organisation.ckan_slug, 'public', datagis_id)
+        ll = c['coverage']['latLonBoundingBox']
+        bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
+        attributes = []
+        default_style_name = None
+        styles = []
+    else:
+        ft = MRAHandler.get_featuretype(resource.dataset.organisation.ckan_slug, 'public', datagis_id)
+        ll = ft['featureType']['latLonBoundingBox']
+        bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
+        attributes = [item['name'] for item in ft['featureType']['attributes']]
+        default_style_name = layer['defaultStyle']['name']
+        styles = [{
+            'name': 'default',
+            'text': 'Style par défaut',
+            'url': layer['defaultStyle']['href'].replace('json', 'sld'),
+            'sld': MRAHandler.get_style(layer['defaultStyle']['name'])}]
+        if layer.get('styles'):
+            for style in layer.get('styles')['style']:
+                styles.append({
+                    'name': style['name'],
+                    'text': style['name'],
+                    'url': style['href'].replace('json', 'sld'),
+                    'sld': MRAHandler.get_style(style['name'])})
 
     return {
         'id': datagis_id,
