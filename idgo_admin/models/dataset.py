@@ -271,9 +271,9 @@ class Dataset(models.Model):
         broadcaster_email = self.broadcaster_email or \
             self.support and self.support.email or DEFAULT_CONTACT_EMAIL
 
-        if not self.bbox and (not self.geocover and (
-                self.organisation and self.organisation.jurisdiction)):
-            setattr(self, 'geocover', 'jurisdiction')
+        # if not self.bbox and (not self.geocover and (
+        #         self.organisation and self.organisation.jurisdiction)):
+        #     setattr(self, 'geocover', 'jurisdiction')
 
         layers = self.get_layers()
         if layers:
@@ -295,9 +295,11 @@ class Dataset(models.Model):
                             xmin, ymin = bounds[0][1], bounds[0][0]
                             xmax, ymax = bounds[1][1], bounds[1][0]
                             setattr(self, 'bbox', bounds_to_wkt(xmin, ymin, xmax, ymax))
-            else:  # self.geocover == 'regionale'
+            elif self.geocover == 'regionale':
                 # Prend l'étendue par défaut définie en settings
                 setattr(self, 'bbox', DEFAULT_BBOX)
+            else:
+                setattr(self, 'bbox', None)
 
         super().save(*args, **kwargs)
 
