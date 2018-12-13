@@ -88,7 +88,7 @@ def email_cadastre_wrong_files(modeladmin, request, queryset):
 
     for obj in queryset:
         emailInfo = mail_date_organisation(modeladmin, request, queryset, obj)
-        return mail_sender(
+        mail_sender(
             'cadastre_wrong_file',
             to=[emailInfo["email"]],
             cc=CC_EMAIL,
@@ -100,7 +100,7 @@ def email_cadastre_habilitation(modeladmin, request, queryset):
 
     for obj in queryset:
         emailInfo = mail_date_organisation(modeladmin, request, queryset, obj)
-        return mail_sender(
+        mail_sender(
             'cadastre_no_habilitation',
             to=[emailInfo["email"]],
             cc=CC_EMAIL,
