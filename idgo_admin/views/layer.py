@@ -137,7 +137,7 @@ def get_layer(resource, datagis_id):
     datagis_id = str(datagis_id)
     layer = MRAHandler.get_layer(datagis_id)
     if layer['type'] == 'RASTER':
-        c = MRAHandler.get_coverage(resource.dataset.organisation.ckan_slug, 'public', datagis_id)
+        c = MRAHandler.get_coverage(resource.dataset.organisation.ckan_slug, datagis_id, datagis_id)
         ll = c['coverage']['latLonBoundingBox']
         bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
         attributes = []
