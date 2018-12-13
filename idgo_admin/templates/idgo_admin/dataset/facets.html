@@ -145,11 +145,12 @@ $(function() {
 				return false;
 			};
 		})
+
 		.typeahead({
 			source: [{% for item in all_datasets %}
 				{
 					id: '{{ item.id }}',
-					name: '{{ item.name }}'
+					name: '{{ item.name }}'.replace('&lt;', '<').replace('&gt;', '>').replace('&#39;', '\'').replace('&quot;', '\"').replace('&amp;', '&')
 				},{% endfor %}
 			],
 			autoSelect: false,
@@ -169,7 +170,7 @@ $(function() {
 			source: [{% for item in all_organisations %}
 				{
 					id: '{{ item.id }}',
-					name: '{{ item.name }}'
+					name: '{{ item.name }}'.replace('&lt;', '<').replace('&gt;', '>').replace('&#39;', '\'').replace('&quot;', '\"').replace('&amp;', '&')
 				},{% endfor %}
 			],
 			autoSelect: false,
