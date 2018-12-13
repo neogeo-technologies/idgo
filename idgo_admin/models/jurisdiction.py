@@ -33,7 +33,7 @@ class Jurisdiction(models.Model):
         related_name='jurisdiction_communes')
 
     geom = models.MultiPolygonField(
-        verbose_name='Geometrie', srid=4326, blank=True, null=True)
+        verbose_name='Geometrie', srid=4171, blank=True, null=True)
 
     objects = models.GeoManager()
 
@@ -86,7 +86,7 @@ class Commune(models.Model):
     name = models.CharField(verbose_name='Nom', max_length=100)
 
     geom = models.MultiPolygonField(
-        verbose_name='Geometrie', srid=4326, blank=True, null=True)
+        verbose_name='Geometrie', srid=4171, blank=True, null=True)
 
     objects = models.GeoManager()
 

@@ -534,7 +534,7 @@ SELECT ST_AsGeoJSON(ST_Intersection(
             return json.loads(records[0][0])
 
 
-def transform(wkt, epsg_in, epsg_out=4174):
+def transform(wkt, epsg_in, epsg_out=4171):
 
     sql = '''
 SELECT ST_AsText(ST_Transform(ST_GeomFromText('{wkt}', {epsg_in}), {epsg_out})) AS wkt;
