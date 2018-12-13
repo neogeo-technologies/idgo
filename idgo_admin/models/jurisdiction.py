@@ -45,12 +45,20 @@ class Jurisdiction(models.Model):
         return self.name
 
     def set_geom(self):
-        geom__union = self.communes.aggregate(Union('geom'))['geom__union']
-        if geom__union:
-            try:
-                self.geom = geom__union
-            except TypeError:
-                self.geom = MultiPolygon(geom__union)
+        if self.communes.count() == 1:
+            commune = self.communes.all()[0]
+            if commune.geom.__class__.__name__ == 'MultiPolygon':
+                self.geom = commune.geom
+            elif commune.geom.__class__.__name__ == 'Polygon':
+                # Bien que normalement, on ne devrait pas avoir de type Polygon
+                self.geom = MultiPolygon(commune.geom)
+        elif self.communes.count() > 1:
+            geom__union = self.communes.aggregate(Union('geom'))['geom__union']
+            if geom__union:
+                try:
+                    self.geom = geom__union
+                except TypeError:
+                    self.geom = MultiPolygon(geom__union)
 
     def save(self, *args, **kwargs):
         old = kwargs.pop('old', None)
