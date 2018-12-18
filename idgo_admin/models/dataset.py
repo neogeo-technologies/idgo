@@ -20,6 +20,7 @@ from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.db.models.signals import post_delete
+from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -30,6 +31,7 @@ from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin.managers import HarvestedDataset
 from idgo_admin.utils import three_suspension_points
+import logging
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
 import uuid
@@ -185,6 +187,9 @@ class Dataset(models.Model):
 
     def __str__(self):
         return self.name
+
+    def __slug__(self):
+        return self.ckan_slug or slugify(self.name)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -444,3 +449,30 @@ def pre_delete_dataset(sender, instance, **kwargs):
 @receiver(post_delete, sender=Dataset)
 def post_delete_dataset(sender, instance, **kwargs):
     ckan.deactivate_ckan_organization_if_empty(str(instance.organisation.ckan_id))
+
+
+# Logging
+# =======
+
+
+@receiver(pre_save, sender=Dataset)
+def logging_before_save(sender, instance, **kwargs):
+    if not instance.pk:
+        logging.info('Creating dataset... "{}"'.format(instance.__slug__(), instance.pk))
+    else:
+        logging.info('Updating dataset... "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+
+
+@receiver(post_save, sender=Dataset)
+def logging_after_save(sender, instance, **kwargs):
+    logging.info('Saved dataset...... "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+
+
+@receiver(pre_delete, sender=Dataset)
+def logging_before_delete(sender, instance, **kwargs):
+    logging.info('Deleting dataset... "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+
+
+@receiver(post_delete, sender=Dataset)
+def logging_after_delete(sender, instance, **kwargs):
+    logging.info('Deleted dataset.... "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))

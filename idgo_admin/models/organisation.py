@@ -32,6 +32,7 @@ from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.mra_client import MRAHandler
 import inspect
+import logging
 from urllib.parse import urljoin
 import uuid
 
@@ -193,11 +194,11 @@ class RemoteCkan(models.Model):
         else:
             # Dans le cas d'une création, on vérifie si l'URL CKAN est valide
             try:
-                ckan = CkanBaseHandler(self.url)
+                ckan_remote = CkanBaseHandler(self.url)
             except CkanBaseError as e:
                 raise ValidationError(e.__str__(), code='url')
             else:
-                ckan.close()
+                ckan_remote.close()
 
         # (2) Sauver l'instance
         super().save(*args, **kwargs)
@@ -214,16 +215,17 @@ class RemoteCkan(models.Model):
             break
 
         # Ouvre la connexion avec le CKAN distant
-        ckan = CkanBaseHandler(self.url)
+        ckan_remote = CkanBaseHandler(self.url)
 
         # Puis on moissonne le catalogue
         if self.sync_with:
             try:
+                ckan_ids = []
                 with transaction.atomic():
 
                     # TODO: Factoriser
                     for value in self.sync_with:
-                        ckan_organisation = ckan.get_organization(
+                        ckan_organisation = ckan_remote.get_organization(
                             value, include_datasets=True,
                             include_groups=True, include_tags=True)
 
@@ -233,7 +235,7 @@ class RemoteCkan(models.Model):
                             if not package['state'] == 'active' \
                                     or not package['type'] == 'dataset':
                                 continue
-                            package = ckan.get_package(package['id'])
+                            package = ckan_remote.get_package(package['id'])
 
                             ckan_id = uuid.UUID(package['id'])
 
@@ -281,9 +283,15 @@ class RemoteCkan(models.Model):
                                 'update_freq': 'never'}
 
                             dataset, created = Dataset.harvested.update_or_create(**kvp)
+                            ckan_ids.append(dataset.ckan_id)
 
                             for resource in package.get('resources', []):
-                                ckan_id = uuid.UUID(resource['id'])
+                                try:
+                                    ckan_id = uuid.UUID(resource['id'])
+                                except ValueError as e:
+                                    logging.exception(e)
+                                    logging.error("I can't crash here, so I do not pay any attention to this error.")
+                                    continue
 
                                 format_type, _ = \
                                     ResourceFormats.objects.get_or_create(
@@ -299,7 +307,8 @@ class RemoteCkan(models.Model):
                                 try:
                                     resource = Resource.objects.get(ckan_id=ckan_id)
                                 except Resource.DoesNotExist:
-                                    resource = Resource.objects.create(**kvp)
+                                    resource = Resource.custom.create(
+                                        save_opts={'editor': editor, 'sync_ckan': True}, **kvp)
                                 else:
                                     for k, v in kvp.items():
                                         setattr(resource, k, v)
@@ -308,10 +317,11 @@ class RemoteCkan(models.Model):
                     # end for value in self.sync_with
 
             except Exception as e:
-                # TODO: Gérer les exceptions
+                for id in ckan_ids:
+                    ckan.purge_dataset(str(id))
                 raise e
             finally:
-                ckan.close()
+                ckan_remote.close()
 
     def delete(self, *args, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')

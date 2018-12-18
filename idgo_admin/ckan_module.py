@@ -24,6 +24,7 @@ from django.db import IntegrityError
 from functools import wraps
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.utils import Singleton
+import inspect
 import logging
 import timeout_decorator
 import unicodedata
@@ -100,9 +101,20 @@ class CkanExceptionsHandler(object):
     def __call__(self, f):
         @wraps(f)
         def wrapper(*args, **kwargs):
+
+            unwrapped_code = inspect.unwrap(f).__code__
+            info = inspect.getframeinfo(inspect.stack()[1][0])
+            logging.info((
+                'Run {}, file "{}", line {}\n'
+                '      called by file "{}", line {}, in {}'
+                ).format(f.__qualname__, unwrapped_code.co_filename,
+                         unwrapped_code.co_firstlineno, info.filename,
+                         info.lineno, info.function))
+
             try:
                 return f(*args, **kwargs)
             except Exception as e:
+                logging.exception(e)
                 if isinstance(e, timeout_decorator.TimeoutError):
                     raise CkanTimeoutError
                 if self.is_ignored(e):
@@ -120,6 +132,8 @@ class CkanExceptionsHandler(object):
                 if e.__str__() in ('Indisponible', 'Not Found'):
                     raise CkanNotFoundError
                 raise CkanSyncingError(e.__str__())
+            else:
+                logging.info('Ok!')
         return wrapper
 
     def is_ignored(self, exception):
