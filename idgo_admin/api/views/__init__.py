@@ -14,10 +14,8 @@
 # under the License.
 
 
-from idgo_admin.api.views.dataset import DatasetList
-from idgo_admin.api.views.dataset import DatasetShow
 from idgo_admin.api.views.user import UserList
 from idgo_admin.api.views.user import UserShow
 
 
-__all__ = [DatasetList, DatasetShow, UserList, UserShow]
+__all__ = [UserList, UserShow]

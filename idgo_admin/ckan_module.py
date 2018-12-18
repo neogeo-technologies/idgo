@@ -24,6 +24,7 @@ from django.db import IntegrityError
 from functools import wraps
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.utils import Singleton
+import logging
 import timeout_decorator
 import unicodedata
 from urllib.parse import urljoin
