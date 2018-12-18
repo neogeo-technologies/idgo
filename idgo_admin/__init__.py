@@ -14,4 +14,18 @@
 # under the License.
 
 
+from django.conf import settings
+import logging
+
+
 default_app_config = 'idgo_admin.apps.IdgoadminConfig'
+
+try:
+    loglevel = settings.DEBUG and 'DEBUG'
+except AttributeError:
+    loglevel = 'INFO'
+
+loglevel = 'INFO'
+
+logging.basicConfig(
+    format='%(levelname)s: %(message)s', level=loglevel)

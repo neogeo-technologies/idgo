@@ -23,6 +23,8 @@ from django.core.files import File
 from django.db import IntegrityError
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
+from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.http import Http404
 from django.utils import timezone
@@ -46,6 +48,7 @@ from idgo_admin.utils import remove_file
 from idgo_admin.utils import slugify
 from idgo_admin.utils import three_suspension_points
 import json
+import logging
 import os
 from pathlib import Path
 import re
@@ -277,6 +280,9 @@ class Resource(models.Model):
 
     def __str__(self):
         return self.name
+
+    def __slug__(self):
+        return slugify(self.name)
 
     @property
     def encoding(self):
@@ -772,6 +778,7 @@ class Resource(models.Model):
             ckan_user = ckan_me(ckan.get_user(self.editor.username)['apikey'])
         else:
             ckan_user = ckan_me(ckan.apikey)
+
         ckan_user.update_resource(
             str(self.ckan_id), extracting_service=str(self.extractable))
         ckan_user.close()
@@ -794,3 +801,30 @@ def force_save_dataset(sender, instance, **kwargs):
 #     instance.synchronize_ckan(extracting_service=instance.extractable)
 #     for layer in instance.get_layers():
 #         layer.save()
+
+
+# Logging
+# =======
+
+
+@receiver(pre_save, sender=Resource)
+def logging_before_save(sender, instance, **kwargs):
+    if not instance.pk:
+        logging.info('Creating resource.. "{}"'.format(instance.__slug__(), instance.pk))
+    else:
+        logging.info('Updating resource.. "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+
+
+@receiver(post_save, sender=Resource)
+def logging_after_save(sender, instance, **kwargs):
+    logging.info('Saved resource..... "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+
+
+@receiver(pre_delete, sender=Resource)
+def logging_before_delete(sender, instance, **kwargs):
+    logging.info('Deleting resource.. "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+
+
+@receiver(post_delete, sender=Resource)
+def logging_after_delete(sender, instance, **kwargs):
+    logging.info('Deleted resource... "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
