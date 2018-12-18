@@ -124,6 +124,10 @@ class Profile(models.Model):
     def referent_for(self):
         return LiaisonsReferents.get_subordinated_organizations(profile=self)
 
+    @property
+    def contribute_for(self):
+        return LiaisonsContributeurs.get_pending(profile=self)
+
     def is_referent_for(self, organisation):
         return organisation in self.user.profile.referent_for
 

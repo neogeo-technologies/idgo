@@ -17,6 +17,8 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import url
+from idgo_admin.api.views import UserList
+from idgo_admin.api.views import UserShow
 from idgo_admin.views.account import create_sftp_account
 from idgo_admin.views.account import delete_account
 from idgo_admin.views.account import delete_sftp_account
@@ -62,6 +64,7 @@ from idgo_admin.views.resource import resource
 from idgo_admin.views.resource import ResourceManager
 from idgo_admin.views.stuffs import DisplayLicenses
 from idgo_admin.views.stuffs import ows_preview
+
 
 urlpatterns = [
     url('^$', home, name='datasets'),
@@ -124,10 +127,17 @@ urlpatterns = [
     url('^confirmation/contribute/(?P<key>.+)/?$', confirm_contribution, name='confirm_contribution'),
     url('^confirmation/referent/(?P<key>.+)/?$', confirm_referent, name='confirm_referent'),
 
-    url('^action/$', ActionsManager.as_view(), name='action'),
+    url('^action/?$', ActionsManager.as_view(), name='action'),
     url('^licences/?$', DisplayLicenses.as_view(), name='licences'),
 
-    url('^owspreview/$', ows_preview, name='ows_preview'),
+    url('^owspreview/?$', ows_preview, name='ows_preview'),
+
+    # API url
+    # =======
+
+    url('^api/user/?$', UserList.as_view(), name='user_list'),
+    url('^api/user/(?P<username>\w+)?$', UserShow.as_view(), name='user_show'),
+
     ]
 
 
