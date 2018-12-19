@@ -27,6 +27,7 @@ from idgo_admin.exceptions import DatagisBaseError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.utils import slugify
 import json
+import logging
 from pathlib import Path
 import re
 from uuid import uuid4
@@ -70,11 +71,15 @@ class SQLError(DatagisBaseError):
     message = "Le fichier reçu n'est pas reconnu comme étant un jeu de données SIG."
 
 
-def get_format_driver(name):
-    return {
-        'ESRI Shapefile': 'SHP',
-        'GTiff': 'TIFF'
-        }.get(name, name)
+class WrongDataError(DatagisBaseError):
+    message = "Le fichier de données contient un ou plusieurs objets erronés."
+
+
+# def get_format_driver(name):
+#     return {
+#         'ESRI Shapefile': 'SHP',
+#         'GTiff': 'TIFF'
+#         }.get(name, name)
 
 
 def is_valid_epsg(code):
@@ -83,6 +88,7 @@ def is_valid_epsg(code):
         try:
             cursor.execute(sql)
         except Exception as e:
+            logging.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         records = cursor.fetchall()
@@ -96,6 +102,7 @@ def get_proj4s():
         try:
             cursor.execute(sql)
         except Exception as e:
+            logging.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         records = cursor.fetchall()
@@ -145,13 +152,15 @@ class GdalOpener(object):
         except GDALException as e:
             raise NotGDALError(
                 'The file received is not recognized as being a GIS raster data. {}'.format(e.__str__()))
+        else:
+            logging.info('File "{}" is RASTER data'.format(filename))
 
     def get_coverage(self):
         return self._coverage
 
-    @property
-    def format(self):
-        return get_format_driver(self._coverage.driver.name)
+    # @property
+    # def format(self):
+    #     return get_format_driver(self._coverage.driver.name)
 
 
 class OgrOpener(object):
@@ -168,13 +177,15 @@ class OgrOpener(object):
         except GDALException as e:
             raise NotOGRError(
                 'The file received is not recognized as being a GIS vector data. {}'.format(e.__str__()))
+        else:
+            logging.info('File "{}" is VECTOR data'.format(filename))
 
     def get_layers(self):
         return self._datastore
 
-    @property
-    def format(self):
-        return get_format_driver(self._datastore.driver.name)
+    # @property
+    # def format(self):
+    #     return get_format_driver(self._datastore.driver.name)
 
 
 def get_gdalogr_object(filename, extension):
@@ -246,6 +257,10 @@ def get_epsg(obj):
             epsg = obj.srs.identify_epsg()
         except SRSException:
             epsg = None
+        except Exception as e:
+            logging.exception(e)
+            raise e
+        # else:
         if not epsg:
             if obj.srs.projected \
                     and obj.srs.auth_name('PROJCS') == 'EPSG':
@@ -258,6 +273,7 @@ def get_epsg(obj):
         if not epsg:
             epsg = retreive_epsg_through_regex(obj.srs.name)
     if not epsg:
+        logging.info('Unable to determine SRS')
         raise NotFoundSrsError('SRS Not found')
     return epsg
 
@@ -352,7 +368,12 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
         # Donc dans ce cas on définit le type de géométrie de la couche
         # comme générique (soit 'Geometry')
         # Mais ceci est moche :
-        test = set(feat.geom.__class__.__qualname__ for feat in layer)
+        try:
+            test = set(feature.geom.__class__.__name__ for feature in layer)
+        except Exception as e:
+            logging.exception(e)
+            raise WrongDataError()
+
         if test == {'Polygon', 'MultiPolygon'}:
             geometry = 'MultiPolygon'
         elif test == {'Polygon25D', 'MultiPolygon25D'}:
@@ -422,6 +443,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
             try:
                 cursor.execute(q)
             except Exception as e:
+                logging.exception(e)
                 # Revenir à l'état initial
                 for table_id in [table['id'] for table in tables]:
                     drop_table(table_id)
@@ -450,6 +472,7 @@ def get_extent(tables, schema='public'):
         try:
             cursor.execute(sql)
         except Exception as e:
+            logging.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         records = cursor.fetchall()
@@ -473,6 +496,7 @@ WHERE relname = '{table}' AND nspname = '{schema}';
         try:
             cursor.execute(sql)
         except Exception as e:
+            logging.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         records = cursor.fetchall()
@@ -496,6 +520,7 @@ ALTER INDEX IF EXISTS "{table}_gix" RENAME TO "{name}_gix";
         try:
             cursor.execute(sql)
         except Exception as e:
+            logging.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         cursor.close()
@@ -507,6 +532,7 @@ def drop_table(table, schema=SCHEMA):
         try:
             cursor.execute(sql)
         except Exception as e:
+            logging.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         cursor.close()
@@ -523,8 +549,8 @@ SELECT ST_AsGeoJSON(ST_Intersection(
         try:
             cursor.execute(sql)
         except Exception as e:
+            logging.exception(e)
             if e.__class__.__qualname__ == 'TopologyException':
-                print(e)
                 raise SQLError()
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
@@ -544,6 +570,7 @@ SELECT ST_AsText(ST_Transform(ST_GeomFromText('{wkt}', {epsg_in}), {epsg_out})) 
         try:
             cursor.execute(sql)
         except Exception as e:
+            logging.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         else:

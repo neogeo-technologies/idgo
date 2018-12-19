@@ -40,6 +40,7 @@ from idgo_admin.datagis import NotDataGISError
 from idgo_admin.datagis import NotFoundSrsError
 from idgo_admin.datagis import NotOGRError
 from idgo_admin.datagis import NotSupportedSrsError
+from idgo_admin.datagis import WrongDataError
 from idgo_admin.datagis import ogr2postgis
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import SizeLimitExceededError
@@ -628,6 +629,14 @@ class Resource(models.Model):
                                     "données. Merci d'indiquer l'encodage "
                                     'ci-dessous.')
                                 raise ValidationError(msg, code='encoding')
+
+                            except WrongDataError as e:
+                                file_must_be_deleted and remove_file(filename)
+                                msg = (
+                                    'Votre ressource contient des données SIG que '
+                                    'nous ne parvenons pas à lire correctement. '
+                                    'Un ou plusieurs objets sont erronés.')
+                                raise ValidationError(msg)
 
                             except NotFoundSrsError as e:
                                 file_must_be_deleted and remove_file(filename)
