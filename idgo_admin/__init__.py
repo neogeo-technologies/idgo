@@ -25,7 +25,5 @@ try:
 except AttributeError:
     loglevel = 'INFO'
 
-loglevel = 'INFO'
-
 logging.basicConfig(
     format='%(levelname)s: %(message)s', level=loglevel)
