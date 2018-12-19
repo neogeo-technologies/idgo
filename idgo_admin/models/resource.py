@@ -467,7 +467,7 @@ class Resource(models.Model):
 
         # Quelques valeur par défaut à la création de l'instance
         if created \
-                or not self.editor.profile.crige_membership:
+                or not (hasattr(self.editor, 'profile') and self.editor.profile.crige_membership):
                 # Ou si l'éditeur n'est pas partenaire du CRIGE
 
             # Mais seulement s'il s'agit de données SIG, sauf
