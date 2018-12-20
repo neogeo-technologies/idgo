@@ -20,12 +20,10 @@ from idgo_admin.models import JurisdictionCommune
 
 
 class JurisdictionCommuneTabularInline(admin.TabularInline):
+    model = JurisdictionCommune
     can_delete = True
     can_order = True
     extra = 0
-    fields = ['commune', 'name', 'code_insee']
-    model = JurisdictionCommune
-    readonly_fields = ['name', 'code_insee']
     verbose_name_plural = 'Communes rattachées au territoire de compétence'
     verbose_name = 'Commune rattachée au territoire de compétence'
 
@@ -39,28 +37,34 @@ class JurisdictionCommuneTabularInline(admin.TabularInline):
 
     code_insee.short_description = 'Code INSEE'
 
+    fields = ('commune', 'name', 'code_insee', )
+    readonly_fields = ('name', 'code_insee', )
+
 
 class JurisdictionCommuneTabularInlineReader(JurisdictionCommuneTabularInline):
-    fields = ['name', 'code_insee']
-    readonly_fields = ['name', 'code_insee']
+    fields = ('name', 'code_insee', )
+    readonly_fields = ('name', 'code_insee', )
+    classes = ('collapse', )
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 class JurisdictionCommuneTabularInlineAdder(JurisdictionCommuneTabularInline):
     extra = 1
-    fields = ['commune']
+    fields = ('commune', )
 
     def has_change_permission(self, request, obj=None):
         return False
 
 
 class JurisdictionAdmin(admin.ModelAdmin):
-    list_display = ['name', 'code']
-    ordering = ['name']
-    search_fields = ['name', 'commune']
-    search_fields = ['name', 'code']
-    inlines = [
-        JurisdictionCommuneTabularInlineReader,
-        JurisdictionCommuneTabularInlineAdder]
+    list_display = ('name', 'code', )
+    ordering = ('name', )
+    search_fields = ('name', 'commune', )
+    search_fields = ('name', 'code', )
+    inlines = (JurisdictionCommuneTabularInlineReader,
+               JurisdictionCommuneTabularInlineAdder, )
 
 
 admin.site.register(Jurisdiction, JurisdictionAdmin)
