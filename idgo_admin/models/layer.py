@@ -360,7 +360,7 @@ class Layer(models.Model):
                     ckan_params['id'] = new_ckan_id.__str__()
                     ckan_params['name'] = self.resource.name
                     ckan_params['extracting_service'] = str(False)  # I <3 CKAN
-                    ckan_params['format'] = 'ZIP'
+                    ckan_params['format'] = 'SHP'
                     ckan_params['data_type'] = 'service'
                     ckan_params['view_type'] = None
                     ckan_params['crs'] = crs
