@@ -197,9 +197,11 @@ class JurisdictionView(View):
                         setattr(jurisdiction, item, form.cleaned_data[item])
                     jurisdiction.save(old=code)
 
-                for instance in JurisdictionCommune.objects.filter(jurisdiction=jurisdiction):
-                    if instance.commune not in form.cleaned_data['communes']:
-                        instance.delete()
+                JurisdictionCommune.objects \
+                    .filter(jurisdiction=jurisdiction) \
+                    .exclude(commune__in=form.cleaned_data['communes']) \
+                    .delete()
+
                 for commune in form.cleaned_data['communes']:
                     kvp = {'jurisdiction': jurisdiction, 'commune': commune}
                     try:
