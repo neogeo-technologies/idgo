@@ -86,7 +86,7 @@ class OrganizationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
         self.extended = self.include_args.get('extended', False)
-        instance = kwargs.get('instance', None)
+        self.instance = kwargs.get('instance', None)
         self.user = self.include_args.get('user')
 
         super().__init__(*args, **kwargs)
@@ -95,16 +95,18 @@ class OrganizationForm(forms.ModelForm):
             for item in self.Meta.extended_fields:
                 self.fields[item].widget = forms.HiddenInput()
 
-        if instance and instance.logo:
-            self.fields['logo'].widget.attrs['value'] = instance.logo.url
+        if self.instance and self.instance.logo:
+            self.fields['logo'].widget.attrs['value'] = self.instance.logo.url
 
-        if instance and not self.user.profile.is_crige_admin:
+        if self.instance and not self.user.profile.is_crige_admin:
             self.fields['jurisdiction'].queryset = \
-                Jurisdiction.objects.filter(pk__in=instance.jurisdiction and [instance.jurisdiction.pk] or [])
+                Jurisdiction.objects.filter(pk__in=self.instance.jurisdiction and [self.instance.jurisdiction.pk] or [])
             self.fields['jurisdiction'].widget.attrs['disabled'] = 'disabled'
             self.fields['jurisdiction'].widget.attrs['class'] = 'disabled'
 
     def clean(self):
+        if self.instance and not self.user.profile.is_crige_admin:
+            self.cleaned_data['jurisdiction'] = self.instance.jurisdiction
         return self.cleaned_data
 
 
