@@ -29,9 +29,9 @@ from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import bounds_to_wkt
+from idgo_admin import logger
 from idgo_admin.managers import HarvestedDataset
 from idgo_admin.utils import three_suspension_points
-import logging
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
 import uuid
@@ -458,21 +458,21 @@ def post_delete_dataset(sender, instance, **kwargs):
 @receiver(pre_save, sender=Dataset)
 def logging_before_save(sender, instance, **kwargs):
     if not instance.pk:
-        logging.info('Creating dataset... "{}"'.format(instance.__slug__(), instance.pk))
+        logger.info('Creating dataset `{}`'.format(instance.__slug__()))
     else:
-        logging.info('Updating dataset... "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+        logger.info('Updating dataset `{}`'.format(instance.__slug__()))
 
 
 @receiver(post_save, sender=Dataset)
 def logging_after_save(sender, instance, **kwargs):
-    logging.info('Saved dataset...... "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+    logger.info('Saved dataset `{}`'.format(instance.__slug__()))
 
 
 @receiver(pre_delete, sender=Dataset)
 def logging_before_delete(sender, instance, **kwargs):
-    logging.info('Deleting dataset... "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+    logger.info('Deleting dataset `{}`'.format(instance.__slug__()))
 
 
 @receiver(post_delete, sender=Dataset)
 def logging_after_delete(sender, instance, **kwargs):
-    logging.info('Deleted dataset.... "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+    logger.info('Deleted dataset `{}`'.format(instance.__slug__()))

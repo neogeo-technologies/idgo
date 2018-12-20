@@ -19,15 +19,12 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import pre_delete
-from django.db.models.signals import post_init
 from django.dispatch import receiver
-from django.http import Http404
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.datagis import drop_table
 from idgo_admin.mra_client import MraBaseError
 from idgo_admin.mra_client import MRAHandler
-from idgo_admin.mra_client import MRANotFoundError
 import itertools
 import json
 import os
@@ -485,11 +482,8 @@ def delete_ows_layer(sender, instance, **kwargs):
         ckan_user.close()
 
     # On supprime les objets MRA
-    try:
-        MRAHandler.del_layer(ft_name)
-        MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
-    except:
-        pass
+    MRAHandler.del_layer(ft_name)
+    MRAHandler.del_featuretype(ws_name, ds_name, ft_name)
 
     # On supprime la table de données postgis
     drop_table(ft_name)

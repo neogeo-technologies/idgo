@@ -19,7 +19,7 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.mail import get_connection
 from django.core.mail.message import EmailMultiAlternatives
-# from django.urls import reverse
+from idgo_admin import logger
 from idgo_admin.utils import PartialFormatter
 from urllib.parse import urljoin
 
@@ -94,7 +94,8 @@ def sender(template_name, to=None, cc=None, bcc=None, attach_files=[], **kvp):
     for attach_file in attach_files:
         mail.attach_file(attach_file)
 
-    return mail.send()
+    mail.send()
+    logger.info('Sent e-mail `{}` to: {}'.format(template_name, ', '.join(to)))
 
 
 # Pour informer l'utilisateur de la création de son compte par un administrateur

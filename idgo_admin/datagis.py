@@ -25,9 +25,9 @@ from django.db import connections
 from django.utils.encoding import DjangoUnicodeDecodeError
 from idgo_admin.exceptions import DatagisBaseError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
+from idgo_admin import logger
 from idgo_admin.utils import slugify
 import json
-import logging
 from pathlib import Path
 import re
 from uuid import uuid4
@@ -88,7 +88,7 @@ def is_valid_epsg(code):
         try:
             cursor.execute(sql)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         records = cursor.fetchall()
@@ -102,7 +102,7 @@ def get_proj4s():
         try:
             cursor.execute(sql)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         records = cursor.fetchall()
@@ -153,14 +153,10 @@ class GdalOpener(object):
             raise NotGDALError(
                 'The file received is not recognized as being a GIS raster data. {}'.format(e.__str__()))
         else:
-            logging.info('File "{}" is RASTER data'.format(filename))
+            logger.info('File "{}" is RASTER data'.format(filename))
 
     def get_coverage(self):
         return self._coverage
-
-    # @property
-    # def format(self):
-    #     return get_format_driver(self._coverage.driver.name)
 
 
 class OgrOpener(object):
@@ -178,14 +174,10 @@ class OgrOpener(object):
             raise NotOGRError(
                 'The file received is not recognized as being a GIS vector data. {}'.format(e.__str__()))
         else:
-            logging.info('File "{}" is VECTOR data'.format(filename))
+            logger.info('File "{}" is VECTOR data'.format(filename))
 
     def get_layers(self):
         return self._datastore
-
-    # @property
-    # def format(self):
-    #     return get_format_driver(self._datastore.driver.name)
 
 
 def get_gdalogr_object(filename, extension):
@@ -258,7 +250,7 @@ def get_epsg(obj):
         except SRSException:
             epsg = None
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             raise e
         # else:
         if not epsg:
@@ -273,7 +265,7 @@ def get_epsg(obj):
         if not epsg:
             epsg = retreive_epsg_through_regex(obj.srs.name)
     if not epsg:
-        logging.info('Unable to determine SRS')
+        logger.info('Unable to determine SRS')
         raise NotFoundSrsError('SRS Not found')
     return epsg
 
@@ -371,9 +363,9 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
         try:
             test = set(feature.geom.__class__.__name__ for feature in layer)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             raise WrongDataError()
-
+        # else:
         if test == {'Polygon', 'MultiPolygon'}:
             geometry = 'MultiPolygon'
         elif test == {'Polygon25D', 'MultiPolygon25D'}:
@@ -443,7 +435,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
             try:
                 cursor.execute(q)
             except Exception as e:
-                logging.exception(e)
+                logger.exception(e)
                 # Revenir à l'état initial
                 for table_id in [table['id'] for table in tables]:
                     drop_table(table_id)
@@ -472,7 +464,7 @@ def get_extent(tables, schema='public'):
         try:
             cursor.execute(sql)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         records = cursor.fetchall()
@@ -496,7 +488,7 @@ WHERE relname = '{table}' AND nspname = '{schema}';
         try:
             cursor.execute(sql)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         records = cursor.fetchall()
@@ -520,7 +512,7 @@ ALTER INDEX IF EXISTS "{table}_gix" RENAME TO "{name}_gix";
         try:
             cursor.execute(sql)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         cursor.close()
@@ -532,7 +524,7 @@ def drop_table(table, schema=SCHEMA):
         try:
             cursor.execute(sql)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         cursor.close()
@@ -549,7 +541,7 @@ SELECT ST_AsGeoJSON(ST_Intersection(
         try:
             cursor.execute(sql)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             if e.__class__.__qualname__ == 'TopologyException':
                 raise SQLError()
             if e.__class__.__qualname__ != 'ProgrammingError':
@@ -570,7 +562,7 @@ SELECT ST_AsText(ST_Transform(ST_GeomFromText('{wkt}', {epsg_in}), {epsg_out})) 
         try:
             cursor.execute(sql)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             if e.__class__.__qualname__ != 'ProgrammingError':
                 raise e
         else:

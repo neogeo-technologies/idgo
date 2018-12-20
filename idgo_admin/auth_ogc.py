@@ -15,8 +15,8 @@
 # under the License.
 
 
-import os
 import logging
+import os
 import sys
 
 import django

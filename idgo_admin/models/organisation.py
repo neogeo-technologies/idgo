@@ -30,9 +30,9 @@ from functools import reduce
 from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.exceptions import CkanBaseError
+from idgo_admin import logger
 from idgo_admin.mra_client import MRAHandler
 import inspect
-import logging
 from urllib.parse import urljoin
 import uuid
 
@@ -289,8 +289,8 @@ class RemoteCkan(models.Model):
                                 try:
                                     ckan_id = uuid.UUID(resource['id'])
                                 except ValueError as e:
-                                    logging.exception(e)
-                                    logging.error("I can't crash here, so I do not pay any attention to this error.")
+                                    logger.exception(e)
+                                    logger.error("I can't crash here, so I do not pay any attention to this error.")
                                     continue
 
                                 format_type, _ = \

@@ -40,16 +40,16 @@ from idgo_admin.datagis import NotDataGISError
 from idgo_admin.datagis import NotFoundSrsError
 from idgo_admin.datagis import NotOGRError
 from idgo_admin.datagis import NotSupportedSrsError
-from idgo_admin.datagis import WrongDataError
 from idgo_admin.datagis import ogr2postgis
+from idgo_admin.datagis import WrongDataError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import SizeLimitExceededError
+from idgo_admin import logger
 from idgo_admin.utils import download
 from idgo_admin.utils import remove_file
 from idgo_admin.utils import slugify
 from idgo_admin.utils import three_suspension_points
 import json
-import logging
 import os
 from pathlib import Path
 import re
@@ -819,21 +819,21 @@ def force_save_dataset(sender, instance, **kwargs):
 @receiver(pre_save, sender=Resource)
 def logging_before_save(sender, instance, **kwargs):
     if not instance.pk:
-        logging.info('Creating resource.. "{}"'.format(instance.__slug__(), instance.pk))
+        logger.info('Creating resource `{}`'.format(instance.__slug__()))
     else:
-        logging.info('Updating resource.. "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+        logger.info('Updating resource `{}`'.format(instance.__slug__()))
 
 
 @receiver(post_save, sender=Resource)
 def logging_after_save(sender, instance, **kwargs):
-    logging.info('Saved resource..... "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+    logger.info('Saved resource `{}`'.format(instance.__slug__()))
 
 
 @receiver(pre_delete, sender=Resource)
 def logging_before_delete(sender, instance, **kwargs):
-    logging.info('Deleting resource.. "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+    logger.info('Deleting resource `{}`'.format(instance.__slug__()))
 
 
 @receiver(post_delete, sender=Resource)
 def logging_after_delete(sender, instance, **kwargs):
-    logging.info('Deleted resource... "{}" (pk={}, ckan_id={})'.format(instance.__slug__(), instance.pk, instance.ckan_id))
+    logger.info('Deleted resource `{}`'.format(instance.__slug__()))
