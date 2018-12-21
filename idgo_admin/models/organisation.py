@@ -255,7 +255,7 @@ class RemoteCkan(models.Model):
                                 'broadcaster_email': None,
                                 'broadcaster_name': None,
                                 # 'categories': categories,
-                                'ckan_slug': package.get('name', None),
+                                'ckan_slug': 'sync--{}--{}'.format(value, package.get('name', None))[:100],
                                 'date_creation': None,  # package.get('metadata_created', None),  # ???
                                 'date_modification': None,  # package.get('metadata_modified', None),  # ???
                                 'date_publication': None,  # ???
