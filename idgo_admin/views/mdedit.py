@@ -31,6 +31,7 @@ from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
+from idgo_admin.models import get_super_editor
 from idgo_admin.models import MDEDIT_LOCALES
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
@@ -288,7 +289,7 @@ class DatasetMDEdit(View):
             else:
                 geonet.publish(id)  # Toujours publier la fiche
                 dataset.geonet_id = UUID(id)
-                dataset.save()
+                dataset.save(editor=get_super_editor())
                 messages.success(
                     request, 'La fiche de metadonnées a été créée avec succès.')
         else:

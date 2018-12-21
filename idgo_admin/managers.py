@@ -17,6 +17,7 @@
 from django.apps import apps
 from django.contrib.gis.db import models
 from django.utils import timezone
+from idgo_admin.models import get_super_editor
 from idgo_admin.utils import clean_my_obj
 
 
@@ -31,7 +32,7 @@ class HarvestedDataset(models.Manager):
 
         DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
         dataset.data_type = DataType.objects.filter(ckan_slug='donnees-moissonnees')
-        dataset.save()
+        dataset.save(editor=get_super_editor())
 
         RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
 

@@ -255,9 +255,14 @@ class Dataset(models.Model):
 
     def save(self, *args, sync_ckan=True, **kwargs):
         previous = self.pk and Dataset.objects.get(pk=self.pk)
+        self._current_editor = kwargs.pop('editor', None)
 
-        self._current_editor = 'editor' in kwargs \
-            and kwargs.pop('editor') or None
+        if previous:
+            logger.info('User `{}` is updating dataset `{}`'.format(
+                self._current_editor.username or self.editor.username, self.pk))
+        else:
+            logger.info('User `{}` is creating a new dataset'.format(
+                self._current_editor.username or self.editor.username))
 
         if not self.date_creation:
             self.date_creation = TODAY
@@ -455,24 +460,9 @@ def post_delete_dataset(sender, instance, **kwargs):
 # =======
 
 
-@receiver(pre_save, sender=Dataset)
-def logging_before_save(sender, instance, **kwargs):
-    if not instance.pk:
-        logger.info('Creating dataset `{}`'.format(instance.__slug__()))
-    else:
-        logger.info('Updating dataset `{}`'.format(instance.__slug__()))
-
-
 @receiver(post_save, sender=Dataset)
 def logging_after_save(sender, instance, **kwargs):
-    logger.info('Saved dataset `{}`'.format(instance.__slug__()))
-
-
-@receiver(pre_delete, sender=Dataset)
-def logging_before_delete(sender, instance, **kwargs):
-    logger.info('Deleting dataset `{}`'.format(instance.__slug__()))
-
-
-@receiver(post_delete, sender=Dataset)
-def logging_after_delete(sender, instance, **kwargs):
-    logger.info('Deleted dataset `{}`'.format(instance.__slug__()))
+    if kwargs.get('created', False):
+        logger.info('Dataset `{}` has been created'.format(instance.pk))
+    else:
+        logger.info('Dataset `{}` has been updated'.format(instance.pk))

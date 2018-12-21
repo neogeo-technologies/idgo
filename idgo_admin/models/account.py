@@ -25,11 +25,26 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin import logger
 import requests
 import uuid
 
 
 FTP_SERVICE_URL = settings.FTP_SERVICE_URL
+
+
+try:
+    ADMIN_USERNAME = settings.ADMIN_USERNAME
+except AttributeError:
+    ADMIN_USERNAME = None
+
+
+def get_super_editor():
+    try:
+        return User.objects.get(username=ADMIN_USERNAME)
+    except User.DoesNotExist:
+        logger.warning('Super editor `{}` does not exist'.format(ADMIN_USERNAME))
+        return None
 
 
 class Profile(models.Model):

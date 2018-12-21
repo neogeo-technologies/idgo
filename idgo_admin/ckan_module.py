@@ -104,8 +104,9 @@ class CkanExceptionsHandler(object):
 
             unwrapped_code = inspect.unwrap(f).__code__
             info = inspect.getframeinfo(inspect.stack()[1][0])
-            logger.info('Run `{}`, file "{}", line {}'.format(
-                f.__name__, unwrapped_code.co_filename, unwrapped_code.co_firstlineno))
+            logger.debug('CKAN WRAPPER API')
+            logger.debug('└─ Run `{}`, file "{}", line {}'.format(
+                f.__qualname__, unwrapped_code.co_filename, unwrapped_code.co_firstlineno))
             logger.debug('└─ Called by file "{}", line {}, in {}'.format(
                 info.filename, info.lineno, info.function))
 
@@ -139,6 +140,8 @@ class CkanExceptionsHandler(object):
 class CkanBaseHandler(object):
 
     def __init__(self, url, apikey=None):
+        caller = inspect.stack()[0][0].f_locals['self'].__class__.__qualname__
+
         self.apikey = apikey
         self.remote = RemoteCKAN(url, apikey=self.apikey)
         try:
@@ -146,12 +149,14 @@ class CkanBaseHandler(object):
         except Exception:
             raise CkanReadError()
         else:
+            logger.info('Open CKAN connection with apikey `{}` (caller is `{}`) '.format(apikey, caller))
             if not res:
                 self.close()
                 raise CkanApiError()
 
     def close(self):
         self.remote.close()
+        logger.info('Close CKAN connection')
 
     @timeout
     def call_action(self, action, **kwargs):

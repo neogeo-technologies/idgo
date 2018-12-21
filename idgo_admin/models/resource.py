@@ -45,6 +45,7 @@ from idgo_admin.datagis import WrongDataError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin import logger
+from idgo_admin.models import get_super_editor
 from idgo_admin.utils import download
 from idgo_admin.utils import remove_file
 from idgo_admin.utils import slugify
@@ -465,6 +466,11 @@ class Resource(models.Model):
         previous, created = self.pk \
             and (Resource.objects.get(pk=self.pk), False) or (None, True)
 
+        if created:
+            logger.info('User `{}` is creating a new resource'.format(self.editor.username))
+        else:
+            logger.info('User `{}` is updating resource `{}`'.format(self.editor.username, self.id))
+
         # Quelques valeur par défaut à la création de l'instance
         if created \
                 or not (hasattr(self.editor, 'profile') and self.editor.profile.crige_membership):
@@ -802,7 +808,7 @@ class Resource(models.Model):
 def force_save_dataset(sender, instance, **kwargs):
     dataset = instance.dataset
     dataset.date_modification = timezone.now().date()
-    dataset.save()
+    dataset.save(editor=get_super_editor())
 
 
 # @receiver(post_save, sender=Resource)
@@ -812,28 +818,9 @@ def force_save_dataset(sender, instance, **kwargs):
 #         layer.save()
 
 
-# Logging
-# =======
-
-
-@receiver(pre_save, sender=Resource)
-def logging_before_save(sender, instance, **kwargs):
-    if not instance.pk:
-        logger.info('Creating resource `{}`'.format(instance.__slug__()))
-    else:
-        logger.info('Updating resource `{}`'.format(instance.__slug__()))
-
-
 @receiver(post_save, sender=Resource)
 def logging_after_save(sender, instance, **kwargs):
-    logger.info('Saved resource `{}`'.format(instance.__slug__()))
-
-
-@receiver(pre_delete, sender=Resource)
-def logging_before_delete(sender, instance, **kwargs):
-    logger.info('Deleting resource `{}`'.format(instance.__slug__()))
-
-
-@receiver(post_delete, sender=Resource)
-def logging_after_delete(sender, instance, **kwargs):
-    logger.info('Deleted resource `{}`'.format(instance.__slug__()))
+    if kwargs.get('created', False):
+        logger.info('Resource `{}` has been created'.format(instance.pk))
+    else:
+        logger.info('Resource `{}` has been updated'.format(instance.pk))

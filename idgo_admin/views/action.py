@@ -24,6 +24,7 @@ from django.views import View
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import Dataset
+from idgo_admin.models import get_super_editor
 from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import user_and_profile
@@ -48,7 +49,9 @@ class ActionsManager(View):
                 Dataset, user, include={'id': dataset_id})
 
             dataset.published = not dataset.published
-            dataset.save()
+
+            editor = user == dataset.editor and user or get_super_editor()
+            dataset.save(editor=editor)
 
             message = (
                 'Le jeu de données <strong>{0}</strong> '
