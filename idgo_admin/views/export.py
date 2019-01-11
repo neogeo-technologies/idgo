@@ -16,9 +16,13 @@
 
 from collections import OrderedDict
 import csv
+from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
+from django.db.models import CharField
 from django.db.models import F
 from django.db.models import Func
+from django.db.models.functions import Concat
+from django.db.models import Value
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
@@ -31,21 +35,22 @@ from idgo_admin.models import Dataset
 from idgo_admin.models import Profile
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.views.dataset import get_datasets
+from urllib.parse import urljoin
 from uuid import UUID
 
 
 # Définition des champs ODL :
 COLL_NOM = F('organisation__name')
-# COLL_SIRET =
-# ID =
+COLL_SIRET = Value('', output_field=CharField())
+ID = F('ckan_id')
 TITRE = F('name')
 DESCRIPTION = F('description')
 THEME = StringAgg('categories__name', distinct=True, delimiter=';')
 DIFFUSEUR = F('broadcaster_name')
 PRODUCTEUR = F('organisation__name')
-# COUV_SPAT =
-# COUV_TEMP_DEBUT =
-# COUV_TEMP_FIN =
+COUV_SPAT = Value('', output_field=CharField())
+COUV_TEMP_DEBUT = Value('', output_field=CharField())
+COUV_TEMP_FIN = Value('', output_field=CharField())
 DATE_PUBL = F('date_publication')
 FREQ_MAJ = F('update_freq')
 DATE_MAJ = F('date_modification')
@@ -53,8 +58,8 @@ MOT_CLES = StringAgg('keywords__name', distinct=True, delimiter=';')
 LICENCE = F('license__title')
 FORMATS = Func(StringAgg('resource__format_type__extension', distinct=True, delimiter=';'), function='LOWER')
 PROJECTION = F('resource__crs__auth_code')
-LANG = StringAgg('resource__lang', distinct=True, delimiter=';')
-# URL =
+LANG = Value('FR', output_field=CharField())  # StringAgg('resource__lang', distinct=True, delimiter=';')
+URL = Concat(Value(urljoin(settings.CKAN_URL, 'dataset/')), F('ckan_slug'), output_field=CharField())
 
 # Définition des champs DATASUD :
 DATASUD_ID = F('ckan_slug')
@@ -111,16 +116,16 @@ class Export(View):
         if outputformat == 'odl':
             annotate = OrderedDict((
                 ('COLL_NOM', COLL_NOM),
-                # ('COLL_SIRET', COLL_SIRET),
-                # ('ID', ID),
+                ('COLL_SIRET', COLL_SIRET),
+                ('ID', ID),
                 ('TITRE', TITRE),
                 ('DESCRIPTION', DESCRIPTION),
                 ('THEME', THEME),
                 ('DIFFUSEUR', DIFFUSEUR),
                 ('PRODUCTEUR', PRODUCTEUR),
-                # ('COUV_SPAT', COUV_SPAT),
-                # ('COUV_TEMP_DEBUT', COUV_TEMP_DEBUT),
-                # ('COUV_TEMP_FIN', COUV_TEMP_DEBUT),
+                ('COUV_SPAT', COUV_SPAT),
+                ('COUV_TEMP_DEBUT', COUV_TEMP_DEBUT),
+                ('COUV_TEMP_FIN', COUV_TEMP_DEBUT),
                 ('DATE_PUBL', DATE_PUBL),
                 ('FREQ_MAJ', FREQ_MAJ),
                 ('DATE_MAJ', DATE_MAJ),
@@ -129,21 +134,21 @@ class Export(View):
                 ('FORMATS', FORMATS),
                 ('PROJECTION', PROJECTION),
                 ('LANG', LANG),
-                # ('URL', URL)
+                ('URL', URL)
                 ))
         else:
             annotate = OrderedDict((
                 ('COLL_NOM', COLL_NOM),
-                # ('COLL_SIRET', COLL_SIRET),
-                # ('ID', ID),
+                ('COLL_SIRET', COLL_SIRET),
+                ('ID', ID),
                 ('TITRE', TITRE),
                 ('DESCRIPTION', DESCRIPTION),
                 ('THEME', THEME),
                 ('DIFFUSEUR', DIFFUSEUR),
                 ('PRODUCTEUR', PRODUCTEUR),
-                # ('COUV_SPAT', COUV_SPAT),
-                # ('COUV_TEMP_DEBUT', COUV_TEMP_DEBUT),
-                # ('COUV_TEMP_FIN', COUV_TEMP_DEBUT),
+                ('COUV_SPAT', COUV_SPAT),
+                ('COUV_TEMP_DEBUT', COUV_TEMP_DEBUT),
+                ('COUV_TEMP_FIN', COUV_TEMP_DEBUT),
                 ('DATE_PUBL', DATE_PUBL),
                 ('FREQ_MAJ', FREQ_MAJ),
                 ('DATE_MAJ', DATE_MAJ),
@@ -152,7 +157,7 @@ class Export(View):
                 ('FORMATS', FORMATS),
                 ('PROJECTION', PROJECTION),
                 ('LANG', LANG),
-                # ('URL', URL),
+                ('URL', URL),
                 ('DATASUD_ID', DATASUD_ID),
                 # ('DATASUD_MOT_CLES', DATASUD_MOT_CLES),
                 # ('DATASUD_ORGA', DATASUD_ORGA),
@@ -175,7 +180,9 @@ class Export(View):
         values = list(annotate.keys())
 
         return render_to_csv_response(
+
             qs.annotate(**annotate).values(*values),
+
             delimiter=';', field_order=values,
             quotechar='"', quoting=csv.QUOTE_ALL)
 
