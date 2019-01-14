@@ -34,10 +34,9 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import CkanBaseError
-from idgo_admin.ckan_module import CkanHandler as ckan
 from idgo_admin.exceptions import ProfileHttp404
-from idgo_admin.forms.account import SignInForm
 from idgo_admin.forms.account import SignUpForm
 from idgo_admin.forms.account import UpdateAccountForm
 from idgo_admin.forms.account import UserDeleteForm
@@ -300,7 +299,7 @@ class SignUp(View):
                 profile_data['organisation'] = organisation
                 profile = Profile.objects.create(**profile_data)
 
-                ckan.add_user(profile.user, form.cleaned_user_data['password'])
+                CkanHandler.add_user(profile.user, form.cleaned_user_data['password'])
         except ValidationError as e:
             messages.error(request, e.message)
             return render(request, self.template, context={'form': form})
@@ -380,7 +379,7 @@ class UpdateAccount(View):
                     setattr(user, field, form.cleaned_data[field])
                 user.save()
 
-                ckan.update_user(user)
+                CkanHandler.update_user(user)
 
         except ValidationError as e:
             messages.error(request, e.message)

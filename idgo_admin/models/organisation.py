@@ -28,7 +28,7 @@ from django.dispatch import receiver
 from django.utils.text import slugify
 from functools import reduce
 from idgo_admin.ckan_module import CkanBaseHandler
-from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin import logger
 from idgo_admin.mra_client import MRAHandler
@@ -194,11 +194,10 @@ class RemoteCkan(models.Model):
         else:
             # Dans le cas d'une création, on vérifie si l'URL CKAN est valide
             try:
-                ckan_remote = CkanBaseHandler(self.url)
+                with CkanBaseHandler(self.url):
+                    pass
             except CkanBaseError as e:
                 raise ValidationError(e.__str__(), code='url')
-            else:
-                ckan_remote.close()
 
         # (2) Sauver l'instance
         super().save(*args, **kwargs)
@@ -214,9 +213,6 @@ class RemoteCkan(models.Model):
                 continue
             break
 
-        # Ouvre la connexion avec le CKAN distant
-        ckan_remote = CkanBaseHandler(self.url)
-
         # Puis on moissonne le catalogue
         if self.sync_with:
             try:
@@ -225,9 +221,10 @@ class RemoteCkan(models.Model):
 
                     # TODO: Factoriser
                     for value in self.sync_with:
-                        ckan_organisation = ckan_remote.get_organization(
-                            value, include_datasets=True,
-                            include_groups=True, include_tags=True)
+                        with CkanBaseHandler(self.url) as ckan:
+                            ckan_organisation = ckan.get_organization(
+                                value, include_datasets=True,
+                                include_groups=True, include_tags=True)
 
                         if not ckan_organisation.get('package_count', 0):
                             continue
@@ -235,7 +232,8 @@ class RemoteCkan(models.Model):
                             if not package['state'] == 'active' \
                                     or not package['type'] == 'dataset':
                                 continue
-                            package = ckan_remote.get_package(package['id'])
+                            with CkanBaseHandler(self.url) as ckan:
+                                package = ckan.get_package(package['id'])
 
                             ckan_id = uuid.UUID(package['id'])
 
@@ -318,10 +316,8 @@ class RemoteCkan(models.Model):
 
             except Exception as e:
                 for id in ckan_ids:
-                    ckan.purge_dataset(str(id))
+                    CkanHandler.purge_dataset(str(id))
                 raise e
-            finally:
-                ckan_remote.close()
 
     def delete(self, *args, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
@@ -384,11 +380,11 @@ def post_save_organisation(sender, instance, **kwargs):
         profile.save()
 
     # Synchroniser avec l'organisation CKAN
-    if ckan.is_organization_exists(str(instance.ckan_id)):
-        ckan.update_organization(instance)
+    if CkanHandler.is_organization_exists(str(instance.ckan_id)):
+        CkanHandler.update_organization(instance)
 
 
 @receiver(post_delete, sender=Organisation)
 def post_delete_organisation(sender, instance, **kwargs):
-    if ckan.is_organization_exists(str(instance.ckan_id)):
-        ckan.purge_organization(str(instance.ckan_id))
+    if CkanHandler.is_organization_exists(str(instance.ckan_id)):
+        CkanHandler.purge_organization(str(instance.ckan_id))

@@ -146,11 +146,10 @@ class RemoteCkanForm(forms.ModelForm):
         if instance and instance.url:
             self.fields['url'].widget.attrs['readonly'] = True
             # Récupérer la liste des organisations
-            ckan = CkanBaseHandler(instance.url)
-
             try:
-                organisations = ckan.get_all_organizations(
-                    all_fields=True, include_dataset_count=True)
+                with CkanBaseHandler(instance.url) as ckan:
+                    organisations = ckan.get_all_organizations(
+                        all_fields=True, include_dataset_count=True)
             except CkanBaseError as e:
                 self.add_error('url', e.message)
             else:

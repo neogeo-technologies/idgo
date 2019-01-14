@@ -26,8 +26,8 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.text import slugify
 from django.utils import timezone
-from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.ckan_module import CkanHandler
+from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin import logger
 from idgo_admin.managers import HarvestedDataset
@@ -247,7 +247,8 @@ class Dataset(models.Model):
 
     def clean(self):
         slug = self.ckan_slug or slugify(self.name)
-        ckan_dataset = ckan_me(ckan.apikey).get_package(slug)
+        with CkanUserHandler(CkanHandler.apikey) as ckan_me:
+            ckan_dataset = ckan_me.get_package(slug)
         if ckan_dataset \
                 and uuid.UUID(ckan_dataset.get('id')) != self.ckan_id \
                 and ckan_dataset.get('name') == slug:
@@ -259,10 +260,10 @@ class Dataset(models.Model):
 
         if previous:
             logger.info('User `{}` is updating dataset `{}`'.format(
-                self._current_editor.username or self.editor.username, self.pk))
+                self._current_editor and self._current_editor.username or self.editor.username, self.pk))
         else:
             logger.info('User `{}` is creating a new dataset'.format(
-                self._current_editor.username or self.editor.username))
+                self._current_editor and self._current_editor.username or self.editor.username))
 
         if not self.date_creation:
             self.date_creation = TODAY
@@ -314,7 +315,7 @@ class Dataset(models.Model):
         super().save(*args, **kwargs)
 
         if previous and previous.organisation:
-            ckan.deactivate_ckan_organization_if_empty(
+            CkanHandler.deactivate_ckan_organization_if_empty(
                 str(previous.organisation.ckan_id))
 
         if sync_ckan:
@@ -324,7 +325,7 @@ class Dataset(models.Model):
                 ows = resource.ogc_services
 
             if self.license and self.license.ckan_id in [
-                    license['id'] for license in ckan.get_licenses()]:
+                    license['id'] for license in CkanHandler.get_licenses()]:
                 license_id = self.license.ckan_id
             else:
                 license_id = ''
@@ -375,38 +376,37 @@ class Dataset(models.Model):
             user = self._current_editor or self.editor
 
             for category in self.categories.all():
-                ckan.add_user_to_group(user.username, str(category.ckan_id))
+                CkanHandler.add_user_to_group(user.username, str(category.ckan_id))
                 ckan_params['groups'].append({'name': category.ckan_slug})
 
             # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
             # de données existant mais administrateur ou un référent technique,
             # alors l'admin Ckan édite le jeu de données..
             if user == self.editor:
-                ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+                apikey = CkanHandler.get_user(user.username)['apikey']
             else:
-                ckan_user = ckan_me(ckan.apikey)
+                apikey = CkanHandler.apikey
 
             # Synchronisation de l'organisation
             organisation_ckan_id = str(self.organisation.ckan_id)
-            ckan_organization = ckan.get_organization(organisation_ckan_id)
+            ckan_organization = CkanHandler.get_organization(organisation_ckan_id)
             if not ckan_organization:
-                ckan.add_organization(self.organisation)
+                CkanHandler.add_organization(self.organisation)
             elif ckan_organization.get('state') == 'deleted':
-                ckan.activate_organization(organisation_ckan_id)
+                CkanHandler.activate_organization(organisation_ckan_id)
 
             LiaisonsContributeurs = apps.get_model(
                 app_label='idgo_admin', model_name='LiaisonsContributeurs')
 
             for profile \
                     in LiaisonsContributeurs.get_contributors(self.organisation):
-                ckan.add_user_to_organization(
+                CkanHandler.add_user_to_organization(
                     profile.user.username, organisation_ckan_id)
 
-            ckan_dataset = \
-                ckan_user.publish_dataset(
-                    id=self.ckan_id and str(self.ckan_id), **ckan_params)
-
-            ckan_user.close()
+            with CkanUserHandler(apikey=apikey) as ckan_user:
+                ckan_dataset = \
+                    ckan_user.publish_dataset(
+                        id=self.ckan_id and str(self.ckan_id), **ckan_params)
 
         # On vérifie si l'organisation du jeu de données change.
         # Si c'est le cas, il est nécessaire de sauvegarder tous
@@ -448,12 +448,12 @@ def pre_save_dataset(sender, instance, **kwargs):
 def pre_delete_dataset(sender, instance, **kwargs):
     Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
     Resource.objects.filter(dataset=instance).delete()
-    ckan.purge_dataset(instance.ckan_slug)
+    CkanHandler.purge_dataset(instance.ckan_slug)
 
 
 @receiver(post_delete, sender=Dataset)
 def post_delete_dataset(sender, instance, **kwargs):
-    ckan.deactivate_ckan_organization_if_empty(str(instance.organisation.ckan_id))
+    CkanHandler.deactivate_ckan_organization_if_empty(str(instance.organisation.ckan_id))
 
 
 # Logging

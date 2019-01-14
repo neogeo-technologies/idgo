@@ -23,14 +23,12 @@ from django.core.files import File
 from django.db import IntegrityError
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
-from django.db.models.signals import pre_delete
-from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.http import Http404
 from django.utils import timezone
 from functools import reduce
-from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.ckan_module import CkanHandler
+from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin.datagis import DataDecodingError
 from idgo_admin.datagis import drop_table
@@ -367,14 +365,6 @@ class Resource(models.Model):
     def synchronize_ckan(
             self, url=None, filename=None, content_type=None, file_extras=None):
 
-        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-        # de données existant mais administrateur ou un référent technique,
-        # alors l'admin Ckan édite le jeu de données.
-        if self.editor == self.dataset.editor:
-            ckan_user = ckan_me(ckan.get_user(self.editor.username)['apikey'])
-        else:
-            ckan_user = ckan_me(ckan.apikey)
-
         ckan_params = {
             'crs': self.crs and self.crs.description or '',
             'name': self.name,
@@ -446,11 +436,17 @@ class Resource(models.Model):
             ckan_params['mimetype'] = None  # TODO
             ckan_params['resource_type'] = Path(self.ftp_file.name).name
 
-        ckan_package = ckan_user.get_package(str(self.dataset.ckan_id))
+        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+        # de données existant mais administrateur ou un référent technique,
+        # alors l'admin Ckan édite le jeu de données.
+        if self.editor == self.dataset.editor:
+            apikey = CkanHandler.get_user(self.editor.username)['apikey']
+        else:
+            apikey = CkanHandler.apikey
 
-        ckan_user.publish_resource(ckan_package, **ckan_params)
-
-        ckan_user.close()
+        with CkanUserHandler(apikey=apikey) as ckan:
+            ckan_package = ckan.get_package(str(self.dataset.ckan_id))
+            ckan.publish_resource(ckan_package, **ckan_params)
 
     def save(self, *args, **kwargs):
 
@@ -734,16 +730,13 @@ class Resource(models.Model):
 
                 except Exception as e:
                     # Roll-back sur la création de la ressource CKAN
-                    ckan_user = ckan_me(ckan.apikey)
-                    ckan_user.delete_resource(str(self.ckan_id))
-
-                    for layer in self.get_layers():
-                        ckan_user.delete_resource(self.name)
-                        if layer.attached_ckan_resources:
-                            for id in layer.attached_ckan_resources:
-                                ckan_user.delete_resource(str(id))
-
-                    ckan_user.close()
+                    with CkanUserHandler(CkanHandler.apikey) as ckan:
+                        ckan.delete_resource(str(self.ckan_id))
+                        for layer in self.get_layers():
+                            ckan.delete_resource(self.name)  # TODO vérifier si erreur sur cette ligne
+                            if layer.attached_ckan_resources:
+                                for id in layer.attached_ckan_resources:
+                                    ckan.delete_resource(str(id))
                     # Puis on « raise » l'erreur
                     raise e
                 # else:
@@ -790,14 +783,13 @@ class Resource(models.Model):
 
         # Super crado
         if self.editor == self.dataset.editor:
-            ckan_user = ckan_me(ckan.get_user(self.editor.username)['apikey'])
+            apikey = CkanHandler.get_user(self.editor.username)['apikey']
         else:
-            ckan_user = ckan_me(ckan.apikey)
+            apikey = CkanHandler.apikey
 
-        ckan_user.update_resource(
-            str(self.ckan_id), extracting_service=str(self.extractable))
-        ckan_user.close()
-        #
+        with CkanUserHandler(apikey=apikey) as ckan:
+            ckan.update_resource(
+                str(self.ckan_id), extracting_service=str(self.extractable))
 
         for layer in self.get_layers():
             layer.save()

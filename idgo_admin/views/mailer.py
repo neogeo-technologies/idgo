@@ -20,7 +20,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.models import AccountActions
 from idgo_admin.models import LiaisonsContributeurs
@@ -51,7 +51,7 @@ def confirmation_mail(request, key):
     profile = action.profile
     organisation = profile.organisation
 
-    ckan.activate_user(user.username)
+    CkanHandler.activate_user(user.username)
     user.is_active = True
     action.profile.is_active = True
 
@@ -159,7 +159,7 @@ def confirm_new_orga(request, key):
     else:
         action.organisation.is_active = True
         action.organisation.save()
-        # ckan.add_organization(action.profile.organisation)  # TODO À la création du premier dataset
+        # CkanHandler.add_organization(action.profile.organisation)  # TODO À la création du premier dataset
         action.closed = timezone.now()
         action.save()
         message = ("L'organisation <strong>{0}</strong> a bien été créée. "

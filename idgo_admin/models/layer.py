@@ -20,8 +20,8 @@ from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.ckan_module import CkanHandler
+from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import drop_table
 from idgo_admin.mra_client import MraBaseError
 from idgo_admin.mra_client import MRAHandler
@@ -259,9 +259,9 @@ class Layer(models.Model):
         # de données existant mais administrateur ou un référent technique,
         # alors l'admin Ckan édite le jeu de données.
         if editor == self.resource.dataset.editor:
-            ckan_user = ckan_me(ckan.get_user(editor.username)['apikey'])
+            apikey = CkanHandler.get_user(editor.username)['apikey']
         else:
-            ckan_user = ckan_me(ckan.apikey)
+            apikey = CkanHandler.apikey
 
         if self.resource.ogc_services:
             # TODO: Factoriser
@@ -323,13 +323,15 @@ class Layer(models.Model):
                 'url': url,
                 'view_type': 'geo_view'}
 
-            ckan_package = ckan_user.get_package(str(self.resource.dataset.ckan_id))
-            ckan_user.publish_resource(ckan_package, **ckan_params)
+            with CkanUserHandler(apikey=apikey) as ckan:
+                ckan_package = ckan.get_package(str(self.resource.dataset.ckan_id))
+                ckan.publish_resource(ckan_package, **ckan_params)
 
             # Ugly time...
             if self.attached_ckan_resources:
                 for id in self.attached_ckan_resources:
-                    ckan_user.delete_resource(id.__str__())
+                    with CkanUserHandler(apikey=apikey) as ckan:
+                        ckan.delete_resource(id.__str__())
 
             attached_ckan_resources = []
             if self.type == 'vector':
@@ -341,7 +343,8 @@ class Layer(models.Model):
                 ckan_params['data_type'] = 'service'
                 ckan_params['view_type'] = None
                 ckan_params['url'] = OWS_URL_PATTERN.format(organisation=organisation.ckan_slug)
-                ckan_user.publish_resource(ckan_package, **ckan_params)
+                with CkanUserHandler(apikey=apikey) as ckan:
+                    ckan.publish_resource(ckan_package, **ckan_params)
 
                 if self.resource.format_type.extension.lower() in ('json', 'geojson'):
                     if self.resource.crs:
@@ -363,7 +366,9 @@ class Layer(models.Model):
                     ckan_params['crs'] = crs
                     ckan_params['url'] = '{}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAME={}&outputFormat=shapezip&CRSNAME={}'.format(
                         OWS_URL_PATTERN.format(organisation=organisation.ckan_slug), self.name, crsname)
-                    ckan_user.publish_resource(ckan_package, **ckan_params)
+
+                    with CkanUserHandler(apikey=apikey) as ckan:
+                        ckan.publish_resource(ckan_package, **ckan_params)
 
                 elif self.resource.format_type.extension.lower() in ('zip', 'tar'):
                     new_ckan_id = uuid.uuid4()
@@ -378,7 +383,8 @@ class Layer(models.Model):
                         auth_name='EPSG', auth_code='4326').description,
                     ckan_params['url'] = '{}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAME={}&outputFormat=geojson'.format(
                         OWS_URL_PATTERN.format(organisation=organisation.ckan_slug), self.name)
-                    ckan_user.publish_resource(ckan_package, **ckan_params)
+                    with CkanUserHandler(apikey=apikey) as ckan:
+                        ckan.publish_resource(ckan_package, **ckan_params)
 
             elif self.type == 'raster':
                 # TODO?
@@ -392,9 +398,8 @@ class Layer(models.Model):
 
         else:
             # Sinon on force la suppression de la ressource CKAN
-            ckan_user.delete_resource(self.name)
-
-        ckan_user.close()
+            with CkanUserHandler(apikey=apikey) as ckan:
+                ckan.delete_resource(self.name)
 
     @property
     def layername(self):
@@ -470,16 +475,16 @@ def delete_ows_layer(sender, instance, **kwargs):
     ds_name = 'public'
     ws_name = instance.resource.dataset.organisation.ckan_slug
 
-    ckan_user = ckan_me(
-        ckan.get_user(instance.resource.dataset.editor.username)['apikey'])
+    editor = instance.resource.dataset.editor
+    apikey = CkanHandler.get_user(editor.username)['apikey']
 
-    # On supprime la ressource CKAN
-    ckan_user.delete_resource(ft_name)
-    # Puis on supprime les ressources CKAN annexées à la couche
-    if instance.attached_ckan_resources:
-        for id in instance.attached_ckan_resources:
-            ckan_user.delete_resource(id.__str__())
-        ckan_user.close()
+    with CkanUserHandler(apikey=apikey) as ckan:
+        # On supprime la ressource CKAN
+        ckan.delete_resource(ft_name)
+        # Puis on supprime les ressources CKAN annexées à la couche
+        if instance.attached_ckan_resources:
+            for id in instance.attached_ckan_resources:
+                ckan.delete_resource(id.__str__())
 
     # On supprime les objets MRA
     MRAHandler.del_layer(ft_name)

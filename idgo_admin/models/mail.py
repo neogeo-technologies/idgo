@@ -95,7 +95,6 @@ def sender(template_name, to=None, cc=None, bcc=None, attach_files=[], **kvp):
         mail.attach_file(attach_file)
 
     mail.send()
-    logger.info('Sent e-mail `{}` to: {}'.format(template_name, ', '.join(to)))
 
 
 # Pour informer l'utilisateur de la création de son compte par un administrateur

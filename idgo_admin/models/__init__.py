@@ -21,7 +21,7 @@ from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils.text import slugify
-from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.models.account import AccountActions
 from idgo_admin.models.account import get_super_editor
 from idgo_admin.models.account import LiaisonsContributeurs
@@ -115,9 +115,9 @@ class Category(models.Model):
 
     def sync_ckan(self):
         if self.pk:
-            ckan.update_group(self)
+            CkanHandler.update_group(self)
         else:
-            ckan.add_group(self)
+            CkanHandler.add_group(self)
 
     def clean(self):
         self.ckan_slug = slugify(self.name)
@@ -129,8 +129,8 @@ class Category(models.Model):
 
 @receiver(pre_delete, sender=Category)
 def pre_delete_category(sender, instance, **kwargs):
-    if ckan.is_group_exists(str(instance.ckan_id)):
-        ckan.del_group(str(instance.ckan_id))
+    if CkanHandler.is_group_exists(str(instance.ckan_id)):
+        CkanHandler.del_group(str(instance.ckan_id))
 
 
 class DataType(models.Model):

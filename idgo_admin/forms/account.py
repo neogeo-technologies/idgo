@@ -23,7 +23,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django import forms
 from django.forms.models import ModelChoiceIterator
-from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.forms import AddressField
 from idgo_admin.forms import CityField
 from idgo_admin.forms import ContributorField
@@ -126,7 +126,7 @@ class SignInForm(MamaLoginForm):
                 self.add_error('password', 'Vérifiez votre mot de passe')
                 raise ValidationError('User is not found')
             else:
-                ckan_user = ckan.get_user(username)
+                ckan_user = CkanHandler.get_user(username)
                 if ckan_user and ckan_user['state'] == 'deleted':
                     self.add_error('username', "Erreur interne d'authentification")
                     raise ValidationError('CKAN user is deleted')
@@ -341,7 +341,7 @@ class SignUpForm(forms.Form):
     def clean(self):
 
         username = self.cleaned_data.get('username')
-        if User.objects.filter(username=username).exists() or ckan.is_user_exists(username):
+        if User.objects.filter(username=username).exists() or CkanHandler.is_user_exists(username):
             self.add_error('username', "Ce nom d'utilisateur est reservé.")
 
         email = self.cleaned_data.get('email')

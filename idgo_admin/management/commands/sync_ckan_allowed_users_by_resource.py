@@ -15,8 +15,8 @@
 
 
 from django.core.management.base import BaseCommand
-from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanUserHandler as ckan_me
+from idgo_admin.ckan_module import CkanHandler
+from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 import json
@@ -41,9 +41,6 @@ class Command(BaseCommand):
         for resource in Resource.objects.exclude(organisations_allowed=None):
             dataset = resource.dataset
 
-            ckan_user = ckan_me(
-                ckan.get_user(dataset.editor.username)['apikey'])
-
             ckan_params = {
                 'id': str(resource.ckan_id),
                 'restricted': json.dumps({
@@ -52,6 +49,7 @@ class Command(BaseCommand):
                             [r.pk for r in resource.organisations_allowed.all()])),
                     'level': 'only_allowed_users'})}
 
-            ckan_user.push_resource(
-                ckan_user.get_package(str(dataset.ckan_id)), **ckan_params)
-            ckan_user.close()
+            apikey = CkanHandler.get_user(dataset.editor.username)['apikey']
+            with CkanUserHandler(apikey=apikey) as ckan:
+                package = ckan.get_package(str(dataset.ckan_id))
+                ckan.push_resource(package, **ckan_params)

@@ -30,7 +30,7 @@ from django.template.response import TemplateResponse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils import timezone
-from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.forms.account import DeleteAdminForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
@@ -340,7 +340,7 @@ class MyUserChangeForm(UserChangeForm):
     def save(self, commit=True, *args, **kwargs):
         user = super().save(commit=False)
         try:
-            ckan.update_user(user)
+            CkanHandler.update_user(user)
         except Exception as e:
             raise forms.ValidationError(
                 "La modification de l'utilisateur sur CKAN a échoué: {}.".format(e))
@@ -373,7 +373,7 @@ class MyUserCreationForm(UserCreationForm):
 
     def clean_username(self):
         username = self.cleaned_data['username']
-        if User.objects.filter(username=username).exists() or ckan.is_user_exists(username):
+        if User.objects.filter(username=username).exists() or CkanHandler.is_user_exists(username):
             raise forms.ValidationError("Ce nom d'utilisateur est réservé.")
         return username
 
@@ -394,7 +394,7 @@ class MyUserCreationForm(UserCreationForm):
         user = super().save(commit=False)
         pass_generated = self.password_generator()
         try:
-            ckan.add_user(user, pass_generated, state='active')
+            CkanHandler.add_user(user, pass_generated, state='active')
         except Exception as e:
             raise ValidationError(
                 "L'ajout de l'utilisateur sur CKAN a échoué: {}.".format(e))

@@ -24,7 +24,7 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
-from idgo_admin.ckan_module import CkanHandler as ckan
+from idgo_admin.ckan_module import CkanHandler
 from idgo_admin import logger
 import requests
 import uuid
@@ -316,17 +316,17 @@ class AccountActions(models.Model):
 
 @receiver(pre_delete, sender=User)
 def pre_delete_user(sender, instance, **kwargs):
-    ckan.del_user(instance.username)
+    CkanHandler.del_user(instance.username)
 
 
 @receiver(post_save, sender=Profile)
 def post_save_profile(sender, instance, **kwargs):
     username = instance.user.username
-    if ckan.is_user_exists(username):
+    if CkanHandler.is_user_exists(username):
         if instance.crige_membership:
-            ckan.add_user_to_partner_group(username, 'crige-partner')
+            CkanHandler.add_user_to_partner_group(username, 'crige-partner')
         else:
-            ckan.del_user_from_partner_group(username, 'crige-partner')
+            CkanHandler.del_user_from_partner_group(username, 'crige-partner')
 
 
 @receiver(pre_save, sender=LiaisonsContributeurs)
@@ -335,13 +335,13 @@ def pre_save_contribution(sender, instance, **kwargs):
         return
     user = instance.profile.user
     organisation = instance.organisation
-    if ckan.get_organization(str(organisation.ckan_id)):
-        ckan.add_user_to_organization(user.username, str(organisation.ckan_id))
+    if CkanHandler.get_organization(str(organisation.ckan_id)):
+        CkanHandler.add_user_to_organization(user.username, str(organisation.ckan_id))
 
 
 @receiver(pre_delete, sender=LiaisonsContributeurs)
 def pre_delete_contribution(sender, instance, **kwargs):
     user = instance.profile.user
     organisation = instance.organisation
-    if ckan.get_organization(str(organisation.ckan_id)):
-        ckan.del_user_from_organization(user.username, str(organisation.ckan_id))
+    if CkanHandler.get_organization(str(organisation.ckan_id)):
+        CkanHandler.del_user_from_organization(user.username, str(organisation.ckan_id))

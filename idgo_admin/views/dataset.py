@@ -28,9 +28,9 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from idgo_admin.ckan_module import CkanHandler
+from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.exceptions import CkanBaseError
-from idgo_admin.ckan_module import CkanHandler as ckan
-from idgo_admin.ckan_module import CkanUserHandler as ckan_me
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.dataset import DatasetForm as Form
@@ -130,7 +130,7 @@ class DatasetManager(View):
             'supports': json.dumps(dict(
                 (item.pk, {'name': item.name, 'email': item.email})
                 for item in Support.objects.all())),
-            'tags': json.dumps(ckan.get_tags())}
+            'tags': json.dumps(CkanHandler.get_tags())}
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, id, *args, **kwargs):
@@ -233,9 +233,10 @@ class DatasetManager(View):
 
         instance = get_object_or_404_extended(Dataset, user, include={'id': id})
 
-        ckan_user = ckan_me(ckan.get_user(user.username)['apikey'])
+        apikey = CkanHandler.get_user(user.username)['apikey']
         try:
-            ckan_user.delete_dataset(instance.ckan_slug)  # purge réalisé au delete()
+            with CkanUserHandler(apikey=apikey) as ckan:
+                ckan.delete_dataset(instance.ckan_slug)  # purge réalisé au delete()
         except CkanBaseError as e:
             status = 500
             messages.error(request, e.__str__())
@@ -246,8 +247,6 @@ class DatasetManager(View):
             status = 200
             message = 'Le jeu de données a été supprimé avec succès.'
             messages.success(request, message)
-        finally:
-            ckan_user.close()
 
         return HttpResponse(status=status)
 
