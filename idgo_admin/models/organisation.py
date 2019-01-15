@@ -264,7 +264,6 @@ class RemoteCkan(models.Model):
                                 'geonet_id': None,
                                 'granularity': None,
                                 'is_inspire': False,
-                                # 'keywords': [tag['display_name'] for tag in package.get('tags')],
                                 # 'license': license,
                                 'name': package.get('title', None),
                                 # 'owner_email': package.get('author_email', None),
@@ -281,6 +280,13 @@ class RemoteCkan(models.Model):
                                 'update_freq': 'never'}
 
                             dataset, created = Dataset.harvested.update_or_create(**kvp)
+
+                            if not created:
+                                dataset.keywords.clear()
+                            keywords = [tag['display_name'] for tag in package.get('tags')]
+                            dataset.keywords.add(*keywords)
+                            dataset.save(editor=editor, sync_ckan=True)
+
                             ckan_ids.append(dataset.ckan_id)
 
                             for resource in package.get('resources', []):
