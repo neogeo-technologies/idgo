@@ -18,11 +18,14 @@ from collections import OrderedDict
 import csv
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
+from django.db.models import Case
 from django.db.models import CharField
 from django.db.models import F
 from django.db.models import Func
 from django.db.models.functions import Concat
+from django.db.models import Q
 from django.db.models import Value
+from django.db.models import When
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
@@ -46,7 +49,15 @@ ID = F('ckan_id')
 TITRE = F('name')
 DESCRIPTION = F('description')
 THEME = StringAgg('categories__name', distinct=True, delimiter=';')
-DIFFUSEUR = F('broadcaster_name')
+DIFFUSEUR = Case(
+    When(
+        Q(broadcaster_name__isnull=False) & ~Q(broadcaster_name=''),
+        then=F('broadcaster_name')),
+    When(
+        (Q(broadcaster_name__isnull=True) | Q(broadcaster_name='')) & Q(support__isnull=False),
+        then=F('support__name')),
+    default=Value(settings.DEFAULT_PLATFORM_NAME),
+    output_field=CharField())
 PRODUCTEUR = F('organisation__name')
 COUV_SPAT = Value('', output_field=CharField())
 COUV_TEMP_DEBUT = Value('', output_field=CharField())
@@ -56,10 +67,14 @@ FREQ_MAJ = F('update_freq')
 DATE_MAJ = F('date_modification')
 MOT_CLES = StringAgg('keywords__name', distinct=True, delimiter=';')
 LICENCE = F('license__title')
-FORMATS = Func(StringAgg('resource__format_type__extension', distinct=True, delimiter=';'), function='LOWER')
+FORMATS = Func(
+    StringAgg('resource__format_type__extension', distinct=True, delimiter=';'),
+    function='LOWER')
 PROJECTION = F('resource__crs__auth_code')
 LANG = Value('FR', output_field=CharField())  # StringAgg('resource__lang', distinct=True, delimiter=';')
-URL = Concat(Value(urljoin(settings.CKAN_URL, 'dataset/')), F('ckan_slug'), output_field=CharField())
+URL = Concat(
+    Value(urljoin(settings.CKAN_URL, 'dataset/')), F('ckan_slug'),
+    output_field=CharField())
 
 # Définition des champs DATASUD :
 DATASUD_ID = F('ckan_slug')
