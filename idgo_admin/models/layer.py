@@ -321,6 +321,7 @@ class Layer(models.Model):
                 'format': 'WMS',
                 'restricted': restricted,
                 'url': url,
+                'resource_type': 'api',
                 'view_type': 'geo_view'}
 
             with CkanUserHandler(apikey=apikey) as ckan:

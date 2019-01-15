@@ -413,28 +413,38 @@ class Resource(models.Model):
 
         if self.referenced_url:
             ckan_params['url'] = self.referenced_url
-            ckan_params['resource_type'] = '{0}.{1}'.format(
-                self.name, self.format_type.ckan_view)
+            # ckan_params['resource_type'] = '{0}.{1}'.format(
+            #     self.name, self.format_type.ckan_view)
 
         if self.dl_url:
             downloaded_file = File(open(filename, 'rb'))
             ckan_params['upload'] = downloaded_file
             ckan_params['size'] = downloaded_file.size
             ckan_params['mimetype'] = content_type
-            ckan_params['resource_type'] = Path(filename).name
+            # ckan_params['resource_type'] = Path(filename).name
 
         if self.up_file and file_extras:
             ckan_params['upload'] = self.up_file.file
             ckan_params['size'] = file_extras.get('size')
             ckan_params['mimetype'] = file_extras.get('mimetype')
-            ckan_params['resource_type'] = file_extras.get('resource_type')
+            # ckan_params['resource_type'] = file_extras.get('resource_type')
 
         if self.ftp_file:
             if not url:
                 ckan_params['upload'] = self.ftp_file.file
             ckan_params['size'] = self.ftp_file.size
             ckan_params['mimetype'] = None  # TODO
-            ckan_params['resource_type'] = Path(self.ftp_file.name).name
+            # ckan_params['resource_type'] = Path(self.ftp_file.name).name
+
+        if self.data_type == 'raw':
+            if self.ftp_file or self.dl_url or self.up_file:
+                ckan_params['resource_type'] = 'file.upload'
+            elif self.referenced_url:
+                ckan_params['resource_type'] = 'file'
+        if self.data_type == 'annexe':
+            ckan_params['resource_type'] = 'documentation'
+        if self.data_type == 'service':
+            ckan_params['resource_type'] = 'api'
 
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
         # de données existant mais administrateur ou un référent technique,
