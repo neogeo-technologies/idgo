@@ -288,10 +288,9 @@ $(function() {
 			var kvp = [];
 			for (var k in qs) {
 				if (k) {
-					const key = encodeURI(k);
-					const val = qs[k] ? encodeURI(qs[k]) : null;
+					const val = qs[k] || nul
 					if (val) {
-						kvp.push(key + '=' + val);
+						kvp.push(k + '=' + val)
 					}
 				};
 			};
