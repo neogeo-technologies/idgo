@@ -20,7 +20,10 @@ from django.conf import settings
 from functools import reduce
 from functools import wraps
 from idgo_admin.exceptions import MraBaseError
+from idgo_admin import logger
 from idgo_admin.utils import Singleton
+import inspect
+import os
 from requests import request
 import timeout_decorator
 from urllib.parse import urljoin
@@ -94,6 +97,16 @@ class MRAExceptionsHandler(object):
     def __call__(self, f):
         @wraps(f)
         def wrapper(*args, **kwargs):
+
+            root_dir = os.path.dirname(os.path.abspath(__file__))
+            info = inspect.getframeinfo(inspect.stack()[1][0])
+            logger.debug(
+                'Run {} (called by file "{}", line {}, in {})'.format(
+                    f.__qualname__,
+                    info.filename.replace(root_dir, '.'),
+                    info.lineno,
+                    info.function))
+
             try:
                 return f(*args, **kwargs)
             except Exception as e:
