@@ -112,13 +112,13 @@ class ResourceFormats(models.Model):
         choices=CKAN_CHOICES, blank=True, null=True)
 
     ckan_format = models.CharField(
-        verbose_name='type de format CKAN',
-        max_length=10, blank=True, null=True)
+        verbose_name='type de format CKAN', max_length=10)
 
     description = models.TextField(
-        verbose_name='Description', blank=True, null=True)
+        verbose_name='Description')
 
-    extension = models.CharField('Extension du fichier', max_length=10)
+    extension = models.CharField(
+        verbose_name='Extension du fichier', max_length=10)
 
     is_gis_format = models.BooleanField(
         verbose_name='Est un format de données SIG',
