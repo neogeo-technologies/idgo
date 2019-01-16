@@ -1,71 +1,64 @@
-[
-{
+[{
 	"model": "idgo_admin.supportedcrs",
 	"pk": 1,
-	"fields":
-	{
+	"fields": {
 		"auth_name": "EPSG",
 		"auth_code": "4326",
-		"description": "WGS 84"
+		"description": "WGS 84",
+		"regex": null
 	}
-},
-{
+}, {
 	"model": "idgo_admin.supportedcrs",
 	"pk": 2,
-	"fields":
-	{
+	"fields": {
 		"auth_name": "EPSG",
 		"auth_code": "2154",
-		"description": "RGF93 / Lambert-93 - France"
+		"description": "RGF93 / Lambert-93 - France",
+		"regex": "rgf.(19)?93.+lambert.(19)?93"
 	}
-},
-{
+}, {
 	"model": "idgo_admin.supportedcrs",
 	"pk": 3,
-	"fields":
-	{
+	"fields": {
 		"auth_name": "EPSG",
 		"auth_code": "4171",
-		"description": "RGF93"
+		"description": "RGF93",
+		"regex": null
 	}
-},
-{
+}, {
 	"model": "idgo_admin.supportedcrs",
 	"pk": 4,
-	"fields":
-	{
+	"fields": {
 		"auth_name": "EPSG",
 		"auth_code": "3943",
-		"description": "RGF93 / CC43"
+		"description": "RGF93 / CC43",
+		"regex": null
 	}
-},
-{
+}, {
 	"model": "idgo_admin.supportedcrs",
 	"pk": 5,
-	"fields":
-	{
+	"fields": {
 		"auth_name": "EPSG",
 		"auth_code": "3944",
-		"description": "RGF93 / CC44"
+		"description": "RGF93 / CC44",
+		"regex": null
 	}
-},
-{
+}, {
 	"model": "idgo_admin.supportedcrs",
 	"pk": 6,
-	"fields":
-	{
+	"fields": {
 		"auth_name": "EPSG",
 		"auth_code": "3945",
-		"description": "RGF93 / CC45"
+		"description": "RGF93 / CC45",
+		"regex": null
 	}
-},
-{
+}, {
 	"model": "idgo_admin.supportedcrs",
 	"pk": 7,
-	"fields":
-	{
+	"fields": {
 		"auth_name": "EPSG",
 		"auth_code": "3857",
-		"description": "WGS 84 / Pseudo-Mercator - Spherical Mercator"
+		"description": "WGS 84 / Pseudo-Mercator - Spherical Mercator",
+		"regex": null
 	}
 }]

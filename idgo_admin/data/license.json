@@ -1,43 +1,71 @@
 [{
-    "model": "idgo_admin.license",
-    "pk": 1,
-    "fields": {
-        "domain_content": true,
-        "domain_data": true,
-        "domain_software": false,
-        "status": "active",
-        "maintainer": "Creative Commons",
-        "od_conformance": "approved",
-        "osd_conformance": "not reviewed",
-        "title": "Creative Commons Attribution Share-Alike 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-    }
+	"model": "idgo_admin.license",
+	"pk": 1,
+	"fields": {
+		"domain_content": true,
+		"domain_data": true,
+		"domain_software": false,
+		"status": "active",
+		"maintainer": "Creative Commons",
+		"od_conformance": "approved",
+		"osd_conformance": "not reviewed",
+		"title": "Creative Commons Attribution Share-Alike 4.0",
+		"url": "https://creativecommons.org/licenses/by-sa/4.0/"
+	}
 }, {
-    "model": "idgo_admin.license",
-    "pk": 2,
-    "fields": {
-        "domain_content": false,
-        "domain_data": true,
-        "domain_software": false,
-        "status": "active",
-        "maintainer": "",
-        "od_conformance": "approved",
-        "osd_conformance": "not reviewed",
-        "title": "Open Data Commons Open Database License 1.0",
-        "url": "http://www.opendefinition.org/licenses/odc-odbl"
-    }
+	"model": "idgo_admin.license",
+	"pk": 2,
+	"fields": {
+		"domain_content": false,
+		"domain_data": true,
+		"domain_software": false,
+		"status": "active",
+		"maintainer": "",
+		"od_conformance": "approved",
+		"osd_conformance": "not reviewed",
+		"title": "Open Database License v1.0",
+		"url": "http://www.opendefinition.org/licenses/odc-odbl"
+	}
 }, {
-    "model": "idgo_admin.license",
-    "pk": 3,
-    "fields": {
-        "domain_content": false,
-        "domain_data": false,
-        "domain_software": false,
-        "status": "active",
-        "maintainer": "",
-        "od_conformance": "approved",
-        "osd_conformance": "not reviewed",
-        "title": "Licence Ouverte Version 2.0 BETA BETA",
-        "url": "https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf"
-    }
+	"model": "idgo_admin.license",
+	"pk": 3,
+	"fields": {
+		"domain_content": false,
+		"domain_data": false,
+		"domain_software": false,
+		"status": "active",
+		"maintainer": "",
+		"od_conformance": "approved",
+		"osd_conformance": "not reviewed",
+		"title": "Licence Ouverte Version 2.0",
+		"url": "https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf"
+	}
+}, {
+	"model": "idgo_admin.license",
+	"pk": 5,
+	"fields": {
+		"domain_content": false,
+		"domain_data": false,
+		"domain_software": false,
+		"status": "active",
+		"maintainer": "",
+		"od_conformance": "approved",
+		"osd_conformance": "not reviewed",
+		"title": "Creative Commons CC BY-NC-ND 3.0",
+		"url": "https://creativecommons.org/licenses/by-nc-nd/3.0/fr/"
+	}
+}, {
+	"model": "idgo_admin.license",
+	"pk": 6,
+	"fields": {
+		"domain_content": false,
+		"domain_data": true,
+		"domain_software": false,
+		"status": "active",
+		"maintainer": "",
+		"od_conformance": "approved",
+		"osd_conformance": "not reviewed",
+		"title": "Licence sp\u00e9cifique",
+		"url": "https://www.data.gouv.fr/fr/licences"
+	}
 }]

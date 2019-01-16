@@ -28,16 +28,16 @@
 	"fields": {
 		"description": "GeoTIFF (JPEG 80)",
 		"details": {
-			"img_overviewed": true,
 			"img_resampling_method": "bilinear",
+			"img_overviewed": true,
 			"img_overview_min_size": 1024,
 			"dst_format": {
 				"options": {
-					"COMPRESS": "JPEG",
 					"BLOCKXSIZE": 256,
 					"TILED": "YES",
-					"BLOCKYSIZE": 256,
-					"JPEG_QUALITY": 80
+					"JPEG_QUALITY": 80,
+					"COMPRESS": "JPEG",
+					"BLOCKYSIZE": 256
 				},
 				"gdal_driver": "GTiff"
 			}
@@ -50,16 +50,16 @@
 	"fields": {
 		"description": "GeoTIFF (JPEG 95)",
 		"details": {
-			"img_overviewed": true,
 			"img_resampling_method": "bilinear",
+			"img_overviewed": true,
 			"img_overview_min_size": 1024,
 			"dst_format": {
 				"options": {
-					"COMPRESS": "JPEG",
 					"BLOCKXSIZE": 256,
 					"TILED": "YES",
-					"BLOCKYSIZE": 256,
-					"JPEG_QUALITY": 95
+					"JPEG_QUALITY": 95,
+					"COMPRESS": "JPEG",
+					"BLOCKYSIZE": 256
 				},
 				"gdal_driver": "GTiff"
 			}
@@ -72,16 +72,16 @@
 	"fields": {
 		"description": "GeoTIFF (LZW)",
 		"details": {
-			"img_overviewed": true,
 			"img_resampling_method": "bilinear",
+			"img_overviewed": true,
 			"img_overview_min_size": 1024,
 			"dst_format": {
 				"options": {
-					"COMPRESS": "LZW",
 					"BLOCKXSIZE": 512,
 					"TILED": "YES",
 					"BLOCKYSIZE": 512,
-					"TFW": "YES"
+					"TFW": "YES",
+					"COMPRESS": "LZW"
 				},
 				"gdal_driver": "GTiff"
 			}
@@ -94,15 +94,15 @@
 	"fields": {
 		"description": "GeoTIFF (Sans compression)",
 		"details": {
-			"img_overviewed": true,
 			"img_resampling_method": "bilinear",
+			"img_overviewed": true,
 			"img_overview_min_size": 1024,
 			"dst_format": {
 				"options": {
 					"BLOCKXSIZE": 512,
 					"TILED": "YES",
-					"BLOCKYSIZE": 512,
-					"TFW": "YES"
+					"TFW": "YES",
+					"BLOCKYSIZE": 512
 				},
 				"gdal_driver": "GTiff"
 			}
