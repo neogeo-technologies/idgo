@@ -20,6 +20,7 @@ from django.utils.functional import keep_lazy
 from django.utils.safestring import mark_safe
 from django.utils.safestring import SafeText
 from idgo_admin.exceptions import SizeLimitExceededError
+from idgo_admin import logger
 import json
 import os
 import re
@@ -85,7 +86,8 @@ def download(url, media_root, **kwargs):
     def get_content_header_param(txt, param):
         try:
             found = re.search('{0}="([^;"\n\r\t\0\s\X\R\v]+)"'.format(param), txt)
-        except Exception:
+        except Exception as e:
+            logger.exception(e)
             return None
         else:
             if found:
@@ -97,6 +99,7 @@ def download(url, media_root, **kwargs):
         try:
             r = requests.get(url, stream=True)
         except Exception as e:
+            logger.exception(e)
             error = e
             continue
         else:

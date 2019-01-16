@@ -150,6 +150,7 @@ class GdalOpener(object):
         try:
             self._coverage = GDALRaster(filename)
         except GDALException as e:
+            logger.warning(e)
             raise NotGDALError(
                 'The file received is not recognized as being a GIS raster data. {}'.format(e.__str__()))
         else:
@@ -171,6 +172,7 @@ class OgrOpener(object):
         try:
             self._datastore = DataSource(filename)
         except GDALException as e:
+            logger.warning(e)
             raise NotOGRError(
                 'The file received is not recognized as being a GIS vector data. {}'.format(e.__str__()))
         else:
@@ -265,7 +267,7 @@ def get_epsg(obj):
         if not epsg:
             epsg = retreive_epsg_through_regex(obj.srs.name)
     if not epsg:
-        logger.info('Unable to determine SRS')
+        logger.warning('Unable to determine SRS')
         raise NotFoundSrsError('SRS Not found')
     return epsg
 
@@ -402,6 +404,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
                 try:
                     v = feature.get(k)
                 except DjangoUnicodeDecodeError as e:
+                    logger.exception(e)
                     raise DataDecodingError()
                 if isinstance(v, type(None)):
                     attrs[k] = 'null'
@@ -495,7 +498,8 @@ WHERE relname = '{table}' AND nspname = '{schema}';
         cursor.close()
     try:
         return records[0][0]
-    except Exception:
+    except Exception as e:
+        logger.exception(e)
         return None
 
 
