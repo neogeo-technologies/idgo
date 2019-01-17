@@ -447,10 +447,17 @@ class Resource(models.Model):
             ckan_params['resource_type'] = 'api'
 
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-        # de données existant mais administrateur ou un référent technique,
-        # alors l'admin Ckan édite le jeu de données.
-        if self.editor == self.dataset.editor:
-            apikey = CkanHandler.get_user(self.editor.username)['apikey']
+        # de données existant mais le référent technique, alors
+        # l'api-key du référent est utilisée.
+        if hasattr(self.editor, 'profile'):
+            if self.editor == self.dataset.editor:
+                logger.info('Le propriétaire édite la ressource.')
+                apikey = CkanHandler.get_user(self.editor.username)['apikey']
+            elif self.editor.profile.is_referent_for(self.dataset.organisation):
+                logger.info('Le référent édite la ressource.')
+                apikey = CkanHandler.get_user(self.editor.username)['apikey']
+            else:
+                apikey = CkanHandler.apikey
         else:
             apikey = CkanHandler.apikey
 

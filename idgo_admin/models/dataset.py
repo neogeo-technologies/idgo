@@ -380,10 +380,17 @@ class Dataset(models.Model):
                 ckan_params['groups'].append({'name': category.ckan_slug})
 
             # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-            # de données existant mais administrateur ou un référent technique,
-            # alors l'admin Ckan édite le jeu de données..
-            if user == self.editor:
-                apikey = CkanHandler.get_user(user.username)['apikey']
+            # de données existant mais le référent technique, alors
+            # l'api-key du référent est utilisée.
+            if hasattr(user, 'profile'):
+                if user == self.editor:
+                    logger.info('Le propriétaire édite le jeu de données.')
+                    apikey = CkanHandler.get_user(user.username)['apikey']
+                elif user.profile.is_referent_for(self.organisation):
+                    logger.info('Le référent édite le jeu de données.')
+                    apikey = CkanHandler.get_user(user.username)['apikey']
+                else:
+                    apikey = CkanHandler.apikey
             else:
                 apikey = CkanHandler.apikey
 

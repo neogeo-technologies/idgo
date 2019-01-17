@@ -23,6 +23,7 @@ from django.dispatch import receiver
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import drop_table
+from idgo_admin import logger
 from idgo_admin.mra_client import MraBaseError
 from idgo_admin.mra_client import MRAHandler
 import itertools
@@ -256,10 +257,17 @@ class Layer(models.Model):
         # ====================
 
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-        # de données existant mais administrateur ou un référent technique,
-        # alors l'admin Ckan édite le jeu de données.
-        if editor == self.resource.dataset.editor:
-            apikey = CkanHandler.get_user(editor.username)['apikey']
+        # de données existant mais le référent technique, alors
+        # l'api-key du référent est utilisée.
+        if hasattr(editor, 'profile'):
+            if editor == self.resource.dataset.editor:
+                logger.info('Le propriétaire édite la couche.')
+                apikey = CkanHandler.get_user(editor.username)['apikey']
+            elif editor.profile.is_referent_for(self.resource.dataset.organisation):
+                logger.info('Le référent édite la couche.')
+                apikey = CkanHandler.get_user(editor.username)['apikey']
+            else:
+                apikey = CkanHandler.apikey
         else:
             apikey = CkanHandler.apikey
 
