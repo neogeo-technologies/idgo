@@ -3,7 +3,15 @@
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
 	<li><span class="glyphicon glyphicon-home"></span></li>
-	<li>{% if all %}Tous les{% else %}Mes{% endif %} jeux de données</li>
+	<li>
+		{% if harvested %}
+		<a href="{% url 'idgo_admin:datasets' target='harvested' %}">Jeux de données moissonnés</a>
+		{% elif all %}
+		<a href="{% url 'idgo_admin:datasets' target='all' %}">Tous jeux de données</a>
+		{% else %}
+		<a href="{% url 'idgo_admin:datasets' %}">Mes les jeux de données</a>
+		{% endif %}
+	</li>
 	<li class="active">
 		{% if dataset %}<a href="{% url 'idgo_admin:dataset' %}?id={{ dataset.id }}">{{ dataset.name_overflow }}</a>{% else %}Nouveau jeu de données{% endif %}
 	</li>
