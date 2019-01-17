@@ -209,6 +209,9 @@ class JurisdictionView(View):
                     except JurisdictionCommune.DoesNotExist:
                         kvp['created_by'] = profile
                         JurisdictionCommune.objects.create(**kvp)
+                jurisdiction.set_geom()
+
+                # Ugly time:
                 if fake:
                     url = '{}?organisation={}'.format(
                         request.build_absolute_uri(reverse(

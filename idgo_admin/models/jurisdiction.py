@@ -59,10 +59,10 @@ class Jurisdiction(models.Model):
                     self.geom = geom__union
                 except TypeError:
                     self.geom = MultiPolygon(geom__union)
+        super().save(update_fields=('geom',))
 
     def save(self, *args, **kwargs):
         old = kwargs.pop('old', None)
-        self.set_geom()
         super().save(*args, **kwargs)
 
         if old and old != self.code:

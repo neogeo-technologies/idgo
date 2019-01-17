@@ -175,8 +175,11 @@ class ProfileAdmin(admin.ModelAdmin):
     ordering = ['user__last_name', 'user__first_name']
 
     def get_form(self, request, obj=None, **kwargs):
-        profile = request.user.profile
-        Form = profile.is_crige_admin and CrigeProfileChangeForm or StandardProfileChangeForm
+        if request.user.is_superuser:
+            Form = CrigeProfileChangeForm
+        else:
+            profile = request.user.profile
+            Form = profile.is_crige_admin and CrigeProfileChangeForm or StandardProfileChangeForm
         if obj:
             return Form
         else:

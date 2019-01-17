@@ -453,7 +453,10 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
             return None
 
     def is_group_exists(self, id):
-        return self.get_group(str(id)) and True or False
+        b = self.get_group(str(id)) and True or False
+        if not b:
+            logger.warning("CKAN group '{id}' does not exists.".format(id=str(id)))
+        return b
 
     @CkanExceptionsHandler()
     def create_partner_group(self, name):
@@ -474,7 +477,8 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def del_user_from_partner_group(self, username, id):
-        self.call_action('group_member_delete', id=id, username=username)
+        if self.is_group_exists(id):
+            self.call_action('group_member_delete', id=id, username=username)
 
     @CkanExceptionsHandler()
     def add_group(self, group, type=None):

@@ -158,9 +158,15 @@
 	</div>
 	{% endif %}
 {% endif %}
+
+{% if not organizations|length %}
+	<div class="alert alert-warning" role="alert">
+		<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Aucune organisation n'est encore disponible, <a href='{% url "idgo_admin:create_organization" %}'>ajoutez une organisation</a>.
+	</div>
+{% else %}
 	<div class="row">
 		<div class="col-md-4">
-			{% if organizations|length > 10 %}
+			{# if organizations|length > 10 #}
 			<div class="input-group typeahead">
 				<input name="organization" type="text" class="form-control" placeholder="Rechercher l'organisation..."></input>
 				<span class="input-group-btn">
@@ -169,19 +175,6 @@
 					</button>
 				</span>
 			</div>
-			{% elif organizations|length > 1 and organizations|length <= 10 %}
-			<select name="organization" class="form-control">
-				{% for entry in organizations %}
-				<option value="{{ entry }}">{{ entry }}</option>
-				{% endfor %}
-			</select>
-			{% elif organizations|length == 1 %}
-				{% for k, v in organizations.items %}
-			<input name="organization" class="form-control" type="text" value="{{ k }}" disabled />
-				{% endfor %}
-			{% else %}
-			<div class="alert alert-info" role="alert">Aucune organisation n'est disponible</div>
-			{% endif %}
 		</div>
 		<div class="col-md-8">
 			<div class="buttons-on-the-right-side">
@@ -191,7 +184,7 @@
 	</div>
 	<div class="row">
 		<div class="col-md-4">
-			<div class="btn-group-vertical btn-block scrolling-box well" data-toggle="buttons" style="padding: 0;">
+			<div class="btn-group-vertical btn-block scrolling-box well" data-toggle="buttons" style="min-height: 500px; padding: 0;">
 				{% for item in organizations %}
 				<label for="id_organization_{{ item.pk }}" class="btn btn-radio">
 					<span class="label-name">{{ item.name }}</span>
@@ -714,4 +707,5 @@ $(function() {
 
 });
 </script>
+{% endif %}
 {% endblock main_content %}
