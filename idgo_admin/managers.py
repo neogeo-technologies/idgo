@@ -21,6 +21,19 @@ from idgo_admin.models import get_super_editor
 from idgo_admin.utils import clean_my_obj
 
 
+class DefaultDatasetManager(models.Manager):
+
+    def create(self, **kwargs):
+        save_opts = kwargs.pop('save_opts', {})
+        obj = self.model(**kwargs)
+        self._for_write = True
+        obj.save(force_insert=True, using=self.db, **save_opts)
+        return obj
+
+    def get(self, **kwargs):
+        return super().get(**kwargs)
+
+
 class HarvestedDataset(models.Manager):
 
     def create(self, **kwargs):

@@ -30,7 +30,9 @@ from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin import logger
+from idgo_admin.managers import DefaultDatasetManager
 from idgo_admin.managers import HarvestedDataset
+from idgo_admin.models import get_super_editor
 from idgo_admin.utils import three_suspension_points
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
@@ -55,46 +57,32 @@ else:
 finally:
     DEFAULT_BBOX = bounds_to_wkt(xmin, ymin, xmax, ymax)
 
-TODAY = timezone.now().date()
-
 
 class Dataset(models.Model):
+    """Modèle de classe d'un jeu de données."""
+
+    # Managers
+    # ========
 
     objects = models.Manager()
+
+    default = DefaultDatasetManager()
     harvested = HarvestedDataset()
 
-    _current_editor = None
+    # Champs
+    # ======
 
-    GEOCOVER_CHOICES = (
-        (None, 'Indéfinie'),
-        ('regionale', 'Régionale'),
-        ('jurisdiction', 'Territoire de compétence'))
+    name = models.TextField(verbose_name='Titre')                              # TODO: Remplacer par `title`
 
-    FREQUENCY_CHOICES = (
-        ('asneeded', 'Lorsque nécessaire'),
-        ('never', 'Non planifiée'),
-        ('intermittently', 'Irrégulière'),
-        ('continuously', 'Continue'),
-        ('realtime', 'Temps réel'),
-        ('daily', 'Journalière'),
-        ('weekly', 'Hebdomadaire'),
-        ('bimonthly', 'Bi-mensuelle'),
-        ('monthly', 'Mensuelle'),
-        ('quarterly', 'Trimestrielle'),
-        ('semiannual', 'Bi-annuelle'),
-        ('annual', 'Annuelle'),
-        ('unknow', 'Inconnue'))
-
-    # Mandatory
-    name = models.TextField(verbose_name='Titre', unique=True)  # unique=False est préférable...
-
-    ckan_slug = models.SlugField(
+    ckan_slug = models.SlugField(                                              # TODO: Remplacer par `slug`
         error_messages={
-            'invalid': "Le label court ne peut contenir ni majuscule, ni caractères spéciaux à l'exception le tiret."},
+            'invalid': (
+                "Le label court ne peut contenir ni majuscule, "
+                "ni caractères spéciaux à l'exception le tiret.")},
         verbose_name='Label court', max_length=100,
         unique=True, db_index=True, blank=True, null=True)
 
-    ckan_id = models.UUIDField(
+    ckan_id = models.UUIDField(                                                # TODO: Voir si possible de remplacer l'`id`
         verbose_name='Identifiant CKAN', unique=True,
         db_index=True, editable=False, blank=True, null=True)
 
@@ -119,9 +107,29 @@ class Dataset(models.Model):
     date_publication = models.DateField(
         verbose_name='Date de publication', blank=True, null=True)
 
+    FREQUENCY_CHOICES = (
+        ('asneeded', 'Lorsque nécessaire'),
+        ('never', 'Non planifiée'),
+        ('intermittently', 'Irrégulière'),
+        ('continuously', 'Continue'),
+        ('realtime', 'Temps réel'),
+        ('daily', 'Journalière'),
+        ('weekly', 'Hebdomadaire'),
+        ('bimonthly', 'Bi-mensuelle'),
+        ('monthly', 'Mensuelle'),
+        ('quarterly', 'Trimestrielle'),
+        ('semiannual', 'Bi-annuelle'),
+        ('annual', 'Annuelle'),
+        ('unknow', 'Inconnue'))
+
     update_freq = models.CharField(
         verbose_name='Fréquence de mise à jour', default='never',
         max_length=30, choices=FREQUENCY_CHOICES)
+
+    GEOCOVER_CHOICES = (
+        (None, 'Indéfinie'),
+        ('regionale', 'Régionale'),
+        ('jurisdiction', 'Territoire de compétence'))
 
     geocover = models.CharField(
         verbose_name='Couverture géographique', blank=True, null=True,
@@ -171,10 +179,9 @@ class Dataset(models.Model):
     broadcaster_email = models.EmailField(
         verbose_name='E-mail du diffuseur', blank=True, null=True)
 
-    # (Not) mandatory
     granularity = models.ForeignKey(
         to='Granularity',
-        blank=True, null=True,  # blank=False, null=False, default='commune-francaise',
+        blank=True, null=True,
         verbose_name='Granularité de la couverture territoriale',
         on_delete=models.PROTECT)
 
@@ -192,8 +199,11 @@ class Dataset(models.Model):
         return self.ckan_slug or slugify(self.name)
 
     def __init__(self, *args, **kwargs):
+        self.current_editor = None
         super().__init__(*args, **kwargs)
 
+        # Cas particulier des jeux de données moissonnées
+        # ===============================================
         RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
         try:
             remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
@@ -245,7 +255,18 @@ class Dataset(models.Model):
             profile=profile, organisation=self.organisation,
             validated_on__isnull=False).exists()
 
+    @classmethod
+    def get_subordinated_datasets(cls, profile):
+        Nexus = apps.get_model(app_label='idgo_admin', model_name='LiaisonsReferents')
+        organisations = Nexus.get_subordinated_organizations(profile=profile)
+        return cls.objects.filter(organisation__in=organisations)
+
+    # Méthodes Django
+    # ===============
+
     def clean(self):
+
+        # Vérifie la disponibilité du « slug » dans CKAN
         slug = self.ckan_slug or slugify(self.name)
         with CkanUserHandler(CkanHandler.apikey) as ckan_me:
             ckan_dataset = ckan_me.get_package(slug)
@@ -254,38 +275,34 @@ class Dataset(models.Model):
                 and ckan_dataset.get('name') == slug:
             raise ValidationError("L'URL du jeu de données est réservé.")
 
-    def save(self, *args, sync_ckan=True, **kwargs):
+    def save(self, *args, editor=None, synchronize=True, **kwargs):
+
+        # Utilisateur à l'origine de l'exécution de la fonction :
+        self.current_editor = editor
+
+        # Version précédante du jeu de données (avant modification) :
         previous = self.pk and Dataset.objects.get(pk=self.pk)
-        self._current_editor = kwargs.pop('editor', None)
+        if not previous:
+            self.editor = self.current_editor
 
-        if previous:
-            logger.info('User `{}` is updating dataset `{}`'.format(
-                self._current_editor and self._current_editor.username or self.editor.username, self.pk))
-        else:
-            logger.info('User `{}` is creating a new dataset'.format(
-                self._current_editor and self._current_editor.username or self.editor.username))
+        # Quelques valeurs par défaut
+        # ===========================
+        today = timezone.now().date()
+        if not self.date_creation:      # La date de création
+            self.date_creation = today
+        if not self.date_modification:  # La date de modification
+            self.date_modification = today
+        if not self.date_publication:   # La date de publication
+            self.date_publication = today
 
-        if not self.date_creation:
-            self.date_creation = TODAY
-        if not self.date_modification:
-            self.date_modification = TODAY
-        if not self.date_publication:
-            self.date_publication = TODAY
-
-        if not self.owner_name:
+        if not self.owner_name:         # Le propriétaire du jeu de données
             self.owner_name = self.editor.get_full_name()
-        if not self.owner_email:
+        if not self.owner_email:        # et son e-mail
             self.owner_email = self.editor.email
 
-        broadcaster_name = self.broadcaster_name or \
-            self.support and self.support.name or DEFAULT_PLATFORM_NAME
-        broadcaster_email = self.broadcaster_email or \
-            self.support and self.support.email or DEFAULT_CONTACT_EMAIL
-
-        # if not self.bbox and (not self.geocover and (
-        #         self.organisation and self.organisation.jurisdiction)):
-        #     setattr(self, 'geocover', 'jurisdiction')
-
+        # Le rectangle englobant du jeu de données :
+        #     Il est calculé en fonction des ressources géographiques et/ou de la couverture
+        #     et/ou de la couverture géographique définie
         layers = self.get_layers()
         if layers:
             # On calcule la BBOX de l'ensemble des Layers rattachés au Dataset
@@ -312,134 +329,158 @@ class Dataset(models.Model):
             else:
                 setattr(self, 'bbox', None)
 
+        # On sauvegarde le jeu de données
         super().save(*args, **kwargs)
 
-        if previous and previous.organisation:
-            CkanHandler.deactivate_ckan_organization_if_empty(
-                str(previous.organisation.ckan_id))
+        # Puis...
+        if previous:
+            # Une organisation CKAN ne contenant plus
+            # de jeu de données doit être désactivée.
+            if previous.organisation:
+                CkanHandler.deactivate_ckan_organization_if_empty(str(previous.organisation.ckan_id))
 
-        if sync_ckan:
-            ows = False
-            Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
-            for resource in Resource.objects.filter(dataset=self):
-                ows = resource.ogc_services
+            # On vérifie si l'organisation du jeu de données change.
+            # Si c'est le cas, il est nécessaire de sauvegarder tous
+            # les `Layers` rattachés au jeu de données afin de forcer
+            # la modification du `Workspace` (c'est-à-dire du Mapfile)
+            if previous.organisation != self.organisation:
+                for resource in previous.get_resources():
+                    for layer in resource.get_layers():
+                        layer.save()
+                        url = '{0}#{1}'.format(
+                            OWS_URL_PATTERN.format(organisation=self.organisation.ckan_slug),
+                            layer.name)
+                        CkanHandler.update_resource(layer.name, url=url)
 
-            if self.license and self.license.ckan_id in [
-                    license['id'] for license in CkanHandler.get_licenses()]:
-                license_id = self.license.ckan_id
-            else:
-                license_id = ''
+        # Enfin...
+        if synchronize:
+            ckan_dataset = self.synchronize(with_user=self.current_editor)
+            # puis on met à jour `ckan_id`
+            self.ckan_id = uuid.UUID(ckan_dataset['id'])
+            super().save(update_fields=['ckan_id'])
 
-            ckan_params = {
-                'author': self.owner_name,
-                'author_email': self.owner_email,
-                'datatype': [item.ckan_slug for item in self.data_type.all()],
-                'dataset_creation_date':
-                    str(self.date_creation) if self.date_creation else '',
-                'dataset_modification_date':
-                    str(self.date_modification) if self.date_modification else '',
-                'dataset_publication_date':
-                    str(self.date_publication) if self.date_publication else '',
-                'groups': [],
-                'geocover': self.geocover or '',
-                'granularity': self.granularity and self.granularity.slug or None,
-                'last_modified':
-                    str(self.date_modification) if self.date_modification else '',
-                'license_id': license_id,
-                'maintainer': broadcaster_name,
-                'maintainer_email': broadcaster_email,
-                'name': self.ckan_slug,
-                'notes': self.description,
-                'owner_org': str(self.organisation.ckan_id),
-                'ows': str(ows),
-                'private': not self.published,
-                'spatial': self.bbox and self.bbox.geojson or None,
-                'state': 'active',
-                'support': self.support and self.support.ckan_slug,
-                'tags': [
-                    {'name': keyword.name} for keyword in self.keywords.all()],
-                'title': self.name,
-                'update_frequency': self.update_freq,
-                'url': ''}  # Laisser vide
+    def synchronize(self, with_user=None):
+        """Synchronizer le jeu de données avec l'instance de CKAN."""
+        user = with_user or get_super_editor()
 
-            try:
-                ckan_params['thumbnail'] = urljoin(
-                    settings.DOMAIN_NAME, self.thumbnail.url)
-            except ValueError:
-                pass
+        # Identifiant du package CKAN :
+        id = self.ckan_id and str(self.ckan_id) or None
+        # Si la valeur est `None`, alors il s'agit d'une création.
 
-            if self.geonet_id:
-                ckan_params['inspire_url'] = \
-                    '{0}srv/fre/catalog.search#/metadata/{1}'.format(
-                        GEONETWORK_URL, self.geonet_id or '')
+        # Définition des propriétés du « package » :
 
-            user = self._current_editor or self.editor
+        datatype = [item.ckan_slug for item in self.data_type.all()]
 
+        dataset_creation_date = self.date_creation and str(self.date_creation) or ''
+        dataset_modification_date = self.date_modification and str(self.date_modification) or ''
+        dataset_publication_date = self.date_publication and str(self.date_publication) or ''
+
+        broadcaster_name = self.broadcaster_name or \
+            self.support and self.support.name or DEFAULT_PLATFORM_NAME
+        broadcaster_email = self.broadcaster_email or \
+            self.support and self.support.email or DEFAULT_CONTACT_EMAIL
+
+        geocover = self.geocover or ''
+
+        granularity = self.granularity and self.granularity.slug or ''
+
+        if self.geonet_id:
+            inspire_url = '{0}srv/fre/catalog.search#/metadata/{1}'.format(GEONETWORK_URL, self.geonet_id or '')
+        else:
+            inspire_url = ''
+
+        licenses = [license['id'] for license in CkanHandler.get_licenses()]
+        if self.license and self.license.ckan_id in licenses:
+            license_id = self.license.ckan_id
+        else:
+            license_id = ''
+
+        ows = False
+        Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
+        for resource in Resource.objects.filter(dataset=self):
+            ows = resource.ogc_services
+
+        private = not self.published
+
+        remote_ckan_url = \
+            self.is_harvested and self.remote_ckan_dataset.remote_ckan.url or ''
+
+        spatial = self.bbox and self.bbox.geojson or ''
+
+        support = self.support and self.support.ckan_slug or ''
+
+        tags = [{'name': keyword.name} for keyword in self.keywords.all()]
+
+        try:
+            thumbnail = urljoin(settings.DOMAIN_NAME, self.thumbnail.url)
+        except ValueError:
+            thumbnail = ''
+
+        data = {
+            'author': self.owner_name,
+            'author_email': self.owner_email,
+            'datatype': datatype,
+            'dataset_creation_date': dataset_creation_date,
+            'dataset_modification_date': dataset_modification_date,
+            'dataset_publication_date': dataset_publication_date,
+            'geocover': geocover,
+            'granularity': granularity,
+            'groups': [],  # Voir plus bas
+            'inspire_url': inspire_url,
+            'last_modified': dataset_publication_date,
+            'license_id': license_id,
+            'maintainer': broadcaster_name,
+            'maintainer_email': broadcaster_email,
+            'name': self.ckan_slug,
+            'notes': self.description,
+            'owner_org': str(self.organisation.ckan_id),
+            'ows': str(ows),  # I <3 CKAN
+            'private': private,
+            'remote_ckan_url': remote_ckan_url,
+            'spatial': spatial,
+            'state': 'active',
+            'support': support,
+            'tags': tags,
+            'title': self.name,
+            'thumbnail': thumbnail,
+            'update_frequency': self.update_freq,
+            'url': ''  # Toujours une chaîne de caractère vide !
+            }
+
+        # Synchronisation des catégories :
+        for category in self.categories.all():
+            data['groups'].append({'name': category.ckan_slug})
+
+        organisation_id = str(self.organisation.ckan_id)
+
+        # Synchronisation de l'organisation ; si l'organisation
+        # n'existe pas il faut la créer
+        ckan_organization = CkanHandler.get_organization(organisation_id)
+        if not ckan_organization:
+            CkanHandler.add_organization(self.organisation)
+        # et si l'organisation est désactiver il faut l'activer
+        elif ckan_organization.get('state') == 'deleted':
+            CkanHandler.activate_organization(organisation_id)
+
+        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
+        # de données existant mais le référent technique, alors
+        # l'api-key du référent est utilisée.
+        if hasattr(user, 'profile'):
+            username = user.username
+
+            # ~ ~ ~ #
+            # TODO: C'est très lorud de faire cela systématiquement -> voir pour améliorer cela
+            CkanHandler.add_user_to_organization(username, organisation_id)
             for category in self.categories.all():
-                CkanHandler.add_user_to_group(user.username, str(category.ckan_id))
-                ckan_params['groups'].append({'name': category.ckan_slug})
+                category_id = str(category.ckan_id)
+                CkanHandler.add_user_to_group(username, category_id)
+            # ~ ~ ~ #
 
-            # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-            # de données existant mais le référent technique, alors
-            # l'api-key du référent est utilisée.
-            if hasattr(user, 'profile'):
-                if user == self.editor:
-                    logger.info('Le propriétaire édite le jeu de données.')
-                    apikey = CkanHandler.get_user(user.username)['apikey']
-                elif user.profile.is_referent_for(self.organisation):
-                    logger.info('Le référent édite le jeu de données.')
-                    apikey = CkanHandler.get_user(user.username)['apikey']
-                else:
-                    apikey = CkanHandler.apikey
-            else:
-                apikey = CkanHandler.apikey
-
-            # Synchronisation de l'organisation
-            organisation_ckan_id = str(self.organisation.ckan_id)
-            ckan_organization = CkanHandler.get_organization(organisation_ckan_id)
-            if not ckan_organization:
-                CkanHandler.add_organization(self.organisation)
-            elif ckan_organization.get('state') == 'deleted':
-                CkanHandler.activate_organization(organisation_ckan_id)
-
-            LiaisonsContributeurs = apps.get_model(
-                app_label='idgo_admin', model_name='LiaisonsContributeurs')
-
-            for profile \
-                    in LiaisonsContributeurs.get_contributors(self.organisation):
-                CkanHandler.add_user_to_organization(
-                    profile.user.username, organisation_ckan_id)
-
+            apikey = CkanHandler.get_user(username)['apikey']
             with CkanUserHandler(apikey=apikey) as ckan_user:
-                ckan_dataset = \
-                    ckan_user.publish_dataset(
-                        id=self.ckan_id and str(self.ckan_id), **ckan_params)
-
-        # On vérifie si l'organisation du jeu de données change.
-        # Si c'est le cas, il est nécessaire de sauvegarder tous
-        # les `Layers` rattachés au jeu de données afin de forcer
-        # la modification du `Workspace` (c'est-à-dire du Mapfile)
-        ws_name = self.organisation.ckan_slug
-        if previous and not previous.organisation == self.organisation:
-            for resource in previous.get_resources():
-                for layer in resource.get_layers():
-                    layer.save()
-                    # TODO: déplacer dans Layer.save()
-                    ckan_user.update_resource(
-                        layer.name, url='{0}#{1}'.format(
-                            OWS_URL_PATTERN.format(organisation=ws_name), layer.name))
-
-        self.ckan_id = uuid.UUID(ckan_dataset['id'])
-        super().save()
-
-    @classmethod
-    def get_subordinated_datasets(cls, profile):
-        LiaisonsReferents = apps.get_model(
-            app_label='idgo_admin', model_name='LiaisonsReferents')
-
-        return cls.objects.filter(
-            organisation__in=LiaisonsReferents.get_subordinated_organizations(
-                profile=profile))
+                return ckan_user.publish_dataset(id=id, **data)
+        else:
+            return CkanHandler.publish_dataset(id=id, **data)
 
 
 # Triggers

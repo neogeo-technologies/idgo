@@ -73,32 +73,30 @@ def prefill_dataset_model(dataset):
     editor = dataset.editor
     organisation = dataset.organisation
 
-    data['mdContacts'].insert(0, {
-        'role': 'author',
+    default_contact = {
         'individualName': editor.get_full_name(),
         'organisationName': organisation.name,
         'email': organisation.email,
         'phoneVoice': organisation.phone,
         'deliveryPoint': organisation.address,
         'postalCode': organisation.postcode,
-        'city': organisation.city})
+        'city': organisation.city}
 
-    data['dataPointOfContacts'].insert(0, {
-        'role': 'owner',
-        'individualNzame': editor.get_full_name(),
-        'organisationName': organisation.name,
-        'email': organisation.email,
-        'phoneVoice': organisation.phone,
-        'deliveryPoint': organisation.address,
-        'postalCode': organisation.postcode,
-        'city': organisation.city})
+    md_contacts = {**default_contact, **{'role': 'author'}}
+    md_data_point_of_contacts = {**default_contact, **{'role': 'owner'}}
 
     try:
-        data['mdContacts'][0].update({
+        organisation_logo = {
             'logoDescription': 'logo',
-            'logoUrl': urljoin(DOMAIN_NAME, organisation.logo.url)})
+            'logoUrl': urljoin(DOMAIN_NAME, organisation.logo.url)}
     except Exception:
         pass
+    else:
+        md_contacts.update(organisation_logo)
+        md_data_point_of_contacts.update(organisation_logo)
+
+    data['mdContacts'].insert(0, md_contacts)
+    data['dataPointOfContacts'].insert(0, md_data_point_of_contacts)
 
     data['dataTitle'] = dataset.name
     data['dataAbstract'] = dataset.description
@@ -116,7 +114,20 @@ def prefill_dataset_model(dataset):
             'date': dataset.date_modification.isoformat(),
             'dateType': 'revision'})
 
-    data['dataMaintenanceFrequency'] = dataset.update_freq or 'unknown'
+    data['dataMaintenanceFrequency'] = {
+        'never': 'notPlanned',
+        'asneeded': 'asNeeded',
+        'intermittently': 'irregular',
+        'continuously': 'continual',
+        'realtime': 'continual',
+        'daily': 'daily',
+        'weekly': 'weekly',
+        'bimonthly': 'fortnightly',
+        'monthly': 'monthly',
+        'quarterly': 'quaterly',
+        'semiannual': 'biannually',
+        'annual': 'annually'
+        }.get(dataset.update_freq, 'unknow')
 
     if dataset.keywords:
         data['dataKeywords'].insert(0, {
@@ -127,6 +138,14 @@ def prefill_dataset_model(dataset):
         iso_topic = category.iso_topic
         if iso_topic:
             data['dataTopicCategories'].append(iso_topic)
+
+    try:
+        data['dataBrowseGraphics'].insert(0, {
+            'fileName': urljoin(DOMAIN_NAME, dataset.thumbnail.url),
+            # 'fileDescription': 'Imagette',
+            'fileType': dataset.thumbnail.name.split('.')[-1]})
+    except Exception:
+        pass
 
     resources = Resource.objects.filter(dataset=dataset)
     for resource in resources:
@@ -151,41 +170,32 @@ def prefill_service_model(organisation):
     data = model.copy()
     editor = None  # qui est l'éditeur ?
 
-    data['mdContacts'].insert(0, {
-        'role': 'author',
+    default_contact = {
         # 'individualName': editor.get_full_name(),
         'organisationName': organisation.name,
         'email': organisation.email,
         'phoneVoice': organisation.phone,
         'deliveryPoint': organisation.address,
         'postalCode': organisation.postcode,
-        'city': organisation.city})
+        'city': organisation.city}
 
-    data['dataPointOfContacts'].insert(0, {
-        'role': 'owner',
-        # 'individualNzame': editor.get_full_name(),
-        'organisationName': organisation.name,
-        'email': organisation.email,
-        'phoneVoice': organisation.phone,
-        'deliveryPoint': organisation.address,
-        'postalCode': organisation.postcode,
-        'city': organisation.city})
+    md_contacts = {**default_contact, **{'role': 'author'}}
+    md_data_point_of_contacts = {**default_contact, **{'role': 'owner'}}
 
     try:
-        data['mdContacts'][0].update({
+        logo = {
             'logoDescription': 'logo',
-            'logoUrl': urljoin(DOMAIN_NAME, organisation.logo.url)})
+            'logoUrl': urljoin(DOMAIN_NAME, organisation.logo.url)}
     except Exception:
         pass
+    else:
+        md_contacts.update(logo)
+        md_data_point_of_contacts.update(logo)
+
+    data['mdContacts'].insert(0, md_contacts)
+    data['dataPointOfContacts'].insert(0, md_data_point_of_contacts)
 
     return clean_my_obj(data)
-
-
-def prefill_model(instance):
-    if isinstance(instance, Dataset):
-        return prefill_dataset_model(instance)
-    if isinstance(instance, Organisation):
-        return prefill_service_model(instance)
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -256,7 +266,7 @@ class DatasetMDEdit(View):
             xml = record.xml.decode(encoding='utf-8')
             context['record_xml'] = re.sub('\n', '', xml).replace("'", "\\'")  # C'est moche
         else:
-            context['record_obj'] = prefill_model(instance)
+            context['record_obj'] = prefill_dataset_model(instance)
 
         return render_with_info_profile(request, self.template, context=context)
 
@@ -368,7 +378,7 @@ class ServiceMDEdit(View):
             xml = record.xml.decode(encoding='utf-8')
             context['record_xml'] = re.sub('\n', '', xml).replace("'", "\\'")  # C'est moche
         else:
-            context['record_obj'] = prefill_model(instance)
+            context['record_obj'] = prefill_service_model(instance)
 
         return render_with_info_profile(request, self.template, context=context)
 

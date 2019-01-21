@@ -20,7 +20,6 @@ from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
-from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
@@ -327,21 +326,3 @@ def post_save_profile(sender, instance, **kwargs):
             CkanHandler.add_user_to_partner_group(username, 'crige-partner')
         else:
             CkanHandler.del_user_from_partner_group(username, 'crige-partner')
-
-
-@receiver(pre_save, sender=LiaisonsContributeurs)
-def pre_save_contribution(sender, instance, **kwargs):
-    if not instance.validated_on:
-        return
-    user = instance.profile.user
-    organisation = instance.organisation
-    if CkanHandler.get_organization(str(organisation.ckan_id)):
-        CkanHandler.add_user_to_organization(user.username, str(organisation.ckan_id))
-
-
-@receiver(pre_delete, sender=LiaisonsContributeurs)
-def pre_delete_contribution(sender, instance, **kwargs):
-    user = instance.profile.user
-    organisation = instance.organisation
-    if CkanHandler.get_organization(str(organisation.ckan_id)):
-        CkanHandler.del_user_from_organization(user.username, str(organisation.ckan_id))

@@ -136,6 +136,24 @@ class Organisation(models.Model):
         qs = Profile.objects.filter(organisation=self, crige_membership=True)
         return [profile.user for profile in qs]
 
+    def get_members(self):
+        """Retourner la liste des utilistateurs membres de l'organisation."""
+        Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
+        profiles = Profile.objects.filter(organisation=self, membership=True, is_active=True)
+        return [e.user for e in profiles]
+
+    def get_contributors(self):
+        """Retourner la liste des utilistateurs contributeurs de l'organisation."""
+        Nexus = apps.get_model(app_label='idgo_admin', model_name='LiaisonsContributeurs')
+        entries = Nexus.objects.filter(organisation=self, validated_on__isnull=False)
+        return [e.profile.user for e in entries if e.profile.is_active]
+
+    def get_referents(self):
+        """Retourner la liste des utilistateurs référents de l'organisation."""
+        Nexus = apps.get_model(app_label='idgo_admin', model_name='LiaisonsReferents')
+        entries = Nexus.objects.filter(organisation=self, validated_on__isnull=False)
+        return [e.profile.user for e in entries if e.profile.is_active]
+
 
 class RemoteCkan(models.Model):
 
