@@ -114,7 +114,20 @@ def prefill_dataset_model(dataset):
             'date': dataset.date_modification.isoformat(),
             'dateType': 'revision'})
 
-    data['dataMaintenanceFrequency'] = dataset.update_freq or 'unknown'
+    data['dataMaintenanceFrequency'] = {
+        'never': 'notPlanned',
+        'asneeded': 'asNeeded',
+        'intermittently': 'irregular',
+        'continuously': 'continual',
+        'realtime': 'continual',
+        'daily': 'daily',
+        'weekly': 'weekly',
+        'bimonthly': 'fortnightly',
+        'monthly': 'monthly',
+        'quarterly': 'quaterly',
+        'semiannual': 'biannually',
+        'annual': 'annually'
+        }.get(dataset.update_freq, 'unknow')
 
     if dataset.keywords:
         data['dataKeywords'].insert(0, {
@@ -129,9 +142,9 @@ def prefill_dataset_model(dataset):
     try:
         data['dataBrowseGraphics'].insert(0, {
             'fileName': urljoin(DOMAIN_NAME, dataset.thumbnail.url),
-            # 'fileDescription': "",
+            # 'fileDescription': 'Imagette',
             'fileType': dataset.thumbnail.name.split('.')[-1]})
-    except Exception as e:
+    except Exception:
         pass
 
     resources = Resource.objects.filter(dataset=dataset)
