@@ -26,7 +26,6 @@ from idgo_admin.models import Granularity
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Support
-from idgo_admin.shortcuts import user_and_profile
 import re
 from taggit.forms import TagField
 from taggit.forms import TagWidget
@@ -309,49 +308,3 @@ class DatasetForm(forms.ModelForm):
                     raise ValidationError('KeywordsError')
 
         return self.cleaned_data
-
-    def handle_me(self, request, id=None):
-        user, profile = user_and_profile(request)
-
-        data = self.cleaned_data
-        params = {
-            'broadcaster_name': data['broadcaster_name'],
-            'broadcaster_email': data['broadcaster_email'],
-            'ckan_slug': data['ckan_slug'],
-            'date_creation': data['date_creation'],
-            'date_modification': data['date_modification'],
-            'date_publication': data['date_publication'],
-            'description': data['description'],
-            'editor': user,
-            'geocover': data['geocover'],
-            'granularity': data['granularity'],
-            'license': data['license'],
-            'name': data['name'],
-            'organisation': data['organisation'],
-            'owner_email': data['owner_email'],
-            'owner_name': data['owner_name'],
-            'update_freq': data['update_freq'],
-            'published': data['published'],
-            'support': data['support'],
-            'thumbnail': data['thumbnail'],
-            'is_inspire': data['is_inspire']}
-
-        if id:  # Mise à jour du jeu de données
-            params.pop('editor', None)
-            dataset = Dataset.objects.get(pk=id)
-            for key, value in params.items():
-                setattr(dataset, key, value)
-        else:  # Création d'un nouveau jeu de données
-            dataset = Dataset.objects.create(**params)
-
-        dataset.categories.set(data.get('categories', []), clear=True)
-
-        if data.get('keywords'):
-            dataset.keywords.clear()
-            for tag in data['keywords']:
-                dataset.keywords.add(tag)
-
-        dataset.data_type.set(data.get('data_type', []), clear=True)
-
-        dataset.save(editor=user, sync_ckan=True)
-        return dataset

@@ -134,7 +134,6 @@ class DatasetManager(View):
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, id, *args, **kwargs):
-
         user, profile = user_and_profile(request)
 
         if not LiaisonsContributeurs.objects.filter(
@@ -183,7 +182,44 @@ class DatasetManager(View):
 
         try:
             with transaction.atomic():
-                instance = form.handle_me(request, id=id)
+                data = form.cleaned_data
+                kvp = {
+                    'broadcaster_name': data['broadcaster_name'],
+                    'broadcaster_email': data['broadcaster_email'],
+                    'ckan_slug': data['ckan_slug'],
+                    'date_creation': data['date_creation'],
+                    'date_modification': data['date_modification'],
+                    'date_publication': data['date_publication'],
+                    'description': data['description'],
+                    'geocover': data['geocover'],
+                    'granularity': data['granularity'],
+                    'license': data['license'],
+                    'name': data['name'],
+                    'organisation': data['organisation'],
+                    'owner_email': data['owner_email'],
+                    'owner_name': data['owner_name'],
+                    'update_freq': data['update_freq'],
+                    'published': data['published'],
+                    'support': data['support'],
+                    'thumbnail': data['thumbnail'],
+                    'is_inspire': data['is_inspire']}
+                if id:
+                    instance = Dataset.objects.get(pk=id)
+                    for k, v in kvp.items():
+                        setattr(instance, k, v)
+                else:
+                    save_opts = {'editor': user, 'synchronize': False}
+                    instance = Dataset.default.create(save_opts=save_opts, **kvp)
+
+                instance.categories.set(data.get('categories', []), clear=True)
+                keywords = data.get('keywords')
+                if keywords:
+                    instance.keywords.clear()
+                    for k in keywords:
+                        instance.keywords.add(k)
+                instance.data_type.set(data.get('data_type', []), clear=True)
+                instance.save(editor=user, synchronize=True)
+
         except ValidationError as e:
             messages.error(request, ' '.join(e))
         except CkanBaseError as e:
