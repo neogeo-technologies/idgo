@@ -18,10 +18,13 @@
 import logging
 import os
 import sys
+python_home = "/idgo_venv/"
+activate_this = python_home + '/bin/activate_this.py'
+exec(open(activate_this).read())
 
-import django
-sys.path.append("/idgo_venv/")
+sys.path.append(python_home)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+import django  # noqa: E402
 django.setup()
 from django.contrib.auth.models import User  # noqa: E402
 from idgo_admin.models import Resource  # noqa: E402
