@@ -18,10 +18,23 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django import forms
 from django.forms.models import BaseInlineFormSet
+from idgo_admin import logger
 from idgo_admin.models import Dataset
+from idgo_admin.models import get_super_editor
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
+
+
+def synchronize(modeladmin, request, queryset):
+    for dataset in queryset:
+        logger.info('Force save dataset {pk}: {slug}'.format(
+            slug=dataset.__slug__(), pk=dataset.pk))
+        try:
+            dataset.save(editor=get_super_editor(), synchronize=True)
+        except Exception as e:
+            logger.error(e)
+            continue
 
 
 class ResourceFormatsAdmin(admin.ModelAdmin):
@@ -100,6 +113,9 @@ class DatasetAdmin(admin.ModelAdmin):
     can_delete_related = True
     readonly_fields = ['ckan_id', 'ckan_slug', 'geonet_id']
     search_fields = ['name', 'editor__username']
+    actions = [synchronize]
+
+    synchronize.short_description = 'Forcer la synchronisation des jeux de données'
 
     def nb_resources(self, obj):
         return Resource.objects.filter(dataset=obj).count()
