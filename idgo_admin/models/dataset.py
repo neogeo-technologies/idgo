@@ -329,6 +329,17 @@ class Dataset(models.Model):
             else:
                 setattr(self, 'bbox', None)
 
+        # On regarde si le jeu de données est moissonnées
+        RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+        try:
+            remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
+        except RemoteCkanDataset.DoesNotExist:
+            self.remote_ckan_dataset = None
+            self.is_harvested = False
+        else:
+            self.remote_ckan_dataset = remote_ckan_dataset
+            self.is_harvested = True
+
         # On sauvegarde le jeu de données
         super().save(*args, **kwargs)
 
@@ -403,7 +414,7 @@ class Dataset(models.Model):
         private = not self.published
 
         remote_ckan_url = \
-            self.is_harvested and self.remote_ckan_dataset.remote_ckan.url or ''
+            self.is_harvested and self.remote_ckan_dataset.url or ''
 
         spatial = self.bbox and self.bbox.geojson or ''
 

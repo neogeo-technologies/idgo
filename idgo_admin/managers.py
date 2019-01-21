@@ -41,11 +41,13 @@ class HarvestedDataset(models.Manager):
         remote_dataset = kwargs.pop('remote_dataset', None)
         remote_organisation = kwargs.pop('remote_organisation', None)
 
-        dataset = super().create(**kwargs)
+        save_opts = {'editor': get_super_editor(), 'synchronize': False}
+        Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
+        dataset = Dataset.default.create(save_opts=save_opts, **kwargs)
 
         DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
         dataset.data_type = DataType.objects.filter(ckan_slug='donnees-moissonnees')
-        dataset.save(editor=get_super_editor())
+        dataset.save(editor=get_super_editor(), synchronize=True)
 
         RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
 

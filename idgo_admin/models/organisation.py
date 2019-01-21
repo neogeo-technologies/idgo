@@ -226,7 +226,7 @@ class RemoteCkan(models.Model):
         editor = None
         for entry in inspect.stack():
             try:
-                editor = entry[0].f_locals['request'].user
+                editor = entry[0].f_locals['request'].user._wrapped
             except (KeyError, AttributeError):
                 continue
             break
@@ -303,7 +303,7 @@ class RemoteCkan(models.Model):
                                 dataset.keywords.clear()
                             keywords = [tag['display_name'] for tag in package.get('tags')]
                             dataset.keywords.add(*keywords)
-                            dataset.save(editor=editor, sync_ckan=True)
+                            dataset.save(editor=editor, synchronize=True)
 
                             ckan_ids.append(dataset.ckan_id)
 
