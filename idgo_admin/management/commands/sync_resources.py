@@ -16,6 +16,7 @@
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from idgo_admin.models import get_super_editor
 from idgo_admin.models import Resource
 from idgo_admin.models import Task
 
@@ -33,17 +34,18 @@ class Command(BaseCommand):
         super().__init__(*args, **kwargs)
 
     def handle(self, *args, **options):
-        for instance in Resource.objects.all():
-            if instance.dl_url and instance.synchronisation:
-                if self.is_to_synchronized(instance):
+        for resource in Resource.objects.all():
+            if resource.dl_url and resource.synchronisation:
+                if self.is_to_synchronized(resource):
 
                     extras = {
-                        'dataset': instance.dataset.id,
-                        'resource': instance.id}
+                        'dataset': resource.dataset.id,
+                        'resource': resource.id}
 
                     task = Task.objects.create(action=__name__)
                     try:
-                        instance.save(sync_ckan=True)
+                        resource.save(
+                            current_user=get_super_editor(), synchronize=True)
                     except Exception as e:
                         task.extras = {**extras, **{'error': e.__str__()}}
                         task.state = 'failed'
@@ -54,7 +56,7 @@ class Command(BaseCommand):
                         task.end = timezone.now()
                         task.save()
 
-    def is_to_synchronized(self, instance):
+    def is_to_synchronized(self, resource):
         return {
             'never': None,
             'daily': True,
@@ -64,4 +66,4 @@ class Command(BaseCommand):
             'quarterly': NOW.day == 1 and NOW.month in (1, 4, 7, 10),
             'biannual': NOW.day == 1 and NOW.month in (1, 7),
             'annual': NOW.day == 1 and NOW.month == 1
-            }.get(instance.sync_frequency, None)
+            }.get(resource.sync_frequency, None)

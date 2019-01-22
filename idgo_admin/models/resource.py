@@ -21,6 +21,7 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import IntegrityError
+from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.http import Http404
@@ -42,6 +43,7 @@ from idgo_admin.datagis import WrongDataError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin import logger
+from idgo_admin.managers import DefaultResourceManager
 from idgo_admin.models import get_super_editor
 from idgo_admin.utils import download
 from idgo_admin.utils import remove_file
@@ -141,46 +143,17 @@ def only_reference_filename(instance, filename):
     return filename
 
 
-class ResourceManager(models.Manager):
-
-    def create(self, **kwargs):
-        save_opts = kwargs.pop('save_opts', {})
-        obj = self.model(**kwargs)
-        self._for_write = True
-        obj.save(force_insert=True, using=self.db, **save_opts)
-        return obj
-
-
 class Resource(models.Model):
+    """Modèle de classe d'une ressource de données."""
 
-    FREQUENCY_CHOICES = (
-        ('never', 'Jamais'),
-        ('daily', 'Quotidienne (tous les jours à minuit)'),
-        ('weekly', 'Hebdomadaire (tous les lundi)'),
-        ('bimonthly', 'Bimensuelle (1er et 15 de chaque mois)'),
-        ('monthly', 'Mensuelle (1er de chaque mois)'),
-        ('quarterly', 'Trimestrielle (1er des mois de janvier, avril, juillet, octobre)'),
-        ('biannual', 'Semestrielle (1er janvier et 1er juillet)'),
-        ('annual', 'Annuelle (1er janvier)'))
+    # Managers
+    # ========
 
-    LANG_CHOICES = (
-        ('french', 'Français'),
-        ('english', 'Anglais'),
-        ('italian', 'Italien'),
-        ('german', 'Allemand'),
-        ('other', 'Autre'))
+    objects = models.Manager()
+    default = DefaultResourceManager()
 
-    LEVEL_CHOICES = (
-        ('0', 'Tous les utilisateurs'),
-        ('1', 'Utilisateurs authentifiés'),
-        ('2', 'Utilisateurs authentifiés avec droits spécifiques'),
-        ('3', 'Utilisateurs de cette organisation uniquement'),
-        ('4', 'Organisations spécifiées'))
-
-    TYPE_CHOICES = (
-        ('raw', 'Données brutes'),
-        ('annexe', 'Documentation associée'),
-        ('service', 'Service'))
+    # Champs atributaires
+    # ===================
 
     name = models.CharField(
         verbose_name='Nom', max_length=150)
@@ -208,12 +181,26 @@ class Resource(models.Model):
         verbose_name='Téléverser un ou plusieurs fichiers',
         blank=True, null=True, upload_to=upload_resource)
 
+    LANG_CHOICES = (
+        ('french', 'Français'),
+        ('english', 'Anglais'),
+        ('italian', 'Italien'),
+        ('german', 'Allemand'),
+        ('other', 'Autre'))
+
     lang = models.CharField(
         verbose_name='Langue', choices=LANG_CHOICES,
         default='french', max_length=10)
 
     format_type = models.ForeignKey(
         ResourceFormats, verbose_name='Format', default=0)
+
+    LEVEL_CHOICES = (
+        ('0', 'Tous les utilisateurs'),
+        ('1', 'Utilisateurs authentifiés'),
+        ('2', 'Utilisateurs authentifiés avec droits spécifiques'),
+        ('3', 'Utilisateurs de cette organisation uniquement'),
+        ('4', 'Organisations spécifiées'))
 
     restricted_level = models.CharField(
         verbose_name="Restriction d'accès", choices=LEVEL_CHOICES,
@@ -249,6 +236,11 @@ class Resource(models.Model):
         verbose_name='Date de dernière modification de la resource',
         blank=True, null=True)
 
+    TYPE_CHOICES = (
+        ('raw', 'Données brutes'),
+        ('annexe', 'Documentation associée'),
+        ('service', 'Service'))
+
     data_type = models.CharField(
         verbose_name='Type de la ressource',
         choices=TYPE_CHOICES, max_length=10, default='raw')
@@ -256,6 +248,16 @@ class Resource(models.Model):
     synchronisation = models.BooleanField(
         verbose_name='Synchronisation de données distante',
         default=False)
+
+    FREQUENCY_CHOICES = (
+        ('never', 'Jamais'),
+        ('daily', 'Quotidienne (tous les jours à minuit)'),
+        ('weekly', 'Hebdomadaire (tous les lundi)'),
+        ('bimonthly', 'Bimensuelle (1er et 15 de chaque mois)'),
+        ('monthly', 'Mensuelle (1er de chaque mois)'),
+        ('quarterly', 'Trimestrielle (1er des mois de janvier, avril, juillet, octobre)'),
+        ('biannual', 'Semestrielle (1er janvier et 1er juillet)'),
+        ('annual', 'Annuelle (1er janvier)'))
 
     sync_frequency = models.CharField(
         verbose_name='Fréquence de synchronisation',
@@ -269,11 +271,6 @@ class Resource(models.Model):
         to='SupportedCrs', verbose_name='CRS',
         on_delete=models.SET_NULL, blank=True, null=True)
 
-    objects = models.Manager()
-    custom = ResourceManager()  # Renommer car pas très parlant...
-
-    _encoding = 'utf-8'
-
     class Meta(object):
         verbose_name = 'Ressource'
 
@@ -282,6 +279,11 @@ class Resource(models.Model):
 
     def __slug__(self):
         return slugify(self.name)
+
+    # Propriétés
+    # ==========
+
+    _encoding = 'utf-8'
 
     @property
     def encoding(self):
@@ -313,13 +315,16 @@ class Resource(models.Model):
     def name_overflow(self):
         return three_suspension_points(self.name)
 
-    def get_layers(self, **kwargs):
-        Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
-        return Layer.objects.filter(resource=self, **kwargs)
+    @property
+    def anonymous_access(self):
+        return self.restricted_level == '0'
 
-    def update_enable_layers_status(self):
-        for layer in self.get_layers():
-            layer.handle_enable_ows_status()
+    @property
+    def is_datagis(self):
+        return self.get_layers() and True or False
+
+    # Méthodes de classe
+    # ==================
 
     @classmethod
     def get_resources_by_mapserver_url(cls, url):
@@ -339,154 +344,23 @@ class Resource(models.Model):
             raise Http404()
         return Resource.objects.filter(layer__name__in=layers).distinct()
 
-    @property
-    def anonymous_access(self):
-        return self.restricted_level == '0'
+    # Méthodes héritées
+    # =================
 
-    def is_profile_authorized(self, user):
-        Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
-        if not user.pk:
-            raise IntegrityError('User does not exists')
-        if self.restricted_level == '2':
-            return self.profiles_allowed.exists() and user in [
-                p.user for p in self.profiles_allowed.all()]
-        elif self.restricted_level in ('3', '4'):
-            return self.organisations_allowed.exists() and user in [
-                p.user for p in Profile.objects.filter(
-                    organisation__in=self.organisations_allowed,
-                    organisation__is_active=True)]
-        return True
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    @property
-    def is_datagis(self):
-        return self.get_layers() and True or False
+    def save(self, *args, current_user=None, synchronize=False, file_extras=None, **kwargs):
 
-    def synchronize(
-            self, url=None, filename=None, content_type=None, file_extras=None):
-
-        ckan_params = {
-            'crs': self.crs and self.crs.description or '',
-            'name': self.name,
-            'description': self.description,
-            'data_type': self.data_type,
-            'extracting_service': 'False',  # I <3 CKAN
-            'format': self.format_type.ckan_format,
-            'view_type': self.format_type.ckan_view,
-            'id': str(self.ckan_id),
-            'lang': self.lang,
-            'restricted_by_jurisdiction': str(self.geo_restriction),
-            'url': url and url or ''}
-
-        # TODO: Factoriser
-
-        # (0) Aucune restriction
-        if self.restricted_level == '0':
-            restricted = json.dumps({'level': 'public'})
-        # (1) Uniquement pour un utilisateur connecté
-        elif self.restricted_level == '1':
-            restricted = json.dumps({'level': 'registered'})
-        # (2) Seulement les utilisateurs indiquées
-        elif self.restricted_level == '2':
-            restricted = json.dumps({
-                'allowed_users': ','.join(
-                    self.profiles_allowed.exists() and [
-                        p.user.username for p
-                        in self.profiles_allowed.all()] or []),
-                'level': 'only_allowed_users'})
-        # (3) Les utilisateurs de cette organisation
-        elif self.restricted_level == '3':
-            restricted = json.dumps({
-                'allowed_users': ','.join(
-                    get_all_users_for_organizations(
-                        self.organisations_allowed.all())),
-                'level': 'only_allowed_users'})
-        # (3) Les utilisateurs des organisations indiquées
-        elif self.restricted_level == '4':
-            restricted = json.dumps({
-                'allowed_users': ','.join(
-                    get_all_users_for_organizations(
-                        self.organisations_allowed.all())),
-                'level': 'only_allowed_users'})
-
-        ckan_params['restricted'] = restricted
-
-        if self.referenced_url:
-            ckan_params['url'] = self.referenced_url
-            # ckan_params['resource_type'] = '{0}.{1}'.format(
-            #     self.name, self.format_type.ckan_view)
-
-        if self.dl_url:
-            downloaded_file = File(open(filename, 'rb'))
-            ckan_params['upload'] = downloaded_file
-            ckan_params['size'] = downloaded_file.size
-            ckan_params['mimetype'] = content_type
-            # ckan_params['resource_type'] = Path(filename).name
-
-        if self.up_file and file_extras:
-            ckan_params['upload'] = self.up_file.file
-            ckan_params['size'] = file_extras.get('size')
-            ckan_params['mimetype'] = file_extras.get('mimetype')
-            # ckan_params['resource_type'] = file_extras.get('resource_type')
-
-        if self.ftp_file:
-            if not url:
-                ckan_params['upload'] = self.ftp_file.file
-            ckan_params['size'] = self.ftp_file.size
-            ckan_params['mimetype'] = None  # TODO
-            # ckan_params['resource_type'] = Path(self.ftp_file.name).name
-
-        if self.data_type == 'raw':
-            if self.ftp_file or self.dl_url or self.up_file:
-                ckan_params['resource_type'] = 'file.upload'
-            elif self.referenced_url:
-                ckan_params['resource_type'] = 'file'
-        if self.data_type == 'annexe':
-            ckan_params['resource_type'] = 'documentation'
-        if self.data_type == 'service':
-            ckan_params['resource_type'] = 'api'
-
-        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-        # de données existant mais le référent technique, alors
-        # l'api-key du référent est utilisée.
-        if hasattr(self._current_editor, 'profile'):
-            if self._current_editor == self.dataset.editor:
-                logger.info('Le propriétaire édite la ressource.')
-                apikey = CkanHandler.get_user(self._current_editor.username)['apikey']
-            elif self._current_editor.profile.is_referent_for(self.dataset.organisation):
-                logger.info('Le référent édite la ressource.')
-                apikey = CkanHandler.get_user(self._current_editor.username)['apikey']
-            else:
-                apikey = CkanHandler.apikey
-        else:
-            apikey = CkanHandler.apikey
-
-        with CkanUserHandler(apikey=apikey) as ckan:
-            ckan_package = ckan.get_package(str(self.dataset.ckan_id))
-            ckan.publish_resource(ckan_package, **ckan_params)
-
-    def save(self, *args, **kwargs):
-
-        # Modèles
-        SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
-        Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
-        # Quelques options :
-        sync_ckan = kwargs.pop('sync_ckan', False)
-        file_extras = kwargs.pop('file_extras', None)  # Des informations sur la ressource téléversée
-        self._current_editor = kwargs.pop('editor', None)  # L'éditeur de l'objet `request` (qui peut être celui du jeu de données ou un référent)
-
-        # On sauvegarde l'objet avant de le mettre à jour (s'il existe)
+        # Version précédante du jeu de données (avant modification)
         previous, created = self.pk \
             and (Resource.objects.get(pk=self.pk), False) or (None, True)
 
-        if created:
-            logger.info('User `{}` is creating a new resource'.format(self._current_editor.username))
-        else:
-            logger.info('User `{}` is updating resource `{}`'.format(self._current_editor.username, self.id))
-
         # Quelques valeur par défaut à la création de l'instance
-        if created \
-                or not (hasattr(self._current_editor, 'profile') and self._current_editor.profile.crige_membership):
+        if created or not (
                 # Ou si l'éditeur n'est pas partenaire du CRIGE
+                hasattr(current_user, 'profile')
+                and current_user.profile.crige_membership):
 
             # Mais seulement s'il s'agit de données SIG, sauf
             # qu'on ne le sait pas encore...
@@ -574,16 +448,17 @@ class Resource(models.Model):
         # La synchronisation doit s'effectuer avant la publication des
         # éventuelles couches de données SIG car dans le cas des données
         # de type « raster », nous utilisons le filestore de CKAN.
-        if sync_ckan and publish_raw_resource:
+        if synchronize and publish_raw_resource:
             self.synchronize(
-                filename=filename, content_type=content_type, file_extras=file_extras)
-        elif sync_ckan and not publish_raw_resource:
-            self.synchronize(
-                url=reduce(urljoin, [
-                    settings.CKAN_URL,
-                    'dataset/', str(self.dataset.ckan_id) + '/',
-                    'resource/', str(self.ckan_id) + '/',
-                    'download/', Path(self.ftp_file.name).name]))
+                content_type=content_type, file_extras=file_extras,
+                filename=filename, with_user=current_user)
+        elif synchronize and not publish_raw_resource:
+            url = reduce(urljoin, [
+                settings.CKAN_URL,
+                'dataset/', str(self.dataset.ckan_id) + '/',
+                'resource/', str(self.ckan_id) + '/',
+                'download/', Path(self.ftp_file.name).name])
+            self.synchronize(url=url, with_user=current_user)
 
         # Détection des données SIG
         # =========================
@@ -606,6 +481,7 @@ class Resource(models.Model):
                         layer.name) for layer in self.get_layers())
 
                 try:
+
                     # C'est carrément moche mais c'est pour aller vite.
                     # Il faudrait factoriser tout ce bazar et créer
                     # un décorateur pour gérer le rool-back sur CKAN.
@@ -625,8 +501,14 @@ class Resource(models.Model):
                         except Exception:
                             pass
 
+                        # ==========================
+                        # Jeu de données vectorielle
+                        # ==========================
+
                         if gdalogr_obj.__class__.__name__ == 'OgrOpener':
-                            # On convertit les données vectorielles vers Postgis.
+
+                            # On convertit les données vers PostGIS
+
                             try:
                                 tables = ogr2postgis(
                                     gdalogr_obj, update=existing_layers,
@@ -634,6 +516,7 @@ class Resource(models.Model):
                                     encoding=self.encoding)
 
                             except NotOGRError as e:
+                                logger.warning(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     "Le fichier reçu n'est pas reconnu "
@@ -641,6 +524,7 @@ class Resource(models.Model):
                                 raise ValidationError(msg, code='__all__')
 
                             except DataDecodingError as e:
+                                logger.warning(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     'Impossible de décoder correctement les '
@@ -649,6 +533,7 @@ class Resource(models.Model):
                                 raise ValidationError(msg, code='encoding')
 
                             except WrongDataError as e:
+                                logger.warning(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     'Votre ressource contient des données SIG que '
@@ -657,6 +542,7 @@ class Resource(models.Model):
                                 raise ValidationError(msg)
 
                             except NotFoundSrsError as e:
+                                logger.warning(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     'Votre ressource semble contenir des données SIG '
@@ -666,6 +552,7 @@ class Resource(models.Model):
                                 raise ValidationError(msg, code='crs')
 
                             except NotSupportedSrsError as e:
+                                logger.warning(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     'Votre ressource semble contenir des données SIG '
@@ -674,6 +561,7 @@ class Resource(models.Model):
                                 raise ValidationError(msg, code='__all__')
 
                             except ExceedsMaximumLayerNumberFixedError as e:
+                                logger.warning(e)
                                 file_must_be_deleted and remove_file(filename)
                                 raise ValidationError(e.__str__(), code='__all__')
 
@@ -687,27 +575,36 @@ class Resource(models.Model):
                                 # Ensuite, pour tous les jeux de données SIG trouvés,
                                 # on crée le service ows à travers la création de `Layer`
                                 try:
+                                    Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
                                     for table in tables:
                                         try:
                                             Layer.objects.get(
                                                 name=table['id'], resource=self)
                                         except Layer.DoesNotExist:
                                             Layer.vector.create(
-                                                name=table['id'],
-                                                resource=self,
                                                 bbox=table['bbox'],
-                                                save_opts={'editor': self._current_editor})
+                                                name=table['id'],
+                                                resource=self)
                                 except Exception as e:
+                                    logger.error(e)
                                     file_must_be_deleted and remove_file(filename)
                                     for table in tables:
                                         drop_table(table['id'])
                                     raise e
 
+                        # ==========================
+                        # Jeu de données matricielle
+                        # ==========================
+
                         if gdalogr_obj.__class__.__name__ == 'GdalOpener':
+
                             coverage = gdalogr_obj.get_coverage()
+
                             try:
                                 tables = [gdalinfo(coverage, update=existing_layers)]
+
                             except NotFoundSrsError as e:
+                                logger.warning(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     'Votre ressource semble contenir des données SIG '
@@ -715,7 +612,9 @@ class Resource(models.Model):
                                     'de coordonnées. Merci de sélectionner le code du '
                                     'CRS dans la liste ci-dessous.')
                                 raise ValidationError(msg, code='crs')
+
                             except NotSupportedSrsError as e:
+                                logger.warning(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     'Votre ressource semble contenir des données SIG '
@@ -730,34 +629,37 @@ class Resource(models.Model):
                                     kwargs['force_insert'] = False
 
                             try:
+                                Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
                                 for table in tables:
                                     try:
                                         Layer.objects.get(
                                             name=table['id'], resource=self)
                                     except Layer.DoesNotExist:
                                         Layer.raster.create(
-                                            name=table['id'],
-                                            resource=self,
                                             bbox=table['bbox'],
-                                            save_opts={'editor': self._current_editor})
+                                            name=table['id'],
+                                            resource=self)
                             except Exception as e:
+                                logger.error(e)
                                 file_must_be_deleted and remove_file(filename)
                                 raise e
 
                 except Exception as e:
-                    # Roll-back sur la création de la ressource CKAN
-                    with CkanUserHandler(CkanHandler.apikey) as ckan:
-                        ckan.delete_resource(str(self.ckan_id))
+                    if created:
+                        if hasattr(current_user, 'profile'):
+                            username = current_user.username
+                            apikey = CkanHandler.get_user(username)['apikey']
+                            with CkanUserHandler(apikey) as ckan:
+                                ckan.delete_resource(str(self.ckan_id))
+                        else:
+                            CkanHandler.delete_resource(str(self.ckan_id))
                         for layer in self.get_layers():
-                            ckan.delete_resource(self.name)  # TODO vérifier si erreur sur cette ligne
-                            if layer.attached_ckan_resources:
-                                for id in layer.attached_ckan_resources:
-                                    ckan.delete_resource(str(id))
+                            layer.delete(current_user=current_user)
                     # Puis on « raise » l'erreur
                     raise e
-                # else:
 
                 # On met à jour les champs de la ressource
+                SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
                 crs = [
                     SupportedCrs.objects.get(
                         auth_name='EPSG', auth_code=table['epsg'])
@@ -784,7 +686,6 @@ class Resource(models.Model):
             if extent:
                 xmin, ymin = extent[0], extent[1]
                 xmax, ymax = extent[2], extent[3]
-
                 setattr(self, 'bbox', bounds_to_wkt(xmin, ymin, xmax, ymax))
 
         super().save(*args, **kwargs)
@@ -795,35 +696,180 @@ class Resource(models.Model):
             self.update_enable_layers_status()
 
         # on supprime les données téléversées ou téléchargées..
-        file_must_be_deleted and remove_file(filename)
+        if file_must_be_deleted:
+            remove_file(filename)
 
-        # Super crado
-        if self._current_editor:
-            apikey = CkanHandler.get_user(self._current_editor.username)['apikey']
-        else:
-            apikey = CkanHandler.apikey
-
-        with CkanUserHandler(apikey=apikey) as ckan:
-            ckan.update_resource(
-                str(self.ckan_id), extracting_service=str(self.extractable))
+        # [Crado] on met à jour la ressource CKAN
+        CkanHandler.update_resource(
+            str(self.ckan_id), extracting_service=str(self.extractable))
 
         for layer in self.get_layers():
             layer.save()
 
         self.dataset.date_modification = timezone.now().date()
-        self.dataset.save(current_user=self._current_editor, update_fields=['date_modification'])
+        self.dataset.save(current_user=get_super_editor(),
+                          synchronize=True,
+                          update_fields=['date_modification'])
 
-    def delete(self, *args, **kwargs):
+    def delete(self, *args, current_user=None, **kwargs):
+        user = current_user or get_super_editor()
+
+        # On supprime la ressource CKAN
+        ckan_id = str(self.ckan_id)
+        if hasattr(user, 'profile'):
+            username = user.username
+            apikey = CkanHandler.get_user(username)['apikey']
+            with CkanUserHandler(apikey=apikey) as ckan_user:
+                ckan_user.delete_resource(ckan_id)
+        else:
+            CkanHandler.delete_resource(ckan_id)
+
+        # On supprime l'instance
         super().delete(*args, **kwargs)
 
-        editor = kwargs.pop('editor', get_super_editor())
         self.dataset.date_modification = timezone.now().date()
-        self.dataset.save(current_user=editor, update_fields=['date_modification'])
+        self.dataset.save(current_user=get_super_editor(),
+                          synchronize=True,
+                          update_fields=['date_modification'])
+
+    # Autres méthodes
+    # ===============
+
+    def synchronize(self, url=None, filename=None, content_type=None,
+                    file_extras=None, with_user=None):
+        """Synchronizer le jeu de données avec l'instance de CKAN."""
+        user = with_user or get_super_editor()
+
+        # Identifiant de la resource CKAN :
+        id = str(self.ckan_id)
+
+        # Définition des propriétés du « package » :
+
+        data = {
+            'crs': self.crs and self.crs.description or '',
+            'name': self.name,
+            'description': self.description,
+            'data_type': self.data_type,
+            'extracting_service': 'False',  # I <3 CKAN
+            'format': self.format_type.ckan_format,
+            'view_type': self.format_type.ckan_view,
+            'id': id,
+            'lang': self.lang,
+            'restricted_by_jurisdiction': str(self.geo_restriction),
+            'url': url and url or ''}
+
+        # TODO: Factoriser
+
+        # (0) Aucune restriction
+        if self.restricted_level == '0':
+            restricted = json.dumps({'level': 'public'})
+        # (1) Uniquement pour un utilisateur connecté
+        elif self.restricted_level == '1':
+            restricted = json.dumps({'level': 'registered'})
+        # (2) Seulement les utilisateurs indiquées
+        elif self.restricted_level == '2':
+            restricted = json.dumps({
+                'allowed_users': ','.join(
+                    self.profiles_allowed.exists() and [
+                        p.user.username for p
+                        in self.profiles_allowed.all()] or []),
+                'level': 'only_allowed_users'})
+        # (3) Les utilisateurs de cette organisation
+        elif self.restricted_level == '3':
+            restricted = json.dumps({
+                'allowed_users': ','.join(
+                    get_all_users_for_organizations(
+                        self.organisations_allowed.all())),
+                'level': 'only_allowed_users'})
+        # (3) Les utilisateurs des organisations indiquées
+        elif self.restricted_level == '4':
+            restricted = json.dumps({
+                'allowed_users': ','.join(
+                    get_all_users_for_organizations(
+                        self.organisations_allowed.all())),
+                'level': 'only_allowed_users'})
+
+        data['restricted'] = restricted
+
+        if self.referenced_url:
+            data['url'] = self.referenced_url
+            # data['resource_type'] = '{0}.{1}'.format(
+            #     self.name, self.format_type.ckan_view)
+
+        if self.dl_url:
+            downloaded_file = File(open(filename, 'rb'))
+            data['upload'] = downloaded_file
+            data['size'] = downloaded_file.size
+            data['mimetype'] = content_type
+            # data['resource_type'] = Path(filename).name
+
+        if self.up_file and file_extras:
+            data['upload'] = self.up_file.file
+            data['size'] = file_extras.get('size')
+            data['mimetype'] = file_extras.get('mimetype')
+            # data['resource_type'] = file_extras.get('resource_type')
+
+        if self.ftp_file:
+            if not url:
+                data['upload'] = self.ftp_file.file
+            data['size'] = self.ftp_file.size
+            data['mimetype'] = None  # TODO
+            # data['resource_type'] = Path(self.ftp_file.name).name
+
+        if self.data_type == 'raw':
+            if self.ftp_file or self.dl_url or self.up_file:
+                data['resource_type'] = 'file.upload'
+            elif self.referenced_url:
+                data['resource_type'] = 'file'
+        if self.data_type == 'annexe':
+            data['resource_type'] = 'documentation'
+        if self.data_type == 'service':
+            data['resource_type'] = 'api'
+
+        ckan_package = CkanHandler.get_package(str(self.dataset.ckan_id))
+
+        if hasattr(user, 'profile'):
+            username = user.username
+
+            apikey = CkanHandler.get_user(username)['apikey']
+            with CkanUserHandler(apikey=apikey) as ckan:
+                ckan.publish_resource(ckan_package, **data)
+        else:
+            return CkanHandler.publish_resource(ckan_package, **data)
+
+    def get_layers(self, **kwargs):
+        Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
+        return Layer.objects.filter(resource=self, **kwargs)
+
+    def update_enable_layers_status(self):
+        for layer in self.get_layers():
+            layer.handle_enable_ows_status()
+
+    def is_profile_authorized(self, user):
+        Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
+        if not user.pk:
+            raise IntegrityError('User does not exists')
+        if self.restricted_level == '2':
+            return self.profiles_allowed.exists() and user in [
+                p.user for p in self.profiles_allowed.all()]
+        elif self.restricted_level in ('3', '4'):
+            return self.organisations_allowed.exists() and user in [
+                p.user for p in Profile.objects.filter(
+                    organisation__in=self.organisations_allowed,
+                    organisation__is_active=True)]
+        return True
+
+
+# Signaux
+# =======
 
 
 @receiver(post_save, sender=Resource)
 def logging_after_save(sender, instance, **kwargs):
-    if kwargs.get('created', False):
-        logger.info('Resource `{}` has been created'.format(instance.pk))
-    else:
-        logger.info('Resource `{}` has been updated'.format(instance.pk))
+    action = kwargs.get('created', False) and 'created' or 'updated'
+    logger.info('Resource "{pk}" has been {action}'.format(pk=instance.pk, action=action))
+
+
+@receiver(post_delete, sender=Resource)
+def logging_after_delete(sender, instance, **kwargs):
+    logger.info('Resource "{pk}" has been deleted'.format(pk=instance.pk))

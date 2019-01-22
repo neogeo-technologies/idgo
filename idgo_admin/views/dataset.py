@@ -203,6 +203,7 @@ class DatasetManager(View):
                     'support': data['support'],
                     'thumbnail': data['thumbnail'],
                     'is_inspire': data['is_inspire']}
+
                 if id:
                     instance = Dataset.objects.get(pk=id)
                     for k, v in kvp.items():
@@ -267,22 +268,20 @@ class DatasetManager(View):
                 profile=profile, validated_on__isnull=False).exists():
             raise Http404
 
-        instance = get_object_or_404_extended(Dataset, user, include={'id': id})
+        dataset = get_object_or_404_extended(Dataset, user, include={'id': id})
 
-        apikey = CkanHandler.get_user(user.username)['apikey']
         try:
-            with CkanUserHandler(apikey=apikey) as ckan:
-                ckan.delete_dataset(instance.ckan_slug)  # purge réalisé au delete()
-        except CkanBaseError as e:
+            dataset.delete(current_user=user)
+        except Exception as e:
             status = 500
-            messages.error(request, e.__str__())
+            message = e.__str__()
+            messages.error(request, message)
         else:
-            instance.delete()
-            send_dataset_delete_mail(user, instance)
-
             status = 200
             message = 'Le jeu de données a été supprimé avec succès.'
             messages.success(request, message)
+
+            send_dataset_delete_mail(user, dataset)
 
         return HttpResponse(status=status)
 

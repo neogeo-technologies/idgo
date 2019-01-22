@@ -330,14 +330,12 @@ class RemoteCkan(models.Model):
                                 try:
                                     resource = Resource.objects.get(ckan_id=ckan_id)
                                 except Resource.DoesNotExist:
-                                    resource = Resource.custom.create(
-                                        save_opts={'editor': editor, 'sync_ckan': True}, **kvp)
+                                    resource = Resource.default.create(
+                                        save_opts={'current_user': editor, 'synchronize': True}, **kvp)
                                 else:
                                     for k, v in kvp.items():
                                         setattr(resource, k, v)
-                                resource.save(editor=editor, sync_ckan=True)
-                        # end for package in ckan_organisation.get('packages')
-                    # end for value in self.sync_with
+                                resource.save(current_user=editor, synchronize=True)
 
             except Exception as e:
                 for id in ckan_ids:

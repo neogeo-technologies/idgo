@@ -21,6 +21,11 @@ from idgo_admin.models import get_super_editor
 from idgo_admin.utils import clean_my_obj
 
 
+# =========================================================
+# Définition de Managers pour les jeux de données (Dataset)
+# =========================================================
+
+
 class DefaultDatasetManager(models.Manager):
 
     def create(self, **kwargs):
@@ -118,3 +123,54 @@ class HarvestedDataset(models.Manager):
             dataset.save(current_user=get_super_editor(), synchronize=True)
 
         return dataset, created
+
+
+# =====================================================
+# Définition de Managers pour les ressources (Resource)
+# =====================================================
+
+
+class DefaultResourceManager(models.Manager):
+
+    def create(self, **kwargs):
+        save_opts = kwargs.pop('save_opts', {})
+        obj = self.model(**kwargs)
+        self._for_write = True
+        obj.save(force_insert=True, using=self.db, **save_opts)
+        return obj
+
+    def get(self, **kwargs):
+        return super().get(**kwargs)
+
+
+# ====================================================
+# Définition de Managers pour les couches SIG (Layers)
+# ====================================================
+
+
+class RasterLayerManager(models.Manager):
+
+    def create(self, **kwargs):
+        save_opts = kwargs.pop('save_opts', {})
+        kwargs['type'] = 'raster'
+        obj = self.model(**kwargs)
+        self._for_write = True
+        obj.save(force_insert=True, using=self.db, **save_opts)
+        return obj
+
+    def get(self, **kwargs):
+        return super().get(**kwargs)
+
+
+class VectorLayerManager(models.Manager):
+
+    def create(self, **kwargs):
+        save_opts = kwargs.pop('save_opts', {})
+        kwargs['type'] = 'vector'
+        obj = self.model(**kwargs)
+        self._for_write = True
+        obj.save(force_insert=True, using=self.db, **save_opts)
+        return obj
+
+    def get(self, **kwargs):
+        return super().get(**kwargs)

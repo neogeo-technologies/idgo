@@ -45,9 +45,16 @@ from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
 import json
+import os
 
 
 CKAN_URL = settings.CKAN_URL
+
+FTP_DIR = settings.FTP_DIR
+try:
+    FTP_UPLOADS_DIR = settings.FTP_UPLOADS_DIR
+except AttributeError:
+    FTP_UPLOADS_DIR = 'uploads'
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -70,16 +77,16 @@ def resource(request, dataset_id=None, *args, **kwargs):
     else:
         kvp['id'] = id
     finally:
-        instance = get_object_or_404(Resource, **kvp)
+        resource = get_object_or_404(Resource, **kvp)
 
     # TODO:
     # return redirect(reverse('idgo_admin:resource_editor', kwargs={
-    #     'dataset_id': instance.dataset.id, 'resource_id': instance.id}))
+    #     'dataset_id': resource.dataset.id, 'resource_id': resource.id}))
     return redirect(
         '{}?id={}'.format(
             reverse(
-                'idgo_admin:resource', kwargs={'dataset_id': instance.dataset.id}),
-            instance.id))
+                'idgo_admin:resource', kwargs={'dataset_id': resource.dataset.id}),
+            resource.id))
 
 
 @method_decorator(decorators, name='dispatch')
@@ -130,12 +137,12 @@ class ResourceManager(View):
                     'layer_id': _layer}))
 
         id = request.GET.get('id')
-        instance = id and get_object_or_404_extended(
+        resource = id and get_object_or_404_extended(
             Resource, user, include={'id': id, 'dataset_id': dataset.id}) or None
 
-        form = Form(instance=instance, user=user)
+        form = Form(instance=resource, user=user)
 
-        context = self.get_context(form, profile, dataset, instance)
+        context = self.get_context(form, profile, dataset, resource)
 
         return render_with_info_profile(request, self.template, context)
 
@@ -153,14 +160,14 @@ class ResourceManager(View):
             Dataset, user, include={'id': dataset_id})
 
         id = request.POST.get('id', request.GET.get('id'))
-        instance = id and get_object_or_404_extended(
+        resource = id and get_object_or_404_extended(
             Resource, user, include={'id': id, 'dataset': dataset}) or None
 
         form = Form(
             request.POST, request.FILES,
-            instance=instance, dataset=dataset, user=user)
+            instance=resource, dataset=dataset, user=user)
 
-        context = self.get_context(form, profile, dataset, instance)
+        context = self.get_context(form, profile, dataset, resource)
 
         ajax = 'ajax' in request.POST
         save_and_continue = 'continue' in request.POST
@@ -178,7 +185,53 @@ class ResourceManager(View):
 
         try:
             with transaction.atomic():
-                instance = form.handle_me(request, dataset, id=id)
+                data = form.cleaned_data
+                kvp = {
+                    'crs': data['crs'],
+                    'data_type': data['data_type'],
+                    'dataset': dataset,
+                    'description': data['description'],
+                    'dl_url': data['dl_url'],
+                    'encoding': data.get('encoding') or None,
+                    'extractable': data['extractable'],
+                    'format_type': data['format_type'],
+                    'ftp_file': data['ftp_file'] and os.path.join(FTP_DIR, user.username, data['ftp_file']) or None,
+                    'geo_restriction': data['geo_restriction'],
+                    'lang': data['lang'],
+                    'last_update': data['last_update'],
+                    'name': data['name'],
+                    'ogc_services': data['ogc_services'],
+                    'referenced_url': data['referenced_url'],
+                    'restricted_level': data['restricted_level'],
+                    'sync_frequency': data['sync_frequency'],
+                    'synchronisation': data['synchronisation'],
+                    'up_file': data['up_file']}
+
+                if data['restricted_level'] == '2':
+                    kvp['profiles_allowed'] = data['profiles_allowed']
+                if data['restricted_level'] == '3':
+                    kvp['organisations_allowed'] = [form._dataset.organisation]
+                if data['restricted_level'] == '4':
+                    kvp['organisations_allowed'] = data['organisations_allowed']
+
+                memory_up_file = request.FILES.get('up_file')
+                file_extras = memory_up_file and {
+                    'mimetype': memory_up_file.content_type,
+                    'resource_type': memory_up_file.name,
+                    'size': memory_up_file.size} or None
+
+                save_opts = {
+                    'current_user': user,
+                    'file_extras': file_extras,
+                    'synchronize': True}
+                if id:
+                    resource = Resource.objects.get(pk=id)
+                    for k, v in kvp.items():
+                        setattr(resource, k, v)
+                    resource.save(**save_opts)
+                else:
+                    resource = Resource.default.create(save_opts=save_opts, **kvp)
+
         except ValidationError as e:
             if e.code == 'crs':
                 form.add_error(e.code, '')
@@ -197,9 +250,9 @@ class ResourceManager(View):
             messages.error(request, e.__str__())
         else:
             if id:
-                send_resource_update_mail(user, instance)
+                send_resource_update_mail(user, resource)
             else:
-                send_resource_creation_mail(user, instance)
+                send_resource_creation_mail(user, resource)
 
             dataset_href = reverse(
                 self.namespace, kwargs={'dataset_id': dataset_id})
@@ -209,24 +262,24 @@ class ResourceManager(View):
                 '<a href="{2}/dataset/{3}/resource/{4}" target="_blank">'
                 'voir la ressource dans CKAN</a> ?').format(
                 id and 'mise à jour' or 'créée', dataset_href,
-                CKAN_URL, dataset.ckan_slug, instance.ckan_id))
+                CKAN_URL, dataset.ckan_slug, resource.ckan_id))
 
             if ajax:
                 response = HttpResponse(status=201)  # Ugly hack
                 if save_and_continue:
-                    href = '{0}?id={1}'.format(dataset_href, instance.id)
+                    href = '{0}?id={1}'.format(dataset_href, resource.id)
                 else:
                     href = '{0}?id={1}#resources/{2}'.format(
-                        reverse('idgo_admin:dataset'), dataset_id, instance.id)
+                        reverse('idgo_admin:dataset'), dataset_id, resource.id)
                 response['Content-Location'] = href
                 return response
             else:
                 if save_and_continue:
                     return HttpResponseRedirect(
-                        '{0}?id={1}'.format(dataset_href, instance.id))
+                        '{0}?id={1}'.format(dataset_href, resource.id))
 
                 return HttpResponseRedirect('{0}?id={1}#resources/{2}'.format(
-                    reverse('idgo_admin:dataset'), dataset_id, instance.id))
+                    reverse('idgo_admin:dataset'), dataset_id, resource.id))
 
         if ajax:
             form._errors = None
@@ -244,24 +297,20 @@ class ResourceManager(View):
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
             raise Http404
-        instance = get_object_or_404_extended(
+        resource = get_object_or_404_extended(
             Resource, user, include={'id': id, 'dataset': dataset})
 
-        ckan_id = str(instance.ckan_id)
-
-        apikey = CkanHandler.get_user(user.username)['apikey']
         try:
-            with CkanUserHandler(apikey=apikey) as ckan:
-                ckan.delete_resource(ckan_id)
-        except CkanBaseError as e:
+            resource.delete(current_user=user)
+        except Exception as e:
             status = 500
-            messages.error(request, e.__str__())
+            message = e.__str__()
+            messages.error(request, message)
         else:
-            instance.delete()
-            send_resource_delete_mail(user, instance)
-
             status = 200
             message = 'La ressource a été supprimée avec succès.'
             messages.success(request, message)
+
+            send_resource_delete_mail(user, resource)
 
         return HttpResponse(status=status)

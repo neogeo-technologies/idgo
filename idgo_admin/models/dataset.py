@@ -69,8 +69,8 @@ class Dataset(models.Model):
     default = DefaultDatasetManager()
     harvested = HarvestedDataset()
 
-    # Champs
-    # ======
+    # Champs atributaires
+    # ===================
 
     name = models.TextField(verbose_name='Titre')                              # TODO: Remplacer par `title`
 
@@ -198,20 +198,8 @@ class Dataset(models.Model):
     def __slug__(self):
         return self.ckan_slug or slugify(self.name)
 
-    def __init__(self, *args, **kwargs):
-        self.current_user = None
-        super().__init__(*args, **kwargs)
-
-        # On regarde si le jeu de données est moissonnées
-        # RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-        # try:
-        #     remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
-        # except RemoteCkanDataset.DoesNotExist:
-        #     self.remote_ckan_dataset = None
-        #     self.is_harvested = False
-        # else:
-        #     self.remote_ckan_dataset = remote_ckan_dataset
-        #     self.is_harvested = True
+    # Propriétés
+    # ==========
 
     @property
     def private(self):
@@ -235,25 +223,8 @@ class Dataset(models.Model):
             minx, miny, maxx, maxy = self.bbox.extent
             return [[miny, minx], [maxy, maxx]]
 
-    def get_layers(self):
-        Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
-        return Layer.objects.filter(resource__dataset__pk=self.pk)
-
-    def is_contributor(self, profile):
-        LiaisonsContributeurs = apps.get_model(
-            app_label='idgo_admin', model_name='LiaisonsContributeurs')
-
-        return LiaisonsContributeurs.objects.filter(
-            profile=profile, organisation=self.organisation,
-            validated_on__isnull=False).exists()
-
-    def is_referent(self, profile):
-        LiaisonsReferents = apps.get_model(
-            app_label='idgo_admin', model_name='LiaisonsReferents')
-
-        return LiaisonsReferents.objects.filter(
-            profile=profile, organisation=self.organisation,
-            validated_on__isnull=False).exists()
+    # Méthodes de classe
+    # ==================
 
     @classmethod
     def get_subordinated_datasets(cls, profile):
@@ -261,8 +232,22 @@ class Dataset(models.Model):
         organisations = Nexus.get_subordinated_organizations(profile=profile)
         return cls.objects.filter(organisation__in=organisations)
 
-    # Méthodes Django
-    # ===============
+    # Méthodes héritées
+    # =================
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # On regarde si le jeu de données est moissonnées
+        # RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+        # try:
+        #     remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
+        # except RemoteCkanDataset.DoesNotExist:
+        #     self.remote_ckan_dataset = None
+        #     self.is_harvested = False
+        # else:
+        #     self.remote_ckan_dataset = remote_ckan_dataset
+        #     self.is_harvested = True
 
     def clean(self):
 
@@ -277,13 +262,10 @@ class Dataset(models.Model):
 
     def save(self, *args, current_user=None, synchronize=True, **kwargs):
 
-        # Utilisateur à l'origine de l'exécution de la fonction :
-        self.current_user = current_user
-
         # Version précédante du jeu de données (avant modification) :
         previous = self.pk and Dataset.objects.get(pk=self.pk)
         if not previous:
-            self.editor = self.current_user
+            self.editor = current_user
 
         # Quelques valeurs par défaut
         # ===========================
@@ -365,10 +347,37 @@ class Dataset(models.Model):
 
         # Enfin...
         if synchronize:
-            ckan_dataset = self.synchronize(with_user=self.current_user)
+            ckan_dataset = self.synchronize(with_user=current_user)
             # puis on met à jour `ckan_id`
             self.ckan_id = uuid.UUID(ckan_dataset['id'])
             super().save(update_fields=['ckan_id'])
+
+    def delete(self, *args, current_user=None, **kwargs):
+
+        user = current_user or get_super_editor()
+
+        # On supprime toutes les ressources attachées au jeu de données
+        Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
+        for resource in Resource.objects.filter(dataset=self):
+            resource.delete(current_user=user)
+
+        # On supprime le package CKAN
+        ckan_id = str(self.ckan_id)
+        if hasattr(user, 'profile'):
+            username = user.username
+            apikey = CkanHandler.get_user(username)['apikey']
+            with CkanUserHandler(apikey=apikey) as ckan_user:
+                ckan_user.delete_dataset(ckan_id)
+        else:
+            CkanHandler.delete_dataset(ckan_id)
+
+        CkanHandler.purge_dataset(ckan_id)
+
+        # On supprime l'instance
+        super().delete(*args, **kwargs)
+
+    # Autres méthodes
+    # ===============
 
     def synchronize(self, with_user=None):
         """Synchronizer le jeu de données avec l'instance de CKAN."""
@@ -378,7 +387,8 @@ class Dataset(models.Model):
         id = self.ckan_id and str(self.ckan_id) or None
         # Si la valeur est `None`, alors il s'agit d'une création.
 
-        # Définition des propriétés du « package » :
+        # Définition des propriétés du « paquet »
+        # =======================================
 
         datatype = [item.ckan_slug for item in self.data_type.all()]
 
@@ -472,9 +482,6 @@ class Dataset(models.Model):
         elif ckan_organization.get('state') == 'deleted':
             CkanHandler.activate_organization(organisation_id)
 
-        # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
-        # de données existant mais le référent technique, alors
-        # l'api-key du référent est utilisée.
         if hasattr(user, 'profile'):
             username = user.username
 
@@ -492,8 +499,29 @@ class Dataset(models.Model):
         else:
             return CkanHandler.publish_dataset(id=id, **data)
 
+    def get_layers(self):
+        Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
+        return Layer.objects.filter(resource__dataset__pk=self.pk)
 
-# Triggers
+    def is_contributor(self, profile):
+        LiaisonsContributeurs = apps.get_model(
+            app_label='idgo_admin', model_name='LiaisonsContributeurs')
+
+        return LiaisonsContributeurs.objects.filter(
+            profile=profile, organisation=self.organisation,
+            validated_on__isnull=False).exists()
+
+    def is_referent(self, profile):
+        LiaisonsReferents = apps.get_model(
+            app_label='idgo_admin', model_name='LiaisonsReferents')
+
+        return LiaisonsReferents.objects.filter(
+            profile=profile, organisation=self.organisation,
+            validated_on__isnull=False).exists()
+
+
+# Signaux
+# =======
 
 
 @receiver(pre_save, sender=Dataset)
@@ -502,25 +530,17 @@ def pre_save_dataset(sender, instance, **kwargs):
         instance.ckan_slug = slugify(instance.name)
 
 
-@receiver(pre_delete, sender=Dataset)
-def pre_delete_dataset(sender, instance, **kwargs):
-    Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
-    Resource.objects.filter(dataset=instance).delete()
-    CkanHandler.purge_dataset(instance.ckan_slug)
-
-
 @receiver(post_delete, sender=Dataset)
 def post_delete_dataset(sender, instance, **kwargs):
     CkanHandler.deactivate_ckan_organization_if_empty(str(instance.organisation.ckan_id))
 
 
-# Logging
-# =======
-
-
 @receiver(post_save, sender=Dataset)
 def logging_after_save(sender, instance, **kwargs):
-    if kwargs.get('created', False):
-        logger.info('Dataset `{}` has been created'.format(instance.pk))
-    else:
-        logger.info('Dataset `{}` has been updated'.format(instance.pk))
+    action = kwargs.get('created', False) and 'created' or 'updated'
+    logger.info('Dataset "{pk}" has been {action}'.format(pk=instance.pk, action=action))
+
+
+@receiver(post_delete, sender=Dataset)
+def logging_after_delete(sender, instance, **kwargs):
+    logger.info('Dataset "{pk}" has been deleted'.format(pk=instance.pk))

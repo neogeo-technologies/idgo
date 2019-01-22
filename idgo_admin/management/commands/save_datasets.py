@@ -13,6 +13,7 @@
 
 from django.core.management.base import BaseCommand
 from idgo_admin.models import Dataset
+from idgo_admin.models import get_super_editor
 from idgo_admin.models import Granularity
 
 
@@ -24,12 +25,11 @@ class Command(BaseCommand):
         super().__init__(*args, **kwargs)
 
     def handle(self, *args, **options):
-        for instance in Dataset.objects.all():
-            print(instance.id, instance.name)
-            if instance.geocover == 'jurisdiction':
+        for dataset in Dataset.objects.all():
+            if dataset.geocover == 'jurisdiction':
                 continue
 
-            instance.geocover = 'jurisdiction'
-            if not instance.granularity:
-                instance.granularity = Granularity.objects.get(pk='indefinie')
-            instance.save()
+            dataset.geocover = 'jurisdiction'
+            if not dataset.granularity:
+                dataset.granularity = Granularity.objects.get(pk='indefinie')
+            dataset.save(current_user=get_super_editor(), synchronize=True)
