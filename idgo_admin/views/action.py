@@ -51,7 +51,7 @@ class ActionsManager(View):
             dataset.published = not dataset.published
 
             editor = user == dataset.editor and user or get_super_editor()
-            dataset.save(editor=editor)
+            dataset.save(current_user=editor)
 
             message = (
                 'Le jeu de données <strong>{0}</strong> '

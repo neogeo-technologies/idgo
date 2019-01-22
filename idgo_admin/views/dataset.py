@@ -208,7 +208,7 @@ class DatasetManager(View):
                     for k, v in kvp.items():
                         setattr(instance, k, v)
                 else:
-                    save_opts = {'editor': user, 'synchronize': False}
+                    save_opts = {'current_user': user, 'synchronize': False}
                     instance = Dataset.default.create(save_opts=save_opts, **kvp)
 
                 instance.categories.set(data.get('categories', []), clear=True)
@@ -218,7 +218,7 @@ class DatasetManager(View):
                     for k in keywords:
                         instance.keywords.add(k)
                 instance.data_type.set(data.get('data_type', []), clear=True)
-                instance.save(editor=user, synchronize=True)
+                instance.save(current_user=user, synchronize=True)
 
         except ValidationError as e:
             messages.error(request, ' '.join(e))

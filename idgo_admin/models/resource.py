@@ -21,7 +21,6 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import IntegrityError
-from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.http import Http404
@@ -362,7 +361,7 @@ class Resource(models.Model):
     def is_datagis(self):
         return self.get_layers() and True or False
 
-    def synchronize_ckan(
+    def synchronize(
             self, url=None, filename=None, content_type=None, file_extras=None):
 
         ckan_params = {
@@ -449,13 +448,13 @@ class Resource(models.Model):
         # Si l'utilisateur courant n'est pas l'éditeur d'un jeu
         # de données existant mais le référent technique, alors
         # l'api-key du référent est utilisée.
-        if hasattr(self.editor, 'profile'):
-            if self.editor == self.dataset.editor:
+        if hasattr(self._current_editor, 'profile'):
+            if self._current_editor == self.dataset.editor:
                 logger.info('Le propriétaire édite la ressource.')
-                apikey = CkanHandler.get_user(self.editor.username)['apikey']
-            elif self.editor.profile.is_referent_for(self.dataset.organisation):
+                apikey = CkanHandler.get_user(self._current_editor.username)['apikey']
+            elif self._current_editor.profile.is_referent_for(self.dataset.organisation):
                 logger.info('Le référent édite la ressource.')
-                apikey = CkanHandler.get_user(self.editor.username)['apikey']
+                apikey = CkanHandler.get_user(self._current_editor.username)['apikey']
             else:
                 apikey = CkanHandler.apikey
         else:
@@ -473,20 +472,20 @@ class Resource(models.Model):
         # Quelques options :
         sync_ckan = kwargs.pop('sync_ckan', False)
         file_extras = kwargs.pop('file_extras', None)  # Des informations sur la ressource téléversée
-        self.editor = kwargs.pop('editor', None)  # L'éditeur de l'objet `request` (qui peut être celui du jeu de données ou un référent)
+        self._current_editor = kwargs.pop('editor', None)  # L'éditeur de l'objet `request` (qui peut être celui du jeu de données ou un référent)
 
         # On sauvegarde l'objet avant de le mettre à jour (s'il existe)
         previous, created = self.pk \
             and (Resource.objects.get(pk=self.pk), False) or (None, True)
 
         if created:
-            logger.info('User `{}` is creating a new resource'.format(self.editor.username))
+            logger.info('User `{}` is creating a new resource'.format(self._current_editor.username))
         else:
-            logger.info('User `{}` is updating resource `{}`'.format(self.editor.username, self.id))
+            logger.info('User `{}` is updating resource `{}`'.format(self._current_editor.username, self.id))
 
         # Quelques valeur par défaut à la création de l'instance
         if created \
-                or not (hasattr(self.editor, 'profile') and self.editor.profile.crige_membership):
+                or not (hasattr(self._current_editor, 'profile') and self._current_editor.profile.crige_membership):
                 # Ou si l'éditeur n'est pas partenaire du CRIGE
 
             # Mais seulement s'il s'agit de données SIG, sauf
@@ -576,10 +575,10 @@ class Resource(models.Model):
         # éventuelles couches de données SIG car dans le cas des données
         # de type « raster », nous utilisons le filestore de CKAN.
         if sync_ckan and publish_raw_resource:
-            self.synchronize_ckan(
+            self.synchronize(
                 filename=filename, content_type=content_type, file_extras=file_extras)
         elif sync_ckan and not publish_raw_resource:
-            self.synchronize_ckan(
+            self.synchronize(
                 url=reduce(urljoin, [
                     settings.CKAN_URL,
                     'dataset/', str(self.dataset.ckan_id) + '/',
@@ -697,7 +696,7 @@ class Resource(models.Model):
                                                 name=table['id'],
                                                 resource=self,
                                                 bbox=table['bbox'],
-                                                save_opts={'editor': self.editor})
+                                                save_opts={'editor': self._current_editor})
                                 except Exception as e:
                                     file_must_be_deleted and remove_file(filename)
                                     for table in tables:
@@ -740,7 +739,7 @@ class Resource(models.Model):
                                             name=table['id'],
                                             resource=self,
                                             bbox=table['bbox'],
-                                            save_opts={'editor': self.editor})
+                                            save_opts={'editor': self._current_editor})
                             except Exception as e:
                                 file_must_be_deleted and remove_file(filename)
                                 raise e
@@ -799,8 +798,8 @@ class Resource(models.Model):
         file_must_be_deleted and remove_file(filename)
 
         # Super crado
-        if self.editor == self.dataset.editor:
-            apikey = CkanHandler.get_user(self.editor.username)['apikey']
+        if self._current_editor:
+            apikey = CkanHandler.get_user(self._current_editor.username)['apikey']
         else:
             apikey = CkanHandler.apikey
 
@@ -811,20 +810,15 @@ class Resource(models.Model):
         for layer in self.get_layers():
             layer.save()
 
+        self.dataset.date_modification = timezone.now().date()
+        self.dataset.save(current_user=self._current_editor, update_fields=['date_modification'])
 
-@receiver(post_save, sender=Resource)
-@receiver(post_delete, sender=Resource)
-def force_save_dataset(sender, instance, **kwargs):
-    dataset = instance.dataset
-    dataset.date_modification = timezone.now().date()
-    dataset.save(editor=get_super_editor())
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
 
-
-# @receiver(post_save, sender=Resource)
-# def updated_ckan_ressource(sender, instance, **kwargs):
-#     instance.synchronize_ckan(extracting_service=instance.extractable)
-#     for layer in instance.get_layers():
-#         layer.save()
+        editor = kwargs.pop('editor', get_super_editor())
+        self.dataset.date_modification = timezone.now().date()
+        self.dataset.save(current_user=editor, update_fields=['date_modification'])
 
 
 @receiver(post_save, sender=Resource)

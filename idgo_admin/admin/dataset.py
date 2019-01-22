@@ -31,7 +31,7 @@ def synchronize(modeladmin, request, queryset):
         logger.info('Force save dataset {pk}: {slug}'.format(
             slug=dataset.__slug__(), pk=dataset.pk))
         try:
-            dataset.save(editor=get_super_editor(), synchronize=True)
+            dataset.save(current_user=get_super_editor(), synchronize=True)
         except Exception as e:
             logger.error(e)
             continue

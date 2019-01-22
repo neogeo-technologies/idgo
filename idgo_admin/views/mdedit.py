@@ -299,7 +299,7 @@ class DatasetMDEdit(View):
             else:
                 geonet.publish(id)  # Toujours publier la fiche
                 dataset.geonet_id = UUID(id)
-                dataset.save(editor=get_super_editor())
+                dataset.save(current_user=get_super_editor())
                 messages.success(
                     request, 'La fiche de metadonnées a été créée avec succès.')
         else:

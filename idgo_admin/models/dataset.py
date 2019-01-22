@@ -199,19 +199,19 @@ class Dataset(models.Model):
         return self.ckan_slug or slugify(self.name)
 
     def __init__(self, *args, **kwargs):
-        self.current_editor = None
+        self.current_user = None
         super().__init__(*args, **kwargs)
 
-        # Cas particulier des jeux de données moissonnées
-        # ===============================================
-        RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-        try:
-            remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
-        except RemoteCkanDataset.DoesNotExist:
-            remote_ckan_dataset = None
-
-        self.is_harvested = remote_ckan_dataset and True or False
-        self.remote_ckan_dataset = remote_ckan_dataset or None
+        # On regarde si le jeu de données est moissonnées
+        # RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+        # try:
+        #     remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
+        # except RemoteCkanDataset.DoesNotExist:
+        #     self.remote_ckan_dataset = None
+        #     self.is_harvested = False
+        # else:
+        #     self.remote_ckan_dataset = remote_ckan_dataset
+        #     self.is_harvested = True
 
     @property
     def private(self):
@@ -275,15 +275,15 @@ class Dataset(models.Model):
                 and ckan_dataset.get('name') == slug:
             raise ValidationError("L'URL du jeu de données est réservé.")
 
-    def save(self, *args, editor=None, synchronize=True, **kwargs):
+    def save(self, *args, current_user=None, synchronize=True, **kwargs):
 
         # Utilisateur à l'origine de l'exécution de la fonction :
-        self.current_editor = editor
+        self.current_user = current_user
 
         # Version précédante du jeu de données (avant modification) :
         previous = self.pk and Dataset.objects.get(pk=self.pk)
         if not previous:
-            self.editor = self.current_editor
+            self.editor = self.current_user
 
         # Quelques valeurs par défaut
         # ===========================
@@ -365,7 +365,7 @@ class Dataset(models.Model):
 
         # Enfin...
         if synchronize:
-            ckan_dataset = self.synchronize(with_user=self.current_editor)
+            ckan_dataset = self.synchronize(with_user=self.current_user)
             # puis on met à jour `ckan_id`
             self.ckan_id = uuid.UUID(ckan_dataset['id'])
             super().save(update_fields=['ckan_id'])
@@ -413,8 +413,7 @@ class Dataset(models.Model):
 
         private = not self.published
 
-        remote_ckan_url = \
-            self.is_harvested and self.remote_ckan_dataset.url or ''
+        remote_ckan_url = self.is_harvested and self.remote_ckan_dataset.url or ''
 
         spatial = self.bbox and self.bbox.geojson or ''
 
@@ -480,7 +479,7 @@ class Dataset(models.Model):
             username = user.username
 
             # ~ ~ ~ #
-            # TODO: C'est très lorud de faire cela systématiquement -> voir pour améliorer cela
+            # TODO: C'est très lourd de faire cela systématiquement -> voir pour améliorer cela
             CkanHandler.add_user_to_organization(username, organisation_id)
             for category in self.categories.all():
                 category_id = str(category.ckan_id)
