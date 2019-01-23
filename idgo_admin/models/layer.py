@@ -476,7 +476,7 @@ class Layer(models.Model):
                 data['id'] = str(new_ckan_id)
                 data['name'] = self.resource.name
                 data['url'] = (
-                    '{base_url}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAME={}&outputFormat=geojson'
+                    '{base_url}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAME={typename}&outputFormat=geojson'
                     ).format(base_url=base_url, typename=id)
                 data['view_type'] = 'geo_view'
 
