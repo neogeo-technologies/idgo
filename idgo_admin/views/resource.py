@@ -237,6 +237,7 @@ class ResourceManager(View):
                         setattr(resource, k, v)
                     resource.save(**save_opts)
                 else:
+                    save_opts['current_user'] = user
                     resource = Resource.default.create(save_opts=save_opts, **kvp)
 
         except ValidationError as e:

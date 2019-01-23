@@ -352,7 +352,7 @@ class Resource(models.Model):
 
     def save(self, *args, current_user=None, synchronize=False, file_extras=None, **kwargs):
 
-        # Version précédante du jeu de données (avant modification)
+        # Version précédante de la ressource (avant modification)
         previous, created = self.pk \
             and (Resource.objects.get(pk=self.pk), False) or (None, True)
 

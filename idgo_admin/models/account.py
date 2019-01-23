@@ -170,7 +170,7 @@ class Profile(models.Model):
             'organisation': organisation,
             'profile': self,
             'validated_on__isnull': False}
-        return LiaisonsReferents.objects.get(kwargs).exists()
+        return LiaisonsReferents.objects.filter(**kwargs).exists()
 
     # Actions sur le compte FTP
 

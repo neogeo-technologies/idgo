@@ -261,10 +261,9 @@ class Dataset(models.Model):
 
     def save(self, *args, current_user=None, synchronize=True, **kwargs):
 
-        # Version précédante du jeu de données (avant modification) :
-        previous = self.pk and Dataset.objects.get(pk=self.pk)
-        if not previous:
-            self.editor = current_user
+        # Version précédante du jeu de données (avant modification)
+        previous, created = self.pk \
+            and (Dataset.objects.get(pk=self.pk), False) or (None, True)
 
         # Quelques valeurs par défaut
         # ===========================
@@ -325,7 +324,7 @@ class Dataset(models.Model):
         super().save(*args, **kwargs)
 
         # Puis...
-        if previous:
+        if not created:
             # Une organisation CKAN ne contenant plus
             # de jeu de données doit être désactivée.
             if previous.organisation:

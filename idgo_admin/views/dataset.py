@@ -216,7 +216,8 @@ class DatasetManager(View):
                     for k, v in kvp.items():
                         setattr(instance, k, v)
                 else:
-                    save_opts = {'current_user': current_user, 'synchronize': False}
+                    kvp['editor'] = user
+                    save_opts = {'current_user': user, 'synchronize': False}
                     instance = Dataset.default.create(save_opts=save_opts, **kvp)
 
                 instance.categories.set(data.get('categories', []), clear=True)
