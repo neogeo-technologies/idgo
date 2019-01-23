@@ -192,6 +192,18 @@ def get_gdalogr_object(filename, extension):
             raise NotDataGISError()
 
 
+# CREATE_TABLE = '''
+# CREATE TABLE {schema}."{table}" (
+#   fid serial NOT NULL,
+#   {attrs},
+#   {the_geom} geometry({geometry}, {to_epsg}),
+#   CONSTRAINT "{table}_pkey" PRIMARY KEY (fid)) WITH (OIDS=FALSE);
+# ALTER TABLE {schema}."{table}" OWNER TO {owner};
+# COMMENT ON TABLE {schema}."{table}" IS '{description}';
+# CREATE UNIQUE INDEX "{table}_fid" ON {schema}."{table}" USING btree (fid);
+# CREATE INDEX "{table}_gix" ON {schema}."{table}" USING GIST ({the_geom});
+# GRANT SELECT ON TABLE  {schema}."{table}" TO {mra_datagis_user};
+# '''
 CREATE_TABLE = '''
 CREATE TABLE {schema}."{table}" (
   fid serial NOT NULL,
@@ -199,7 +211,6 @@ CREATE TABLE {schema}."{table}" (
   {the_geom} geometry({geometry}, {to_epsg}),
   CONSTRAINT "{table}_pkey" PRIMARY KEY (fid)) WITH (OIDS=FALSE);
 ALTER TABLE {schema}."{table}" OWNER TO {owner};
-COMMENT ON TABLE {schema}."{table}" IS '{description}';
 CREATE UNIQUE INDEX "{table}_fid" ON {schema}."{table}" USING btree (fid);
 CREATE INDEX "{table}_gix" ON {schema}."{table}" USING GIST ({the_geom});
 GRANT SELECT ON TABLE  {schema}."{table}" TO {mra_datagis_user};
@@ -387,7 +398,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
         sql.append(CREATE_TABLE.format(
             attrs=',\n  '.join(
                 ['"{}" {}'.format(k, v) for k, v in attrs.items()]),
-            description=layer.name,
+            # description=layer.name,
             epsg=epsg,
             geometry=geometry,
             owner=OWNER,
@@ -478,29 +489,29 @@ def get_extent(tables, schema='public'):
         return None
 
 
-def get_description(table, schema='public'):
-
-    sql = '''
-SELECT description FROM pg_description
-JOIN pg_class ON pg_description.objoid = pg_class.oid
-JOIN pg_namespace ON pg_class.relnamespace = pg_namespace.oid
-WHERE relname = '{table}' AND nspname = '{schema}';
-'''.format(table=table, schema=schema)
-
-    with connections[DATABASE].cursor() as cursor:
-        try:
-            cursor.execute(sql)
-        except Exception as e:
-            logger.exception(e)
-            if e.__class__.__qualname__ != 'ProgrammingError':
-                raise e
-        records = cursor.fetchall()
-        cursor.close()
-    try:
-        return records[0][0]
-    except Exception as e:
-        logger.exception(e)
-        return None
+# def get_description(table, schema='public'):
+#
+#     sql = '''
+# SELECT description FROM pg_description
+# JOIN pg_class ON pg_description.objoid = pg_class.oid
+# JOIN pg_namespace ON pg_class.relnamespace = pg_namespace.oid
+# WHERE relname = '{table}' AND nspname = '{schema}';
+# '''.format(table=table, schema=schema)
+#
+#     with connections[DATABASE].cursor() as cursor:
+#         try:
+#             cursor.execute(sql)
+#         except Exception as e:
+#             logger.exception(e)
+#             if e.__class__.__qualname__ != 'ProgrammingError':
+#                 raise e
+#         records = cursor.fetchall()
+#         cursor.close()
+#     try:
+#         return records[0][0]
+#     except Exception as e:
+#         logger.exception(e)
+#         return None
 
 
 def rename_table(table, name, schema=SCHEMA):
