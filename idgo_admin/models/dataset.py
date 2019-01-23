@@ -21,7 +21,6 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
-from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.text import slugify

@@ -180,36 +180,43 @@ class DatasetManager(View):
             errors and messages.error(request, ' '.join(errors))
             return render_with_info_profile(request, 'idgo_admin/dataset/dataset.html', context)
 
+        data = form.cleaned_data
+
+        if profile.is_admin \
+                and not profile.is_referent_for(data['organisation']):
+            current_user = None
+        else:
+            current_user = user
+
+        kvp = {
+            'broadcaster_name': data['broadcaster_name'],
+            'broadcaster_email': data['broadcaster_email'],
+            'ckan_slug': data['ckan_slug'],
+            'date_creation': data['date_creation'],
+            'date_modification': data['date_modification'],
+            'date_publication': data['date_publication'],
+            'description': data['description'],
+            'geocover': data['geocover'],
+            'granularity': data['granularity'],
+            'license': data['license'],
+            'name': data['name'],
+            'organisation': data['organisation'],
+            'owner_email': data['owner_email'],
+            'owner_name': data['owner_name'],
+            'update_freq': data['update_freq'],
+            'published': data['published'],
+            'support': data['support'],
+            'thumbnail': data['thumbnail'],
+            'is_inspire': data['is_inspire']}
+
         try:
             with transaction.atomic():
-                data = form.cleaned_data
-                kvp = {
-                    'broadcaster_name': data['broadcaster_name'],
-                    'broadcaster_email': data['broadcaster_email'],
-                    'ckan_slug': data['ckan_slug'],
-                    'date_creation': data['date_creation'],
-                    'date_modification': data['date_modification'],
-                    'date_publication': data['date_publication'],
-                    'description': data['description'],
-                    'geocover': data['geocover'],
-                    'granularity': data['granularity'],
-                    'license': data['license'],
-                    'name': data['name'],
-                    'organisation': data['organisation'],
-                    'owner_email': data['owner_email'],
-                    'owner_name': data['owner_name'],
-                    'update_freq': data['update_freq'],
-                    'published': data['published'],
-                    'support': data['support'],
-                    'thumbnail': data['thumbnail'],
-                    'is_inspire': data['is_inspire']}
-
                 if id:
                     instance = Dataset.objects.get(pk=id)
                     for k, v in kvp.items():
                         setattr(instance, k, v)
                 else:
-                    save_opts = {'current_user': user, 'synchronize': False}
+                    save_opts = {'current_user': current_user, 'synchronize': False}
                     instance = Dataset.default.create(save_opts=save_opts, **kvp)
 
                 instance.categories.set(data.get('categories', []), clear=True)
@@ -219,7 +226,7 @@ class DatasetManager(View):
                     for k in keywords:
                         instance.keywords.add(k)
                 instance.data_type.set(data.get('data_type', []), clear=True)
-                instance.save(current_user=user, synchronize=True)
+                instance.save(current_user=current_user, synchronize=True)
 
         except ValidationError as e:
             messages.error(request, ' '.join(e))

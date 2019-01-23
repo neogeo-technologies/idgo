@@ -183,45 +183,52 @@ class ResourceManager(View):
                 return JsonResponse(json.dumps({'error': error}), safe=False)
             return render_with_info_profile(request, self.template, context)
 
+        data = form.cleaned_data
+
+        if profile.is_admin \
+                and not profile.is_referent_for(dataset.organisation):
+            current_user = None
+        else:
+            current_user = user
+
+        kvp = {
+            'crs': data['crs'],
+            'data_type': data['data_type'],
+            'dataset': dataset,
+            'description': data['description'],
+            'dl_url': data['dl_url'],
+            'encoding': data.get('encoding') or None,
+            'extractable': data['extractable'],
+            'format_type': data['format_type'],
+            'ftp_file': data['ftp_file'] and os.path.join(FTP_DIR, user.username, data['ftp_file']) or None,
+            'geo_restriction': data['geo_restriction'],
+            'lang': data['lang'],
+            'last_update': data['last_update'],
+            'name': data['name'],
+            'ogc_services': data['ogc_services'],
+            'referenced_url': data['referenced_url'],
+            'restricted_level': data['restricted_level'],
+            'sync_frequency': data['sync_frequency'],
+            'synchronisation': data['synchronisation'],
+            'up_file': data['up_file']}
+
+        if data['restricted_level'] == '2':
+            kvp['profiles_allowed'] = data['profiles_allowed']
+        if data['restricted_level'] == '3':
+            kvp['organisations_allowed'] = [form._dataset.organisation]
+        if data['restricted_level'] == '4':
+            kvp['organisations_allowed'] = data['organisations_allowed']
+
+        memory_up_file = request.FILES.get('up_file')
+        file_extras = memory_up_file and {
+            'mimetype': memory_up_file.content_type,
+            'resource_type': memory_up_file.name,
+            'size': memory_up_file.size} or None
+
         try:
             with transaction.atomic():
-                data = form.cleaned_data
-                kvp = {
-                    'crs': data['crs'],
-                    'data_type': data['data_type'],
-                    'dataset': dataset,
-                    'description': data['description'],
-                    'dl_url': data['dl_url'],
-                    'encoding': data.get('encoding') or None,
-                    'extractable': data['extractable'],
-                    'format_type': data['format_type'],
-                    'ftp_file': data['ftp_file'] and os.path.join(FTP_DIR, user.username, data['ftp_file']) or None,
-                    'geo_restriction': data['geo_restriction'],
-                    'lang': data['lang'],
-                    'last_update': data['last_update'],
-                    'name': data['name'],
-                    'ogc_services': data['ogc_services'],
-                    'referenced_url': data['referenced_url'],
-                    'restricted_level': data['restricted_level'],
-                    'sync_frequency': data['sync_frequency'],
-                    'synchronisation': data['synchronisation'],
-                    'up_file': data['up_file']}
-
-                if data['restricted_level'] == '2':
-                    kvp['profiles_allowed'] = data['profiles_allowed']
-                if data['restricted_level'] == '3':
-                    kvp['organisations_allowed'] = [form._dataset.organisation]
-                if data['restricted_level'] == '4':
-                    kvp['organisations_allowed'] = data['organisations_allowed']
-
-                memory_up_file = request.FILES.get('up_file')
-                file_extras = memory_up_file and {
-                    'mimetype': memory_up_file.content_type,
-                    'resource_type': memory_up_file.name,
-                    'size': memory_up_file.size} or None
-
                 save_opts = {
-                    'current_user': user,
+                    'current_user': current_user,
                     'file_extras': file_extras,
                     'synchronize': True}
                 if id:
