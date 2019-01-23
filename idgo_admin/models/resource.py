@@ -44,7 +44,6 @@ from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import SizeLimitExceededError
 from idgo_admin import logger
 from idgo_admin.managers import DefaultResourceManager
-from idgo_admin.models import get_super_editor
 from idgo_admin.utils import download
 from idgo_admin.utils import remove_file
 from idgo_admin.utils import slugify
@@ -359,8 +358,7 @@ class Resource(models.Model):
         # Quelques valeur par défaut à la création de l'instance
         if created or not (
                 # Ou si l'éditeur n'est pas partenaire du CRIGE
-                hasattr(current_user, 'profile')
-                and current_user.profile.crige_membership):
+                current_user and current_user.profile.crige_membership):
 
             # Mais seulement s'il s'agit de données SIG, sauf
             # qu'on ne le sait pas encore...
@@ -646,7 +644,7 @@ class Resource(models.Model):
 
                 except Exception as e:
                     if created:
-                        if hasattr(current_user, 'profile'):
+                        if current_user:
                             username = current_user.username
                             apikey = CkanHandler.get_user(username)['apikey']
                             with CkanUserHandler(apikey) as ckan:
@@ -707,17 +705,18 @@ class Resource(models.Model):
             layer.save()
 
         self.dataset.date_modification = timezone.now().date()
-        self.dataset.save(current_user=get_super_editor(),
+        self.dataset.save(current_user=None,
                           synchronize=True,
                           update_fields=['date_modification'])
 
     def delete(self, *args, current_user=None, **kwargs):
-        user = current_user or get_super_editor()
+        with_user = current_user
 
         # On supprime la ressource CKAN
         ckan_id = str(self.ckan_id)
-        if hasattr(user, 'profile'):
-            username = user.username
+        if with_user:
+            username = with_user.username
+
             apikey = CkanHandler.get_user(username)['apikey']
             with CkanUserHandler(apikey=apikey) as ckan_user:
                 ckan_user.delete_resource(ckan_id)
@@ -728,7 +727,7 @@ class Resource(models.Model):
         super().delete(*args, **kwargs)
 
         self.dataset.date_modification = timezone.now().date()
-        self.dataset.save(current_user=get_super_editor(),
+        self.dataset.save(current_user=current_user,
                           synchronize=True,
                           update_fields=['date_modification'])
 
@@ -738,8 +737,6 @@ class Resource(models.Model):
     def synchronize(self, url=None, filename=None, content_type=None,
                     file_extras=None, with_user=None):
         """Synchronizer le jeu de données avec l'instance de CKAN."""
-        user = with_user or get_super_editor()
-
         # Identifiant de la resource CKAN :
         id = str(self.ckan_id)
 
@@ -828,8 +825,8 @@ class Resource(models.Model):
 
         ckan_package = CkanHandler.get_package(str(self.dataset.ckan_id))
 
-        if hasattr(user, 'profile'):
-            username = user.username
+        if with_user:
+            username = with_user.username
 
             apikey = CkanHandler.get_user(username)['apikey']
             with CkanUserHandler(apikey=apikey) as ckan:

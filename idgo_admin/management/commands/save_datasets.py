@@ -13,7 +13,6 @@
 
 from django.core.management.base import BaseCommand
 from idgo_admin.models import Dataset
-from idgo_admin.models import get_super_editor
 from idgo_admin.models import Granularity
 
 
@@ -32,4 +31,4 @@ class Command(BaseCommand):
             dataset.geocover = 'jurisdiction'
             if not dataset.granularity:
                 dataset.granularity = Granularity.objects.get(pk='indefinie')
-            dataset.save(current_user=get_super_editor(), synchronize=True)
+            dataset.save(current_user=None, synchronize=True)

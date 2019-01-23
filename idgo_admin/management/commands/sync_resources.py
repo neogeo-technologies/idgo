@@ -16,7 +16,6 @@
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from idgo_admin.models import get_super_editor
 from idgo_admin.models import Resource
 from idgo_admin.models import Task
 
@@ -44,8 +43,7 @@ class Command(BaseCommand):
 
                     task = Task.objects.create(action=__name__)
                     try:
-                        resource.save(
-                            current_user=get_super_editor(), synchronize=True)
+                        resource.save(current_user=None, synchronize=True)
                     except Exception as e:
                         task.extras = {**extras, **{'error': e.__str__()}}
                         task.state = 'failed'

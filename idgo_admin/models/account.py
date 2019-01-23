@@ -37,14 +37,6 @@ except AttributeError:
     ADMIN_USERNAME = None
 
 
-def get_super_editor():
-    try:
-        return User.objects.get(username=ADMIN_USERNAME)
-    except User.DoesNotExist:
-        logger.warning('Super editor `{}` does not exist'.format(ADMIN_USERNAME))
-        return None
-
-
 class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)

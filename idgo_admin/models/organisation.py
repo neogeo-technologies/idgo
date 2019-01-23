@@ -31,7 +31,6 @@ from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin import logger
-from idgo_admin.models import get_super_editor
 from idgo_admin.mra_client import MRAHandler
 import inspect
 from urllib.parse import urljoin
@@ -304,7 +303,7 @@ class RemoteCkan(models.Model):
                                 dataset.keywords.clear()
                             keywords = [tag['display_name'] for tag in package.get('tags')]
                             dataset.keywords.add(*keywords)
-                            dataset.save(current_user=get_super_editor(), synchronize=True)
+                            dataset.save(current_user=None, synchronize=True)
 
                             ckan_ids.append(dataset.ckan_id)
 

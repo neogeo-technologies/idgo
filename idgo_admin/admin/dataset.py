@@ -20,7 +20,6 @@ from django import forms
 from django.forms.models import BaseInlineFormSet
 from idgo_admin import logger
 from idgo_admin.models import Dataset
-from idgo_admin.models import get_super_editor
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
@@ -31,7 +30,7 @@ def synchronize(modeladmin, request, queryset):
         logger.info('Force save dataset {pk}: {slug}'.format(
             slug=dataset.__slug__(), pk=dataset.pk))
         try:
-            dataset.save(current_user=get_super_editor(), synchronize=True)
+            dataset.save(current_user=None, synchronize=True)
         except Exception as e:
             logger.error(e)
             continue

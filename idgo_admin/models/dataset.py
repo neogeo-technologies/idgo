@@ -31,7 +31,6 @@ from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin import logger
 from idgo_admin.managers import DefaultDatasetManager
 from idgo_admin.managers import HarvestedDataset
-from idgo_admin.models import get_super_editor
 from idgo_admin.utils import three_suspension_points
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
@@ -351,18 +350,17 @@ class Dataset(models.Model):
             super().save(update_fields=['ckan_id'])
 
     def delete(self, *args, current_user=None, **kwargs):
-
-        user = current_user or get_super_editor()
+        with_user = current_user
 
         # On supprime toutes les ressources attachées au jeu de données
         Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
         for resource in Resource.objects.filter(dataset=self):
-            resource.delete(current_user=user)
+            resource.delete(current_user=current_user)
 
         # On supprime le package CKAN
         ckan_id = str(self.ckan_id)
-        if hasattr(user, 'profile'):
-            username = user.username
+        if with_user:
+            username = with_user.username
             apikey = CkanHandler.get_user(username)['apikey']
             with CkanUserHandler(apikey=apikey) as ckan_user:
                 ckan_user.delete_dataset(ckan_id)
@@ -379,7 +377,6 @@ class Dataset(models.Model):
 
     def synchronize(self, with_user=None):
         """Synchronizer le jeu de données avec l'instance de CKAN."""
-        user = with_user or get_super_editor()
 
         # Identifiant du package CKAN :
         id = self.ckan_id and str(self.ckan_id) or None
@@ -480,8 +477,8 @@ class Dataset(models.Model):
         elif ckan_organization.get('state') == 'deleted':
             CkanHandler.activate_organization(organisation_id)
 
-        if hasattr(user, 'profile'):
-            username = user.username
+        if with_user:
+            username = with_user.username
 
             # ~ ~ ~ #
             # TODO: C'est très lourd de faire cela systématiquement -> voir pour améliorer cela

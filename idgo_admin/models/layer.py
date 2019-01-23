@@ -27,7 +27,6 @@ from idgo_admin.datagis import drop_table
 from idgo_admin import logger
 from idgo_admin.managers import RasterLayerManager
 from idgo_admin.managers import VectorLayerManager
-from idgo_admin.models import get_super_editor
 from idgo_admin.mra_client import MraBaseError
 from idgo_admin.mra_client import MRAHandler
 import itertools
@@ -233,11 +232,11 @@ class Layer(models.Model):
             CkanHandler.delete_resource(self.name)
 
     def delete(self, *args, current_user=None, **kwargs):
-        user = current_user or get_super_editor()
+        with_user = current_user
 
         # On supprime la ressource CKAN
-        if hasattr(user, 'profile'):
-            username = user.username
+        if with_user:
+            username = with_user.username
             apikey = CkanHandler.get_user(username)['apikey']
             with CkanUserHandler(apikey=apikey) as ckan_user:
                 ckan_user.delete_resource(self.name)

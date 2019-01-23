@@ -23,7 +23,6 @@ from django.dispatch import receiver
 from django.utils.text import slugify
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.models.account import AccountActions
-from idgo_admin.models.account import get_super_editor
 from idgo_admin.models.account import LiaisonsContributeurs
 from idgo_admin.models.account import LiaisonsReferents
 from idgo_admin.models.account import LiaisonsResources
@@ -290,7 +289,7 @@ class Task(models.Model):
 
 __all__ = [
     AccountActions, AsyncExtractorTask, BaseMaps, Category, Commune,
-    Dataset, DataType, ExtractorSupportedFormat, get_super_editor,
+    Dataset, DataType, ExtractorSupportedFormat,
     Granularity, Jurisdiction, JurisdictionCommune, Layer, License,
     LiaisonsContributeurs, LiaisonsResources, LiaisonsReferents,
     Mail, Organisation, OrganisationType, Profile,

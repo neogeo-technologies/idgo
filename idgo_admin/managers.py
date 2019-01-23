@@ -17,7 +17,6 @@
 from django.apps import apps
 from django.contrib.gis.db import models
 from django.utils import timezone
-from idgo_admin.models import get_super_editor
 from idgo_admin.utils import clean_my_obj
 
 
@@ -48,7 +47,7 @@ class HarvestedDataset(models.Manager):
 
         # Dans un premier temps on crée le jeu de données sans le synchroniser à CKAN
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
-        save_opts = {'current_user': get_super_editor(), 'synchronize': False}
+        save_opts = {'current_user': None, 'synchronize': False}
         dataset = Dataset.default.create(save_opts=save_opts, **kwargs)
 
         # Puis on crée la liaison avec le CKAN distant
@@ -63,7 +62,7 @@ class HarvestedDataset(models.Manager):
         # Enfin on met à jour le jeu de données et on le synchronize avec CKAN
         DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
         dataset.data_type = DataType.objects.filter(ckan_slug='donnees-moissonnees')
-        dataset.save(current_user=get_super_editor(), synchronize=True)
+        dataset.save(current_user=None, synchronize=True)
 
         return dataset
 
@@ -120,7 +119,7 @@ class HarvestedDataset(models.Manager):
 
             for k, v in kwargs.items():
                 setattr(dataset, k, v)
-            dataset.save(current_user=get_super_editor(), synchronize=True)
+            dataset.save(current_user=None, synchronize=True)
 
         return dataset, created
 
