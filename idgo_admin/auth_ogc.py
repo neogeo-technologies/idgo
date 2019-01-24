@@ -68,7 +68,12 @@ def check_password(environ, user, password):
         resources = Resource.get_resources_by_mapserver_url(url)
     except Exception as e:
         logger.debug(" unable to get ressources: %s", e)
-        return True
+        return False
+
+    if not resources:
+        logger.debug(" unable to get ressources: %s", url)
+        return False
+
 
     # refuse query if one of the resources is not available/authorized
     for resource in resources:
