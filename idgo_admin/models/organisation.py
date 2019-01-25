@@ -384,9 +384,10 @@ class RemoteCkanDataset(models.Model):
 
     @property
     def url(self):
-        return reduce(
-            urljoin, (
-                self.remote_ckan.url, '/dataset/', str(self.remote_dataset)))
+        base_url = self.remote_ckan.url
+        if not base_url.endswith('/'):
+            base_url += '/'
+        return reduce(urljoin, [base_url, 'dataset/', str(self.remote_dataset)])
 
 
 # Triggers
