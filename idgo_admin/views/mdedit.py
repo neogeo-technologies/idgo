@@ -114,19 +114,20 @@ def prefill_dataset_model(dataset):
             'dateType': 'revision'})
 
     data['dataMaintenanceFrequency'] = {
-        'never': 'notPlanned',
-        'asneeded': 'asNeeded',
-        'intermittently': 'irregular',
-        'continuously': 'continual',
-        'realtime': 'continual',
-        'daily': 'daily',
-        'weekly': 'weekly',
-        'bimonthly': 'fortnightly',
-        'monthly': 'monthly',
-        'quarterly': 'quaterly',
-        'semiannual': 'biannually',
-        'annual': 'annually'
-        }.get(dataset.update_freq, 'unknow')
+        'never': 'notPlanned',          # [011] There are no plans to update the data
+        'asneeded': 'asNeeded',         # [009] Data is updated as deemed necessary
+        'intermittently': 'irregular',  # [010] Data is updated in intervals that are uneven in duration
+        'continuously': 'continual',    # [001] Data is repeatedly and frequently updated
+        'realtime': 'continual',        # ??? -> [001]
+        'daily': 'daily',               # [002] Data is updated each day
+        'weekly': 'weekly',             # [003] data is updated on a weekly basis
+        'bimonthly': 'fortnightly',     # [004] data is updated every two weeks
+        'monthly': 'monthly',           # [005] data is updated each month
+        'quarterly': 'quaterly',        # [006] data is updated every three months
+        'semiannual': 'biannually',     # [007] data is updated twice each year
+        'annual': 'annually'            # [008] data is updated every year
+        }.get(dataset.update_freq, 'unknow')  # [012] frequency of maintenance for the data is not known
+    # TODO: Attention contre sens anglais -> appliquer les mêmes valeurs ISO
 
     if dataset.keywords:
         data['dataKeywords'].insert(0, {
