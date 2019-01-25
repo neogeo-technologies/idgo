@@ -18,6 +18,8 @@
 import logging
 import os
 import sys
+from urllib.parse import parse_qs
+from urllib.parse import urlparse
 python_home = "/idgo_venv/"
 activate_this = python_home + '/bin/activate_this.py'
 exec(open(activate_this).read())
@@ -55,6 +57,20 @@ def check_password(environ, user, password):
         logger.error("path '%s' is unauthorized", url)
         return False
 
+# Get Capabilities and metadata are always athorized
+    qs = parse_qs(urlparse(url.lower()).query)
+
+    request = qs.get('request')
+    logger.error(qs)
+    public_requests = [
+        "getcapabilities",
+        "getmetadata",
+        "describefeaturetype",
+    ]
+    if request[-1] in public_requests:
+        logger.debug("URL request is public")
+        return True
+
     try:
         user = User.objects.get(username=user, is_active=True)
     except User.DoesNotExist:
@@ -73,7 +89,6 @@ def check_password(environ, user, password):
     if not resources:
         logger.debug(" unable to get ressources: %s", url)
         return False
-
 
     # refuse query if one of the resources is not available/authorized
     for resource in resources:
