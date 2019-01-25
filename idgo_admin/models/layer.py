@@ -230,6 +230,8 @@ class Layer(models.Model):
                 super().save(update_fields=['attached_ckan_resources'])
         else:
             CkanHandler.delete_resource(self.name)
+            for id in self.attached_ckan_resources:
+                CkanHandler.delete_resource(id.__str__())
 
     def delete(self, *args, current_user=None, **kwargs):
         with_user = current_user
