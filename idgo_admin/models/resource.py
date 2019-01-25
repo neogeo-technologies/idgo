@@ -846,14 +846,13 @@ class Resource(models.Model):
         Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
         if not user.pk:
             raise IntegrityError('User does not exists')
-        if self.restricted_level == '2':
-            return self.profiles_allowed.exists() and user in [
+        if self.restricted_level == '2' and self.profiles_allowed.exists():
+            return user in [
                 p.user for p in self.profiles_allowed.all()]
-        elif self.restricted_level in ('3', '4'):
-            return self.organisations_allowed.exists() and user in [
-                p.user for p in Profile.objects.filter(
-                    organisation__in=self.organisations_allowed,
-                    organisation__is_active=True)]
+        elif self.restricted_level in ('3', '4') and self.organisations_allowed.exists():
+            return user in [p.user for p in Profile.objects.filter(
+                organisation__in=self.organisations_allowed.all(),
+                organisation__is_active=True)]
         return True
 
 
