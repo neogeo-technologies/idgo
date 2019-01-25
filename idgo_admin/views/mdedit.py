@@ -121,13 +121,12 @@ def prefill_dataset_model(dataset):
         'realtime': 'continual',        # ??? -> [001]
         'daily': 'daily',               # [002] Data is updated each day
         'weekly': 'weekly',             # [003] data is updated on a weekly basis
-        'bimonthly': 'fortnightly',     # [004] data is updated every two weeks
+        'fortnightly': 'fortnightly',   # [004] data is updated every two weeks
         'monthly': 'monthly',           # [005] data is updated each month
         'quarterly': 'quaterly',        # [006] data is updated every three months
         'semiannual': 'biannually',     # [007] data is updated twice each year
         'annual': 'annually'            # [008] data is updated every year
         }.get(dataset.update_freq, 'unknow')  # [012] frequency of maintenance for the data is not known
-    # TODO: Attention contre sens anglais -> appliquer les mêmes valeurs ISO
 
     if dataset.keywords:
         data['dataKeywords'].insert(0, {

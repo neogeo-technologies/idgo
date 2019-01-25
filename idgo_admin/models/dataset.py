@@ -113,7 +113,8 @@ class Dataset(models.Model):
         ('realtime', 'Temps réel'),
         ('daily', 'Journalière'),
         ('weekly', 'Hebdomadaire'),
-        ('bimonthly', 'Bi-mensuelle'),
+        # ('bimonthly', 'Bi-mensuelle'),  # Erreur de trad
+        ('fortnightly', 'Bi-mensuelle'),
         ('monthly', 'Mensuelle'),
         ('quarterly', 'Trimestrielle'),
         ('semiannual', 'Bi-annuelle'),
