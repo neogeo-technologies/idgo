@@ -210,10 +210,10 @@ class CkanBaseHandler(object):
                 resource.update(kwargs)
                 del resource['tracking_summary']
                 # Moche pour tester
-                if resource['datastore_active']:
-                    self.remote.action.resource_update(**resource)
-                    if 'upload' in resource:
-                        del resource['upload']
+                # if resource['datastore_active']:
+                #     self.remote.action.resource_update(**resource)
+                #     if 'upload' in resource:
+                #         del resource['upload']
                 # Fin de 'Moche pour tester'
                 return self.remote.action.resource_update(**resource)
         return self.remote.action.resource_create(**kwargs)
