@@ -206,9 +206,12 @@ class RemoteCkan(models.Model):
             remote_organisation__in = [
                 x for x in (previous.sync_with or [])
                 if x not in (self.sync_with or [])]
-            Dataset.harvested.filter(
-                remote_ckan=previous,
-                remote_organisation__in=remote_organisation__in).delete()
+            filter = {
+                'remote_ckan': previous,
+                'remote_organisation__in': remote_organisation__in}
+            # TODO: 'Dataset.harvested.filter(**filter).delete()' ne fonctionne pas
+            for dataset in Dataset.harvested.filter(**filter):
+                dataset.delete()
         else:
             # Dans le cas d'une création, on vérifie si l'URL CKAN est valide
             try:
@@ -343,7 +346,8 @@ class RemoteCkan(models.Model):
 
     def delete(self, *args, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
-        Dataset.harvested.filter(remote_ckan=self).delete()
+        for dataset in Dataset.harvested.filter(remote_ckan=self):
+            dataset.delete()
         return super().delete(*args, **kwargs)
 
 

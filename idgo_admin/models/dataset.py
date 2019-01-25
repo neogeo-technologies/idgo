@@ -30,7 +30,7 @@ from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin import logger
 from idgo_admin.managers import DefaultDatasetManager
-from idgo_admin.managers import HarvestedDataset
+from idgo_admin.managers import HarvestedDatasetManager
 from idgo_admin.utils import three_suspension_points
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
@@ -65,7 +65,7 @@ class Dataset(models.Model):
     objects = models.Manager()
 
     default = DefaultDatasetManager()
-    harvested = HarvestedDataset()
+    harvested = HarvestedDatasetManager()
 
     # Champs atributaires
     # ===================

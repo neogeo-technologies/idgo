@@ -38,7 +38,7 @@ class DefaultDatasetManager(models.Manager):
         return super().get(**kwargs)
 
 
-class HarvestedDataset(models.Manager):
+class HarvestedDatasetManager(models.Manager):
 
     def create(self, **kwargs):
         remote_ckan = kwargs.pop('remote_ckan', None)
