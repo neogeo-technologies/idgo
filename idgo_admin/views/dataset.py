@@ -182,12 +182,6 @@ class DatasetManager(View):
 
         data = form.cleaned_data
 
-        if profile.is_admin \
-                and not profile.is_referent_for(data['organisation']):
-            current_user = None
-        else:
-            current_user = user
-
         kvp = {
             'broadcaster_name': data['broadcaster_name'],
             'broadcaster_email': data['broadcaster_email'],
@@ -227,7 +221,7 @@ class DatasetManager(View):
                     for k in keywords:
                         instance.keywords.add(k)
                 instance.data_type.set(data.get('data_type', []), clear=True)
-                instance.save(current_user=current_user, synchronize=True)
+                instance.save(current_user=user, synchronize=True)
 
         except ValidationError as e:
             messages.error(request, ' '.join(e))

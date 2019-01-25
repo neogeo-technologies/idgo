@@ -185,12 +185,6 @@ class ResourceManager(View):
 
         data = form.cleaned_data
 
-        if profile.is_admin \
-                and not profile.is_referent_for(dataset.organisation):
-            current_user = None
-        else:
-            current_user = user
-
         kvp = {
             'crs': data['crs'],
             'data_type': data['data_type'],
@@ -228,7 +222,7 @@ class ResourceManager(View):
         try:
             with transaction.atomic():
                 save_opts = {
-                    'current_user': current_user,
+                    'current_user': user,
                     'file_extras': file_extras,
                     'synchronize': True}
                 if id:
