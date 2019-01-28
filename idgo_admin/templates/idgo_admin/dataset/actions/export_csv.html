@@ -19,6 +19,7 @@ $(function() {
 	$('a[name="export-csv"]').on('click', function(e) {
 		e.preventDefault();
 		qs['format'] = $(this).attr('format');
+		qs['mode'] = '{% if harvested %}harvested{% elif all %}all{% else %}mine{% endif %}';
 		var kvp = [];
 		for (var k in qs) {
 			const key = encodeURI(k);

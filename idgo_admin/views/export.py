@@ -117,12 +117,22 @@ class Export(View):
             ids = params.get('ids', '').split(',')
             qs = Dataset.objects.filter(ckan_id__in=[UUID(id) for id in ids])
         else:
-            strict = params.get('mode') == 'all' and False and True
+
+            harvested = False
+            strict = False
+            mode = params.get('mode')
+            if mode == 'harvested':
+                harvested = True
+            elif mode == 'mine':
+                strict = True
+
             if not strict:
                 roles = profile.get_roles()
                 if not roles['is_referent'] and not roles['is_admin']:
                     raise Http404
-            qs = get_datasets(profile, params, strict=strict)
+
+            qs = get_datasets(
+                profile, params, strict=strict, harvested=harvested)
 
         outputformat = params.get('format')
         if not outputformat or outputformat not in ('odl', 'datasud'):
