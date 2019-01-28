@@ -243,7 +243,7 @@ class DatasetManager(View):
                     '<a href="{1}">ajouter une ressource</a> ? ou bien '
                     '<a href="{2}/dataset/{3}" target="_blank">voir le jeu '
                     'de données dans CKAN</a> ?').format(
-                        reverse('idgo_admin:dataset_editor', kwargs={'id': instance.id}),
+                        reverse('idgo_admin:dataset_editor', kwargs={'id': 'new'}),
                         reverse('idgo_admin:resource', kwargs={'dataset_id': instance.id}),
                         CKAN_URL, instance.ckan_slug))
 
