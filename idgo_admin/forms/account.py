@@ -358,10 +358,9 @@ class SignUpForm(forms.Form):
 
     @property
     def is_member(self):
-        if self.cleaned_data.get('organisation') is not None \
-                or self.cleaned_data.get('new_orga') is not None:
-            return True
-        return False
+        select_organisation = self.cleaned_data.get('organisation') or None
+        create_organisation = self.cleaned_data.get('new_orga') or None
+        return (select_organisation or create_organisation) and True or False
 
     @property
     def is_contributor(self):
