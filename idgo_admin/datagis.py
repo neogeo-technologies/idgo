@@ -294,6 +294,14 @@ def gdalinfo(coverage, update={}):
     xmin, ymin, xmax, ymax = coverage.extent
     epsg = get_epsg(coverage)
 
+    SupportedCrs = apps.get_model(
+        app_label='idgo_admin', model_name='SupportedCrs')
+
+    try:
+        SupportedCrs.objects.get(auth_name='EPSG', auth_code=epsg)
+    except SupportedCrs.DoesNotExist:
+        raise NotSupportedSrsError('SRS Not Supported')
+
     return {
         'id': table_id,
         'epsg': get_epsg(coverage),
