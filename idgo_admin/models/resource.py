@@ -797,7 +797,7 @@ class Resource(models.Model):
             # data['resource_type'] = '{0}.{1}'.format(
             #     self.name, self.format_type.ckan_view)
 
-        if self.dl_url:
+        if self.dl_url and filename:
             downloaded_file = File(open(filename, 'rb'))
             data['upload'] = downloaded_file
             data['size'] = downloaded_file.size
