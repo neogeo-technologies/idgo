@@ -65,6 +65,7 @@ def check_password(environ, user, password):
     public_requests = [
         "getcapabilities",
         "getmetadata",
+        "getlegendgraphic",
         "describefeaturetype",
     ]
     if request[-1] in public_requests:

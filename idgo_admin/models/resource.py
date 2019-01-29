@@ -338,7 +338,11 @@ class Resource(models.Model):
         if ows[-1] == 'wms':
             layers = qs.get('layers')[-1].replace(' ', '').split(',')
         elif ows[-1] == 'wfs':
-            layers = [layer.split(':')[-1] for layer in qs.get('typenames')[-1].replace(' ', '').split(',')]
+            # Qgis 2.14
+            if 'typename' in qs:
+                layers = [layer.split(':')[-1] for layer in qs.get('typename')[-1].replace(' ', '').split(',')]
+            else:
+                layers = [layer.split(':')[-1] for layer in qs.get('typenames')[-1].replace(' ', '').split(',')]
         else:
             raise Http404()
         return Resource.objects.filter(layer__name__in=layers).distinct()
