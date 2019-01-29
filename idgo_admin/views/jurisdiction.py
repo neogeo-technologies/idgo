@@ -37,6 +37,7 @@ from idgo_admin.models import BaseMaps
 from idgo_admin.models import Commune
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import JurisdictionCommune
+from idgo_admin.models.mail import send_jurisdiction_creation_mail
 from idgo_admin.models.mail import send_mail_asking_for_jurisdiction_creation
 from idgo_admin.models import Organisation
 # from idgo_admin.shortcuts import on_profile_http404
@@ -218,7 +219,11 @@ class JurisdictionView(View):
                             'idgo_admin:jurisdiction_editor', kwargs={'code': 'new'})),
                         organisation.pk)
 
+                    # E-mail envoyé aux administrateurs
                     send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation, url)
+                    # E-mail envoyé  à l'utilisateur
+                    send_jurisdiction_creation_mail(user, jurisdiction, organisation)
+
                     raise FakeError('Force atomic to roll back.')
 
         except ValidationError as e:

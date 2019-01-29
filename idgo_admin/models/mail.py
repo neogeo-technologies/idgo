@@ -314,7 +314,7 @@ def send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation,
         instance.commune for instance
         in JurisdictionCommune.objects.filter(jurisdiction=jurisdiction)]
     return sender(
-        'ask_for_jursidiction_creation',
+        'ask_for_jurisdiction_creation',
         # bcc=[user.email],
         full_name=user.get_full_name(),
         name=jurisdiction.name,
@@ -325,6 +325,26 @@ def send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation,
         organisation=organisation.name,
         organisation_pk=organisation.pk,
         to=get_admins_mails(crige=True),
+        username=user.username)
+
+
+# Pour informer l'utilisateur de la demande de création d'un territoire de compétence
+def send_jurisdiction_creation_mail(user, jurisdiction, organisation):
+    JurisdictionCommune = apps.get_model(
+        app_label='idgo_admin', model_name='JurisdictionCommune')
+    communes = [
+        instance.commune for instance
+        in JurisdictionCommune.objects.filter(jurisdiction=jurisdiction)]
+    return sender(
+        'ask_for_jurisdiction_creation_copy_to_user',
+        full_name=user.get_full_name(),
+        name=jurisdiction.name,
+        code=jurisdiction.code,
+        communes=','.join([commune.code for commune in communes]),
+        user_email=user.email,
+        organisation=organisation.name,
+        organisation_pk=organisation.pk,
+        to=[user.email],
         username=user.username)
 
 

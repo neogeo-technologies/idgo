@@ -35,10 +35,17 @@
 	}
 }, {
 	"model": "idgo_admin.mail",
-	"pk": "ask_for_jursidiction_creation",
+	"pk": "ask_for_jurisdiction_creation",
 	"fields": {
 		"subject": "Demande de cr\u00e9ation d'un territoire de comp\u00e9tence",
-		"message": "Bonjour,\r\n\r\nL'utilisateur {full_name} ({user_email}) demande la cr\u00e9ation d'un nouveau territoire de comp\u00e9tence :\r\n\r\n* Nom : {name}\r\n* Code : {code}\r\n* Codes INSEE des communes : {communes}\r\n* Organisation de rattachement : {organisation} (Code d'identification : {organisation_pk})\r\n\r\nCette demande sera trait\u00e9e dans les 24h par un administrateur du CRIGE. En cas de probl\u00e8me, contactez le support du CRIGE : support.technique@crige-paca.org\r\n\r\nLa cr\u00e9ation de ce territoire de comp\u00e9tences vous permet de b\u00e9n\u00e9ficier de fonctionnalit\u00e9s spatiales suppl\u00e9mentaires dans DATASUD.\r\n\r\nCordialement,\r\n--\r\nL'\u00e9quipe DATASUD du CRIGE Provence-Alpes-C\u00f4te d'Azur\r\nadmin.datasud@crige-paca.org\r\nTel : 04 42 90 71 22\r\nwww.crige-paca.org\r\n--\r\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+		"message": "Bonjour,\n\nL'utilisateur {full_name} ({user_email}) demande la cr\u00e9ation d'un nouveau territoire de comp\u00e9tence :\n\n* Nom : {name}\n* Code : {code}\n* Codes INSEE des communes : {communes}\n* Organisation de rattachement : {organisation} (Code d'identification : {organisation_pk})\n\nVeuillez cliquer sur le lien suivant afin de d\u00e9finir le territoire de comp\u00e9tence avec les informations ci-avant : \n\n{url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
+	"model": "idgo_admin.mail",
+	"pk": "ask_for_jurisdiction_creation_copy_to_user",
+	"fields": {
+		"subject": "Demande de cr\u00e9ation d'un territoire de comp\u00e9tence",
+		"message": "Bonjour,\n\nVous avez demand\u00e9 la cr\u00e9ation d'un nouveau territoire de comp\u00e9tence :\n\n* Nom : {name}\n* Code : {code}\n* Codes INSEE des communes : {communes}\n* Organisation de rattachement : {organisation} (Code d'identification : {organisation_pk})\n\nCette demande sera trait\u00e9e dans les 24h par un administrateur.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
 	}
 }, {
 	"model": "idgo_admin.mail",
