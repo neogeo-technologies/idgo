@@ -133,7 +133,10 @@ class Layer(models.Model):
         if self.type == 'raster':
             x = str(self.resource.ckan_id)
             filename = os.path.join(
-                MAPSERV_STORAGE_PATH, x[:3], x[3:6], x[6:])
+                MAPSERV_STORAGE_PATH, x[:3], x[3:6], self.resource.filename)
+            if not os.path.isfile(filename):
+                filename = os.path.join(
+                    MAPSERV_STORAGE_PATH, x[:3], x[3:6], x[6:])
             return filename
 
     # Méthodes héritées

@@ -257,11 +257,12 @@ def handle_ogr_geom_type(ogr_geom_type):
 
 
 def get_epsg(obj):
+    epsg = None
     if obj.srs:
         try:
             epsg = obj.srs.identify_epsg()
         except SRSException:
-            epsg = None
+            pass
         except Exception as e:
             logger.exception(e)
             raise e

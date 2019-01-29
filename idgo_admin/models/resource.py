@@ -295,6 +295,8 @@ class Resource(models.Model):
 
     @property
     def filename(self):
+        if self.ftp_file:
+            return self.ftp_file.name
         if self.up_file:
             return self.up_file.name
         return '{}.{}'.format(slugify(self.name), self.format.lower())
@@ -629,6 +631,19 @@ class Resource(models.Model):
                                     # S'il s'agit d'une création, alors on sauve l'objet.
                                     super().save(*args, **kwargs)
                                     kwargs['force_insert'] = False
+
+                            # Super Crado Code
+                            s0 = str(self.ckan_id)
+                            s1, s2, s3 = s0[:3], s0[3:6], s0[6:]
+                            dir = os.path.join(CKAN_STORAGE_PATH, s1, s2)
+                            src = os.path.join(dir, s3)
+                            dst = os.path.join(dir, filename.split('/')[-1])
+                            try:
+                                os.symlink(src, dst)
+                            except FileNotFoundError as e:
+                                logger.error(e)
+                            else:
+                                logger.debug('Created a symbolic link {dst} pointing to {src}.'.format(dst=dst, src=src))
 
                             try:
                                 Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
