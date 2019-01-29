@@ -344,6 +344,9 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
 
         table_id = update.get(
             layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))
+        if table_id[0].isdigit():
+            table_id = '_{}'.format(table_id)
+
         tables.append({
             'id': table_id,
             'epsg': epsg,
