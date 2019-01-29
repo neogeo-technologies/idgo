@@ -315,7 +315,7 @@ def send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation,
         in JurisdictionCommune.objects.filter(jurisdiction=jurisdiction)]
     return sender(
         'ask_for_jursidiction_creation',
-        bcc=[user.email],
+        # bcc=[user.email],
         full_name=user.get_full_name(),
         name=jurisdiction.name,
         code=jurisdiction.code,
