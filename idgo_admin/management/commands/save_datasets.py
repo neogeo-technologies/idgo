@@ -1,3 +1,6 @@
+# Copyright (c) 2017-2019 Datasud.
+# All Rights Reserved.
+#
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
 # a copy of the License at
@@ -12,8 +15,8 @@
 
 
 from django.core.management.base import BaseCommand
+from idgo_admin import logger
 from idgo_admin.models import Dataset
-from idgo_admin.models import Granularity
 
 
 class Command(BaseCommand):
@@ -25,10 +28,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for dataset in Dataset.objects.all():
-            if dataset.geocover == 'jurisdiction':
-                continue
-
-            dataset.geocover = 'jurisdiction'
-            if not dataset.granularity:
-                dataset.granularity = Granularity.objects.get(pk='indefinie')
+            logger.warning('Save dataset: {pk}'.format(pk=dataset.pk))
             dataset.save(current_user=None, synchronize=True)
