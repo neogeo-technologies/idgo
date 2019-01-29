@@ -32,7 +32,10 @@ from django.contrib.auth.models import User  # noqa: E402
 from idgo_admin.models import Resource  # noqa: E402
 
 logger = logging.getLogger('auth_ogc')
-logger.setLevel(logging.DEBUG)
+stream_handler = logging.StreamHandler()
+# stream_handler.setLevel(logging.DEBUG)
+logger.addHandler(stream_handler)
+# logger.setLevel(logging.DEBUG)
 
 AUTHORIZED_PREFIX = ['/maps/', '/wfs/', '/wms/', '/wxs/']
 # used for parsing address when basic auth is provided
