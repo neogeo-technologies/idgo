@@ -38,6 +38,7 @@ import uuid
 
 MRA = settings.MRA
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
+CKAN_STORAGE_PATH = settings.CKAN_STORAGE_PATH
 MAPSERV_STORAGE_PATH = settings.MAPSERV_STORAGE_PATH
 
 
@@ -132,9 +133,12 @@ class Layer(models.Model):
             return None
         if self.type == 'raster':
             x = str(self.resource.ckan_id)
-            filename = os.path.join(
-                MAPSERV_STORAGE_PATH, x[:3], x[3:6], self.resource.filename)
-            if not os.path.isfile(filename):
+            _filename = os.path.join(
+                CKAN_STORAGE_PATH, x[:3], x[3:6], self.resource.filename)
+            if os.path.isfile(_filename):
+                filename = os.path.join(
+                    MAPSERV_STORAGE_PATH, x[:3], x[3:6], self.resource.filename)
+            else:
                 filename = os.path.join(
                     MAPSERV_STORAGE_PATH, x[:3], x[3:6], x[6:])
             return filename
