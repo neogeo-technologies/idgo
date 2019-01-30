@@ -308,9 +308,10 @@ def get_all_organisations(profile, strict=False):
         } for instance in Organisation.objects.filter(is_active=True, **filters)]
 
 
-def get_all_datasets(profile, strict=False):
+def get_all_datasets(profile, strict=False, harvested=False):
     role = profile.get_roles()
-
+    if harvested:
+        strict = False
     if role['is_admin'] and not strict:
         # L'administrateur accède à tous les jeux de données.
         filters = {}
@@ -400,7 +401,7 @@ def datasets(request, target, *args, **kwargs):
     all_categories = [
         {'id': instance.ckan_slug, 'name': instance.name}
         for instance in Category.objects.all()]
-    all_datasets = get_all_datasets(profile, strict=not all)
+    all_datasets = get_all_datasets(profile, strict=not all, harvested=harvested)
     all_licenses = [
         {'id': instance.id, 'name': instance.title}
         for instance in License.objects.all()]
