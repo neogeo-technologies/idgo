@@ -731,6 +731,9 @@ class Resource(models.Model):
     def delete(self, *args, current_user=None, **kwargs):
         with_user = current_user
 
+        for layer in self.get_layers():
+            layer.delete(current_user=current_user)
+
         # On supprime la ressource CKAN
         ckan_id = str(self.ckan_id)
         if with_user:
