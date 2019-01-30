@@ -64,7 +64,7 @@ def check_password(environ, user, password):
     qs = parse_qs(urlparse(url.lower()).query)
 
     request = qs.get('request')
-    logger.error(qs)
+    logger.debug(qs)
     public_requests = [
         "getcapabilities",
         "getmetadata",
@@ -87,11 +87,11 @@ def check_password(environ, user, password):
     try:
         resources = Resource.get_resources_by_mapserver_url(url)
     except Exception as e:
-        logger.debug(" unable to get ressources: %s", e)
+        logger.error(" unable to get ressources: %s", e)
         return False
 
     if not resources:
-        logger.debug(" unable to get ressources: %s", url)
+        logger.error(" unable to get ressources: %s", url)
         return False
 
     # refuse query if one of the resources is not available/authorized
