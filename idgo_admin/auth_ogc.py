@@ -70,6 +70,7 @@ def check_password(environ, user, password):
         "getmetadata",
         "getlegendgraphic",
         "describefeaturetype",
+        "describelayer",
     ]
     if request[-1] in public_requests:
         logger.debug("URL request is public")
