@@ -134,10 +134,12 @@ class Layer(models.Model):
         if self.type == 'raster':
             x = str(self.resource.ckan_id)
             _filename = os.path.join(
-                CKAN_STORAGE_PATH, x[:3], x[3:6], self.resource.filename)
+                CKAN_STORAGE_PATH, x[:3], x[3:6],
+                self.resource.filename.split('/')[-1])
             if os.path.isfile(_filename):
                 filename = os.path.join(
-                    MAPSERV_STORAGE_PATH, x[:3], x[3:6], self.resource.filename)
+                    MAPSERV_STORAGE_PATH, x[:3], x[3:6],
+                    self.resource.filename.split('/')[-1])
             else:
                 filename = os.path.join(
                     MAPSERV_STORAGE_PATH, x[:3], x[3:6], x[6:])

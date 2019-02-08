@@ -402,6 +402,15 @@ class Resource(models.Model):
                             os.makedirs(dir, mode=0o777, exist_ok=True)
                             shutil.copyfile(filename, os.path.join(dir, s3))
 
+                            src = os.path.join(dir, s3)
+                            dst = os.path.join(dir, filename.split('/')[-1])
+                            try:
+                                os.symlink(src, dst)
+                            except FileNotFoundError as e:
+                                logger.error(e)
+                            else:
+                                logger.debug('Created a symbolic link {dst} pointing to {src}.'.format(dst=dst, src=src))
+
                         # if gdalogr_obj.__class__.__name__ == 'OgrOpener':
                         # On ne publie que le service OGC dans CKAN
                         publish_raw_resource = False
@@ -605,7 +614,9 @@ class Resource(models.Model):
                             coverage = gdalogr_obj.get_coverage()
 
                             try:
-                                tables = [gdalinfo(coverage, update=existing_layers)]
+                                tables = [gdalinfo(
+                                    coverage, update=existing_layers,
+                                    epsg=self.crs and self.crs.auth_code or None)]
 
                             except NotFoundSrsError as e:
                                 logger.warning(e)
