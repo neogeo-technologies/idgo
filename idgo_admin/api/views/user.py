@@ -41,6 +41,8 @@ def serializer(user):
             ('username', user.username),
             ('first_name', user.first_name),
             ('last_name', user.last_name),
+            ('admin', user.profile.is_admin),
+            ('crige', user.profile.crige_membership),
             # ('email_address', user.email),  # Information privée
             # Organisation de rattachement de l'utilisateur
             ('organisation', user.profile.organisation and OrderedDict([

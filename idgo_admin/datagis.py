@@ -284,7 +284,7 @@ def get_epsg(obj):
     return epsg
 
 
-def gdalinfo(coverage, update={}):
+def gdalinfo(coverage, epsg=None, update={}):
 
     p = Path(coverage.name)
     layername = slugify(p.name[:-len(p.suffix)]).replace('-', '_')
@@ -292,7 +292,10 @@ def gdalinfo(coverage, update={}):
         layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))
 
     xmin, ymin, xmax, ymax = coverage.extent
-    epsg = get_epsg(coverage)
+    if epsg and is_valid_epsg(epsg):
+        pass
+    else:
+        epsg = get_epsg(coverage)
 
     SupportedCrs = apps.get_model(
         app_label='idgo_admin', model_name='SupportedCrs')
@@ -304,7 +307,7 @@ def gdalinfo(coverage, update={}):
 
     return {
         'id': table_id,
-        'epsg': get_epsg(coverage),
+        'epsg': epsg,
         'bbox': transform(bounds_to_wkt(xmin, ymin, xmax, ymax), epsg),
         'extent': ((xmin, ymin), (xmax, ymax))}
 
