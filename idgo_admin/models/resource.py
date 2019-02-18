@@ -651,6 +651,8 @@ class Resource(models.Model):
                             dst = os.path.join(dir, filename.split('/')[-1])
                             try:
                                 os.symlink(src, dst)
+                            except FileExistsError as e:
+                                logger.warning(e)
                             except FileNotFoundError as e:
                                 logger.error(e)
                             else:
