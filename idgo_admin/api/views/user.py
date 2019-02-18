@@ -34,7 +34,10 @@ from operator import ior
 
 
 def serializer(user):
-    nullify = lambda m: m or None
+
+    def nullify(m):
+        return m or None
+
     try:
         return OrderedDict([
             # Information de base sur l'utilisateur
@@ -92,13 +95,12 @@ class UserShow(View):
         qs = request.GET.dict()
 
         user = request.user
-        if user.username == username:
-            # L'utilisateur peut se voir lui même
-            qs.update({'username': user.username})
-            pass
-        elif not user.profile.is_admin:
-            # Sinon seuls les administrateurs « métiers » peuvent accéder au service
+        # L'utilisateur peut se voir lui même
+        # Sinon seuls les administrateurs « métiers » peuvent accéder au service
+        if not (user.username == username or user.profile.is_admin):
             raise Http404()  # PermissionDenied()
+
+        qs.update({'username': username})
 
         try:
             data = user_list(**qs)

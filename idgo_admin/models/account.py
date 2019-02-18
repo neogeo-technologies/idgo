@@ -121,7 +121,7 @@ class Profile(models.Model):
 
     @property
     def contribute_for(self):
-        return LiaisonsContributeurs.get_pending(profile=self)
+        return LiaisonsContributeurs.get_contribs(profile=self)
 
     @property
     def is_crige_admin(self):
