@@ -183,10 +183,11 @@ class CkanBaseHandler(object):
             return None
 
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
-    def get_package(self, id):
+    def get_package(self, id, **kwargs):
+        kwargs.setdefault('include_tracking', True)
         try:
             return self.call_action(
-                'package_show', id=id, include_tracking=True)
+                'package_show', id=id, **kwargs)
         except CkanError.NotFound:
             return False
 
