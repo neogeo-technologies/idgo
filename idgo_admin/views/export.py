@@ -27,17 +27,19 @@ from django.db.models import Q
 from django.db.models import Value
 from django.db.models import When
 from django.http import Http404
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from djqscsv import render_to_csv_response
+from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import Dataset
 from idgo_admin.models import Profile
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.views.dataset import get_datasets
+import unicodecsv
 from urllib.parse import urljoin
 from uuid import UUID
 
@@ -95,6 +97,12 @@ DATASUD_DATE_CREATION = F('date_creation')
 # DATASUD_RESSOURCE_URLS =
 # DATASUD_RESSOURCE_TAILLE =
 DATASUD_RESSOURCE_TYPES = FORMATS  # ???
+
+DATASUD_DATASET_VUES = Value('', output_field=CharField())
+DATASUD_RESSOURCES_TELECHARGEMENT = Value('', output_field=CharField())
+EXTRAS_TELECHARGEMENT = Value('', output_field=CharField())
+DATASUD_DATASET_NOTE = Value('', output_field=CharField())
+DATASUD_DATASET_NB_NOTES = Value('', output_field=CharField())
 
 
 @method_decorator([csrf_exempt], name='dispatch')
@@ -200,16 +208,41 @@ class Export(View):
                 ('DATASUD_DATE_CREATION', DATASUD_DATE_CREATION),
                 # ('DATASUD_RESSOURCE_URLS', DATASUD_RESSOURCE_URLS),
                 # ('DATASUD_RESSOURCE_TAILLE', DATASUD_RESSOURCE_TAILLE),
-                ('DATASUD_RESSOURCE_TYPES', DATASUD_RESSOURCE_TYPES)))
+                ('DATASUD_RESSOURCE_TYPES', DATASUD_RESSOURCE_TYPES),
+                ('DATASUD_DATASET_VUES', DATASUD_DATASET_VUES),
+                ('DATASUD_RESSOURCES_TELECHARGEMENT', DATASUD_RESSOURCES_TELECHARGEMENT),
+                ('DATASUD_DATASET_NOTE', DATASUD_DATASET_NOTE),
+                ('DATASUD_DATASET_NB_NOTES', DATASUD_DATASET_NB_NOTES)
+                ))
 
         values = list(annotate.keys())
 
-        return render_to_csv_response(
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=dataset_export.csv'
+        response['Cache-Control'] = 'no-cache'
 
-            qs.annotate(**annotate).values(*values),
+        writer = unicodecsv.writer(response, encoding='utf-8', quoting=csv.QUOTE_ALL, delimiter=';', quotechar='"')
+        writer.writerow(values)
+        for row in qs.annotate(**annotate).values(*values):
+            if not outputformat == 'odl':
+                package = CkanHandler.get_package(str(row['ID']), include_tracking=True)
 
-            delimiter=';', field_order=values,
-            quotechar='"', quoting=csv.QUOTE_ALL)
+                dataset_view = 0
+                if 'tracking_summary' in package:
+                    dataset_view = package['tracking_summary'].get('total')
+                row['DATASUD_DATASET_VUES'] = dataset_view
+
+                resources_dl = 0
+                for resource in package.get('resources'):
+                    if 'tracking_summary' in resource:
+                        resources_dl += int(package['tracking_summary'].get('total'))
+                row['DATASUD_RESSOURCES_TELECHARGEMENT'] = resources_dl
+                row['DATASUD_DATASET_NOTE'] = package.get('rating')
+                row['DATASUD_DATASET_NB_NOTES'] = package.get('ratings_count')
+
+            writer.writerow([row[value] for value in values])
+
+        return response
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, *args, **kwargs):
