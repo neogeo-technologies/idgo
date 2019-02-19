@@ -48,7 +48,8 @@ class Order(models.Model):
     applicant = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Demandeur'
+        verbose_name='Demandeur',
+        limit_choices_to={'profile__crige_membership': True}
         )
 
     organisation = models.ForeignKey(
