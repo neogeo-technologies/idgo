@@ -33,7 +33,6 @@ import itertools
 import json
 import os
 import re
-import uuid
 
 
 MRA = settings.MRA
@@ -232,15 +231,17 @@ class Layer(models.Model):
         self.handle_enable_ows_status()
         self.handle_layergroup()
 
-        if self.resource.ogc_services:
-            attached_ckan_resources = self.synchronize()
-            if attached_ckan_resources:
-                self.attached_ckan_resources = attached_ckan_resources
-                super().save(update_fields=['attached_ckan_resources'])
-        else:
-            CkanHandler.delete_resource(self.name)
-            for id in self.attached_ckan_resources:
-                CkanHandler.delete_resource(id.__str__())
+        self.synchronize()
+
+        # if self.resource.ogc_services:
+        #     attached_ckan_resources = self.synchronize()
+        #     if attached_ckan_resources:
+        #         self.attached_ckan_resources = attached_ckan_resources
+        #         super().save(update_fields=['attached_ckan_resources'])
+        # else:
+        #     CkanHandler.delete_resource(self.name)
+        #     for id in self.attached_ckan_resources or []:
+        #         CkanHandler.delete_resource(id.__str__())
 
     def delete(self, *args, current_user=None, **kwargs):
         with_user = current_user
@@ -357,147 +358,57 @@ class Layer(models.Model):
         # =============================================
 
         id = self.name
-        name = '{name} (OGC:WMS)'.format(name=self.resource.name)
+        name = 'Aperçu cartographique'.format(name=self.resource.name)
         description = self.resource.description
         organisation = self.resource.dataset.organisation
 
         base_url = OWS_URL_PATTERN.format(organisation=organisation.ckan_slug).replace('?', '')
 
         getlegendgraphic = (
-            '{base_url}?&version=1.1.1&service=WMS&request=GetLegendGraphic&layer={layer}&format=image/png'
+            '{base_url}?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic'
+            '&LAYER={layer}&FORMAT=image/png'
             ).format(base_url=base_url, layer=id)
 
-        url = (
-            '{base_url}#{layer}'
-            ).format(base_url=base_url, layer=id)
+        api = {
+            'url': base_url,
+            'typename': id,
+            'getlegendgraphic': getlegendgraphic}
 
-        # Définition de l'extra 'restricted'
-        if self.resource.restricted_level == '0':
-            # Aucune restriction :
-            restricted = json.dumps({'level': 'public'})
-        elif self.resource.restricted_level == '1':
-            # Uniquement pour un utilisateur connecté :
-            restricted = json.dumps({'level': 'registered'})
-        elif self.resource.restricted_level == '2':
-            # Seulement les utilisateurs indiquées :
-            restricted = json.dumps({
-                'allowed_users': ','.join(
-                    self.resource.profiles_allowed.exists() and [
-                        profile.user.username for profile
-                        in self.resource.profiles_allowed.all()] or []),
-                'level': 'only_allowed_users'})
-        elif self.resource.restricted_level == '3':
-            # Les utilisateurs de cette organisation :
-            restricted = json.dumps({
-                'allowed_users': ','.join(
-                    get_all_users_for_organizations(
-                        self.resource.organisations_allowed.all())),
-                'level': 'only_allowed_users'})
-        elif self.resource.restricted_level == '4':
-            # Les utilisateurs des organisations indiquées :
-            restricted = json.dumps({
-                'allowed_users': ','.join(
-                    get_all_users_for_organizations(
-                        self.resource.organisations_allowed.all())),
-                'level': 'only_allowed_users'})
+        try:
+            DEFAULT_SRID = settings.DEFAULTS_VALUES['SRID']
+        except Exception:
+            DEFAULT_SRID = 4326
+        else:
+            SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
+            try:
+                SupportedCrs.objects.get(auth_name='EPSG', auth_code=DEFAULT_SRID)
+            except SupportedCrs.DoesNotExist:
+                DEFAULT_SRID = 4326
 
-        SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
-        crs = SupportedCrs.objects.get(auth_name='EPSG', auth_code='4171').description
-
-        data = {
-            'crs': crs,
-            'data_type': 'service',
-            'description': description,
-            'extracting_service': str(self.resource.extractable),  # I <3 CKAN
-            'format': 'WMS',
-            'getlegendgraphic': getlegendgraphic,
-            'id': id,
-            'lang': self.resource.lang,
-            'name': name,
-            'resource_type': 'api',
-            'restricted': restricted,
-            'url': url,
-            'view_type': 'geo_view'}
-
-        ckan_package = CkanHandler.get_package(str(self.resource.dataset.ckan_id))
-        CkanHandler.publish_resource(ckan_package, **data)
-
-        if self.attached_ckan_resources:
-            for id in self.attached_ckan_resources:
-                CkanHandler.delete_resource(id.__str__())
-
-        attached_ckan_resources = []
         if self.type == 'vector':
-            new_ckan_id = uuid.uuid4()
-            attached_ckan_resources.append(new_ckan_id)
-
-            data['data_type'] = 'service'
-            data['format'] = 'WFS'
-            data['id'] = new_ckan_id.__str__()
-            data['name'] = '{name} (OGC:WFS)'.format(name=self.resource.name)
-            data['url'] = base_url
-            data['view_type'] = None
-
-            CkanHandler.publish_resource(ckan_package, **data)
-
             if self.resource.format_type.extension.lower() in ('json', 'geojson'):
-
-                # Publication d'une ressource service: ShapeZip
-                # =============================================
-
-                new_ckan_id = uuid.uuid4()
-                attached_ckan_resources.append(new_ckan_id)
-
-                if self.resource.crs:
-                    crs = self.resource.crs.description
-                    crsname = self.resource.crs.description
-                else:
-                    crs_obj = SupportedCrs.objects.get(auth_name='EPSG', auth_code='2154')
-                    crs = crs_obj.description
-                    crsname = crs_obj.authority
-
-                data['crs'] = crs
-                data['data_type'] = 'service'
-                data['extracting_service'] = str(False)
-                data['format'] = 'SHP'
-                data['id'] = str(new_ckan_id)
-                data['name'] = self.resource.name
-                data['url'] = (
-                    '{base_url}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAME={typename}&outputFormat=shapezip&CRSNAME={crsname}'
-                    ).format(base_url=base_url, typename=id, crsname=crsname)
-                data['view_type'] = None
-
-                CkanHandler.publish_resource(ckan_package, **data)
-
+                outputformat = 'shapezip'  # Il faudrait être sûr que le format existe avec le même nom !
             elif self.resource.format_type.extension.lower() in ('zip', 'tar'):
+                outputformat = 'geojson'   # Il faudrait être sûr que le format existe avec le même nom !
 
-                # Publication d'une ressource service: GeoJSON
-                # ============================================
+            api[outputformat] = (
+                '{base_url}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature'
+                '&TYPENAME={typename}&OUTPUTFORMAT={outputformat}&CRSNAME=EPSG:{srid}'
+                ).format(
+                    base_url=base_url, typename=id,
+                    outputformat=outputformat, srid=str(DEFAULT_SRID))
 
-                new_ckan_id = uuid.uuid4()
-                attached_ckan_resources.append(new_ckan_id)
+        CkanHandler.update_resource(str(self.resource.ckan_id), api=json.dumps(api))
+        CkanHandler.push_resource_view(
+            title=name,
+            description=description,
+            resource_id=str(self.resource.ckan_id),
+            view_type='geo_view',
+            )
 
-                crs_obj = SupportedCrs.objects.get(auth_name='EPSG', auth_code='2154')
-                crs = crs_obj.description
-
-                data['crs'] = crs
-                data['data_type'] = 'service'
-                data['extracting_service'] = str(False)
-                data['format'] = 'GEOJSON'
-                data['id'] = str(new_ckan_id)
-                data['name'] = self.resource.name
-                data['url'] = (
-                    '{base_url}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAME={typename}&outputFormat=geojson'
-                    ).format(base_url=base_url, typename=id)
-                data['view_type'] = 'geo_view'
-
-                CkanHandler.publish_resource(ckan_package, **data)
-
-        elif self.type == 'raster':
-            # TODO?
-            pass
-
-        return attached_ckan_resources
+        # if self.attached_ckan_resources:
+        #     for id in self.attached_ckan_resources:
+        #         CkanHandler.delete_resource(id.__str__())
 
     def handle_enable_ows_status(self):
         """Gérer le statut d'activation de la couche de données SIG."""
