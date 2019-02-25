@@ -181,7 +181,7 @@
 <script>
 $(function() {
 	$('#id_organisation').change(function() {
-		$('#id_license').val({{ licenses }}[$(this).val()]);
+		$('#id_license').val({{ licenses|safe }}[$(this).val()]);
 	});
 
 	$('.datepicker').datepicker();

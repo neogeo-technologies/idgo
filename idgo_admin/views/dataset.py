@@ -403,7 +403,7 @@ def datasets(request, target, *args, **kwargs):
         for instance in Category.objects.all()]
     all_datasets = get_all_datasets(profile, strict=not all, harvested=harvested)
     all_licenses = [
-        {'id': instance.id, 'name': instance.title}
+        {'id': instance.pk, 'name': instance.title}
         for instance in License.objects.all()]
     all_organisations = get_all_organisations(profile)
     all_resourceformats = [
