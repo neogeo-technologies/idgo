@@ -78,7 +78,7 @@
 					<select name="license" type="text" class="form-control">
 						<option disabled>Licence</option>
 					{% for license in all_licenses %}
-						<option value="{{ license.id }}">{{ license.name }}</option>
+						<option value="{{ license.pk }}">{{ license.name }}</option>
 					{% endfor %}
 					</select>
 					<span class="input-group-btn">

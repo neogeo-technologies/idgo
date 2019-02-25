@@ -16,6 +16,7 @@
 
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_delete
@@ -175,39 +176,101 @@ class License(models.Model):
     # QUAND DES ELEMENTS SONT AJOUTES, il faut mettre à jour
     # le fichier /etc/ckan/default/licenses.json
 
-    domain_content = models.BooleanField(default=False)
+    slug = models.SlugField(
+        max_length=100,
+        primary_key=True,
+        verbose_name="Identifier",
+        )
 
-    domain_data = models.BooleanField(default=False)
+    title = models.TextField(
+        verbose_name="Title",
+        )
 
-    domain_software = models.BooleanField(default=False)
+    alternate_titles = ArrayField(
+        models.TextField(),
+        blank=True,
+        null=True,
+        size=None,
+        verbose_name="Alternate titles",
+        )
+
+    url = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name="URL",
+        )
+
+    alternate_urls = ArrayField(
+        models.URLField(),
+        blank=True,
+        null=True,
+        size=None,
+        verbose_name="Alternate URLs",
+        )
+
+    domain_content = models.BooleanField(
+        default=False,
+        verbose_name="Domain Content",
+        )
+
+    domain_data = models.BooleanField(
+        default=False,
+        verbose_name="Domain Data",
+        )
+
+    domain_software = models.BooleanField(
+        default=False,
+        verbose_name="Domain Software",
+        )
+
+    STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('deleted', 'Deleted'),
+        )
 
     status = models.CharField(
-        verbose_name='Statut', max_length=30, default='active')
+        default='active',
+        choices=STATUS_CHOICES,
+        max_length=7,
+        verbose_name="Status",
+        )
 
-    maintainer = models.CharField(
-        verbose_name='Maintainer', max_length=50, blank=True)
+    maintainer = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Maintainer",
+        )
+
+    CONFORMANCE_CHOICES = (
+        ('approved', 'Approved'),
+        ('not reviewed', 'Not reviewed'),
+        ('rejected', 'Rejected'),
+        )
 
     od_conformance = models.CharField(
-        verbose_name='od_conformance', max_length=30,
-        blank=True, default='approved')
+        default='not reviewed',
+        choices=CONFORMANCE_CHOICES,
+        max_length=30,
+        verbose_name="Open Definition Conformance",
+        )
 
     osd_conformance = models.CharField(
-        verbose_name='osd_conformance', max_length=30,
-        blank=True, default='not reviewed')
-
-    title = models.CharField(verbose_name='Nom', max_length=100)
-
-    url = models.URLField(verbose_name='url', blank=True)
+        default='not reviewed',
+        choices=CONFORMANCE_CHOICES,
+        max_length=30,
+        verbose_name="Open Source Definition Conformance",
+        )
 
     class Meta(object):
-        verbose_name = 'Licence'
+        verbose_name = "Licence"
+        verbose_name_plural = "Licences"
 
     def __str__(self):
         return self.title
 
     @property
     def ckan_id(self):
-        return 'license-{0}'.format(self.pk)
+        return self.slug
 
 
 class Support(models.Model):
