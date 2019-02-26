@@ -30,6 +30,7 @@ from idgo_admin.models import Resource
 
 
 CKAN_URL = settings.CKAN_URL
+CRIGE_URL = settings.CRIGE_URL
 WORDPRESS_URL = settings.WORDPRESS_URL
 READTHEDOC_URL = settings.READTHEDOC_URL
 DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
@@ -84,6 +85,7 @@ def render_with_info_profile(
         'ftp_url': FTP_URL,
         'doc_url': READTHEDOC_URL,
         'wordpress_url': WORDPRESS_URL,
+        'crige_url': CRIGE_URL,
         'ckan_url': CKAN_URL,
         'username': user.username,
         'first_name': user.first_name,
