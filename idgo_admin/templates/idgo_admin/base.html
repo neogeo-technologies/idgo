@@ -169,7 +169,7 @@ $(document).ajaxSend(function(e, xhr, settings) {
 			</div>
 		</div>
 		{% block body_extras %}
-		{% include "idgo_admin/extras/body/content.html" %}
+		{% include "idgo_admin/extras/crige_restricted_access/modal.html" with id="modal_forbidden" %}
 		{% endblock body_extras %}
 		{% block body %}
 		{% block header %}
@@ -222,12 +222,15 @@ $(document).ajaxSend(function(e, xhr, settings) {
 							</li>
 							{% endif %}
 
-							{# L'onglet extracteur est uniquement visible pour les utilisateurs CRIGE #}
-							{% if user.profile.crige_membership %}
 							<li role="presentation">
+								{# L'onglet extracteur est uniquement visible pour les utilisateurs CRIGE #}
+								{% if user.profile.crige_membership %}
 								<a href="{% url 'idgo_admin:extractor_dashboard' site_name='extractor' %}" role="tab">Extractions</a>
+								{% else %}
+								{% include "idgo_admin/extras/crige_restricted_access/link.html" with text="Extractions" role="tab" target="modal_forbidden" body="<p>Vous devez vous authentifier ou disposer des droits nécessaires pour accéder à l'extraction de données géographiques.</p><p>Pour faire votre demande d'affiliation et en savoir plus, rendez-vous sur votre page Organisation dans l'espace utilisateur de DATA SUD.</p>" %}
+								{% endif %}
 							</li>
-							{% endif %}
+
 
 							{% block nav_content_extra %}
 							{% endblock nav_content_extra %}
