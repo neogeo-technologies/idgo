@@ -178,6 +178,7 @@ def organisation(request, id=None):
     data = {
         'id': instance.id,
         'name': instance.name,
+        'crige': instance.is_crige_partner,
         # logo -> see below
         'type': instance.organisation_type and instance.organisation_type.name or '-',
         'jurisdiction':
