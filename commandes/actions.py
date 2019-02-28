@@ -49,11 +49,20 @@ def export_as_csv_action(description="Export selected objects as CSV file",
         if header:
             custom_fild_names = field_names.copy()
             custom_fild_names.append('email')
+            custom_fild_names.append('territoire')
+            custom_fild_names.append('communes')
             writer.writerow(custom_fild_names)
         for obj in queryset:
             row = [getattr(obj, field)() if callable(getattr(obj, field)) else getattr(obj, field) for field in field_names]
             email = User.objects.get(username=row[3]).email
             row.append(email)
+            jurisdiction = obj.organisation.jurisdiction
+            if jurisdiction:
+                row.append(jurisdiction.name)
+                row.append(', '.join(x.code for x in jurisdiction.communes.all()))
+            # else:
+            #     row.append('')
+            #     row.append('')
             writer.writerow(row)
         return response
     export_as_csv_cadastre.short_description = description
