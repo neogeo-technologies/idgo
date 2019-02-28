@@ -14,8 +14,23 @@
 # under the License.
 
 
+from idgo_admin.api.views.dataset import DatasetList
+from idgo_admin.api.views.dataset import DatasetShow
+from idgo_admin.api.views.organisation import OrganisationList
+from idgo_admin.api.views.organisation import OrganisationShow
+from idgo_admin.api.views.resource import ResourceList
+from idgo_admin.api.views.resource import ResourceShow
 from idgo_admin.api.views.user import UserList
 from idgo_admin.api.views.user import UserShow
 
 
-__all__ = [UserList, UserShow]
+__all__ = [
+    DatasetShow,
+    DatasetList,
+    OrganisationShow,
+    OrganisationList,
+    ResourceShow,
+    ResourceList,
+    UserList,
+    UserShow,
+    ]

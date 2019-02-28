@@ -18,22 +18,19 @@ from collections import OrderedDict
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.core.exceptions import FieldError
-# from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import Http404
-from django.http import HttpResponseBadRequest
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from functools import reduce
-from idgo_admin.api.utils import pagination_handler
+# from idgo_admin.api.utils import BasicAuth
 from operator import iand
 from operator import ior
 
 
-def serializer(user):
+def serialize(user):
 
     def nullify(m):
         return m or None
@@ -69,8 +66,7 @@ def serializer(user):
         raise e
 
 
-@pagination_handler
-def user_list(i=None, j=None, order_by='last_name', or_clause=None, **and_clause):
+def user_list(order_by='last_name', or_clause=None, **and_clause):
 
     and_clause.update({'profile__pk__isnull': False})
 
@@ -81,63 +77,47 @@ def user_list(i=None, j=None, order_by='last_name', or_clause=None, **and_clause
     else:
         filter = reduce(iand, l1)
 
-    return [serializer(user) for user
-            in User.objects.filter(filter).order_by(order_by)[i:j]]
+    return [serialize(user) for user in User.objects.filter(filter).order_by(order_by)]
+
+
+def handler_get_request(request):
+    qs = request.GET.dict()
+    or_clause = dict()
+
+    user = request.user
+    if user.profile.is_admin:
+        # Un administrateur « métiers » peut tout voir.
+        pass
+    elif user.profile.is_referent:
+        # Un référent « métiers » peut voir les utilisateurs des
+        # organisations pour lesquelles il est référent.
+        qs.update({'profile__organisation__in': user.profile.referent_for})
+        or_clause.update({'username': user.username})
+    else:
+        # L'utilisateur peut se voir lui même.
+        qs.update({'username': user.username})
+
+    return user_list(**qs)
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+# decorators = [csrf_exempt, BasicAuth()]
 
 
 @method_decorator(decorators, name='dispatch')
 class UserShow(View):
 
     def get(self, request, username):
-        qs = request.GET.dict()
-
-        user = request.user
-        # L'utilisateur peut se voir lui même
-        # Sinon seuls les administrateurs « métiers » peuvent accéder au service
-        if not (user.username == username or user.profile.is_admin):
-            raise Http404()  # PermissionDenied()
-
-        qs.update({'username': username})
-
-        try:
-            data = user_list(**qs)
-        except (FieldError, ValueError):
-            return HttpResponseBadRequest()
-        else:
-            if len(data) == 0:
-                raise Http404()
-            if len(data) == 1:
-                return JsonResponse(data[0], safe=True)
-            if len(data) > 1:
-                raise HttpResponseBadRequest()
+        data = handler_get_request(request)
+        for item in data:
+            if item['username'] == username:
+                return JsonResponse(item, safe=True)
+        raise Http404()
 
 
 @method_decorator(decorators, name='dispatch')
 class UserList(View):
 
     def get(self, request):
-        qs = request.GET.dict()
-        or_clause = dict()
-
-        user = request.user
-        if user.profile.is_admin:
-            # Un administrateur « métiers » peut tout voir.
-            pass
-        elif user.profile.is_referent:
-            # Un référent « métiers » peut voir les utilisateurs des
-            # organisations pour lesquelles il est référent.
-            qs.update({'profile__organisation__in': user.profile.referent_for})
-            or_clause.update({'username': user.username})
-        else:
-            # L'utilisateur peut se voir lui même.
-            qs.update({'username': user.username})
-
-        try:
-            data = user_list(or_clause=or_clause, **qs)
-        except (FieldError, ValueError):
-            return HttpResponseBadRequest()
-        else:
-            return JsonResponse(data, safe=False)
+        data = handler_get_request(request)
+        return JsonResponse(data, safe=False)

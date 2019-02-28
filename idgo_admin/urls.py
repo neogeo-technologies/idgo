@@ -17,8 +17,14 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import url
-from idgo_admin.api.views import UserList
-from idgo_admin.api.views import UserShow
+from idgo_admin.api.views import DatasetList as APIDatasetList
+from idgo_admin.api.views import DatasetShow as APIDatasetShow
+from idgo_admin.api.views import OrganisationList as APIOrganisationList
+from idgo_admin.api.views import OrganisationShow as APIOrganisationShow
+from idgo_admin.api.views import ResourceList as APIResourceList
+from idgo_admin.api.views import ResourceShow as APIResourceShow
+from idgo_admin.api.views import UserList as APIUserList
+from idgo_admin.api.views import UserShow as APIUserShow
 from idgo_admin.views.account import create_sftp_account
 from idgo_admin.views.account import delete_account
 from idgo_admin.views.account import delete_sftp_account
@@ -135,9 +141,14 @@ urlpatterns = [
     # API url
     # =======
 
-    url('^api/user/?$', UserList.as_view(), name='user_list'),
-    url('^api/user/(?P<username>\w+)?$', UserShow.as_view(), name='user_show'),
-
+    url('^api/user/?$', APIUserList.as_view(), name='user_list'),
+    url('^api/user/(?P<username>\w+)/?$', APIUserShow.as_view(), name='user_show'),
+    url('^api/organisation/?$', APIOrganisationList.as_view(), name='organisation_list'),
+    url('^api/organisation/(?P<organisation_name>[a-z0-9\\-]+)/?$', APIOrganisationShow.as_view(), name='organisation_show'),
+    url('^api/dataset/?$', APIDatasetList.as_view(), name='dataset_list'),
+    url('^api/dataset/(?P<dataset_name>[a-z0-9\\-]+)/?$', APIDatasetShow.as_view(), name='dataset_show'),
+    url('^api/dataset/(?P<dataset_name>[a-z0-9\\-]+)/resource/?$', APIResourceList.as_view(), name='resource_list'),
+    url('^api/dataset/(?P<dataset_name>[a-z0-9\\-]+)/resource/(?P<resource_id>[a-z0-9\\-]+)/?$', APIResourceShow.as_view(), name='resource_show'),
     ]
 
 

@@ -459,7 +459,7 @@ class Dataset(models.Model):
             'tags': tags,
             'title': self.name,
             'thumbnail': thumbnail,
-            'update_frequency': self.update_freq,
+            'update_frequency': self.update_freq or 'unknow',
             'url': ''  # Toujours une chaîne de caractère vide !
             }
 
