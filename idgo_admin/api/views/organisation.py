@@ -74,7 +74,8 @@ def handler_get_request(request):
 
 
 # decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
-decorators = [csrf_exempt, BasicAuth()]
+# decorators = [csrf_exempt, BasicAuth()]
+decorators = [csrf_exempt]
 
 
 @method_decorator(decorators, name='dispatch')
