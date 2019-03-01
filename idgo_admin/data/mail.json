@@ -21,6 +21,13 @@
 	}
 }, {
 	"model": "idgo_admin.mail",
+	"pk": "ask_for_crige_partnership",
+	"fields": {
+		"subject": "Demande de partenariat CRIGE",
+		"message": "Bonjour,\n\nL'utilisateur {full_name} ({user_email}), r\u00e9f\u00e9rent de l'organisation {organisation} ({organisation_pk}), demande un partenariat.\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
+	"model": "idgo_admin.mail",
 	"pk": "ask_for_jurisdiction_creation",
 	"fields": {
 		"subject": "Demande de cr\u00e9ation d'un territoire de comp\u00e9tence",

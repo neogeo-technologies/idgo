@@ -329,6 +329,20 @@ $(function() {
 
 		if (data.crige == true) {
 			$content.find('.crige-partner-badge').prop('hidden', false);
+		} else {
+			if (isReferent) {
+				const $crigePartnerButton = $('<button />')
+					.prop('role', 'button')
+					.addClass('btn btn-default')
+					.text('Demander à être partenaire CRIGE')
+					.off('click')
+					.on('click', function() {
+						openModalChangeStatus('{% url "idgo_admin:crige_partnership" %}', ORGANIZATION_ID);
+					})
+				$content
+					.find('.crige-partner-badge')
+					.after($crigePartnerButton);
+			};
 		};
 
 		$organizationWell.append($content);

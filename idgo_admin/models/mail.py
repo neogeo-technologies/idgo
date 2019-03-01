@@ -19,7 +19,7 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.mail import get_connection
 from django.core.mail.message import EmailMultiAlternatives
-from idgo_admin import logger
+# from idgo_admin import logger
 from idgo_admin.utils import PartialFormatter
 from urllib.parse import urljoin
 
@@ -346,6 +346,18 @@ def send_jurisdiction_creation_mail(user, jurisdiction, organisation):
         organisation_pk=organisation.pk,
         to=[user.email],
         username=user.username)
+
+
+# Pour demander un partenariat avec le CRIGE
+def send_mail_asking_for_crige_partnership(user, organisation):
+    return sender(
+        'ask_for_crige_partnership',
+        full_name=user.get_full_name(),
+        user_email=user.email,
+        organisation=organisation.name,
+        organisation_pk=organisation.pk,
+        to=get_admins_mails(crige=True),
+        )
 
 
 EXTRACTOR_URL = settings.EXTRACTOR_URL
