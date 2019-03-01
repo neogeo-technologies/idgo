@@ -788,7 +788,8 @@ class Resource(models.Model):
             'id': id,
             'lang': self.lang,
             'restricted_by_jurisdiction': str(self.geo_restriction),
-            'url': url and url or ''}
+            'url': url and url or '',
+            'api': '{}'}
 
         # TODO: Factoriser
 
