@@ -40,6 +40,7 @@ from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models.mail import send_contributor_confirmation_mail
+from idgo_admin.models.mail import send_mail_asking_for_crige_partnership
 from idgo_admin.models.mail import send_membership_confirmation_mail
 from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
 from idgo_admin.models.mail import send_referent_confirmation_mail
@@ -229,6 +230,18 @@ def organisation(request, id=None):
         pass
 
     return JsonResponse(data=data, safe=False)
+
+
+@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def crige_partnership(request):
+    id = request.GET.get('id')
+    if not id:
+        raise Http404
+    user, profile = user_and_profile(request)
+    organisation = get_object_or_404(Organisation, id=id, is_active=True)
+    send_mail_asking_for_crige_partnership(user, organisation)
 
 
 @method_decorator(decorators, name='dispatch')
