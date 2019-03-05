@@ -463,7 +463,7 @@ class RemoteCkanDataset(models.Model):
 
 @receiver(pre_save, sender=Organisation)
 def pre_save_organisation(sender, instance, **kwargs):
-    instance.slug = slugify(instance.name)
+    instance.slug = slugify(instance.legal_name)
 
 
 @receiver(post_save, sender=Organisation)

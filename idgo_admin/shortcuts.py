@@ -64,19 +64,19 @@ def render_with_info_profile(
             and [action.organisation.id, action.organisation.legal_name]
 
     contributor = [
-        [c.id, c.name] for c
+        [c.id, c.legal_name] for c
         in LiaisonsContributeurs.get_contribs(profile=profile)]
 
     awaiting_contributor_status = [
-        [c.id, c.name] for c
+        [c.id, c.legal_name] for c
         in LiaisonsContributeurs.get_pending(profile=profile)]
 
     referent = [
-        [c.id, c.name] for c
+        [c.id, c.legal_name] for c
         in LiaisonsReferents.get_subordinated_organizations(profile=profile)]
 
     awaiting_referent_statut = [
-        [c.id, c.name] for c
+        [c.id, c.legal_name] for c
         in LiaisonsReferents.get_pending(profile=profile)]
 
     context.update({
@@ -95,7 +95,7 @@ def render_with_info_profile(
         'is_referent': profile.get_roles()['is_referent'],
         'is_contributor': len(contributor) > 0,
         'is_admin': profile.is_admin,
-        'organization': organization and organization.name or None,
+        'organization': organization and organization.legal_name or None,
         'organization_id': organization and organization.id or -1,
         'awaiting_member_status': awaiting_member_status,
         'contributor': contributor,

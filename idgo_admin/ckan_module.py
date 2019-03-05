@@ -172,7 +172,7 @@ class CkanBaseHandler(object):
     @CkanExceptionsHandler()
     def get_all_organizations(self, *args, **kwargs):
         return [
-            organization for organization
+            organisation for organisation
             in self.call_action('organization_list', **kwargs)]
 
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
@@ -348,56 +348,56 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
         return self.get_organization(id) and True or False
 
     @CkanExceptionsHandler(ignore=[ValueError])
-    def add_organization(self, organization):
+    def add_organization(self, organisation):
         params = {
-            'id': str(organization.ckan_id),
-            'name': organization.slug,
-            'title': organization.name,
-            'description': organization.description,
+            'id': str(organisation.ckan_id),
+            'name': organisation.slug,
+            'title': organisation.legal_name,
+            'description': organisation.description,
             'extras': [
-                {'key': 'email', 'value': organization.email or ''},
-                {'key': 'phone', 'value': organization.phone or ''},
-                {'key': 'website', 'value': organization.website or ''},
-                {'key': 'address', 'value': organization.address or ''},
-                {'key': 'postcode', 'value': organization.postcode or ''},
-                {'key': 'city', 'value': organization.city or ''}],
+                {'key': 'email', 'value': organisation.email or ''},
+                {'key': 'phone', 'value': organisation.phone or ''},
+                {'key': 'website', 'value': organisation.website or ''},
+                {'key': 'address', 'value': organisation.address or ''},
+                {'key': 'postcode', 'value': organisation.postcode or ''},
+                {'key': 'city', 'value': organisation.city or ''}],
             'state': 'active'}
         try:
             params['image_url'] = \
-                urljoin(settings.DOMAIN_NAME, organization.logo.url)
+                urljoin(settings.DOMAIN_NAME, organisation.logo.url)
         except ValueError:
             pass
         self.call_action('organization_create', **params)
 
     @CkanExceptionsHandler()
-    def update_organization(self, organization):
-        ckan_organization = self.get_organization(
-            str(organization.ckan_id), include_datasets=True)
+    def update_organization(self, organisation):
+        ckan_organisation = self.get_organization(
+            str(organisation.ckan_id), include_datasets=True)
 
-        ckan_organization.update({
-            'title': organization.name,
-            'name': organization.slug,
-            'description': organization.description,
+        ckan_organisation.update({
+            'title': organisation.legal_name,
+            'name': organisation.slug,
+            'description': organisation.description,
             'extras': [
-                {'key': 'email', 'value': organization.email or ''},
-                {'key': 'phone', 'value': organization.phone or ''},
-                {'key': 'website', 'value': organization.website or ''},
-                {'key': 'address', 'value': organization.address or ''},
-                {'key': 'postcode', 'value': organization.postcode or ''},
-                {'key': 'city', 'value': organization.city or ''}]})
+                {'key': 'email', 'value': organisation.email or ''},
+                {'key': 'phone', 'value': organisation.phone or ''},
+                {'key': 'website', 'value': organisation.website or ''},
+                {'key': 'address', 'value': organisation.address or ''},
+                {'key': 'postcode', 'value': organisation.postcode or ''},
+                {'key': 'city', 'value': organisation.city or ''}]})
 
         try:
-            if organization.logo:
-                ckan_organization['image_url'] = \
-                    urljoin(settings.DOMAIN_NAME, organization.logo.url)
+            if organisation.logo:
+                ckan_organisation['image_url'] = \
+                    urljoin(settings.DOMAIN_NAME, organisation.logo.url)
         except ValueError:
             pass
 
-        self.call_action('organization_update', **ckan_organization)
+        self.call_action('organization_update', **ckan_organisation)
 
-        for package in ckan_organization['packages']:
+        for package in ckan_organisation['packages']:
             self.call_action('package_owner_org_update', id=package['id'],
-                             organization_id=ckan_organization['id'])
+                             organization_id=ckan_organisation['id'])
 
     @CkanExceptionsHandler()
     def purge_organization(self, id):
@@ -412,8 +412,8 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
         self.call_action('organization_delete', id=id)
 
     def deactivate_ckan_organization_if_empty(self, id):
-        organization = self.get_organization(id)
-        if organization and int(organization.get('package_count')) < 1:
+        organisation = self.get_organization(id)
+        if organisation and int(organisation.get('package_count')) < 1:
             self.deactivate_organization(id)
 
     @CkanExceptionsHandler()
@@ -426,25 +426,25 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
 
     @CkanExceptionsHandler()
     def add_user_to_organization(
-            self, username, organization_id, role='editor'):
+            self, username, organisation_id, role='editor'):
         # role=member|editor|admin
         self.call_action(
             'organization_member_create',
-            id=str(organization_id), username=username, role=role)
+            id=str(organisation_id), username=username, role=role)
 
     @CkanExceptionsHandler()
-    def del_user_from_organization(self, username, organization_id):
+    def del_user_from_organization(self, username, organisation_id):
         self.call_action(
             'organization_member_delete',
-            id=str(organization_id), username=username)
+            id=str(organisation_id), username=username)
 
     @CkanExceptionsHandler()
     def del_user_from_organizations(self, username):
-        organizations = self.get_organizations_which_user_belongs(username)
-        if not organizations:
+        organisations = self.get_organizations_which_user_belongs(username)
+        if not organisations:
             return
-        for organization_name in organizations:
-            self.del_user_from_organization(username, organization_name)
+        for organisation_name in organisations:
+            self.del_user_from_organization(username, organisation_name)
 
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
     def get_group(self, id, **kwargs):
