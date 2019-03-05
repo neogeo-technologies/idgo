@@ -85,15 +85,6 @@ def handler_get_request(request):
 
 
 def handle_pust_request(request, organisation_name=None):
-    # legal_name -> name
-    # type -> organisation_type
-    # jurisdiction -> jurisdiction.pk
-    # address -> address
-    # postcode -> postcode
-    # city -> city
-    # phone -> phone
-    # email -> email
-    # license -> license.pk
     user = request.user
 
     organisation = None
@@ -103,7 +94,7 @@ def handle_pust_request(request, organisation_name=None):
 
     data = getattr(request, request.method).dict()
     data_form = {
-        'name': data.get('legal_name'),
+        'legal_name': data.get('legal_name'),
         'description': data.get('description'),
         'organisation_type': data.get('type'),
         'address': data.get('address'),
