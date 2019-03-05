@@ -198,7 +198,7 @@ class ResourceManager(View):
             'geo_restriction': data['geo_restriction'],
             'lang': data['lang'],
             'last_update': data['last_update'],
-            'name': data['name'],
+            'title': data['title'],
             'ogc_services': data['ogc_services'],
             'referenced_url': data['referenced_url'],
             'restricted_level': data['restricted_level'],

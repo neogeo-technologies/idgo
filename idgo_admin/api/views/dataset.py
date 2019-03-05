@@ -82,7 +82,7 @@ def serialize(dataset):
 
     return OrderedDict([
         ('name', dataset.ckan_slug),
-        ('title', dataset.name),
+        ('title', dataset.title),
         ('description', dataset.description),
         ('keywords', keywords),
         ('categories', categories),
@@ -116,7 +116,7 @@ def handler_get_request(request):
 
 
 def handle_pust_request(request, dataset_name=None):
-    # title -> name
+    # title -> title
     # name -> ckan_slug
     # description -> description
     # thumbnail -> {File}
@@ -156,7 +156,7 @@ def handle_pust_request(request, dataset_name=None):
         raise GenericException(details=e.__str__())
 
     data_form = {
-        'name': data.get('title'),
+        'title': data.get('title'),
         'ckan_slug': data.get('name', slugify(data.get('title'))),
         'description': data.get('description'),
         # 'thumbnail' -> request.FILES
@@ -188,7 +188,7 @@ def handle_pust_request(request, dataset_name=None):
 
     data = form.cleaned_data
     kvp = {
-        'name': data['name'],
+        'title': data['title'],
         'ckan_slug': data['ckan_slug'],
         'description': data['description'],
         'thumbnail': data['thumbnail'],

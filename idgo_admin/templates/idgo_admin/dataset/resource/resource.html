@@ -13,13 +13,13 @@
 		{% endif %}
 	</li>
 	<li>
-		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#dataset">{{ dataset.name_overflow }}</a>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#dataset">{{ dataset.title_overflow }}</a>
 	</li>
 	<li>
 		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#resources">Ressources</a>
 	</li>
 	<li class="active">
-		{% if resource %}<a href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?id={{ resource.id }}">{{ resource.name_overflow }}</a>{% else %}Nouvelle ressource{% endif %}
+		{% if resource %}<a href="{% url "idgo_admin:resource" dataset_id=dataset.id %}?id={{ resource.id }}">{{ resource.title_overflow }}</a>{% else %}Nouvelle ressource{% endif %}
 	</li>
 </ol>
 {% endblock breadcrumb_content %}

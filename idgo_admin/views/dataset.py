@@ -96,7 +96,7 @@ class DatasetManager(View):
         for resource in Resource.objects.filter(dataset=dataset):
             resources.append((
                 resource.pk,
-                resource.name,
+                resource.title,
                 resource.format_type.description,
                 resource.get_data_type_display(),
                 resource.created_on.isoformat() if resource.created_on else None,
@@ -109,7 +109,7 @@ class DatasetManager(View):
 
             if resource.datagis_id:
                 common = [
-                    resource.pk, resource.name, resource.get_data_type_display(),
+                    resource.pk, resource.title, resource.get_data_type_display(),
                     resource.get_restricted_level_display(),
                     resource.geo_restriction, resource.extractable,
                     resource.ogc_services]
@@ -193,7 +193,7 @@ class DatasetManager(View):
             'geocover': data['geocover'],
             'granularity': data['granularity'],
             'license': data['license'],
-            'name': data['name'],
+            'title': data['title'],
             'organisation': data['organisation'],
             'owner_email': data['owner_email'],
             'owner_name': data['owner_name'],
@@ -326,7 +326,7 @@ def get_all_datasets(profile, strict=False, harvested=False):
 
     return [{
         'id': instance.ckan_slug,
-        'name': instance.name
+        'title': instance.title
         } for instance in Dataset.objects.filter(**filters)]
 
 

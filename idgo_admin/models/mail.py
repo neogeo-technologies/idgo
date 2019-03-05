@@ -233,7 +233,7 @@ def send_dataset_creation_mail(user, dataset):
         'dataset_created',
         bcc=list(set(get_admins_mails() + get_referents_mails(dataset.organisation))),
         ckan_url=dataset.ckan_url,
-        dataset=dataset.name,
+        dataset=dataset.title,
         id=dataset.ckan_slug,
         full_name=user.get_full_name(),
         to=[user.email],
@@ -246,7 +246,7 @@ def send_dataset_update_mail(user, dataset):
         'dataset_updated',
         bcc=list(set(get_admins_mails() + get_referents_mails(dataset.organisation))),
         ckan_url=dataset.ckan_url,
-        dataset=dataset.name,
+        dataset=dataset.title,
         full_name=user.get_full_name(),
         id=dataset.ckan_slug,
         to=[user.email],
@@ -258,7 +258,7 @@ def send_dataset_delete_mail(user, dataset):
     return sender(
         'dataset_deleted',
         bcc=list(set(get_admins_mails() + get_referents_mails(dataset.organisation))),
-        dataset=dataset.name,
+        dataset=dataset.title,
         full_name=user.get_full_name(),
         id=dataset.ckan_slug,
         to=[user.email],
@@ -271,10 +271,10 @@ def send_resource_creation_mail(user, resource):
         'resource_created',
         bcc=list(set(get_admins_mails() + get_referents_mails(resource.dataset.organisation))),
         ckan_url=resource.ckan_url,
-        dataset=resource.dataset.name,
+        dataset=resource.dataset.title,
         full_name=user.get_full_name(),
         id=resource.ckan_id,
-        resource=resource.name,
+        resource=resource.title,
         to=[user.email],
         username=user.username)
 
@@ -285,10 +285,10 @@ def send_resource_update_mail(user, resource):
         'resource_updated',
         bcc=list(set(get_admins_mails() + get_referents_mails(resource.dataset.organisation))),
         ckan_url=resource.ckan_url,
-        dataset=resource.dataset.name,
+        dataset=resource.dataset.title,
         full_name=user.get_full_name(),
         id=resource.ckan_id,
-        resource=resource.name,
+        resource=resource.title,
         to=[user.email],
         username=user.username)
 
@@ -298,10 +298,10 @@ def send_resource_delete_mail(user, resource):
     return sender(
         'resource_deleted',
         bcc=list(set(get_admins_mails() + get_referents_mails(resource.dataset.organisation))),
-        dataset=resource.dataset.name,
+        dataset=resource.dataset.title,
         full_name=user.get_full_name(),
         id=resource.ckan_id,
-        resource=resource.name,
+        resource=resource.title,
         to=[user.email],
         username=user.username)
 

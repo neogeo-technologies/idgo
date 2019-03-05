@@ -162,9 +162,8 @@ class Resource(models.Model):
         unique=True,
         )
 
-    name = models.CharField(
-        verbose_name='Nom',
-        max_length=150,
+    title = models.TextField(
+        verbose_name='Title',
         )
 
     description = models.TextField(
@@ -343,10 +342,10 @@ class Resource(models.Model):
         verbose_name = 'Ressource'
 
     def __str__(self):
-        return self.name
+        return self.title
 
     def __slug__(self):
-        return slugify(self.name)
+        return slugify(self.title)
 
     # Propriétés
     # ==========
@@ -368,7 +367,7 @@ class Resource(models.Model):
             return self.ftp_file.name
         if self.up_file:
             return self.up_file.name
-        return '{}.{}'.format(slugify(self.name), self.format.lower())
+        return '{}.{}'.format(slugify(self.title), self.format.lower())
 
     @property
     def ckan_url(self):
@@ -382,8 +381,8 @@ class Resource(models.Model):
         return [l.name for l in qs]
 
     @property
-    def name_overflow(self):
-        return three_suspension_points(self.name)
+    def title_overflow(self):
+        return three_suspension_points(self.title)
 
     @property
     def anonymous_access(self):
@@ -846,7 +845,7 @@ class Resource(models.Model):
 
         data = {
             'crs': self.crs and self.crs.description or '',
-            'name': self.name,
+            'name': self.title,
             'description': self.description,
             'data_type': self.data_type,
             'extracting_service': 'False',  # I <3 CKAN
@@ -893,28 +892,23 @@ class Resource(models.Model):
 
         if self.referenced_url:
             data['url'] = self.referenced_url
-            # data['resource_type'] = '{0}.{1}'.format(
-            #     self.name, self.format_type.ckan_view)
 
         if self.dl_url and filename:
             downloaded_file = File(open(filename, 'rb'))
             data['upload'] = downloaded_file
             data['size'] = downloaded_file.size
             data['mimetype'] = content_type
-            # data['resource_type'] = Path(filename).name
 
         if self.up_file and file_extras:
             data['upload'] = self.up_file.file
             data['size'] = file_extras.get('size')
             data['mimetype'] = file_extras.get('mimetype')
-            # data['resource_type'] = file_extras.get('resource_type')
 
         if self.ftp_file:
             if not url:
                 data['upload'] = self.ftp_file.file
             data['size'] = self.ftp_file.size
             data['mimetype'] = None  # TODO
-            # data['resource_type'] = Path(self.ftp_file.name).name
 
         if self.data_type == 'raw':
             if self.ftp_file or self.dl_url or self.up_file:

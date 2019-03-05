@@ -75,7 +75,7 @@ def serialize(resource):
 
     return OrderedDict([
         ('id', resource.ckan_id),
-        ('title', resource.name),
+        ('title', resource.title),
         ('description', resource.description),
         ('format', format),
         ('source', source),

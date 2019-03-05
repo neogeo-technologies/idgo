@@ -147,7 +147,7 @@
 	<br />
 	<div class="row">
 		<div class="col-xs-12">
-			{% bootstrap_field form.name %}
+			{% bootstrap_field form.title %}
 		</div>
 	</div>
 	<div class="row">
@@ -305,7 +305,7 @@ $encodingInputContainer.show();
 
 	$selectFtpFile = $('select[name="{{ form.ftp_file.name }}"]').change(function() {
 		$this = $('select[name="{{ form.ftp_file.name }}"] option:selected')
-		$('input[name="{{ form.name.name }}"]').val($this.text());
+		$('input[name="{{ form.title.name }}"]').val($this.text());
 	});
 
 	$selectAccess = $('select[name="{{ form.restricted_level.name }}"]').change(function() {
@@ -329,7 +329,7 @@ $encodingInputContainer.show();
 		const $files = $this.get(0).files;
 		const count = $files ? $files.length : 1;
 		if (count == 1) {  // TODO count > 1
-			$('input[name="{{ form.name.name }}"]').val($files[0].name);
+			$('input[name="{{ form.title.name }}"]').val($files[0].name);
 			const fileExtension = $files[0].extension;
 			if (fileExtension) {
 				$('select[name="{{ form.format_type.name }}"] option').each(function() {

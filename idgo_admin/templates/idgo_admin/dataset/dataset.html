@@ -13,7 +13,7 @@
 		{% endif %}
 	</li>
 	<li class="active">
-		{% if dataset %}<a href="{% url 'idgo_admin:dataset' %}?id={{ dataset.id }}">{{ dataset.name_overflow }}</a>{% else %}Nouveau jeu de données{% endif %}
+		{% if dataset %}<a href="{% url 'idgo_admin:dataset' %}?id={{ dataset.id }}">{{ dataset.title_overflow }}</a>{% else %}Nouveau jeu de données{% endif %}
 	</li>
 </ol>
 {% endblock breadcrumb_content %}

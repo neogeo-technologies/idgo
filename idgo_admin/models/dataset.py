@@ -70,40 +70,73 @@ class Dataset(models.Model):
     # Champs atributaires
     # ===================
 
-    name = models.TextField(verbose_name='Titre')                              # TODO: Remplacer par `title`
+    title = models.TextField(
+        verbose_name='Titre',
+        )
 
-    ckan_slug = models.SlugField(                                              # TODO: Remplacer par `slug`
+    ckan_slug = models.SlugField(
         error_messages={
             'invalid': (
                 "Le label court ne peut contenir ni majuscule, "
                 "ni caractères spéciaux à l'exception le tiret.")},
-        verbose_name='Label court', max_length=100,
-        unique=True, db_index=True, blank=True, null=True)
+        verbose_name='Label court',
+        max_length=100,
+        unique=True,
+        db_index=True,
+        blank=True,
+        null=True,
+        )
 
-    ckan_id = models.UUIDField(                                                # TODO: Voir si possible de remplacer l'`id`
-        verbose_name='Identifiant CKAN', unique=True,
-        db_index=True, editable=False, blank=True, null=True)
+    ckan_id = models.UUIDField(
+        verbose_name='Identifiant CKAN',
+        unique=True,
+        db_index=True,
+        editable=False,
+        blank=True,
+        null=True,
+        )
 
     description = models.TextField(
-        verbose_name='Description', blank=True, null=True)
+        verbose_name='Description',
+        blank=True,
+        null=True,
+        )
 
     thumbnail = models.ImageField(
         verbose_name='Illustration',
-        upload_to='thumbnails/', blank=True, null=True)
+        upload_to='thumbnails/',
+        blank=True,
+        null=True,
+        )
 
-    keywords = TaggableManager('Liste de mots-clés', blank=True)
+    keywords = TaggableManager(
+        verbose_name='Liste de mots-clés',
+        blank=True,
+        )
 
     categories = models.ManyToManyField(
-        to='Category', verbose_name="Catégories d'appartenance", blank=True)
+        to='Category',
+        verbose_name="Catégories d'appartenance",
+        blank=True,
+        )
 
     date_creation = models.DateField(
-        verbose_name='Date de création', blank=True, null=True)
+        verbose_name='Date de création',
+        blank=True,
+        null=True,
+        )
 
     date_modification = models.DateField(
-        verbose_name='Date de dernière modification', blank=True, null=True)
+        verbose_name='Date de dernière modification',
+        blank=True,
+        null=True,
+        )
 
     date_publication = models.DateField(
-        verbose_name='Date de publication', blank=True, null=True)
+        verbose_name='Date de publication',
+        blank=True,
+        null=True,
+        )
 
     FREQUENCY_CHOICES = (
         ('asneeded', 'Lorsque nécessaire'),
@@ -113,7 +146,6 @@ class Dataset(models.Model):
         ('realtime', 'Temps réel'),
         ('daily', 'Journalière'),
         ('weekly', 'Hebdomadaire'),
-        # ('bimonthly', 'Bi-mensuelle'),  # Erreur de trad
         ('fortnightly', 'Bi-mensuelle'),
         ('monthly', 'Mensuelle'),
         ('quarterly', 'Trimestrielle'),
@@ -122,8 +154,11 @@ class Dataset(models.Model):
         ('unknow', 'Inconnue'))
 
     update_freq = models.CharField(
-        verbose_name='Fréquence de mise à jour', default='never',
-        max_length=30, choices=FREQUENCY_CHOICES)
+        verbose_name='Fréquence de mise à jour',
+        default='never',
+        max_length=30,
+        choices=FREQUENCY_CHOICES,
+        )
 
     GEOCOVER_CHOICES = (
         (None, 'Indéfinie'),
@@ -131,71 +166,115 @@ class Dataset(models.Model):
         ('jurisdiction', 'Territoire de compétence'))
 
     geocover = models.CharField(
-        verbose_name='Couverture géographique', blank=True, null=True,
-        default=None, max_length=30, choices=GEOCOVER_CHOICES)
+        verbose_name='Couverture géographique',
+        blank=True,
+        null=True,
+        default=None,
+        max_length=30,
+        choices=GEOCOVER_CHOICES,
+        )
 
-    # Mandatory
     organisation = models.ForeignKey(
         to='Organisation',
         verbose_name="Organisation à laquelle est rattaché ce jeu de données",
-        blank=True, null=True, on_delete=models.CASCADE)
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        )
 
-    # (Not) mandatory
     license = models.ForeignKey(
-        to='License', verbose_name='Licence', null=True, blank=True)
+        to='License',
+        verbose_name='Licence',
+        null=True,
+        blank=True,
+        )
 
     support = models.ForeignKey(
-        to='Support', verbose_name='Support technique', null=True, blank=True)
+        to='Support',
+        verbose_name='Support technique',
+        null=True,
+        blank=True,
+        )
 
     data_type = models.ManyToManyField(
-        to='DataType', verbose_name='Type de données', blank=True)
+        to='DataType',
+        verbose_name='Type de données',
+        blank=True,
+        )
 
     published = models.BooleanField(
-        verbose_name='Publier le jeu de données', default=False)
+        verbose_name='Publier le jeu de données',
+        default=False,
+        )
 
     is_inspire = models.BooleanField(
         verbose_name='Le jeu de données est soumis à la règlementation INSPIRE',
-        default=False)
+        default=False,
+        )
 
     geonet_id = models.UUIDField(
-        verbose_name='UUID de la métadonnées', unique=True,
-        db_index=True, blank=True, null=True)
+        verbose_name='UUID de la métadonnées',
+        unique=True,
+        db_index=True,
+        blank=True,
+        null=True,
+        )
 
     editor = models.ForeignKey(
-        User, verbose_name='Producteur (propriétaire)')
+        User,
+        verbose_name='Producteur (propriétaire)',
+        )
 
     owner_name = models.CharField(
         verbose_name='Nom du producteur',
-        max_length=100, blank=True, null=True)
+        max_length=100,
+        blank=True,
+        null=True,
+        )
 
     owner_email = models.EmailField(
-        verbose_name='E-mail du producteur', blank=True, null=True)
+        verbose_name='E-mail du producteur',
+        blank=True,
+        null=True,
+        )
 
     broadcaster_name = models.CharField(
         verbose_name='Nom du diffuseur',
-        max_length=100, blank=True, null=True)
+        max_length=100,
+        blank=True,
+        null=True,
+        )
 
     broadcaster_email = models.EmailField(
-        verbose_name='E-mail du diffuseur', blank=True, null=True)
+        verbose_name='E-mail du diffuseur',
+        blank=True,
+        null=True,
+        )
 
     granularity = models.ForeignKey(
         to='Granularity',
-        blank=True, null=True,
+        blank=True,
+        null=True,
         verbose_name='Granularité de la couverture territoriale',
-        on_delete=models.PROTECT)
+        on_delete=models.PROTECT,
+        )
 
     bbox = models.PolygonField(
-        verbose_name='Rectangle englobant', blank=True, null=True, srid=4171)
+        verbose_name='Rectangle englobant',
+        blank=True,
+        null=True,
+        srid=4171,
+        )
 
     class Meta(object):
         verbose_name = 'Jeu de données'
         verbose_name_plural = 'Jeux de données'
 
     def __str__(self):
-        return self.name
+        return self.title
 
     def __slug__(self):
-        return self.ckan_slug or slugify(self.name)
+        return self.ckan_slug or slugify(self.title)
 
     # Propriétés
     # ==========
@@ -213,8 +292,8 @@ class Dataset(models.Model):
         return Resource.objects.filter(dataset=self, **kwargs)
 
     @property
-    def name_overflow(self):
-        return three_suspension_points(self.name)
+    def title_overflow(self):
+        return three_suspension_points(self.title)
 
     @property
     def bounds(self):
@@ -251,7 +330,7 @@ class Dataset(models.Model):
     def clean(self):
 
         # Vérifie la disponibilité du « slug » dans CKAN
-        slug = self.ckan_slug or slugify(self.name)
+        slug = self.ckan_slug or slugify(self.title)
         with CkanUserHandler(CkanHandler.apikey) as ckan_me:
             ckan_dataset = ckan_me.get_package(slug)
         if ckan_dataset \
@@ -457,7 +536,7 @@ class Dataset(models.Model):
             'state': 'active',
             'support': support,
             'tags': tags,
-            'title': self.name,
+            'title': self.title,
             'thumbnail': thumbnail,
             'update_frequency': self.update_freq or 'unknow',
             'url': ''  # Toujours une chaîne de caractère vide !
@@ -523,7 +602,7 @@ class Dataset(models.Model):
 @receiver(pre_save, sender=Dataset)
 def pre_save_dataset(sender, instance, **kwargs):
     if not instance.ckan_slug:
-        instance.ckan_slug = slugify(instance.name)
+        instance.ckan_slug = slugify(instance.title)
 
 
 @receiver(post_delete, sender=Dataset)

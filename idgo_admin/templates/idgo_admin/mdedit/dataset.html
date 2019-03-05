@@ -12,7 +12,7 @@
 	</li>
 	<li>{% if all %}Tous les{% else %}Mes{% endif %} jeux de données</li>
 	<li>
-		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}">{{ dataset.name_overflow }}</a>
+		<a href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}">{{ dataset.title_overflow }}</a>
 	</li>
 	<li class="active">Édition de la fiche de métadonnées INSPIRE</li>
 </ol>
