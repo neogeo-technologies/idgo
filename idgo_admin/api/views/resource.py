@@ -130,7 +130,7 @@ def handle_pust_request(request, dataset_name, resource_id=None):
         organisations_allowed = Organisation.objects.filter(slug__in=restricted_list)
 
     data_form = {
-        'name': data.get('title'),
+        'title': data.get('title'),
         'description': data.get('description'),
         'lang': data.get('language', 'french'),
         'format_type': data.get('format'),
@@ -161,7 +161,7 @@ def handle_pust_request(request, dataset_name, resource_id=None):
     data = form.cleaned_data
     kvp = {
         'dataset': dataset,
-        'name': data['name'],
+        'title': data['title'],
         'description': data['description'],
         'lang': data['lang'],
         'data_type': data['data_type'],
@@ -181,12 +181,14 @@ def handle_pust_request(request, dataset_name, resource_id=None):
         'geo_restriction': data['geo_restriction'],
         }
 
+    profiles_allowed = None
+    organisations_allowed = None
     if data['restricted_level'] == 'only_allowed_users':
-        kvp['profiles_allowed'] = data['profiles_allowed']
+        profiles_allowed = data['profiles_allowed']
     if data['restricted_level'] == 'same_organization':
-        kvp['organisations_allowed'] = [form._dataset.organisation]
+        organisations_allowed = [form._dataset.organisation]
     if data['restricted_level'] == 'any_organization':
-        kvp['organisations_allowed'] = data['organisations_allowed']
+        organisations_allowed = data['organisations_allowed']
 
     memory_up_file = request.FILES.get('up_file')
     file_extras = memory_up_file and {
@@ -200,13 +202,20 @@ def handle_pust_request(request, dataset_name, resource_id=None):
                 'current_user': user,
                 'file_extras': file_extras,
                 'synchronize': True}
-            if resource:
+            if not id:
+                resource = Resource.default.create(save_opts=save_opts, **kvp)
+            if id:
+                resource = Resource.objects.get(pk=id)
                 for k, v in kvp.items():
                     setattr(resource, k, v)
-                resource.save(**save_opts)
-            else:
-                save_opts['current_user'] = user
-                resource = Resource.default.create(save_opts=save_opts, **kvp)
+
+            if organisations_allowed:
+                resource.organisations_allowed = organisations_allowed
+            if profiles_allowed:
+                resource.profiles_allowed = profiles_allowed
+            save_opts['synchronize'] = True
+            resource.save(**save_opts)
+
     except ValidationError as e:
         if e.code == 'crs':
             form.add_error(e.code, '')

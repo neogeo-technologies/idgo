@@ -29,8 +29,6 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from idgo_admin.ckan_module import CkanHandler
-from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
@@ -186,25 +184,26 @@ class ResourceManager(View):
         data = form.cleaned_data
 
         kvp = {
-            'crs': data['crs'],
-            'data_type': data['data_type'],
             'dataset': dataset,
+            'title': data['title'],
             'description': data['description'],
+            'lang': data['lang'],
+            'data_type': data['data_type'],
+            'format_type': data['format_type'],
+            'last_update': data['last_update'],
+            'restricted_level': data['restricted_level'],
+            'up_file': data['up_file'],
             'dl_url': data['dl_url'],
+            'synchronisation': data['synchronisation'],
+            'sync_frequency': data['sync_frequency'],
+            'referenced_url': data['referenced_url'],
+            'ftp_file': data['ftp_file'] and os.path.join(FTP_DIR, user.username, data['ftp_file']) or None,
+            'crs': data['crs'],
             'encoding': data.get('encoding') or None,
             'extractable': data['extractable'],
-            'format_type': data['format_type'],
-            'ftp_file': data['ftp_file'] and os.path.join(FTP_DIR, user.username, data['ftp_file']) or None,
-            'geo_restriction': data['geo_restriction'],
-            'lang': data['lang'],
-            'last_update': data['last_update'],
-            'title': data['title'],
             'ogc_services': data['ogc_services'],
-            'referenced_url': data['referenced_url'],
-            'restricted_level': data['restricted_level'],
-            'sync_frequency': data['sync_frequency'],
-            'synchronisation': data['synchronisation'],
-            'up_file': data['up_file']}
+            'geo_restriction': data['geo_restriction'],
+            }
 
         profiles_allowed = None
         organisations_allowed = None
@@ -228,7 +227,6 @@ class ResourceManager(View):
                     'file_extras': file_extras,
                     'synchronize': False}
                 if not id:
-                    print(save_opts)
                     resource = Resource.default.create(save_opts=save_opts, **kvp)
                 if id:
                     resource = Resource.objects.get(pk=id)
