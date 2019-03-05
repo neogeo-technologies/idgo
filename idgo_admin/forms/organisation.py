@@ -26,7 +26,7 @@ from idgo_admin.forms import EMailField
 from idgo_admin.forms import JurisdictionField
 from idgo_admin.forms import LicenseField
 from idgo_admin.forms import MemberField
-from idgo_admin.forms import OrganisatioNameField
+from idgo_admin.forms import OrganisatioLegalNameField
 from idgo_admin.forms import OrganisationLogoField
 from idgo_admin.forms import OrganisationTypeField
 from idgo_admin.forms import PhoneField
@@ -51,7 +51,7 @@ class OrganizationForm(forms.ModelForm):
             'jurisdiction',
             'license',
             'logo',
-            'name',
+            'legal_name',
             'organisation_type',
             'phone',
             'postcode',
@@ -65,7 +65,7 @@ class OrganizationForm(forms.ModelForm):
         fields = organisation_fields + extended_fields
 
     # Organisation fields
-    name = OrganisatioNameField(required=True)
+    legal_name = OrganisatioLegalNameField(required=True)
     logo = OrganisationLogoField()
     address = AddressField()
     city = CityField()
@@ -154,7 +154,7 @@ class RemoteCkanForm(forms.ModelForm):
                 self.add_error('url', e.message)
             else:
                 self.fields['sync_with'].choices = (
-                    (organisation['name'], '{} ({})'.format(
+                    (organisation['legal_name'], '{} ({})'.format(
                         organisation['display_name'],
                         organisation.get(
                             'package_count',

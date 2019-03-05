@@ -14,7 +14,7 @@
 		<a href="{% url "idgo_admin:all_organizations" %}#{{ organisation.id }}">Organisations</a>
 	</li>
 	<li class="active">
-		<a href="{% url "idgo_admin:update_organization" id=organisation.id %}">{{ organisation.name }}</a>
+		<a href="{% url "idgo_admin:update_organization" id=organisation.id %}">{{ organisation.legal_name }}</a>
 	</li>
 	<li class="active">Édition de la fiche de métadonnées de service INSPIRE</li>
 </ol>

@@ -151,7 +151,7 @@ def all_organisations(request, *args, **kwargs):
             item in Organisation.objects.filter(
                 liaisonscontributeurs__profile=profile,
                 liaisonscontributeurs__validated_on__isnull=False),
-        'name': item.name,
+        'legal_name': item.legal_name,
         'member': item == profile.organisation,
         'pk': item.pk,
         'referent':
@@ -182,7 +182,7 @@ def organisation(request, id=None):
 
     data = {
         'id': instance.id,
-        'name': instance.name,
+        'legal_name': instance.legal_name,
         'crige': instance.is_crige_partner,
         # logo -> see below
         'type': instance.organisation_type and instance.organisation_type.name or '-',
@@ -222,7 +222,7 @@ def organisation(request, id=None):
                 ).distinct().order_by('user__username')]}
 
     if instance.ows_url:
-        ows_settings = MRAHandler.get_ows_settings('ows', instance.ckan_slug)
+        ows_settings = MRAHandler.get_ows_settings('ows', instance.slug)
         data['osw'] = {
             'url': instance.ows_url,
             'title': ows_settings.pop('title', None),
@@ -388,7 +388,7 @@ class OrganisationOWS(View):
                 'srs': [crs.authority for crs in SupportedCrs.objects.all()],
                 'title': request.POST.get('title', None)}
             try:
-                MRAHandler.update_ows_settings('ows', json, ws_name=instance.ckan_slug)
+                MRAHandler.update_ows_settings('ows', json, ws_name=instance.slug)
             except Exception as e:
                 messages.error(request, e.__str__())
             else:
@@ -435,14 +435,14 @@ class Subscription(View):
                 message = (
                     "Vous n'êtes plus {} de l'organisation "
                     '« <strong>{}</strong> ».'
-                    ).format(status_fr_label[status], organisation.name)
+                    ).format(status_fr_label[status], organisation.legal_name)
             elif subscription == 'subscribe':
                 message = (
                     'Votre demande de statut de <strong>{}</strong> de '
                     "l'organisation « <strong>{}</strong> » est en cours de "
                     "traitement. Celle-ci ne sera effective qu'après "
                     'validation par un administrateur.').format(
-                        status_fr_label[status], organisation.name)
+                        status_fr_label[status], organisation.legal_name)
                 # Spécial CRIGE
                 if status == 'member':
                     messages.info(request, "L'organisation est partenaire du CRIGE.")

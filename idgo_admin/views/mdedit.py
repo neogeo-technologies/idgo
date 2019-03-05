@@ -74,7 +74,7 @@ def prefill_dataset_model(dataset):
 
     default_contact = {
         'individualName': editor.get_full_name(),
-        'organisationName': organisation.name,
+        'organisationName': organisation.legal_name,
         'email': organisation.email,
         'phoneVoice': organisation.phone,
         'deliveryPoint': organisation.address,
@@ -126,7 +126,7 @@ def prefill_dataset_model(dataset):
         'quarterly': 'quaterly',        # [006] data is updated every three months
         'semiannual': 'biannually',     # [007] data is updated twice each year
         'annual': 'annually'            # [008] data is updated every year
-        }.get(dataset.update_freq, 'unknow')  # [012] frequency of maintenance for the data is not known
+        }.get(dataset.update_frequency, 'unknow')  # [012] frequency of maintenance for the data is not known
 
     if dataset.keywords:
         data['dataKeywords'].insert(0, {
@@ -151,7 +151,7 @@ def prefill_dataset_model(dataset):
         entry = {
             'name': resource.title,
             'url': '{0}/dataset/{1}/resource/{2}'.format(
-                CKAN_URL, dataset.ckan_slug, resource.ckan_id),
+                CKAN_URL, dataset.slug, resource.ckan_id),
             'description': resource.description}
         protocol = resource.format_type.protocol
         if protocol:
@@ -171,7 +171,7 @@ def prefill_service_model(organisation):
 
     default_contact = {
         # 'individualName': editor.get_full_name(),
-        'organisationName': organisation.name,
+        'organisationName': organisation.legal_name,
         'email': organisation.email,
         'phoneVoice': organisation.phone,
         'deliveryPoint': organisation.address,

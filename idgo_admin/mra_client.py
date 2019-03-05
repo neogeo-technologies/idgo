@@ -200,18 +200,18 @@ class MRAHandler(metaclass=Singleton):
 
         json = {
             'workspace': {
-                'name': organisation.ckan_slug,
+                'name': organisation.slug,
                 # TODO: Corriger le problème d'encodage dans MRA
-                'title': kill_all_special_characters(organisation.name),
+                'title': kill_all_special_characters(organisation.legal_name),
                 'abstract': kill_all_special_characters(organisation.description),
                 # END TODO
                 'srs': srs}}
         self.remote.post('workspaces', json=json)
-        return self.get_workspace(organisation.ckan_slug)
+        return self.get_workspace(organisation.slug)
 
     def get_or_create_workspace(self, organisation):
         try:
-            return self.get_workspace(organisation.ckan_slug)
+            return self.get_workspace(organisation.slug)
         except MRANotFoundError:
             pass
         return self.create_workspace(organisation)

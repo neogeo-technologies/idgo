@@ -59,11 +59,14 @@ finally:
 class Dataset(models.Model):
     """Modèle de classe d'un jeu de données."""
 
+    class Meta(object):
+        verbose_name = 'Jeu de données'
+        verbose_name_plural = 'Jeux de données'
+
     # Managers
     # ========
 
     objects = models.Manager()
-
     default = DefaultDatasetManager()
     harvested = HarvestedDatasetManager()
 
@@ -74,7 +77,7 @@ class Dataset(models.Model):
         verbose_name='Titre',
         )
 
-    ckan_slug = models.SlugField(
+    slug = models.SlugField(
         error_messages={
             'invalid': (
                 "Le label court ne peut contenir ni majuscule, "
@@ -153,7 +156,7 @@ class Dataset(models.Model):
         ('annual', 'Annuelle'),
         ('unknow', 'Inconnue'))
 
-    update_freq = models.CharField(
+    update_frequency = models.CharField(
         verbose_name='Fréquence de mise à jour',
         default='never',
         max_length=30,
@@ -266,15 +269,8 @@ class Dataset(models.Model):
         srid=4171,
         )
 
-    class Meta(object):
-        verbose_name = 'Jeu de données'
-        verbose_name_plural = 'Jeux de données'
-
     def __str__(self):
         return self.title
-
-    def __slug__(self):
-        return self.ckan_slug or slugify(self.title)
 
     # Propriétés
     # ==========
@@ -285,7 +281,7 @@ class Dataset(models.Model):
 
     @property
     def ckan_url(self):
-        return urljoin(settings.CKAN_URL, 'dataset/{}'.format(self.ckan_slug))
+        return urljoin(settings.CKAN_URL, 'dataset/{}'.format(self.slug))
 
     def get_resources(self, **kwargs):
         Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
@@ -330,7 +326,7 @@ class Dataset(models.Model):
     def clean(self):
 
         # Vérifie la disponibilité du « slug » dans CKAN
-        slug = self.ckan_slug or slugify(self.title)
+        slug = self.slug or slugify(self.title)
         with CkanUserHandler(CkanHandler.apikey) as ckan_me:
             ckan_dataset = ckan_me.get_package(slug)
         if ckan_dataset \
@@ -418,7 +414,7 @@ class Dataset(models.Model):
                     for layer in resource.get_layers():
                         layer.save()
                         url = '{0}#{1}'.format(
-                            OWS_URL_PATTERN.format(organisation=self.organisation.ckan_slug),
+                            OWS_URL_PATTERN.format(organisation=self.organisation.slug),
                             layer.name)
                         CkanHandler.update_resource(layer.name, url=url)
 
@@ -465,7 +461,7 @@ class Dataset(models.Model):
         # Définition des propriétés du « paquet »
         # =======================================
 
-        datatype = [item.ckan_slug for item in self.data_type.all()]
+        datatype = [item.slug for item in self.data_type.all()]
 
         dataset_creation_date = self.date_creation and str(self.date_creation) or ''
         dataset_modification_date = self.date_modification and str(self.date_modification) or ''
@@ -502,7 +498,7 @@ class Dataset(models.Model):
 
         spatial = self.bbox and self.bbox.geojson or ''
 
-        support = self.support and self.support.ckan_slug or ''
+        support = self.support and self.support.slug or ''
 
         tags = [{'name': keyword.name} for keyword in self.keywords.all()]
 
@@ -526,7 +522,7 @@ class Dataset(models.Model):
             'license_id': license_id,
             'maintainer': broadcaster_name,
             'maintainer_email': broadcaster_email,
-            'name': self.ckan_slug,
+            'name': self.slug,
             'notes': self.description,
             'owner_org': str(self.organisation.ckan_id),
             'ows': str(ows),  # I <3 CKAN
@@ -538,13 +534,13 @@ class Dataset(models.Model):
             'tags': tags,
             'title': self.title,
             'thumbnail': thumbnail,
-            'update_frequency': self.update_freq or 'unknow',
+            'update_frequency': self.update_frequency or 'unknow',
             'url': ''  # Toujours une chaîne de caractère vide !
             }
 
         # Synchronisation des catégories :
         for category in self.categories.all():
-            data['groups'].append({'name': category.ckan_slug})
+            data['groups'].append({'name': category.slug})
 
         organisation_id = str(self.organisation.ckan_id)
 
@@ -620,8 +616,8 @@ class Keywords(Tag):
 
 @receiver(pre_save, sender=Dataset)
 def pre_save_dataset(sender, instance, **kwargs):
-    if not instance.ckan_slug:
-        instance.ckan_slug = slugify(instance.title)
+    if not instance.slug:
+        instance.slug = slugify(instance.title)
 
 
 @receiver(post_delete, sender=Dataset)

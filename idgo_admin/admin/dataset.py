@@ -23,6 +23,8 @@ from django import forms
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.utils.text import slugify
+
 from idgo_admin import logger
 from idgo_admin.models import Dataset
 from idgo_admin.models import Keywords
@@ -38,7 +40,7 @@ import re
 def synchronize(modeladmin, request, queryset):
     for dataset in queryset:
         logger.info('Force save dataset {pk}: {slug}'.format(
-            slug=dataset.__slug__(), pk=dataset.pk))
+            slug=dataset.slug or slugify(dataset.title), pk=dataset.pk))
         try:
             dataset.save(current_user=None, synchronize=True)
         except Exception as e:
@@ -120,7 +122,7 @@ class DatasetAdmin(admin.ModelAdmin):
     form = MyDataSetForm
     can_add_related = True
     can_delete_related = True
-    readonly_fields = ['ckan_id', 'ckan_slug', 'geonet_id']
+    readonly_fields = ['ckan_id', 'slug', 'geonet_id']
     search_fields = ['title', 'editor__username']
     actions = [synchronize]
 
@@ -272,7 +274,8 @@ class KeywordsAdmin(admin.ModelAdmin):
 
                 # On met a jours les datasets et on retourne sur le listing
                 # self.tags_update(new_name, datasets)
-                new_tag, _ = Tag.objects.get_or_create(name=form.cleaned_data.get('new_name'))
+                new_tag, _ = Tag.objects.get_or_create(
+                    name=form.cleaned_data.get('new_name'))
                 for dataset in datasets:
                     dataset.keywords.add(new_tag)
 

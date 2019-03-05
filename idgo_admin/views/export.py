@@ -48,7 +48,7 @@ from uuid import UUID
 COLL_NOM = F('organisation__name')
 COLL_SIRET = Value('', output_field=CharField())
 ID = F('ckan_id')
-TITRE = F('name')
+TITRE = F('title')
 DESCRIPTION = F('description')
 THEME = StringAgg('categories__name', distinct=True, delimiter=';')
 DIFFUSEUR = Case(
@@ -65,7 +65,7 @@ COUV_SPAT = Value('', output_field=CharField())
 COUV_TEMP_DEBUT = Value('', output_field=CharField())
 COUV_TEMP_FIN = Value('', output_field=CharField())
 DATE_PUBL = F('date_publication')
-FREQ_MAJ = F('update_freq')
+FREQ_MAJ = F('update_frequency')
 DATE_MAJ = F('date_modification')
 MOT_CLES = StringAgg('keywords__name', distinct=True, delimiter=';')
 LICENCE = F('license__title')
@@ -75,12 +75,12 @@ FORMATS = Func(
 PROJECTION = F('resource__crs__auth_code')
 LANG = Value('FR', output_field=CharField())  # StringAgg('resource__lang', distinct=True, delimiter=';')
 URL = Concat(
-    Value(urljoin(settings.CKAN_URL, 'dataset/')), F('ckan_slug'),
+    Value(urljoin(settings.CKAN_URL, 'dataset/')), F('slug'),
     output_field=CharField())
 
 # Définition des champs DATASUD :
-DATASUD_ID = F('ckan_slug')
-DATASUD_ORGA_ID = F('organisation__ckan_slug')
+DATASUD_ID = F('slug')
+DATASUD_ORGA_ID = F('organisation__slug')
 DATASUD_ORGA_URL = F('organisation__website')
 DATASUD_PRODUCTEUR_NAME = F('owner_name')
 DATASUD_PRODUCTEUR_EMAIL = F('owner_email')

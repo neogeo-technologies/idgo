@@ -152,7 +152,7 @@ def send_membership_confirmation_mail(user, organisation, url):
         bcc=list(set(get_admins_mails() + get_referents_mails(organisation))),
         email=user.email,
         full_name=user.get_full_name(),
-        organisation=organisation.name,
+        organisation=organisation.legal_name,
         url=url,
         username=user.username,
         website=organisation.website or '- adresse url manquante -')
@@ -163,7 +163,7 @@ def send_confirmed_membership_mail(user, organisation):
     return sender(
         'membership_status_confirmed',
         full_name=user.get_full_name(),
-        organisation=organisation.name,
+        organisation=organisation.legal_name,
         to=[user.email],
         username=user.username)
 
@@ -175,7 +175,7 @@ def send_contributor_confirmation_mail(user, organisation, url):
         bcc=list(set(get_admins_mails() + get_referents_mails(organisation))),
         email=user.email,
         full_name=user.get_full_name(),
-        organisation=organisation.name,
+        organisation=organisation.legal_name,
         url=url,
         username=user.username,
         website=organisation.website or '- adresse url manquante -')
@@ -186,7 +186,7 @@ def send_confirmed_contribution_mail(user, organisation):
     return sender(
         'contributor_status_confirmed',
         full_name=user.get_full_name(),
-        organisation=organisation.name,
+        organisation=organisation.legal_name,
         to=[user.email],
         username=user.username)
 
@@ -198,7 +198,7 @@ def send_referent_confirmation_mail(user, organisation, url):
         bcc=list(set(get_admins_mails() + get_referents_mails(organisation))),
         email=user.email,
         full_name=user.get_full_name(),
-        organisation=organisation.name,
+        organisation=organisation.legal_name,
         url=url,
         username=user.username,
         website=organisation.website or '- adresse url manquante -')
@@ -209,7 +209,7 @@ def send_confirmed_referent_mail(user, organisation):
     return sender(
         'referent_status_confirmed',
         full_name=user.get_full_name(),
-        organisation=organisation.name,
+        organisation=organisation.legal_name,
         to=[user.email],
         username=user.username)
 
@@ -221,7 +221,7 @@ def send_organisation_creation_confirmation_mail(user, organisation, url):
         bcc=get_admins_mails(),
         email=user.email,
         full_name=user.get_full_name(),
-        organisation=organisation.name,
+        organisation=organisation.legal_name,
         url=url,
         username=user.username,
         website=organisation.website or '- adresse url manquante -')
@@ -234,7 +234,7 @@ def send_dataset_creation_mail(user, dataset):
         bcc=list(set(get_admins_mails() + get_referents_mails(dataset.organisation))),
         ckan_url=dataset.ckan_url,
         dataset=dataset.title,
-        id=dataset.ckan_slug,
+        id=dataset.slug,
         full_name=user.get_full_name(),
         to=[user.email],
         username=user.username)
@@ -248,7 +248,7 @@ def send_dataset_update_mail(user, dataset):
         ckan_url=dataset.ckan_url,
         dataset=dataset.title,
         full_name=user.get_full_name(),
-        id=dataset.ckan_slug,
+        id=dataset.slug,
         to=[user.email],
         username=user.username)
 
@@ -260,7 +260,7 @@ def send_dataset_delete_mail(user, dataset):
         bcc=list(set(get_admins_mails() + get_referents_mails(dataset.organisation))),
         dataset=dataset.title,
         full_name=user.get_full_name(),
-        id=dataset.ckan_slug,
+        id=dataset.slug,
         to=[user.email],
         username=user.username)
 
@@ -322,7 +322,7 @@ def send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation,
         communes=','.join([commune.code for commune in communes]),
         user_email=user.email,
         url=url,
-        organisation=organisation.name,
+        organisation=organisation.legal_name,
         organisation_pk=organisation.pk,
         to=get_admins_mails(crige=True),
         username=user.username)
@@ -342,7 +342,7 @@ def send_jurisdiction_creation_mail(user, jurisdiction, organisation):
         code=jurisdiction.code,
         communes=','.join([commune.code for commune in communes]),
         user_email=user.email,
-        organisation=organisation.name,
+        organisation=organisation.legal_name,
         organisation_pk=organisation.pk,
         to=[user.email],
         username=user.username)
@@ -354,7 +354,7 @@ def send_mail_asking_for_crige_partnership(user, organisation):
         'ask_for_crige_partnership',
         full_name=user.get_full_name(),
         user_email=user.email,
-        organisation=organisation.name,
+        organisation=organisation.legal_name,
         organisation_pk=organisation.pk,
         to=get_admins_mails(crige=True),
         )

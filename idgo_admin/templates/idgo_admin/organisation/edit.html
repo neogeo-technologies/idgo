@@ -12,7 +12,7 @@
 	</li>
 	<li class="active">
 		{% if id %}
-		<a href="{% url "idgo_admin:update_organization" id=id %}">{{ organisation.name }}</a>
+		<a href="{% url "idgo_admin:update_organization" id=id %}">{{ organisation.legal_name }}</a>
 		{% else %}
 		Nouvelle organisation
 		{% endif %}
@@ -60,7 +60,7 @@
 		{% endif %}
 		<div class="row">
 			<div class="col-sm-12">
-				{% bootstrap_field form.name %}
+				{% bootstrap_field form.legal_name %}
 			</div>
 		</div>
 		<br />

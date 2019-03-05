@@ -9,7 +9,7 @@
 		<a class="btn btn-default" href="{% url 'idgo_admin:dataset_mdedit' id=dataset.id %}">Éditer la fiche de métadonnées INSPIRE</a>
 		{% endif %}
 		{% if dataset.id %}
-		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}">Ouvrir dans CKAN</a>
+		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.slug }}">Ouvrir dans CKAN</a>
 		{% endif %}
 		<a role="button" class="btn btn-secondary" target="_blank" href="{{ doc_url }}">
 			<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
@@ -22,7 +22,7 @@
 	</div>
 	<div class="row">
 		<div class="col-xs-12">
-			{% bootstrap_field form.ckan_slug %}
+			{% bootstrap_field form.slug %}
 		</div>
 	</div>
 	{% if dataset.is_harvested %}
@@ -94,7 +94,7 @@
 	<br />
 	<div class="row">
 		<div class="col-xs-4">
-			{% bootstrap_field form.update_freq %}
+			{% bootstrap_field form.update_frequency %}
 		</div>
 	</div>
 	<div class="row">
@@ -208,26 +208,26 @@ $(function() {
 
 
 	const $name = $('[name="{{ form.title.name }}"]')
-	const $ckanSlug = $('[name="{{ form.ckan_slug.name }}"]').prop('readonly', true);
+	const $ckanSlug = $('[name="{{ form.slug.name }}"]').prop('readonly', true);
 
 	const btnText = 'Modifier le chemin';
 	$ckanSlug.siblings().find('button').text(btnText).click(function(e) {
 		if (!$ckanSlug.prop('readonly')) {
 			$(this).text(btnText);
 			$ckanSlug.prop('readonly', true);
-			$ckanSlug.val({% if dataset.ckan_slug %}'{{ dataset.ckan_slug }}'{% else %}window.slugify($name.val(), 100){% endif %});
+			$ckanSlug.val({% if dataset.slug %}'{{ dataset.slug }}'{% else %}window.slugify($name.val(), 100){% endif %});
 		} else {
 			$(this).text('Annuler la saisie');
 			$ckanSlug.prop('readonly', false);
 		};
 	});
 
-	{% if not dataset.ckan_slug %}
+	{% if not dataset.slug %}
 	$name.on('input', function() {
 		$ckanSlug.val(window.slugify(this.value, 100))
 	});
 	{% else %}
-		$ckanSlug.val('{{ dataset.ckan_slug }}')
+		$ckanSlug.val('{{ dataset.slug }}')
 	{% endif %}
 
 	function extractor(query) {

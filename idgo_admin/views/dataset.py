@@ -68,7 +68,7 @@ def dataset(request, *args, **kwargs):
 
     user, profile = user_and_profile(request)
 
-    id = request.GET.get('id', request.GET.get('ckan_slug'))
+    id = request.GET.get('id', request.GET.get('slug'))
     if not id:
         raise Http404
 
@@ -76,7 +76,7 @@ def dataset(request, *args, **kwargs):
     try:
         id = int(id)
     except ValueError:
-        kvp['ckan_slug'] = id
+        kvp['slug'] = id
     else:
         kvp['id'] = id
     finally:
@@ -185,7 +185,7 @@ class DatasetManager(View):
         kvp = {
             'broadcaster_name': data['broadcaster_name'],
             'broadcaster_email': data['broadcaster_email'],
-            'ckan_slug': data['ckan_slug'],
+            'slug': data['slug'],
             'date_creation': data['date_creation'],
             'date_modification': data['date_modification'],
             'date_publication': data['date_publication'],
@@ -197,7 +197,7 @@ class DatasetManager(View):
             'organisation': data['organisation'],
             'owner_email': data['owner_email'],
             'owner_name': data['owner_name'],
-            'update_freq': data['update_freq'],
+            'update_frequency': data['update_frequency'],
             'published': data['published'],
             'support': data['support'],
             'thumbnail': data['thumbnail'],
@@ -245,7 +245,7 @@ class DatasetManager(View):
                     'de données dans CKAN</a> ?').format(
                         reverse('idgo_admin:dataset_editor', kwargs={'id': 'new'}),
                         reverse('idgo_admin:resource', kwargs={'dataset_id': instance.id}),
-                        CKAN_URL, instance.ckan_slug))
+                        CKAN_URL, instance.slug))
 
             if 'continue' in request.POST:
                 return HttpResponseRedirect(
@@ -254,7 +254,7 @@ class DatasetManager(View):
             target = instance.editor == profile.user and 'mine' or 'all'
             return HttpResponseRedirect('{0}#{1}'.format(
                 reverse('idgo_admin:datasets', kwargs={'target': target}),
-                instance.ckan_slug))
+                instance.slug))
 
         return render_with_info_profile(request, 'idgo_admin/dataset/dataset.html', context)
 
@@ -303,7 +303,7 @@ def get_all_organisations(profile, strict=False):
             'liaisonscontributeurs__validated_on__isnull': False}
 
     return [{
-        'id': instance.ckan_slug,
+        'id': instance.slug,
         'name': instance.name
         } for instance in Organisation.objects.filter(is_active=True, **filters)]
 
@@ -325,7 +325,7 @@ def get_all_datasets(profile, strict=False, harvested=False):
         filters = {'editor': profile.user}
 
     return [{
-        'id': instance.ckan_slug,
+        'id': instance.slug,
         'title': instance.title
         } for instance in Dataset.objects.filter(**filters)]
 
@@ -349,7 +349,7 @@ def get_datasets(profile, qs, strict=False, harvested=False):
 
     organisation = qs.get('organisation', None)
     if organisation:
-        filters['organisation__in'] = Organisation.objects.filter(ckan_slug=organisation)
+        filters['organisation__in'] = Organisation.objects.filter(slug=organisation)
 
     q = qs.get('q', None)
     if q:
@@ -362,7 +362,7 @@ def get_datasets(profile, qs, strict=False, harvested=False):
 
     category = qs.get('category', None)
     if category:
-        filters['categories__in'] = Category.objects.filter(ckan_slug=category)
+        filters['categories__in'] = Category.objects.filter(slug=category)
 
     license = qs.get('license', None)
     if license:
@@ -399,7 +399,7 @@ def datasets(request, target, *args, **kwargs):
             raise Http404
 
     all_categories = [
-        {'id': instance.ckan_slug, 'name': instance.name}
+        {'id': instance.slug, 'name': instance.name}
         for instance in Category.objects.all()]
     all_datasets = get_all_datasets(profile, strict=not all, harvested=harvested)
     all_licenses = [

@@ -88,12 +88,12 @@ def handler_get_request(request, dataset_name):
     user = request.user
     dataset = None
     if user.profile.is_admin:
-        dataset = Dataset.objects.get(ckan_slug=dataset_name)
+        dataset = Dataset.objects.get(slug=dataset_name)
     else:
         s1 = set(Dataset.objects.filter(organisation__in=user.profile.referent_for))
         s2 = set(Dataset.objects.filter(editor=user))
         for item in list(s1 | s2):
-            if item.ckan_slug == dataset_name:
+            if item.slug == dataset_name:
                 dataset = item
                 break
     return dataset and dataset.get_resources() or []
@@ -106,11 +106,11 @@ def handle_pust_request(request, dataset_name, resource_id=None):
     # format -> format_type.pk
     # type -> data_type raw|annexe|service
     # restricted_level -> public|registered|only_allowed_users|same_organization|any_organization
-    # restricted_list -> list of: user.username|organisation.ckan_slug
+    # restricted_list -> list of: user.username|organisation.slug
     # up_file -> {File}
     user = request.user
     dataset = get_object_or_404_extended(
-        Dataset, user, include={'ckan_slug': dataset_name})
+        Dataset, user, include={'slug': dataset_name})
     resource = None
     if resource_id:
         resource = get_object_or_404(Resource, ckan_id=resource_id)
@@ -127,7 +127,7 @@ def handle_pust_request(request, dataset_name, resource_id=None):
     if restricted_level == 'only_allowed_users':
         profiles_allowed = User.objects.filter(username__in=restricted_list)
     elif restricted_level in ('same_organization', 'any_organization'):
-        organisations_allowed = Organisation.objects.filter(ckan_slug__in=restricted_list)
+        organisations_allowed = Organisation.objects.filter(slug__in=restricted_list)
 
     data_form = {
         'name': data.get('title'),

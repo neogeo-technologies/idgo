@@ -92,7 +92,7 @@ $(function() {
 
 	$('button[name="view-ckan"]').on('click', function(e) {
 		e.preventDefault();
-		targetBlank('{{ ckan_url }}/dataset/{{ dataset.ckan_slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
+		targetBlank('{{ ckan_url }}/dataset/{{ dataset.slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
 		e.stopPropagation();
 	});
 

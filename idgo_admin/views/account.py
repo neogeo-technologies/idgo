@@ -238,19 +238,19 @@ class ReferentAccountManager(View):
             profile.organisation = None
             profile.membership = False
             profile.save()
-            message = "L'utilisateur <strong>{0}</strong> n'est plus membre de <strong>{1}</strong>.".format(username, organisation.name)
+            message = "L'utilisateur <strong>{0}</strong> n'est plus membre de <strong>{1}</strong>.".format(username, organisation.legal_name)
             messages.success(request, message)
 
         if target == 'contributors':
             instance = get_object_or_404(LiaisonsContributeurs, profile=profile, organisation=organisation)
             instance.delete()
-            message = "L'utilisateur <strong>{0}</strong> n'est plus contributeur de <strong>{1}</strong>.".format(username, organisation.name)
+            message = "L'utilisateur <strong>{0}</strong> n'est plus contributeur de <strong>{1}</strong>.".format(username, organisation.legal_name)
             messages.success(request, message)
 
         if target == 'referents' and user.profile.is_admin:
             instance = get_object_or_404(LiaisonsReferents, profile=profile, organisation=organisation)
             instance.delete()
-            message = "L'utilisateur <strong>{0}</strong> n'est plus référent technique de <strong>{1}</strong>.".format(username, organisation.name)
+            message = "L'utilisateur <strong>{0}</strong> n'est plus référent technique de <strong>{1}</strong>.".format(username, organisation.legal_name)
             messages.success(request, message)
 
         return HttpResponse(status=200)

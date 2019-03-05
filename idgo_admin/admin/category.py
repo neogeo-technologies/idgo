@@ -20,7 +20,7 @@ from idgo_admin.models import Category
 
 class CategoryAdmin(admin.ModelAdmin):
     model = Category
-    readonly_fields = ['ckan_slug']
+    readonly_fields = ['slug']
     ordering = ('name',)
 
     def has_delete_permission(self, request, obj=None):

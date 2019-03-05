@@ -151,7 +151,7 @@ class Layer(models.Model):
         super().__init__(*args, **kwargs)
 
         organisation = self.resource.dataset.organisation
-        ws_name = organisation.ckan_slug
+        ws_name = organisation.slug
 
         try:
             l = MRAHandler.get_layer(self.name)
@@ -263,7 +263,7 @@ class Layer(models.Model):
         # On supprime les ressources MRA
         try:
             MRAHandler.del_layer(self.name)
-            ws_name = self.resource.dataset.organisation.ckan_slug
+            ws_name = self.resource.dataset.organisation.slug
             if self.type == 'vector':
                 MRAHandler.del_featuretype(ws_name, 'public', self.name)
             if self.type == 'raster':
@@ -289,7 +289,7 @@ class Layer(models.Model):
     def save_raster_layer(self, *args, **kwargs):
         """Synchronizer la couche de données matricielle avec le service OGC via MRA."""
         organisation = self.resource.dataset.organisation
-        ws_name = organisation.ckan_slug
+        ws_name = organisation.slug
         cs_name = self.name
 
         if self.pk:
@@ -321,7 +321,7 @@ class Layer(models.Model):
     def save_vector_layer(self, *args, **kwargs):
         """Synchronizer la couche de données vectorielle avec le service OGC via MRA."""
         organisation = self.resource.dataset.organisation
-        ws_name = organisation.ckan_slug
+        ws_name = organisation.slug
         ds_name = 'public'
 
         if self.pk:
@@ -362,7 +362,7 @@ class Layer(models.Model):
         description = self.resource.description
         organisation = self.resource.dataset.organisation
 
-        base_url = OWS_URL_PATTERN.format(organisation=organisation.ckan_slug).replace('?', '')
+        base_url = OWS_URL_PATTERN.format(organisation=organisation.slug).replace('?', '')
 
         getlegendgraphic = (
             '{base_url}?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic'
@@ -412,7 +412,7 @@ class Layer(models.Model):
 
     def handle_enable_ows_status(self):
         """Gérer le statut d'activation de la couche de données SIG."""
-        ws_name = self.resource.dataset.organisation.ckan_slug
+        ws_name = self.resource.dataset.organisation.slug
         if self.resource.ogc_services:
             MRAHandler.enable_layer(ws_name, self.name)
             # TODO: Comment on gère les ressources CKAN service ???
@@ -429,8 +429,8 @@ class Layer(models.Model):
         # TODO remplacer par `layers = dataset.get_layers()`
 
         MRAHandler.create_or_update_layergroup(
-            dataset.organisation.ckan_slug, {
-                'name': dataset.ckan_slug,
+            dataset.organisation.slug, {
+                'name': dataset.slug,
                 'title': dataset.title,
                 'abstract': dataset.description,
                 'layers': [layer.name for layer in layers]})

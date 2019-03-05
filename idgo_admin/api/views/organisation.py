@@ -53,8 +53,8 @@ def serialize(organisation):
         license = None
 
     return OrderedDict([
-        ('name', organisation.ckan_slug),
-        ('legal_name', organisation.name),
+        ('name', organisation.slug),
+        ('legal_name', organisation.legal_name),
         ('logo', organisation.logo_url),
         ('type', type),
         ('jurisdiction', jurisdiction),
@@ -71,38 +71,30 @@ def serialize(organisation):
 
 
 def handler_get_request(request):
-    user = request.user
-    if user.profile.is_admin:
-        # Un administrateur « métiers » peut tout voir.
-        organisations = Organisation.objects.all()
-    else:
-        s1 = set(user.profile.referent_for)
-        s2 = set(user.profile.contribute_for)
-        s3 = set([user.profile.organisation])
-        organisations = list(s1 | s2 | s3)
+    # user = request.user
+    # if user.profile.is_admin:
+    #     # Un administrateur « métiers » peut tout voir.
+    #     organisations = Organisation.objects.all()
+    # else:
+    #     s1 = set(user.profile.referent_for)
+    #     s2 = set(user.profile.contribute_for)
+    #     s3 = set([user.profile.organisation])
+    #     organisations = list(s1 | s2 | s3)
+    organisations = Organisation.objects.all()
     return [serialize(organisation) for organisation in organisations]
 
 
 def handle_pust_request(request, organisation_name=None):
-    # legal_name -> name
-    # type -> organisation_type
-    # jurisdiction -> jurisdiction.pk
-    # address -> address
-    # postcode -> postcode
-    # city -> city
-    # phone -> phone
-    # email -> email
-    # license -> license.pk
     user = request.user
 
     organisation = None
     if organisation_name:
         organisation = get_object_or_404(
-            Organisation, ckan_slug=organisation_name)
+            Organisation, slug=organisation_name)
 
     data = getattr(request, request.method).dict()
     data_form = {
-        'name': data.get('legal_name'),
+        'legal_name': data.get('legal_name'),
         'description': data.get('description'),
         'organisation_type': data.get('type'),
         'address': data.get('address'),
@@ -146,8 +138,8 @@ def handle_pust_request(request, organisation_name=None):
 
 
 # decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
-decorators = [csrf_exempt, BasicAuth()]
-# decorators = [csrf_exempt]
+# decorators = [csrf_exempt, BasicAuth()]
+decorators = [csrf_exempt]
 
 
 @method_decorator(decorators, name='dispatch')
@@ -161,6 +153,7 @@ class OrganisationShow(View):
                 return JsonResponse(organisation, safe=True)
         raise Http404()
 
+    @BasicAuth()
     def put(self, request, organisation_name):
         """Créer une nouvelle organisation."""
         # Django fait les choses à moitié...
@@ -184,6 +177,7 @@ class OrganisationList(View):
         organisations = handler_get_request(request)
         return JsonResponse(organisations, safe=False)
 
+    @BasicAuth()
     def post(self, request):
         """Créer une nouvelle organisation."""
         if not request.user.profile.is_admin:

@@ -44,7 +44,7 @@ class Command(BaseCommand):
             if act.profile.user:
                 pro_name = act.profile.user.username
             if act.profile.organisation:
-                org_name = act.profile.organisation.name
+                org_name = act.profile.organisation.legal_name
 
             if act.action == 'confirm_rattachement':
                 print("clean_up_action Rattachement: {0}".format(pro_name))
@@ -61,14 +61,14 @@ class Command(BaseCommand):
                 liaison = LiaisonsContributeurs.objects.get(
                     profile=act.profile, organisation=act.organisation)
                 print("clean_up_action contribution: {0}-{1}".format(
-                    pro_name, act.organisation.name))
+                    pro_name, act.organisation.legal_name))
                 liaison.delete()
 
             if act.action == 'confirm_referent':
                 liaison = LiaisonsReferents.objects.get(
                     profile=act.profile, organisation=act.organisation)
                 print("clean_up_action referent: {0}-{1}".format(
-                    pro_name, act.organisation.name))
+                    pro_name, act.organisation.legal_name))
                 liaison.delete()
 
             if act.action == 'reset_password':

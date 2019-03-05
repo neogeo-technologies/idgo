@@ -4,7 +4,7 @@
 	"fields": {
 		"name": "Donn\u00e9es ouvertes",
 		"description": "Donn\u00e9es ouvertes",
-		"ckan_slug": "donnees-ouvertes"
+		"slug": "donnees-ouvertes"
 	}
 }, {
 	"model": "idgo_admin.datatype",
@@ -12,7 +12,7 @@
 	"fields": {
 		"name": "Donn\u00e9es intelligentes",
 		"description": "Donn\u00e9es intelligentes",
-		"ckan_slug": "donnees-intelligentes"
+		"slug": "donnees-intelligentes"
 	}
 }, {
 	"model": "idgo_admin.datatype",
@@ -20,6 +20,6 @@
 	"fields": {
 		"name": "Donn\u00e9es g\u00e9ographiques",
 		"description": "Donn\u00e9es g\u00e9ographiques",
-		"ckan_slug": "donnees-geographiques"
+		"slug": "donnees-geographiques"
 	}
 }]
