@@ -295,7 +295,7 @@ class DatasetList(View):
             [serialize(dataset) for dataset in datasets], safe=False)
 
     def post(self, request):
-        """Modifier le jeu de données."""
+        """Créer un nouveau jeu de données."""
         try:
             handle_pust_request(request)
         except Http404:

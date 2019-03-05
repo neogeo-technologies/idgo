@@ -70,6 +70,7 @@ def creation_process(request, profile, organisation, mail=True):
         url = request.build_absolute_uri(
             reverse('idgo_admin:confirm_new_orga', kwargs={'key': action.key}))
         send_organisation_creation_confirmation_mail(profile.user, organisation, url)
+    return action
 
 
 def member_subscribe_process(request, profile, organisation, mail=True):
@@ -82,6 +83,7 @@ def member_subscribe_process(request, profile, organisation, mail=True):
         url = request.build_absolute_uri(
             reverse('idgo_admin:confirm_rattachement', kwargs={'key': action.key}))
         send_membership_confirmation_mail(profile.user, organisation, url)
+    return action
 
 
 def member_unsubscribe_process(request, profile, organisation):
@@ -106,6 +108,7 @@ def contributor_subscribe_process(request, profile, organisation, mail=True):
         url = request.build_absolute_uri(
             reverse('idgo_admin:confirm_contribution', kwargs={'key': action.key}))
         send_contributor_confirmation_mail(profile.user, organisation, url)
+    return action
 
 
 def contributor_unsubscribe_process(request, profile, organisation):
@@ -128,6 +131,7 @@ def referent_subscribe_process(request, profile, organisation, mail=True):
         url = request.build_absolute_uri(
             reverse('idgo_admin:confirm_referent', kwargs={'key': action.key}))
         send_referent_confirmation_mail(profile.user, organisation, url)
+    return action
 
 
 def referent_unsubscribe_process(request, profile, organisation):
