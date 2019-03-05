@@ -94,7 +94,7 @@ def serialize(dataset):
         ('organisation', organisation),
         ('license', license),
         ('type', data_type),
-        ('published', dataset.published),
+        ('private', dataset.private),
         ('owner_name', dataset.owner_name),
         ('owner_email', dataset.owner_name),
         ('broadcaster_name', dataset.broadcaster_name),
@@ -186,13 +186,13 @@ def handle_pust_request(request, dataset_name=None):
         'organisation': data['organisation'],
         'license': data['license'],
         'support': data['support'],
-        # 'data_type': data['data_type'],
+        # data_type
         'owner_email': data['owner_email'],
         'owner_name': data['owner_name'],
         'broadcaster_name': data['broadcaster_name'],
         'broadcaster_email': data['broadcaster_email'],
         'published': data['published'],
-        # 'is_inspire': data['is_inspire'],
+        # is_inspire
         }
 
     try:
