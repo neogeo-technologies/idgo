@@ -151,7 +151,7 @@ def all_organisations(request, *args, **kwargs):
             item in Organisation.objects.filter(
                 liaisonscontributeurs__profile=profile,
                 liaisonscontributeurs__validated_on__isnull=False),
-        'name': item.name,
+        'legal_name': item.legal_name,
         'member': item == profile.organisation,
         'pk': item.pk,
         'referent':
@@ -182,7 +182,7 @@ def organisation(request, id=None):
 
     data = {
         'id': instance.id,
-        'name': instance.name,
+        'legal_name': instance.legal_name,
         'crige': instance.is_crige_partner,
         # logo -> see below
         'type': instance.organisation_type and instance.organisation_type.name or '-',
@@ -435,14 +435,14 @@ class Subscription(View):
                 message = (
                     "Vous n'êtes plus {} de l'organisation "
                     '« <strong>{}</strong> ».'
-                    ).format(status_fr_label[status], organisation.name)
+                    ).format(status_fr_label[status], organisation.legal_name)
             elif subscription == 'subscribe':
                 message = (
                     'Votre demande de statut de <strong>{}</strong> de '
                     "l'organisation « <strong>{}</strong> » est en cours de "
                     "traitement. Celle-ci ne sera effective qu'après "
                     'validation par un administrateur.').format(
-                        status_fr_label[status], organisation.name)
+                        status_fr_label[status], organisation.legal_name)
                 # Spécial CRIGE
                 if status == 'member':
                     messages.info(request, "L'organisation est partenaire du CRIGE.")

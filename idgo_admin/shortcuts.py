@@ -61,7 +61,7 @@ def render_with_info_profile(
         awaiting_member_status = []
     else:
         awaiting_member_status = action.organisation \
-            and [action.organisation.id, action.organisation.name]
+            and [action.organisation.id, action.organisation.legal_name]
 
     contributor = [
         [c.id, c.name] for c

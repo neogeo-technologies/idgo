@@ -54,7 +54,7 @@ def serialize(organisation):
 
     return OrderedDict([
         ('name', organisation.slug),
-        ('legal_name', organisation.name),
+        ('legal_name', organisation.legal_name),
         ('logo', organisation.logo_url),
         ('type', type),
         ('jurisdiction', jurisdiction),

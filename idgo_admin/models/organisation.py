@@ -58,71 +58,131 @@ class OrganisationType(models.Model):
 
 class Organisation(models.Model):
 
-    name = models.CharField(
-        verbose_name='Nom', max_length=100, unique=True, db_index=True)
+    class Meta(object):
+        verbose_name = 'Organisation'
+        verbose_name_plural = 'Organisations'
+        ordering = ['slug']
+
+    legal_name = models.CharField(
+        verbose_name="Dénomination sociale",
+        max_length=100,
+        unique=True,
+        db_index=True,
+        )
 
     organisation_type = models.ForeignKey(
-        to='OrganisationType', verbose_name="Type d'organisation",
-        blank=True, null=True, on_delete=models.SET_NULL)
+        to='OrganisationType',
+        verbose_name="Type d'organisation",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        )
 
     jurisdiction = models.ForeignKey(
-        to='Jurisdiction', blank=True, null=True,
-        verbose_name="Territoire de compétence")
+        to='Jurisdiction',
+        verbose_name="Territoire de compétence",
+        blank=True,
+        null=True,
+        )
 
     slug = models.SlugField(
-        verbose_name='CKAN ID', max_length=100, unique=True, db_index=True)
+        verbose_name="Slug",
+        max_length=100,
+        unique=True,
+        db_index=True,
+        )
 
     ckan_id = models.UUIDField(
-        verbose_name='Ckan UUID', default=uuid.uuid4, editable=False)
+        verbose_name="Ckan UUID",
+        default=uuid.uuid4,
+        editable=False,
+        )
 
-    website = models.URLField(verbose_name='Site web', blank=True)
+    website = models.URLField(
+        verbose_name="Site internet",
+        blank=True,
+        )
 
     email = models.EmailField(
-        verbose_name="Adresse mail de l'organisation", blank=True, null=True)
+        verbose_name="Adresse e-mail",
+        blank=True,
+        null=True,
+        )
 
     description = models.TextField(
-        verbose_name='Description', blank=True, null=True)
+        verbose_name='Description',
+        blank=True,
+        null=True,
+        )
 
     logo = models.ImageField(
-        verbose_name='Logo', upload_to='logos/', blank=True, null=True)
+        verbose_name="Logo",
+        blank=True,
+        null=True,
+        upload_to='logos/',
+        )
 
     address = models.TextField(
-        verbose_name='Adresse', blank=True, null=True)
+        verbose_name="Adresse",
+        blank=True,
+        null=True,
+        )
 
     postcode = models.CharField(
-        verbose_name='Code postal', max_length=100, blank=True, null=True)
+        verbose_name="Code postal",
+        max_length=100,
+        blank=True,
+        null=True,
+        )
 
     city = models.CharField(
-        verbose_name='Ville', max_length=100, blank=True, null=True)
+        verbose_name="Ville",
+        max_length=100,
+        blank=True,
+        null=True,
+        )
 
     phone = models.CharField(
-        verbose_name='Téléphone', max_length=10, blank=True, null=True)
+        verbose_name="Téléphone",
+        max_length=10,
+        blank=True,
+        null=True,
+        )
 
     license = models.ForeignKey(
-        to='License', on_delete=models.CASCADE,
-        verbose_name='Licence', blank=True, null=True)
+        to='License',
+        verbose_name="Licence",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        )
 
-    is_active = models.BooleanField('Organisation active', default=False)
+    is_active = models.BooleanField(
+        verbose_name="Organisation active",
+        default=False,
+        )
 
     is_crige_partner = models.BooleanField(
-        verbose_name='Organisation partenaire du CRIGE', default=False)
+        verbose_name="Organisation partenaire du CRIGE",
+        default=False,
+        )
 
     geonet_id = models.UUIDField(
-        verbose_name='UUID de la métadonnées', unique=True,
-        db_index=True, blank=True, null=True)
-
-    class Meta(object):
-        ordering = ['name']
+        verbose_name="UUID de la métadonnées",
+        unique=True,
+        db_index=True,
+        blank=True,
+        null=True,
+        )
 
     def __str__(self):
-        return self.name
+        return self.legal_name
 
     @property
     def logo_url(self):
         try:
             return urljoin(settings.DOMAIN_NAME, self.logo.url)
         except (ValueError, Exception) as e:
-            print(e)
             return None
 
     @property
@@ -298,7 +358,7 @@ class RemoteCkan(models.Model):
                                 # 'owner_email': package.get('author_email', None),
                                 'owner_email': self.organisation.email or DEFAULT_CONTACT_EMAIL,
                                 # 'owner_name': package.get('author', None),
-                                'owner_name': self.organisation.name or DEFAULT_PLATFORM_NAME,
+                                'owner_name': self.organisation.legal_name or DEFAULT_PLATFORM_NAME,
                                 'organisation': self.organisation,
                                 'published': not package.get('private', False),
                                 'thumbnail': None,

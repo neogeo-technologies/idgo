@@ -51,10 +51,10 @@ class OrganisationForm(forms.ModelForm):
 
 
 class OrganisationAdmin(geo_admin.OSMGeoAdmin):
-    list_display = ['name', 'organisation_type']
-    search_fields = ['name']
+    list_display = ['legal_name', 'organisation_type']
+    search_fields = ['legal_name']
     list_filter = ['organisation_type']
-    ordering = ['name']
+    ordering = ['legal_name']
     readonly_fields = ['slug']
     form = OrganisationForm
     actions = [send_email_to_crige_membership]

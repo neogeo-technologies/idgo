@@ -162,7 +162,7 @@ class OrganisationLogoField(forms.ImageField):
         super().__init__(*args, **kwargs)
 
 
-class OrganisatioNameField(forms.CharField):
+class OrganisatioLegalNameField(forms.CharField):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label', "Dénomination sociale*")

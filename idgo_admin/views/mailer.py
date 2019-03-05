@@ -151,7 +151,7 @@ def confirm_new_orga(request, key):
     action = get_object_or_404(
         AccountActions, key=UUID(key), action='confirm_new_organisation')
 
-    name = action.organisation.name
+    name = action.organisation.legal_name
     if action.closed:
         message = \
             "La création de l'organisation <strong>{0}</strong> a déjà été confirmée.".format(name)
@@ -180,7 +180,7 @@ def confirm_rattachement(request, key):
     if action.closed:
         action.profile.membership = True
         action.profile.save()
-        name = action.organisation.name
+        name = action.organisation.legal_name
         user = action.profile.user
         message = (
             "Le rattachement de <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) "
@@ -190,7 +190,7 @@ def confirm_rattachement(request, key):
                      username=user.username,
                      organization_name=name)
     else:
-        name = action.organisation.name
+        name = action.organisation.legal_name
         user = action.profile.user
         if not action.organisation.is_active:
             message = (
@@ -240,7 +240,7 @@ def confirm_referent(request, key):
             "Le rôle de référent technique de l'organisation "
             '<strong>{organization_name}</strong> '
             "a déjà été confirmée pour <strong>{username}</strong>."
-            ).format(organization_name=organisation.name,
+            ).format(organization_name=organisation.legal_name,
                      username=user.username)
     else:
         try:
@@ -260,7 +260,7 @@ def confirm_referent(request, key):
                     ).format(first_name=user.first_name,
                              last_name=user.last_name,
                              username=user.username,
-                             organization_name=organisation.name)
+                             organization_name=organisation.legal_name)
                 status = 200
             else:
                 # Fix confirmation referent == confirmation LiaisonContributeur
@@ -281,7 +281,7 @@ def confirm_referent(request, key):
                         "Le rôle de référent technique de l'organisation "
                         '<strong>{organization_name}</strong> '
                         "a bien été confirmé pour <strong>{username}</strong>."
-                        ).format(organization_name=organisation.name,
+                        ).format(organization_name=organisation.legal_name,
                                  username=user.username)
                     status = 200
                     send_confirmed_referent_mail(user, organisation)
@@ -302,7 +302,7 @@ def confirm_contribution(request, key):
         message = (
             "Le rôle de contributeur pour l'organisation <strong>{organization_name}</strong> "
             "a déjà été confirmée pour <strong>{username}</strong>."
-            ).format(organization_name=organisation.name,
+            ).format(organization_name=organisation.legal_name,
                      username=action.profile.user.username)
         status = 200
 
@@ -326,7 +326,7 @@ def confirm_contribution(request, key):
                     ).format(first_name=user.first_name,
                              last_name=user.last_name,
                              username=user.username,
-                             organization_name=organisation.name)
+                             organization_name=organisation.legal_name)
                 status = 200
             else:
                 contrib_liaison.validated_on = timezone.now()
@@ -337,7 +337,7 @@ def confirm_contribution(request, key):
                 message = (
                     "Le rôle de contributeur pour l'organisation <strong>{organization_name}</strong> "
                     "a bien été confirmé pour <strong>{username}</strong>."
-                    ).format(organization_name=organisation.name,
+                    ).format(organization_name=organisation.legal_name,
                              username=user.username)
                 status = 200
                 send_confirmed_contribution_mail(user, organisation)

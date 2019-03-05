@@ -202,7 +202,7 @@ class MRAHandler(metaclass=Singleton):
             'workspace': {
                 'name': organisation.slug,
                 # TODO: Corriger le problème d'encodage dans MRA
-                'title': kill_all_special_characters(organisation.name),
+                'title': kill_all_special_characters(organisation.legal_name),
                 'abstract': kill_all_special_characters(organisation.description),
                 # END TODO
                 'srs': srs}}

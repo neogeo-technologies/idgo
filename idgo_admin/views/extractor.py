@@ -504,7 +504,7 @@ class Extractor(View):
             'user_email_address': user.email,
             'user_name': user.last_name,
             'user_first_name': user.first_name,
-            'user_company': user.profile.organisation and user.profile.organisation.name or '',
+            'user_company': user.profile.organisation and user.profile.organisation.legal_name or '',
             'user_address': user.profile.organisation and user.profile.organisation.full_address or '',
             'data_extractions': data_extractions,
             'additional_files': additional_files}

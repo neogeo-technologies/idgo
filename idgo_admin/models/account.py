@@ -217,7 +217,7 @@ class LiaisonsReferents(models.Model):
         return '{full_name} ({username})--{organisation}'.format(
             full_name=self.profile.user.get_full_name(),
             username=self.profile.user.username,
-            organisation=self.organisation.name)
+            organisation=self.organisation.legal_name)
 
     @classmethod
     def get_subordinated_organizations(cls, profile):
@@ -258,7 +258,7 @@ class LiaisonsContributeurs(models.Model):
         return '{full_name} ({username})--{organisation}'.format(
             full_name=self.profile.user.get_full_name(),
             username=self.profile.user.username,
-            organisation=self.organisation.name)
+            organisation=self.organisation.legal_name)
 
     @classmethod
     def get_contribs(cls, profile):
@@ -348,7 +348,7 @@ class AccountActions(models.Model):
         null=True)
 
     def orga_name(self):
-        return self.organisation and str(self.organisation.name) or 'N/A'
+        return self.organisation and str(self.organisation.legal_name) or 'N/A'
 
     orga_name.short_description = "Nom de l'organisation concernée"
 

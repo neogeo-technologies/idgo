@@ -33,7 +33,7 @@ from idgo_admin.forms import FirstNameField
 from idgo_admin.forms import JurisdictionField
 from idgo_admin.forms import LastNameField
 from idgo_admin.forms import LicenseField
-from idgo_admin.forms import OrganisatioNameField
+from idgo_admin.forms import OrganisatioLegalNameField
 from idgo_admin.forms import OrganisationLogoField
 from idgo_admin.forms import OrganisationTypeField
 from idgo_admin.forms import PasswordField
@@ -315,7 +315,7 @@ class SignUpForm(forms.Form):
         widget=OrganisationSelect(attrs={"crige": False}))
 
     # Organisation fields
-    new_orga = OrganisatioNameField()
+    new_orga = OrganisatioLegalNameField()
     logo = OrganisationLogoField()
     address = AddressField()
     city = CityField()
@@ -378,7 +378,7 @@ class SignUpForm(forms.Form):
     def cleaned_organisation_data(self):
         data = dict((item, self.cleaned_data.get(item))
                     for item in self.Meta.organisation_fields)
-        data['name'] = data.pop('new_orga')
+        data['legal_name'] = data.pop('new_orga')
         return data
 
     @property

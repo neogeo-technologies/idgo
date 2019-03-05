@@ -74,7 +74,7 @@ def prefill_dataset_model(dataset):
 
     default_contact = {
         'individualName': editor.get_full_name(),
-        'organisationName': organisation.name,
+        'organisationName': organisation.legal_name,
         'email': organisation.email,
         'phoneVoice': organisation.phone,
         'deliveryPoint': organisation.address,
@@ -171,7 +171,7 @@ def prefill_service_model(organisation):
 
     default_contact = {
         # 'individualName': editor.get_full_name(),
-        'organisationName': organisation.name,
+        'organisationName': organisation.legal_name,
         'email': organisation.email,
         'phoneVoice': organisation.phone,
         'deliveryPoint': organisation.address,
