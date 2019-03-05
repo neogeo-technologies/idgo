@@ -29,7 +29,6 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.ckan_module import CkanHandler
-from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
@@ -304,7 +303,7 @@ def get_all_organisations(profile, strict=False):
 
     return [{
         'id': instance.slug,
-        'name': instance.name
+        'legal_name': instance.legal_name
         } for instance in Organisation.objects.filter(is_active=True, **filters)]
 
 
@@ -353,7 +352,7 @@ def get_datasets(profile, qs, strict=False, harvested=False):
 
     q = qs.get('q', None)
     if q:
-        filters['name__icontains'] = q
+        filters['title__icontains'] = q
         # filters['description__icontains'] = q
 
     private = {'true': True, 'false': False}.get(qs.get('private', '').lower())
@@ -421,7 +420,7 @@ def datasets(request, target, *args, **kwargs):
     if order_by:
         if order_by.endswith('organisation'):
             # Trier par le nom de l'organisation
-            order_by = '{}__name'.format(order_by)
+            order_by = '{}__slug'.format(order_by)
         if order_by.endswith('editor'):
             # Trier par le nom de famille de l'utilisateur
             order_by = '{}__last_name'.format(order_by)

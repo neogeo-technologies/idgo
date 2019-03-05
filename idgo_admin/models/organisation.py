@@ -354,7 +354,7 @@ class RemoteCkan(models.Model):
                                 'granularity': None,
                                 'is_inspire': False,
                                 # 'license': license,
-                                'name': package.get('title', None),
+                                'title': package.get('title', None),
                                 # 'owner_email': package.get('author_email', None),
                                 'owner_email': self.organisation.email or DEFAULT_CONTACT_EMAIL,
                                 # 'owner_name': package.get('author', None),
@@ -386,15 +386,16 @@ class RemoteCkan(models.Model):
                                     logger.error("I can't crash here, so I do not pay any attention to this error.")
                                     continue
 
-                                format_type, _ = \
-                                    ResourceFormats.objects.get_or_create(
-                                        extension=resource['format'].upper())
+                                try:
+                                    format_type = ResourceFormats.objects.get(extension=resource['format'].upper())
+                                except ResourceFormats.DoesNotExist:
+                                    format_type = None
 
                                 kvp = {
                                     'ckan_id': ckan_id,
                                     'dataset': dataset,
                                     'format_type': format_type,
-                                    'name': resource['name'],
+                                    'title': resource['name'],
                                     'referenced_url': resource['url']}
 
                                 try:

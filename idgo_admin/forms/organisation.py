@@ -154,7 +154,7 @@ class RemoteCkanForm(forms.ModelForm):
                 self.add_error('url', e.message)
             else:
                 self.fields['sync_with'].choices = (
-                    (organisation['legal_name'], '{} ({})'.format(
+                    (organisation['name'], '{} ({})'.format(
                         organisation['display_name'],
                         organisation.get(
                             'package_count',
