@@ -55,7 +55,7 @@ class ActionsManager(View):
             message = (
                 'Le jeu de données <strong>{0}</strong> '
                 'est maintenant en accès <strong>{1}</strong>.'
-                ).format(dataset.name, dataset.published and 'public' or 'privé')
+                ).format(dataset.title, dataset.published and 'public' or 'privé')
             status = 200
 
         return render(request, 'idgo_admin/response.html',

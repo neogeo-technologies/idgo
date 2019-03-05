@@ -316,7 +316,7 @@ class Layer(models.Model):
         MRAHandler.get_or_create_coveragestore(ws_name, cs_name, filename=self.filename)
         MRAHandler.get_or_create_coverage(
             ws_name, cs_name, self.name, enabled=True,
-            title=self.resource.name, abstract=self.resource.description)
+            title=self.resource.title, abstract=self.resource.description)
 
     def save_vector_layer(self, *args, **kwargs):
         """Synchronizer la couche de données vectorielle avec le service OGC via MRA."""
@@ -348,7 +348,7 @@ class Layer(models.Model):
         MRAHandler.get_or_create_datastore(ws_name, ds_name)
         MRAHandler.get_or_create_featuretype(
             ws_name, ds_name, self.name, enabled=True,
-            title=self.resource.name, abstract=self.resource.description)
+            title=self.resource.title, abstract=self.resource.description)
 
     def synchronize(self, with_user=None):
         """Synchronizer le jeu de données avec l'instance de CKAN."""
@@ -358,7 +358,7 @@ class Layer(models.Model):
         # =============================================
 
         id = self.name
-        name = 'Aperçu cartographique'.format(name=self.resource.name)
+        name = 'Aperçu cartographique'.format(name=self.resource.title)
         description = self.resource.description
         organisation = self.resource.dataset.organisation
 
@@ -431,7 +431,7 @@ class Layer(models.Model):
         MRAHandler.create_or_update_layergroup(
             dataset.organisation.ckan_slug, {
                 'name': dataset.ckan_slug,
-                'title': dataset.name,
+                'title': dataset.title,
                 'abstract': dataset.description,
                 'layers': [layer.name for layer in layers]})
 

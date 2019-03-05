@@ -95,13 +95,13 @@ class DatasetForm(forms.ModelForm):
             'support',
             'thumbnail',
             'update_freq',
-            'name',
+            'title',
             'ckan_slug')
 
     class CustomClearableFileInput(forms.ClearableFileInput):
         template_name = 'idgo_admin/widgets/file_drop_zone.html'
 
-    name = forms.CharField(
+    title = forms.CharField(
         label='Titre*',
         required=True,
         widget=forms.Textarea(
@@ -277,7 +277,7 @@ class DatasetForm(forms.ModelForm):
 
     def clean(self):
 
-        name = self.cleaned_data.get('name')
+        title = self.cleaned_data.get('title')
 
         if not re.match('^[a-z0-9\-]{1,100}$', self.cleaned_data.get('ckan_slug')):
             self.add_error('ckan_slug', (
@@ -287,14 +287,14 @@ class DatasetForm(forms.ModelForm):
 
         if self.include_args['identification']:
             dataset = Dataset.objects.get(id=self.include_args['id'])
-            if name != dataset.name and Dataset.objects.filter(name=name).exists():
-                self.add_error('name', 'Ce nom est réservé.')
-                raise ValidationError('NameError')
+            if title != dataset.title and Dataset.objects.filter(title=title).exists():
+                self.add_error('title', 'Ce nom est réservé.')
+                raise ValidationError("Dataset '{0}' already exists".format(title))
 
         if not self.include_args['identification'] \
-                and Dataset.objects.filter(name=name).exists():
-            self.add_error('name', 'Le jeu de données "{0}" existe déjà'.format(name))
-            raise ValidationError("Dataset '{0}' already exists".format(name))
+                and Dataset.objects.filter(title=title).exists():
+            self.add_error('title', 'Le jeu de données "{0}" existe déjà'.format(title))
+            raise ValidationError("Dataset '{0}' already exists".format(title))
 
         kwords = self.cleaned_data.get('keywords')
         if kwords:

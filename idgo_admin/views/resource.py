@@ -198,7 +198,7 @@ class ResourceManager(View):
             'geo_restriction': data['geo_restriction'],
             'lang': data['lang'],
             'last_update': data['last_update'],
-            'name': data['name'],
+            'title': data['title'],
             'ogc_services': data['ogc_services'],
             'referenced_url': data['referenced_url'],
             'restricted_level': data['restricted_level'],
@@ -206,12 +206,14 @@ class ResourceManager(View):
             'synchronisation': data['synchronisation'],
             'up_file': data['up_file']}
 
-        if data['restricted_level'] == '2':
-            kvp['profiles_allowed'] = data['profiles_allowed']
-        if data['restricted_level'] == '3':
-            kvp['organisations_allowed'] = [form._dataset.organisation]
-        if data['restricted_level'] == '4':
-            kvp['organisations_allowed'] = data['organisations_allowed']
+        profiles_allowed = None
+        organisations_allowed = None
+        if data['restricted_level'] == 'only_allowed_users':
+            profiles_allowed = data['profiles_allowed']
+        elif data['restricted_level'] == 'same_organization':
+            organisations_allowed = [form._dataset.organisation]
+        elif data['restricted_level'] == 'any_organization':
+            organisations_allowed = data['organisations_allowed']
 
         memory_up_file = request.FILES.get('up_file')
         file_extras = memory_up_file and {
@@ -224,15 +226,21 @@ class ResourceManager(View):
                 save_opts = {
                     'current_user': user,
                     'file_extras': file_extras,
-                    'synchronize': True}
+                    'synchronize': False}
+                if not id:
+                    print(save_opts)
+                    resource = Resource.default.create(save_opts=save_opts, **kvp)
                 if id:
                     resource = Resource.objects.get(pk=id)
                     for k, v in kvp.items():
                         setattr(resource, k, v)
-                    resource.save(**save_opts)
-                else:
-                    save_opts['current_user'] = user
-                    resource = Resource.default.create(save_opts=save_opts, **kvp)
+
+                if organisations_allowed:
+                    resource.organisations_allowed = organisations_allowed
+                if profiles_allowed:
+                    resource.profiles_allowed = profiles_allowed
+                save_opts['synchronize'] = True
+                resource.save(**save_opts)
 
         except ValidationError as e:
             if e.code == 'crs':

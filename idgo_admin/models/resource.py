@@ -105,7 +105,8 @@ class ResourceFormats(models.Model):
         ('text_view', 'text_view'),
         ('geo_view', 'geo_view'),
         ('recline_view', 'recline_view'),
-        ('pdf_view', 'pdf_view'))
+        ('pdf_view', 'pdf_view'),
+        )
 
     ckan_view = models.CharField(
         verbose_name='Vue', max_length=100,
@@ -154,31 +155,50 @@ class Resource(models.Model):
     # Champs atributaires
     # ===================
 
-    name = models.CharField(
-        verbose_name='Nom', max_length=150)
-
     ckan_id = models.UUIDField(
-        verbose_name='Ckan UUID', default=uuid.uuid4, editable=False)
+        verbose_name='Ckan UUID',
+        default=uuid.uuid4,
+        editable=False,
+        unique=True,
+        )
+
+    title = models.TextField(
+        verbose_name='Title',
+        )
 
     description = models.TextField(
-        verbose_name='Description', blank=True, null=True)
+        verbose_name='Description',
+        blank=True,
+        null=True,
+        )
 
     ftp_file = models.FileField(
         verbose_name='Fichier déposé sur FTP',
-        blank=True, null=True,
-        upload_to=only_reference_filename)
+        blank=True,
+        null=True,
+        upload_to=only_reference_filename,
+        )
 
     referenced_url = models.URLField(
         verbose_name='Référencer une URL',
-        max_length=2000, blank=True, null=True)
+        max_length=2000,
+        blank=True,
+        null=True,
+        )
 
     dl_url = models.URLField(
         verbose_name='Télécharger depuis une URL',
-        max_length=2000, blank=True, null=True)
+        max_length=2000,
+        blank=True,
+        null=True,
+        )
 
     up_file = models.FileField(
         verbose_name='Téléverser un ou plusieurs fichiers',
-        blank=True, null=True, upload_to=upload_resource)
+        blank=True,
+        null=True,
+        upload_to=upload_resource,
+        )
 
     LANG_CHOICES = (
         ('french', 'Français'),
@@ -188,65 +208,107 @@ class Resource(models.Model):
         ('other', 'Autre'))
 
     lang = models.CharField(
-        verbose_name='Langue', choices=LANG_CHOICES,
-        default='french', max_length=10)
+        verbose_name='Langue',
+        choices=LANG_CHOICES,
+        default='french',
+        max_length=10,
+        )
 
     format_type = models.ForeignKey(
-        ResourceFormats, verbose_name='Format', default=0)
+        to='ResourceFormats',
+        verbose_name='Format',
+        default=0,
+        )
 
     LEVEL_CHOICES = (
-        ('0', 'Tous les utilisateurs'),
-        ('1', 'Utilisateurs authentifiés'),
-        ('2', 'Utilisateurs authentifiés avec droits spécifiques'),
-        ('3', 'Utilisateurs de cette organisation uniquement'),
-        ('4', 'Organisations spécifiées'))
+        ('public', 'Tous les utilisateurs'),
+        ('registered', 'Utilisateurs authentifiés'),
+        ('only_allowed_users', 'Utilisateurs authentifiés avec droits spécifiques'),
+        ('same_organization', 'Utilisateurs de cette organisation uniquement'),
+        ('any_organization', 'Organisations spécifiées'),
+        )
 
     restricted_level = models.CharField(
-        verbose_name="Restriction d'accès", choices=LEVEL_CHOICES,
-        default='0', max_length=20, blank=True, null=True)
+        verbose_name="Restriction d'accès",
+        choices=LEVEL_CHOICES,
+        default='public',
+        max_length=20,
+        blank=True,
+        null=True,
+        )
 
     profiles_allowed = models.ManyToManyField(
-        to='Profile', verbose_name='Utilisateurs autorisés', blank=True)
+        to='Profile',
+        verbose_name='Utilisateurs autorisés',
+        blank=True,
+        )
 
     organisations_allowed = models.ManyToManyField(
-        to='Organisation', verbose_name='Organisations autorisées', blank=True)
+        to='Organisation',
+        verbose_name='Organisations autorisées',
+        blank=True,
+        )
 
     dataset = models.ForeignKey(
-        to='Dataset', verbose_name='Jeu de données',
-        on_delete=models.SET_NULL, blank=True, null=True)
+        to='Dataset',
+        verbose_name='Jeu de données',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        )
 
     bbox = models.PolygonField(
-        verbose_name='Rectangle englobant', blank=True, null=True, srid=4171)
+        verbose_name='Rectangle englobant',
+        blank=True,
+        null=True,
+        srid=4171,
+        )
 
     geo_restriction = models.BooleanField(
-        verbose_name='Restriction géographique', default=False)
+        verbose_name='Restriction géographique',
+        default=False,
+        )
 
     extractable = models.BooleanField(
-        verbose_name='Extractible', default=True)
+        verbose_name='Extractible',
+        default=True,
+        )
 
     ogc_services = models.BooleanField(
-        verbose_name='Services OGC', default=True)
+        verbose_name='Services OGC',
+        default=True,
+        )
 
     created_on = models.DateTimeField(
         verbose_name='Date de création de la resource',
-        blank=True, null=True, default=timezone.now)
+        blank=True,
+        null=True,
+        default=timezone.now,
+        )
 
     last_update = models.DateTimeField(
         verbose_name='Date de dernière modification de la resource',
-        blank=True, null=True)
+        blank=True,
+        null=True,
+        )
 
     TYPE_CHOICES = (
         ('raw', 'Données brutes'),
         ('annexe', 'Documentation associée'),
-        ('service', 'Service'))
+        ('service', 'Service'),
+        )
 
     data_type = models.CharField(
         verbose_name='Type de la ressource',
-        choices=TYPE_CHOICES, max_length=10, default='raw')
+        choices=TYPE_CHOICES,
+        max_length=10,
+        default='raw',
+        )
 
     synchronisation = models.BooleanField(
         verbose_name='Synchronisation de données distante',
-        default=False)
+        default=False,
+        )
 
     FREQUENCY_CHOICES = (
         ('never', 'Jamais'),
@@ -256,7 +318,8 @@ class Resource(models.Model):
         ('monthly', 'Mensuelle (1er de chaque mois)'),
         ('quarterly', 'Trimestrielle (1er des mois de janvier, avril, juillet, octobre)'),
         ('biannual', 'Semestrielle (1er janvier et 1er juillet)'),
-        ('annual', 'Annuelle (1er janvier)'))
+        ('annual', 'Annuelle (1er janvier)'),
+        )
 
     sync_frequency = models.CharField(
         verbose_name='Fréquence de synchronisation',
@@ -264,20 +327,25 @@ class Resource(models.Model):
         blank=True,
         null=True,
         choices=FREQUENCY_CHOICES,
-        default='never')
+        default='never',
+        )
 
     crs = models.ForeignKey(
-        to='SupportedCrs', verbose_name='CRS',
-        on_delete=models.SET_NULL, blank=True, null=True)
+        to='SupportedCrs',
+        verbose_name='CRS',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        )
 
     class Meta(object):
         verbose_name = 'Ressource'
 
     def __str__(self):
-        return self.name
+        return self.title
 
     def __slug__(self):
-        return slugify(self.name)
+        return slugify(self.title)
 
     # Propriétés
     # ==========
@@ -299,7 +367,7 @@ class Resource(models.Model):
             return self.ftp_file.name
         if self.up_file:
             return self.up_file.name
-        return '{}.{}'.format(slugify(self.name), self.format.lower())
+        return '{}.{}'.format(slugify(self.title), self.format.lower())
 
     @property
     def ckan_url(self):
@@ -313,12 +381,12 @@ class Resource(models.Model):
         return [l.name for l in qs]
 
     @property
-    def name_overflow(self):
-        return three_suspension_points(self.name)
+    def title_overflow(self):
+        return three_suspension_points(self.title)
 
     @property
     def anonymous_access(self):
-        return self.restricted_level == '0'
+        return self.restricted_level == 'public'
 
     @property
     def is_datagis(self):
@@ -351,9 +419,6 @@ class Resource(models.Model):
 
     # Méthodes héritées
     # =================
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     def save(self, *args, current_user=None, synchronize=False, file_extras=None, **kwargs):
 
@@ -730,8 +795,9 @@ class Resource(models.Model):
             remove_file(filename)
 
         # [Crado] on met à jour la ressource CKAN
-        CkanHandler.update_resource(
-            str(self.ckan_id), extracting_service=str(self.extractable))
+        if synchronize:
+            CkanHandler.update_resource(
+                str(self.ckan_id), extracting_service=str(self.extractable))
 
         for layer in self.get_layers():
             layer.save()
@@ -779,7 +845,7 @@ class Resource(models.Model):
 
         data = {
             'crs': self.crs and self.crs.description or '',
-            'name': self.name,
+            'name': self.title,
             'description': self.description,
             'data_type': self.data_type,
             'extracting_service': 'False',  # I <3 CKAN
@@ -794,13 +860,13 @@ class Resource(models.Model):
         # TODO: Factoriser
 
         # (0) Aucune restriction
-        if self.restricted_level == '0':
+        if self.restricted_level == 'public':
             restricted = json.dumps({'level': 'public'})
         # (1) Uniquement pour un utilisateur connecté
-        elif self.restricted_level == '1':
+        elif self.restricted_level == 'registered':
             restricted = json.dumps({'level': 'registered'})
         # (2) Seulement les utilisateurs indiquées
-        elif self.restricted_level == '2':
+        elif self.restricted_level == 'only_allowed_users':
             restricted = json.dumps({
                 'allowed_users': ','.join(
                     self.profiles_allowed.exists() and [
@@ -808,14 +874,14 @@ class Resource(models.Model):
                         in self.profiles_allowed.all()] or []),
                 'level': 'only_allowed_users'})
         # (3) Les utilisateurs de cette organisation
-        elif self.restricted_level == '3':
+        elif self.restricted_level == 'same_organization':
             restricted = json.dumps({
                 'allowed_users': ','.join(
                     get_all_users_for_organizations(
                         self.organisations_allowed.all())),
                 'level': 'only_allowed_users'})
         # (3) Les utilisateurs des organisations indiquées
-        elif self.restricted_level == '4':
+        elif self.restricted_level == 'any_organization':
             restricted = json.dumps({
                 'allowed_users': ','.join(
                     get_all_users_for_organizations(
@@ -826,28 +892,23 @@ class Resource(models.Model):
 
         if self.referenced_url:
             data['url'] = self.referenced_url
-            # data['resource_type'] = '{0}.{1}'.format(
-            #     self.name, self.format_type.ckan_view)
 
         if self.dl_url and filename:
             downloaded_file = File(open(filename, 'rb'))
             data['upload'] = downloaded_file
             data['size'] = downloaded_file.size
             data['mimetype'] = content_type
-            # data['resource_type'] = Path(filename).name
 
         if self.up_file and file_extras:
             data['upload'] = self.up_file.file
             data['size'] = file_extras.get('size')
             data['mimetype'] = file_extras.get('mimetype')
-            # data['resource_type'] = file_extras.get('resource_type')
 
         if self.ftp_file:
             if not url:
                 data['upload'] = self.ftp_file.file
             data['size'] = self.ftp_file.size
             data['mimetype'] = None  # TODO
-            # data['resource_type'] = Path(self.ftp_file.name).name
 
         if self.data_type == 'raw':
             if self.ftp_file or self.dl_url or self.up_file:
@@ -882,10 +943,10 @@ class Resource(models.Model):
         Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
         if not user.pk:
             raise IntegrityError('User does not exists')
-        if self.restricted_level == '2' and self.profiles_allowed.exists():
+        if self.restricted_level == 'only_allowed_users' and self.profiles_allowed.exists():
             return user in [
                 p.user for p in self.profiles_allowed.all()]
-        elif self.restricted_level in ('3', '4') and self.organisations_allowed.exists():
+        elif self.restricted_level in ('same_organization', 'any_organization') and self.organisations_allowed.exists():
             return user in [p.user for p in Profile.objects.filter(
                 organisation__in=self.organisations_allowed.all(),
                 organisation__is_active=True)]

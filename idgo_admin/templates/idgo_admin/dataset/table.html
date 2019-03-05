@@ -2,7 +2,7 @@
 	<div class="table-responsive">
 		<table class="board table table-striped table-bordered table-hover table-condensed">
 			<tr>
-				<th name="name">Nom <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
+				<th name="title">Titre <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
 				<th name="date_creation">Créé <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
 				<th name="date_modification">Modifié <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
 				<th name="date_publication">Publié <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
@@ -17,7 +17,7 @@
 			</tr>
 			{% for dataset in datasets %}
 			<tr id="{{ dataset.id }}" name="{{ dataset.ckan_slug }}">
-				<td name="name">{{ dataset.name }}</td>
+				<td name="title">{{ dataset.title }}</td>
 				<td name="date_creation">{{ dataset.date_creation|date:"d/m/y"|default:"" }}</td>
 				<td name="date_modification">{{ dataset.date_modification|date:"d/m/y"|default:"" }}</td>
 				<td name="date_publication">{{ dataset.date_publication|date:"d/m/y"|default:"" }}</td>
@@ -214,7 +214,7 @@ $(function() {
 					.prop('placeholder', 'Nom du jeu de données à supprimer')
 					.on('input', function(e) {
 						e.preventDefault();
-						if ($(this).val().trim() === $row.find('td[name="name"]')[0].innerText.trim()) {
+						if ($(this).val().trim() === $row.find('td[name="title"]')[0].innerText.trim()) {
 							$button.removeClass('disabled').prop('disabled', false);
 						} else {
 							$button.addClass('disabled').prop('disabled', true);

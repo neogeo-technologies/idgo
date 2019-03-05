@@ -57,8 +57,8 @@ class Command(BaseCommand):
             dataset = resource.dataset
             data.append((
                 item.state, item.starting.isoformat(),
-                item.end.isoformat(), dataset.id, dataset.name,
-                resource.id, resource.name, item.extras.get('error', None)))
+                item.end.isoformat(), dataset.id, dataset.title,
+                resource.id, resource.title, item.extras.get('error', None)))
 
         f = StringIO()
         csv.writer(f).writerows(data)

@@ -97,7 +97,7 @@ def prefill_dataset_model(dataset):
     data['mdContacts'].insert(0, md_contacts)
     data['dataPointOfContacts'].insert(0, md_data_point_of_contacts)
 
-    data['dataTitle'] = dataset.name
+    data['dataTitle'] = dataset.title
     data['dataAbstract'] = dataset.description
 
     if dataset.date_creation:
@@ -149,7 +149,7 @@ def prefill_dataset_model(dataset):
     resources = Resource.objects.filter(dataset=dataset)
     for resource in resources:
         entry = {
-            'name': resource.name,
+            'name': resource.title,
             'url': '{0}/dataset/{1}/resource/{2}'.format(
                 CKAN_URL, dataset.ckan_slug, resource.ckan_id),
             'description': resource.description}

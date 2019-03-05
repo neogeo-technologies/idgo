@@ -75,7 +75,7 @@ def serialize(resource):
 
     return OrderedDict([
         ('id', resource.ckan_id),
-        ('title', resource.name),
+        ('title', resource.title),
         ('description', resource.description),
         ('format', format),
         ('source', source),
@@ -105,7 +105,7 @@ def handle_pust_request(request, dataset_name, resource_id=None):
     # language -> lang
     # format -> format_type.pk
     # type -> data_type raw|annexe|service
-    # restricted_level -> public|registered-users|allowed-users|within-my-organisation|allowed-organisations
+    # restricted_level -> public|registered|only_allowed_users|same_organization|any_organization
     # restricted_list -> list of: user.username|organisation.ckan_slug
     # up_file -> {File}
     user = request.user
@@ -119,24 +119,15 @@ def handle_pust_request(request, dataset_name, resource_id=None):
 
     data = getattr(request, request.method).dict()
 
-    # TODO Pas terrible, on devrait s'en passer
-    restricted_level = {
-        'public': 0,
-        'registered': 1,
-        'only_allowed_users': 2,
-        'same_organization': 3,
-        'any_organization': 4,
-        }.get(data.get('restricted_level', 'public'))
-
     restricted_list = data.get('restricted_list', [])
     profiles_allowed = None
     organisations_allowed = None
-    if restricted_level == 2:
-        profiles_allowed = \
-            User.objects.filter(username__in=restricted_list)
-    elif restricted_level > 2:
-        organisations_allowed = \
-            Organisation.objects.filter(ckan_slug__in=restricted_list)
+
+    restricted_level = data.get('restricted_level')
+    if restricted_level == 'only_allowed_users':
+        profiles_allowed = User.objects.filter(username__in=restricted_list)
+    elif restricted_level in ('same_organization', 'any_organization'):
+        organisations_allowed = Organisation.objects.filter(ckan_slug__in=restricted_list)
 
     data_form = {
         'name': data.get('title'),
@@ -190,11 +181,11 @@ def handle_pust_request(request, dataset_name, resource_id=None):
         'geo_restriction': data['geo_restriction'],
         }
 
-    if data['restricted_level'] == '2':
+    if data['restricted_level'] == 'only_allowed_users':
         kvp['profiles_allowed'] = data['profiles_allowed']
-    if data['restricted_level'] == '3':
+    if data['restricted_level'] == 'same_organization':
         kvp['organisations_allowed'] = [form._dataset.organisation]
-    if data['restricted_level'] == '4':
+    if data['restricted_level'] == 'any_organization':
         kvp['organisations_allowed'] = data['organisations_allowed']
 
     memory_up_file = request.FILES.get('up_file')

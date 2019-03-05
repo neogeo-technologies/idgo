@@ -136,7 +136,7 @@ class ResourceForm(forms.ModelForm):
                   'ftp_file',
                   'geo_restriction',
                   'lang',
-                  'name',
+                  'title',
                   'ogc_services',
                   'organisations_allowed',
                   'profiles_allowed',
@@ -146,7 +146,6 @@ class ResourceForm(forms.ModelForm):
                   'sync_frequency',
                   'up_file')
 
-    # _instance = None
     _dataset = None
 
     class CustomClearableFileInput(forms.ClearableFileInput):
@@ -166,7 +165,7 @@ class ResourceForm(forms.ModelForm):
                 'value': None,
                 'max_size_info': DOWNLOAD_SIZE_LIMIT}))
 
-    name = forms.CharField(
+    title = forms.CharField(
         label='Titre*',
         widget=forms.TextInput(
             attrs={'placeholder': 'Titre'}))

@@ -86,7 +86,7 @@ class ResourceInline(admin.StackedInline):
         (None, {
             'classes': ['wide'],
             'fields': [
-                ('name', 'description', ),
+                ('title', 'description', ),
                 ('referenced_url', 'dl_url', 'up_file'),
                 'lang',
                 'format_type',
@@ -114,14 +114,14 @@ class MyDataSetForm(forms.ModelForm):
 
 
 class DatasetAdmin(admin.ModelAdmin):
-    list_display = ['name', 'name_editor', 'nb_resources']
+    list_display = ['title', 'name_editor', 'nb_resources']
     inlines = [ResourceInline]
-    ordering = ['name']
+    ordering = ['title']
     form = MyDataSetForm
     can_add_related = True
     can_delete_related = True
     readonly_fields = ['ckan_id', 'ckan_slug', 'geonet_id']
-    search_fields = ['name', 'editor__username']
+    search_fields = ['title', 'editor__username']
     actions = [synchronize]
 
     synchronize.short_description = 'Forcer la synchronisation des jeux de données'

@@ -118,6 +118,14 @@ class Organisation(models.Model):
         return self.name
 
     @property
+    def logo_url(self):
+        try:
+            return urljoin(settings.DOMAIN_NAME, self.logo.url)
+        except (ValueError, Exception) as e:
+            print(e)
+            return None
+
+    @property
     def full_address(self):
         return '{} - {} {}'.format(self.address, self.postcode, self.city)
 

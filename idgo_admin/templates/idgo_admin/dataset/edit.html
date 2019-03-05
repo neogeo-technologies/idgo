@@ -17,7 +17,7 @@
 	</div>
 	<div class="row">
 		<div class="col-xs-12">
-			{% bootstrap_field form.name %}
+			{% bootstrap_field form.title %}
 		</div>
 	</div>
 	<div class="row">
@@ -207,7 +207,7 @@ $(function() {
 	});
 
 
-	const $name = $('[name="{{ form.name.name }}"]')
+	const $name = $('[name="{{ form.title.name }}"]')
 	const $ckanSlug = $('[name="{{ form.ckan_slug.name }}"]').prop('readonly', true);
 
 	const btnText = 'Modifier le chemin';
