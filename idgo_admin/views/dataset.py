@@ -318,7 +318,7 @@ def get_all_datasets(profile, strict=False, harvested=False):
         # Le référent accède au jeux de données des organisations
         # pour lesquelles il est référent.
         filters = {
-            'organisation__in': LiaisonsReferents.get_subordinated_organizations(profile=profile)}
+            'organisation__in': LiaisonsReferents.get_subordinated_organisations(profile=profile)}
     else:
         # Un utilisateur classique ne voit que ses jeux de données
         filters = {'editor': profile.user}
@@ -344,7 +344,7 @@ def get_datasets(profile, qs, strict=False, harvested=False):
         filters['editor'] = profile.user
     else:
         filters['organisation__in'] = \
-            LiaisonsReferents.get_subordinated_organizations(profile=profile)
+            LiaisonsReferents.get_subordinated_organisations(profile=profile)
 
     organisation = qs.get('organisation', None)
     if organisation:

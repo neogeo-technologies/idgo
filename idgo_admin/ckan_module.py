@@ -170,13 +170,13 @@ class CkanBaseHandler(object):
         return self.remote.call_action(action, kwargs)
 
     @CkanExceptionsHandler()
-    def get_all_organizations(self, *args, **kwargs):
+    def get_all_organisations(self, *args, **kwargs):
         return [
             organisation for organisation
             in self.call_action('organization_list', **kwargs)]
 
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
-    def get_organization(self, id, **kwargs):
+    def get_organisation(self, id, **kwargs):
         try:
             return self.call_action('organization_show', id=id, **kwargs)
         except CkanError.NotFound:
@@ -324,7 +324,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
     @CkanExceptionsHandler()
     def del_user(self, username):
         # self.del_user_from_groups(username)
-        self.del_user_from_organizations(username)
+        self.del_user_from_organisations(username)
         self.call_action('user_delete', id=username)
 
     @CkanExceptionsHandler()
@@ -344,11 +344,11 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
         ckan_user.update({'state': 'active'})
         self.call_action('user_update', **ckan_user)
 
-    def is_organization_exists(self, id):
-        return self.get_organization(id) and True or False
+    def is_organisation_exists(self, id):
+        return self.get_organisation(id) and True or False
 
     @CkanExceptionsHandler(ignore=[ValueError])
-    def add_organization(self, organisation):
+    def add_organisation(self, organisation):
         params = {
             'id': str(organisation.ckan_id),
             'name': organisation.slug,
@@ -370,8 +370,8 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
         self.call_action('organization_create', **params)
 
     @CkanExceptionsHandler()
-    def update_organization(self, organisation):
-        ckan_organisation = self.get_organization(
+    def update_organisation(self, organisation):
+        ckan_organisation = self.get_organisation(
             str(organisation.ckan_id), include_datasets=True)
 
         ckan_organisation.update({
@@ -400,24 +400,24 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
                              organization_id=ckan_organisation['id'])
 
     @CkanExceptionsHandler()
-    def purge_organization(self, id):
+    def purge_organisation(self, id):
         return self.call_action('organization_purge', id=id)
 
     @CkanExceptionsHandler()
-    def activate_organization(self, id):
+    def activate_organisation(self, id):
         self.call_action('organization_update', id=id, state='active')
 
     @CkanExceptionsHandler()
-    def deactivate_organization(self, id):
+    def deactivate_organisation(self, id):
         self.call_action('organization_delete', id=id)
 
-    def deactivate_ckan_organization_if_empty(self, id):
-        organisation = self.get_organization(id)
+    def deactivate_ckan_organisation_if_empty(self, id):
+        organisation = self.get_organisation(id)
         if organisation and int(organisation.get('package_count')) < 1:
-            self.deactivate_organization(id)
+            self.deactivate_organisation(id)
 
     @CkanExceptionsHandler()
-    def get_organizations_which_user_belongs(
+    def get_organisations_which_user_belongs(
             self, username, permission='manage_group'):
         # permission=read|create_dataset|manage_group
         res = self.call_action(
@@ -425,7 +425,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
         return [d['name'] for d in res if d['is_organization']]
 
     @CkanExceptionsHandler()
-    def add_user_to_organization(
+    def add_user_to_organisation(
             self, username, organisation_id, role='editor'):
         # role=member|editor|admin
         self.call_action(
@@ -433,18 +433,18 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
             id=str(organisation_id), username=username, role=role)
 
     @CkanExceptionsHandler()
-    def del_user_from_organization(self, username, organisation_id):
+    def del_user_from_organisation(self, username, organisation_id):
         self.call_action(
             'organization_member_delete',
             id=str(organisation_id), username=username)
 
     @CkanExceptionsHandler()
-    def del_user_from_organizations(self, username):
-        organisations = self.get_organizations_which_user_belongs(username)
+    def del_user_from_organisations(self, username):
+        organisations = self.get_organisations_which_user_belongs(username)
         if not organisations:
             return
         for organisation_name in organisations:
-            self.del_user_from_organization(username, organisation_name)
+            self.del_user_from_organisation(username, organisation_name)
 
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
     def get_group(self, id, **kwargs):

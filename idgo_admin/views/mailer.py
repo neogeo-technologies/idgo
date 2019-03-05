@@ -159,7 +159,7 @@ def confirm_new_orga(request, key):
     else:
         action.organisation.is_active = True
         action.organisation.save()
-        # CkanHandler.add_organization(action.profile.organisation)  # TODO À la création du premier dataset
+        # CkanHandler.add_organisation(action.profile.organisation)  # TODO À la création du premier dataset
         action.closed = timezone.now()
         action.save()
         message = ("L'organisation <strong>{0}</strong> a bien été créée. "
@@ -184,11 +184,11 @@ def confirm_rattachement(request, key):
         user = action.profile.user
         message = (
             "Le rattachement de <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) "
-            "à l'organisation <strong>{organization_name}</strong> a déjà été confirmée."
+            "à l'organisation <strong>{organisation_name}</strong> a déjà été confirmée."
             ).format(first_name=user.first_name,
                      last_name=user.last_name,
                      username=user.username,
-                     organization_name=name)
+                     organisation_name=name)
     else:
         name = action.organisation.legal_name
         user = action.profile.user
@@ -197,14 +197,14 @@ def confirm_rattachement(request, key):
                 '<span class="text-is-red">Le rattachement de '
                 '<strong>{first_name} {last_name}</strong> '
                 '(<strong>{username}</strong>) '
-                "à l'organisation <strong>{organization_name}</strong> "
+                "à l'organisation <strong>{organisation_name}</strong> "
                 'ne peut être effective que lorsque '
                 'la création de cette organisation a été confirmé '
                 'par un administrateur</span>.'
                 ).format(first_name=user.first_name,
                          last_name=user.last_name,
                          username=user.username,
-                         organization_name=name)
+                         organisation_name=name)
         else:
             action.profile.membership = True
             action.profile.organisation = action.organisation
@@ -215,11 +215,11 @@ def confirm_rattachement(request, key):
 
             message = (
                 "Le rattachement de <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) "
-                "à l'organisation <strong>{organization_name}</strong> a bien été confirmée."
+                "à l'organisation <strong>{organisation_name}</strong> a bien été confirmée."
                 ).format(first_name=user.first_name,
                          last_name=user.last_name,
                          username=user.username,
-                         organization_name=name)
+                         organisation_name=name)
             send_confirmed_membership_mail(user, action.organisation)
 
     return render(request, 'idgo_admin/message.html', {'message': message})
@@ -238,9 +238,9 @@ def confirm_referent(request, key):
         status = 200
         message = (
             "Le rôle de référent technique de l'organisation "
-            '<strong>{organization_name}</strong> '
+            '<strong>{organisation_name}</strong> '
             "a déjà été confirmée pour <strong>{username}</strong>."
-            ).format(organization_name=organisation.legal_name,
+            ).format(organisation_name=organisation.legal_name,
                      username=user.username)
     else:
         try:
@@ -253,14 +253,14 @@ def confirm_referent(request, key):
             if not organisation.is_active:
                 message = (
                     '<span class="text-is-red">Le statut de référent technique '
-                    "pour l'organisation <strong>{organization_name}</strong> "
+                    "pour l'organisation <strong>{organisation_name}</strong> "
                     "concernant <strong>{first_name} {last_name}</strong> "
                     '(<strong>{username}</strong>) ne peut être effectif que lorsque '
                     "la création de cette organisation a été confirmé par un administrateur</span>."
                     ).format(first_name=user.first_name,
                              last_name=user.last_name,
                              username=user.username,
-                             organization_name=organisation.legal_name)
+                             organisation_name=organisation.legal_name)
                 status = 200
             else:
                 # Fix confirmation referent == confirmation LiaisonContributeur
@@ -279,9 +279,9 @@ def confirm_referent(request, key):
 
                     message = (
                         "Le rôle de référent technique de l'organisation "
-                        '<strong>{organization_name}</strong> '
+                        '<strong>{organisation_name}</strong> '
                         "a bien été confirmé pour <strong>{username}</strong>."
-                        ).format(organization_name=organisation.legal_name,
+                        ).format(organisation_name=organisation.legal_name,
                                  username=user.username)
                     status = 200
                     send_confirmed_referent_mail(user, organisation)
@@ -300,9 +300,9 @@ def confirm_contribution(request, key):
 
     if action.closed:
         message = (
-            "Le rôle de contributeur pour l'organisation <strong>{organization_name}</strong> "
+            "Le rôle de contributeur pour l'organisation <strong>{organisation_name}</strong> "
             "a déjà été confirmée pour <strong>{username}</strong>."
-            ).format(organization_name=organisation.legal_name,
+            ).format(organisation_name=organisation.legal_name,
                      username=action.profile.user.username)
         status = 200
 
@@ -319,14 +319,14 @@ def confirm_contribution(request, key):
             if not organisation.is_active:
                 message = (
                     '<span class="text-is-red">Le statut de contributeur pour '
-                    " l'organisation <strong>{organization_name}</strong> "
+                    " l'organisation <strong>{organisation_name}</strong> "
                     'concernant <strong>{first_name} {last_name}</strong> (<strong>{username}</strong>) '
                     '<strong class="text-is-red">ne peut être effective que lorsque '
                     'la création de cette organisation a été confirmé par un administrateur</span>.'
                     ).format(first_name=user.first_name,
                              last_name=user.last_name,
                              username=user.username,
-                             organization_name=organisation.legal_name)
+                             organisation_name=organisation.legal_name)
                 status = 200
             else:
                 contrib_liaison.validated_on = timezone.now()
@@ -335,9 +335,9 @@ def confirm_contribution(request, key):
                 action.save()
 
                 message = (
-                    "Le rôle de contributeur pour l'organisation <strong>{organization_name}</strong> "
+                    "Le rôle de contributeur pour l'organisation <strong>{organisation_name}</strong> "
                     "a bien été confirmé pour <strong>{username}</strong>."
-                    ).format(organization_name=organisation.legal_name,
+                    ).format(organisation_name=organisation.legal_name,
                              username=user.username)
                 status = 200
                 send_confirmed_contribution_mail(user, organisation)

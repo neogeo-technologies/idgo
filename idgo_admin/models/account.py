@@ -112,7 +112,7 @@ class Profile(models.Model):
 
     @property
     def referent_for(self):
-        return LiaisonsReferents.get_subordinated_organizations(profile=self)
+        return LiaisonsReferents.get_subordinated_organisations(profile=self)
 
     @property
     def is_contributor(self):
@@ -220,7 +220,7 @@ class LiaisonsReferents(models.Model):
             organisation=self.organisation.legal_name)
 
     @classmethod
-    def get_subordinated_organizations(cls, profile):
+    def get_subordinated_organisations(cls, profile):
 
         # TODO: Sortir le rôle 'admin' (Attention à l'impact que cela peut avoir sur le code)
         if profile.is_admin:

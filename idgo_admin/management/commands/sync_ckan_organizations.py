@@ -29,10 +29,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for instance in Organisation.objects.all():
-            organization = self.ckan.get_organization(
+            organisation = self.ckan.get_organisation(
                 str(instance.ckan_id), include_datasets=True)
-            if not organization:
+            if not organisation:
                 continue
-            if len(organization['packages']) > 0:
+            if len(organisation['packages']) > 0:
                 continue
-            self.ckan.purge_organization(str(instance.ckan_id))
+            self.ckan.purge_organisation(str(instance.ckan_id))

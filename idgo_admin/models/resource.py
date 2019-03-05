@@ -86,7 +86,7 @@ OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 CKAN_URL = settings.CKAN_URL
 
 
-def get_all_users_for_organizations(list_id):
+def get_all_users_for_organisations(list_id):
     Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
     return [
         profile.user.username
@@ -912,14 +912,14 @@ class Resource(models.Model):
         elif self.restricted_level == 'same_organization':
             restricted = json.dumps({
                 'allowed_users': ','.join(
-                    get_all_users_for_organizations(
+                    get_all_users_for_organisations(
                         self.organisations_allowed.all())),
                 'level': 'only_allowed_users'})
         # (3) Les utilisateurs des organisations indiquées
         elif self.restricted_level == 'any_organization':
             restricted = json.dumps({
                 'allowed_users': ','.join(
-                    get_all_users_for_organizations(
+                    get_all_users_for_organisations(
                         self.organisations_allowed.all())),
                 'level': 'only_allowed_users'})
 

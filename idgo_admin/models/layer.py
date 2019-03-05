@@ -41,7 +41,7 @@ CKAN_STORAGE_PATH = settings.CKAN_STORAGE_PATH
 MAPSERV_STORAGE_PATH = settings.MAPSERV_STORAGE_PATH
 
 
-def get_all_users_for_organizations(list_id):
+def get_all_users_for_organisations(list_id):
     Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
     return [
         profile.user.username

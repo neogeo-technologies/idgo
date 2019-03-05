@@ -52,7 +52,7 @@ def render_with_info_profile(
     if not context:
         context = {}
 
-    organization = (profile.organisation and profile.membership) and profile.organisation
+    organisation = (profile.organisation and profile.membership) and profile.organisation
 
     try:
         action = AccountActions.objects.get(
@@ -73,7 +73,7 @@ def render_with_info_profile(
 
     referent = [
         [c.id, c.legal_name] for c
-        in LiaisonsReferents.get_subordinated_organizations(profile=profile)]
+        in LiaisonsReferents.get_subordinated_organisations(profile=profile)]
 
     awaiting_referent_statut = [
         [c.id, c.legal_name] for c
@@ -95,8 +95,8 @@ def render_with_info_profile(
         'is_referent': profile.get_roles()['is_referent'],
         'is_contributor': len(contributor) > 0,
         'is_admin': profile.is_admin,
-        'organization': organization and organization.legal_name or None,
-        'organization_id': organization and organization.id or -1,
+        'organisation': organisation and organisation.legal_name or None,
+        'organisation_id': organisation and organisation.id or -1,
         'awaiting_member_status': awaiting_member_status,
         'contributor': contributor,
         'awaiting_contributor_status': awaiting_contributor_status,

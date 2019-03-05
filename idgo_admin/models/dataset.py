@@ -310,7 +310,7 @@ class Dataset(models.Model):
     @classmethod
     def get_subordinated_datasets(cls, profile):
         Nexus = apps.get_model(app_label='idgo_admin', model_name='LiaisonsReferents')
-        organisations = Nexus.get_subordinated_organizations(profile=profile)
+        organisations = Nexus.get_subordinated_organisations(profile=profile)
         return cls.objects.filter(organisation__in=organisations)
 
     # Méthodes héritées
@@ -408,7 +408,7 @@ class Dataset(models.Model):
             # Une organisation CKAN ne contenant plus
             # de jeu de données doit être désactivée.
             if previous.organisation:
-                CkanHandler.deactivate_ckan_organization_if_empty(str(previous.organisation.ckan_id))
+                CkanHandler.deactivate_ckan_organisation_if_empty(str(previous.organisation.ckan_id))
 
             # On vérifie si l'organisation du jeu de données change.
             # Si c'est le cas, il est nécessaire de sauvegarder tous
@@ -551,19 +551,19 @@ class Dataset(models.Model):
 
         # Synchronisation de l'organisation ; si l'organisation
         # n'existe pas il faut la créer
-        ckan_organization = CkanHandler.get_organization(organisation_id)
-        if not ckan_organization:
-            CkanHandler.add_organization(self.organisation)
+        ckan_organisation = CkanHandler.get_organisation(organisation_id)
+        if not ckan_organisation:
+            CkanHandler.add_organisation(self.organisation)
         # et si l'organisation est désactiver il faut l'activer
-        elif ckan_organization.get('state') == 'deleted':
-            CkanHandler.activate_organization(organisation_id)
+        elif ckan_organisation.get('state') == 'deleted':
+            CkanHandler.activate_organisation(organisation_id)
 
         if with_user:
             username = with_user.username
 
             # ~ ~ ~ #
             # TODO: C'est très lourd de faire cela systématiquement -> voir pour améliorer cela
-            CkanHandler.add_user_to_organization(username, organisation_id)
+            CkanHandler.add_user_to_organisation(username, organisation_id)
             for category in self.categories.all():
                 category_id = str(category.ckan_id)
                 CkanHandler.add_user_to_group(username, category_id)
@@ -612,7 +612,7 @@ def pre_save_dataset(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Dataset)
 def post_delete_dataset(sender, instance, **kwargs):
-    CkanHandler.deactivate_ckan_organization_if_empty(str(instance.organisation.ckan_id))
+    CkanHandler.deactivate_ckan_organisation_if_empty(str(instance.organisation.ckan_id))
 
 
 @receiver(post_save, sender=Dataset)

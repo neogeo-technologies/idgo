@@ -311,7 +311,7 @@ class RemoteCkan(models.Model):
                     # TODO: Factoriser
                     for value in self.sync_with:
                         with CkanBaseHandler(self.url) as ckan:
-                            ckan_organisation = ckan.get_organization(
+                            ckan_organisation = ckan.get_organisation(
                                 value, include_datasets=True,
                                 include_groups=True, include_tags=True)
 
@@ -476,11 +476,11 @@ def post_save_organisation(sender, instance, **kwargs):
         profile.save()
 
     # Synchroniser avec l'organisation CKAN
-    if CkanHandler.is_organization_exists(str(instance.ckan_id)):
-        CkanHandler.update_organization(instance)
+    if CkanHandler.is_organisation_exists(str(instance.ckan_id)):
+        CkanHandler.update_organisation(instance)
 
 
 @receiver(post_delete, sender=Organisation)
 def post_delete_organisation(sender, instance, **kwargs):
-    if CkanHandler.is_organization_exists(str(instance.ckan_id)):
-        CkanHandler.purge_organization(str(instance.ckan_id))
+    if CkanHandler.is_organisation_exists(str(instance.ckan_id)):
+        CkanHandler.purge_organisation(str(instance.ckan_id))

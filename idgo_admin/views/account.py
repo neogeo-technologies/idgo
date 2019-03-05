@@ -220,14 +220,14 @@ class ReferentAccountManager(View):
 
         user = request.user
 
-        organization_id = request.GET.get('organization')
+        organisation_id = request.GET.get('organisation')
         username = request.GET.get('username')
         target = request.GET.get('target')
-        if not organization_id or not username or target not in ['members', 'contributors', 'referents']:
+        if not organisation_id or not username or target not in ['members', 'contributors', 'referents']:
             raise Http404
 
         profile = get_object_or_404(Profile, user__username=username)
-        organisation = get_object_or_404(Organisation, id=organization_id)
+        organisation = get_object_or_404(Organisation, id=organisation_id)
         if profile.get_roles(organisation=organisation)["is_referent"] and not user.profile.is_admin:
             return HttpResponseForbidden()
 

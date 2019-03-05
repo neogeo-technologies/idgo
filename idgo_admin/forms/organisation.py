@@ -38,7 +38,7 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import RemoteCkan
 
 
-class OrganizationForm(forms.ModelForm):
+class OrganisationForm(forms.ModelForm):
 
     class Meta(object):
         model = Organisation
@@ -127,7 +127,7 @@ class RemoteCkanForm(forms.ModelForm):
 
     sync_with = forms.MultipleChoiceField(
         label='Organisations à synchroniser',
-        choices=(),  # ckan api -> list_organizations
+        choices=(),  # ckan api -> list_organisations
         required=False,
         widget=CustomCheckboxSelectMultiple(
             attrs={'class': 'list-group-checkbox'}))
@@ -148,7 +148,7 @@ class RemoteCkanForm(forms.ModelForm):
             # Récupérer la liste des organisations
             try:
                 with CkanBaseHandler(instance.url) as ckan:
-                    organisations = ckan.get_all_organizations(
+                    organisations = ckan.get_all_organisations(
                         all_fields=True, include_dataset_count=True)
             except CkanBaseError as e:
                 self.add_error('url', e.message)
