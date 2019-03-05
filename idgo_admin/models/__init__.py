@@ -29,6 +29,7 @@ from idgo_admin.models.account import LiaisonsReferents
 from idgo_admin.models.account import LiaisonsResources
 from idgo_admin.models.account import Profile
 from idgo_admin.models.dataset import Dataset
+from idgo_admin.models.dataset import Keywords
 from idgo_admin.models.extractor import AsyncExtractorTask
 from idgo_admin.models.extractor import ExtractorSupportedFormat
 from idgo_admin.models.jurisdiction import Commune

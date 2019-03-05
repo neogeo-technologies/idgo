@@ -14,15 +14,25 @@
 # under the License.
 
 
-from django.contrib import admin
 from django.contrib.auth.models import User
-from django import forms
+from django.contrib import admin
+from django.contrib import messages
 from django.forms.models import BaseInlineFormSet
+from django.http import HttpResponseRedirect
+from django import forms
+from django.shortcuts import render
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 from idgo_admin import logger
 from idgo_admin.models import Dataset
+from idgo_admin.models import Keywords
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
+
+from taggit.admin import Tag
+from taggit.models import TaggedItem
+import re
 
 
 def synchronize(modeladmin, request, queryset):
@@ -130,3 +140,175 @@ class DatasetAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Dataset, DatasetAdmin)
+
+
+############
+# DEV 6402 #
+############
+
+
+# source: @be_haki -- https://medium.com/@hakibenita/how-to-add-a-text-filter-to-django-admin-5d1db93772d8
+class InputFilter(admin.SimpleListFilter):
+    template = 'admin/idgo_admin/input_filter.html'
+
+    def message_error(self, request, queryset):
+
+        messages.error(
+            request,
+            "Aucune donnée ne correspond à votre requête. "
+        )
+        return queryset.none()
+
+    def lookups(self, request, model_admin):
+        # Nécessaire au rendu de filtre
+        return ((),)
+
+    def choices(self, changelist):
+        # Si option 'Tous' cochée
+        all_choice = next(super().choices(changelist))
+        all_choice['query_parts'] = (
+            (k, v)
+            for k, v in changelist.get_filters_params().items()
+            if k != self.parameter_name
+        )
+        yield all_choice
+
+
+class KwInputFilter(InputFilter):
+    title = "Contenu du slug"
+    parameter_name = 'slug'
+
+    def queryset(self, request, queryset):
+
+        if self.value() is not None:
+            try:
+                queryset = queryset.filter(slug__icontains=self.value())
+            except Exception:
+                return self.message_error(request, queryset)
+        return queryset
+
+
+class NewKeywordForm(forms.ModelForm):
+
+    new_name = forms.CharField(
+        max_length=500)
+
+    class Meta(object):
+        model = Tag
+        fields = ('new_name', )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['new_name'].required = True
+        self.fields['new_name'].label = 'Mot clé'
+
+    def clean_new_name(self):
+        data = self.cleaned_data['new_name'].strip()
+        if len(data) < 2:
+            raise forms.ValidationError("La taille minimum pour un mot clé est de 2 caractères. ")
+        regex = '^[a-zA-Z0-9áàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ\._\-\s]*$'
+        if not re.match(regex, data):
+            raise forms.ValidationError("Les mots-clés ne peuvent pas contenir de caractères spéciaux. ")
+        return data
+
+
+class TaggedItemInline(admin.StackedInline):
+    model = TaggedItem
+    extra = 0
+    can_delete = True
+    show_change_link = True
+    readonly_fields = (
+        'change_link',
+        'content_type',
+        'object_id'
+    )
+    fields = (
+        'change_link',
+        'content_type',
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def change_link(self, obj):
+        # Pour le fun
+        if obj and obj.content_type.model == 'dataset':
+            return mark_safe(
+                '<a href="{}">{}</a>'.format(
+                    reverse('admin:idgo_admin_dataset_change', args=(obj.object_id,),),
+                    obj.object_id
+                ))
+        return 'N/A'
+    change_link.short_description = "Fiche détaillée"
+
+
+admin.site.unregister(Tag)
+
+
+class KeywordsAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', ]
+    list_editable = ['name', ]
+    actions = ['merge_name', ]
+    list_filter = (
+        KwInputFilter,
+    )
+    readonly_fields = ('slug', )
+    inlines = [TaggedItemInline]
+
+    # On supprime l'action de suppression par defaut de la liste des covoitureurs
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    # On ajoute le traitement de la fusion de nom
+    def merge_name(self, request, queryset):
+
+        datasets = Dataset.objects.filter(keywords__in=queryset)
+        if 'apply' in request.POST:
+            form = NewKeywordForm(request.POST)
+            if form.is_valid():
+
+                # On met a jours les datasets et on retourne sur le listing
+                # self.tags_update(new_name, datasets)
+                new_tag, _ = Tag.objects.get_or_create(name=form.cleaned_data.get('new_name'))
+                for dataset in datasets:
+                    dataset.keywords.add(new_tag)
+
+                # Le clean des vieux tags se fait en dernier
+                # pour garder la selection de tous les datasets
+                queryset.exclude(pk=new_tag.pk).delete()
+
+                messages.info(
+                    request,
+                    "Mise à jours effectuée. "
+                )
+                return HttpResponseRedirect(request.get_full_path())
+        else:
+            form = NewKeywordForm()
+        return render(
+            request,
+            'admin/idgo_admin/taggit_merge_name.html',
+            context={
+                'form': form,
+                'tags': queryset,
+                'datasets': datasets
+            })
+
+    merge_name.short_description = "Fusion des mots clés"
+
+    def response_change(self, request, obj):
+        print(request.POST)
+
+
+# Soit on utilise le model de l'app taggit: Dans ce cas on a moins de flexibilité
+# sur le choix du nom de section par exemple.
+# Soit on passe par le model mandataire Keywords dasn ce cas la section "Mot clés"
+# est intégrée avec els autres sections de idgo_admin @ "Configuration"
+admin.site.register(Keywords, KeywordsAdmin)
+# admin.site.register(Tag, KeywordsAdmin)
+
+############
+# END 6402 #
+############

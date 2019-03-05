@@ -41,7 +41,6 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 import random
 import string
-from taggit.admin import Tag
 
 
 geo_admin.GeoModelAdmin.default_lon = 160595
@@ -51,7 +50,6 @@ geo_admin.GeoModelAdmin.default_zoom = 14
 
 admin.site.unregister(Group)
 admin.site.unregister(User)
-admin.site.unregister(Tag)
 
 
 class CustomLiaisonsReferentsModelForm(forms.ModelForm):
