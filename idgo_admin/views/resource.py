@@ -206,11 +206,11 @@ class ResourceManager(View):
             'synchronisation': data['synchronisation'],
             'up_file': data['up_file']}
 
-        if data['restricted_level'] == '2':
+        if data['restricted_level'] == 'only_allowed_users':
             kvp['profiles_allowed'] = data['profiles_allowed']
-        if data['restricted_level'] == '3':
+        if data['restricted_level'] == 'same_organization':
             kvp['organisations_allowed'] = [form._dataset.organisation]
-        if data['restricted_level'] == '4':
+        if data['restricted_level'] == 'any_organization':
             kvp['organisations_allowed'] = data['organisations_allowed']
 
         memory_up_file = request.FILES.get('up_file')
