@@ -377,7 +377,7 @@ def get_datasets(profile, qs, strict=False, harvested=False):
 
     resource_format = qs.get('resourceformat', None)
     if resource_format:
-        filters['resource__format_type__extension'] = resource_format
+        filters['resource__format_type__slug'] = resource_format
 
     return D_.filter(**filters)
 
@@ -406,7 +406,7 @@ def datasets(request, target, *args, **kwargs):
         for instance in License.objects.all()]
     all_organisations = get_all_organisations(profile)
     all_resourceformats = [
-        {'id': instance.extension, 'name': instance.extension}
+        {'id': instance.slug, 'name': instance.description}
         for instance in ResourceFormats.objects.all()]
     all_update_frequencies = [
         {'id': choice[0], 'name': choice[1]}
