@@ -26,7 +26,6 @@ from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.models.account import AccountActions
 from idgo_admin.models.account import LiaisonsContributeurs
 from idgo_admin.models.account import LiaisonsReferents
-from idgo_admin.models.account import LiaisonsResources
 from idgo_admin.models.account import Profile
 from idgo_admin.models.dataset import Dataset
 from idgo_admin.models.extractor import AsyncExtractorTask
@@ -68,46 +67,69 @@ except Exception:
 class BaseMaps(models.Model):
 
     class Meta(object):
-        verbose_name = 'Fond cartographique'
-        verbose_name_plural = 'Fonds cartographiques'
+        verbose_name = "Fond cartographique"
+        verbose_name_plural = "Fonds cartographiques"
 
-    name = models.TextField(verbose_name='Titre', unique=True)
+    name = models.TextField(
+        verbose_name="Nom",
+        unique=True,
+        )
 
-    url = models.URLField(verbose_name='URL')
+    url = models.URLField(
+        verbose_name="URL",
+        )
 
-    options = JSONField(verbose_name='Options')
+    options = JSONField(
+        verbose_name="Options",
+        )
 
 
 class Category(models.Model):
 
-    ISO_TOPIC_CHOICES = AUTHORIZED_ISO_TOPIC
-
-    # A chaque déploiement
-    # python manage.py sync_ckan_categories
-
-    name = models.CharField(
-        verbose_name='Nom', max_length=100)
-
-    description = models.CharField(
-        verbose_name='Description', max_length=1024)
+    class Meta(object):
+        verbose_name = "Catégorie"
+        verbose_name_plural = "Catégories"
 
     slug = models.SlugField(
-        verbose_name='Ckan slug', max_length=100,
-        unique=True, db_index=True, blank=True)
+        verbose_name='Slug',
+        max_length=100,
+        unique=True,
+        db_index=True,
+        blank=True,
+        )
 
     ckan_id = models.UUIDField(
-        verbose_name='Ckan UUID', default=uuid.uuid4, editable=False)
+        verbose_name='Identifiant CKAN',
+        editable=False,
+        default=uuid.uuid4,
+        )
+
+    name = models.CharField(
+        verbose_name='Nom',
+        max_length=100,
+        )
+
+    description = models.CharField(
+        verbose_name='Description',
+        max_length=1024,
+        )
+
+    ISO_TOPIC_CHOICES = AUTHORIZED_ISO_TOPIC
 
     iso_topic = models.CharField(
-        verbose_name='Thème ISO', max_length=100,
-        choices=ISO_TOPIC_CHOICES, blank=True, null=True)
+        verbose_name="Thème ISO",
+        max_length=100,
+        choices=ISO_TOPIC_CHOICES,
+        blank=True,
+        null=True,
+        )
 
     picto = models.ImageField(
-        verbose_name='Pictogramme', upload_to='logos/',
-        blank=True, null=True)
-
-    class Meta(object):
-        verbose_name = 'Catégorie'
+        verbose_name="Pictogramme",
+        upload_to='logos/',
+        blank=True,
+        null=True,
+        )
 
     def __str__(self):
         return self.name
@@ -134,17 +156,27 @@ def pre_delete_category(sender, instance, **kwargs):
 
 class DataType(models.Model):
 
-    name = models.CharField(verbose_name='Nom', max_length=100)
-
-    description = models.CharField(verbose_name='Description', max_length=1024)
+    class Meta(object):
+        verbose_name = "Type de donnée"
+        verbose_name_plural = "Types de données"
 
     slug = models.SlugField(
-        verbose_name='Ckan_ID', max_length=100,
-        unique=True, db_index=True, blank=True)
+        verbose_name="Slug",
+        max_length=100,
+        unique=True,
+        db_index=True,
+        blank=True,
+        )
 
-    class Meta(object):
-        verbose_name = 'Type de donnée'
-        verbose_name_plural = 'Types de données'
+    name = models.CharField(
+        verbose_name="Nom",
+        max_length=100,
+        )
+
+    description = models.CharField(
+        verbose_name='Description',
+        max_length=1024,
+        )
 
     def __str__(self):
         return self.name
@@ -152,18 +184,28 @@ class DataType(models.Model):
 
 class Granularity(models.Model):
 
-    slug = models.SlugField(
-        verbose_name='Slug', max_length=100,
-        unique=True, db_index=True, blank=True,
-        primary_key=True)
-
-    name = models.TextField(verbose_name='Nom')
-
-    order = models.IntegerField(unique=True, blank=True, null=True)
-
     class Meta(object):
-        verbose_name = 'Granularité de la couverture territoriale'
-        verbose_name_plural = 'Granularités des couvertures territoriales'
+        verbose_name = "Granularité de la couverture territoriale"
+        verbose_name_plural = "Granularités des couvertures territoriales"
+
+    slug = models.SlugField(
+        verbose_name="Slug",
+        max_length=100,
+        unique=True,
+        db_index=True,
+        blank=True,
+        primary_key=True,
+        )
+
+    name = models.TextField(
+        verbose_name="Nom",
+        )
+
+    order = models.IntegerField(
+        unique=True,
+        blank=True,
+        null=True,
+        )
 
     def __str__(self):
         return self.name
@@ -174,6 +216,10 @@ class License(models.Model):
     # MODELE LIE AUX LICENCES CKAN. MODIFIER EGALEMENT DANS LA CONF CKAN
     # QUAND DES ELEMENTS SONT AJOUTES, il faut mettre à jour
     # le fichier /etc/ckan/default/licenses.json
+
+    class Meta(object):
+        verbose_name = "Licence"
+        verbose_name_plural = "Licences"
 
     slug = models.SlugField(
         max_length=100,
@@ -260,10 +306,6 @@ class License(models.Model):
         verbose_name="Open Source Definition Conformance",
         )
 
-    class Meta(object):
-        verbose_name = "Licence"
-        verbose_name_plural = "Licences"
-
     def __str__(self):
         return self.title
 
@@ -274,44 +316,66 @@ class License(models.Model):
 
 class Support(models.Model):
 
+    class Meta(object):
+        verbose_name = "Support technique"
+        verbose_name_plural = "Supports techniques"
+
     name = models.CharField(
-        verbose_name='Nom', max_length=100)
+        verbose_name="Nom",
+        max_length=100,
+        )
 
     description = models.CharField(
-        verbose_name='Description', max_length=1024)
+        verbose_name="Description",
+        max_length=1024,
+        )
 
     slug = models.SlugField(
-        verbose_name='Label court', max_length=100,
-        unique=True, db_index=True, blank=True)
+        verbose_name="Label court",
+        max_length=100,
+        unique=True,
+        db_index=True,
+        blank=True,
+        )
 
     email = models.EmailField(
-        verbose_name='E-mail', blank=True, null=True)
+        verbose_name="Adresse e-mail",
+        blank=True,
+        null=True,
+        )
 
     def __str__(self):
         return self.name
 
-    class Meta(object):
-        verbose_name = 'Support technique'
-        verbose_name_plural = 'Supports techniques'
-
 
 class SupportedCrs(models.Model):
-
-    auth_name = models.CharField(
-        verbose_name='Authority Name', max_length=100, default='EPSG')
-
-    auth_code = models.CharField(
-        verbose_name='Authority Code', max_length=100)
-
-    description = models.TextField(
-        verbose_name='Description', blank=True, null=True)
-
-    regex = models.TextField(
-        verbose_name='Expression régulière', blank=True, null=True)
 
     class Meta(object):
         verbose_name = "CRS supporté par l'application"
         verbose_name_plural = "CRS supportés par l'application"
+
+    auth_name = models.CharField(
+        verbose_name="Authority Name",
+        max_length=100,
+        default='EPSG',
+        )
+
+    auth_code = models.CharField(
+        verbose_name="Authority Code",
+        max_length=100,
+        )
+
+    description = models.TextField(
+        verbose_name="Description",
+        blank=True,
+        null=True,
+        )
+
+    regex = models.TextField(
+        verbose_name="Expression régulière",
+        blank=True,
+        null=True,
+        )
 
     @property
     def authority(self):
@@ -324,36 +388,71 @@ class SupportedCrs(models.Model):
 
 class Task(models.Model):
 
+    class Meta(object):
+        verbose_name = "Tâche de synchronisation"
+        verbose_name_plural = "Tâches de synchronisation"
+
+    action = models.TextField(
+        verbose_name="Action",
+        blank=True,
+        null=True,
+        )
+
+    extras = JSONField(
+        verbose_name="Extras",
+        blank=True,
+        null=True,
+        )
+
     STATE_CHOICES = (
         ('succesful', "Tâche terminée avec succés"),
         ('failed', "Echec de la tâche"),
         ('running', "Tâche en cours de traitement"))
 
-    action = models.TextField("Action", blank=True, null=True)
-
-    extras = JSONField("Extras", blank=True, null=True)
-
     state = models.CharField(
-        verbose_name='Etat de traitement', default='running',
-        max_length=20, choices=STATE_CHOICES)
+        verbose_name="État",
+        max_length=20,
+        choices=STATE_CHOICES,
+        default='running',
+        )
 
     starting = models.DateTimeField(
-        verbose_name="Timestamp de début de traitement",
-        auto_now_add=True)
+        verbose_name="Début du traitement",
+        auto_now_add=True,
+        )
 
     end = models.DateTimeField(
-        verbose_name="Timestamp de fin de traitement",
-        blank=True, null=True)
-
-    class Meta(object):
-        verbose_name = 'Tâche de synchronisation'
+        verbose_name="Fin du traitement",
+        blank=True,
+        null=True,
+        )
 
 
 __all__ = [
-    AccountActions, AsyncExtractorTask, BaseMaps, Category, Commune,
-    Dataset, DataType, ExtractorSupportedFormat,
-    Granularity, Jurisdiction, JurisdictionCommune, Layer, License,
-    LiaisonsContributeurs, LiaisonsResources, LiaisonsReferents,
-    Mail, Organisation, OrganisationType, Profile,
-    RemoteCkan, RemoteCkanDataset, Resource, ResourceFormats,
-    Support, SupportedCrs, Task]
+    AccountActions,
+    AsyncExtractorTask,
+    BaseMaps,
+    Category,
+    Commune,
+    Dataset,
+    DataType,
+    ExtractorSupportedFormat,
+    Granularity,
+    Jurisdiction,
+    JurisdictionCommune,
+    Layer,
+    License,
+    LiaisonsContributeurs,
+    LiaisonsReferents,
+    Mail,
+    Organisation,
+    OrganisationType,
+    Profile,
+    RemoteCkan,
+    RemoteCkanDataset,
+    Resource,
+    ResourceFormats,
+    Support,
+    SupportedCrs,
+    Task,
+    ]

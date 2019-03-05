@@ -258,9 +258,6 @@ class ModelOrganisationField(forms.ModelChoiceField):
     iterator = ModelOrganisationIterator
 
 
-#
-
-
 class SignUpForm(forms.Form):
 
     class Meta(object):
@@ -428,6 +425,8 @@ class UpdateAccountForm(forms.ModelForm):
         if 'instance' in kwargs:
             self._instance = kwargs['instance']
             self.fields['phone'].initial = self._instance.profile.phone
+        # else:
+        #     raise Exception()
 
     def clean(self):
         email = self.cleaned_data.get('email')
