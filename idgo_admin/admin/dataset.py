@@ -212,7 +212,7 @@ class NewKeywordForm(forms.ModelForm):
         return data
 
 
-class TaggedItemInline(admin.StackedInline):
+class TaggedItemInline(admin.TabularInline):
     model = TaggedItem
     extra = 0
     can_delete = True

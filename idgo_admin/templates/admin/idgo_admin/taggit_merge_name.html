@@ -4,7 +4,7 @@
 <style>
 
 a.borderer {
-  border: 1px solid lightgrey;
+  border: 1px solid;
   background: #eff4ff;
   margin-right: 5px;
 }
@@ -95,7 +95,7 @@ a.cancel_btn {
       <tbody>
         {% for dataset in datasets %}
           <tr>
-          <td>{{ dataset.name }}</td>
+          <td>{{ dataset.title }}</td>
 
           <td>{% for kw in dataset.keywords.all %} {% if kw in tags %}<a class="borderer">{{ kw.name }}</a> {% else %} <a> {{ kw.name }}</a> {% endif %}{% endfor %}</td>
 
