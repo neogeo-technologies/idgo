@@ -306,7 +306,7 @@ class RemoteCkan(models.Model):
                                 'remote_dataset': ckan_id,
                                 'remote_organisation': value,
                                 'support': None,
-                                'update_freq': 'never'}
+                                'update_frequency': 'never'}
 
                             dataset, created = Dataset.harvested.update_or_create(**kvp)
 

@@ -89,7 +89,7 @@ def serialize(dataset):
         ('date_creation', dataset.date_creation),
         ('date_modification', dataset.date_modification),
         ('date_publication', dataset.date_publication),
-        ('update_frequency', dataset.date_publication),
+        ('update_frequency', dataset.update_frequency),
         ('geocover', dataset.geocover),
         ('organisation', organisation),
         ('license', license),
@@ -116,24 +116,7 @@ def handler_get_request(request):
 
 
 def handle_pust_request(request, dataset_name=None):
-    # title -> title
     # name -> slug
-    # description -> description
-    # thumbnail -> {File}
-    # keywords ->
-    # categories ->
-    # date_creation -> date_creation
-    # date_modification -> date_modification
-    # update_frequency -> update_freq
-    # granularity -> granularity
-    # organisation -> organisation.slug
-    # license -> license.pk
-    # support -> support
-    # data_type -> type
-    # owner_name -> owner_name
-    # owner_email -> owner_email
-    # broadcaster_name -> broadcaster_name
-    # broadcaster_email -> broadcaster_email
     # published -> private
     user = request.user
     dataset = None
@@ -165,7 +148,7 @@ def handle_pust_request(request, dataset_name=None):
         'date_creation': data.get('date_creation'),
         'date_modification': data.get('date_modification'),
         'date_publication': data.get('date_publication'),
-        'update_freq': data.get('update_frequency'),
+        'update_frequency': data.get('update_frequency'),
         # 'geocover'
         'granularity': data.get('granularity', 'indefinie'),
         'organisation': organisation.pk,
@@ -197,7 +180,7 @@ def handle_pust_request(request, dataset_name=None):
         'date_creation': data['date_creation'],
         'date_modification': data['date_modification'],
         'date_publication': data['date_publication'],
-        'update_freq': data['update_freq'],
+        'update_frequency': data['update_frequency'],
         'geocover': data['geocover'],
         'granularity': data['granularity'],
         'organisation': data['organisation'],

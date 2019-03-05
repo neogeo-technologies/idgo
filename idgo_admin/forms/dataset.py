@@ -94,7 +94,7 @@ class DatasetForm(forms.ModelForm):
             'published',
             'support',
             'thumbnail',
-            'update_freq',
+            'update_frequency',
             'title',
             'slug')
 
@@ -175,7 +175,7 @@ class DatasetForm(forms.ModelForm):
                 'class': 'datepicker',
                 'placeholder': '{0} (valeur par défaut)'.format(TODAY_STR)}))
 
-    update_freq = forms.ChoiceField(
+    update_frequency = forms.ChoiceField(
         choices=Dataset.FREQUENCY_CHOICES,
         label='Fréquence de mise à jour',
         required=False)

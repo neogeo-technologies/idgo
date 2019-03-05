@@ -146,6 +146,10 @@ def only_reference_filename(instance, filename):
 class Resource(models.Model):
     """Modèle de classe d'une ressource de données."""
 
+    class Meta(object):
+        verbose_name = 'Ressource'
+        verbose_name_plural = 'Ressources'
+
     # Managers
     # ========
 
@@ -338,14 +342,8 @@ class Resource(models.Model):
         null=True,
         )
 
-    class Meta(object):
-        verbose_name = 'Ressource'
-
     def __str__(self):
         return self.title
-
-    def __slug__(self):
-        return slugify(self.title)
 
     # Propriétés
     # ==========

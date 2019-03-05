@@ -197,7 +197,7 @@ class DatasetManager(View):
             'organisation': data['organisation'],
             'owner_email': data['owner_email'],
             'owner_name': data['owner_name'],
-            'update_freq': data['update_freq'],
+            'update_frequency': data['update_frequency'],
             'published': data['published'],
             'support': data['support'],
             'thumbnail': data['thumbnail'],

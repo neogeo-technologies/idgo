@@ -126,7 +126,7 @@ def prefill_dataset_model(dataset):
         'quarterly': 'quaterly',        # [006] data is updated every three months
         'semiannual': 'biannually',     # [007] data is updated twice each year
         'annual': 'annually'            # [008] data is updated every year
-        }.get(dataset.update_freq, 'unknow')  # [012] frequency of maintenance for the data is not known
+        }.get(dataset.update_frequency, 'unknow')  # [012] frequency of maintenance for the data is not known
 
     if dataset.keywords:
         data['dataKeywords'].insert(0, {

@@ -59,11 +59,14 @@ finally:
 class Dataset(models.Model):
     """Modèle de classe d'un jeu de données."""
 
+    class Meta(object):
+        verbose_name = 'Jeu de données'
+        verbose_name_plural = 'Jeux de données'
+
     # Managers
     # ========
 
     objects = models.Manager()
-
     default = DefaultDatasetManager()
     harvested = HarvestedDatasetManager()
 
@@ -153,7 +156,7 @@ class Dataset(models.Model):
         ('annual', 'Annuelle'),
         ('unknow', 'Inconnue'))
 
-    update_freq = models.CharField(
+    update_frequency = models.CharField(
         verbose_name='Fréquence de mise à jour',
         default='never',
         max_length=30,
@@ -266,15 +269,8 @@ class Dataset(models.Model):
         srid=4171,
         )
 
-    class Meta(object):
-        verbose_name = 'Jeu de données'
-        verbose_name_plural = 'Jeux de données'
-
     def __str__(self):
         return self.title
-
-    def __slug__(self):
-        return self.slug or slugify(self.title)
 
     # Propriétés
     # ==========
@@ -538,7 +534,7 @@ class Dataset(models.Model):
             'tags': tags,
             'title': self.title,
             'thumbnail': thumbnail,
-            'update_frequency': self.update_freq or 'unknow',
+            'update_frequency': self.update_frequency or 'unknow',
             'url': ''  # Toujours une chaîne de caractère vide !
             }
 

@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django import forms
 from django.forms.models import BaseInlineFormSet
+from django.utils.text import slugify
 from idgo_admin import logger
 from idgo_admin.models import Dataset
 from idgo_admin.models import Profile
@@ -28,7 +29,7 @@ from idgo_admin.models import ResourceFormats
 def synchronize(modeladmin, request, queryset):
     for dataset in queryset:
         logger.info('Force save dataset {pk}: {slug}'.format(
-            slug=dataset.__slug__(), pk=dataset.pk))
+            slug=dataset.slug or slugify(dataset.title), pk=dataset.pk))
         try:
             dataset.save(current_user=None, synchronize=True)
         except Exception as e:
