@@ -110,7 +110,7 @@ class DatasetAdmin(admin.ModelAdmin):
     form = MyDataSetForm
     can_add_related = True
     can_delete_related = True
-    readonly_fields = ['ckan_id', 'ckan_slug', 'geonet_id']
+    readonly_fields = ['ckan_id', 'slug', 'geonet_id']
     search_fields = ['title', 'editor__username']
     actions = [synchronize]
 

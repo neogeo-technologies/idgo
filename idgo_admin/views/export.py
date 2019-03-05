@@ -75,12 +75,12 @@ FORMATS = Func(
 PROJECTION = F('resource__crs__auth_code')
 LANG = Value('FR', output_field=CharField())  # StringAgg('resource__lang', distinct=True, delimiter=';')
 URL = Concat(
-    Value(urljoin(settings.CKAN_URL, 'dataset/')), F('ckan_slug'),
+    Value(urljoin(settings.CKAN_URL, 'dataset/')), F('slug'),
     output_field=CharField())
 
 # Définition des champs DATASUD :
-DATASUD_ID = F('ckan_slug')
-DATASUD_ORGA_ID = F('organisation__ckan_slug')
+DATASUD_ID = F('slug')
+DATASUD_ORGA_ID = F('organisation__slug')
 DATASUD_ORGA_URL = F('organisation__website')
 DATASUD_PRODUCTEUR_NAME = F('owner_name')
 DATASUD_PRODUCTEUR_EMAIL = F('owner_email')

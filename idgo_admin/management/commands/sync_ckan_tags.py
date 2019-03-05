@@ -31,8 +31,8 @@ class Command(BaseCommand):
     def sync_tags(self, data, vocabulary_name):
         vocabulary = self.ckan.get_vocabulary(vocabulary_name)
         if not vocabulary:
-            self.ckan.add_vocabulary(vocabulary, [entry.ckan_slug for entry in data])
-            self.stdout.write("New vocabulary '{0}' created".format(entry.ckan_slug))
+            self.ckan.add_vocabulary(vocabulary, [entry.slug for entry in data])
+            self.stdout.write("New vocabulary '{0}' created".format(entry.slug))
         else:
             for entry in data:
                 if self.ckan.is_tag_exists(
@@ -45,11 +45,11 @@ class Command(BaseCommand):
 
     def sync_group(self, queryset, group_type=None):
         for entry in queryset:
-            if self.ckan.is_group_exists(entry.ckan_slug):
-                self.stdout.write("'{0}' already exists".format(entry.ckan_slug))
+            if self.ckan.is_group_exists(entry.slug):
+                self.stdout.write("'{0}' already exists".format(entry.slug))
                 continue
             self.ckan.add_group(entry, type=group_type)
-            self.stdout.write("'{0}' is created".format(entry.ckan_slug))
+            self.stdout.write("'{0}' is created".format(entry.slug))
 
     def handle(self, *args, **options):
         self.sync_group(DataType.objects.all(), group_type='data_type')

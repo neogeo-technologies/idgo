@@ -151,7 +151,7 @@ def prefill_dataset_model(dataset):
         entry = {
             'name': resource.title,
             'url': '{0}/dataset/{1}/resource/{2}'.format(
-                CKAN_URL, dataset.ckan_slug, resource.ckan_id),
+                CKAN_URL, dataset.slug, resource.ckan_id),
             'description': resource.description}
         protocol = resource.format_type.protocol
         if protocol:

@@ -53,7 +53,7 @@ def serialize(organisation):
         license = None
 
     return OrderedDict([
-        ('name', organisation.ckan_slug),
+        ('name', organisation.slug),
         ('legal_name', organisation.name),
         ('logo', organisation.logo_url),
         ('type', type),
@@ -98,7 +98,7 @@ def handle_pust_request(request, organisation_name=None):
     organisation = None
     if organisation_name:
         organisation = get_object_or_404(
-            Organisation, ckan_slug=organisation_name)
+            Organisation, slug=organisation_name)
 
     data = getattr(request, request.method).dict()
     data_form = {

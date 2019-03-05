@@ -16,7 +16,7 @@
 				{% endif %}
 			</tr>
 			{% for dataset in datasets %}
-			<tr id="{{ dataset.id }}" name="{{ dataset.ckan_slug }}">
+			<tr id="{{ dataset.id }}" name="{{ dataset.slug }}">
 				<td name="title">{{ dataset.title }}</td>
 				<td name="date_creation">{{ dataset.date_creation|date:"d/m/y"|default:"" }}</td>
 				<td name="date_modification">{{ dataset.date_modification|date:"d/m/y"|default:"" }}</td>

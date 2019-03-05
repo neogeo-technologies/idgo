@@ -69,7 +69,7 @@ class Organisation(models.Model):
         to='Jurisdiction', blank=True, null=True,
         verbose_name="Territoire de compétence")
 
-    ckan_slug = models.SlugField(
+    slug = models.SlugField(
         verbose_name='CKAN ID', max_length=100, unique=True, db_index=True)
 
     ckan_id = models.UUIDField(
@@ -131,8 +131,8 @@ class Organisation(models.Model):
 
     @property
     def ows_url(self):
-        if MRAHandler.is_workspace_exists(self.ckan_slug):
-            return OWS_URL_PATTERN.format(organisation=self.ckan_slug)
+        if MRAHandler.is_workspace_exists(self.slug):
+            return OWS_URL_PATTERN.format(organisation=self.slug)
         # else: return None
 
     def get_datasets(self, **kwargs):
@@ -282,7 +282,7 @@ class RemoteCkan(models.Model):
                                 'broadcaster_email': None,
                                 'broadcaster_name': None,
                                 # 'categories': categories,
-                                'ckan_slug': 'sync--{}--{}'.format(value, package.get('name', None))[:100],
+                                'slug': 'sync--{}--{}'.format(value, package.get('name', None))[:100],
                                 'date_creation': None,  # package.get('metadata_created', None),  # ???
                                 'date_modification': None,  # package.get('metadata_modified', None),  # ???
                                 'date_publication': None,  # ???
@@ -403,7 +403,7 @@ class RemoteCkanDataset(models.Model):
 
 @receiver(pre_save, sender=Organisation)
 def pre_save_organisation(sender, instance, **kwargs):
-    instance.ckan_slug = slugify(instance.name)
+    instance.slug = slugify(instance.name)
 
 
 @receiver(post_save, sender=Organisation)

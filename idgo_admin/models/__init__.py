@@ -92,7 +92,7 @@ class Category(models.Model):
     description = models.CharField(
         verbose_name='Description', max_length=1024)
 
-    ckan_slug = models.SlugField(
+    slug = models.SlugField(
         verbose_name='Ckan slug', max_length=100,
         unique=True, db_index=True, blank=True)
 
@@ -120,7 +120,7 @@ class Category(models.Model):
             CkanHandler.add_group(self)
 
     def clean(self):
-        self.ckan_slug = slugify(self.name)
+        self.slug = slugify(self.name)
         try:
             self.sync_ckan()
         except Exception as e:
@@ -139,7 +139,7 @@ class DataType(models.Model):
 
     description = models.CharField(verbose_name='Description', max_length=1024)
 
-    ckan_slug = models.SlugField(
+    slug = models.SlugField(
         verbose_name='Ckan_ID', max_length=100,
         unique=True, db_index=True, blank=True)
 
@@ -281,7 +281,7 @@ class Support(models.Model):
     description = models.CharField(
         verbose_name='Description', max_length=1024)
 
-    ckan_slug = models.SlugField(
+    slug = models.SlugField(
         verbose_name='Label court', max_length=100,
         unique=True, db_index=True, blank=True)
 

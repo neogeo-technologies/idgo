@@ -55,7 +55,7 @@ class OrganisationAdmin(geo_admin.OSMGeoAdmin):
     search_fields = ['name']
     list_filter = ['organisation_type']
     ordering = ['name']
-    readonly_fields = ['ckan_slug']
+    readonly_fields = ['slug']
     form = OrganisationForm
     actions = [send_email_to_crige_membership]
 

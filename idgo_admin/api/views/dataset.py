@@ -49,12 +49,12 @@ def serialize(dataset):
 
     if dataset.categories:
         categories = [
-            category.ckan_slug for category in dataset.categories.all()]
+            category.slug for category in dataset.categories.all()]
     else:
         categories = None
 
     if dataset.organisation:
-        organisation = dataset.organisation.ckan_slug
+        organisation = dataset.organisation.slug
     else:
         organisation = None
 
@@ -65,7 +65,7 @@ def serialize(dataset):
 
     if dataset.data_type:
         data_type = [
-            data_type.ckan_slug for data_type in dataset.data_type.all()]
+            data_type.slug for data_type in dataset.data_type.all()]
     else:
         data_type = None
 
@@ -81,7 +81,7 @@ def serialize(dataset):
         extent = None
 
     return OrderedDict([
-        ('name', dataset.ckan_slug),
+        ('name', dataset.slug),
         ('title', dataset.title),
         ('description', dataset.description),
         ('keywords', keywords),
@@ -117,7 +117,7 @@ def handler_get_request(request):
 
 def handle_pust_request(request, dataset_name=None):
     # title -> title
-    # name -> ckan_slug
+    # name -> slug
     # description -> description
     # thumbnail -> {File}
     # keywords ->
@@ -126,7 +126,7 @@ def handle_pust_request(request, dataset_name=None):
     # date_modification -> date_modification
     # update_frequency -> update_freq
     # granularity -> granularity
-    # organisation -> organisation.ckan_slug
+    # organisation -> organisation.slug
     # license -> license.pk
     # support -> support
     # data_type -> type
@@ -139,7 +139,7 @@ def handle_pust_request(request, dataset_name=None):
     dataset = None
     if dataset_name:
         for instance in handler_get_request(request):
-            if dataset.ckan_slug == dataset_name:
+            if dataset.slug == dataset_name:
                 dataset = instance
                 break
         if not instance:
@@ -150,14 +150,14 @@ def handle_pust_request(request, dataset_name=None):
     data = getattr(request, request.method).dict()
 
     try:
-        organisation = Organisation.objects.get(ckan_slug=data.get('organisation'))
+        organisation = Organisation.objects.get(slug=data.get('organisation'))
         license = License.objects.get(slug=data.get('license'))
     except (Organisation.DoesNotExist, License.DoesNotExist) as e:
         raise GenericException(details=e.__str__())
 
     data_form = {
         'title': data.get('title'),
-        'ckan_slug': data.get('name', slugify(data.get('title'))),
+        'slug': data.get('name', slugify(data.get('title'))),
         'description': data.get('description'),
         # 'thumbnail' -> request.FILES
         'keywords': data.get('keywords'),
@@ -189,7 +189,7 @@ def handle_pust_request(request, dataset_name=None):
     data = form.cleaned_data
     kvp = {
         'title': data['title'],
-        'ckan_slug': data['ckan_slug'],
+        'slug': data['slug'],
         'description': data['description'],
         'thumbnail': data['thumbnail'],
         # keywords
@@ -255,7 +255,7 @@ class DatasetShow(View):
         """Voir le jeu de données."""
         datasets = handler_get_request(request)
         for dataset in datasets:
-            if dataset.ckan_slug == dataset_name:
+            if dataset.slug == dataset_name:
                 return JsonResponse(serialize(dataset), safe=True)
         raise Http404()
 
@@ -275,7 +275,7 @@ class DatasetShow(View):
         """Supprimer le jeu de données."""
         instance = None
         for dataset in handler_get_request(request):
-            if dataset.ckan_slug == dataset_name:
+            if dataset.slug == dataset_name:
                 instance = dataset
                 break
         if not instance:

@@ -137,14 +137,14 @@ def get_layer(resource, datagis_id):
     datagis_id = str(datagis_id)
     layer = MRAHandler.get_layer(datagis_id)
     if layer['type'] == 'RASTER':
-        c = MRAHandler.get_coverage(resource.dataset.organisation.ckan_slug, datagis_id, datagis_id)
+        c = MRAHandler.get_coverage(resource.dataset.organisation.slug, datagis_id, datagis_id)
         ll = c['coverage']['latLonBoundingBox']
         bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
         attributes = []
         default_style_name = None
         styles = []
     else:
-        ft = MRAHandler.get_featuretype(resource.dataset.organisation.ckan_slug, 'public', datagis_id)
+        ft = MRAHandler.get_featuretype(resource.dataset.organisation.slug, 'public', datagis_id)
         ll = ft['featureType']['latLonBoundingBox']
         bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
         attributes = [item['name'] for item in ft['featureType']['attributes']]

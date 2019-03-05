@@ -372,7 +372,7 @@ class Resource(models.Model):
     @property
     def ckan_url(self):
         return urljoin(settings.CKAN_URL, 'dataset/{}/resource/{}/'.format(
-            self.dataset.ckan_slug, self.ckan_id))
+            self.dataset.slug, self.ckan_id))
 
     @property
     def datagis_id(self):  # TODO: supprimer et utiliser `get_layers()` exclusivement

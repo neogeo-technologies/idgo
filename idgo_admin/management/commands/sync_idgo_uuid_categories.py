@@ -29,7 +29,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for category in Category.objects.all():
-            if self.ckan.is_group_exists(category.ckan_slug):
-                category.ckan_id = self.ckan.get_group(category.ckan_slug)['id']
+            if self.ckan.is_group_exists(category.slug):
+                category.ckan_id = self.ckan.get_group(category.slug)['id']
                 category.save()
-                self.stdout.write("'{0}' updated".format(category.ckan_slug))
+                self.stdout.write("'{0}' updated".format(category.slug))

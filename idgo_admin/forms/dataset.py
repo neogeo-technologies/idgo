@@ -50,7 +50,7 @@ class DatatypeModelIterator(ModelChoiceIterator):
         if not queryset._prefetch_related_lookups:
             queryset = queryset.iterator()
         for obj in queryset:
-            if obj.ckan_slug == 'donnees-moissonnees':
+            if obj.slug == 'donnees-moissonnees':
                 continue
             yield self.choice(obj)
 
@@ -96,7 +96,7 @@ class DatasetForm(forms.ModelForm):
             'thumbnail',
             'update_freq',
             'title',
-            'ckan_slug')
+            'slug')
 
     class CustomClearableFileInput(forms.ClearableFileInput):
         template_name = 'idgo_admin/widgets/file_drop_zone.html'
@@ -109,7 +109,7 @@ class DatasetForm(forms.ModelForm):
                 'placeholder': 'Titre du jeu de données',
                 'rows': 1}))
 
-    ckan_slug = forms.CharField(
+    slug = forms.CharField(
         label='URL du jeu de données',
         required=False,
         max_length=100,
@@ -279,8 +279,8 @@ class DatasetForm(forms.ModelForm):
 
         title = self.cleaned_data.get('title')
 
-        if not re.match('^[a-z0-9\-]{1,100}$', self.cleaned_data.get('ckan_slug')):
-            self.add_error('ckan_slug', (
+        if not re.match('^[a-z0-9\-]{1,100}$', self.cleaned_data.get('slug')):
+            self.add_error('slug', (
                 "Seuls les caractères alphanumériques et le tiret sont "
                 "autorisés (100 caractères maximum)."))
             raise ValidationError('KeywordsError')

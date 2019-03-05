@@ -222,7 +222,7 @@ def organisation(request, id=None):
                 ).distinct().order_by('user__username')]}
 
     if instance.ows_url:
-        ows_settings = MRAHandler.get_ows_settings('ows', instance.ckan_slug)
+        ows_settings = MRAHandler.get_ows_settings('ows', instance.slug)
         data['osw'] = {
             'url': instance.ows_url,
             'title': ows_settings.pop('title', None),
@@ -388,7 +388,7 @@ class OrganisationOWS(View):
                 'srs': [crs.authority for crs in SupportedCrs.objects.all()],
                 'title': request.POST.get('title', None)}
             try:
-                MRAHandler.update_ows_settings('ows', json, ws_name=instance.ckan_slug)
+                MRAHandler.update_ows_settings('ows', json, ws_name=instance.slug)
             except Exception as e:
                 messages.error(request, e.__str__())
             else:

@@ -351,7 +351,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
     def add_organization(self, organization):
         params = {
             'id': str(organization.ckan_id),
-            'name': organization.ckan_slug,
+            'name': organization.slug,
             'title': organization.name,
             'description': organization.description,
             'extras': [
@@ -376,7 +376,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
 
         ckan_organization.update({
             'title': organization.name,
-            'name': organization.ckan_slug,
+            'name': organization.slug,
             'description': organization.description,
             'extras': [
                 {'key': 'email', 'value': organization.email or ''},
@@ -487,7 +487,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
             'id': str(group.ckan_id),
             'type': type,
             'title': group.name,
-            'name': group.ckan_slug,
+            'name': group.slug,
             'description': group.description}
         try:
             ckan_group['image_url'] = \
@@ -501,7 +501,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
         ckan_group = self.get_group(str(group.ckan_id), include_datasets=True)
         ckan_group.update({
             'title': group.name,
-            'name': group.ckan_slug,
+            'name': group.slug,
             'description': group.description})
 
         for val in ('packages', 'tags', 'groups'):

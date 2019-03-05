@@ -272,7 +272,7 @@ class ResourceManager(View):
                 '<a href="{2}/dataset/{3}/resource/{4}" target="_blank">'
                 'voir la ressource dans CKAN</a> ?').format(
                 id and 'mise à jour' or 'créée', dataset_href,
-                CKAN_URL, dataset.ckan_slug, resource.ckan_id))
+                CKAN_URL, dataset.slug, resource.ckan_id))
 
             if ajax:
                 response = HttpResponse(status=201)  # Ugly hack

@@ -4,7 +4,7 @@
 	"fields": {
 		"name": "CRIGE PACA",
 		"description": "Support technique du CRIGE PACA",
-		"ckan_slug": "crige-paca",
+		"slug": "crige-paca",
 		"email": "support.technique@crige-paca.org"
 	}
 }, {
@@ -13,7 +13,7 @@
 	"fields": {
 		"name": "R\u00e9gion Sud",
 		"description": "Support technique de la r\u00e9gion Sud",
-		"ckan_slug": "region-paca",
+		"slug": "region-paca",
 		"email": "smartdata@maregionsud.fr"
 	}
 }]

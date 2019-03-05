@@ -234,7 +234,7 @@ def send_dataset_creation_mail(user, dataset):
         bcc=list(set(get_admins_mails() + get_referents_mails(dataset.organisation))),
         ckan_url=dataset.ckan_url,
         dataset=dataset.title,
-        id=dataset.ckan_slug,
+        id=dataset.slug,
         full_name=user.get_full_name(),
         to=[user.email],
         username=user.username)
@@ -248,7 +248,7 @@ def send_dataset_update_mail(user, dataset):
         ckan_url=dataset.ckan_url,
         dataset=dataset.title,
         full_name=user.get_full_name(),
-        id=dataset.ckan_slug,
+        id=dataset.slug,
         to=[user.email],
         username=user.username)
 
@@ -260,7 +260,7 @@ def send_dataset_delete_mail(user, dataset):
         bcc=list(set(get_admins_mails() + get_referents_mails(dataset.organisation))),
         dataset=dataset.title,
         full_name=user.get_full_name(),
-        id=dataset.ckan_slug,
+        id=dataset.slug,
         to=[user.email],
         username=user.username)
 

@@ -210,7 +210,7 @@ class Extractor(View):
             if ModelObj.__name__ == 'Layer':
                 key = 'name'
             else:
-                key = 'ckan_slug'
+                key = 'slug'
         if isinstance(value, int):
             key = 'id'
         try:
@@ -461,9 +461,9 @@ class Extractor(View):
 
         elif dataset_name:
             model = 'Dataset'
-            foreign_field = 'ckan_slug'
+            foreign_field = 'slug'
             foreign_value = dataset_name
-            dataset = get_object_or_404(Dataset, ckan_slug=dataset_name)
+            dataset = get_object_or_404(Dataset, slug=dataset_name)
 
             for resource in dataset.get_resources():
                 for layer in resource.get_layers():

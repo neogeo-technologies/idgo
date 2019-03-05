@@ -107,7 +107,7 @@
 														<select class="form-control" id="organisation" required>
 															<option disabled {% if not organisation %}selected{% endif %}>Sélectionnez une organisation</option>
 															{% for instance in organisations %}
-															<option value="{{ instance.ckan_slug }}" {% if instance.id == organisation.id %}selected{% endif %}>{{ instance.name }}</option>
+															<option value="{{ instance.slug }}" {% if instance.id == organisation.id %}selected{% endif %}>{{ instance.name }}</option>
 															{% endfor %}
 														</select>
 														<span class="input-group-btn">
@@ -123,7 +123,7 @@
 														<select class="form-control" id="dataset" required>
 															<option disabled {% if not dataset %}selected{% endif %}>Sélectionnez un jeu de données</option>
 															{% for instance in datasets %}
-															<option value="{{ instance.ckan_slug }}" {% if instance.id == dataset.id %}selected{% endif %}>{{ instance.name }}</option>
+															<option value="{{ instance.slug }}" {% if instance.id == dataset.id %}selected{% endif %}>{{ instance.name }}</option>
 															{% endfor %}
 														</select>
 														<span class="input-group-btn">
@@ -284,7 +284,7 @@ $(function() {
 	const $extract = $('button[name="extract"]').click(function(e) {
 		e.preventDefault();
 
-		const dataset = '{{ dataset.ckan_slug }}' || undefined;
+		const dataset = '{{ dataset.slug }}' || undefined;
 		const resource = '{{ resource.ckan_id }}' || undefined;
 		const layer = targetLayer ? targetLayer.options.layers : undefined;
 		const geojson = editableLayers.toGeoJSON()
@@ -352,8 +352,8 @@ $(function() {
 	// bounds = {{ layer.mra_info.bbox|default:None|safe }};
 
 	delete qs['layer'];
-	qs['organisation'] = '{{ organisation.ckan_slug }}';
-	qs['dataset'] = '{{ dataset.ckan_slug }}';
+	qs['organisation'] = '{{ organisation.slug }}';
+	qs['dataset'] = '{{ dataset.slug }}';
 	qs['resource'] = '{{ resource.ckan_id }}';
 	updateUrl({withHash: false, refresh: false});
 
@@ -578,7 +578,7 @@ $(function() {
 		const bounds = map.getBounds();
 		const bbox = bounds._southWest.lng.toFixed(2) + ',' + bounds._southWest.lat.toFixed(2) + ',' + bounds._northEast.lng.toFixed(2) + ',' + bounds._northEast.lat.toFixed(2);
 		qs['bbox'] = bbox;
-		qs['organisation'] = '{{ organisation.ckan_slug }}';
+		qs['organisation'] = '{{ organisation.slug }}';
 		if (dataset) {
 			qs['dataset'] = dataset;
 			delete qs['resource'];
@@ -599,8 +599,8 @@ $(function() {
 		const bounds = map.getBounds();
 		const bbox = bounds._southWest.lng.toFixed(2) + ',' + bounds._southWest.lat.toFixed(2) + ',' + bounds._northEast.lng.toFixed(2) + ',' + bounds._northEast.lat.toFixed(2);
 		qs['bbox'] = bbox;
-		qs['organisation'] = '{{ organisation.ckan_slug }}';
-		qs['dataset'] = '{{ dataset.ckan_slug }}';
+		qs['organisation'] = '{{ organisation.slug }}';
+		qs['dataset'] = '{{ dataset.slug }}';
 		if (resource) {
 			qs['resource'] = resource;
 			delete qs['layer'];

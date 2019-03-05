@@ -61,7 +61,7 @@ class HarvestedDatasetManager(models.Manager):
 
         # Enfin on met à jour le jeu de données et on le synchronize avec CKAN
         DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
-        dataset.data_type = DataType.objects.filter(ckan_slug='donnees-moissonnees')
+        dataset.data_type = DataType.objects.filter(slug='donnees-moissonnees')
         dataset.save(current_user=None, synchronize=True)
 
         return dataset
