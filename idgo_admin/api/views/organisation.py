@@ -71,15 +71,16 @@ def serialize(organisation):
 
 
 def handler_get_request(request):
-    user = request.user
-    if user.profile.is_admin:
-        # Un administrateur « métiers » peut tout voir.
-        organisations = Organisation.objects.all()
-    else:
-        s1 = set(user.profile.referent_for)
-        s2 = set(user.profile.contribute_for)
-        s3 = set([user.profile.organisation])
-        organisations = list(s1 | s2 | s3)
+    # user = request.user
+    # if user.profile.is_admin:
+    #     # Un administrateur « métiers » peut tout voir.
+    #     organisations = Organisation.objects.all()
+    # else:
+    #     s1 = set(user.profile.referent_for)
+    #     s2 = set(user.profile.contribute_for)
+    #     s3 = set([user.profile.organisation])
+    #     organisations = list(s1 | s2 | s3)
+    organisations = Organisation.objects.all()
     return [serialize(organisation) for organisation in organisations]
 
 
