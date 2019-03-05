@@ -94,11 +94,44 @@ def get_all_users_for_organizations(list_id):
             organisation__in=list_id, organisation__is_active=True)]
 
 
-def upload_resource(instance, filename):
-    return slugify(filename, exclude_dot=False)
+# =======================
+# Modèle RESOURCE FORMATS
+# =======================
 
 
 class ResourceFormats(models.Model):
+
+    class Meta(object):
+        verbose_name = "Format de ressource"
+        verbose_name_plural = "Formats de ressource"
+
+    slug = models.SlugField(
+        verbose_name="Slug",
+        max_length=100,
+        unique=True,
+        db_index=True,
+        )
+
+    extension = models.CharField(
+        verbose_name="Extension du fichier",
+        max_length=10,
+        )
+
+    description = models.TextField(
+        verbose_name="Description",
+        )
+
+    is_gis_format = models.BooleanField(
+        verbose_name="Format de fichier SIG",
+        blank=False,
+        null=False,
+        default=False,
+        )
+
+    ckan_format = models.CharField(
+        verbose_name="Format CKAN",
+        max_length=10,
+        )
 
     CKAN_CHOICES = (
         (None, 'N/A'),
@@ -109,38 +142,38 @@ class ResourceFormats(models.Model):
         )
 
     ckan_view = models.CharField(
-        verbose_name='Vue', max_length=100,
-        choices=CKAN_CHOICES, blank=True, null=True)
-
-    ckan_format = models.CharField(
-        verbose_name='type de format CKAN', max_length=10)
-
-    description = models.TextField(
-        verbose_name='Description')
-
-    extension = models.CharField(
-        verbose_name='Extension du fichier', max_length=10)
-
-    is_gis_format = models.BooleanField(
-        verbose_name='Est un format de données SIG',
-        blank=False, null=False, default=False)
+        verbose_name="Vue CKAN",
+        max_length=100,
+        blank=True,
+        null=True,
+        choices=CKAN_CHOICES,
+        )
 
     PROTOCOL_CHOICES = AUTHORIZED_PROTOCOL
 
     protocol = models.CharField(
-        'Protocole', max_length=100, blank=True, null=True,
-        choices=PROTOCOL_CHOICES)
-
-    class Meta(object):
-        verbose_name = 'Format de ressource'
-        verbose_name_plural = 'Formats de ressource'
+        verbose_name="Protocole",
+        max_length=100,
+        blank=True,
+        null=True,
+        choices=PROTOCOL_CHOICES,
+        )
 
     def __str__(self):
         return self.description
 
 
-def only_reference_filename(instance, filename):
+# ===============
+# Modèle RESOURCE
+# ===============
+
+
+def _ftp_file_upload_to(instance, filename):
     return filename
+
+
+def _up_file_upload_to(instance, filename):
+    return slugify(filename, exclude_dot=False)
 
 
 class Resource(models.Model):
@@ -180,7 +213,7 @@ class Resource(models.Model):
         verbose_name='Fichier déposé sur FTP',
         blank=True,
         null=True,
-        upload_to=only_reference_filename,
+        upload_to=_ftp_file_upload_to,
         )
 
     referenced_url = models.URLField(
@@ -201,7 +234,7 @@ class Resource(models.Model):
         verbose_name='Téléverser un ou plusieurs fichiers',
         blank=True,
         null=True,
-        upload_to=upload_resource,
+        upload_to=_up_file_upload_to,
         )
 
     LANG_CHOICES = (
@@ -408,9 +441,13 @@ class Resource(models.Model):
         elif ows[-1] == 'wfs':
             # Qgis 2.14
             if 'typename' in qs:
-                layers = [layer.split(':')[-1] for layer in qs.get('typename')[-1].replace(' ', '').split(',')]
+                layers = [
+                    layer.split(':')[-1] for layer
+                    in qs.get('typename')[-1].replace(' ', '').split(',')]
             else:
-                layers = [layer.split(':')[-1] for layer in qs.get('typenames')[-1].replace(' ', '').split(',')]
+                layers = [
+                    layer.split(':')[-1] for layer
+                    in qs.get('typenames')[-1].replace(' ', '').split(',')]
         else:
             raise Http404()
         return Resource.objects.filter(layer__name__in=layers).distinct()

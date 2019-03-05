@@ -42,7 +42,6 @@ from idgo_admin.models.organisation import RemoteCkan
 from idgo_admin.models.organisation import RemoteCkanDataset
 from idgo_admin.models.resource import Resource
 from idgo_admin.models.resource import ResourceFormats
-from idgo_admin.models.resource import upload_resource
 import json
 import os
 import uuid
@@ -357,4 +356,4 @@ __all__ = [
     LiaisonsContributeurs, LiaisonsResources, LiaisonsReferents,
     Mail, Organisation, OrganisationType, Profile,
     RemoteCkan, RemoteCkanDataset, Resource, ResourceFormats,
-    Support, SupportedCrs, Task, upload_resource]
+    Support, SupportedCrs, Task]
