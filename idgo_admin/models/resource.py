@@ -421,9 +421,6 @@ class Resource(models.Model):
     # Méthodes héritées
     # =================
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def save(self, *args, current_user=None, synchronize=False, file_extras=None, **kwargs):
 
         # Version précédante de la ressource (avant modification)
@@ -799,8 +796,9 @@ class Resource(models.Model):
             remove_file(filename)
 
         # [Crado] on met à jour la ressource CKAN
-        CkanHandler.update_resource(
-            str(self.ckan_id), extracting_service=str(self.extractable))
+        if synchronize:
+            CkanHandler.update_resource(
+                str(self.ckan_id), extracting_service=str(self.extractable))
 
         for layer in self.get_layers():
             layer.save()
