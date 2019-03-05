@@ -146,8 +146,8 @@ def handle_pust_request(request, organisation_name=None):
 
 
 # decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
-decorators = [csrf_exempt, BasicAuth()]
-# decorators = [csrf_exempt]
+# decorators = [csrf_exempt, BasicAuth()]
+decorators = [csrf_exempt]
 
 
 @method_decorator(decorators, name='dispatch')
@@ -161,6 +161,7 @@ class OrganisationShow(View):
                 return JsonResponse(organisation, safe=True)
         raise Http404()
 
+    @BasicAuth()
     def put(self, request, organisation_name):
         """Créer une nouvelle organisation."""
         # Django fait les choses à moitié...
@@ -184,6 +185,7 @@ class OrganisationList(View):
         organisations = handler_get_request(request)
         return JsonResponse(organisations, safe=False)
 
+    @BasicAuth()
     def post(self, request):
         """Créer une nouvelle organisation."""
         if not request.user.profile.is_admin:
