@@ -177,7 +177,7 @@ class InputFilter(admin.SimpleListFilter):
 
 
 class KwInputFilter(InputFilter):
-    title = "Contenu du slug"
+    title = "Mots clés"
     parameter_name = 'slug'
 
     def queryset(self, request, queryset):
@@ -278,6 +278,16 @@ class KeywordsAdmin(admin.ModelAdmin):
                     name=form.cleaned_data.get('new_name'))
                 for dataset in datasets:
                     dataset.keywords.add(new_tag)
+                    # On synchor avec ckan
+                    try:
+                        dataset.synchronize()
+                    except Exception as err:
+                        messages.error(
+                            request,
+                            "Une erreur sur la synchornisation avec CKAN pour le jeu de donnée: {dataset} -- {err}".format(
+                                dataset=dataset.name,
+                                err=str(err))
+                        )
 
                 # Le clean des vieux tags se fait en dernier
                 # pour garder la selection de tous les datasets
