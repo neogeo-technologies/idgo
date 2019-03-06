@@ -24,7 +24,6 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler
-# from idgo_admin import logger
 import requests
 import uuid
 

@@ -30,8 +30,12 @@ from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.models import Category
+from idgo_admin.models.category import MDEDIT_CONFIG_PATH
+from idgo_admin.models.category import MDEDIT_DATASET_MODEL
+from idgo_admin.models.category import MDEDIT_HTML_PATH
+from idgo_admin.models.category import MDEDIT_LOCALES
+from idgo_admin.models.category import MDEDIT_SERVICE_MODEL
 from idgo_admin.models import Dataset
-from idgo_admin.models import MDEDIT_LOCALES
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.shortcuts import get_object_or_404
@@ -52,11 +56,6 @@ GEONETWORK_URL = settings.GEONETWORK_URL
 CKAN_URL = settings.CKAN_URL
 DOMAIN_NAME = settings.DOMAIN_NAME
 READTHEDOC_URL_INSPIRE = settings.READTHEDOC_URL_INSPIRE
-
-MDEDIT_HTML_PATH = 'mdedit/html/'
-MDEDIT_CONFIG_PATH = 'mdedit/config/'
-MDEDIT_DATASET_MODEL = 'models/model-dataset-empty.json'
-MDEDIT_SERVICE_MODEL = 'models/model-service-empty.json'
 
 
 def join_url(filename, path=MDEDIT_CONFIG_PATH):
@@ -167,7 +166,7 @@ def prefill_service_model(organisation):
         os.path.join(MDEDIT_CONFIG_PATH, MDEDIT_SERVICE_MODEL))
 
     data = model.copy()
-    editor = None  # qui est l'éditeur ?
+    # editor = None  # qui est l'éditeur ?
 
     default_contact = {
         # 'individualName': editor.get_full_name(),

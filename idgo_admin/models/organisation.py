@@ -182,7 +182,7 @@ class Organisation(models.Model):
     def logo_url(self):
         try:
             return urljoin(settings.DOMAIN_NAME, self.logo.url)
-        except (ValueError, Exception) as e:
+        except (ValueError, Exception):
             return None
 
     @property

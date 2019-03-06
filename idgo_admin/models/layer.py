@@ -17,7 +17,6 @@
 from django.apps import apps
 from django.conf import settings
 from django.contrib.gis.db import models
-from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -51,11 +50,14 @@ def get_all_users_for_organisations(list_id):
 
 class Layer(models.Model):
 
+    class Meta(object):
+        verbose_name = "Couche de données"
+        verbose_name_plural = "Couches de données"
+
     # Managers
     # ========
 
     objects = models.Manager()
-
     vector = VectorLayerManager()
     raster = RasterLayerManager()
 
@@ -63,29 +65,39 @@ class Layer(models.Model):
     # ===================
 
     name = models.SlugField(
-        verbose_name='Nom de la couche', primary_key=True,
-        editable=False, max_length=100)
+        verbose_name="Nom de la couche",
+        max_length=100,
+        editable=False,
+        primary_key=True,
+        )
 
     resource = models.ForeignKey(
-        to='Resource', verbose_name='Ressource',
-        on_delete=models.CASCADE, blank=True, null=True)
+        to='Resource',
+        verbose_name="Ressource",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        )
 
     TYPE_CHOICES = (
         ('raster', 'raster'),
-        ('vector', 'vector'))
+        ('vector', 'vector'),
+        )
 
     type = models.CharField(
-        verbose_name='type', max_length=6,
-        blank=True, null=True, choices=TYPE_CHOICES)
-
-    attached_ckan_resources = ArrayField(
-        models.UUIDField(), size=None, blank=True, null=True)
+        verbose_name="Type",
+        max_length=6,
+        null=True,
+        blank=True,
+        choices=TYPE_CHOICES,
+        )
 
     bbox = models.PolygonField(
-        verbose_name='Rectangle englobant', blank=True, null=True, srid=4171)
-
-    class Meta(object):
-        verbose_name = 'Couche de données'
+        verbose_name="Rectangle englobant",
+        null=True,
+        blank=True,
+        srid=4171,
+        )
 
     def __str__(self):
         return self.resource.__str__()
@@ -103,7 +115,8 @@ class Layer(models.Model):
             'POLYGON': 'Polygone',
             'POINT': 'Point',
             'LINESTRING': 'Ligne',
-            'RASTER': 'Raster'}.get(self.mra_info['type'])
+            'RASTER': 'Raster',
+            }.get(self.mra_info['type'], None)
 
     @property
     def is_enabled(self):
@@ -217,31 +230,17 @@ class Layer(models.Model):
                 'styles': styles}}
 
     def save(self, *args, **kwargs):
-
         # Synchronisation avec le service OGC en fonction du type de données
         if self.type == 'vector':
             self.save_vector_layer()
-
         elif self.type == 'raster':
             self.save_raster_layer()
 
         # Puis sauvegarde
         super().save(*args, **kwargs)
-
         self.handle_enable_ows_status()
         self.handle_layergroup()
-
         self.synchronize()
-
-        # if self.resource.ogc_services:
-        #     attached_ckan_resources = self.synchronize()
-        #     if attached_ckan_resources:
-        #         self.attached_ckan_resources = attached_ckan_resources
-        #         super().save(update_fields=['attached_ckan_resources'])
-        # else:
-        #     CkanHandler.delete_resource(self.name)
-        #     for id in self.attached_ckan_resources or []:
-        #         CkanHandler.delete_resource(id.__str__())
 
     def delete(self, *args, current_user=None, **kwargs):
         with_user = current_user
@@ -254,11 +253,6 @@ class Layer(models.Model):
                 ckan_user.delete_resource(self.name)
         else:
             CkanHandler.delete_resource(self.name)
-
-        # Ainsi que toutes celles qui y sont attachées
-        if self.attached_ckan_resources:
-            for id in self.attached_ckan_resources:
-                CkanHandler.delete_resource(id.__str__())
 
         # On supprime les ressources MRA
         try:
@@ -400,15 +394,8 @@ class Layer(models.Model):
 
         CkanHandler.update_resource(str(self.resource.ckan_id), api=json.dumps(api))
         CkanHandler.push_resource_view(
-            title=name,
-            description=description,
-            resource_id=str(self.resource.ckan_id),
-            view_type='geo_view',
-            )
-
-        # if self.attached_ckan_resources:
-        #     for id in self.attached_ckan_resources:
-        #         CkanHandler.delete_resource(id.__str__())
+            title=name, description=description,
+            resource_id=str(self.resource.ckan_id), view_type='geo_view')
 
     def handle_enable_ows_status(self):
         """Gérer le statut d'activation de la couche de données SIG."""

@@ -19,46 +19,56 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.mail import get_connection
 from django.core.mail.message import EmailMultiAlternatives
-# from idgo_admin import logger
 from idgo_admin.utils import PartialFormatter
 from urllib.parse import urljoin
 
 
+EXTRACTOR_URL = settings.EXTRACTOR_URL
+DEFAULT_FROM_EMAIL = settings.DEFAULT_FROM_EMAIL
+
+
 class Mail(models.Model):
 
+    class Meta(object):
+        verbose_name = "E-mail"
+        verbose_name_plural = "E-mails"
+
     template_name = models.CharField(
-        verbose_name='Identifiant', primary_key=True, max_length=100)
+        verbose_name="Identifiant",
+        max_length=100,
+        primary_key=True,
+        )
 
     subject = models.CharField(
-        verbose_name='Objet', max_length=255, blank=True, null=True)
+        verbose_name="Objet",
+        max_length=255,
+        null=True,
+        blank=True,
+        )
 
     message = models.TextField(
-        verbose_name='Corps du message', blank=True, null=True)
-
-    class Meta(object):
-        verbose_name = 'e-mail'
-        verbose_name_plural = 'e-mails'
+        verbose_name="Corps du message",
+        null=True,
+        blank=True,
+        )
 
     def __str__(self):
         return self.template_name
 
 
 def get_admins_mails(crige=False):
-    Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
     kwargs = {'is_active': True, 'is_admin': True}
     if crige:
         kwargs['crige_membership'] = True
-    return [
-        p.user.email for p in Profile.objects.filter(**kwargs)]
+    Model = apps.get_model(app_label='idgo_admin', model_name='Profile')
+    profiles = Model.objects.filter(**kwargs)
+    return [profile.user.email for profile in profiles]
 
 
 def get_referents_mails(organisation):
-    LiaisonsReferents = apps.get_model(
-        app_label='idgo_admin', model_name='LiaisonsReferents')
-    return [
-        l.profile.user.email for l
-        in LiaisonsReferents.objects.filter(
-            organisation=organisation, validated_on__isnull=False)]
+    Model = apps.get_model(app_label='idgo_admin', model_name='LiaisonsReferents')
+    l_profiles = Model.objects.filter(organisation=organisation, validated_on__isnull=False)
+    return [l_profile.profile.user.email for l_profile in l_profiles]
 
 
 def sender(template_name, to=None, cc=None, bcc=None, attach_files=[], **kvp):
@@ -83,7 +93,7 @@ def sender(template_name, to=None, cc=None, bcc=None, attach_files=[], **kvp):
 
     subject = tmpl.subject.format(**kvp)
     body = PartialFormatter().format(tmpl.message, **kvp)
-    from_email = settings.DEFAULT_FROM_EMAIL
+    from_email = DEFAULT_FROM_EMAIL
     connection = get_connection(fail_silently=False)
 
     mail = EmailMultiAlternatives(
@@ -358,9 +368,6 @@ def send_mail_asking_for_crige_partnership(user, organisation):
         organisation_pk=organisation.pk,
         to=get_admins_mails(crige=True),
         )
-
-
-EXTRACTOR_URL = settings.EXTRACTOR_URL
 
 
 # Pour retourner le résultat d'une extraction

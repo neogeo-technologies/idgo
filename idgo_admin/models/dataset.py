@@ -89,19 +89,19 @@ class Dataset(models.Model):
                 "Le label court ne peut contenir ni majuscule, "
                 "ni caractères spéciaux à l'exception le tiret.")},
         max_length=100,
+        null=True,
+        blank=True,
         unique=True,
         db_index=True,
-        blank=True,
-        null=True,
         )
 
     ckan_id = models.UUIDField(
         verbose_name="Identifiant CKAN",
+        null=True,
+        blank=True,
+        editable=False,
         unique=True,
         db_index=True,
-        editable=False,
-        blank=True,
-        null=True,
         )
 
     description = models.TextField(
@@ -112,9 +112,9 @@ class Dataset(models.Model):
 
     thumbnail = models.ImageField(
         verbose_name="Illustration",
-        upload_to='thumbnails/',
-        blank=True,
         null=True,
+        blank=True,
+        upload_to='thumbnails/',
         )
 
     keywords = TaggableManager(
@@ -130,20 +130,20 @@ class Dataset(models.Model):
 
     date_creation = models.DateField(
         verbose_name="Date de création",
-        blank=True,
         null=True,
+        blank=True,
         )
 
     date_modification = models.DateField(
         verbose_name="Date de dernière modification",
-        blank=True,
         null=True,
+        blank=True,
         )
 
     date_publication = models.DateField(
         verbose_name="Date de publication",
-        blank=True,
         null=True,
+        blank=True,
         )
 
     FREQUENCY_CHOICES = (
@@ -178,8 +178,8 @@ class Dataset(models.Model):
     geocover = models.CharField(
         verbose_name="Couverture géographique",
         max_length=30,
-        blank=True,
         null=True,
+        blank=True,
         choices=GEOCOVER_CHOICES,
         default=None,
         )
@@ -187,8 +187,8 @@ class Dataset(models.Model):
     organisation = models.ForeignKey(
         to='Organisation',
         verbose_name="Organisation",
-        blank=True,
         null=True,
+        blank=True,
         on_delete=models.CASCADE,
         )
 
@@ -224,8 +224,8 @@ class Dataset(models.Model):
 
     geonet_id = models.UUIDField(
         verbose_name="Identifiant de la fiche de métadonnées",
-        blank=True,
         null=True,
+        blank=True,
         unique=True,
         db_index=True,
         )
@@ -238,14 +238,14 @@ class Dataset(models.Model):
     owner_name = models.CharField(
         verbose_name="Nom du producteur",
         max_length=100,
-        blank=True,
         null=True,
+        blank=True,
         )
 
     owner_email = models.EmailField(
         verbose_name='E-mail du producteur',
-        blank=True,
         null=True,
+        blank=True,
         )
 
     broadcaster_name = models.CharField(
@@ -257,22 +257,22 @@ class Dataset(models.Model):
 
     broadcaster_email = models.EmailField(
         verbose_name="E-mail du diffuseur",
-        blank=True,
         null=True,
+        blank=True,
         )
 
     granularity = models.ForeignKey(
         to='Granularity',
         verbose_name="Granularité de la couverture territoriale",
-        blank=True,
         null=True,
+        blank=True,
         on_delete=models.PROTECT,
         )
 
     bbox = models.PolygonField(
         verbose_name="Rectangle englobant",
-        blank=True,
         null=True,
+        blank=True,
         srid=4171,
         )
 
@@ -285,10 +285,6 @@ class Dataset(models.Model):
     @property
     def private(self):
         return not self.published
-
-    # @private.setter
-    # def private(self, value: bool):
-    #     self.published = not value
 
     @property
     def ckan_url(self):
@@ -303,15 +299,6 @@ class Dataset(models.Model):
         if self.bbox:
             minx, miny, maxx, maxy = self.bbox.extent
             return [[miny, minx], [maxy, maxx]]
-
-    # Méthodes de classe
-    # ==================
-
-    @classmethod
-    def get_subordinated_datasets(cls, profile):
-        Nexus = apps.get_model(app_label='idgo_admin', model_name='LiaisonsReferents')
-        organisations = Nexus.get_subordinated_organisations(profile=profile)
-        return cls.objects.filter(organisation__in=organisations)
 
     # Méthodes héritées
     # =================

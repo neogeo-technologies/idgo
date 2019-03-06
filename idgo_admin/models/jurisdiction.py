@@ -22,27 +22,55 @@ from django.contrib.gis.geos import MultiPolygon
 
 class Jurisdiction(models.Model):
 
-    code = models.CharField(
-        verbose_name='Code INSEE', max_length=10, primary_key=True)
-
-    name = models.CharField(verbose_name='Nom', max_length=100)
-
-    communes = models.ManyToManyField(
-        to='Commune', through='JurisdictionCommune',
-        verbose_name='Communes',
-        related_name='jurisdiction_communes')
-
-    geom = models.MultiPolygonField(
-        verbose_name='Geometrie', srid=4171, blank=True, null=True)
+    class Meta(object):
+        verbose_name = "Territoire de compétence"
+        verbose_name_plural = "Territoires de compétence"
 
     objects = models.GeoManager()
 
-    class Meta(object):
-        verbose_name = 'Territoire de compétence'
-        verbose_name_plural = 'Territoires de compétence'
+    code = models.CharField(
+        verbose_name="Code INSEE",
+        max_length=10,
+        primary_key=True,
+        )
+
+    name = models.CharField(
+        verbose_name="Nom",
+        max_length=100,
+        )
+
+    communes = models.ManyToManyField(
+        to='Commune',
+        through='JurisdictionCommune',
+        related_name='jurisdiction_communes',
+        verbose_name="Communes",
+        )
+
+    geom = models.MultiPolygonField(
+        verbose_name="Géometrie",
+        null=True,
+        blank=True,
+        srid=4171,
+        )
 
     def __str__(self):
         return self.name
+
+    @property
+    def organisations(self):
+        Organisation = apps.get_model(app_label='idgo_admin', model_name='Organisation')
+        return Organisation.objects.filter(jurisdiction=self)
+
+    def save(self, *args, **kwargs):
+        old = kwargs.pop('old', None)
+        super().save(*args, **kwargs)
+
+        if old and old != self.code:
+            instance_to_del = Jurisdiction.objects.get(code=old)
+            JurisdictionCommune.objects.filter(jurisdiction=instance_to_del).delete()
+            Organisation = apps.get_model(app_label='idgo_admin', model_name='Organisation')
+            Organisation.objects.filter(jurisdiction=instance_to_del).update(jurisdiction=self)
+            instance_to_del.delete()
 
     def set_geom(self):
         if self.communes.count() == 1:
@@ -61,47 +89,38 @@ class Jurisdiction(models.Model):
                     self.geom = MultiPolygon(geom__union)
         super().save(update_fields=('geom',))
 
-    def save(self, *args, **kwargs):
-        old = kwargs.pop('old', None)
-        super().save(*args, **kwargs)
-
-        if old and old != self.code:
-            instance_to_del = Jurisdiction.objects.get(code=old)
-            JurisdictionCommune.objects.filter(jurisdiction=instance_to_del).delete()
-            Organisation = apps.get_model(app_label='idgo_admin', model_name='Organisation')
-            Organisation.objects.filter(jurisdiction=instance_to_del).update(jurisdiction=self)
-            instance_to_del.delete()
-
     def get_bounds(self):
         extent = self.communes.envelope().aggregate(models.Extent('geom')).get('geom__extent')
-        # xmin, ymin = extent[0], extent[1]
-        # xmax, ymax = extent[2], extent[3]
-
         if extent:
             return ((extent[1], extent[0]), (extent[3], extent[2]))
-
-    @property
-    def organisations(self):
-        Organisation = apps.get_model(app_label='idgo_admin', model_name='Organisation')
-        return Organisation.objects.filter(jurisdiction=self)
 
 
 class Commune(models.Model):
 
-    code = models.CharField(
-        verbose_name='Code INSEE', max_length=5, primary_key=True)
-
-    name = models.CharField(verbose_name='Nom', max_length=100)
-
-    geom = models.MultiPolygonField(
-        verbose_name='Geometrie', srid=4171, blank=True, null=True)
+    class Meta(object):
+        verbose_name = "Commune"
+        verbose_name_plural = "Communes"
+        ordering = ('code',)
 
     objects = models.GeoManager()
 
-    class Meta(object):
-        verbose_name = 'Commune'
-        verbose_name_plural = 'Communes'
-        ordering = ['name']
+    code = models.CharField(
+        verbose_name="Code INSEE",
+        max_length=5,
+        primary_key=True,
+        )
+
+    name = models.CharField(
+        verbose_name="Nom",
+        max_length=100,
+        )
+
+    geom = models.MultiPolygonField(
+        verbose_name="Géometrie",
+        null=True,
+        blank=True,
+        srid=4171,
+        )
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.code)
@@ -109,24 +128,36 @@ class Commune(models.Model):
 
 class JurisdictionCommune(models.Model):
 
+    class Meta(object):
+        verbose_name = "Territoire de compétence / Commune"
+        verbose_name_plural = "Territoires de compétence / Communes"
+
     jurisdiction = models.ForeignKey(
-        to='Jurisdiction', on_delete=models.CASCADE,
-        verbose_name='Territoire de compétence', to_field='code')
+        to='Jurisdiction',
+        to_field='code',
+        verbose_name="Territoire de compétence",
+        on_delete=models.CASCADE,
+        )
 
     commune = models.ForeignKey(
-        to='Commune', on_delete=models.CASCADE,
-        verbose_name='Commune', to_field='code')
+        to='Commune',
+        to_field='code',
+        verbose_name="Commune",
+        on_delete=models.CASCADE,
+        )
 
-    created_on = models.DateField(auto_now_add=True)
+    created_on = models.DateField(
+        verbose_name="Créé le",
+        auto_now_add=True,
+        )
 
     created_by = models.ForeignKey(
-        to="Profile", null=True, on_delete=models.SET_NULL,
-        verbose_name="Profil de l'utilisateur",
-        related_name='creates_jurisdiction')
-
-    class Meta(object):
-        verbose_name = 'Territoire de compétence / Commune'
-        verbose_name_plural = 'Territoires de compétence / Communes'
+        to='Profile',
+        related_name='creates_jurisdiction',
+        verbose_name="Créé par",
+        null=True,
+        on_delete=models.SET_NULL,
+        )
 
     def __str__(self):
         return '{}: {}'.format(self.jurisdiction, self.commune)
