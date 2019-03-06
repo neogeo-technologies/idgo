@@ -50,7 +50,7 @@ class OrganisationType(models.Model):
     class Meta(object):
         verbose_name = "Type d'organisation"
         verbose_name_plural = "Types d'organisations"
-        ordering = ['name']
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -59,9 +59,9 @@ class OrganisationType(models.Model):
 class Organisation(models.Model):
 
     class Meta(object):
-        verbose_name = 'Organisation'
-        verbose_name_plural = 'Organisations'
-        ordering = ['slug']
+        verbose_name = "Organisation"
+        verbose_name_plural = "Organisations"
+        ordering = ('slug',)
 
     legal_name = models.CharField(
         verbose_name="Dénomination sociale",
@@ -387,9 +387,10 @@ class RemoteCkan(models.Model):
                                     continue
 
                                 try:
-                                    format_type = ResourceFormats.objects.get(extension=resource['format'].upper())
+                                    ckan_format = resource['format'].upper()
+                                    format_type = ResourceFormats.objects.get(ckan_format=ckan_format)
                                 except ResourceFormats.DoesNotExist:
-                                    format_type = None
+                                    format_type = ''
 
                                 kvp = {
                                     'ckan_id': ckan_id,
