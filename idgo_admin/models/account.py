@@ -24,7 +24,6 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler
-from idgo_admin import logger
 import requests
 import uuid
 
@@ -37,67 +36,75 @@ except AttributeError:
     ADMIN_USERNAME = None
 
 
+# ==============
+# Classe PROFILE
+# ==============
+
+
 class Profile(models.Model):
+    # TODO: Surcharger la classe User avec Profile
+
+    class Meta(object):
+        verbose_name = "Profil utilisateur"
+        verbose_name_plural = "Profils des utilisateurs"
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     organisation = models.ForeignKey(
         to='Organisation',
-        on_delete=models.SET_NULL,
         verbose_name="Organisation d'appartenance",
         blank=True,
-        null=True)
+        null=True,
+        on_delete=models.SET_NULL,
+        )
 
     referents = models.ManyToManyField(
         to='Organisation',
         through='LiaisonsReferents',
+        related_name='profile_referents',
         verbose_name="Organisations dont l'utilisateur est réferent",
-        related_name='profile_referents')
+        )
 
     contributions = models.ManyToManyField(
         to='Organisation',
         through='LiaisonsContributeurs',
+        related_name='profile_contributions',
         verbose_name="Organisations dont l'utilisateur est contributeur",
-        related_name='profile_contributions')
-
-    # TODO: À quoi sert cette relation ? Ne faudrait-il pas l'enlever ?
-    resources = models.ManyToManyField(
-        to='Resource',
-        through='LiaisonsResources',
-        verbose_name="Resources publiées par l'utilisateur",
-        related_name='profile_resources')
+        )
 
     phone = models.CharField(
-        verbose_name='Téléphone',
+        verbose_name="Téléphone",
         max_length=10,
         blank=True,
-        null=True)
+        null=True,
+        )
 
     is_active = models.BooleanField(
-        verbose_name='Validation suite à confirmation mail par utilisateur',
-        default=False)
+        verbose_name="Validation suite à confirmation mail par utilisateur",
+        default=False,
+        )
 
     membership = models.BooleanField(
-        verbose_name="Etat de rattachement profile-organisation d'appartenance",
-        default=False)
+        verbose_name="Utilisateur rattaché à une organisation",
+        default=False,
+        )
 
     crige_membership = models.BooleanField(
-        verbose_name='Utilisateur affilié au CRIGE',
-        default=False)
+        verbose_name="Utilisateur affilié au CRIGE",
+        default=False,
+        )
 
     is_admin = models.BooleanField(
-        verbose_name="Administrateur IDGO",
-        default=False)
+        verbose_name="Administrateur métier",
+        default=False,
+        )
 
     sftp_password = models.CharField(
-        verbose_name='Mot de passe sFTP',
+        verbose_name="Mot de passe sFTP",
         max_length=10,
         blank=True,
-        null=True)
-
-    class Meta(object):
-        verbose_name = "Profil utilisateur"
-        verbose_name_plural = "Profils des utilisateurs"
+        null=True,
+        )
 
     def __str__(self):
         return "{} ({})".format(self.user.get_full_name(), self.user.username)
@@ -112,7 +119,7 @@ class Profile(models.Model):
 
     @property
     def referent_for(self):
-        return LiaisonsReferents.get_subordinated_organizations(profile=self)
+        return LiaisonsReferents.get_subordinated_organisations(profile=self)
 
     @property
     def is_contributor(self):
@@ -189,38 +196,49 @@ class Profile(models.Model):
 
 class LiaisonsReferents(models.Model):
 
-    profile = models.ForeignKey(
-        to='Profile',
-        on_delete=models.CASCADE,
-        verbose_name='Profil')
-
-    organisation = models.ForeignKey(
-        to='Organisation',
-        on_delete=models.CASCADE,
-        verbose_name='Organisation')
-
-    created_on = models.DateField(
-        auto_now_add=True)
-
-    validated_on = models.DateField(
-        verbose_name="Date de validation de l'action",
-        default=timezone.now,
-        blank=True,
-        null=True)
-
     class Meta(object):
+        verbose_name = "Statut de référent"
+        verbose_name_plural = "Statuts de référent"
         unique_together = (
             ('profile', 'organisation'),
             )
+
+    profile = models.ForeignKey(
+        to='Profile',
+        verbose_name='Profil utilisateur',
+        on_delete=models.CASCADE,
+        )
+
+    organisation = models.ForeignKey(
+        to='Organisation',
+        verbose_name='Organisation',
+        on_delete=models.CASCADE,
+        )
+
+    created_on = models.DateField(
+        verbose_name="Date de la demande de statut de référent",
+        auto_now_add=True,
+        )
+
+    validated_on = models.DateField(
+        verbose_name="Date de la confirmation par un administrateur",
+        blank=True,
+        null=True,
+        default=timezone.now,
+        )
 
     def __str__(self):
         return '{full_name} ({username})--{organisation}'.format(
             full_name=self.profile.user.get_full_name(),
             username=self.profile.user.username,
-            organisation=self.organisation.legal_name)
+            organisation=self.organisation.legal_name,
+            )
+
+    # Méthodes de classe
+    # ==================
 
     @classmethod
-    def get_subordinated_organizations(cls, profile):
+    def get_subordinated_organisations(cls, profile):
 
         # TODO: Sortir le rôle 'admin' (Attention à l'impact que cela peut avoir sur le code)
         if profile.is_admin:
@@ -238,27 +256,45 @@ class LiaisonsReferents(models.Model):
 
 class LiaisonsContributeurs(models.Model):
 
-    profile = models.ForeignKey(
-        to='Profile', on_delete=models.CASCADE)
-
-    organisation = models.ForeignKey(
-        to='Organisation', on_delete=models.CASCADE)
-
-    created_on = models.DateField(auto_now_add=True)
-
-    validated_on = models.DateField(
-        verbose_name="Date de validation de l'action", blank=True, null=True)
-
     class Meta(object):
+        verbose_name = "Statut de contributeur"
+        verbose_name_plural = "Statuts de contributeur"
         unique_together = (
             ('profile', 'organisation'),
             )
+
+    profile = models.ForeignKey(
+        to='Profile',
+        verbose_name="Profil utilisateur",
+        on_delete=models.CASCADE,
+        )
+
+    organisation = models.ForeignKey(
+        to='Organisation',
+        verbose_name="Organisation",
+        on_delete=models.CASCADE,
+        )
+
+    created_on = models.DateField(
+        verbose_name="Date de la demande de statut de contributeur",
+        auto_now_add=True,
+        )
+
+    validated_on = models.DateField(
+        verbose_name="Date de la confirmation par un administrateur",
+        blank=True,
+        null=True,
+        )
 
     def __str__(self):
         return '{full_name} ({username})--{organisation}'.format(
             full_name=self.profile.user.get_full_name(),
             username=self.profile.user.username,
-            organisation=self.organisation.legal_name)
+            organisation=self.organisation.legal_name,
+            )
+
+    # Méthodes de classe
+    # ==================
 
     @classmethod
     def get_contribs(cls, profile):
@@ -276,58 +312,49 @@ class LiaisonsContributeurs(models.Model):
         return [e.organisation for e in LiaisonsContributeurs.objects.filter(**kwargs)]
 
 
-# TODO: À quoi sert cette table de liaison ? Ne faudrait-il pas l'enlever ?
-class LiaisonsResources(models.Model):
-
-    profile = models.ForeignKey(
-        to='Profile',
-        on_delete=models.CASCADE)
-
-    resource = models.ForeignKey(
-        to='Resource',
-        on_delete=models.CASCADE)
-
-    created_on = models.DateField(
-        auto_now_add=True)
-
-    validated_on = models.DateField(
-        verbose_name="Date de validation de l'action",
-        blank=True,
-        null=True)
-
-
+# ===========================================
 # Classe des actions de profile d'utilisateur
 # ===========================================
 
 
 class AccountActions(models.Model):
 
-    ACTION_CHOICES = (
-        ('confirm_mail', "Confirmation de l'e-mail par l'utilisateur"),
-        ('confirm_new_organisation', "Confirmation par un administrateur de la création d'une organisation par l'utilisateur"),
-        ('confirm_rattachement', "Rattachement d'un utilisateur à une organisation par un administrateur"),
-        ('confirm_referent', "Confirmation du rôle de réferent d'une organisation pour un utilisateur par un administrateur"),
-        ('confirm_contribution', "Confirmation du rôle de contributeur d'une organisation pour un utilisateur par un administrateur"),
-        ('reset_password', "Réinitialisation du mot de passe"),
-        ('set_password_admin', "Initialisation du mot de passe suite à une inscription par un administrateur"),
+    key = models.UUIDField(
+        verbose_name="Clé",
+        editable=False,
+        default=uuid.uuid4,
         )
 
-    profile = models.ForeignKey(
-        to='Profile',
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True)
-
-    # Pour pouvoir reutiliser AccountActions pour demandes post-inscription
-    organisation = models.ForeignKey(
-        to='Organisation',
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True)
-
-    key = models.UUIDField(
-        default=uuid.uuid4,
-        editable=False)
+    ACTION_CHOICES = (
+        (
+            'confirm_mail',
+            "Confirmation de l'e-mail par l'utilisateur"
+            ),
+        (
+            'confirm_new_organisation',
+            "Confirmation par un administrateur de la création d'une organisation par l'utilisateur"
+            ),
+        (
+            'confirm_rattachement',
+            "Rattachement d'un utilisateur à une organisation par un administrateur"
+            ),
+        (
+            'confirm_referent',
+            "Confirmation du rôle de réferent d'une organisation pour un utilisateur par un administrateur"
+            ),
+        (
+            'confirm_contribution',
+            "Confirmation du rôle de contributeur d'une organisation pour un utilisateur par un administrateur"
+            ),
+        (
+            'reset_password',
+            "Réinitialisation du mot de passe"
+            ),
+        (
+            'set_password_admin',
+            "Initialisation du mot de passe suite à une inscription par un administrateur"
+            ),
+        )
 
     action = models.CharField(
         verbose_name="Action de gestion de profile",
@@ -335,17 +362,37 @@ class AccountActions(models.Model):
         blank=True,
         null=True,
         choices=ACTION_CHOICES,
-        default='confirm_mail')
+        default='confirm_mail',
+        )
 
     created_on = models.DateTimeField(
-        auto_now_add=True,
+        verbose_name="Date de création",
         blank=True,
-        null=True)
+        null=True,
+        auto_now_add=True,
+        )
 
     closed = models.DateTimeField(
-        verbose_name="Date de validation de l'action",
+        verbose_name="Date de validation",
         blank=True,
-        null=True)
+        null=True,
+        )
+
+    profile = models.ForeignKey(
+        to='Profile',
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        )
+
+    # Pour pouvoir reutiliser AccountActions pour demandes post-inscription
+    organisation = models.ForeignKey(
+        to='Organisation',
+        verbose_name="Organisation",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        )
 
     def orga_name(self):
         return self.organisation and str(self.organisation.legal_name) or 'N/A'
@@ -353,40 +400,32 @@ class AccountActions(models.Model):
     orga_name.short_description = "Nom de l'organisation concernée"
 
     def get_path(self):
-        CHOICES = {
+        action = {
             'confirm_mail': (
-                'confirmation_mail',
-                {'key': self.key},
+                'confirmation_mail', {'key': self.key},
                 ),
             'confirm_new_organisation': (
-                'confirm_new_orga',
-                {'key': self.key},
+                'confirm_new_orga', {'key': self.key},
                 ),
             'confirm_rattachement': (
-                'confirm_rattachement',
-                {'key': self.key},
+                'confirm_rattachement', {'key': self.key},
                 ),
             'confirm_referent': (
-                'confirm_referent',
-                {'key': self.key},
+                'confirm_referent', {'key': self.key},
                 ),
             'confirm_contribution': (
-                'confirm_contribution',
-                {'key': self.key},
+                'confirm_contribution', {'key': self.key},
                 ),
             'reset_password': (
-                'password_manager',
-                {'key': self.key, 'process': 'reset'},
+                'password_manager', {'key': self.key, 'process': 'reset'},
                 ),
             'set_password_admin': (
-                'password_manager',
-                {'key': self.key, 'process': 'initiate'},
+                'password_manager', {'key': self.key, 'process': 'initiate'},
                 ),
             }
-
         return reverse(
-            'idgo_admin:{action}'.format(action=CHOICES[self.action][0]),
-            kwargs=CHOICES[self.action][1])
+            'idgo_admin:{action}'.format(action=action[self.action][0]),
+            kwargs=action[self.action][1])
 
     get_path.short_description = "Adresse de validation"
 

@@ -33,18 +33,33 @@ class ExtractorSupportedFormat(models.Model):
         verbose_name = "Format pris en charge par le service d'extraction"
         verbose_name_plural = "Formats pris en charge par le service d'extraction"
 
-    name = models.SlugField(verbose_name='Nom', primary_key=True, editable=False)
+    name = models.SlugField(
+        verbose_name="Nom",
+        editable=False,
+        primary_key=True,
+        )
 
-    description = models.TextField(verbose_name='Description', unique=True)
+    description = models.TextField(
+        verbose_name="Description",
+        unique=True,
+        )
 
-    details = JSONField(verbose_name='Détails')
+    details = JSONField(
+        verbose_name="Détails",
+        )
 
     TYPE_CHOICES = (
         ('raster', 'raster'),
-        ('vector', 'vector'))
+        ('vector', 'vector'),
+        )
 
     type = models.CharField(
-        'type', max_length=6, blank=True, null=True, choices=TYPE_CHOICES)
+        verbose_name="Type",
+        max_length=6,
+        null=True,
+        blank=True,
+        choices=TYPE_CHOICES,
+        )
 
     def __str__(self):
         return self.description
@@ -57,30 +72,60 @@ class AsyncExtractorTask(models.Model):
         verbose_name_plural = "Tâches exécutées par l'extracteur de données"
 
     uuid = models.UUIDField(
-        verbose_name='UUID', default=uuid.uuid4, primary_key=True, editable=False)
+        editable=False,
+        primary_key=True,
+        default=uuid.uuid4,
+        )
 
-    user = models.ForeignKey(to=User, verbose_name='User')
+    user = models.ForeignKey(
+        to=User,
+        )
 
-    foreign_value = models.CharField(max_length=100, blank=True, null=True)
+    foreign_value = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        )
 
-    foreign_field = models.CharField(max_length=100, blank=True, null=True)
+    foreign_field = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        )
 
-    model = models.CharField(max_length=100, blank=True, null=True)
+    model = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        )
 
-    success = models.NullBooleanField(verbose_name='Succès')
+    success = models.NullBooleanField(
+        )
 
     submission_datetime = models.DateTimeField(
-        verbose_name='Submission', null=True, blank=True)
+        null=True,
+        blank=True,
+        )
 
     start_datetime = models.DateTimeField(
-        verbose_name='Start', null=True, blank=True)
+        null=True,
+        blank=True,
+        )
 
     stop_datetime = models.DateTimeField(
-        verbose_name='Stop', null=True, blank=True)
+        null=True,
+        blank=True,
+        )
 
-    query = JSONField(verbose_name='Query', blank=True, null=True)
+    query = JSONField(
+        null=True,
+        blank=True,
+        )
 
-    details = JSONField(verbose_name='Details', blank=True, null=True)
+    details = JSONField(
+        null=True,
+        blank=True,
+        )
 
     def __str__(self):
         return self.target_object.__str__()
@@ -88,14 +133,15 @@ class AsyncExtractorTask(models.Model):
     @property
     def status(self):
         if self.success is True:
-            return 'Succès'  # Terminé
+            return 'Succès'
         elif self.success is False:
-            return 'Échec'  # En erreur
+            return 'Échec'
         elif self.success is None and not self.start_datetime:
             return 'En attente'
         elif self.success is None and self.start_datetime:
             return 'En cours'
-        return 'Inconnu'
+        else:
+            return 'Inconnu'
 
     @property
     def elapsed_time(self):
@@ -108,9 +154,6 @@ class AsyncExtractorTask(models.Model):
     def target_object(self):
         Model = apps.get_model(app_label='idgo_admin', model_name=self.model)
         return Model.objects.get(**{self.foreign_field: self.foreign_value})
-
-
-# Triggers
 
 
 @receiver(pre_init, sender=AsyncExtractorTask)
@@ -140,7 +183,7 @@ def synchronize_extractor_task(sender, *args, **kwargs):
 
                         instance.success = {
                             'SUCCESS': True,
-                            'FAILURE': False
+                            'FAILURE': False,
                             }.get(details['status'], None)
 
                         instance.details = details

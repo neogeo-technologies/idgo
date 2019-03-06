@@ -167,10 +167,10 @@ $(function() {
 	const $crige = $('.crige-partner-badge').hide();
 
 	const toggleInputVisibility = function() {
-		var selected = parseInt($selectOrganization.val());
+		var selected = parseInt($selectOrganisation.val());
 		selected = isNaN(selected) ? null : selected;
 
-		const isCrige = $selectOrganization.find(':selected').attr('crige');
+		const isCrige = $selectOrganisation.find(':selected').attr('crige');
 		if (typeof isCrige !== typeof undefined && isCrige !== false) {
 			$crige.show();
 		} else {
@@ -189,7 +189,7 @@ $(function() {
 		};
 	};
 
-	const $selectOrganization = $('select[name="organisation"]')
+	const $selectOrganisation = $('select[name="organisation"]')
 		.ready(toggleInputVisibility)
 		.change(toggleInputVisibility);
 
@@ -201,7 +201,7 @@ $(function() {
 			$inputReferent.prop('checked', true).trigger('change');
 			{% endif %}
 
-			$selectOrganization.selectedIndex = 0;
+			$selectOrganisation.selectedIndex = 0;
 			$('#collapse-one select').each(function(i) {
 				$(this)[0].selectedIndex = 0;
 			});
@@ -211,7 +211,7 @@ $(function() {
 	const $collapseTwo = $('#collapse-two').collapse({toggle: false})
 		.on('hide.bs.collapse', function() {
 			$inputReferent.prop('checked', false).trigger('change');
-			$selectOrganization.find('option[value="{{ form.organisation.value | yesno:"true,false,NaN" }}"]').prop('selected', true);
+			$selectOrganisation.find('option[value="{{ form.organisation.value | yesno:"true,false,NaN" }}"]').prop('selected', true);
 			$('#collapse-two input').each(function(i) {
 				$(this).val('');
 			});

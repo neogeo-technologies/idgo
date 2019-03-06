@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='resource',
             name='up_file',
-            field=models.FileField(blank=True, null=True, upload_to=idgo_admin.models.upload_resource, verbose_name='Téléverser un ou plusieurs fichiers'),
+            field=models.FileField(blank=True, null=True, upload_to=idgo_admin.models.resource._up_file_upload_to, verbose_name='Téléverser un ou plusieurs fichiers'),
         ),
     ]

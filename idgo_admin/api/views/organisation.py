@@ -30,7 +30,7 @@ from django.views import View
 from idgo_admin.api.utils import BasicAuth
 from idgo_admin.api.utils import parse_request
 from idgo_admin.exceptions import GenericException
-from idgo_admin.forms.organisation import OrganizationForm as Form
+from idgo_admin.forms.organisation import OrganisationForm as Form
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Organisation
 

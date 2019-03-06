@@ -34,7 +34,7 @@ from idgo_admin.managers import HarvestedDatasetManager
 from idgo_admin.utils import three_suspension_points
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
-import uuid
+from uuid import UUID
 
 
 CKAN_URL = settings.CKAN_URL
@@ -56,12 +56,17 @@ finally:
     DEFAULT_BBOX = bounds_to_wkt(xmin, ymin, xmax, ymax)
 
 
+# ==============
+# Modèle DATASET
+# ==============
+
+
 class Dataset(models.Model):
     """Modèle de classe d'un jeu de données."""
 
     class Meta(object):
-        verbose_name = 'Jeu de données'
-        verbose_name_plural = 'Jeux de données'
+        verbose_name = "Jeu de données"
+        verbose_name_plural = "Jeux de données"
 
     # Managers
     # ========
@@ -74,46 +79,46 @@ class Dataset(models.Model):
     # ===================
 
     title = models.TextField(
-        verbose_name='Titre',
+        verbose_name="Titre",
         )
 
     slug = models.SlugField(
+        verbose_name="Slug",
         error_messages={
             'invalid': (
                 "Le label court ne peut contenir ni majuscule, "
                 "ni caractères spéciaux à l'exception le tiret.")},
-        verbose_name='Label court',
         max_length=100,
+        null=True,
+        blank=True,
         unique=True,
         db_index=True,
-        blank=True,
-        null=True,
         )
 
     ckan_id = models.UUIDField(
-        verbose_name='Identifiant CKAN',
+        verbose_name="Identifiant CKAN",
+        null=True,
+        blank=True,
+        editable=False,
         unique=True,
         db_index=True,
-        editable=False,
-        blank=True,
-        null=True,
         )
 
     description = models.TextField(
-        verbose_name='Description',
+        verbose_name="Description",
         blank=True,
         null=True,
         )
 
     thumbnail = models.ImageField(
-        verbose_name='Illustration',
-        upload_to='thumbnails/',
-        blank=True,
+        verbose_name="Illustration",
         null=True,
+        blank=True,
+        upload_to='thumbnails/',
         )
 
     keywords = TaggableManager(
-        verbose_name='Liste de mots-clés',
+        verbose_name="Liste de mots-clés",
         blank=True,
         )
 
@@ -124,121 +129,123 @@ class Dataset(models.Model):
         )
 
     date_creation = models.DateField(
-        verbose_name='Date de création',
-        blank=True,
+        verbose_name="Date de création",
         null=True,
+        blank=True,
         )
 
     date_modification = models.DateField(
-        verbose_name='Date de dernière modification',
-        blank=True,
+        verbose_name="Date de dernière modification",
         null=True,
+        blank=True,
         )
 
     date_publication = models.DateField(
-        verbose_name='Date de publication',
-        blank=True,
+        verbose_name="Date de publication",
         null=True,
+        blank=True,
         )
 
     FREQUENCY_CHOICES = (
-        ('asneeded', 'Lorsque nécessaire'),
-        ('never', 'Non planifiée'),
-        ('intermittently', 'Irrégulière'),
-        ('continuously', 'Continue'),
-        ('realtime', 'Temps réel'),
-        ('daily', 'Journalière'),
-        ('weekly', 'Hebdomadaire'),
-        ('fortnightly', 'Bi-mensuelle'),
-        ('monthly', 'Mensuelle'),
-        ('quarterly', 'Trimestrielle'),
-        ('semiannual', 'Bi-annuelle'),
-        ('annual', 'Annuelle'),
-        ('unknow', 'Inconnue'))
+        ('asneeded', "Lorsque nécessaire"),
+        ('never', "Non planifiée"),
+        ('intermittently', "Irrégulière"),
+        ('continuously', "Continue"),
+        ('realtime', "Temps réel"),
+        ('daily', "Journalière"),
+        ('weekly', "Hebdomadaire"),
+        ('fortnightly', "Bi-mensuelle"),
+        ('monthly', "Mensuelle"),
+        ('quarterly', "Trimestrielle"),
+        ('semiannual', "Bi-annuelle"),
+        ('annual', "Annuelle"),
+        ('unknow', "Inconnue"),
+        )
 
     update_frequency = models.CharField(
-        verbose_name='Fréquence de mise à jour',
-        default='never',
+        verbose_name="Fréquence de mise à jour",
         max_length=30,
         choices=FREQUENCY_CHOICES,
+        default='never',
         )
 
     GEOCOVER_CHOICES = (
-        (None, 'Indéfinie'),
-        ('regionale', 'Régionale'),
-        ('jurisdiction', 'Territoire de compétence'))
+        (None, "Indéfinie"),
+        ('regionale', "Régionale"),
+        ('jurisdiction', "Territoire de compétence"),
+        )
 
     geocover = models.CharField(
-        verbose_name='Couverture géographique',
-        blank=True,
-        null=True,
-        default=None,
+        verbose_name="Couverture géographique",
         max_length=30,
+        null=True,
+        blank=True,
         choices=GEOCOVER_CHOICES,
+        default=None,
         )
 
     organisation = models.ForeignKey(
         to='Organisation',
-        verbose_name="Organisation à laquelle est rattaché ce jeu de données",
-        blank=True,
+        verbose_name="Organisation",
         null=True,
+        blank=True,
         on_delete=models.CASCADE,
         )
 
     license = models.ForeignKey(
         to='License',
-        verbose_name='Licence',
+        verbose_name="Licence",
         null=True,
         blank=True,
         )
 
     support = models.ForeignKey(
         to='Support',
-        verbose_name='Support technique',
+        verbose_name="Support technique",
         null=True,
         blank=True,
         )
 
     data_type = models.ManyToManyField(
         to='DataType',
-        verbose_name='Type de données',
+        verbose_name="Type de données",
         blank=True,
         )
 
     published = models.BooleanField(
-        verbose_name='Publier le jeu de données',
+        verbose_name="Publier le jeu de données",
         default=False,
         )
 
     is_inspire = models.BooleanField(
-        verbose_name='Le jeu de données est soumis à la règlementation INSPIRE',
+        verbose_name="Le jeu de données est soumis à la règlementation INSPIRE",
         default=False,
         )
 
     geonet_id = models.UUIDField(
-        verbose_name='UUID de la métadonnées',
+        verbose_name="Identifiant de la fiche de métadonnées",
+        null=True,
+        blank=True,
         unique=True,
         db_index=True,
-        blank=True,
-        null=True,
         )
 
     editor = models.ForeignKey(
         User,
-        verbose_name='Producteur (propriétaire)',
+        verbose_name="Producteur (propriétaire)",
         )
 
     owner_name = models.CharField(
-        verbose_name='Nom du producteur',
+        verbose_name="Nom du producteur",
         max_length=100,
-        blank=True,
         null=True,
+        blank=True,
         )
 
     owner_email = models.EmailField(
         verbose_name='E-mail du producteur',
-        blank=True,
         null=True,
+        blank=True,
         )
 
     broadcaster_name = models.CharField(
@@ -249,23 +256,23 @@ class Dataset(models.Model):
         )
 
     broadcaster_email = models.EmailField(
-        verbose_name='E-mail du diffuseur',
-        blank=True,
+        verbose_name="E-mail du diffuseur",
         null=True,
+        blank=True,
         )
 
     granularity = models.ForeignKey(
         to='Granularity',
-        blank=True,
+        verbose_name="Granularité de la couverture territoriale",
         null=True,
-        verbose_name='Granularité de la couverture territoriale',
+        blank=True,
         on_delete=models.PROTECT,
         )
 
     bbox = models.PolygonField(
-        verbose_name='Rectangle englobant',
-        blank=True,
+        verbose_name="Rectangle englobant",
         null=True,
+        blank=True,
         srid=4171,
         )
 
@@ -283,10 +290,6 @@ class Dataset(models.Model):
     def ckan_url(self):
         return urljoin(settings.CKAN_URL, 'dataset/{}'.format(self.slug))
 
-    def get_resources(self, **kwargs):
-        Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
-        return Resource.objects.filter(dataset=self, **kwargs)
-
     @property
     def title_overflow(self):
         return three_suspension_points(self.title)
@@ -297,42 +300,31 @@ class Dataset(models.Model):
             minx, miny, maxx, maxy = self.bbox.extent
             return [[miny, minx], [maxy, maxx]]
 
-    # Méthodes de classe
-    # ==================
-
-    @classmethod
-    def get_subordinated_datasets(cls, profile):
-        Nexus = apps.get_model(app_label='idgo_admin', model_name='LiaisonsReferents')
-        organisations = Nexus.get_subordinated_organizations(profile=profile)
-        return cls.objects.filter(organisation__in=organisations)
-
     # Méthodes héritées
     # =================
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # On regarde si le jeu de données est moissonnées
-        # RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-        # try:
-        #     remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
-        # except RemoteCkanDataset.DoesNotExist:
-        #     self.remote_ckan_dataset = None
-        #     self.is_harvested = False
-        # else:
-        #     self.remote_ckan_dataset = remote_ckan_dataset
-        #     self.is_harvested = True
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #
+    #     # On regarde si le jeu de données est moissonnées
+    #     RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+    #     try:
+    #         remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
+    #     except RemoteCkanDataset.DoesNotExist:
+    #         self.remote_ckan_dataset = None
+    #         self.is_harvested = False
+    #     else:
+    #         self.remote_ckan_dataset = remote_ckan_dataset
+    #         self.is_harvested = True
 
     def clean(self):
 
         # Vérifie la disponibilité du « slug » dans CKAN
         slug = self.slug or slugify(self.title)
-        with CkanUserHandler(CkanHandler.apikey) as ckan_me:
-            ckan_dataset = ckan_me.get_package(slug)
-        if ckan_dataset \
-                and uuid.UUID(ckan_dataset.get('id')) != self.ckan_id \
-                and ckan_dataset.get('name') == slug:
-            raise ValidationError("L'URL du jeu de données est réservé.")
+        ckan_dataset = CkanHandler.get_package(slug)
+        if ckan_dataset:
+            if UUID(ckan_dataset['id']) != self.ckan_id and ckan_dataset['name'] == slug:
+                raise ValidationError("L'URL du jeu de données est réservé.")
 
     def save(self, *args, current_user=None, synchronize=True, **kwargs):
 
@@ -403,7 +395,7 @@ class Dataset(models.Model):
             # Une organisation CKAN ne contenant plus
             # de jeu de données doit être désactivée.
             if previous.organisation:
-                CkanHandler.deactivate_ckan_organization_if_empty(str(previous.organisation.ckan_id))
+                CkanHandler.deactivate_ckan_organisation_if_empty(str(previous.organisation.ckan_id))
 
             # On vérifie si l'organisation du jeu de données change.
             # Si c'est le cas, il est nécessaire de sauvegarder tous
@@ -422,7 +414,7 @@ class Dataset(models.Model):
         if synchronize:
             ckan_dataset = self.synchronize(with_user=current_user)
             # puis on met à jour `ckan_id`
-            self.ckan_id = uuid.UUID(ckan_dataset['id'])
+            self.ckan_id = UUID(ckan_dataset['id'])
             super().save(update_fields=['ckan_id'])
 
     def delete(self, *args, current_user=None, **kwargs):
@@ -546,19 +538,19 @@ class Dataset(models.Model):
 
         # Synchronisation de l'organisation ; si l'organisation
         # n'existe pas il faut la créer
-        ckan_organization = CkanHandler.get_organization(organisation_id)
-        if not ckan_organization:
-            CkanHandler.add_organization(self.organisation)
+        ckan_organisation = CkanHandler.get_organisation(organisation_id)
+        if not ckan_organisation:
+            CkanHandler.add_organisation(self.organisation)
         # et si l'organisation est désactiver il faut l'activer
-        elif ckan_organization.get('state') == 'deleted':
-            CkanHandler.activate_organization(organisation_id)
+        elif ckan_organisation.get('state') == 'deleted':
+            CkanHandler.activate_organisation(organisation_id)
 
         if with_user:
             username = with_user.username
 
             # ~ ~ ~ #
             # TODO: C'est très lourd de faire cela systématiquement -> voir pour améliorer cela
-            CkanHandler.add_user_to_organization(username, organisation_id)
+            CkanHandler.add_user_to_organisation(username, organisation_id)
             for category in self.categories.all():
                 category_id = str(category.ckan_id)
                 CkanHandler.add_user_to_group(username, category_id)
@@ -570,25 +562,29 @@ class Dataset(models.Model):
         else:
             return CkanHandler.publish_dataset(id=id, **data)
 
+    def get_resources(self, **kwargs):
+        Model = apps.get_model(app_label='idgo_admin', model_name='Resource')
+        return Model.objects.filter(dataset=self, **kwargs)
+
     def get_layers(self):
-        Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
-        return Layer.objects.filter(resource__dataset__pk=self.pk)
+        Model = apps.get_model(app_label='idgo_admin', model_name='Layer')
+        return Model.objects.filter(resource__dataset__pk=self.pk)
 
     def is_contributor(self, profile):
-        LiaisonsContributeurs = apps.get_model(
-            app_label='idgo_admin', model_name='LiaisonsContributeurs')
-
-        return LiaisonsContributeurs.objects.filter(
-            profile=profile, organisation=self.organisation,
-            validated_on__isnull=False).exists()
+        Model = apps.get_model(app_label='idgo_admin', model_name='LiaisonsContributeurs')
+        return Model.objects.filter(
+            profile=profile,
+            organisation=self.organisation,
+            validated_on__isnull=False,
+            ).exists()
 
     def is_referent(self, profile):
-        LiaisonsReferents = apps.get_model(
-            app_label='idgo_admin', model_name='LiaisonsReferents')
-
-        return LiaisonsReferents.objects.filter(
-            profile=profile, organisation=self.organisation,
-            validated_on__isnull=False).exists()
+        Model = apps.get_model(app_label='idgo_admin', model_name='LiaisonsReferents')
+        return Model.objects.filter(
+            profile=profile,
+            organisation=self.organisation,
+            validated_on__isnull=False,
+            ).exists()
 
 
 # Proxy
@@ -622,7 +618,7 @@ def pre_save_dataset(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Dataset)
 def post_delete_dataset(sender, instance, **kwargs):
-    CkanHandler.deactivate_ckan_organization_if_empty(str(instance.organisation.ckan_id))
+    CkanHandler.deactivate_ckan_organisation_if_empty(str(instance.organisation.ckan_id))
 
 
 @receiver(post_save, sender=Dataset)

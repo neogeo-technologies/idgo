@@ -187,7 +187,7 @@
 	</div>
 	<div class="row">
 		<div class="col-xs-offset-1 col-xs-5">
-			<div class="collapse" id="permitted-organizations">
+			<div class="collapse" id="permitted-organisations">
 				{{ form.organisations_allowed }}
 			</div>
 		</div>
@@ -281,7 +281,7 @@ $encodingInputContainer.show();
 		});
 	});
 
-	const $permittedOrganizations = $('#permitted-organizations').collapse({toggle: false}).on('hidden.bs.collapse', function() {
+	const $permittedOrganisations = $('#permitted-organisations').collapse({toggle: false}).on('hidden.bs.collapse', function() {
 		$('#collapse-restriction input').each(function(i) {
 			$(this).val('');
 		});
@@ -290,16 +290,16 @@ $encodingInputContainer.show();
 	const getAccessSelectedOption = function($this) {
 		const value = $this.find('option:selected').val();
 		if (value === 'only_allowed_users') {
-			$permittedOrganizations.collapse('hide');
+			$permittedOrganisations.collapse('hide');
 			$permittedUsers.collapse('show');
 		}
 		else if (value === 'any_organization') {
 			$permittedUsers.collapse('hide');
-			$permittedOrganizations.collapse('show');
+			$permittedOrganisations.collapse('show');
 		}
 		else {
 			$permittedUsers.collapse('hide');
-			$permittedOrganizations.collapse('hide');
+			$permittedOrganisations.collapse('hide');
 		};
 	};
 

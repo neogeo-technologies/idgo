@@ -114,12 +114,12 @@ urlpatterns = [
 
     url('^member/all/?$', ReferentAccountManager.as_view(), name='all_members'),
 
-    url('^organisation/all/?$', all_organisations, name='all_organizations'),
-    url('^organisation/new/?$', CreateOrganisation.as_view(), name='create_organization'),
+    url('^organisation/all/?$', all_organisations, name='all_organisations'),
+    url('^organisation/new/?$', CreateOrganisation.as_view(), name='create_organisation'),
 
-    url('^organisation/ows/?$', OrganisationOWS.as_view(), name='organization_ows'),
-    url('^organisation/(?P<id>(\d+))/?$', organisation, name='organization'),
-    url('^organisation/(?P<id>(\d+))/edit/?$', UpdateOrganisation.as_view(), name='update_organization'),
+    url('^organisation/ows/?$', OrganisationOWS.as_view(), name='organisation_ows'),
+    url('^organisation/(?P<id>(\d+))/?$', organisation, name='organisation'),
+    url('^organisation/(?P<id>(\d+))/edit/?$', UpdateOrganisation.as_view(), name='update_organisation'),
     url('^organisation/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
 
     url('^organisation/crige/?$', crige_partnership, name='crige_partnership'),
@@ -131,7 +131,7 @@ urlpatterns = [
     url('^password/(?P<process>(initiate|reset))/(?P<key>(.+))/?$', PasswordManager.as_view(), name='password_manager'),
 
     url('^confirmation/email/(?P<key>.+)/?$', confirmation_mail, name='confirmation_mail'),
-    url('^confirmation/createorganization/(?P<key>.+)/?$', confirm_new_orga, name='confirm_new_orga'),
+    url('^confirmation/createorganisation/(?P<key>.+)/?$', confirm_new_orga, name='confirm_new_orga'),
     url('^confirmation/rattachment/(?P<key>.+)/?$', confirm_rattachement, name='confirm_rattachement'),
     url('^confirmation/contribute/(?P<key>.+)/?$', confirm_contribution, name='confirm_contribution'),
     url('^confirmation/referent/(?P<key>.+)/?$', confirm_referent, name='confirm_referent'),

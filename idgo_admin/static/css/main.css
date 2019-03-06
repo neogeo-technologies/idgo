@@ -1380,15 +1380,15 @@ table.board .table-cell-dropdown>.dropdown-menu {
 
 /* ************************************************************************* */
 
-#allorganizations .btn-group-vertical {
+#allorganisations .btn-group-vertical {
     max-height: 500px;
 }
 
-#allorganizations .dropdown-menu>li>a {
+#allorganisations .dropdown-menu>li>a {
     text-align: left;
 }
 
-#allorganizations span.label-name {
+#allorganisations span.label-name {
     display: inline-block;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -1398,30 +1398,30 @@ table.board .table-cell-dropdown>.dropdown-menu {
 
 /* ************************************************************************* */
 
-#organization_well {
+#organisation_well {
     min-height: 500px;
 }
 
-#organization_well #info img[name=logo] {
+#organisation_well #info img[name=logo] {
     padding: 20px 10px;
     max-height: 150px;
     max-width: 100%;
 }
 
-#organization_well #info .col-sm-3 {
+#organisation_well #info .col-sm-3 {
     text-align: center;
 }
 
-#organization_well #info p[name=description] {
+#organisation_well #info p[name=description] {
     text-align: justify;
 }
 
-#organization_well #info .contact div {
+#organisation_well #info .contact div {
     margin-top: 25px;
     color: #afafaf;
 }
 
-#organization_well #info hr {
+#organisation_well #info hr {
     margin-top: 0;
     margin-bottom: 10px;
     border-color: #afafaf;

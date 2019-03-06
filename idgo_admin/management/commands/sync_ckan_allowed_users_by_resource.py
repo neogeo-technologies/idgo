@@ -22,7 +22,7 @@ from idgo_admin.models import Resource
 import json
 
 
-def get_all_users_for_organizations(list_id):
+def get_all_users_for_organisations(list_id):
     return [
         profile.user.username
         for profile in Profile.objects.filter(
@@ -45,7 +45,7 @@ class Command(BaseCommand):
                 'id': str(resource.ckan_id),
                 'restricted': json.dumps({
                     'allowed_users': ','.join(
-                        get_all_users_for_organizations(
+                        get_all_users_for_organisations(
                             [r.pk for r in resource.organisations_allowed.all()])),
                     'level': 'only_allowed_users'})}
 

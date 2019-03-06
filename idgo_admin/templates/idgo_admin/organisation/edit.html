@@ -8,11 +8,11 @@
 		<span class="glyphicon glyphicon-home"></span>
 	</li>
 	<li>
-		<a href="{% url "idgo_admin:all_organizations" %}{% if id %}#{{ id }}{% endif %}">Organisations</a>
+		<a href="{% url 'idgo_admin:all_organisations' %}{% if id %}#{{ id }}{% endif %}">Organisations</a>
 	</li>
 	<li class="active">
 		{% if id %}
-		<a href="{% url "idgo_admin:update_organization" id=id %}">{{ organisation.legal_name }}</a>
+		<a href="{% url 'idgo_admin:update_organisation' id=id %}">{{ organisation.legal_name }}</a>
 		{% else %}
 		Nouvelle organisation
 		{% endif %}
@@ -54,7 +54,7 @@
 	<div class="well">
 		{% if id and user.profile.is_admin %}
 		<div class="buttons-on-the-right-side">
-			<a class="btn btn-tertiary" href="{% url "idgo_admin:edit_remote_ckan_link" id=id %}">Synchroniser avec un catalogue CKAN</a>
+			<a class="btn btn-tertiary" href="{% url 'idgo_admin:edit_remote_ckan_link' id=id %}">Synchroniser avec un catalogue CKAN</a>
 		</div>
 		<br />
 		{% endif %}
@@ -134,7 +134,7 @@
 		{% bootstrap_field form.referent_process show_label=False %}
 		<br />
 		<div class="buttons-on-the-right-side">
-			<a class="btn btn-default" href="{% url "idgo_admin:all_organizations" %}#{{ id }}">Annuler</a>
+			<a class="btn btn-default" href="{% url 'idgo_admin:all_organisations' %}#{{ id }}">Annuler</a>
 			{% if update %}<button type="submit" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>{% endif %}
 			<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
 		</div>
@@ -153,7 +153,7 @@ $(function() {
 	const $inputReferent = $('input[name="{{ form.referent_process.name }}"]').prop('checked', false).change(function() {
 		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
 	});
-	$('#menu a[href="{% url "idgo_admin:all_organizations" %}"]').parent().addClass('active');
+	$('#menu a[href=\'{% url "idgo_admin:all_organisations" %}\']').parent().addClass('active');
 });
 </script>
 {% endblock main_content %}

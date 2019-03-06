@@ -33,7 +33,7 @@ from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.exceptions import GenericException
-from idgo_admin.forms.organisation import OrganizationForm as Form
+from idgo_admin.forms.organisation import OrganisationForm as Form
 from idgo_admin.forms.organisation import RemoteCkanForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
@@ -146,7 +146,7 @@ def all_organisations(request, *args, **kwargs):
 
     user, profile = user_and_profile(request)
 
-    organizations = [{
+    organisations = [{
         'contributor':
             item in Organisation.objects.filter(
                 liaisonscontributeurs__profile=profile,
@@ -160,15 +160,15 @@ def all_organisations(request, *args, **kwargs):
                 liaisonsreferents__validated_on__isnull=False),
         } for item in Organisation.objects.filter(is_active=True)]
 
-    organizations.sort(key=operator.itemgetter('contributor'), reverse=True)
-    organizations.sort(key=operator.itemgetter('referent'), reverse=True)
-    organizations.sort(key=operator.itemgetter('member'), reverse=True)
+    organisations.sort(key=operator.itemgetter('contributor'), reverse=True)
+    organisations.sort(key=operator.itemgetter('referent'), reverse=True)
+    organisations.sort(key=operator.itemgetter('member'), reverse=True)
 
     return render_with_info_profile(
         request, 'idgo_admin/organisation/organisations.html',
         context={
-            'organization_base_url': '/organisation',  # Moche
-            'organizations': organizations})
+            'organisation_base_url': '/organisation',  # Moche
+            'organisations': organisations})
 
 
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -299,7 +299,7 @@ class CreateOrganisation(View):
 
         messages.success(request, 'La demande a bien été envoyée.')
 
-        return HttpResponseRedirect(reverse('idgo_admin:all_organizations'))
+        return HttpResponseRedirect(reverse('idgo_admin:all_organisations'))
 
 
 @method_decorator(decorators, name='dispatch')
@@ -364,7 +364,7 @@ class UpdateOrganisation(View):
                 request, self.template, context=context)
 
         return HttpResponseRedirect('{0}#{1}'.format(
-            reverse('idgo_admin:all_organizations'), instance.id))
+            reverse('idgo_admin:all_organisations'), instance.id))
 
 
 @method_decorator(decorators, name='dispatch')
@@ -400,7 +400,7 @@ class OrganisationOWS(View):
 @method_decorator(decorators, name='dispatch')
 class Subscription(View):
 
-    namespace = 'idgo_admin:all_organizations'
+    namespace = 'idgo_admin:all_organisations'
 
     @ExceptionsHandler(
         ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -558,7 +558,7 @@ class RemoteCkanEditor(View):
                 request, self.template, context=context)
 
         return HttpResponseRedirect(
-            reverse('idgo_admin:update_organization', kwargs={'id': organisation.id}))
+            reverse('idgo_admin:update_organisation', kwargs={'id': organisation.id}))
 
 
 @method_decorator(decorators, name='dispatch')
@@ -593,4 +593,4 @@ class DeleteRemoteCkanLinked(View):
                 'ont été supprimés avec succès.'))
 
         return HttpResponseRedirect(
-            reverse('idgo_admin:update_organization', kwargs={'id': organisation.id}))
+            reverse('idgo_admin:update_organisation', kwargs={'id': organisation.id}))
