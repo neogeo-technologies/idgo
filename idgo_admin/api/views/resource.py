@@ -204,18 +204,17 @@ def handle_pust_request(request, dataset_name, resource_id=None):
                 'synchronize': True}
             if not id:
                 resource = Resource.default.create(save_opts=save_opts, **kvp)
-            if id:
+            else:
                 resource = Resource.objects.get(pk=id)
                 for k, v in kvp.items():
                     setattr(resource, k, v)
-
             if organisations_allowed:
                 resource.organisations_allowed = organisations_allowed
             if profiles_allowed:
                 resource.profiles_allowed = profiles_allowed
-            save_opts['synchronize'] = True
-            resource.save(**save_opts)
-
+                save_opts['synchronize'] = True
+                save_opts['file_extras'] = None  # IMPORTANT
+                resource.save(**save_opts)
     except ValidationError as e:
         if e.code == 'crs':
             form.add_error(e.code, '')

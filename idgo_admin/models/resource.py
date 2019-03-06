@@ -694,10 +694,12 @@ class Resource(models.Model):
                                             Layer.objects.get(
                                                 name=table['id'], resource=self)
                                         except Layer.DoesNotExist:
+                                            save_opts = {'synchronize': synchronize}
                                             Layer.vector.create(
                                                 bbox=table['bbox'],
                                                 name=table['id'],
-                                                resource=self)
+                                                resource=self,
+                                                save_opts=save_opts)
                                 except Exception as e:
                                     logger.error(e)
                                     file_must_be_deleted and remove_file(filename)
@@ -803,20 +805,19 @@ class Resource(models.Model):
                     # on supprime les anciens `layers`..
                     for layer in previous.get_layers():
                         layer.delete()
-
-        # Si la ressource n'est pas de type SIG, on passe les trois arguments
-        # qui concernent exclusivement ces dernières à « False ».
-        if not self.get_layers():
-            self.geo_restriction = False
-            self.ogc_services = False
-            self.extractable = False
-
+        ####
         if self.get_layers():
             extent = self.get_layers().aggregate(models.Extent('bbox')).get('bbox__extent')
             if extent:
                 xmin, ymin = extent[0], extent[1]
                 xmax, ymax = extent[2], extent[3]
                 setattr(self, 'bbox', bounds_to_wkt(xmin, ymin, xmax, ymax))
+        else:
+            # Si la ressource n'est pas de type SIG, on passe les trois arguments
+            # qui concernent exclusivement ces dernières à « False ».
+            self.geo_restriction = False
+            self.ogc_services = False
+            self.extractable = False
 
         super().save(*args, **kwargs)
 
@@ -835,7 +836,7 @@ class Resource(models.Model):
                 str(self.ckan_id), extracting_service=str(self.extractable))
 
         for layer in self.get_layers():
-            layer.save()
+            layer.save(synchronize=synchronize)
 
         self.dataset.date_modification = timezone.now().date()
         self.dataset.save(current_user=None,

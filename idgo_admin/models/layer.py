@@ -229,7 +229,7 @@ class Layer(models.Model):
                 'default': default_style_name,
                 'styles': styles}}
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, synchronize=False, **kwargs):
         # Synchronisation avec le service OGC en fonction du type de données
         if self.type == 'vector':
             self.save_vector_layer()
@@ -240,7 +240,9 @@ class Layer(models.Model):
         super().save(*args, **kwargs)
         self.handle_enable_ows_status()
         self.handle_layergroup()
-        self.synchronize()
+
+        if synchronize:
+            self.synchronize()
 
     def delete(self, *args, current_user=None, **kwargs):
         with_user = current_user
