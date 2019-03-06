@@ -1,4 +1,4 @@
-organisation{% extends "idgo_admin/base.html" %}
+{% extends "idgo_admin/base.html" %}
 
 {% load bootstrap3 %}
 
@@ -175,7 +175,6 @@ organisation{% extends "idgo_admin/base.html" %}
 {% else %}
 	<div class="row">
 		<div class="col-md-4">
-			{# if organisations|length > 10 #}
 			<div class="input-group typeahead">
 				<input name="organisation" type="text" class="form-control" placeholder="Rechercher l'organisation..."></input>
 				<span class="input-group-btn">
@@ -516,7 +515,7 @@ $(function() {
 		});
 		if ({{ awaiting_member_status | length }} > 0) {
 			deactivateButton($switchMember.off('click'));
-		} else if (data['id'] == {{ organisation_id }}) {
+		} else if (data['id'] == {{ organisation.pk }}) {
 			$switchMember.off('click').on('click', function(e) {
 				openModalChangeStatus('{% url "idgo_admin:subscription" status="member" subscription="unsubscribe" %}', ORGANISATION_ID);
 			}).html('Je <strong>n</strong>\'appartiens <strong>plus</strong> à l\'organisation');

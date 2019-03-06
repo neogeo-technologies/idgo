@@ -95,13 +95,13 @@ def render_with_info_profile(
         'is_referent': profile.get_roles()['is_referent'],
         'is_contributor': len(contributor) > 0,
         'is_admin': profile.is_admin,
-        'organisation': organisation and organisation.legal_name or None,
-        'organisation_id': organisation and organisation.id or -1,
+        'organisation': organisation,
         'awaiting_member_status': awaiting_member_status,
         'contributor': contributor,
         'awaiting_contributor_status': awaiting_contributor_status,
         'referent': referent,
-        'awaiting_referent_statut': awaiting_referent_statut})
+        'awaiting_referent_statut': awaiting_referent_statut,
+        })
 
     return render(request, template_name, context=context,
                   content_type=content_type, status=status, using=using)
