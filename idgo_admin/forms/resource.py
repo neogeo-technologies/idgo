@@ -198,7 +198,7 @@ class ResourceForm(forms.ModelForm):
 
     organisations_allowed = forms.ModelMultipleChoiceField(
         label='Organisations autorisées',
-        queryset=Organisation.objects.filter(is_active=True).order_by('name'),
+        queryset=Organisation.objects.filter(is_active=True).order_by('slug'),
         required=False,
         to_field_name='pk',
         widget=CustomCheckboxSelectMultiple(
