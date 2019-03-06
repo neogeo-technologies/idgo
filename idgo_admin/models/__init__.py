@@ -22,6 +22,7 @@ from idgo_admin.models.base_maps import BaseMaps
 from idgo_admin.models.category import Category
 from idgo_admin.models.data_type import DataType
 from idgo_admin.models.dataset import Dataset
+from idgo_admin.models.dataset import Keywords
 from idgo_admin.models.extractor import AsyncExtractorTask
 from idgo_admin.models.extractor import ExtractorSupportedFormat
 from idgo_admin.models.granularity import Granularity

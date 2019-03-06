@@ -587,6 +587,33 @@ class Dataset(models.Model):
             ).exists()
 
 
+############
+# DEV 6402 #
+############
+
+# Proxy
+# =====
+
+from taggit.admin import Tag
+
+
+class Keywords(Tag):
+    """
+    On se sert de ce modèle mandataire comme entrée dans l'admin django.
+    Reste à confirmer si on veut integrer les mots clés parmis les autres modeles
+    d'idgo_admin ou les laisser dans la se
+    """
+
+    class Meta:
+        verbose_name = 'Mot clé'
+        verbose_name_plural = 'Mots clés'
+        proxy = True
+
+############
+# END 6402 #
+############
+
+
 # Signaux
 # =======
 
