@@ -587,6 +587,10 @@ class Dataset(models.Model):
             ).exists()
 
 
+############
+# DEV 6402 #
+############
+
 # Proxy
 # =====
 
@@ -604,6 +608,10 @@ class Keywords(Tag):
         verbose_name = 'Mot clé'
         verbose_name_plural = 'Mots clés'
         proxy = True
+
+############
+# END 6402 #
+############
 
 
 # Signaux

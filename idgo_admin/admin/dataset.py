@@ -311,16 +311,9 @@ class KeywordsAdmin(admin.ModelAdmin):
 
     merge_name.short_description = "Fusion des mots clés"
 
-    def response_change(self, request, obj):
-        print(request.POST)
 
-
-# Soit on utilise le model de l'app taggit: Dans ce cas on a moins de flexibilité
-# sur le choix du nom de section par exemple.
-# Soit on passe par le model mandataire Keywords dasn ce cas la section "Mot clés"
-# est intégrée avec els autres sections de idgo_admin @ "Configuration"
 admin.site.register(Keywords, KeywordsAdmin)
-# admin.site.register(Tag, KeywordsAdmin)
+
 
 ############
 # END 6402 #
