@@ -14,6 +14,7 @@
 # under the License.
 
 
+from api.utils import parse_request
 from collections import OrderedDict
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -22,12 +23,10 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from api.utils import parse_request
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.organisation import OrganisationForm as Form
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Organisation
-
 from rest_framework import permissions
 from rest_framework.views import APIView
 
@@ -138,7 +137,7 @@ class OrganisationShow(APIView):
 
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
-    ]
+        ]
 
     def get(self, request, organisation_name):
         """Voir l'organisation."""
@@ -167,7 +166,7 @@ class OrganisationList(APIView):
 
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
-    ]
+        ]
 
     def get(self, request):
         """Voir les organisations."""

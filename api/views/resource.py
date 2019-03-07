@@ -14,6 +14,7 @@
 # under the License.
 
 
+from api.utils import parse_request
 from collections import OrderedDict
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -22,11 +23,6 @@ from django.http import Http404
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from django.views import View
-from api.utils import BasicAuth
-from api.utils import parse_request
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.resource import ResourceForm as Form
@@ -37,10 +33,9 @@ from idgo_admin.models.mail import send_resource_update_mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.shortcuts import get_object_or_404_extended
-from uuid import UUID
-
 from rest_framework import permissions
 from rest_framework.views import APIView
+from uuid import UUID
 
 
 def serialize(resource):
@@ -240,7 +235,7 @@ class ResourceShow(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-    ]
+        ]
 
     def get(self, request, dataset_name, resource_id):
         """Voir la ressource."""
@@ -292,7 +287,7 @@ class ResourceList(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-    ]
+        ]
 
     def get(self, request, dataset_name):
         """Voir les ressources du jeu de données."""

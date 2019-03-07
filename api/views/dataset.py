@@ -14,13 +14,13 @@
 # under the License.
 
 
+from api.utils import parse_request
 from collections import OrderedDict
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import JsonResponse
-from api.utils import parse_request
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.dataset import DatasetForm as Form
@@ -31,7 +31,6 @@ from idgo_admin.models.mail import send_dataset_delete_mail
 from idgo_admin.models.mail import send_dataset_update_mail
 from idgo_admin.models import Organisation
 from idgo_admin.utils import slugify
-
 from rest_framework import permissions
 from rest_framework.views import APIView
 
@@ -228,7 +227,7 @@ class DatasetShow(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-    ]
+        ]
 
     def get(self, request, dataset_name):
         """Voir le jeu de données."""
@@ -264,12 +263,11 @@ class DatasetShow(APIView):
         return HttpResponse(status=204)
 
 
-# @method_decorator(decorators, name='dispatch')
 class DatasetList(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-    ]
+        ]
 
     def get(self, request):
         """Voir les jeux de données."""

@@ -31,6 +31,7 @@
 (idgo_venv) /idgo_venv> pip install django-queryset-csv
 (idgo_venv) /idgo_venv> pip install django-admin-list-filter-dropdown
 (idgo_venv) /idgo_venv> pip install django-extensions
+(idgo_venv) /idgo_venv> pip install djangorestframework
 ```
 
 #### Récupérer les codes sources
