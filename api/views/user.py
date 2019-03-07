@@ -15,8 +15,6 @@
 
 
 from collections import OrderedDict
-# from django.conf import settings
-# from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -26,11 +24,9 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from functools import reduce
-from idgo_admin.api.utils import BasicAuth
-from idgo_admin.api.utils import parse_request
+from api.utils import parse_request
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import GenericException
@@ -40,6 +36,9 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from operator import iand
 from operator import ior
+
+from rest_framework import permissions
+from rest_framework.views import APIView
 
 
 def serialize(user):
@@ -136,7 +135,7 @@ def handle_pust_request(request, username=None):
         'organisation': organisation,
         'password1': data.get('password'),
         'password2': data.get('password'),
-        }
+    }
 
     if username:
         form = UpdateAccountForm(data_form, instance=user)
@@ -166,12 +165,11 @@ def handle_pust_request(request, username=None):
     return user
 
 
-# decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
-decorators = [csrf_exempt, BasicAuth()]
+class UserShow(APIView):
 
-
-@method_decorator(decorators, name='dispatch')
-class UserShow(View):
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+    ]
 
     def get(self, request, username):
         data = handler_get_request(request)
@@ -195,8 +193,11 @@ class UserShow(View):
         return HttpResponse(status=204)
 
 
-@method_decorator(decorators, name='dispatch')
-class UserList(View):
+class UserList(APIView):
+
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+    ]
 
     def get(self, request):
         data = handler_get_request(request)

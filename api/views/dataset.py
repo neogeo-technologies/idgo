@@ -15,18 +15,12 @@
 
 
 from collections import OrderedDict
-# from django.conf import settings
-# from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from django.views import View
-from idgo_admin.api.utils import BasicAuth
-from idgo_admin.api.utils import parse_request
+from api.utils import parse_request
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.dataset import DatasetForm as Form
@@ -37,6 +31,9 @@ from idgo_admin.models.mail import send_dataset_delete_mail
 from idgo_admin.models.mail import send_dataset_update_mail
 from idgo_admin.models import Organisation
 from idgo_admin.utils import slugify
+
+from rest_framework import permissions
+from rest_framework.views import APIView
 
 
 def serialize(dataset):
@@ -227,12 +224,11 @@ def handle_pust_request(request, dataset_name=None):
     raise GenericException(details=form.__str__())
 
 
-# decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
-decorators = [csrf_exempt, BasicAuth()]
+class DatasetShow(APIView):
 
-
-@method_decorator(decorators, name='dispatch')
-class DatasetShow(View):
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
 
     def get(self, request, dataset_name):
         """Voir le jeu de données."""
@@ -268,11 +264,16 @@ class DatasetShow(View):
         return HttpResponse(status=204)
 
 
-@method_decorator(decorators, name='dispatch')
-class DatasetList(View):
+# @method_decorator(decorators, name='dispatch')
+class DatasetList(APIView):
+
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
 
     def get(self, request):
         """Voir les jeux de données."""
+
         datasets = handler_get_request(request)
         return JsonResponse(
             [serialize(dataset) for dataset in datasets], safe=False)
