@@ -510,7 +510,8 @@ class Dataset(models.Model):
             'granularity': granularity,
             'groups': [],  # Voir plus bas
             'inspire_url': inspire_url,
-            'last_modified': dataset_publication_date,
+            'metadata_modified': dataset_publication_date,
+            'metadata_created': dataset_publication_date,
             'license_id': license_id,
             'maintainer': broadcaster_name,
             'maintainer_email': broadcaster_email,
@@ -526,7 +527,7 @@ class Dataset(models.Model):
             'tags': tags,
             'title': self.title,
             'thumbnail': thumbnail,
-            'update_frequency': self.update_frequency or 'unknow',
+            'frequency': self.update_frequency or 'unknow',
             'url': ''  # Toujours une chaîne de caractère vide !
             }
 

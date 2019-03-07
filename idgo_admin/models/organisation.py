@@ -14,12 +14,14 @@
 # under the License.
 
 
+from datetime import datetime
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_save
@@ -33,9 +35,12 @@ from idgo_admin.exceptions import CkanBaseError
 from idgo_admin import logger
 from idgo_admin.mra_client import MRAHandler
 import inspect
+from operator import ior
 from urllib.parse import urljoin
 import uuid
 
+
+ISOFORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
 OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
@@ -262,6 +267,7 @@ class RemoteCkan(models.Model):
 
     def save(self, *args, **kwargs):
 
+        Category = apps.get_model(app_label='idgo_admin', model_name='Category')
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
         License = apps.get_model(app_label='idgo_admin', model_name='License')
         Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
@@ -326,49 +332,68 @@ class RemoteCkan(models.Model):
 
                             ckan_id = uuid.UUID(package['id'])
 
-                            # categories = None
+                            update_frequency = dict(Dataset.FREQUENCY_CHOICES).get(
+                                package.get('frequency'), 'unknow')
+                            update_frequency = package.get('frequency')
+                            if not(update_frequency and update_frequency
+                                    in dict(Dataset.FREQUENCY_CHOICES).keys()):
+                                update_frequency = 'unknow'
+                            metadata_created = package.get('metadata_created', None)
+                            if metadata_created:
+                                metadata_created = datetime.strptime(metadata_created, ISOFORMAT)
+                            metadata_modified = package.get('metadata_modified', None)
+                            if metadata_modified:
+                                metadata_modified = datetime.strptime(metadata_modified, ISOFORMAT)
 
-                            for l in License.objects.all():
-                                license = None
-                                if l.ckan_id == license:
-                                    license = l
-
-                            # for kvp in package.pop('extras', []):
-                            #     if kvp['key'] == 'spatial':
-                            #         geojson = kvp['value']
+                            # Licence
+                            filters = [
+                                Q(slug=package.get('license_id')),
+                                Q(title=package.get('license_title')),
+                                Q(alternate_titles__contains=[package.get('license_title')]),
+                                ]
+                            try:
+                                license = License.objects.get(reduce(ior, filters))
+                            except License.DoesNotExist:
+                                try:
+                                    license = License.objects.get(slug='notspecified')
+                                except License.DoesNotExist:
+                                    license = None
 
                             kvp = {
-                                # 'bbox': bbox,
-                                'broadcaster_email': None,
-                                'broadcaster_name': None,
-                                # 'categories': categories,
-                                'slug': 'sync--{}--{}'.format(value, package.get('name', None))[:100],
-                                'date_creation': None,  # package.get('metadata_created', None),  # ???
-                                'date_modification': None,  # package.get('metadata_modified', None),  # ???
-                                'date_publication': None,  # ???
-                                # 'data_type': None,
-                                'description': package.get('notes', None),
+                                'slug': 'sync--{}--{}'.format(value, package.get('name'))[:100],
+                                'title': package.get('title'),
+                                'description': package.get('notes'),
+                                'date_creation': metadata_created and metadata_created.date(),
+                                'date_modification': metadata_modified and metadata_modified.date(),
                                 'editor': editor,
-                                'geocover': None,  # ???
-                                'geonet_id': None,
-                                'granularity': None,
-                                'is_inspire': False,
-                                # 'license': license,
-                                'title': package.get('title', None),
-                                # 'owner_email': package.get('author_email', None),
+                                'license': license,
                                 'owner_email': self.organisation.email or DEFAULT_CONTACT_EMAIL,
-                                # 'owner_name': package.get('author', None),
                                 'owner_name': self.organisation.legal_name or DEFAULT_PLATFORM_NAME,
                                 'organisation': self.organisation,
-                                'published': not package.get('private', False),
-                                'thumbnail': None,
+                                'published': not package.get('private'),
                                 'remote_ckan': self,
                                 'remote_dataset': ckan_id,
                                 'remote_organisation': value,
-                                'support': None,
-                                'update_frequency': 'never'}
+                                'update_frequency': update_frequency,
+                                # bbox
+                                # broadcaster_email
+                                # broadcaster_name
+                                # date_publication
+                                # data_type
+                                # geocover
+                                # geonet_id
+                                # granularity
+                                # is_inspire
+                                # thumbnail
+                                # support
+                                }
 
                             dataset, created = Dataset.harvested.update_or_create(**kvp)
+
+                            categories = Category.objects.filter(
+                                slug__in=[m['name'] for m in package.get('groups', [])])
+                            if categories:
+                                dataset.categories = categories
 
                             if not created:
                                 dataset.keywords.clear()
@@ -397,7 +422,8 @@ class RemoteCkan(models.Model):
                                     'dataset': dataset,
                                     'format_type': format_type,
                                     'title': resource['name'],
-                                    'referenced_url': resource['url']}
+                                    'referenced_url': resource['url'],
+                                    }
 
                                 try:
                                     resource = Resource.objects.get(ckan_id=ckan_id)
