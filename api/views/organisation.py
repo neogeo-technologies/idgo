@@ -15,24 +15,21 @@
 
 
 from collections import OrderedDict
-# from django.conf import settings
-# from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
-from django.views import View
-from idgo_admin.api.utils import BasicAuth
-from idgo_admin.api.utils import parse_request
+from api.utils import parse_request
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.organisation import OrganisationForm as Form
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Organisation
+
+from rest_framework import permissions
+from rest_framework.views import APIView
 
 
 def serialize(organisation):
@@ -137,13 +134,11 @@ def handle_pust_request(request, organisation_name=None):
     return organisation
 
 
-# decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
-# decorators = [csrf_exempt, BasicAuth()]
-decorators = [csrf_exempt]
+class OrganisationShow(APIView):
 
-
-@method_decorator(decorators, name='dispatch')
-class OrganisationShow(View):
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+    ]
 
     def get(self, request, organisation_name):
         """Voir l'organisation."""
@@ -153,7 +148,6 @@ class OrganisationShow(View):
                 return JsonResponse(organisation, safe=True)
         raise Http404()
 
-    @BasicAuth()
     def put(self, request, organisation_name):
         """Créer une nouvelle organisation."""
         # Django fait les choses à moitié...
@@ -169,15 +163,17 @@ class OrganisationShow(View):
         return HttpResponse(status=204)
 
 
-@method_decorator(decorators, name='dispatch')
-class OrganisationList(View):
+class OrganisationList(APIView):
+
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+    ]
 
     def get(self, request):
         """Voir les organisations."""
         organisations = handler_get_request(request)
         return JsonResponse(organisations, safe=False)
 
-    @BasicAuth()
     def post(self, request):
         """Créer une nouvelle organisation."""
         if not request.user.profile.is_admin:

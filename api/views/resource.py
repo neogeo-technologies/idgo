@@ -15,8 +15,6 @@
 
 
 from collections import OrderedDict
-# from django.conf import settings
-# from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -27,8 +25,8 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from idgo_admin.api.utils import BasicAuth
-from idgo_admin.api.utils import parse_request
+from api.utils import BasicAuth
+from api.utils import parse_request
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.resource import ResourceForm as Form
@@ -40,6 +38,9 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.shortcuts import get_object_or_404_extended
 from uuid import UUID
+
+from rest_framework import permissions
+from rest_framework.views import APIView
 
 
 def serialize(resource):
@@ -235,12 +236,11 @@ def handle_pust_request(request, dataset_name, resource_id=None):
     raise GenericException(details=form._errors)
 
 
-# decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
-decorators = [csrf_exempt, BasicAuth()]
+class ResourceShow(APIView):
 
-
-@method_decorator(decorators, name='dispatch')
-class ResourceShow(View):
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
 
     def get(self, request, dataset_name, resource_id):
         """Voir la ressource."""
@@ -288,8 +288,11 @@ class ResourceShow(View):
         return HttpResponse(status=204)
 
 
-@method_decorator(decorators, name='dispatch')
-class ResourceList(View):
+class ResourceList(APIView):
+
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
 
     def get(self, request, dataset_name):
         """Voir les ressources du jeu de données."""

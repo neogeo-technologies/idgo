@@ -14,14 +14,14 @@
 # under the License.
 
 
-from idgo_admin.api.views.dataset import DatasetList
-from idgo_admin.api.views.dataset import DatasetShow
-from idgo_admin.api.views.organisation import OrganisationList
-from idgo_admin.api.views.organisation import OrganisationShow
-from idgo_admin.api.views.resource import ResourceList
-from idgo_admin.api.views.resource import ResourceShow
-from idgo_admin.api.views.user import UserList
-from idgo_admin.api.views.user import UserShow
+from api.views.dataset import DatasetList
+from api.views.dataset import DatasetShow
+from api.views.organisation import OrganisationList
+from api.views.organisation import OrganisationShow
+from api.views.resource import ResourceList
+from api.views.resource import ResourceShow
+from api.views.user import UserList
+from api.views.user import UserShow
 
 
 __all__ = [
