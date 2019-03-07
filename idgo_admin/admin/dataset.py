@@ -14,27 +14,25 @@
 # under the License.
 
 
-from django.contrib.auth.models import User
 from django.contrib import admin
+from django.contrib.auth.models import User
 from django.contrib import messages
+from django import forms
 from django.forms.models import BaseInlineFormSet
 from django.http import HttpResponseRedirect
-from django import forms
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
-
 from idgo_admin import logger
 from idgo_admin.models import Dataset
 from idgo_admin.models import Keywords
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
-
+import re
 from taggit.admin import Tag
 from taggit.models import TaggedItem
-import re
 
 
 def synchronize(modeladmin, request, queryset):
@@ -49,7 +47,7 @@ def synchronize(modeladmin, request, queryset):
 
 
 class ResourceFormatsAdmin(admin.ModelAdmin):
-    ordering = ['extension']
+    ordering = ('extension',)
 
     def __init__(self, *args, **kwargs):
         super(ResourceFormatsAdmin, self).__init__(*args, **kwargs)
@@ -67,11 +65,12 @@ class ResourceInlineFormset(BaseInlineFormSet):
         super().clean(*args, **kwargs)
         for form in self.forms:
             is_sync_requested = form.cleaned_data.get('synchronisation')
-            frequency_not_set = form.cleaned_data.get('sync_frequency') == 'never'
+            frequency_not_set = form.cleaned_data.get(
+                'sync_frequency') == 'never'
             if is_sync_requested and frequency_not_set:
                 raise forms.ValidationError((
-                    'Une période de synchronisation est nécessaire si vous '
-                    'choisissez de sychroniser les données distantes'))
+                    "Une période de synchronisation est nécessaire si vous "
+                    "choisissez de sychroniser les données distantes"))
 
 
 class ResourceInline(admin.StackedInline):
@@ -84,7 +83,8 @@ class ResourceInline(admin.StackedInline):
             'classes': ['collapse'],
             'fields': [
                 'synchronisation',
-                'sync_frequency']}),
+                'sync_frequency']}
+         ),
         (None, {
             'classes': ['wide'],
             'fields': [
@@ -98,7 +98,9 @@ class ResourceInline(admin.StackedInline):
                 'bbox',
                 'geo_restriction',
                 'created_on',
-                'last_update']})]
+                'last_update']}
+         )
+    ]
 
 
 class MyDataSetForm(forms.ModelForm):
@@ -144,21 +146,12 @@ class DatasetAdmin(admin.ModelAdmin):
 admin.site.register(Dataset, DatasetAdmin)
 
 
-############
-# DEV 6402 #
-############
-
-
-# source: @be_haki -- https://medium.com/@hakibenita/how-to-add-a-text-filter-to-django-admin-5d1db93772d8
 class InputFilter(admin.SimpleListFilter):
     template = 'admin/idgo_admin/input_filter.html'
 
     def message_error(self, request, queryset):
-
         messages.error(
-            request,
-            "Aucune donnée ne correspond à votre requête. "
-        )
+            request, "Aucune donnée ne correspond à votre requête.")
         return queryset.none()
 
     def lookups(self, request, model_admin):
@@ -169,15 +162,12 @@ class InputFilter(admin.SimpleListFilter):
         # Si option 'Tous' cochée
         all_choice = next(super().choices(changelist))
         all_choice['query_parts'] = (
-            (k, v)
-            for k, v in changelist.get_filters_params().items()
-            if k != self.parameter_name
-        )
+            (k, v) for k, v in changelist.get_filters_params().items() if k != self.parameter_name)
         yield all_choice
 
 
 class KwInputFilter(InputFilter):
-    title = "Mots clés"
+    title = "Mots-clés"
     parameter_name = 'slug'
 
     def queryset(self, request, queryset):
@@ -202,15 +192,17 @@ class NewKeywordForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['new_name'].required = True
-        self.fields['new_name'].label = 'Mot clé'
+        self.fields['new_name'].label = 'Mot-clé'
 
     def clean_new_name(self):
         data = self.cleaned_data['new_name'].strip()
         if len(data) < 2:
-            raise forms.ValidationError("La taille minimum pour un mot clé est de 2 caractères. ")
+            raise forms.ValidationError(
+                "La taille minimum pour un mot-clé est de 2 caractères.")
         regex = '^[a-zA-Z0-9áàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ\._\-\s]*$'
         if not re.match(regex, data):
-            raise forms.ValidationError("Les mots-clés ne peuvent pas contenir de caractères spéciaux. ")
+            raise forms.ValidationError(
+                "Les mots-clés ne peuvent pas contenir de caractères spéciaux.")
         return data
 
 
@@ -222,12 +214,12 @@ class TaggedItemInline(admin.TabularInline):
     readonly_fields = (
         'change_link',
         'content_type',
-        'object_id'
-    )
+        'object_id',
+        )
     fields = (
         'change_link',
         'content_type',
-    )
+        )
 
     def has_add_permission(self, request):
         return False
@@ -237,9 +229,10 @@ class TaggedItemInline(admin.TabularInline):
         if obj and obj.content_type.model == 'dataset':
             return mark_safe(
                 '<a href="{}">{}</a>'.format(
-                    reverse('admin:idgo_admin_dataset_change', args=(obj.object_id,),),
+                    reverse('admin:idgo_admin_dataset_change',
+                            args=(obj.object_id,),),
                     obj.object_id
-                ))
+                    ))
         return 'N/A'
     change_link.short_description = "Fiche détaillée"
 
@@ -248,14 +241,12 @@ admin.site.unregister(Tag)
 
 
 class KeywordsAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', ]
-    list_editable = ['name', ]
-    actions = ['merge_name', ]
-    list_filter = (
-        KwInputFilter,
-    )
-    readonly_fields = ('slug', )
-    inlines = [TaggedItemInline]
+    list_display = ('id', 'name',)
+    list_editable = ('name',)
+    list_filter = (KwInputFilter,)
+    actions = ('merge_name',)
+    readonly_fields = ('slug',)
+    inlines = (TaggedItemInline,)
 
     # On supprime l'action de suppression par defaut de la liste des covoitureurs
     def get_actions(self, request):
@@ -278,43 +269,31 @@ class KeywordsAdmin(admin.ModelAdmin):
                     name=form.cleaned_data.get('new_name'))
                 for dataset in datasets:
                     dataset.keywords.add(new_tag)
-                    # On synchor avec ckan
+                    # On synchronise CKAN
                     try:
                         dataset.synchronize()
-                    except Exception as err:
-                        messages.error(
-                            request,
-                            "Une erreur sur la synchornisation avec CKAN pour le jeu de donnée: {dataset} -- {err}".format(
-                                dataset=dataset.name,
-                                err=str(err))
-                        )
+                    except Exception as e:
+                        msg = (
+                            "Une erreur est survenue lors de la "
+                            "synchronisation avec CKAN "
+                            "pour le jeu de donnée '{dataset}' : {error}"
+                            ).format(dataset=dataset.name, error=e.__str__())
+                        messages.error(request, msg)
 
                 # Le clean des vieux tags se fait en dernier
                 # pour garder la selection de tous les datasets
                 queryset.exclude(pk=new_tag.pk).delete()
 
-                messages.info(
-                    request,
-                    "Mise à jours effectuée. "
-                )
+                messages.info(request, "Mise à jour effectuée.")
                 return HttpResponseRedirect(request.get_full_path())
         else:
             form = NewKeywordForm()
-        return render(
-            request,
-            'admin/idgo_admin/taggit_merge_name.html',
-            context={
-                'form': form,
-                'tags': queryset,
-                'datasets': datasets
-            })
 
-    merge_name.short_description = "Fusion des mots clés"
+        context = {'form': form, 'tags': queryset, 'datasets': datasets}
+        return render(
+            request, 'admin/idgo_admin/taggit_merge_name.html', context=context)
+
+    merge_name.short_description = "Fusion des mots-clés"
 
 
 admin.site.register(Keywords, KeywordsAdmin)
-
-
-############
-# END 6402 #
-############
