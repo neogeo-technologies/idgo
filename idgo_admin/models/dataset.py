@@ -32,6 +32,7 @@ from idgo_admin import logger
 from idgo_admin.managers import DefaultDatasetManager
 from idgo_admin.managers import HarvestedDatasetManager
 from idgo_admin.utils import three_suspension_points
+from taggit.admin import Tag
 from taggit.managers import TaggableManager
 from urllib.parse import urljoin
 from uuid import UUID
@@ -283,6 +284,14 @@ class Dataset(models.Model):
     # ==========
 
     @property
+    def name(self):
+        return not self.slug
+
+    @property
+    def title_overflow(self):
+        return three_suspension_points(self.title)
+
+    @property
     def private(self):
         return not self.published
 
@@ -291,31 +300,21 @@ class Dataset(models.Model):
         return urljoin(settings.CKAN_URL, 'dataset/{}'.format(self.slug))
 
     @property
-    def title_overflow(self):
-        return three_suspension_points(self.title)
-
-    @property
     def bounds(self):
         if self.bbox:
             minx, miny, maxx, maxy = self.bbox.extent
             return [[miny, minx], [maxy, maxx]]
 
-    # Méthodes héritées
-    # =================
-
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #
-    #     # On regarde si le jeu de données est moissonnées
-    #     RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-    #     try:
-    #         remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
-    #     except RemoteCkanDataset.DoesNotExist:
-    #         self.remote_ckan_dataset = None
-    #         self.is_harvested = False
-    #     else:
-    #         self.remote_ckan_dataset = remote_ckan_dataset
-    #         self.is_harvested = True
+    @property
+    def is_harvested(self):
+        Model = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+        try:
+            remote_ckan_dataset = Model.objects.get(dataset=self)
+        except Model.DoesNotExist:
+            return False
+        else:
+            self.remote_ckan_dataset = remote_ckan_dataset
+            return True
 
     def clean(self):
 
@@ -375,17 +374,6 @@ class Dataset(models.Model):
                 setattr(self, 'bbox', DEFAULT_BBOX)
             else:
                 setattr(self, 'bbox', None)
-
-        # On regarde si le jeu de données est moissonnées
-        RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-        try:
-            remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
-        except RemoteCkanDataset.DoesNotExist:
-            self.remote_ckan_dataset = None
-            self.is_harvested = False
-        else:
-            self.remote_ckan_dataset = remote_ckan_dataset
-            self.is_harvested = True
 
         # On sauvegarde le jeu de données
         super().save(*args, **kwargs)
@@ -484,16 +472,19 @@ class Dataset(models.Model):
         for resource in Resource.objects.filter(dataset=self):
             ows = resource.ogc_services
 
-        private = not self.published
-
-        remote_ckan_url = self.is_harvested and self.remote_ckan_dataset.url or ''
+        # On regarde si le jeu de données est moissonnées
+        RemoteCkanDataset = apps.get_model(
+            app_label='idgo_admin', model_name='RemoteCkanDataset')
+        try:
+            remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
+        except RemoteCkanDataset.DoesNotExist:
+            remote_ckan_url = ''
+        else:
+            remote_ckan_url = remote_ckan_dataset.url
 
         spatial = self.bbox and self.bbox.geojson or ''
-
         support = self.support and self.support.slug or ''
-
         tags = [{'name': keyword.name} for keyword in self.keywords.all()]
-
         try:
             thumbnail = urljoin(settings.DOMAIN_NAME, self.thumbnail.url)
         except ValueError:
@@ -506,20 +497,19 @@ class Dataset(models.Model):
             'dataset_creation_date': dataset_creation_date,
             'dataset_modification_date': dataset_modification_date,
             'dataset_publication_date': dataset_publication_date,
+            'frequency': self.update_frequency or 'unknow',
             'geocover': geocover,
             'granularity': granularity,
-            'groups': [],  # Voir plus bas
+            'groups': [],
             'inspire_url': inspire_url,
-            'metadata_modified': dataset_publication_date,
-            'metadata_created': dataset_publication_date,
             'license_id': license_id,
             'maintainer': broadcaster_name,
             'maintainer_email': broadcaster_email,
             'name': self.slug,
             'notes': self.description,
             'owner_org': str(self.organisation.ckan_id),
-            'ows': str(ows),  # I <3 CKAN
-            'private': private,
+            'ows': str(ows),  # IMPORTANT
+            'private': self.private,
             'remote_ckan_url': remote_ckan_url,
             'spatial': spatial,
             'state': 'active',
@@ -527,8 +517,7 @@ class Dataset(models.Model):
             'tags': tags,
             'title': self.title,
             'thumbnail': thumbnail,
-            'frequency': self.update_frequency or 'unknow',
-            'url': ''  # Toujours une chaîne de caractère vide !
+            'url': '',  # IMPORTANT
             }
 
         # Synchronisation des catégories :
@@ -549,13 +538,12 @@ class Dataset(models.Model):
         if with_user:
             username = with_user.username
 
-            # ~ ~ ~ #
             # TODO: C'est très lourd de faire cela systématiquement -> voir pour améliorer cela
             CkanHandler.add_user_to_organisation(username, organisation_id)
             for category in self.categories.all():
                 category_id = str(category.ckan_id)
                 CkanHandler.add_user_to_group(username, category_id)
-            # ~ ~ ~ #
+            #
 
             apikey = CkanHandler.get_user(username)['apikey']
             with CkanUserHandler(apikey=apikey) as ckan_user:
@@ -573,46 +561,29 @@ class Dataset(models.Model):
 
     def is_contributor(self, profile):
         Model = apps.get_model(app_label='idgo_admin', model_name='LiaisonsContributeurs')
-        return Model.objects.filter(
-            profile=profile,
-            organisation=self.organisation,
-            validated_on__isnull=False,
-            ).exists()
+        kvp = {
+            'profile': profile,
+            'organisation': self.organisation,
+            'validated_on__isnull': False,
+            }
+        return Model.objects.filter(**kvp).exists()
 
     def is_referent(self, profile):
         Model = apps.get_model(app_label='idgo_admin', model_name='LiaisonsReferents')
-        return Model.objects.filter(
-            profile=profile,
-            organisation=self.organisation,
-            validated_on__isnull=False,
-            ).exists()
-
-
-############
-# DEV 6402 #
-############
-
-# Proxy
-# =====
-
-from taggit.admin import Tag
+        kvp = {
+            'profile': profile,
+            'organisation': self.organisation,
+            'validated_on__isnull': False,
+            }
+        return Model.objects.filter(**kvp).exists()
 
 
 class Keywords(Tag):
-    """
-    On se sert de ce modèle mandataire comme entrée dans l'admin django.
-    Reste à confirmer si on veut integrer les mots clés parmis les autres modeles
-    d'idgo_admin ou les laisser dans la se
-    """
-
-    class Meta:
-        verbose_name = 'Mot clé'
-        verbose_name_plural = 'Mots clés'
+    # On se sert de ce modèle mandataire comme entrée dans l'Admin Django.
+    class Meta(object):
+        verbose_name = "Mot-clé"
+        verbose_name_plural = "Mots-clés"
         proxy = True
-
-############
-# END 6402 #
-############
 
 
 # Signaux
