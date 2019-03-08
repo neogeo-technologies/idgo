@@ -78,6 +78,11 @@ class Dataset(models.Model):
     # Champs atributaires
     # ===================
 
+    editor = models.ForeignKey(
+        User,
+        verbose_name="Producteur (propriétaire)",
+        )
+
     title = models.TextField(
         verbose_name="Titre",
         )
@@ -124,7 +129,7 @@ class Dataset(models.Model):
 
     categories = models.ManyToManyField(
         to='Category',
-        verbose_name="Catégories d'appartenance",
+        verbose_name="Catégories",
         blank=True,
         )
 
@@ -184,6 +189,14 @@ class Dataset(models.Model):
         default=None,
         )
 
+    granularity = models.ForeignKey(
+        to='Granularity',
+        verbose_name="Granularité de la couverture territoriale",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        )
+
     organisation = models.ForeignKey(
         to='Organisation',
         verbose_name="Organisation",
@@ -212,6 +225,32 @@ class Dataset(models.Model):
         blank=True,
         )
 
+    owner_name = models.CharField(
+        verbose_name="Nom du producteur",
+        max_length=100,
+        null=True,
+        blank=True,
+        )
+
+    owner_email = models.EmailField(
+        verbose_name="Adresse e-mail du producteur",
+        null=True,
+        blank=True,
+        )
+
+    broadcaster_name = models.CharField(
+        verbose_name="Nom du diffuseur",
+        max_length=100,
+        blank=True,
+        null=True,
+        )
+
+    broadcaster_email = models.EmailField(
+        verbose_name="Adresse e-mail du diffuseur",
+        null=True,
+        blank=True,
+        )
+
     published = models.BooleanField(
         verbose_name="Publier le jeu de données",
         default=False,
@@ -228,45 +267,6 @@ class Dataset(models.Model):
         blank=True,
         unique=True,
         db_index=True,
-        )
-
-    editor = models.ForeignKey(
-        User,
-        verbose_name="Producteur (propriétaire)",
-        )
-
-    owner_name = models.CharField(
-        verbose_name="Nom du producteur",
-        max_length=100,
-        null=True,
-        blank=True,
-        )
-
-    owner_email = models.EmailField(
-        verbose_name='E-mail du producteur',
-        null=True,
-        blank=True,
-        )
-
-    broadcaster_name = models.CharField(
-        verbose_name='Nom du diffuseur',
-        max_length=100,
-        blank=True,
-        null=True,
-        )
-
-    broadcaster_email = models.EmailField(
-        verbose_name="E-mail du diffuseur",
-        null=True,
-        blank=True,
-        )
-
-    granularity = models.ForeignKey(
-        to='Granularity',
-        verbose_name="Granularité de la couverture territoriale",
-        null=True,
-        blank=True,
-        on_delete=models.PROTECT,
         )
 
     bbox = models.PolygonField(

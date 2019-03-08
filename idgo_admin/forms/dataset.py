@@ -31,18 +31,19 @@ from taggit.forms import TagField
 from taggit.forms import TagWidget
 
 
-DOMAIN_NAME = settings.DOMAIN_NAME
-GEONETWORK_URL = settings.GEONETWORK_URL
 CKAN_URL = settings.CKAN_URL
 DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
 DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
+DOMAIN_NAME = settings.DOMAIN_NAME
+GEONETWORK_URL = settings.GEONETWORK_URL
+TODAY = timezone.now().date().strftime('%d/%m/%Y')
 
-TODAY = timezone.now().date()
-TODAY_STR = TODAY.strftime('%d/%m/%Y')
+
+# Définition de DatatypeField
+# ===========================
 
 
 class DatatypeModelIterator(ModelChoiceIterator):
-
     def __iter__(self):
         if self.field.empty_label is not None:
             yield ("", self.field.empty_label)
@@ -60,14 +61,17 @@ class DatatypeModelMultipleChoiceField(forms.ModelMultipleChoiceField):
 
 
 class DatatypeField(DatatypeModelMultipleChoiceField):
-
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('label', 'Type de données')
+        kwargs.setdefault('label', "Type de données")
         kwargs.setdefault('required', False)
         kwargs.setdefault('widget', forms.CheckboxSelectMultiple())
         kwargs.setdefault('queryset', DataType.objects.all())
-
         super().__init__(*args, **kwargs)
+
+
+# ========================================
+# Formulaire d'édition d'un jeu de données
+# ========================================
 
 
 class DatasetForm(forms.ModelForm):
@@ -98,19 +102,19 @@ class DatasetForm(forms.ModelForm):
             'title',
             'slug')
 
-    class CustomClearableFileInput(forms.ClearableFileInput):
-        template_name = 'idgo_admin/widgets/file_drop_zone.html'
-
     title = forms.CharField(
-        label='Titre*',
+        label="Titre*",
         required=True,
         widget=forms.Textarea(
             attrs={
-                'placeholder': 'Titre du jeu de données',
-                'rows': 1}))
+                'placeholder': "Titre de votre jeu de données",
+                'rows': 1,
+                },
+            ),
+        )
 
     slug = forms.CharField(
-        label='URL du jeu de données',
+        label="URL du jeu de données",
         required=False,
         max_length=100,
         widget=forms.TextInput(
@@ -121,128 +125,171 @@ class DatasetForm(forms.ModelForm):
                 'addon_after_class': 'input-group-btn',
                 'autocomplete': 'off',
                 'readonly': True,
-                # 'pattern': '^[a-z0-9\-]{1,100}$',  # Déplacé dans la function 'clean'
-                'placeholder': ''}))
+                'placeholder': '',
+                },
+            ),
+        )
 
     description = forms.CharField(
-        label='Description',
+        label="Description",
         required=False,
         widget=forms.Textarea(
             attrs={
-                'placeholder': 'Vous pouvez utiliser le langage Markdown ici'}))
+                'placeholder': "Vous pouvez utiliser le langage Markdown ici",
+                },
+            ),
+        )
+
+    class CustomClearableFileInput(forms.ClearableFileInput):
+        template_name = 'idgo_admin/widgets/file_drop_zone.html'
+
+    thumbnail = forms.FileField(
+        label="Illustration",
+        required=False,
+        widget=CustomClearableFileInput(
+            attrs={
+                'value': None,
+                'max_size_info': 1048576,
+                },
+            ),
+        )
 
     keywords = TagField(
-        label='Liste de mots-clés',
+        label="Liste de mots-clés",
         required=False,
         widget=TagWidget(
             attrs={
                 'autocomplete': 'off',
                 'class': 'typeahead',
-                'placeholder': 'Utilisez la virgule comme séparateur'}))
+                'placeholder': "Utilisez la virgule comme séparateur",
+                },
+            ),
+        )
 
     categories = forms.ModelMultipleChoiceField(
-        label='Catégories associées',
-        queryset=Category.objects.all(),
+        label="Catégories (sélectionnez dans la liste ci-dessous une ou plusieurs catégories)",
         required=False,
-        widget=forms.CheckboxSelectMultiple())
-
-    data_type = DatatypeField()
+        queryset=Category.objects.all(),
+        widget=forms.CheckboxSelectMultiple(),
+        )
 
     date_creation = forms.DateField(
-        label='Date de création',
+        label="Date de création",
         required=False,
         widget=forms.DateInput(
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
-                'placeholder': '{0} (valeur par défaut)'.format(TODAY_STR)}))
+                'placeholder': "{0} (par défaut)".format(TODAY),
+                },
+            ),
+        )
 
     date_modification = forms.DateField(
-        label='Date de dernière modification',
+        label="Date de dernière modification",
         required=False,
         widget=forms.DateInput(
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
-                'placeholder': '{0} (valeur par défaut)'.format(TODAY_STR)}))
+                'placeholder': "{0} (par défaut)".format(TODAY),
+                },
+            ),
+        )
 
     date_publication = forms.DateField(
-        label='Date de publication',
+        label="Date de publication",
         required=False,
         widget=forms.DateInput(
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
-                'placeholder': '{0} (valeur par défaut)'.format(TODAY_STR)}))
+                'placeholder': "{0} (par défaut)".format(TODAY),
+                },
+            ),
+        )
 
     update_frequency = forms.ChoiceField(
+        label="Fréquence de mise à jour",
+        required=False,
         choices=Dataset.FREQUENCY_CHOICES,
-        label='Fréquence de mise à jour',
-        required=False)
+        )
 
     geocover = forms.ChoiceField(
+        label="Couverture géographique",
+        required=False,
         choices=Dataset.GEOCOVER_CHOICES,
-        label='Couverture géographique',
-        required=False)
+        )
 
     granularity = forms.ModelChoiceField(
-        empty_label='Sélectionnez une valeur',
-        label='Granularité de la couverture territoriale',
+        label="Granularité de la couverture territoriale",
+        empty_label="Sélectionnez une valeur",
+        required=False,
         queryset=Granularity.objects.all().order_by('order'),
-        required=False)
+        )
 
     organisation = forms.ModelChoiceField(
-        label='Organisation à laquelle est rattaché ce jeu de données*',
-        queryset=Organisation.objects.all(),
+        label="Organisation à laquelle est rattaché ce jeu de données*",
+        empty_label="Sélectionnez une organisation",
         required=True,
-        empty_label='Sélectionnez une organisation')
+        queryset=Organisation.objects.all(),
+        )
 
     license = forms.ModelChoiceField(
-        label='Licence*',
-        queryset=License.objects.all(),
+        label="Licence*",
+        empty_label="Sélectionnez une licence",
         required=True,
-        empty_label='Sélectionnez une licence')
-
-    owner_name = forms.CharField(
-        label='Nom du producteur', required=False)
-
-    owner_email = forms.EmailField(
-        error_messages={
-            'invalid': "L'adresse e-mail est invalide."},
-        label='Adresse e-mail du producteur', required=False)
-
-    broadcaster_name = forms.CharField(
-        label='Nom du diffuseur', required=False)
-
-    broadcaster_email = forms.EmailField(
-        error_messages={
-            'invalid': "L'adresse e-mail est invalide."},
-        label='Adresse e-mail du diffuseur', required=False)
-
-    published = forms.BooleanField(
-        initial=True,
-        label='Publier le jeu de données',
-        required=False)
+        queryset=License.objects.all(),
+        )
 
     support = forms.ModelChoiceField(
-        label='Support technique',
-        queryset=Support.objects.all(),
+        label="Support technique",
+        empty_label="Aucun",
         required=False,
-        empty_label='Aucun')
+        queryset=Support.objects.all(),
+        )
+
+    data_type = DatatypeField(
+        # Cf. définition plus haut
+        )
+
+    owner_name = forms.CharField(
+        label="Nom du producteur",
+        required=False,
+        )
+
+    owner_email = forms.EmailField(
+        label="Adresse e-mail du producteur",
+        required=False,
+        error_messages={
+            'invalid': "L'adresse e-mail est invalide.",
+            },
+        )
+
+    broadcaster_name = forms.CharField(
+        label="Nom du diffuseur",
+        required=False,
+        )
+
+    broadcaster_email = forms.EmailField(
+        label="Adresse e-mail du diffuseur",
+        required=False,
+        error_messages={
+            'invalid': "L'adresse e-mail est invalide.",
+            },
+        )
+
+    published = forms.BooleanField(
+        label="Publier le jeu de données",
+        required=False,
+        initial=True,
+        )
 
     is_inspire = forms.BooleanField(
-        initial=False,
-        label='Le jeu de données est soumis à la règlementation INSPIRE',
-        required=False)
-
-    thumbnail = forms.FileField(
-        label='Imagette',
+        label="Le jeu de données est soumis à la règlementation INSPIRE",
         required=False,
-        # validators=[],
-        widget=CustomClearableFileInput(
-            attrs={
-                'value': None,
-                'max_size_info': 1048576}))
+        initial=False,
+        )
 
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
