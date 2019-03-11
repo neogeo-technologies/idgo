@@ -529,7 +529,122 @@ class RemoteCkanDataset(models.Model):
 
     created_by = models.ForeignKey(
         User,
-        related_name='creates_dataset',
+        related_name='creates_dataset_from_remote_ckan',
+        verbose_name="Utilisateur",
+        null=True,
+        on_delete=models.SET_NULL,
+        )
+
+    created_on = models.DateTimeField(
+        verbose_name="Créé le",
+        auto_now_add=True,
+        )
+
+    updated_on = models.DateTimeField(
+        verbose_name="Mis-à-jour le",
+        auto_now_add=True,
+        )
+
+    def __str__(self):
+        return '{0} - {1}'.format(self.remote_ckan, self.dataset)
+
+    @property
+    def url(self):
+        base_url = self.remote_ckan.url
+        if not base_url.endswith('/'):
+            base_url += '/'
+        return reduce(urljoin, [base_url, 'dataset/', str(self.remote_dataset)])
+
+
+# ===============================================
+# MODÈLE DE SYNCHRONISATION AVEC UN CATALOGUE CWS
+# ===============================================
+
+
+class RemoteCsw(models.Model):
+
+    class Meta(object):
+        verbose_name = "Catalogue CSW distant"
+        verbose_name_plural = "Catalogues CSW distants"
+
+    organisation = models.OneToOneField(
+        to='Organisation',
+        on_delete=models.CASCADE,
+        )
+
+    url = models.URLField(
+        verbose_name="URL",
+        blank=True,
+        )
+
+    sync_with = ArrayField(
+        models.SlugField(max_length=100),
+        verbose_name="Organisations synchronisées",
+        blank=True,
+        null=True,
+        )
+
+    FREQUENCY_CHOICES = (
+        ('never', "Jamais"),
+        ('daily', "Quotidienne (tous les jours à minuit)"),
+        ('weekly', "Hebdomadaire (tous les lundi)"),
+        ('bimonthly', "Bimensuelle (1er et 15 de chaque mois)"),
+        ('monthly', "Mensuelle (1er de chaque mois)"),
+        ('quarterly', "Trimestrielle (1er des mois de janvier, avril, juillet, octobre)"),
+        ('biannual', "Semestrielle (1er janvier et 1er juillet)"),
+        ('annual', "Annuelle (1er janvier)"),
+        )
+
+    sync_frequency = models.CharField(
+        verbose_name="Fréquence de synchronisation",
+        max_length=20,
+        blank=True,
+        null=True,
+        choices=FREQUENCY_CHOICES,
+        default='never',
+        )
+
+    def __str__(self):
+        return self.url
+
+
+class RemoteCswDataset(models.Model):
+
+    class Meta(object):
+        verbose_name = "Jeu de données moissonné"
+        verbose_name_plural = "Jeux de données moissonnés"
+        unique_together = ('remote_instance', 'dataset')
+
+    remote_instance = models.ForeignKey(
+        to='RemoteCsw',
+        on_delete=models.CASCADE,
+        to_field='id',
+        )
+
+    dataset = models.ForeignKey(
+        to='Dataset',
+        on_delete=models.CASCADE,
+        to_field='id',
+        )
+
+    remote_dataset = models.UUIDField(
+        verbose_name="UUID",
+        editable=False,
+        null=True,
+        blank=True,
+        unique=True,
+        )
+
+    remote_organisation = models.SlugField(
+        verbose_name="Organisation distante",
+        max_length=100,
+        blank=True,
+        null=True,
+        )
+
+    created_by = models.ForeignKey(
+        User,
+        related_name='creates_dataset_from_remote_csw',
         verbose_name="Utilisateur",
         null=True,
         on_delete=models.SET_NULL,
