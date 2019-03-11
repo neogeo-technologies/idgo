@@ -40,22 +40,28 @@ from urllib.parse import urljoin
 import uuid
 
 
-ISOFORMAT = '%Y-%m-%dT%H:%M:%S.%f'
-
-OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
 DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
+ISOFORMAT = '%Y-%m-%dT%H:%M:%S.%f'
+OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 
 
 class OrganisationType(models.Model):
-
-    code = models.CharField(verbose_name="Code", max_length=100, primary_key=True)
-    name = models.TextField(verbose_name="Type d'organisation")
 
     class Meta(object):
         verbose_name = "Type d'organisation"
         verbose_name_plural = "Types d'organisations"
         ordering = ('name',)
+
+    code = models.CharField(
+        verbose_name="Code",
+        max_length=100,
+        primary_key=True,
+        )
+
+    name = models.TextField(
+        verbose_name="Type d'organisation",
+        )
 
     def __str__(self):
         return self.name
@@ -192,7 +198,7 @@ class Organisation(models.Model):
 
     @property
     def full_address(self):
-        return '{} - {} {}'.format(self.address, self.postcode, self.city)
+        return "{} - {} {}".format(self.address, self.postcode, self.city)
 
     @property
     def ows_url(self):
@@ -228,45 +234,85 @@ class Organisation(models.Model):
         return [e.profile.user for e in entries if e.profile.is_active]
 
 
+# Triggers
+
+
+@receiver(pre_save, sender=Organisation)
+def pre_save_organisation(sender, instance, **kwargs):
+    instance.slug = slugify(instance.legal_name)
+
+
+@receiver(post_save, sender=Organisation)
+def post_save_organisation(sender, instance, **kwargs):
+    # Mettre à jour en cascade les profiles (utilisateurs)
+    Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
+    for profile in Profile.objects.filter(organisation=instance):
+        profile.crige_membership = instance.is_crige_partner
+        profile.save()
+
+    # Synchroniser avec l'organisation CKAN
+    if CkanHandler.is_organisation_exists(str(instance.ckan_id)):
+        CkanHandler.update_organisation(instance)
+
+
+@receiver(post_delete, sender=Organisation)
+def post_delete_organisation(sender, instance, **kwargs):
+    if CkanHandler.is_organisation_exists(str(instance.ckan_id)):
+        CkanHandler.purge_organisation(str(instance.ckan_id))
+
+
+# ================================================
+# MODÈLE DE SYNCHRONISATION AVEC UN CATALOGUE CKAN
+# ================================================
+
+
 class RemoteCkan(models.Model):
 
-    FREQUENCY_CHOICES = (
-        ('never', 'Jamais'),
-        ('daily', 'Quotidienne (tous les jours à minuit)'),
-        ('weekly', 'Hebdomadaire (tous les lundi)'),
-        ('bimonthly', 'Bimensuelle (1er et 15 de chaque mois)'),
-        ('monthly', 'Mensuelle (1er de chaque mois)'),
-        ('quarterly', 'Trimestrielle (1er des mois de janvier, avril, juillet, octobre)'),
-        ('biannual', 'Semestrielle (1er janvier et 1er juillet)'),
-        ('annual', 'Annuelle (1er janvier)'))
+    class Meta(object):
+        verbose_name = "Catalogue CKAN distant"
+        verbose_name_plural = "Catalogues CKAN distants"
 
-    organisation = models.OneToOneField(to='Organisation', on_delete=models.CASCADE)
+    organisation = models.OneToOneField(
+        to='Organisation',
+        on_delete=models.CASCADE,
+        )
 
-    url = models.URLField(verbose_name='URL', blank=True)
+    url = models.URLField(
+        verbose_name="URL",
+        blank=True,
+        )
 
     sync_with = ArrayField(
         models.SlugField(max_length=100),
-        verbose_name='Organisations synchronisées',
+        verbose_name="Organisations synchronisées",
         blank=True,
-        null=True)
+        null=True,
+        )
+
+    FREQUENCY_CHOICES = (
+        ('never', "Jamais"),
+        ('daily', "Quotidienne (tous les jours à minuit)"),
+        ('weekly', "Hebdomadaire (tous les lundi)"),
+        ('bimonthly', "Bimensuelle (1er et 15 de chaque mois)"),
+        ('monthly', "Mensuelle (1er de chaque mois)"),
+        ('quarterly', "Trimestrielle (1er des mois de janvier, avril, juillet, octobre)"),
+        ('biannual', "Semestrielle (1er janvier et 1er juillet)"),
+        ('annual', "Annuelle (1er janvier)"),
+        )
 
     sync_frequency = models.CharField(
-        verbose_name='Fréquence de synchronisation',
+        verbose_name="Fréquence de synchronisation",
         max_length=20,
         blank=True,
         null=True,
         choices=FREQUENCY_CHOICES,
-        default='never')
-
-    class Meta(object):
-        verbose_name = 'Catalogue CKAN distant'
-        verbose_name_plural = 'Catalogues CKAN distants'
+        default='never',
+        )
 
     def __str__(self):
         return self.url
 
     def save(self, *args, **kwargs):
-
         Category = apps.get_model(app_label='idgo_admin', model_name='Category')
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
         License = apps.get_model(app_label='idgo_admin', model_name='License')
@@ -449,34 +495,58 @@ class RemoteCkan(models.Model):
 
 class RemoteCkanDataset(models.Model):
 
+    class Meta(object):
+        verbose_name = "Jeu de données moissonné"
+        verbose_name_plural = "Jeux de données moissonnés"
+        unique_together = ('remote_ckan', 'dataset')
+
     remote_ckan = models.ForeignKey(
-        to='RemoteCkan', on_delete=models.CASCADE, to_field='id')
+        to='RemoteCkan',
+        on_delete=models.CASCADE,
+        to_field='id',
+        )
 
     dataset = models.ForeignKey(
-        to='Dataset', on_delete=models.CASCADE, to_field='id')
+        to='Dataset',
+        on_delete=models.CASCADE,
+        to_field='id',
+        )
 
     remote_dataset = models.UUIDField(
-        verbose_name='Ckan UUID', editable=False,
-        blank=True, null=True, unique=True)
+        verbose_name="Ckan UUID",
+        editable=False,
+        null=True,
+        blank=True,
+        unique=True,
+        )
 
     remote_organisation = models.SlugField(
-        max_length=100, verbose_name='Organisation distante', blank=True, null=True)
+        verbose_name="Organisation distante",
+        max_length=100,
+        blank=True,
+        null=True,
+        )
 
     created_by = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL,
-        verbose_name="Utilisateur", related_name='creates_dataset')
+        User,
+        related_name='creates_dataset',
+        verbose_name="Utilisateur",
+        null=True,
+        on_delete=models.SET_NULL,
+        )
 
-    created_on = models.DateTimeField(auto_now_add=True)
+    created_on = models.DateTimeField(
+        verbose_name="Créé le",
+        auto_now_add=True,
+        )
 
-    updated_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(
+        verbose_name="Mis-à-jour le",
+        auto_now_add=True,
+        )
 
     def __str__(self):
         return '{0} - {1}'.format(self.remote_ckan, self.dataset)
-
-    class Meta(object):
-        verbose_name = 'Jeu de données moissonné'
-        verbose_name_plural = 'Jeux de données moissonnés'
-        unique_together = ('remote_ckan', 'dataset')
 
     @property
     def url(self):
@@ -484,30 +554,3 @@ class RemoteCkanDataset(models.Model):
         if not base_url.endswith('/'):
             base_url += '/'
         return reduce(urljoin, [base_url, 'dataset/', str(self.remote_dataset)])
-
-
-# Triggers
-
-
-@receiver(pre_save, sender=Organisation)
-def pre_save_organisation(sender, instance, **kwargs):
-    instance.slug = slugify(instance.legal_name)
-
-
-@receiver(post_save, sender=Organisation)
-def post_save_organisation(sender, instance, **kwargs):
-    # Mettre à jour en cascade les profiles (utilisateurs)
-    Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
-    for profile in Profile.objects.filter(organisation=instance):
-        profile.crige_membership = instance.is_crige_partner
-        profile.save()
-
-    # Synchroniser avec l'organisation CKAN
-    if CkanHandler.is_organisation_exists(str(instance.ckan_id)):
-        CkanHandler.update_organisation(instance)
-
-
-@receiver(post_delete, sender=Organisation)
-def post_delete_organisation(sender, instance, **kwargs):
-    if CkanHandler.is_organisation_exists(str(instance.ckan_id)):
-        CkanHandler.purge_organisation(str(instance.ckan_id))
