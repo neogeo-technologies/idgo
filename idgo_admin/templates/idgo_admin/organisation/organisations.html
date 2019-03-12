@@ -329,7 +329,7 @@ $(function() {
 		if (data.crige == true) {
 			$content.find('.crige-partner-badge').prop('hidden', false);
 		} else {
-			if (isReferent) {
+			if (isReferent()) {
 				const $crigePartnerButton = $('<button />')
 					.prop('role', 'button')
 					.addClass('btn btn-default')
