@@ -54,9 +54,11 @@ from idgo_admin.views.organisation import all_organisations
 from idgo_admin.views.organisation import CreateOrganisation
 from idgo_admin.views.organisation import crige_partnership
 from idgo_admin.views.organisation import DeleteRemoteCkanLinked
+from idgo_admin.views.organisation import DeleteRemoteCswLinked
 from idgo_admin.views.organisation import organisation
 from idgo_admin.views.organisation import OrganisationOWS
 from idgo_admin.views.organisation import RemoteCkanEditor
+from idgo_admin.views.organisation import RemoteCswEditor
 from idgo_admin.views.organisation import Subscription
 from idgo_admin.views.organisation import UpdateOrganisation
 from idgo_admin.views.resource import resource
@@ -118,6 +120,8 @@ urlpatterns = [
 
     url('^organisation/(?P<id>(\d+))/remoteckan/edit/?$', RemoteCkanEditor.as_view(), name='edit_remote_ckan_link'),
     url('^organisation/(?P<id>(\d+))/remoteckan/delete/?$', DeleteRemoteCkanLinked.as_view(), name='delete_remote_ckan_link'),
+    url('^organisation/(?P<id>(\d+))/remotecsw/edit/?$', RemoteCswEditor.as_view(), name='edit_remote_csw_link'),
+    url('^organisation/(?P<id>(\d+))/remotecsw/delete/?$', DeleteRemoteCswLinked.as_view(), name='delete_remote_csw_link'),
 
     url('^password/(?P<process>(forget))/?$', PasswordManager.as_view(), name='password_manager'),
     url('^password/(?P<process>(initiate|reset))/(?P<key>(.+))/?$', PasswordManager.as_view(), name='password_manager'),

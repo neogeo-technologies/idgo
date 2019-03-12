@@ -16,7 +16,9 @@
 
 from django import forms
 from idgo_admin.ckan_module import CkanBaseHandler
+from idgo_admin.csw_module import CswBaseHandler
 from idgo_admin.exceptions import CkanBaseError
+from idgo_admin.exceptions import CswBaseError
 from idgo_admin.forms import AddressField
 from idgo_admin.forms import CityField
 from idgo_admin.forms import ContributorField
@@ -36,6 +38,7 @@ from idgo_admin.forms import WebsiteField
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import Organisation
 from idgo_admin.models import RemoteCkan
+from idgo_admin.models import RemoteCsw
 
 
 class OrganisationForm(forms.ModelForm):
@@ -110,6 +113,11 @@ class OrganisationForm(forms.ModelForm):
         return self.cleaned_data
 
 
+# ======================================
+# FORMULAIRE DE MOISSONNAGE DE SITE CKAN
+# ======================================
+
+
 class RemoteCkanForm(forms.ModelForm):
 
     class Meta(object):
@@ -117,26 +125,39 @@ class RemoteCkanForm(forms.ModelForm):
         fields = (
             'url',
             'sync_with',
-            'sync_frequency')
+            'sync_frequency',
+            )
 
     url = forms.URLField(
-        error_messages={'invalid': "L'adresse URL est erronée."},
-        label='URL du catalogue CKAN à synchroniser',
+        label="URL du catalogue CKAN à synchroniser",
         required=True,
-        widget=forms.TextInput(attrs={'placeholder': "https://demo.ckan.org"}))
+        error_messages={
+            'invalid': "L'adresse URL est erronée.",
+            },
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': "https://demo.ckan.org",
+                },
+            ),
+        )
 
     sync_with = forms.MultipleChoiceField(
-        label='Organisations à synchroniser',
-        choices=(),  # ckan api -> list_organisations
+        label="Organisations à synchroniser",
         required=False,
+        choices=(),  # ckan api -> list_organisations
         widget=CustomCheckboxSelectMultiple(
-            attrs={'class': 'list-group-checkbox'}))
+            attrs={
+                'class': 'list-group-checkbox',
+                },
+            ),
+        )
 
     sync_frequency = forms.ChoiceField(
-        label='Fréquence de synchronisation',
+        label="Fréquence de synchronisation",
+        required=True,
         choices=Meta.model.FREQUENCY_CHOICES,
         initial='never',
-        required=True)
+        )
 
     def __init__(self, *args, **kwargs):
         self.cleaned_data = {}
@@ -159,6 +180,76 @@ class RemoteCkanForm(forms.ModelForm):
                         organisation.get(
                             'package_count',
                             organisation.get('packages', None))))
+                    for organisation in organisations)
+        else:
+            self.fields['sync_with'].widget = forms.HiddenInput()
+            self.fields['sync_frequency'].widget = forms.HiddenInput()
+
+
+# ================================
+# FORMULAIRE DE MOISSONNAGE DE CSW
+# ================================
+
+
+class RemoteCswForm(forms.ModelForm):
+
+    class Meta(object):
+        model = RemoteCsw
+        fields = (
+            'url',
+            'sync_with',
+            'sync_frequency',
+            )
+
+    url = forms.URLField(
+        label="URL du catalogue CKAN à synchroniser",
+        required=True,
+        error_messages={
+            'invalid': "L'adresse URL est erronée.",
+            },
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': "https://demo.ckan.org",
+                },
+            ),
+        )
+
+    sync_with = forms.MultipleChoiceField(
+        label="Organisations à synchroniser",
+        required=False,
+        choices=(),  # ckan api -> list_organisations
+        widget=CustomCheckboxSelectMultiple(
+            attrs={
+                'class': 'list-group-checkbox',
+                },
+            ),
+        )
+
+    sync_frequency = forms.ChoiceField(
+        label="Fréquence de synchronisation",
+        required=True,
+        choices=Meta.model.FREQUENCY_CHOICES,
+        initial='never',
+        )
+
+    def __init__(self, *args, **kwargs):
+        self.cleaned_data = {}
+        super().__init__(*args, **kwargs)
+
+        instance = kwargs.get('instance', None)
+        if instance and instance.url:
+            self.fields['url'].widget.attrs['readonly'] = True
+            # Récupérer la liste des organisations
+            try:
+                with CswBaseHandler(instance.url) as csw:
+                    organisations = csw.get_all_organisations()
+            except CswBaseError as e:
+                self.add_error('url', e.message)
+            else:
+                self.fields['sync_with'].choices = (
+                    (organisation['name'], '{} ({})'.format(
+                        organisation['display_name'],
+                        organisation.get('package_count', organisation.get('packages', None))))
                     for organisation in organisations)
         else:
             self.fields['sync_with'].widget = forms.HiddenInput()

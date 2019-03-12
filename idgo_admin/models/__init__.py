@@ -36,6 +36,8 @@ from idgo_admin.models.organisation import Organisation
 from idgo_admin.models.organisation import OrganisationType
 from idgo_admin.models.organisation import RemoteCkan
 from idgo_admin.models.organisation import RemoteCkanDataset
+from idgo_admin.models.organisation import RemoteCsw
+from idgo_admin.models.organisation import RemoteCswDataset
 from idgo_admin.models.resource import Resource
 from idgo_admin.models.resource import ResourceFormats
 from idgo_admin.models.support import Support
@@ -65,6 +67,8 @@ __all__ = [
     Profile,
     RemoteCkan,
     RemoteCkanDataset,
+    RemoteCsw,
+    RemoteCswDataset,
     Resource,
     ResourceFormats,
     Support,
