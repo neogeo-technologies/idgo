@@ -41,7 +41,7 @@ $(function() {
 		.typeahead({
 			source: [{% for group, options, index in widget.optgroups %}{% for option in options %}
 				{
-					'id': {{ option.value }},
+					'id': '{{ option.value }}',
 					'name': '{{ option.label }}'
 				},{% endfor %}{% endfor %}
 			],

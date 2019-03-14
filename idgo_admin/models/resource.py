@@ -18,6 +18,7 @@ from decimal import Decimal
 from django.apps import apps
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import IntegrityError
@@ -112,20 +113,30 @@ class ResourceFormats(models.Model):
         db_index=True,
         )
 
+    description = models.TextField(
+        verbose_name="Description",
+        )
+
     extension = models.CharField(
         verbose_name="Extension du fichier",
         max_length=10,
         )
 
-    description = models.TextField(
-        verbose_name="Description",
+    mimetype = ArrayField(
+        models.TextField(),
+        verbose_name="Type MIME",
+        blank=True,
+        null=True,
         )
 
-    is_gis_format = models.BooleanField(
-        verbose_name="Format de fichier SIG",
-        blank=False,
-        null=False,
-        default=False,
+    PROTOCOL_CHOICES = AUTHORIZED_PROTOCOL
+
+    protocol = models.CharField(
+        verbose_name="Protocole",
+        max_length=100,
+        blank=True,
+        null=True,
+        choices=PROTOCOL_CHOICES,
         )
 
     ckan_format = models.CharField(
@@ -149,14 +160,11 @@ class ResourceFormats(models.Model):
         choices=CKAN_CHOICES,
         )
 
-    PROTOCOL_CHOICES = AUTHORIZED_PROTOCOL
-
-    protocol = models.CharField(
-        verbose_name="Protocole",
-        max_length=100,
-        blank=True,
-        null=True,
-        choices=PROTOCOL_CHOICES,
+    is_gis_format = models.BooleanField(
+        verbose_name="Format de fichier SIG",
+        blank=False,
+        null=False,
+        default=False,
         )
 
     def __str__(self):
@@ -254,7 +262,8 @@ class Resource(models.Model):
     format_type = models.ForeignKey(
         to='ResourceFormats',
         verbose_name='Format',
-        default=0,
+        blank=False,
+        null=True,
         )
 
     LEVEL_CHOICES = (
@@ -885,8 +894,8 @@ class Resource(models.Model):
             'description': self.description,
             'data_type': self.data_type,
             'extracting_service': 'False',  # I <3 CKAN
-            'format': self.format_type.ckan_format,
-            'view_type': self.format_type.ckan_view,
+            'format': self.format_type and self.format_type.ckan_format,
+            'view_type': self.format_type and self.format_type.ckan_view,
             'id': id,
             'lang': self.lang,
             'restricted_by_jurisdiction': str(self.geo_restriction),

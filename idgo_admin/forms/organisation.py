@@ -58,12 +58,14 @@ class OrganisationForm(forms.ModelForm):
             'organisation_type',
             'phone',
             'postcode',
-            'website')
+            'website',
+            )
 
         extended_fields = (
             'contributor_process',
             'rattachement_process',
-            'referent_process')
+            'referent_process',
+            )
 
         fields = organisation_fields + extended_fields
 

@@ -30,7 +30,8 @@ from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin import logger
 from idgo_admin.managers import DefaultDatasetManager
-from idgo_admin.managers import HarvestedDatasetManager
+from idgo_admin.managers import HarvestedCkanDatasetManager
+from idgo_admin.managers import HarvestedCswDatasetManager
 from idgo_admin.utils import three_suspension_points
 from taggit.admin import Tag
 from taggit.managers import TaggableManager
@@ -74,7 +75,8 @@ class Dataset(models.Model):
 
     objects = models.Manager()
     default = DefaultDatasetManager()
-    harvested = HarvestedDatasetManager()
+    harvested = HarvestedCkanDatasetManager()
+    harvestedCsw = HarvestedCswDatasetManager()
 
     # Champs atributaires
     # ===================
