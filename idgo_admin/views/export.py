@@ -45,7 +45,7 @@ from uuid import UUID
 
 
 # Définition des champs ODL :
-COLL_NOM = F('organisation__name')
+COLL_NOM = F('organisation__legal_name')
 COLL_SIRET = Value('', output_field=CharField())
 ID = F('ckan_id')
 TITRE = F('title')
@@ -60,7 +60,7 @@ DIFFUSEUR = Case(
         then=F('support__name')),
     default=Value(settings.DEFAULT_PLATFORM_NAME),
     output_field=CharField())
-PRODUCTEUR = F('organisation__name')
+PRODUCTEUR = F('organisation__legal_name')
 COUV_SPAT = Value('', output_field=CharField())
 COUV_TEMP_DEBUT = Value('', output_field=CharField())
 COUV_TEMP_FIN = Value('', output_field=CharField())

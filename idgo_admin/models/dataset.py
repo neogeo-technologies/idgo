@@ -318,14 +318,8 @@ class Dataset(models.Model):
             self.remote_ckan_dataset = remote_ckan_dataset
             return True
 
-    def clean(self):
-
-        # Vérifie la disponibilité du « slug » dans CKAN
-        slug = self.slug or slugify(self.title)
-        ckan_dataset = CkanHandler.get_package(slug)
-        if ckan_dataset:
-            if UUID(ckan_dataset['id']) != self.ckan_id and ckan_dataset['name'] == slug:
-                raise ValidationError("L'URL du jeu de données est réservé.")
+    # Méthodes héritées
+    # =================
 
     def save(self, *args, current_user=None, synchronize=True, **kwargs):
 
@@ -432,6 +426,15 @@ class Dataset(models.Model):
 
     # Autres méthodes
     # ===============
+
+    def clean(self):
+
+        # Vérifie la disponibilité du « slug » dans CKAN
+        slug = self.slug or slugify(self.title)
+        ckan_dataset = CkanHandler.get_package(slug)
+        if ckan_dataset:
+            if UUID(ckan_dataset['id']) != self.ckan_id and ckan_dataset['name'] == slug:
+                raise ValidationError("L'URL du jeu de données est réservé.")
 
     def synchronize(self, with_user=None):
         """Synchronizer le jeu de données avec l'instance de CKAN."""
