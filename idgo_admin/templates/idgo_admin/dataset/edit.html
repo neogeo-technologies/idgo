@@ -25,7 +25,7 @@
 			{% bootstrap_field form.slug %}
 		</div>
 	</div>
-	{% if dataset.is_harvested %}
+	{% if dataset.is_ckan_harvested %}
 	<br />
 	<div class="row">
 		<div class="col-xs-12">
@@ -41,6 +41,27 @@
 					</dd>
 					<dt>Dernier moissonnage</dt>
 					<dd>{{ dataset.remote_ckan_dataset.updated_on|date:"d/m/y"|default:"" }}</dd>
+				</dl>
+			</div>
+		</div>
+	</div>
+	{% endif %}
+	{% if dataset.is_csw_harvested %}
+	<br />
+	<div class="row">
+		<div class="col-xs-12">
+			<div class="well">
+				<dl>
+					<dt>CSW distant</dt>
+					<dd>
+						<a type="button" class="btn btn-link" href="{{ dataset.remote_ckan_dataset.remote_ckan.url }}">{{ dataset.remote_csw_dataset.remote_instance.url }}</a>
+					</dd>
+					<dt>Lien vers la fiche CSW distante</dt>
+					<dd>
+						<a type="button" class="btn btn-link" href="{{ dataset.remote_ckan_dataset.url }}">{{ dataset.remote_csw_dataset.url }}</a>
+					</dd>
+					<dt>Dernier moissonnage</dt>
+					<dd>{{ dataset.remote_csw_dataset.updated_on|date:"d/m/y"|default:"" }}</dd>
 				</dl>
 			</div>
 		</div>
@@ -167,7 +188,7 @@
 	{% endif %}
 	<br />
 	<div class="buttons-on-the-right-side">
-		<a class="btn btn-default" href="{% url 'idgo_admin:datasets' %}">Annuler</a>
+		<a class="btn btn-default" href="{% url 'idgo_admin:list_my_datasets' %}">Annuler</a>
 		<button type="submit" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>
 		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
 	</div>

@@ -20,7 +20,7 @@
 
 <script>
 $(function() {
-	var LAYERS = {{ ogc_layers | safe }};
+	var LAYERS = {{ layer_rows | safe }};
 	var LAYERS_CONTAINER = 'table-layers';
 	var LAYERS_METADATA = [
 		{
@@ -195,17 +195,17 @@ $(function() {
 				m.push({
 					id: i,
 					values: [
-						data[i][1],  // resource_name
-						data[i][9],  // title
-						data[i][6],  // ogc_enabled
-						data[i][5],  // extractor_enabled
-						data[i][3],  // restrictions
-						data[i][4],  // geo_restrictions
+						data[i][1],   // resource_name
+						data[i][9],   // title
+						data[i][6],   // ogc_enabled
+						data[i][5],   // extractor_enabled
+						data[i][3],   // restrictions
+						data[i][4],   // geo_restrictions
 						data[i][11],  // bbox
 						data[i][12],  // attributes
-						data[i][13], // styles
-						data[i][0],  // resource_pk
-						data[i][7]   // datagis_id
+						data[i][13],  // styles
+						data[i][0],   // resource_pk
+						data[i][7]    // datagis_id
 					]
 				});
 			};

@@ -333,8 +333,8 @@ class RemoteCkan(models.Model):
             filter = {
                 'remote_ckan': previous,
                 'remote_organisation__in': remote_organisation__in}
-            # TODO: 'Dataset.harvested.filter(**filter).delete()' ne fonctionne pas
-            for dataset in Dataset.harvested.filter(**filter):
+            # TODO: 'Dataset.harvested_ckan.filter(**filter).delete()' ne fonctionne pas
+            for dataset in Dataset.harvested_ckan.filter(**filter):
                 dataset.delete()
         else:
             # Dans le cas d'une création, on vérifie si l'URL CKAN est valide
@@ -438,7 +438,7 @@ class RemoteCkan(models.Model):
                                 # support
                                 }
 
-                            dataset, created = Dataset.harvested.update_or_create(**kvp)
+                            dataset, created = Dataset.harvested_ckan.update_or_create(**kvp)
 
                             categories = Category.objects.filter(
                                 slug__in=[m['name'] for m in package.get('groups', [])])
@@ -492,7 +492,7 @@ class RemoteCkan(models.Model):
 
     def delete(self, *args, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
-        for dataset in Dataset.harvested.filter(remote_ckan=self):
+        for dataset in Dataset.harvested_ckan.filter(remote_ckan=self):
             dataset.delete()
         return super().delete(*args, **kwargs)
 
@@ -628,8 +628,8 @@ class RemoteCsw(models.Model):
             filter = {
                 'remote_instance': previous,
                 'remote_organisation__in': remote_organisation__in}
-            # TODO: 'Dataset.harvested.filter(**filter).delete()' ne fonctionne pas
-            for dataset in Dataset.harvestedCsw.filter(**filter):
+            # TODO: 'Dataset.harvested_csw.filter(**filter).delete()' ne fonctionne pas
+            for dataset in Dataset.harvested_csw.filter(**filter):
                 dataset.delete()
         else:
             # Dans le cas d'une création, on vérifie si l'URL CSW est valide
@@ -731,7 +731,7 @@ class RemoteCsw(models.Model):
                                 # support
                                 }
 
-                            dataset, created = Dataset.harvestedCsw.update_or_create(**kvp)
+                            dataset, created = Dataset.harvested_csw.update_or_create(**kvp)
 
                             categories = Category.objects.filter(
                                 slug__in=[m['name'] for m in package.get('groups', [])])

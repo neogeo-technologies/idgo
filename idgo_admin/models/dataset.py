@@ -75,8 +75,8 @@ class Dataset(models.Model):
 
     objects = models.Manager()
     default = DefaultDatasetManager()
-    harvested = HarvestedCkanDatasetManager()
-    harvestedCsw = HarvestedCswDatasetManager()
+    harvested_ckan = HarvestedCkanDatasetManager()
+    harvested_csw = HarvestedCswDatasetManager()
 
     # Champs atributaires
     # ===================
@@ -308,15 +308,24 @@ class Dataset(models.Model):
             return [[miny, minx], [maxy, maxx]]
 
     @property
-    def is_harvested(self):
-        Model = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+    def is_ckan_harvested(self):
+        Model = apps.get_model(
+            app_label='idgo_admin', model_name='RemoteCkanDataset')
         try:
-            remote_ckan_dataset = Model.objects.get(dataset=self)
+            Model.objects.get(dataset=self)
         except Model.DoesNotExist:
             return False
-        else:
-            self.remote_ckan_dataset = remote_ckan_dataset
-            return True
+        return True
+
+    @property
+    def is_csw_harvested(self):
+        Model = apps.get_model(
+            app_label='idgo_admin', model_name='RemoteCswDataset')
+        try:
+            Model.objects.get(dataset=self)
+        except Model.DoesNotExist:
+            return False
+        return True
 
     # Méthodes héritées
     # =================
@@ -448,9 +457,9 @@ class Dataset(models.Model):
 
         datatype = [item.slug for item in self.data_type.all()]
 
-        dataset_creation_date = self.date_creation and str(self.date_creation) or ''
-        dataset_modification_date = self.date_modification and str(self.date_modification) or ''
-        dataset_publication_date = self.date_publication and str(self.date_publication) or ''
+        date_creation = self.date_creation and str(self.date_creation) or ''
+        date_modification = self.date_modification and str(self.date_modification) or ''
+        date_publication = self.date_publication and str(self.date_publication) or ''
 
         broadcaster_name = self.broadcaster_name or \
             self.support and self.support.name or DEFAULT_PLATFORM_NAME
@@ -499,9 +508,9 @@ class Dataset(models.Model):
             'author': self.owner_name,
             'author_email': self.owner_email,
             'datatype': datatype,
-            'dataset_creation_date': dataset_creation_date,
-            'dataset_modification_date': dataset_modification_date,
-            'dataset_publication_date': dataset_publication_date,
+            'dataset_creation_date': date_creation,
+            'dataset_modification_date': date_modification,
+            'dataset_publication_date': date_publication,
             'frequency': self.update_frequency or 'unknow',
             'geocover': geocover,
             'granularity': granularity,

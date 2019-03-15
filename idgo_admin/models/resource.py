@@ -415,12 +415,6 @@ class Resource(models.Model):
             self.dataset.slug, self.ckan_id))
 
     @property
-    def datagis_id(self):  # TODO: supprimer et utiliser `get_layers()` exclusivement
-        Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
-        qs = Layer.objects.filter(resource=self)
-        return [l.name for l in qs]
-
-    @property
     def title_overflow(self):
         return three_suspension_points(self.title)
 

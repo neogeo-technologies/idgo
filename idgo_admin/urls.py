@@ -25,9 +25,12 @@ from idgo_admin.views.account import ReferentAccountManager
 from idgo_admin.views.account import SignUp
 from idgo_admin.views.account import UpdateAccount
 from idgo_admin.views.action import ActionsManager
-from idgo_admin.views.dataset import dataset
 from idgo_admin.views.dataset import DatasetManager
-from idgo_admin.views.dataset import datasets
+from idgo_admin.views.dataset import list_all_ckan_harvested_datasets
+from idgo_admin.views.dataset import list_all_csw_harvested_datasets
+from idgo_admin.views.dataset import list_all_datasets
+from idgo_admin.views.dataset import list_dataset
+from idgo_admin.views.dataset import list_my_datasets
 from idgo_admin.views.export import Export
 from idgo_admin.views.extractor import Extractor
 from idgo_admin.views.extractor import extractor_task
@@ -68,7 +71,7 @@ from idgo_admin.views.stuffs import ows_preview
 
 
 urlpatterns = [
-    url('^$', home, name='datasets'),
+    url('^$', home, name='home'),
 
     url('^account/create/?$', SignUp.as_view(), name='sign_up'),
     url('^account/update/?$', UpdateAccount.as_view(), name='update_account'),
@@ -77,14 +80,15 @@ urlpatterns = [
     url('^account/sftp/create/?$', create_sftp_account, name='create_sftp_account'),
     url('^account/sftp/delete/?$', delete_sftp_account, name='delete_sftp_account'),
 
-    url('^dataset/?$', dataset, name='dataset'),
-    url('^dataset/(?P<target>(all|mine|harvested))/?$', datasets, name='datasets'),
+    url('^dataset/?$', list_dataset, name='dataset'),  # ?id=[<dataset.pk>|<dataset.slug>]
+    url('^dataset/mine/?$', list_my_datasets, name='list_my_datasets'),
+    url('^dataset/all/?$', list_all_datasets, name='list_all_datasets'),
+    url('^dataset/harvested/ckan/?$', list_all_ckan_harvested_datasets, name='list_all_ckan_harvested_datasets'),
+    url('^dataset/harvested/csw/?$', list_all_csw_harvested_datasets, name='list_all_csw_harvested_datasets'),
     url('^dataset/(?P<id>(new|(\d+)))/edit/?$', DatasetManager.as_view(), name='dataset_editor'),
 
     url('^resource/?$', resource, name='resources'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
-    # TODO: url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/?$', ResourceEditor.as_view(), name='resource_editor'),
-
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/edit/?$', LayerView.as_view(), name='layer_editor'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/?$', layer_style, name='layer_style'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/all/?$', layer_styles, name='layer_styles'),

@@ -38,7 +38,7 @@ from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import Dataset
 from idgo_admin.models import Profile
 from idgo_admin.shortcuts import on_profile_http404
-from idgo_admin.views.dataset import get_datasets
+from idgo_admin.views.dataset import get_filtered_datasets
 import unicodecsv
 from urllib.parse import urljoin
 from uuid import UUID
@@ -125,22 +125,15 @@ class Export(View):
             ids = params.get('ids', '').split(',')
             qs = Dataset.objects.filter(ckan_id__in=[UUID(id) for id in ids])
         else:
-
-            harvested = False
-            strict = False
             mode = params.get('mode')
             if mode == 'harvested':
-                harvested = True
+                QuerySet = Dataset.harvested_csw
             elif mode == 'mine':
-                strict = True
+                QuerySet = Dataset.default.filter(editor=user)
+            elif mode == all:
+                QuerySet = Dataset.default
 
-            if not strict:
-                roles = profile.get_roles()
-                if not roles['is_referent'] and not roles['is_admin']:
-                    raise Http404
-
-            qs = get_datasets(
-                profile, params, strict=strict, harvested=harvested)
+            qs = get_filtered_datasets(QuerySet, params, profile=profile)
 
         outputformat = params.get('format')
         if not outputformat or outputformat not in ('odl', 'datasud'):

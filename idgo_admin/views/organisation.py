@@ -488,7 +488,7 @@ class RemoteCkanEditor(View):
             except RemoteCkan.DoesNotExist:
                 form = RemoteCkanForm()
             else:
-                context['datasets'] = Dataset.harvested.filter(organisation=organisation)
+                context['datasets'] = Dataset.harvested_ckan.filter(organisation=organisation)
                 context['instance'] = instance
                 form = RemoteCkanForm(instance=instance)
 
@@ -528,7 +528,7 @@ class RemoteCkanEditor(View):
             form = RemoteCkanForm(request.POST)
             form.add_error(e.code, e.message)
         else:
-            context['datasets'] = Dataset.harvested.filter(organisation=organisation)
+            context['datasets'] = Dataset.harvested_ckan.filter(organisation=organisation)
             context['instance'] = instance
             form = RemoteCkanForm(request.POST, instance=instance)
 
@@ -553,7 +553,7 @@ class RemoteCkanEditor(View):
         else:
             error = False
             context['datasets'] = \
-                Dataset.harvested.filter(organisation=organisation)
+                Dataset.harvested_ckan.filter(organisation=organisation)
             context['form'] = RemoteCkanForm(instance=instance)
             if created:
                 msg = "Veuillez indiquez les organisations distantes à moissonner."
@@ -633,7 +633,7 @@ class RemoteCswEditor(View):
             except RemoteCsw.DoesNotExist:
                 form = RemoteCswForm()
             else:
-                context['datasets'] = Dataset.harvested.filter(organisation=organisation)
+                context['datasets'] = Dataset.harvested_csw.filter(organisation=organisation)
                 context['instance'] = instance
                 form = RemoteCswForm(instance=instance)
 
@@ -673,7 +673,7 @@ class RemoteCswEditor(View):
             form = RemoteCswForm(request.POST)
             form.add_error(e.code, e.message)
         else:
-            context['datasets'] = Dataset.harvested.filter(organisation=organisation)
+            context['datasets'] = Dataset.harvested_csw.filter(organisation=organisation)
             context['instance'] = instance
             form = RemoteCswForm(request.POST, instance=instance)
 
@@ -698,7 +698,7 @@ class RemoteCswEditor(View):
         else:
             error = False
             context['datasets'] = \
-                Dataset.harvested.filter(organisation=organisation)
+                Dataset.harvested_csw.filter(organisation=organisation)
             context['form'] = RemoteCswForm(instance=instance)
             if created:
                 msg = "Veuillez indiquez les organisations distantes à moissonner."

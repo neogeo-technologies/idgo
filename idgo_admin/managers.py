@@ -34,6 +34,24 @@ class DefaultDatasetManager(models.Manager):
         obj.save(force_insert=True, using=self.db, **save_opts)
         return obj
 
+    def filter(self, **kwargs):
+        RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+        RemoteCswDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
+
+        return super() \
+            .filter(**kwargs) \
+            .exclude(pk__in=[m.dataset.pk for m in RemoteCkanDataset.objects.all()]) \
+            .exclude(pk__in=[m.dataset.pk for m in RemoteCswDataset.objects.all()])
+
+    def all(self):
+        RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+        RemoteCswDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
+
+        return super() \
+            .all() \
+            .exclude(pk__in=[m.dataset.pk for m in RemoteCkanDataset.objects.all()]) \
+            .exclude(pk__in=[m.dataset.pk for m in RemoteCswDataset.objects.all()])
+
     def get(self, **kwargs):
         return super().get(**kwargs)
 

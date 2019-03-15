@@ -60,7 +60,7 @@ class SignIn(MamaLoginView):
         if nxt_pth:
             return HttpResponseRedirect(nxt_pth)
 
-        return mama_redirect('idgo_admin:datasets')
+        return mama_redirect('idgo_admin:list_my_datasets')
 
 
 def logout_user(request):
@@ -83,5 +83,3 @@ class SignOut(MamaLogoutView):
         if service and follow_url:
             return mama_redirect(service)
         return mama_redirect('server_cas:signIn')
-
-
