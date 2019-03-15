@@ -433,7 +433,6 @@ class RemoteCkan(models.Model):
                                 # geocover
                                 # geonet_id
                                 # granularity
-                                # is_inspire
                                 # thumbnail
                                 # support
                                 }
@@ -726,7 +725,6 @@ class RemoteCsw(models.Model):
                                 # geocover
                                 # geonet_id
                                 # granularity
-                                # is_inspire
                                 # thumbnail
                                 # support
                                 }

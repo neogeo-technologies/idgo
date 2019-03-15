@@ -87,7 +87,7 @@ DATASUD_PRODUCTEUR_EMAIL = F('owner_email')
 DATASUD_DIFFUSEUR_NAME = F('broadcaster_name')
 DATASUD_DIFFUSEUR_EMAIL = F('broadcaster_email')
 DATASUD_COUV_TERR = F('granularity')
-DATASUD_INSPIRE = F('is_inspire')
+# DATASUD_INSPIRE =
 # DATASUD_DATASET_URL =
 # DATASUD_INSPIRE_URL =
 # ..un ou plusieurs champs liens vers les APIs à précider.
@@ -194,10 +194,9 @@ class Export(View):
                 ('DATASUD_DIFFUSEUR_NAME', DATASUD_DIFFUSEUR_NAME),
                 ('DATASUD_DIFFUSEUR_EMAIL', DATASUD_DIFFUSEUR_EMAIL),
                 ('DATASUD_COUV_TERR', DATASUD_COUV_TERR),
-                ('DATASUD_INSPIRE', DATASUD_INSPIRE),
+                # ('DATASUD_INSPIRE', DATASUD_INSPIRE),
                 # ('DATASUD_DATASET_URL', DATASUD_DATASET_URL),
                 # ('DATASUD_INSPIRE_URL', DATASUD_INSPIRE_URL),
-                # ...
                 ('DATASUD_DATE_CREATION', DATASUD_DATE_CREATION),
                 # ('DATASUD_RESSOURCE_URLS', DATASUD_RESSOURCE_URLS),
                 # ('DATASUD_RESSOURCE_TAILLE', DATASUD_RESSOURCE_TAILLE),

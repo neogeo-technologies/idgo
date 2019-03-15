@@ -407,7 +407,7 @@ class DatasetManager(View):
             'published': data['published'],
             'support': data['support'],
             'thumbnail': data['thumbnail'],
-            'is_inspire': data['is_inspire']}
+            }
 
         try:
             with transaction.atomic():

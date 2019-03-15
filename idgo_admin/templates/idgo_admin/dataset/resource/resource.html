@@ -5,7 +5,7 @@
 	<li>
 		<span class="glyphicon glyphicon-home"></span>
 	</li>
-	<li class="active">{% if target == 'mine' %}
+	<li>{% if target == 'mine' %}
 		<a href="{% url 'idgo_admin:list_my_datasets' %}">Mes jeux de données</a>{% elif target == 'all' %}
 		<a href="{% url 'idgo_admin:list_all_datasets' %}">Tous jeux de données</a>{% elif target == 'ckan_harvested' %}
 		<a href="{% url 'idgo_admin:list_all_ckan_harvested_datasets' %}">Jeux de données moissonnés CKAN</a>{% elif target == 'csw_harvested' %}

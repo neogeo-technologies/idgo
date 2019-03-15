@@ -4,10 +4,8 @@
 
 <form name="dataset" method="post" action="" enctype="multipart/form-data">
 	<div class="buttons-on-the-right-side" style="margin-bottom: 20px;">
-		{% if dataset.is_inspire %}
-		<a class="btn btn-default" href="{% url 'idgo_admin:dataset_mdedit' id=dataset.id %}">Éditer la fiche de métadonnées INSPIRE</a>
-		{% endif %}
-		{% if dataset.id %}
+		{% if dataset %}
+		<a class="btn btn-default" href="{% url 'idgo_admin:dataset_mdedit' id=dataset.pk %}">Éditer la fiche de métadonnées INSPIRE</a>
 		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.slug }}">Ouvrir dans CKAN</a>
 		{% endif %}
 		<a role="button" class="btn btn-secondary" target="_blank" href="{{ doc_url }}">
@@ -146,9 +144,6 @@
 	</div>
 	<br />
 	{% bootstrap_field form.published %}
-	{% if dataset.organisation.is_crige_partner and is_crige %}
-	{% bootstrap_field form.is_inspire %}
-	{% endif %}
 	<br />
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url 'idgo_admin:list_my_datasets' %}">Annuler</a>

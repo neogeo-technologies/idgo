@@ -259,11 +259,6 @@ class Dataset(models.Model):
         default=False,
         )
 
-    is_inspire = models.BooleanField(
-        verbose_name="Le jeu de données est soumis à la règlementation INSPIRE",
-        default=False,
-        )
-
     geonet_id = models.UUIDField(
         verbose_name="Identifiant de la fiche de métadonnées",
         null=True,
@@ -299,7 +294,12 @@ class Dataset(models.Model):
 
     @property
     def ckan_url(self):
-        return urljoin(settings.CKAN_URL, 'dataset/{}'.format(self.slug))
+        return urljoin(CKAN_URL, 'dataset/', self.slug)
+
+    @property
+    def geonet_url(self):
+        if self.geonet_id:
+            return urljoin(GEONETWORK_URL, 'srv/fre/catalog.search#/metadata/', self.geonet_id)
 
     @property
     def bounds(self):
@@ -466,11 +466,6 @@ class Dataset(models.Model):
 
         granularity = self.granularity and self.granularity.slug or ''
 
-        if self.geonet_id:
-            inspire_url = '{0}srv/fre/catalog.search#/metadata/{1}'.format(GEONETWORK_URL, self.geonet_id or '')
-        else:
-            inspire_url = ''
-
         licenses = [license['id'] for license in CkanHandler.get_licenses()]
         if self.license and self.license.ckan_id in licenses:
             license_id = self.license.ckan_id
@@ -511,7 +506,7 @@ class Dataset(models.Model):
             'geocover': geocover,
             'granularity': granularity,
             'groups': [],
-            'inspire_url': inspire_url,
+            'inspire_url': self.geonet_url,
             'license_id': license_id,
             'maintainer': broadcaster_name,
             'maintainer_email': broadcaster_email,
