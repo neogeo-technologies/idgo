@@ -308,24 +308,20 @@ class Dataset(models.Model):
             return [[miny, minx], [maxy, maxx]]
 
     @property
-    def is_ckan_harvested(self):
-        Model = apps.get_model(
-            app_label='idgo_admin', model_name='RemoteCkanDataset')
+    def remote_ckan_dataset(self):
+        Model = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
         try:
-            Model.objects.get(dataset=self)
+            return Model.objects.get(dataset=self)
         except Model.DoesNotExist:
-            return False
-        return True
+            return None
 
     @property
-    def is_csw_harvested(self):
-        Model = apps.get_model(
-            app_label='idgo_admin', model_name='RemoteCswDataset')
+    def remote_csw_dataset(self):
+        Model = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
         try:
-            Model.objects.get(dataset=self)
+            return Model.objects.get(dataset=self)
         except Model.DoesNotExist:
-            return False
-        return True
+            return None
 
     # Méthodes héritées
     # =================

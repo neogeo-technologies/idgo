@@ -59,7 +59,7 @@ class DefaultDatasetManager(models.Manager):
 class HarvestedCkanDatasetManager(models.Manager):
 
     def create(self, **kwargs):
-        remote_ckan = kwargs.pop('remote_ckan', None)
+        remote_instance = kwargs.pop('remote_instance', None)
         remote_dataset = kwargs.pop('remote_dataset', None)
         remote_organisation = kwargs.pop('remote_organisation', None)
 
@@ -73,7 +73,7 @@ class HarvestedCkanDatasetManager(models.Manager):
         RemoteDataset.objects.create(
             created_by=dataset.editor,
             dataset=dataset,
-            remote_ckan=remote_ckan,
+            remote_instance=remote_instance,
             remote_dataset=remote_dataset,
             remote_organisation=remote_organisation)
 
@@ -85,13 +85,13 @@ class HarvestedCkanDatasetManager(models.Manager):
         return dataset
 
     def filter(self, **kwargs):
-        remote_ckan = kwargs.pop('remote_ckan', None)
+        remote_instance = kwargs.pop('remote_instance', None)
         remote_dataset = kwargs.pop('remote_dataset', None)
         remote_organisation = kwargs.pop('remote_organisation', None)
         remote_organisation__in = kwargs.pop('remote_organisation__in', None)
 
         kvp = clean_my_obj({
-            'remote_ckan': remote_ckan,
+            'remote_instance': remote_instance,
             'remote_dataset': remote_dataset,
             'remote_organisation': remote_organisation,
             'remote_organisation__in': remote_organisation__in})

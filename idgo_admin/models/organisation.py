@@ -331,7 +331,7 @@ class RemoteCkan(models.Model):
                 x for x in (previous.sync_with or [])
                 if x not in (self.sync_with or [])]
             filter = {
-                'remote_ckan': previous,
+                'remote_instance': previous,
                 'remote_organisation__in': remote_organisation__in}
             # TODO: 'Dataset.harvested_ckan.filter(**filter).delete()' ne fonctionne pas
             for dataset in Dataset.harvested_ckan.filter(**filter):
@@ -421,7 +421,7 @@ class RemoteCkan(models.Model):
                                 'owner_name': self.organisation.legal_name or DEFAULT_PLATFORM_NAME,
                                 'organisation': self.organisation,
                                 'published': not package.get('private'),
-                                'remote_ckan': self,
+                                'remote_instance': self,
                                 'remote_dataset': ckan_id,
                                 'remote_organisation': value,
                                 'update_frequency': update_frequency,
@@ -492,7 +492,7 @@ class RemoteCkan(models.Model):
 
     def delete(self, *args, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
-        for dataset in Dataset.harvested_ckan.filter(remote_ckan=self):
+        for dataset in Dataset.harvested_ckan.filter(remote_instance=self):
             dataset.delete()
         return super().delete(*args, **kwargs)
 
@@ -502,9 +502,9 @@ class RemoteCkanDataset(models.Model):
     class Meta(object):
         verbose_name = "Jeu de données moissonné"
         verbose_name_plural = "Jeux de données moissonnés"
-        unique_together = ('remote_ckan', 'dataset')
+        unique_together = ('remote_instance', 'dataset')
 
-    remote_ckan = models.ForeignKey(
+    remote_instance = models.ForeignKey(
         to='RemoteCkan',
         on_delete=models.CASCADE,
         to_field='id',
@@ -550,11 +550,11 @@ class RemoteCkanDataset(models.Model):
         )
 
     def __str__(self):
-        return '{0} - {1}'.format(self.remote_ckan, self.dataset)
+        return '{0} - {1}'.format(self.remote_instance, self.dataset)
 
     @property
     def url(self):
-        base_url = self.remote_ckan.url
+        base_url = self.remote_instance.url
         if not base_url.endswith('/'):
             base_url += '/'
         return reduce(urljoin, [base_url, 'dataset/', str(self.remote_dataset)])

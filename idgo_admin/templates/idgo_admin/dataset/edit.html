@@ -3,8 +3,7 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <form name="dataset" method="post" action="" enctype="multipart/form-data">
-	{% csrf_token %}
-	<div class="buttons-on-the-right-side">
+	<div class="buttons-on-the-right-side" style="margin-bottom: 20px;">
 		{% if dataset.is_inspire %}
 		<a class="btn btn-default" href="{% url 'idgo_admin:dataset_mdedit' id=dataset.id %}">Éditer la fiche de métadonnées INSPIRE</a>
 		{% endif %}
@@ -15,6 +14,12 @@
 			<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
 		</a>
 	</div>
+	{% csrf_token %}
+	{% if dataset.remote_ckan_dataset %}
+	{% include "idgo_admin/dataset/remote_dataset_frame.html" with remote=dataset.remote_ckan_dataset %}
+	{% elif dataset.remote_csw_dataset %}
+	{% include "idgo_admin/dataset/remote_dataset_frame.html" with remote=dataset.remote_csw_dataset %}
+	{% endif %}
 	<div class="row">
 		<div class="col-xs-12">
 			{% bootstrap_field form.title %}
@@ -25,48 +30,6 @@
 			{% bootstrap_field form.slug %}
 		</div>
 	</div>
-	{% if dataset.is_ckan_harvested %}
-	<br />
-	<div class="row">
-		<div class="col-xs-12">
-			<div class="well">
-				<dl>
-					<dt>CKAN distant</dt>
-					<dd>
-						<a type="button" class="btn btn-link" href="{{ dataset.remote_ckan_dataset.remote_ckan.url }}">{{ dataset.remote_ckan_dataset.remote_ckan.url }}</a>
-					</dd>
-					<dt>Lien vers la fiche CKAN distante</dt>
-					<dd>
-						<a type="button" class="btn btn-link" href="{{ dataset.remote_ckan_dataset.url }}">{{ dataset.remote_ckan_dataset.url }}</a>
-					</dd>
-					<dt>Dernier moissonnage</dt>
-					<dd>{{ dataset.remote_ckan_dataset.updated_on|date:"d/m/y"|default:"" }}</dd>
-				</dl>
-			</div>
-		</div>
-	</div>
-	{% endif %}
-	{% if dataset.is_csw_harvested %}
-	<br />
-	<div class="row">
-		<div class="col-xs-12">
-			<div class="well">
-				<dl>
-					<dt>CSW distant</dt>
-					<dd>
-						<a type="button" class="btn btn-link" href="{{ dataset.remote_ckan_dataset.remote_ckan.url }}">{{ dataset.remote_csw_dataset.remote_instance.url }}</a>
-					</dd>
-					<dt>Lien vers la fiche CSW distante</dt>
-					<dd>
-						<a type="button" class="btn btn-link" href="{{ dataset.remote_ckan_dataset.url }}">{{ dataset.remote_csw_dataset.url }}</a>
-					</dd>
-					<dt>Dernier moissonnage</dt>
-					<dd>{{ dataset.remote_csw_dataset.updated_on|date:"d/m/y"|default:"" }}</dd>
-				</dl>
-			</div>
-		</div>
-	</div>
-	{% endif %}
 	<br />
 	<div class="row">
 		<div class="col-xs-8">

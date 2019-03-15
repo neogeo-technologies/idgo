@@ -414,17 +414,18 @@ table.board .table-cell-dropdown>.dropdown-menu {
 }
 
 .btn-secondary {
-    background-color: #d0be91;
+    background-color: #bbb;
+    border-color: #bbb;
     color: #fff;
 }
 
 .btn-secondary.focus,
 .btn-secondary:focus,
 .btn-secondary:hover {
-    background-color: #bbab82;
-    color: #f8f6f2;
-    -webkit-box-shadow: 0 2px 1px 0 rgba(187,171,130,.25);
-            box-shadow: 0 2px 1px 0 rgba(187,171,130,.25);
+    background-color: #bbb;
+    color: #fefefe;
+    -webkit-box-shadow: 0 2px 1px 0 rgba(187,187,187,.25);
+            box-shadow: 0 2px 1px 0 rgba(187,187,187,.25);
 }
 
 .btn-tertiary {
@@ -524,6 +525,11 @@ table.board .table-cell-dropdown>.dropdown-menu {
     position: relative;
     top: -17px;
     right: -11px;
+}
+
+.well a:hover,
+.well a.hover {
+    background-color: transparent;
 }
 
 /* ************************************************************************* */
@@ -1022,10 +1028,11 @@ table.board .table-cell-dropdown>.dropdown-menu {
 .main-container .panel .panel,
 .main-container .well .panel,
 .main-container .well .well {
-    border: 1px solid #eee;
-    background-color: #fcfcfc;
-    -webkit-box-shadow: 0 2px 3px -1px rgba(238,238,238,.5);
-            box-shadow: 0 2px 3px -1px rgba(238,238,238,.5);
+    border: 1px solid #dbd7d2;
+    border-radius: 1px;
+    background-color: #e7e4e1;
+    /* -webkit-box-shadow: 0 2px 1px -1px rgba(0,0,0,.4);
+               box-shadow: 0 2px 1px -1px rgba(0,0,0,.4); */
 }
 
 .main-container .has-error .panel {
@@ -1134,6 +1141,11 @@ table.board .table-cell-dropdown>.dropdown-menu {
 
 .alert a {
     color: inherit;
+}
+
+.alert a:hover,
+.alert a.hover {
+    background-color: transparent;
 }
 
 .alert .glyphicon {

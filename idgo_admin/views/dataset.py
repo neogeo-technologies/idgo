@@ -56,9 +56,9 @@ CKAN_URL = settings.CKAN_URL
 
 
 def target(dataset, user):
-    if dataset.is_csw_harvested:
+    if dataset.remote_csw_dataset:
         return 'csw_harvested'
-    elif dataset.is_ckan_harvested:
+    elif dataset.remote_ckan_dataset:
         return 'ckan_harvested'
     elif dataset.editor == user:
         return 'mine'
