@@ -8,8 +8,8 @@
 	<li class="active">{% if target == 'mine' %}
 		<a href="{% url 'idgo_admin:list_my_datasets' %}">Mes jeux de données</a>{% elif target == 'all' %}
 		<a href="{% url 'idgo_admin:list_all_datasets' %}">Tous jeux de données</a>{% elif target == 'ckan_harvested' %}
-		<a href="{% url 'idgo_admin:list_all_ckan_harvested_datasets' %}">Jeux de données moissonnés depuis CKAN</a>{% elif target == 'csw_harvested' %}
-		<a href="{% url 'idgo_admin:list_all_csw_harvested_datasets' %}">Jeux de données moissonnés depuis CSW</a>{% endif %}
+		<a href="{% url 'idgo_admin:list_all_ckan_harvested_datasets' %}">Jeux de données moissonnés CKAN</a>{% elif target == 'csw_harvested' %}
+		<a href="{% url 'idgo_admin:list_all_csw_harvested_datasets' %}">Jeux de données moissonnés CSW</a>{% endif %}
 	</li>
 	<li>
 		<a href="{% url 'idgo_admin:dataset' %}?id={{ resource.dataset.id }}#dataset">{{ dataset.title_overflow }}</a>

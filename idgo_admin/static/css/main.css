@@ -17,7 +17,7 @@
 
 html {
     min-width: 767px;
-    background-color: #fefefe;
+    background-color: #f3f1f0;
 }
 
 a {
@@ -470,6 +470,7 @@ table.board .table-cell-dropdown>.dropdown-menu {
 .btn-link:focus,
 .btn-link:hover {
     color: #333;
+    background-color: transparent;
 }
 
 .btn-radio {
@@ -527,11 +528,6 @@ table.board .table-cell-dropdown>.dropdown-menu {
     right: -11px;
 }
 
-.well a:hover,
-.well a.hover {
-    background-color: transparent;
-}
-
 /* ************************************************************************* */
 
 .nav-tabs {
@@ -552,6 +548,7 @@ table.board .table-cell-dropdown>.dropdown-menu {
 .nav-tabs>li>a:focus,
 .nav-tabs>li>a:hover {
     border-bottom: none;
+    background-color: #f3f1f0;
 }
 
 
@@ -970,7 +967,7 @@ table.board .table-cell-dropdown>.dropdown-menu {
 /* ************************************************************************* */
 
 .breadcrumb-container {
-    background-color: #eee;
+    background-color: #e9e7e4;
     margin-top: 0px;
     margin-bottom: 0px;
     min-height: 50px;
@@ -1007,9 +1004,10 @@ table.board .table-cell-dropdown>.dropdown-menu {
     min-height: 300px;
     bottom: 0;
     background: linear-gradient(
-        #eee 0px,
-        #eee 50px,
-        #fefefe 300px);
+        #e9e7e4 0px,
+        #e9e7e4 50px,
+        #f3f1f0 300px
+        );
     padding-bottom: 40px;
 }
 
@@ -1028,9 +1026,9 @@ table.board .table-cell-dropdown>.dropdown-menu {
 .main-container .panel .panel,
 .main-container .well .panel,
 .main-container .well .well {
-    border: 1px solid #dbd7d2;
+    border: 1px solid #f3f1f0;
     border-radius: 1px;
-    background-color: #e7e4e1;
+    background-color: #f3f1f0;
     /* -webkit-box-shadow: 0 2px 1px -1px rgba(0,0,0,.4);
                box-shadow: 0 2px 1px -1px rgba(0,0,0,.4); */
 }
@@ -1161,7 +1159,7 @@ table.board .table-cell-dropdown>.dropdown-menu {
 
 .info {
     color: #2f583c;
-    background-color: #b2e8f3;
+    background-color: #c3e8ec;
 }
 
 .warning {
@@ -1181,7 +1179,7 @@ table.board .table-cell-dropdown>.dropdown-menu {
 
 .alert-info {
     color: #005a6c;
-    background-color: #b2e8f3;
+    background-color: #c3e8ec;
 }
 
 .alert-warning {

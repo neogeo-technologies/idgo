@@ -273,7 +273,7 @@ class DatasetManager(View):
             resource_row_data = (
                 resource.pk,
                 resource.title,
-                resource.format_type.description,
+                resource.format_type.description if resource.format_type else None,
                 resource.get_data_type_display(),
                 resource.created_on.isoformat() if resource.created_on else None,
                 resource.last_update.isoformat() if resource.last_update else None,

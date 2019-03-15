@@ -193,7 +193,7 @@ $(document).ajaxSend(function(e, xhr, settings) {
 							{% if is_referent or is_admin  %}
 							<li class="dropdown" role="presentation">
 								<a name="datasets" class="dropdown-toggle" data-toggle="dropdown" href="#">Jeux de données <span class="glyphicon glyphicon-triangle-bottom"></span></a>
-								<ul class="dropdown-menu dropdown-menu-right">
+								<ul class="dropdown-menu dropdown-menu-left">
 									<li>
 										<a href="{% url 'idgo_admin:list_my_datasets' site_name='admin' %}" aria-controls="my-datasets" role="tab">Mes jeux de données</a>
 									</li>
@@ -201,10 +201,10 @@ $(document).ajaxSend(function(e, xhr, settings) {
 										<a href="{% url 'idgo_admin:list_all_datasets' site_name='admin' %}" aria-controls="all-datasets" role="tab">Tous les jeux de données</a>
 									</li>
 									<li>
-										<a href="{% url 'idgo_admin:list_all_ckan_harvested_datasets' site_name='admin' %}" aria-controls="ckan-harvested-datasets" role="tab">Jeux de données moissonnés depuis CKAN</a>
+										<a href="{% url 'idgo_admin:list_all_ckan_harvested_datasets' site_name='admin' %}" aria-controls="ckan-harvested-datasets" role="tab">Jeux de données moissonnés CKAN</a>
 									</li>
 									<li>
-										<a href="{% url 'idgo_admin:list_all_csw_harvested_datasets' site_name='admin' %}" aria-controls="csw-harvested-datasets" role="tab">Jeux de données moissonnés depuis CSW</a>
+										<a href="{% url 'idgo_admin:list_all_csw_harvested_datasets' site_name='admin' %}" aria-controls="csw-harvested-datasets" role="tab">Jeux de données moissonnés CSW</a>
 									</li>
 								</ul>
 							</li>
