@@ -54,9 +54,7 @@ import os
 from pathlib import Path
 import re
 import shutil
-from urllib.parse import parse_qs
 from urllib.parse import urljoin
-from urllib.parse import urlparse
 import uuid
 
 
