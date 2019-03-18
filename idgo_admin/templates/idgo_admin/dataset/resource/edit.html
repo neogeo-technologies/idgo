@@ -113,7 +113,7 @@
 					{% bootstrap_field form.up_file show_label=False %}
 				</div>
 				<div role="tabpanel" class="tab-pane" id="dl_url">
-					<p>Veuillez indiquer l'URL d'un fichier à télécharger : </p>
+					<p>{{ form.dl_url.label }}</p>
 					{% bootstrap_field form.dl_url show_label=False %}
 					<div class="row">
 						<div class="col-xs-5 col-sm-5 col-md-4">
@@ -127,13 +127,23 @@
 					</div>
 				</div>
 				<div role="tabpanel" class="tab-pane" id="referenced_url">
-					<p>Veuillez indiquer l'URL d'un jeu de données à référencer : </p>
+					<p>{{ form.referenced_url.label }}</p>
 					{% bootstrap_field form.referenced_url show_label=False %}
 				</div>
 				<div role="tabpanel" class="tab-pane" id="ftp_file">
 				{% if user.profile.is_ftp_account_exists %}
-					<p>Les fichiers que vous avez déposés sur votre compte FTP apparaîssent dans la liste ci-dessous.</p>
+					<p>{{ form.ftp_file.label }}</p>
 					{% bootstrap_field form.ftp_file show_label=False %}
+					<div class="row">
+						<div class="col-xs-5 col-sm-5 col-md-4">
+							{% bootstrap_field form.synchronisation %}
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-5 col-sm-5 col-md-4">
+							{% bootstrap_field form.sync_frequency show_label=False %}
+						</div>
+					</div>
 				{% else %}
 					<p>Votre compte FTP n'est pas activé. Pour l'activer, veuillez <a href="{% url 'idgo_admin:create_sftp_account' %}" class="btn btn-link">cliquez ici</a>.</p>
 				{% endif %}
@@ -159,17 +169,26 @@
 			{% bootstrap_field form.lang %}
 		</div>
 	</div>
-	<br />
-	<div class="row">
-		<div class="col-xs-4">
-			{% bootstrap_field form.format_type %}
-		</div>
-	</div>
 	<div class="row">
 		<div class="col-xs-4">
 			{% bootstrap_field form.data_type %}
 		</div>
 	</div>
+	<br />
+	<div class="row">
+		<div class="col-xs-4">
+			{% bootstrap_field form.format_type %}
+		</div>
+	</div>{% if resource and resource.crs %}
+	<div class="row">
+		<div class="col-xs-4">
+			<fieldset disabled>
+				<div class="form-group">
+				<label for="read_only_crs">Système de référence spatiale</label>
+				<input type="text" id="read_only_crs" class="form-control" value="{{ resource.crs.description }}">
+			</div>
+		</div>
+	</div>{% endif %}
 	<br />
 	<div class="row">
 		<div class="col-xs-6">
@@ -310,12 +329,15 @@ $encodingInputContainer.show();
 		getAccessSelectedOption($(this));
 	});
 
-	const disableSyncFrequency = function(value) {
-		$('select[name="{{ form.sync_frequency.name }}"]').prop('disabled', value);
+	const disableSyncFrequency = function(bool) {
+		if (bool) {
+			$('select[name="{{ form.sync_frequency.name }}"]').prop('disabled', true).addClass('disabled');
+		} else {
+			$('select[name="{{ form.sync_frequency.name }}"]').prop('disabled', false).removeClass('disabled');
+		};
 	};
 
 	$inputSynchronisation = $('input[name="{{ form.synchronisation.name }}"]').change(function(e) {
-		e.preventDefault();
 		disableSyncFrequency(!this.checked);
 	});
 	{% if form.synchronisation.value %}
@@ -502,6 +524,20 @@ $encodingInputContainer.show();
 		};
 	};
 	$('[name="{{ form.geo_restriction.name }}"]').on('change', onChangeGeoRestriction).trigger('change');
+
+	$('[data-toggle="tab"]').on('hide.bs.tab', function (e) {
+		$target = $('[role="tabpanel"]#' + this.name);
+		$target.find('input:not([type="checkbox"])').each(function(e) {
+			$(this).val('').trigger('change');
+		});
+		$target.find('input[type="checkbox"]').each(function(e) {
+			$(this).prop('checked', false).trigger('change');
+		});
+		$target.find('select').each(function(e) {
+			$(this).val($(this).find('option:first').val()).trigger('change');
+		});
+	});
+
 
 });
 </script>
