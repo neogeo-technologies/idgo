@@ -433,6 +433,10 @@ class Resource(models.Model):
         previous, created = self.pk \
             and (Resource.objects.get(pk=self.pk), False) or (None, True)
 
+        if previous:
+            # crs est immuable sauf si le jeu de données change (Cf. plus bas)
+            self.crs = previous.crs
+
         # Quelques valeur par défaut à la création de l'instance
         if created or not (
                 # Ou si l'éditeur n'est pas partenaire du CRIGE
@@ -850,7 +854,6 @@ class Resource(models.Model):
         id = str(self.ckan_id)
 
         # Définition des propriétés du « package » :
-
         data = {
             'crs': self.crs and self.crs.description or '',
             'name': self.title,
