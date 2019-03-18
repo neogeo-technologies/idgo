@@ -426,35 +426,6 @@ class Resource(models.Model):
     def is_datagis(self):
         return self.get_layers() and True or False
 
-    # Méthodes de classe
-    # ==================
-
-    @classmethod
-    def get_resources_by_mapserver_url(cls, url):
-
-        parsed_url = urlparse(url.lower())
-        qs = parse_qs(parsed_url.query)
-
-        ows = qs.get('service')
-        if not ows:
-            raise Http404()
-
-        if ows[-1] == 'wms':
-            layers = qs.get('layers')[-1].replace(' ', '').split(',')
-        elif ows[-1] == 'wfs':
-            # Qgis 2.14
-            if 'typename' in qs:
-                layers = [
-                    layer.split(':')[-1] for layer
-                    in qs.get('typename')[-1].replace(' ', '').split(',')]
-            else:
-                layers = [
-                    layer.split(':')[-1] for layer
-                    in qs.get('typenames')[-1].replace(' ', '').split(',')]
-        else:
-            raise Http404()
-        return Resource.objects.filter(layer__name__in=layers).distinct()
-
     # Méthodes héritées
     # =================
 

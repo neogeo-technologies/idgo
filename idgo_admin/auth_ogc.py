@@ -23,12 +23,12 @@ from urllib.parse import urlparse
 python_home = "/idgo_venv/"
 activate_this = python_home + '/bin/activate_this.py'
 exec(open(activate_this).read())
-
 sys.path.append(python_home)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 import django  # noqa: E402
 django.setup()
 from django.contrib.auth.models import User  # noqa: E402
+from idgo_admin.models import Dataset  # noqa: E402
 from idgo_admin.models import Resource  # noqa: E402
 
 logger = logging.getLogger('auth_ogc')
@@ -41,6 +41,29 @@ AUTHORIZED_PREFIX = ['/maps/', '/wfs/', '/wms/', '/wxs/']
 # used for parsing address when basic auth is provided
 PRIVATE_AUTHORIZED_PREFIX = ["/private{prefix}".format(prefix=p)
                              for p in AUTHORIZED_PREFIX]
+
+
+def retrieve_resources_through_ows_url(url):
+    parsed_url = urlparse(url.lower())
+    qs = parse_qs(parsed_url.query)
+    if 'layers' in qs:
+        layers = qs.get('layers')[-1]
+    elif 'typename' in qs:
+        layers = qs.get('typename')[-1]
+    elif 'typenames' in qs:
+        layers = qs.get('typenames')[-1]
+    else:
+        layers = None
+    if not layers:
+        return None
+    layers = set(layers.replace(' ', '').split(','))
+    resources = set()
+    for resource in Resource.objects.filter(
+            dataset__in=Dataset.objects.filter(slug__in=layers)).distinct():
+        resources.add(resource)
+    for resource in Resource.objects.filter(layer__name__in=layers).distinct():
+        resources.add(resource)
+    return resources
 
 
 def check_password(environ, user, password):
@@ -60,7 +83,7 @@ def check_password(environ, user, password):
         logger.error("path '%s' is unauthorized", url)
         return False
 
-# Get Capabilities and metadata are always athorized
+    # Get Capabilities and metadata are always athorized
     qs = parse_qs(urlparse(url.lower()).query)
 
     request = qs.get('request')
@@ -72,7 +95,8 @@ def check_password(environ, user, password):
         "describefeaturetype",
         "describelayer",
         "getstyles",
-    ]
+        ]
+
     if request[-1] in public_requests:
         logger.debug("URL request is public")
         return True
@@ -86,31 +110,19 @@ def check_password(environ, user, password):
             logger.error("User %s provided bad password", user)
             return False
 
-    try:
-        resources = Resource.get_resources_by_mapserver_url(url)
-    except Exception as e:
-        logger.error(" unable to get ressources: %s", e)
-        return False
-
+    resources = retrieve_resources_through_ows_url(url)
     if not resources:
-        logger.error(" unable to get ressources: %s", url)
+        logger.error("Unable to get resources")
         return False
-
-    # refuse query if one of the resources is not available/authorized
+    # Refuse query if one of the resources is not available/authorized
     for resource in resources:
         if resource.anonymous_access:
             continue
-
-        try:
-            if not resource.is_profile_authorized(user):
-                logger.error("resource %s not authorized to user %s",
-                             resource,
-                             user)
-                return False
-        except Exception:
-            logger.error("resource %s not authorized to anonymous", resource)
+        if not resource.is_profile_authorized(user):
+            logger.error(
+                "Resource '{resource}' is not authorized to user '{user}'.".format(
+                    resource=resource.pk, user=user.username))
             return False
-
     return True
 
 
