@@ -32,7 +32,7 @@ class Gdpr(models.Model):
         verbose_name="Description",
         )
 
-    issue_date = models.DateField(
+    issue_date = models.DateTimeField(
         verbose_name="Date d'émission",
         blank=False,
         null=False,
@@ -58,7 +58,7 @@ class GdprUser(models.Model):
         on_delete=models.CASCADE,
         )
 
-    validated_on = models.DateField(
+    validated_on = models.DateTimeField(
         verbose_name="Date de validation",
         blank=True,
         null=True,
