@@ -138,6 +138,7 @@
 							{% bootstrap_field form.contributor show_label=False %}
 							{% bootstrap_field form.referent show_label=False %}
 						</div>
+						{% bootstrap_field form.terms_and_conditions %}
 						<br />
 						<div class="buttons-on-the-right-side">
 							<a class="btn btn-default" href="{% url "server_cas:signIn" %}">Revenir</a>

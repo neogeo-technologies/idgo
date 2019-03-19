@@ -14,7 +14,7 @@
 # under the License.
 
 
-# from django.conf import settings
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
@@ -43,17 +43,14 @@ from idgo_admin.forms import ReferentField
 from idgo_admin.forms import UsernameField
 from idgo_admin.forms import WebsiteField
 from idgo_admin.models import Dataset
-# from idgo_admin.models import Jurisdiction
 from idgo_admin.models import Organisation
 from mama_cas.forms import LoginForm as MamaLoginForm
 
 
-# try:
-#     JURISDICTION_CODE = settings.DEFAULTS_VALUES.get('JURISDICTION')
-# except AttributeError:
-#     JURISDICTION = None
-# else:
-#     JURISDICTION = Jurisdiction.objects.get(code=JURISDICTION_CODE)
+try:
+    TERMS_AND_CONDITIONS_HREF = settings.TERMS_AND_CONDITIONS_HREF
+except AttributeError:
+    TERMS_AND_CONDITIONS_HREF = '#'
 
 
 class UserForgetPassword(forms.Form):
@@ -267,11 +264,13 @@ class SignUpForm(forms.Form):
             'first_name',
             'last_name',
             'email',
-            'password')
+            'password',
+            )
 
         profile_fields = (
             'phone',
-            'organisation')
+            'organisation',
+            )
 
         organisation_fields = (
             'address',
@@ -285,11 +284,13 @@ class SignUpForm(forms.Form):
             'organisation_type',
             'org_phone',
             'postcode',
-            'website')
+            'website',
+            )
 
         extended_fields = (
             'contributor',
-            'referent')
+            'referent',
+            )
 
         fields = user_fields + profile_fields + organisation_fields + extended_fields
 
@@ -329,13 +330,34 @@ class SignUpForm(forms.Form):
     contributor = ContributorField()
     referent = ReferentField()
 
+    # RGPD
+    terms_and_conditions = forms.BooleanField(
+        label="J'ai lu et j'accepte les conditions générales d'utilisation du service.",
+        required=True,
+        initial=False,
+        widget=forms.CheckboxInput(
+            attrs={
+                'oninvalid': "this.setCustomValidity('Vous devez accepter les conditions générales d'utilisation.')",
+                'oninput': "setCustomValidity('')",
+                },
+            ),
+        )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.fields['terms_and_conditions'].label = (
+            "J'ai lu et j'accepte <a href=\"{href}\" target=\"_blank\">"
+            "les conditions générales d'utilisation du service</a>."
+            ).format(href=TERMS_AND_CONDITIONS_HREF)
 
         self.fields['password1'].widget.attrs['placeholder'] = 'Mot de passe'
         self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le mot de passe'
 
     def clean(self):
+
+        if not self.cleaned_data.get('terms_and_conditions'):
+            self.add_error('terms_and_conditions', "Vous devez accepter les conditions générales d'utilisation.")
 
         username = self.cleaned_data.get('username')
         if User.objects.filter(username=username).exists() or CkanHandler.is_user_exists(username):

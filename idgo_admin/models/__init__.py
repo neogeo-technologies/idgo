@@ -25,6 +25,8 @@ from idgo_admin.models.dataset import Dataset
 from idgo_admin.models.dataset import Keywords
 from idgo_admin.models.extractor import AsyncExtractorTask
 from idgo_admin.models.extractor import ExtractorSupportedFormat
+from idgo_admin.models.gdpr import Gdpr
+from idgo_admin.models.gdpr import GdprUser
 from idgo_admin.models.granularity import Granularity
 from idgo_admin.models.jurisdiction import Commune
 from idgo_admin.models.jurisdiction import Jurisdiction
@@ -55,8 +57,11 @@ __all__ = [
     DataType,
     ExtractorSupportedFormat,
     Granularity,
+    Gdpr,
+    GdprUser,
     Jurisdiction,
     JurisdictionCommune,
+    Keywords,
     Layer,
     License,
     LiaisonsContributeurs,
