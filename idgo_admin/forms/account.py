@@ -40,6 +40,7 @@ from idgo_admin.forms import PasswordField
 from idgo_admin.forms import PhoneField
 from idgo_admin.forms import PostcodeField
 from idgo_admin.forms import ReferentField
+from idgo_admin.forms import TermsAndConditionsField
 from idgo_admin.forms import UsernameField
 from idgo_admin.forms import WebsiteField
 from idgo_admin.models import Dataset
@@ -330,26 +331,10 @@ class SignUpForm(forms.Form):
     contributor = ContributorField()
     referent = ReferentField()
 
-    # RGPD
-    terms_and_conditions = forms.BooleanField(
-        label="J'ai lu et j'accepte les conditions générales d'utilisation du service.",
-        required=True,
-        initial=False,
-        widget=forms.CheckboxInput(
-            attrs={
-                'oninvalid': "this.setCustomValidity('Vous devez accepter les conditions générales d'utilisation.')",
-                'oninput': "setCustomValidity('')",
-                },
-            ),
-        )
+    terms_and_conditions = TermsAndConditionsField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.fields['terms_and_conditions'].label = (
-            "J'ai lu et j'accepte <a href=\"{href}\" target=\"_blank\">"
-            "les conditions générales d'utilisation du service</a>."
-            ).format(href=TERMS_AND_CONDITIONS_HREF)
 
         self.fields['password1'].widget.attrs['placeholder'] = 'Mot de passe'
         self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le mot de passe'

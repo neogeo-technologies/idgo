@@ -21,6 +21,7 @@ from django import forms
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
 from idgo_admin.models import OrganisationType
+from idgo_admin.models import Gdpr
 import re
 
 
@@ -257,6 +258,44 @@ class ReferentField(forms.BooleanField):
         kwargs.setdefault('required', False)
 
         super().__init__(*args, **kwargs)
+
+
+class TermsAndConditionsField(forms.BooleanField):
+
+    MODAL_ID = 'modal-terms'
+
+    class _CheckBoxInput(forms.CheckboxInput):
+        template_name = 'idgo_admin/widgets/terms_and_conditions.html'
+
+        def __init__(self, attrs=None, check_test=None, modal=None):
+            self.modal = modal
+            super().__init__(attrs)
+
+        def get_context(self, name, value, attrs):
+            context = super().get_context(name, value, attrs)
+            context['modal'] = self.modal
+            return context
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('initial', False)
+        kwargs.setdefault('label', "J'ai lu et j'accepte les conditions générales d'utilisation du service.")
+        kwargs.setdefault('required', True)
+        gdpr = Gdpr.objects.all().order_by('-issue_date')[0]
+        kwargs.setdefault('widget', self._CheckBoxInput(
+            attrs={
+                'oninvalid': "this.setCustomValidity('Vous devez accepter les conditions générales d'utilisation.')",
+                'oninput': "setCustomValidity('')",
+                },
+            modal={
+                'id': self.MODAL_ID,
+                'title': gdpr.title,
+                'body': gdpr.description,
+                },
+            ))
+
+        super().__init__(*args, **kwargs)
+        self.label = '<a data-toggle="modal" data-target="#{modal_id}">{text}<a>'.format(
+            modal_id=self.MODAL_ID, text=self.label)
 
 
 class UsernameField(forms.CharField):
