@@ -13,15 +13,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from django.contrib import admin
+from django.contrib.auth.models import User
+from idgo_admin.models import Profile
+from idgo_admin.models import Gdpr
+# from idgo_admin.models import GdprUser
 
-from idgo_admin.admin.category import *
-from idgo_admin.admin.dataset import *
-from idgo_admin.admin.granularity import *
-from idgo_admin.admin.jurisdiction import *
-from idgo_admin.admin.license import *
-from idgo_admin.admin.mail import *
-from idgo_admin.admin.organisation import *
-from idgo_admin.admin.supported_crs import *
-from idgo_admin.admin.task import *
-from idgo_admin.admin.user import *
-from idgo_admin.admin.gdpr import *
+
+class GdprAdmin(admin.ModelAdmin):
+    list_display = [
+        'title',
+        'description',
+        'issue_date',
+    ]
+
+
+admin.site.register(Gdpr, GdprAdmin)
