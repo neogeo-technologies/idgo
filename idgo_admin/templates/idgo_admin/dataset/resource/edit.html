@@ -78,20 +78,30 @@
 				{% bootstrap_field form.up_file %}
 			{% elif mode == 'dl_url' %}
 				{% bootstrap_field form.dl_url %}
-			<div class="row">
-				<div class="col-xs-5 col-sm-5 col-md-4">
-					{% bootstrap_field form.synchronisation %}
+				<div class="row">
+					<div class="col-xs-5 col-sm-5 col-md-4">
+						{% bootstrap_field form.synchronisation_dl %}
+					</div>
 				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-5 col-sm-5 col-md-4">
-					{% bootstrap_field form.sync_frequency show_label=False %}
+				<div class="row">
+					<div class="col-xs-5 col-sm-5 col-md-4">
+						{% bootstrap_field form.sync_frequency_dl show_label=False %}
+					</div>
 				</div>
-			</div>
 			{% elif mode == 'referenced_url' %}
 				{% bootstrap_field form.referenced_url %}
 			{% elif mode == 'ftp_file' %}
 				{% bootstrap_field form.ftp_file %}
+				<div class="row">
+					<div class="col-xs-5 col-sm-5 col-md-4">
+						{% bootstrap_field form.synchronisation_ftp %}
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-5 col-sm-5 col-md-4">
+						{% bootstrap_field form.sync_frequency_ftp show_label=False %}
+					</div>
+				</div>
 			{% endif %}
 		{% else %}
 			<ul class="nav nav-tabs" name="data-selector" role="tablist">
@@ -117,12 +127,12 @@
 					{% bootstrap_field form.dl_url show_label=False %}
 					<div class="row">
 						<div class="col-xs-5 col-sm-5 col-md-4">
-							{% bootstrap_field form.synchronisation %}
+							{% bootstrap_field form.synchronisation_dl %}
 						</div>
 					</div>
 					<div class="row">
 						<div class="col-xs-5 col-sm-5 col-md-4">
-							{% bootstrap_field form.sync_frequency show_label=False %}
+							{% bootstrap_field form.sync_frequency_dl show_label=False %}
 						</div>
 					</div>
 				</div>
@@ -136,12 +146,12 @@
 					{% bootstrap_field form.ftp_file show_label=False %}
 					<div class="row">
 						<div class="col-xs-5 col-sm-5 col-md-4">
-							{% bootstrap_field form.synchronisation %}
+							{% bootstrap_field form.synchronisation_ftp %}
 						</div>
 					</div>
 					<div class="row">
 						<div class="col-xs-5 col-sm-5 col-md-4">
-							{% bootstrap_field form.sync_frequency show_label=False %}
+							{% bootstrap_field form.sync_frequency_ftp show_label=False %}
 						</div>
 					</div>
 				{% else %}
@@ -329,19 +339,34 @@ $encodingInputContainer.show();
 		getAccessSelectedOption($(this));
 	});
 
-	const disableSyncFrequency = function(bool) {
+	const disableSyncFrequencyDl = function(bool) {
 		if (bool) {
-			$('select[name="{{ form.sync_frequency.name }}"]').prop('disabled', true).addClass('disabled');
+			$('select[name="{{ form.sync_frequency_dl.name }}"]').prop('disabled', true).addClass('disabled');
 		} else {
-			$('select[name="{{ form.sync_frequency.name }}"]').prop('disabled', false).removeClass('disabled');
+			$('select[name="{{ form.sync_frequency_dl.name }}"]').prop('disabled', false).removeClass('disabled');
 		};
 	};
 
-	$inputSynchronisation = $('input[name="{{ form.synchronisation.name }}"]').change(function(e) {
-		disableSyncFrequency(!this.checked);
+	$('input[name="{{ form.synchronisation_dl.name }}"]').change(function(e) {
+		disableSyncFrequencyDl(!this.checked);
 	});
-	{% if form.synchronisation.value %}
-	disableSyncFrequency(false);
+	{% if form.synchronisation_dl.value %}
+	disableSyncFrequencyDl(false);
+	{% endif %}
+
+	const disableSyncFrequencyFtp = function(bool) {
+		if (bool) {
+			$('select[name="{{ form.sync_frequency_ftp.name }}"]').prop('disabled', true).addClass('disabled');
+		} else {
+			$('select[name="{{ form.sync_frequency_ftp.name }}"]').prop('disabled', false).removeClass('disabled');
+		};
+	};
+
+	$('input[name="{{ form.synchronisation_ftp.name }}"]').change(function(e) {
+		disableSyncFrequencyFtp(!this.checked);
+	});
+	{% if form.synchronisation_ftp.value %}
+	disableSyncFrequencyFtp(false);
 	{% endif %}
 
 	$(document).on('change', ':file', function() {
@@ -525,18 +550,18 @@ $encodingInputContainer.show();
 	};
 	$('[name="{{ form.geo_restriction.name }}"]').on('change', onChangeGeoRestriction).trigger('change');
 
-	$('[data-toggle="tab"]').on('hide.bs.tab', function (e) {
-		$target = $('[role="tabpanel"]#' + this.name);
-		$target.find('input:not([type="checkbox"])').each(function(e) {
-			$(this).val('').trigger('change');
-		});
-		$target.find('input[type="checkbox"]').each(function(e) {
-			$(this).prop('checked', false).trigger('change');
-		});
-		$target.find('select').each(function(e) {
-			$(this).val($(this).find('option:first').val()).trigger('change');
-		});
-	});
+	// $('[data-toggle="tab"]').on('hide.bs.tab', function (e) {
+	// 	$target = $('[role="tabpanel"]#' + this.name);
+	// 	$target.find('input:not([type="checkbox"])').each(function(e) {
+	// 		$(this).val('').trigger('change');
+	// 	});
+	// 	$target.find('input[type="checkbox"]').each(function(e) {
+	// 		$(this).prop('checked', false).trigger('change');
+	// 	});
+	// 	$target.find('select').each(function(e) {
+	// 		$(this).val($(this).find('option:first').val()).trigger('change');
+	// 	});
+	// });
 
 
 });

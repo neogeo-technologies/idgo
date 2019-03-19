@@ -143,9 +143,15 @@ class ResourceForm(forms.ModelForm):
             'profiles_allowed',
             'referenced_url',
             'restricted_level',
-            'synchronisation',
             'sync_frequency',
+            'synchronisation',
             'up_file',
+            )
+        fake = (
+            'sync_frequency_dl',
+            'sync_frequency_ftp',
+            'synchronisation_dl',
+            'synchronisation_ftp',
             )
 
     class CustomClearableFileInput(forms.ClearableFileInput):
@@ -156,7 +162,7 @@ class ResourceForm(forms.ModelForm):
         validators=[file_size],
         widget=CustomClearableFileInput(
             attrs={
-                'value': None,
+                'value': '',  # IMPORTANT
                 'max_size_info': DOWNLOAD_SIZE_LIMIT,
                 },
             ),
@@ -167,6 +173,7 @@ class ResourceForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(
             attrs={
+                'value': '',  # IMPORTANT
                 'placeholder': "https://...",
                 },
             ),
@@ -177,6 +184,7 @@ class ResourceForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(
             attrs={
+                'value': '',  # IMPORTANT
                 'placeholder': "https://...",
                 },
             ),
@@ -188,13 +196,31 @@ class ResourceForm(forms.ModelForm):
         choices=[],
         )
 
-    synchronisation = forms.BooleanField(
+    synchronisation_dl = forms.BooleanField(
         label="Synchroniser les données",
         required=False,
         initial=False,
         )
 
-    sync_frequency = forms.ChoiceField(
+    sync_frequency_dl = forms.ChoiceField(
+        label="Fréquence de synchronisation",
+        required=False,
+        choices=Meta.model.FREQUENCY_CHOICES,
+        widget=forms.Select(
+            attrs={
+                'class': 'disabled',
+                'disabled': True,
+                },
+            ),
+        )
+
+    synchronisation_ftp = forms.BooleanField(
+        label="Synchroniser les données",
+        required=False,
+        initial=False,
+        )
+
+    sync_frequency_ftp = forms.ChoiceField(
         label="Fréquence de synchronisation",
         required=False,
         choices=Meta.model.FREQUENCY_CHOICES,
@@ -326,13 +352,20 @@ class ResourceForm(forms.ModelForm):
     def clean(self):
 
         res_l = {
-            'up_file': self.cleaned_data.get('up_file', None),
-            'dl_url': self.cleaned_data.get('dl_url', None),
-            'referenced_url': self.cleaned_data.get('referenced_url', None),
-            'ftp_file': self.cleaned_data.get('ftp_file', None)}
+            'up_file': self.cleaned_data.get('up_file') or None,
+            'dl_url': self.cleaned_data.get('dl_url') or None,
+            'referenced_url': self.cleaned_data.get('referenced_url') or None,
+            'ftp_file': self.cleaned_data.get('ftp_file') or None,
+            }
 
-        if res_l['ftp_file'] == '':
-            res_l['ftp_file'] = None
+        self.cleaned_data['synchronisation'] = \
+            self.cleaned_data.get('synchronisation_ftp') or self.cleaned_data['synchronisation_dl']
+        self.cleaned_data['sync_frequency'] = \
+            self.cleaned_data['sync_frequency_ftp'] or self.cleaned_data['sync_frequency_dl']
+        del self.cleaned_data['synchronisation_dl']
+        del self.cleaned_data['synchronisation_ftp']
+        del self.cleaned_data['sync_frequency_dl']
+        del self.cleaned_data['sync_frequency_ftp']
 
         if all(v is None for v in list(res_l.values())):
             for field in list(res_l.keys()):
@@ -345,4 +378,5 @@ class ResourceForm(forms.ModelForm):
                     self.add_error(k, error_msg)
 
         self.cleaned_data['last_update'] = timezone.now().date()
+
         return self.cleaned_data

@@ -267,7 +267,7 @@ class CkanBaseHandler(object):
     @CkanExceptionsHandler(ignore=[CkanError.NotFound])
     def delete_resource(self, id):
         try:
-            return self.call_action('resource_delete', id=id)
+            return self.call_action('resource_delete', id=id, force=True)
         except CkanError.NotFound:
             return None
 
