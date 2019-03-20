@@ -13,8 +13,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
-from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
@@ -46,12 +44,6 @@ from idgo_admin.forms import WebsiteField
 from idgo_admin.models import Dataset
 from idgo_admin.models import Organisation
 from mama_cas.forms import LoginForm as MamaLoginForm
-
-
-try:
-    TERMS_AND_CONDITIONS_HREF = settings.TERMS_AND_CONDITIONS_HREF
-except AttributeError:
-    TERMS_AND_CONDITIONS_HREF = '#'
 
 
 class UserForgetPassword(forms.Form):
@@ -105,9 +97,6 @@ class SignInForm(MamaLoginForm):
 
     username = UsernameField(required=True)
     password = PasswordField(required=True)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     def clean(self):
         username = self.cleaned_data.get('username')

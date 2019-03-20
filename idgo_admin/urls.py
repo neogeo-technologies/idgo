@@ -35,6 +35,7 @@ from idgo_admin.views.export import Export
 from idgo_admin.views.extractor import Extractor
 from idgo_admin.views.extractor import extractor_task
 from idgo_admin.views.extractor import ExtractorDashboard
+from idgo_admin.views.gdpr import GdprView
 from idgo_admin.views import home
 from idgo_admin.views.jurisdiction import jurisdiction
 from idgo_admin.views.jurisdiction import jurisdictions
@@ -99,6 +100,8 @@ urlpatterns = [
     url('^extractor/?$', Extractor.as_view(), name='extractor'),
     url('^extractor/task/?$', extractor_task, name='extractor_task'),
     url('^extractor/dashboard/?$', ExtractorDashboard.as_view(), name='extractor_dashboard'),
+
+    url('^terms/?$', GdprView.as_view(), name='terms_agreement'),
 
     url('^jurisdiction/?$', jurisdiction, name='jurisdiction'),
     url('^jurisdiction/all/?$', jurisdictions, name='jurisdictions'),

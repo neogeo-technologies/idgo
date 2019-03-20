@@ -113,6 +113,17 @@ class Profile(models.Model):
     # ==========
 
     @property
+    def is_agree_with_terms(self):
+        Gdpr = apps.get_model(app_label='idgo_admin', model_name='Gdpr')
+        GdprUser = apps.get_model(app_label='idgo_admin', model_name='GdprUser')
+        try:
+            GdprUser.objects.get(user=self.user, gdpr=Gdpr.objects.latest('issue_date'))
+        except GdprUser.DoesNotExist:
+            return False
+        else:
+            return True
+
+    @property
     def is_referent(self):
         kwargs = {'profile': self, 'validated_on__isnull': False}
         return LiaisonsReferents.objects.filter(**kwargs).exists()

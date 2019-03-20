@@ -280,7 +280,7 @@ class TermsAndConditionsField(forms.BooleanField):
         kwargs.setdefault('initial', False)
         kwargs.setdefault('label', "J'ai lu et j'accepte les conditions générales d'utilisation du service.")
         kwargs.setdefault('required', True)
-        gdpr = Gdpr.objects.all().order_by('-issue_date')[0]
+        gdpr = Gdpr.objects.latest('issue_date')
         kwargs.setdefault('widget', self._CheckBoxInput(
             attrs={
                 'oninvalid': "this.setCustomValidity('Vous devez accepter les conditions générales d'utilisation.')",

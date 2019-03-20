@@ -1,3 +1,27 @@
+# Copyright (c) 2017-2019 Datasud.
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+
+from django.conf import settings
+from django.contrib.auth import login
+from django.contrib.auth import logout
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from idgo_admin.forms.account import SignInForm
 from mama_cas.compat import is_authenticated as mama_is_authenticated
 from mama_cas.models import ProxyGrantingTicket as MamaProxyGrantingTicket
 from mama_cas.models import ProxyTicket as MamaProxyTicket
@@ -6,19 +30,9 @@ from mama_cas.utils import redirect as mama_redirect
 from mama_cas.utils import to_bool as mama_to_bool
 from mama_cas.views import LoginView as MamaLoginView
 from mama_cas.views import LogoutView as MamaLogoutView
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-from django.conf import settings
-from django.contrib.auth import login
-from django.contrib.auth import logout
-from django.http import HttpResponseRedirect
 
-from idgo_admin.forms.account import SignInForm
 
-decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
-
-@method_decorator(decorators[0], name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class SignIn(MamaLoginView):
 
     template_name = 'idgo_admin/signin.html'
@@ -42,7 +56,11 @@ class SignIn(MamaLoginView):
                 if self.warn_user():
                     return mama_redirect('cas_warn', params={'service': service, 'ticket': st.ticket})
                 return mama_redirect(service, params={'ticket': st.ticket})
-        return super(MamaLoginView, self).get(request, *args, **kwargs)
+            # else:
+            #     msg = "Vous êtes connecté comme <strong>{username}</strong>".format(
+            #         username=request.user.username)
+            #     messages.success(request, msg)
+        return super().get(request, *args, **kwargs)
 
     def form_valid(self, form):
         login(self.request, form.user)
@@ -60,6 +78,9 @@ class SignIn(MamaLoginView):
         if nxt_pth:
             return HttpResponseRedirect(nxt_pth)
 
+        # if not self.request.user.profile.is_agree_with_terms:
+        #     return mama_redirect('idgo_admin:terms_agreement')
+
         return mama_redirect('idgo_admin:list_my_datasets')
 
 
@@ -71,10 +92,10 @@ def logout_user(request):
         MamaServiceTicket.objects.request_sign_out(request.user)
         logout(request)
 
+
 class SignOut(MamaLogoutView):
 
     def get(self, request, *args, **kwargs):
-
         service = request.GET.get('service')
         if not service:
             service = request.GET.get('url')

@@ -43,13 +43,13 @@ from idgo_admin.forms.account import UserDeleteForm
 from idgo_admin.forms.account import UserForgetPassword
 from idgo_admin.forms.account import UserResetPassword
 from idgo_admin.models import AccountActions
+from idgo_admin.models import Gdpr
+from idgo_admin.models import GdprUser
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models.mail import send_account_creation_confirmation_mail
 from idgo_admin.models.mail import send_account_deletion_mail
 from idgo_admin.models.mail import send_reset_password_link_to_user
-from idgo_admin.models import Gdpr
-from idgo_admin.models import GdprUser
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.shortcuts import render_with_info_profile
