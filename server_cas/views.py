@@ -77,10 +77,6 @@ class SignIn(MamaLoginView):
         nxt_pth = self.request.GET.get('next', None)
         if nxt_pth:
             return HttpResponseRedirect(nxt_pth)
-
-        # if not self.request.user.profile.is_agree_with_terms:
-        #     return mama_redirect('idgo_admin:terms_agreement')
-
         return mama_redirect('idgo_admin:list_my_datasets')
 
 
