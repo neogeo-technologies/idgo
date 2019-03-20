@@ -22,7 +22,13 @@ from django.urls import reverse
 TERMS_URL = settings.TERMS_URL
 
 
-class TermsRequired:
+class TermsRequired(object):
+
+    IGNORE_PATH = (
+        reverse(settings.TERMS_URL),
+        reverse(settings.LOGIN_URL),
+        reverse(settings.LOGOUT_URL),
+        )
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -31,7 +37,7 @@ class TermsRequired:
         user = request.user
         if hasattr(user, 'profile') \
                 and not user.profile.is_agree_with_terms \
-                and not request.path == reverse(settings.TERMS_URL):
+                and request.path not in self.IGNORE_PATH:
             return redirect(reverse(settings.TERMS_URL))
 
         response = self.get_response(request)
