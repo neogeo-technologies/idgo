@@ -2,8 +2,15 @@
 
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
-	<li><span class="glyphicon glyphicon-home"></span></li>
-	<li class="active">{% if harvested %}Jeux de données moissonnés{% elif all %}Tous jeux de données{% else %}Mes jeux de données{% endif %}</li>
+	<li>
+		<span class="glyphicon glyphicon-home"></span>
+	</li>
+	<li class="active">{% if target == 'mine' %}
+		Mes jeux de données{% elif target == 'all' %}
+		Tous jeux de données{% elif target == 'ckan_harvested' %}
+		Jeux de données moissonnés CKAN{% elif target == 'csw_harvested' %}
+		Jeux de données moissonnés CSW{% endif %}
+	</li>
 </ol>
 {% endblock breadcrumb_content %}
 
@@ -11,7 +18,8 @@
 
 {% include "idgo_admin/alert_messages.html" %}
 
-{% if all_datasets|length == 0 %}
+{% with all_datasets|length as count %}
+{% if count == 0 %}
 	{% if all %}
 <div class="alert alert-warning" role="alert">
 	<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span> Aucun jeu de données n'est trouvé.
@@ -40,7 +48,7 @@
 	<div class="col-sm-9">
 		<div class="well">
 			<div class="buttons-on-the-right-side">
-				{% if total > 0 %}
+				{% if count > 0 %}
 				{% include "idgo_admin/dataset/actions/export_csv.html" %}
 				{% endif %}
 				{% if not harvested %}
@@ -48,8 +56,8 @@
 				{% endif %}
 			</div>
 			<br />
-			{% if total > 0 %}
-			<label>{{ total }} jeu{% if total > 1 %}x{% endif %} de données</label>
+			{% if count > 0 %}
+			<label>{{ count }} jeu{% if count > 1 %}x{% endif %} de données</label>
 			{% include "idgo_admin/dataset/table.html" %}
 			{% else %}
 			<label>Aucun jeu de données</label>
@@ -58,10 +66,10 @@
 	</div>
 </div>
 {% endif %}
+{% endwith %}
 <script>
 $(function() {
 	$('#menu a[name="datasets"]').parent().addClass('active');
-	$('#menu a[href="{% if all %}{% url 'idgo_admin:datasets' target='all' %}{% elif harvested %}{% url 'idgo_admin:datasets' target='harvested' %}{% else %}{% url 'idgo_admin:datasets' %}{% endif %}"]').parent().addClass('active');
 });
 </script>
 {% endblock main_content %}

@@ -11,9 +11,7 @@
 				<th name="editor">Éditeur <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
 				{% endif %}
 				<th name="private">Privé</th>
-				{% if user.profile.crige_membership %}
-				<th name="is_inspire">INSPIRE</th>
-				{% endif %}
+				<th name="inspire">INSPIRE</th>
 			</tr>
 			{% for dataset in datasets %}
 			<tr id="{{ dataset.id }}" name="{{ dataset.slug }}">
@@ -25,12 +23,12 @@
 				{% if all %}
 				<td name="editor">{% if dataset.editor == user %}Moi{% else %}{{ dataset.editor.get_full_name }}{% endif %}</td>
 				{% endif %}
-				<td name="private" style="text-align: center;">{% if dataset.private %}<span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
-				{% if dataset.organisation.is_crige_partner and user.profile.crige_membership %}
-				<td name="is_inspire" style="text-align: center;">{% if dataset.is_inspire %}<span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
-				{% elif user.profile.crige_membership %}
-				<td name="is_inspire" class="crossed"></td>
-				{% endif %}
+				<td name="private" style="text-align: center;">{% if dataset.private %}
+					<span class="glyphicon glyphicon-ok"></span>{% endif %}
+				</td>
+				<td name="inspire" style="text-align: center;">{% if dataset.geonet_id %}
+					<span class="glyphicon glyphicon-ok"></span>{% endif %}
+				</td>
 			</tr>
 			{% endfor %}
 		</table>

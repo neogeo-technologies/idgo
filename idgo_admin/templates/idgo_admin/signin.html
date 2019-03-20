@@ -12,7 +12,7 @@
 		<div class="h-middle container-signin">
 			<div class="panel panel-default">
 				<div class="panel-heading">
-					<img src="{% static "img/logo_datasud.png" %}" style="height: 80px;"></img>
+					<img src="{% static 'img/logo_datasud.png' %}" style="height: 80px;"></img>
 				</div>
 				<div class="panel-body">
 					<form id="signin" method="post" action="">
@@ -28,6 +28,13 @@
 								{% bootstrap_field form.password show_label=False %}
 							</div>
 						</div>
+						{% if terms_and_conditions %}
+						<div class="row">
+							<div class="col-xs-12">
+								{% bootstrap_field form.terms_and_conditions %}
+							</div>
+						</div>
+						{% endif %}
 						<div class="row">
 							<div class="col-xs-7">
 								<div class="checkbox">

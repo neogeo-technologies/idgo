@@ -3,18 +3,21 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <form name="dataset" method="post" action="" enctype="multipart/form-data">
-	{% csrf_token %}
-	<div class="buttons-on-the-right-side">
-		{% if dataset.is_inspire %}
-		<a class="btn btn-default" href="{% url 'idgo_admin:dataset_mdedit' id=dataset.id %}">Éditer la fiche de métadonnées INSPIRE</a>
-		{% endif %}
-		{% if dataset.id %}
+	<div class="buttons-on-the-right-side" style="margin-bottom: 20px;">
+		{% if dataset %}
+		<a class="btn btn-default" href="{% url 'idgo_admin:dataset_mdedit' id=dataset.pk %}">Éditer la fiche de métadonnées INSPIRE</a>
 		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.slug }}">Ouvrir dans CKAN</a>
 		{% endif %}
 		<a role="button" class="btn btn-secondary" target="_blank" href="{{ doc_url }}">
 			<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
 		</a>
 	</div>
+	{% csrf_token %}
+	{% if dataset.remote_ckan_dataset %}
+	{% include "idgo_admin/dataset/remote_dataset_frame.html" with remote=dataset.remote_ckan_dataset %}
+	{% elif dataset.remote_csw_dataset %}
+	{% include "idgo_admin/dataset/remote_dataset_frame.html" with remote=dataset.remote_csw_dataset %}
+	{% endif %}
 	<div class="row">
 		<div class="col-xs-12">
 			{% bootstrap_field form.title %}
@@ -25,27 +28,6 @@
 			{% bootstrap_field form.slug %}
 		</div>
 	</div>
-	{% if dataset.is_harvested %}
-	<br />
-	<div class="row">
-		<div class="col-xs-12">
-			<div class="well">
-				<dl>
-					<dt>CKAN distant</dt>
-					<dd>
-						<a type="button" class="btn btn-link" href="{{ dataset.remote_ckan_dataset.remote_ckan.url }}">{{ dataset.remote_ckan_dataset.remote_ckan.url }}</a>
-					</dd>
-					<dt>Lien vers la fiche CKAN distante</dt>
-					<dd>
-						<a type="button" class="btn btn-link" href="{{ dataset.remote_ckan_dataset.url }}">{{ dataset.remote_ckan_dataset.url }}</a>
-					</dd>
-					<dt>Dernier moissonnage</dt>
-					<dd>{{ dataset.remote_ckan_dataset.updated_on|date:"d/m/y"|default:"" }}</dd>
-				</dl>
-			</div>
-		</div>
-	</div>
-	{% endif %}
 	<br />
 	<div class="row">
 		<div class="col-xs-8">
@@ -162,12 +144,9 @@
 	</div>
 	<br />
 	{% bootstrap_field form.published %}
-	{% if dataset.organisation.is_crige_partner and is_crige %}
-	{% bootstrap_field form.is_inspire %}
-	{% endif %}
 	<br />
 	<div class="buttons-on-the-right-side">
-		<a class="btn btn-default" href="{% url 'idgo_admin:datasets' %}">Annuler</a>
+		<a class="btn btn-default" href="{% url 'idgo_admin:list_my_datasets' %}">Annuler</a>
 		<button type="submit" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>
 		<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
 	</div>

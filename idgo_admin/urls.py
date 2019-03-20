@@ -25,13 +25,17 @@ from idgo_admin.views.account import ReferentAccountManager
 from idgo_admin.views.account import SignUp
 from idgo_admin.views.account import UpdateAccount
 from idgo_admin.views.action import ActionsManager
-from idgo_admin.views.dataset import dataset
 from idgo_admin.views.dataset import DatasetManager
-from idgo_admin.views.dataset import datasets
+from idgo_admin.views.dataset import list_all_ckan_harvested_datasets
+from idgo_admin.views.dataset import list_all_csw_harvested_datasets
+from idgo_admin.views.dataset import list_all_datasets
+from idgo_admin.views.dataset import list_dataset
+from idgo_admin.views.dataset import list_my_datasets
 from idgo_admin.views.export import Export
 from idgo_admin.views.extractor import Extractor
 from idgo_admin.views.extractor import extractor_task
 from idgo_admin.views.extractor import ExtractorDashboard
+from idgo_admin.views.gdpr import GdprView
 from idgo_admin.views import home
 from idgo_admin.views.jurisdiction import jurisdiction
 from idgo_admin.views.jurisdiction import jurisdictions
@@ -54,9 +58,11 @@ from idgo_admin.views.organisation import all_organisations
 from idgo_admin.views.organisation import CreateOrganisation
 from idgo_admin.views.organisation import crige_partnership
 from idgo_admin.views.organisation import DeleteRemoteCkanLinked
+from idgo_admin.views.organisation import DeleteRemoteCswLinked
 from idgo_admin.views.organisation import organisation
 from idgo_admin.views.organisation import OrganisationOWS
 from idgo_admin.views.organisation import RemoteCkanEditor
+from idgo_admin.views.organisation import RemoteCswEditor
 from idgo_admin.views.organisation import Subscription
 from idgo_admin.views.organisation import UpdateOrganisation
 from idgo_admin.views.resource import resource
@@ -66,7 +72,7 @@ from idgo_admin.views.stuffs import ows_preview
 
 
 urlpatterns = [
-    url('^$', home, name='datasets'),
+    url('^$', home, name='home'),
 
     url('^account/create/?$', SignUp.as_view(), name='sign_up'),
     url('^account/update/?$', UpdateAccount.as_view(), name='update_account'),
@@ -75,14 +81,15 @@ urlpatterns = [
     url('^account/sftp/create/?$', create_sftp_account, name='create_sftp_account'),
     url('^account/sftp/delete/?$', delete_sftp_account, name='delete_sftp_account'),
 
-    url('^dataset/?$', dataset, name='dataset'),
-    url('^dataset/(?P<target>(all|mine|harvested))/?$', datasets, name='datasets'),
+    url('^dataset/?$', list_dataset, name='dataset'),  # ?id=[<dataset.pk>|<dataset.slug>]
+    url('^dataset/mine/?$', list_my_datasets, name='list_my_datasets'),
+    url('^dataset/all/?$', list_all_datasets, name='list_all_datasets'),
+    url('^dataset/harvested/ckan/?$', list_all_ckan_harvested_datasets, name='list_all_ckan_harvested_datasets'),
+    url('^dataset/harvested/csw/?$', list_all_csw_harvested_datasets, name='list_all_csw_harvested_datasets'),
     url('^dataset/(?P<id>(new|(\d+)))/edit/?$', DatasetManager.as_view(), name='dataset_editor'),
 
     url('^resource/?$', resource, name='resources'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
-    # TODO: url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/?$', ResourceEditor.as_view(), name='resource_editor'),
-
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/edit/?$', LayerView.as_view(), name='layer_editor'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/?$', layer_style, name='layer_style'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/all/?$', layer_styles, name='layer_styles'),
@@ -93,6 +100,8 @@ urlpatterns = [
     url('^extractor/?$', Extractor.as_view(), name='extractor'),
     url('^extractor/task/?$', extractor_task, name='extractor_task'),
     url('^extractor/dashboard/?$', ExtractorDashboard.as_view(), name='extractor_dashboard'),
+
+    url('^terms/?$', GdprView.as_view(), name='terms_agreement'),
 
     url('^jurisdiction/?$', jurisdiction, name='jurisdiction'),
     url('^jurisdiction/all/?$', jurisdictions, name='jurisdictions'),
@@ -118,6 +127,8 @@ urlpatterns = [
 
     url('^organisation/(?P<id>(\d+))/remoteckan/edit/?$', RemoteCkanEditor.as_view(), name='edit_remote_ckan_link'),
     url('^organisation/(?P<id>(\d+))/remoteckan/delete/?$', DeleteRemoteCkanLinked.as_view(), name='delete_remote_ckan_link'),
+    url('^organisation/(?P<id>(\d+))/remotecsw/edit/?$', RemoteCswEditor.as_view(), name='edit_remote_csw_link'),
+    url('^organisation/(?P<id>(\d+))/remotecsw/delete/?$', DeleteRemoteCswLinked.as_view(), name='delete_remote_csw_link'),
 
     url('^password/(?P<process>(forget))/?$', PasswordManager.as_view(), name='password_manager'),
     url('^password/(?P<process>(initiate|reset))/(?P<key>(.+))/?$', PasswordManager.as_view(), name='password_manager'),

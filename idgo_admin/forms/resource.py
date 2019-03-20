@@ -126,123 +126,210 @@ class ResourceForm(forms.ModelForm):
 
     class Meta(object):
         model = Resource
-        fields = ('crs',
-                  'data_type',
-                  'description',
-                  'dl_url',
-                  'encoding',
-                  'extractable',
-                  'format_type',
-                  'ftp_file',
-                  'geo_restriction',
-                  'lang',
-                  'title',
-                  'ogc_services',
-                  'organisations_allowed',
-                  'profiles_allowed',
-                  'referenced_url',
-                  'restricted_level',
-                  'synchronisation',
-                  'sync_frequency',
-                  'up_file')
-
-    _dataset = None
+        fields = (
+            'crs',
+            'data_type',
+            'description',
+            'dl_url',
+            'encoding',
+            'extractable',
+            'format_type',
+            'ftp_file',
+            'geo_restriction',
+            'lang',
+            'title',
+            'ogc_services',
+            'organisations_allowed',
+            'profiles_allowed',
+            'referenced_url',
+            'restricted_level',
+            'sync_frequency',
+            'synchronisation',
+            'up_file',
+            )
+        fake = (
+            'sync_frequency_dl',
+            'sync_frequency_ftp',
+            'synchronisation_dl',
+            'synchronisation_ftp',
+            )
 
     class CustomClearableFileInput(forms.ClearableFileInput):
         template_name = 'idgo_admin/widgets/file_drop_zone.html'
 
-    ftp_file = forms.ChoiceField(
-        label='Fichier déposé sur FTP',
-        choices=[],
-        required=False)
-
     up_file = forms.FileField(
-        label='Téléversement',
         required=False,
         validators=[file_size],
         widget=CustomClearableFileInput(
             attrs={
-                'value': None,
-                'max_size_info': DOWNLOAD_SIZE_LIMIT}))
+                'value': '',  # IMPORTANT
+                'max_size_info': DOWNLOAD_SIZE_LIMIT,
+                },
+            ),
+        )
+
+    dl_url = forms.CharField(
+        label="Veuillez indiquer l'URL d'un fichier à télécharger :",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                'value': '',  # IMPORTANT
+                'placeholder': "https://...",
+                },
+            ),
+        )
+
+    referenced_url = forms.CharField(
+        label="Veuillez indiquer l'URL d'un jeu de données à référencer :",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                'value': '',  # IMPORTANT
+                'placeholder': "https://...",
+                },
+            ),
+        )
+
+    ftp_file = forms.ChoiceField(
+        label="Les fichiers que vous avez déposés sur votre compte FTP apparaîssent dans la liste ci-dessous :",
+        required=False,
+        choices=[],
+        )
+
+    synchronisation_dl = forms.BooleanField(
+        label="Synchroniser les données",
+        required=False,
+        initial=False,
+        )
+
+    sync_frequency_dl = forms.ChoiceField(
+        label="Fréquence de synchronisation",
+        required=False,
+        choices=Meta.model.FREQUENCY_CHOICES,
+        widget=forms.Select(
+            attrs={
+                'class': 'disabled',
+                'disabled': True,
+                },
+            ),
+        )
+
+    synchronisation_ftp = forms.BooleanField(
+        label="Synchroniser les données",
+        required=False,
+        initial=False,
+        )
+
+    sync_frequency_ftp = forms.ChoiceField(
+        label="Fréquence de synchronisation",
+        required=False,
+        choices=Meta.model.FREQUENCY_CHOICES,
+        widget=forms.Select(
+            attrs={
+                'class': 'disabled',
+                'disabled': True,
+                },
+            ),
+        )
 
     title = forms.CharField(
         label='Titre*',
+        required=True,
         widget=forms.TextInput(
-            attrs={'placeholder': 'Titre'}))
+            attrs={
+                'placeholder': "Titre",
+                },
+            ),
+        )
 
     description = forms.CharField(
-        label='Description',
+        label="Description",
         required=False,
         widget=forms.Textarea(
-            attrs={'placeholder': 'Vous pouvez utiliser le langage Markdown ici'}))
-
-    format_type = ModelFormatTypeField(
-        empty_label='Sélectionnez un format',
-        label='Format*',
-        queryset=ResourceFormats.objects.all().order_by('extension'),
-        required=True,
-        widget=FormatTypeSelect())
+            attrs={
+                'placeholder': "Vous pouvez utiliser le langage Markdown ici",
+                },
+            ),
+        )
 
     data_type = forms.ChoiceField(
-        label='Type',
+        label="Type",
+        required=False,
         choices=Meta.model.TYPE_CHOICES,
-        required=False)
+        )
 
-    profiles_allowed = forms.ModelMultipleChoiceField(
-        label='Utilisateurs autorisés',
-        queryset=Profile.objects.filter(is_active=True).order_by('user__last_name'),
-        required=False,
-        to_field_name='pk',
-        widget=CustomCheckboxSelectMultiple(
-            attrs={'class': 'list-group-checkbox'}))
-
-    organisations_allowed = forms.ModelMultipleChoiceField(
-        label='Organisations autorisées',
-        queryset=Organisation.objects.filter(is_active=True).order_by('slug'),
-        required=False,
-        to_field_name='pk',
-        widget=CustomCheckboxSelectMultiple(
-            attrs={'class': 'list-group-checkbox'}))
-
-    synchronisation = forms.BooleanField(
-        initial=False,
-        label='Synchroniser les données',
-        required=False)
-
-    sync_frequency = forms.ChoiceField(
-        label='Fréquence de synchronisation',
-        choices=Meta.model.FREQUENCY_CHOICES,
-        required=False)
-
-    geo_restriction = forms.BooleanField(
-        initial=False,
-        label="Restreindre l'accès au territoire de compétence",
-        required=False)
-
-    extractable = forms.BooleanField(
-        label="Activer le service d'extraction des données géographiques",
-        required=False)
-
-    ogc_services = forms.BooleanField(
-        label="Activer les services OGC associés",
-        required=False)
+    format_type = ModelFormatTypeField(
+        label="Format*",
+        empty_label="Sélectionnez un format",
+        required=True,
+        queryset=ResourceFormats.objects.all().order_by('extension'),
+        widget=FormatTypeSelect(),
+        )
 
     crs = forms.ModelChoiceField(
-        label='Système de coordonnées du jeu de données géographiques',
-        queryset=SupportedCrs.objects.all(),
+        label="Système de coordonnées du jeu de données géographiques",
         required=False,
-        to_field_name='auth_code')
+        queryset=SupportedCrs.objects.all(),
+        to_field_name='auth_code',
+        )
 
     encoding = forms.CharField(
         label="Encodage des données (« UTF-8 » par défaut)",
         required=False,
         widget=forms.TextInput(
-            attrs={'placeholder': 'Par exemple: Latin1, ISO_8859-1, etc.'}))
+            attrs={
+                'placeholder': "Par exemple: Latin1, ISO_8859-1, etc.",
+                },
+            ),
+        )
 
     restricted_level = forms.ChoiceField(
-        choices=Meta.model.LEVEL_CHOICES,
         label="Restriction d'accès",
-        required=True)
+        required=True,
+        choices=Meta.model.LEVEL_CHOICES,
+        )
+
+    profiles_allowed = forms.ModelMultipleChoiceField(
+        label="Utilisateurs autorisés",
+        required=False,
+        queryset=Profile.objects.filter(is_active=True).order_by('user__last_name'),
+        to_field_name='pk',
+        widget=CustomCheckboxSelectMultiple(
+            attrs={
+                'class': "list-group-checkbox",
+                },
+            ),
+        )
+
+    organisations_allowed = forms.ModelMultipleChoiceField(
+        label="Organisations autorisées",
+        required=False,
+        queryset=Organisation.objects.filter(is_active=True).order_by('slug'),
+        to_field_name='pk',
+        widget=CustomCheckboxSelectMultiple(
+            attrs={
+                'class': "list-group-checkbox",
+                },
+            ),
+        )
+
+    geo_restriction = forms.BooleanField(
+        label="Restreindre l'accès au territoire de compétence",
+        required=False,
+        # initial=False,
+        )
+
+    extractable = forms.BooleanField(
+        label="Activer le service d'extraction des données géographiques",
+        required=False,
+        # initial=True,
+        )
+
+    ogc_services = forms.BooleanField(
+        label="Activer les services OGC associés",
+        required=False,
+        # initial=True,
+        )
 
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
@@ -265,13 +352,20 @@ class ResourceForm(forms.ModelForm):
     def clean(self):
 
         res_l = {
-            'up_file': self.cleaned_data.get('up_file', None),
-            'dl_url': self.cleaned_data.get('dl_url', None),
-            'referenced_url': self.cleaned_data.get('referenced_url', None),
-            'ftp_file': self.cleaned_data.get('ftp_file', None)}
+            'up_file': self.cleaned_data.get('up_file') or None,
+            'dl_url': self.cleaned_data.get('dl_url') or None,
+            'referenced_url': self.cleaned_data.get('referenced_url') or None,
+            'ftp_file': self.cleaned_data.get('ftp_file') or None,
+            }
 
-        if res_l['ftp_file'] == '':
-            res_l['ftp_file'] = None
+        self.cleaned_data['synchronisation'] = \
+            self.cleaned_data.get('synchronisation_ftp') or self.cleaned_data['synchronisation_dl']
+        self.cleaned_data['sync_frequency'] = \
+            self.cleaned_data['sync_frequency_ftp'] or self.cleaned_data['sync_frequency_dl']
+        del self.cleaned_data['synchronisation_dl']
+        del self.cleaned_data['synchronisation_ftp']
+        del self.cleaned_data['sync_frequency_dl']
+        del self.cleaned_data['sync_frequency_ftp']
 
         if all(v is None for v in list(res_l.values())):
             for field in list(res_l.keys()):
@@ -284,4 +378,5 @@ class ResourceForm(forms.ModelForm):
                     self.add_error(k, error_msg)
 
         self.cleaned_data['last_update'] = timezone.now().date()
+
         return self.cleaned_data

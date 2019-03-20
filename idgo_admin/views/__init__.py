@@ -29,4 +29,4 @@ from idgo_admin.shortcuts import on_profile_http404
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def home(request, *args, **kwargs):
-    return redirect(reverse('idgo_admin:datasets', kwargs={'target': 'mine'}))
+    return redirect(reverse('idgo_admin:list_my_datasets'))

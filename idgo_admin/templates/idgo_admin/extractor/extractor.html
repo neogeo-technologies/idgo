@@ -107,7 +107,7 @@
 														<select class="form-control" id="organisation" required>
 															<option disabled {% if not organisation %}selected{% endif %}>Sélectionnez une organisation</option>
 															{% for instance in organisations %}
-															<option value="{{ instance.slug }}" {% if instance.id == organisation.id %}selected{% endif %}>{{ instance.name }}</option>
+															<option value="{{ instance.slug }}" {% if instance.id == organisation.id %}selected{% endif %}>{{ instance.legal_name }}</option>
 															{% endfor %}
 														</select>
 														<span class="input-group-btn">
@@ -123,7 +123,7 @@
 														<select class="form-control" id="dataset" required>
 															<option disabled {% if not dataset %}selected{% endif %}>Sélectionnez un jeu de données</option>
 															{% for instance in datasets %}
-															<option value="{{ instance.slug }}" {% if instance.id == dataset.id %}selected{% endif %}>{{ instance.name }}</option>
+															<option value="{{ instance.slug }}" {% if instance.id == dataset.id %}selected{% endif %}>{{ instance.title }}</option>
 															{% endfor %}
 														</select>
 														<span class="input-group-btn">
@@ -139,7 +139,7 @@
 														<select class="form-control" id="resource" required>
 															<option disabled {% if not resource %}selected{% endif %}>Extraire toutes les ressources</option>
 															{% for instance in resources %}
-															<option value="{{ instance.ckan_id }}" {% if instance.id == resource.id %}selected{% endif %}>{{ instance.name }}</option>
+															<option value="{{ instance.ckan_id }}" {% if instance.id == resource.id %}selected{% endif %}>{{ instance.title }}</option>
 															{% endfor %}
 														</select>
 														<span class="input-group-btn">

@@ -30,11 +30,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import functools
 from idgo_admin.exceptions import CkanBaseError
+from idgo_admin.exceptions import CswBaseError
 from idgo_admin.exceptions import ExceptionsHandler
-from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.exceptions import GenericException
+from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.organisation import OrganisationForm as Form
 from idgo_admin.forms.organisation import RemoteCkanForm
+from idgo_admin.forms.organisation import RemoteCswForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
@@ -47,6 +49,7 @@ from idgo_admin.models.mail import send_referent_confirmation_mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import RemoteCkan
+from idgo_admin.models import RemoteCsw
 from idgo_admin.models import SupportedCrs
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.shortcuts import on_profile_http404
@@ -456,6 +459,11 @@ class Subscription(View):
         #     reverse(self.namespace), organisation.id))
 
 
+# ========================
+# MOISSONNAGE DE SITE CKAN
+# ========================
+
+
 @method_decorator(decorators, name='dispatch')
 class RemoteCkanEditor(View):
 
@@ -480,7 +488,7 @@ class RemoteCkanEditor(View):
             except RemoteCkan.DoesNotExist:
                 form = RemoteCkanForm()
             else:
-                context['datasets'] = Dataset.harvested.filter(organisation=organisation)
+                context['datasets'] = Dataset.harvested_ckan.filter(organisation=organisation)
                 context['instance'] = instance
                 form = RemoteCkanForm(instance=instance)
 
@@ -520,7 +528,7 @@ class RemoteCkanEditor(View):
             form = RemoteCkanForm(request.POST)
             form.add_error(e.code, e.message)
         else:
-            context['datasets'] = Dataset.harvested.filter(organisation=organisation)
+            context['datasets'] = Dataset.harvested_ckan.filter(organisation=organisation)
             context['instance'] = instance
             form = RemoteCkanForm(request.POST, instance=instance)
 
@@ -545,7 +553,7 @@ class RemoteCkanEditor(View):
         else:
             error = False
             context['datasets'] = \
-                Dataset.harvested.filter(organisation=organisation)
+                Dataset.harvested_ckan.filter(organisation=organisation)
             context['form'] = RemoteCkanForm(instance=instance)
             if created:
                 msg = "Veuillez indiquez les organisations distantes à moissonner."
@@ -585,6 +593,151 @@ class DeleteRemoteCkanLinked(View):
         except ValidationError as e:
             messages.error(request, e.__str__())
         except CkanBaseError as e:
+            messages.error(request, e.__str__())
+        else:
+            messages.success(request, (
+                'Les informations ainsi que les jeux de données et '
+                'ressources synchronisés avec le catalogue distant '
+                'ont été supprimés avec succès.'))
+
+        return HttpResponseRedirect(
+            reverse('idgo_admin:update_organisation', kwargs={'id': organisation.id}))
+
+
+# =======================
+# MOISSONNAGE DE SITE CSW
+# =======================
+
+
+@method_decorator(decorators, name='dispatch')
+class RemoteCswEditor(View):
+
+    template = 'idgo_admin/organisation/remotecsw/edit.html'
+
+    def get(self, request, id, *args, **kwargs):
+
+        user, profile = user_and_profile(request)
+
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation__id=id,
+            validated_on__isnull=False) and True or False
+
+        if is_referent or is_admin:
+            organisation = get_object_or_404(Organisation, id=id)
+
+            context = {'organisation': organisation}
+
+            try:
+                instance = RemoteCsw.objects.get(organisation=organisation)
+            except RemoteCsw.DoesNotExist:
+                form = RemoteCswForm()
+            else:
+                context['datasets'] = Dataset.harvested_csw.filter(organisation=organisation)
+                context['instance'] = instance
+                form = RemoteCswForm(instance=instance)
+
+            context['form'] = form
+
+            return render_with_info_profile(
+                request, self.template, context=context)
+
+        raise Http404()
+
+    def post(self, request, id, *args, **kwargs):
+
+        user, profile = user_and_profile(request)
+
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation__id=id,
+            validated_on__isnull=False) and True or False
+
+        if not(is_referent or is_admin):
+            raise Http404()
+
+        organisation = get_object_or_404(Organisation, id=id)
+
+        context = {'organisation': organisation}
+
+        url = request.POST.get('url')
+        try:
+            with transaction.atomic():
+                instance, created = \
+                    RemoteCsw.objects.get_or_create(
+                        organisation=organisation, url=url)
+        except CswBaseError as e:
+            form = RemoteCswForm(request.POST)
+            form.add_error('url', e.__str__())
+        except ValidationError as e:
+            form = RemoteCswForm(request.POST)
+            form.add_error(e.code, e.message)
+        else:
+            context['datasets'] = Dataset.harvested_csw.filter(organisation=organisation)
+            context['instance'] = instance
+            form = RemoteCswForm(request.POST, instance=instance)
+
+        context['form'] = form
+
+        if not form.is_valid():
+            return render_with_info_profile(
+                request, self.template, context=context)
+
+        for k, v in form.cleaned_data.items():
+            setattr(instance, k, v)
+        try:
+            with transaction.atomic():
+                instance.save()
+        except ValidationError as e:
+            error = True
+            messages.error(request, e.__str__())
+        except CswBaseError as e:
+            error = True
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
+        else:
+            error = False
+            context['datasets'] = \
+                Dataset.harvested_csw.filter(organisation=organisation)
+            context['form'] = RemoteCswForm(instance=instance)
+            if created:
+                msg = "Veuillez indiquez les organisations distantes à moissonner."
+            else:
+                msg = 'Les informations de moissonnage ont été mises à jour.'
+            messages.success(request, msg)
+
+        if 'continue' in request.POST or error:
+            return render_with_info_profile(
+                request, self.template, context=context)
+
+        return HttpResponseRedirect(
+            reverse('idgo_admin:update_organisation', kwargs={'id': organisation.id}))
+
+
+@method_decorator(decorators, name='dispatch')
+class DeleteRemoteCswLinked(View):
+
+    def post(self, request, id, *args, **kwargs):
+
+        user, profile = user_and_profile(request)
+
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation__id=id,
+            validated_on__isnull=False) and True or False
+
+        if not(is_referent or is_admin):
+            raise Http404()
+
+        organisation = get_object_or_404(Organisation, id=id)
+        instance = get_object_or_404(RemoteCsw, organisation=organisation)
+
+        try:
+            with transaction.atomic():
+                instance.delete()
+        except ValidationError as e:
+            messages.error(request, e.__str__())
+        except CswBaseError as e:
             messages.error(request, e.__str__())
         else:
             messages.success(request, (

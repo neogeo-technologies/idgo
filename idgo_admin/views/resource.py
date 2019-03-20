@@ -42,6 +42,7 @@ from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
+from idgo_admin.views.dataset import target as datasets_target
 import json
 import os
 
@@ -93,28 +94,35 @@ class ResourceManager(View):
     template = 'idgo_admin/dataset/resource/resource.html'
     namespace = 'idgo_admin:resource'
 
-    def get_context(self, form, profile, dataset, resource):
+    def get_context(self, form, user, dataset, resource=None):
 
+        mode = None
         if resource:
-            mode = (
-                resource.up_file and 'up_file' or
-                resource.dl_url and 'dl_url' or
-                resource.referenced_url and 'referenced_url' or
-                resource.ftp_file and 'ftp_file'
-                ) or None
+            if resource.up_file:
+                mode = 'up_file'
+            elif resource.dl_url:
+                mode = 'dl_url'
+            elif resource.referenced_url:
+                mode = 'referenced_url'
+            elif resource.ftp_file:
+                mode = 'ftp_file'
         elif form:
-            mode = (
-                form.files.get('up_file') and 'up_file' or
-                form.data.get('dl_url') and 'dl_url' or
-                form.data.get('referenced_url') and 'referenced_url' or
-                form.data.get('ftp_file') and 'ftp_file'
-                ) or None
+            if form.files.get('up_file'):
+                mode = 'up_file'
+            elif form.data.get('dl_url'):
+                mode = 'dl_url'
+            elif form.data.get('referenced_url'):
+                mode = 'referenced_url'
+            elif form.data.get('ftp_file'):
+                mode = 'ftp_file'
 
         return {
+            'target': datasets_target(dataset, user),
             'dataset': dataset,
+            'resource': resource,
             'form': form,
             'mode': mode,
-            'resource': resource}
+            }
 
     @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
     def get(self, request, dataset_id=None, *args, **kwargs):
@@ -134,13 +142,14 @@ class ResourceManager(View):
                     'resource_id': _resource,
                     'layer_id': _layer}))
 
+        resource = None
         id = request.GET.get('id')
-        resource = id and get_object_or_404_extended(
-            Resource, user, include={'id': id, 'dataset_id': dataset.id}) or None
+        if id:
+            include = {'id': id, 'dataset_id': dataset.id}
+            resource = get_object_or_404_extended(Resource, user, include=include)
 
         form = Form(instance=resource, user=user)
-
-        context = self.get_context(form, profile, dataset, resource)
+        context = self.get_context(form, user, dataset, resource=resource)
 
         return render_with_info_profile(request, self.template, context)
 
@@ -157,15 +166,16 @@ class ResourceManager(View):
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
 
+        resource = None
         id = request.POST.get('id', request.GET.get('id'))
-        resource = id and get_object_or_404_extended(
-            Resource, user, include={'id': id, 'dataset': dataset}) or None
+        if id:
+            include = {'id': id, 'dataset': dataset}
+            resource = get_object_or_404_extended(Resource, user, include=include)
 
-        form = Form(
-            request.POST, request.FILES,
-            instance=resource, dataset=dataset, user=user)
+        form = Form(request.POST, request.FILES,
+                    instance=resource, dataset=dataset, user=user)
 
-        context = self.get_context(form, profile, dataset, resource)
+        context = self.get_context(form, user, dataset, resource)
 
         ajax = 'ajax' in request.POST
         save_and_continue = 'continue' in request.POST
@@ -282,11 +292,12 @@ class ResourceManager(View):
                 return response
             else:
                 if save_and_continue:
-                    return HttpResponseRedirect(
-                        '{0}?id={1}'.format(dataset_href, resource.id))
-
-                return HttpResponseRedirect('{0}?id={1}#resources/{2}'.format(
-                    reverse('idgo_admin:dataset'), dataset_id, resource.id))
+                    url = '{0}?id={1}'.format(dataset_href, resource.id)
+                    return HttpResponseRedirect(url)
+                # else:
+                url = '{0}?id={1}#resources/{2}'.format(
+                    reverse('idgo_admin:dataset'), dataset_id, resource.id)
+                return HttpResponseRedirect(url)
 
         if ajax:
             form._errors = None
@@ -304,8 +315,8 @@ class ResourceManager(View):
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
             raise Http404
-        resource = get_object_or_404_extended(
-            Resource, user, include={'id': id, 'dataset': dataset})
+        include = {'id': id, 'dataset': dataset}
+        resource = get_object_or_404_extended(Resource, user, include=include)
 
         try:
             resource.delete(current_user=user)
@@ -317,7 +328,6 @@ class ResourceManager(View):
             status = 200
             message = 'La ressource a été supprimée avec succès.'
             messages.success(request, message)
-
             send_resource_delete_mail(user, resource)
 
         return HttpResponse(status=status)

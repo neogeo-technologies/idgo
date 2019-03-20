@@ -156,7 +156,6 @@ def handle_pust_request(request, dataset_name=None):
         'broadcaster_name': data.get('broadcaster_name'),
         'broadcaster_email': data.get('broadcaster_email'),
         'published': not data.get('private', False),
-        # 'is_inspire'
         }
 
     pk = dataset and dataset.pk or None
@@ -188,7 +187,6 @@ def handle_pust_request(request, dataset_name=None):
         'broadcaster_name': data['broadcaster_name'],
         'broadcaster_email': data['broadcaster_email'],
         'published': data['published'],
-        # is_inspire
         }
 
     try:

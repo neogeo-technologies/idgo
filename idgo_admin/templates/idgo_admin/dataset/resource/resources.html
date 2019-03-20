@@ -25,7 +25,7 @@
 <script>
 $(function() {
 	var RESOURCE_URL = '{% url "idgo_admin:resource" dataset_id=dataset.id %}';
-	var RESOURCES = {{ resources | safe }};
+	var RESOURCES = {{ resource_rows | safe }};
 	var RESOURCES_CONTAINER = 'table-resources';
 	var RESOURCES_METADATA = [
 		{

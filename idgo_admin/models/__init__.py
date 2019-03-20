@@ -25,6 +25,8 @@ from idgo_admin.models.dataset import Dataset
 from idgo_admin.models.dataset import Keywords
 from idgo_admin.models.extractor import AsyncExtractorTask
 from idgo_admin.models.extractor import ExtractorSupportedFormat
+from idgo_admin.models.gdpr import Gdpr
+from idgo_admin.models.gdpr import GdprUser
 from idgo_admin.models.granularity import Granularity
 from idgo_admin.models.jurisdiction import Commune
 from idgo_admin.models.jurisdiction import Jurisdiction
@@ -36,6 +38,8 @@ from idgo_admin.models.organisation import Organisation
 from idgo_admin.models.organisation import OrganisationType
 from idgo_admin.models.organisation import RemoteCkan
 from idgo_admin.models.organisation import RemoteCkanDataset
+from idgo_admin.models.organisation import RemoteCsw
+from idgo_admin.models.organisation import RemoteCswDataset
 from idgo_admin.models.resource import Resource
 from idgo_admin.models.resource import ResourceFormats
 from idgo_admin.models.support import Support
@@ -53,8 +57,11 @@ __all__ = [
     DataType,
     ExtractorSupportedFormat,
     Granularity,
+    Gdpr,
+    GdprUser,
     Jurisdiction,
     JurisdictionCommune,
+    Keywords,
     Layer,
     License,
     LiaisonsContributeurs,
@@ -65,6 +72,8 @@ __all__ = [
     Profile,
     RemoteCkan,
     RemoteCkanDataset,
+    RemoteCsw,
+    RemoteCswDataset,
     Resource,
     ResourceFormats,
     Support,

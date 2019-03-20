@@ -89,7 +89,6 @@ class DatasetForm(forms.ModelForm):
             'description',
             'geocover',
             'granularity',
-            'is_inspire',
             'keywords',
             'license',
             'organisation',
@@ -283,12 +282,6 @@ class DatasetForm(forms.ModelForm):
         label="Publier le jeu de données",
         required=False,
         initial=True,
-        )
-
-    is_inspire = forms.BooleanField(
-        label="Le jeu de données est soumis à la règlementation INSPIRE",
-        required=False,
-        initial=False,
         )
 
     def __init__(self, *args, **kwargs):

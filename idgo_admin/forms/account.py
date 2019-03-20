@@ -13,8 +13,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
-# from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
@@ -40,20 +38,12 @@ from idgo_admin.forms import PasswordField
 from idgo_admin.forms import PhoneField
 from idgo_admin.forms import PostcodeField
 from idgo_admin.forms import ReferentField
+from idgo_admin.forms import TermsAndConditionsField
 from idgo_admin.forms import UsernameField
 from idgo_admin.forms import WebsiteField
 from idgo_admin.models import Dataset
-# from idgo_admin.models import Jurisdiction
 from idgo_admin.models import Organisation
 from mama_cas.forms import LoginForm as MamaLoginForm
-
-
-# try:
-#     JURISDICTION_CODE = settings.DEFAULTS_VALUES.get('JURISDICTION')
-# except AttributeError:
-#     JURISDICTION = None
-# else:
-#     JURISDICTION = Jurisdiction.objects.get(code=JURISDICTION_CODE)
 
 
 class UserForgetPassword(forms.Form):
@@ -107,9 +97,6 @@ class SignInForm(MamaLoginForm):
 
     username = UsernameField(required=True)
     password = PasswordField(required=True)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     def clean(self):
         username = self.cleaned_data.get('username')
@@ -267,11 +254,13 @@ class SignUpForm(forms.Form):
             'first_name',
             'last_name',
             'email',
-            'password')
+            'password',
+            )
 
         profile_fields = (
             'phone',
-            'organisation')
+            'organisation',
+            )
 
         organisation_fields = (
             'address',
@@ -285,11 +274,13 @@ class SignUpForm(forms.Form):
             'organisation_type',
             'org_phone',
             'postcode',
-            'website')
+            'website',
+            )
 
         extended_fields = (
             'contributor',
-            'referent')
+            'referent',
+            )
 
         fields = user_fields + profile_fields + organisation_fields + extended_fields
 
@@ -329,6 +320,8 @@ class SignUpForm(forms.Form):
     contributor = ContributorField()
     referent = ReferentField()
 
+    terms_and_conditions = TermsAndConditionsField()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -336,6 +329,9 @@ class SignUpForm(forms.Form):
         self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le mot de passe'
 
     def clean(self):
+
+        if not self.cleaned_data.get('terms_and_conditions'):
+            self.add_error('terms_and_conditions', "Vous devez accepter les conditions générales d'utilisation.")
 
         username = self.cleaned_data.get('username')
         if User.objects.filter(username=username).exists() or CkanHandler.is_user_exists(username):

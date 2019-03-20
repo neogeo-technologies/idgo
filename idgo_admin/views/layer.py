@@ -31,6 +31,7 @@ from idgo_admin.models import Layer
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
+from idgo_admin.views.dataset import target as datasets_target
 import json
 
 
@@ -40,21 +41,21 @@ decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 @method_decorator(decorators, name='dispatch')
 class LayerView(View):
 
-    namespace = 'idgo_admin:layer_editor'
-    template = 'idgo_admin/dataset/resource/layer/edit.html'
-
     def get(self, request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
 
         user, profile = user_and_profile(request)
 
         layer = get_object_or_404(Layer, resource=resource_id)
         form = Form(instance=layer, include={'user': user})
-
+        target = datasets_target(layer.resource.dataset, user)
         context = {
+            'target': target,
+            'layer': layer,
             'form': form,
-            'layer': layer}
+            }
 
-        return render_with_info_profile(request, self.template, context=context)
+        return render_with_info_profile(
+            request, 'idgo_admin/dataset/resource/layer/edit.html', context=context)
 
     def post(self, request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
 
@@ -99,14 +100,13 @@ class LayerView(View):
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def layer_styles(request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
-
     user, profile = user_and_profile(request)
-
     layer = get_object_or_404(Layer, resource=resource_id)
-
+    target = datasets_target(layer.resource.dataset, user)
     context = {
-        'layer': layer}
-
+        'target': target,
+        'layer': layer,
+        }
     return render_with_info_profile(
         request, 'idgo_admin/dataset/resource/layer/style/styles.html', context=context)
 
@@ -114,100 +114,35 @@ def layer_styles(request, dataset_id=None, resource_id=None, layer_id=None, *arg
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def layer_style(request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
-
     user, profile = user_and_profile(request)
-
     style_id = request.GET.get('id', None)
     if not id:
         raise Http404
-
-    layer = get_object_or_404(Layer, resource=resource_id)
-
-    return redirect(reverse('idgo_admin:layer_style_editor', kwargs={
+    get_object_or_404(Layer, resource=resource_id)
+    kwargs = {
         'dataset_id': dataset_id,
         'resource_id': resource_id,
         'layer_id': layer_id,
-        'style_id': style_id}))
-
-
-def get_layer(resource, datagis_id):
-    if datagis_id not in resource.datagis_id:
-        raise Http404
-
-    datagis_id = str(datagis_id)
-    layer = MRAHandler.get_layer(datagis_id)
-    if layer['type'] == 'RASTER':
-        c = MRAHandler.get_coverage(resource.dataset.organisation.slug, datagis_id, datagis_id)
-        ll = c['coverage']['latLonBoundingBox']
-        bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
-        attributes = []
-        default_style_name = None
-        styles = []
-    else:
-        ft = MRAHandler.get_featuretype(resource.dataset.organisation.slug, 'public', datagis_id)
-        ll = ft['featureType']['latLonBoundingBox']
-        bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
-        attributes = [item['name'] for item in ft['featureType']['attributes']]
-        default_style_name = layer['defaultStyle']['name']
-        styles = [{
-            'name': 'default',
-            'text': 'Style par défaut',
-            'url': layer['defaultStyle']['href'].replace('json', 'sld'),
-            'sld': MRAHandler.get_style(layer['defaultStyle']['name'])}]
-        if layer.get('styles'):
-            for style in layer.get('styles')['style']:
-                styles.append({
-                    'name': style['name'],
-                    'text': style['name'],
-                    'url': style['href'].replace('json', 'sld'),
-                    'sld': MRAHandler.get_style(style['name'])})
-
-    return {
-        'id': datagis_id,
-        'name': layer['name'],
-        'title': layer['title'],
-        'type': layer['type'],
-        'enabled': layer['enabled'],
-        'bbox': bbox,
-        'attributes': attributes,
-        'styles': {'default': default_style_name, 'styles': styles}}
-
-
-def get_layers(resource):
-    layers = []
-    for datagis_id in resource.datagis_id:
-        data = get_layer(resource, datagis_id)
-        layers.append([
-            data['id'],
-            data['name'],
-            data['title'],
-            data['type'],
-            data['enabled'],
-            data['bbox'],
-            data['attributes'],
-            data['styles']])
-    return(layers)
+        'style_id': style_id,
+        }
+    return redirect(reverse('idgo_admin:layer_style_editor', kwargs=kwargs))
 
 
 @method_decorator(decorators, name='dispatch')
 class LayerStyleEditorView(View):
 
-    namespace = 'idgo_admin:layer_style_editor'
-
     def get(self, request, dataset_id=None, resource_id=None, layer_id=None, style_id=None, *args, **kwargs):
-
         user, profile = user_and_profile(request)
-
         layer = get_object_or_404(Layer, resource=resource_id)
-
-        layer_asjson = json.dumps(get_layer(layer.resource, layer_id))
-
+        target = datasets_target(layer.resource.dataset, user)
         context = {
+            'target': target,
             'layer': layer,
             'fonts_asjson': json.dumps(MRAHandler.get_fonts()),
-            'layer_asjson': layer_asjson}
-
-        return render_with_info_profile(request, 'idgo_admin/dataset/resource/layer/style/edit.html', context=context)
+            'layer_asjson': json.dumps(layer.mra_info),
+            }
+        return render_with_info_profile(
+            request, 'idgo_admin/dataset/resource/layer/style/edit.html', context=context)
 
     def post(self, request, dataset_id=None, resource_id=None, layer_id=None, style_id=None, *args, **kwargs):
 

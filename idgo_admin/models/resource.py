@@ -18,6 +18,7 @@ from decimal import Decimal
 from django.apps import apps
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import IntegrityError
@@ -53,9 +54,7 @@ import os
 from pathlib import Path
 import re
 import shutil
-from urllib.parse import parse_qs
 from urllib.parse import urljoin
-from urllib.parse import urlparse
 import uuid
 
 
@@ -112,20 +111,30 @@ class ResourceFormats(models.Model):
         db_index=True,
         )
 
+    description = models.TextField(
+        verbose_name="Description",
+        )
+
     extension = models.CharField(
         verbose_name="Extension du fichier",
         max_length=10,
         )
 
-    description = models.TextField(
-        verbose_name="Description",
+    mimetype = ArrayField(
+        models.TextField(),
+        verbose_name="Type MIME",
+        blank=True,
+        null=True,
         )
 
-    is_gis_format = models.BooleanField(
-        verbose_name="Format de fichier SIG",
-        blank=False,
-        null=False,
-        default=False,
+    PROTOCOL_CHOICES = AUTHORIZED_PROTOCOL
+
+    protocol = models.CharField(
+        verbose_name="Protocole",
+        max_length=100,
+        blank=True,
+        null=True,
+        choices=PROTOCOL_CHOICES,
         )
 
     ckan_format = models.CharField(
@@ -149,14 +158,11 @@ class ResourceFormats(models.Model):
         choices=CKAN_CHOICES,
         )
 
-    PROTOCOL_CHOICES = AUTHORIZED_PROTOCOL
-
-    protocol = models.CharField(
-        verbose_name="Protocole",
-        max_length=100,
-        blank=True,
-        null=True,
-        choices=PROTOCOL_CHOICES,
+    is_gis_format = models.BooleanField(
+        verbose_name="Format de fichier SIG",
+        blank=False,
+        null=False,
+        default=False,
         )
 
     def __str__(self):
@@ -254,7 +260,8 @@ class Resource(models.Model):
     format_type = models.ForeignKey(
         to='ResourceFormats',
         verbose_name='Format',
-        default=0,
+        blank=False,
+        null=True,
         )
 
     LEVEL_CHOICES = (
@@ -406,12 +413,6 @@ class Resource(models.Model):
             self.dataset.slug, self.ckan_id))
 
     @property
-    def datagis_id(self):  # TODO: supprimer et utiliser `get_layers()` exclusivement
-        Layer = apps.get_model(app_label='idgo_admin', model_name='Layer')
-        qs = Layer.objects.filter(resource=self)
-        return [l.name for l in qs]
-
-    @property
     def title_overflow(self):
         return three_suspension_points(self.title)
 
@@ -423,35 +424,6 @@ class Resource(models.Model):
     def is_datagis(self):
         return self.get_layers() and True or False
 
-    # Méthodes de classe
-    # ==================
-
-    @classmethod
-    def get_resources_by_mapserver_url(cls, url):
-
-        parsed_url = urlparse(url.lower())
-        qs = parse_qs(parsed_url.query)
-
-        ows = qs.get('service')
-        if not ows:
-            raise Http404()
-
-        if ows[-1] == 'wms':
-            layers = qs.get('layers')[-1].replace(' ', '').split(',')
-        elif ows[-1] == 'wfs':
-            # Qgis 2.14
-            if 'typename' in qs:
-                layers = [
-                    layer.split(':')[-1] for layer
-                    in qs.get('typename')[-1].replace(' ', '').split(',')]
-            else:
-                layers = [
-                    layer.split(':')[-1] for layer
-                    in qs.get('typenames')[-1].replace(' ', '').split(',')]
-        else:
-            raise Http404()
-        return Resource.objects.filter(layer__name__in=layers).distinct()
-
     # Méthodes héritées
     # =================
 
@@ -460,6 +432,10 @@ class Resource(models.Model):
         # Version précédante de la ressource (avant modification)
         previous, created = self.pk \
             and (Resource.objects.get(pk=self.pk), False) or (None, True)
+
+        if previous:
+            # crs est immuable sauf si le jeu de données change (Cf. plus bas)
+            self.crs = previous.crs
 
         # Quelques valeur par défaut à la création de l'instance
         if created or not (
@@ -878,15 +854,14 @@ class Resource(models.Model):
         id = str(self.ckan_id)
 
         # Définition des propriétés du « package » :
-
         data = {
             'crs': self.crs and self.crs.description or '',
             'name': self.title,
             'description': self.description,
             'data_type': self.data_type,
             'extracting_service': 'False',  # I <3 CKAN
-            'format': self.format_type.ckan_format,
-            'view_type': self.format_type.ckan_view,
+            'format': self.format_type and self.format_type.ckan_format,
+            'view_type': self.format_type and self.format_type.ckan_view,
             'id': id,
             'lang': self.lang,
             'restricted_by_jurisdiction': str(self.geo_restriction),

@@ -54,17 +54,14 @@ $(document).ajaxSend(function(e, xhr, settings) {
 });
 		</script>
 		<script src="{% static "libs/jquery-plugins/ezdz/jquery.ezdz.js" %}"></script>
-
 		<script src="{% static "libs/bootstrap-typeahead/bootstrap3-typeahead.js" %}"></script>
 		<script src="{% static "libs/bootstrap-tagsinput/bootstrap-tagsinput.min.js" %}"></script>
-
 		<script src="{% static "libs/editablegrid/editablegrid.js" %}"></script>
 		<script src="{% static "libs/editablegrid/editablegrid_renderers.js" %}"></script>
 		<script src="{% static "libs/editablegrid/editablegrid_editors.js" %}"></script>
 		<script src="{% static "libs/editablegrid/editablegrid_validators.js" %}"></script>
 		<script src="{% static "libs/editablegrid/editablegrid_utils.js" %}"></script>
 		<script src="{% static "libs/editablegrid/editablegrid_charts.js" %}"></script>
-
 		<script src="{% static "libs/moment/moment-with-locales.min.js" %}"></script>
 		<script src="{% static "libs/moment-datepicker/moment-datepicker.js" %}"></script>
 		<script src="{% static "libs/bootstrap/js/bootstrap.min.js" %}"></script>
@@ -196,21 +193,24 @@ $(document).ajaxSend(function(e, xhr, settings) {
 							{% if is_referent or is_admin  %}
 							<li class="dropdown" role="presentation">
 								<a name="datasets" class="dropdown-toggle" data-toggle="dropdown" href="#">Jeux de données <span class="glyphicon glyphicon-triangle-bottom"></span></a>
-								<ul class="dropdown-menu dropdown-menu-right">
+								<ul class="dropdown-menu dropdown-menu-left">
 									<li>
-										<a href="{{ admin_dns }}{% url 'idgo_admin:datasets' site_name='admin' %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
+										<a href="{% url 'idgo_admin:list_my_datasets' site_name='admin' %}" aria-controls="my-datasets" role="tab">Mes jeux de données</a>
 									</li>
 									<li>
-										<a href="{{ admin_dns }}{% url 'idgo_admin:datasets' target='all' site_name='admin' %}" aria-controls="all-datasets" role="tab">Tous les jeux de données</a>
+										<a href="{% url 'idgo_admin:list_all_datasets' site_name='admin' %}" aria-controls="all-datasets" role="tab">Tous les jeux de données</a>
 									</li>
 									<li>
-										<a href="{{ admin_dns }}{% url 'idgo_admin:datasets' target='harvested' site_name='admin' %}" aria-controls="harvested-datasets" role="tab">Jeux de données moissonnés</a>
+										<a href="{% url 'idgo_admin:list_all_ckan_harvested_datasets' site_name='admin' %}" aria-controls="ckan-harvested-datasets" role="tab">Jeux de données moissonnés CKAN</a>
+									</li>
+									<li>
+										<a href="{% url 'idgo_admin:list_all_csw_harvested_datasets' site_name='admin' %}" aria-controls="csw-harvested-datasets" role="tab">Jeux de données moissonnés CSW</a>
 									</li>
 								</ul>
 							</li>
 							{% else %}
 							<li role="presentation">
-								<a href="{% url 'idgo_admin:datasets' site_name='admin' %}" aria-controls="datasets" role="tab">Mes jeux de données</a>
+								<a href="{% url 'idgo_admin:list_my_datasets' site_name='admin' %}" aria-controls="my-datasets" role="tab">Mes jeux de données</a>
 							</li>
 							{% endif %}
 							<li role="presentation">
@@ -221,7 +221,6 @@ $(document).ajaxSend(function(e, xhr, settings) {
 								<a href="{% url 'idgo_admin:jurisdictions' site_name='admin' %}" role="tab">Territoires</a>
 							</li>
 							{% endif %}
-
 							<li role="presentation">
 								{# L'onglet extracteur est uniquement visible pour les utilisateurs CRIGE #}
 								{% if user.profile.crige_membership %}
@@ -230,8 +229,6 @@ $(document).ajaxSend(function(e, xhr, settings) {
 								{% include "idgo_admin/extras/crige_restricted_access/link.html" with text="Extractions" role="tab" target="modal_forbidden" body="<p>Vous devez vous authentifier ou disposer des droits nécessaires pour accéder à l'extraction de données géographiques.</p><p>Pour faire votre demande d'affiliation et en savoir plus, rendez-vous sur votre page Organisation dans l'espace utilisateur de DATA SUD.</p>" %}
 								{% endif %}
 							</li>
-
-
 							{% block nav_content_extra %}
 							{% endblock nav_content_extra %}
 						</ul>

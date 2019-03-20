@@ -43,6 +43,8 @@ from idgo_admin.forms.account import UserDeleteForm
 from idgo_admin.forms.account import UserForgetPassword
 from idgo_admin.forms.account import UserResetPassword
 from idgo_admin.models import AccountActions
+from idgo_admin.models import Gdpr
+from idgo_admin.models import GdprUser
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models.mail import send_account_creation_confirmation_mail
@@ -256,17 +258,28 @@ class ReferentAccountManager(View):
         return HttpResponse(status=200)
 
 
-def sign_up_process(request, profile, mail=True):
-    action = AccountActions.objects.create(profile=profile, action='confirm_mail')
-    if mail:
-        url = request.build_absolute_uri(
-            reverse('idgo_admin:confirmation_mail', kwargs={'key': action.key}))
-        send_account_creation_confirmation_mail(action.profile.user, url)
-
-
 @method_decorator(decorators[0], name='dispatch')
 class SignUp(View):
     template = 'idgo_admin/signup.html'
+
+    @staticmethod
+    def sign_up_process(request, profile, mail=True):
+        action = AccountActions.objects.create(profile=profile, action='confirm_mail')
+        if mail:
+            url = request.build_absolute_uri(
+                reverse('idgo_admin:confirmation_mail', kwargs={'key': action.key}))
+            send_account_creation_confirmation_mail(action.profile.user, url)
+
+    @staticmethod
+    def gdpr_aggrement(profile, terms_and_conditions):
+        if not terms_and_conditions:
+            raise IntegrityError
+        try:
+            GdprUser.objects.create(
+                user=profile.user, gdpr=Gdpr.objects.latest('issue_date')
+            )
+        except Exception:
+            raise IntegrityError
 
     def get(self, request):
         return render(request, self.template, {'form': SignUpForm()})
@@ -299,6 +312,10 @@ class SignUp(View):
                 profile_data['organisation'] = organisation
                 profile = Profile.objects.create(**profile_data)
 
+                self.gdpr_aggrement(
+                    profile, form.cleaned_data.get('terms_and_conditions', False)
+                )
+
                 CkanHandler.add_user(profile.user, form.cleaned_user_data['password'])
         except ValidationError as e:
             messages.error(request, e.message)
@@ -309,7 +326,7 @@ class SignUp(View):
             return render(request, self.template, context={'form': form})
 
         # else:
-        sign_up_process(request, profile)
+        self.sign_up_process(request, profile)
 
         if form.create_organisation:
             creation_process(request, profile, organisation, mail=False)

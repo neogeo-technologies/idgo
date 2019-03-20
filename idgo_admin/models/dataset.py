@@ -30,7 +30,8 @@ from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin import logger
 from idgo_admin.managers import DefaultDatasetManager
-from idgo_admin.managers import HarvestedDatasetManager
+from idgo_admin.managers import HarvestedCkanDatasetManager
+from idgo_admin.managers import HarvestedCswDatasetManager
 from idgo_admin.utils import three_suspension_points
 from taggit.admin import Tag
 from taggit.managers import TaggableManager
@@ -74,7 +75,8 @@ class Dataset(models.Model):
 
     objects = models.Manager()
     default = DefaultDatasetManager()
-    harvested = HarvestedDatasetManager()
+    harvested_ckan = HarvestedCkanDatasetManager()
+    harvested_csw = HarvestedCswDatasetManager()
 
     # Champs atributaires
     # ===================
@@ -257,11 +259,6 @@ class Dataset(models.Model):
         default=False,
         )
 
-    is_inspire = models.BooleanField(
-        verbose_name="Le jeu de données est soumis à la règlementation INSPIRE",
-        default=False,
-        )
-
     geonet_id = models.UUIDField(
         verbose_name="Identifiant de la fiche de métadonnées",
         null=True,
@@ -297,7 +294,12 @@ class Dataset(models.Model):
 
     @property
     def ckan_url(self):
-        return urljoin(settings.CKAN_URL, 'dataset/{}'.format(self.slug))
+        return urljoin(CKAN_URL, 'dataset/', self.slug)
+
+    @property
+    def geonet_url(self):
+        if self.geonet_id:
+            return urljoin(GEONETWORK_URL, 'srv/fre/catalog.search#/metadata/', self.geonet_id)
 
     @property
     def bounds(self):
@@ -306,15 +308,20 @@ class Dataset(models.Model):
             return [[miny, minx], [maxy, maxx]]
 
     @property
-    def is_harvested(self):
+    def remote_ckan_dataset(self):
         Model = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
         try:
-            remote_ckan_dataset = Model.objects.get(dataset=self)
+            return Model.objects.get(dataset=self)
         except Model.DoesNotExist:
-            return False
-        else:
-            self.remote_ckan_dataset = remote_ckan_dataset
-            return True
+            return None
+
+    @property
+    def remote_csw_dataset(self):
+        Model = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
+        try:
+            return Model.objects.get(dataset=self)
+        except Model.DoesNotExist:
+            return None
 
     # Méthodes héritées
     # =================
@@ -446,9 +453,9 @@ class Dataset(models.Model):
 
         datatype = [item.slug for item in self.data_type.all()]
 
-        dataset_creation_date = self.date_creation and str(self.date_creation) or ''
-        dataset_modification_date = self.date_modification and str(self.date_modification) or ''
-        dataset_publication_date = self.date_publication and str(self.date_publication) or ''
+        date_creation = self.date_creation and str(self.date_creation) or ''
+        date_modification = self.date_modification and str(self.date_modification) or ''
+        date_publication = self.date_publication and str(self.date_publication) or ''
 
         broadcaster_name = self.broadcaster_name or \
             self.support and self.support.name or DEFAULT_PLATFORM_NAME
@@ -458,11 +465,6 @@ class Dataset(models.Model):
         geocover = self.geocover or ''
 
         granularity = self.granularity and self.granularity.slug or ''
-
-        if self.geonet_id:
-            inspire_url = '{0}srv/fre/catalog.search#/metadata/{1}'.format(GEONETWORK_URL, self.geonet_id or '')
-        else:
-            inspire_url = ''
 
         licenses = [license['id'] for license in CkanHandler.get_licenses()]
         if self.license and self.license.ckan_id in licenses:
@@ -497,14 +499,14 @@ class Dataset(models.Model):
             'author': self.owner_name,
             'author_email': self.owner_email,
             'datatype': datatype,
-            'dataset_creation_date': dataset_creation_date,
-            'dataset_modification_date': dataset_modification_date,
-            'dataset_publication_date': dataset_publication_date,
+            'dataset_creation_date': date_creation,
+            'dataset_modification_date': date_modification,
+            'dataset_publication_date': date_publication,
             'frequency': self.update_frequency or 'unknow',
             'geocover': geocover,
             'granularity': granularity,
             'groups': [],
-            'inspire_url': inspire_url,
+            'inspire_url': self.geonet_url,
             'license_id': license_id,
             'maintainer': broadcaster_name,
             'maintainer_email': broadcaster_email,

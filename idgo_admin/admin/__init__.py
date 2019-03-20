@@ -24,3 +24,4 @@ from idgo_admin.admin.organisation import *
 from idgo_admin.admin.supported_crs import *
 from idgo_admin.admin.task import *
 from idgo_admin.admin.user import *
+from idgo_admin.admin.gdpr import *

@@ -154,7 +154,7 @@ function runApp(configSrv, modelsSrv, viewsSrv, xmlSrv, AppDataSrv, BroadcastSrv
 <script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.services.js" %}"></script>
 <script>
 $(function() {
-	$('#menu a[href="{% url "idgo_admin:datasets" %}"]').parent().addClass('active');
+	$('#menu a[href="{% url "idgo_admin:list_my_datasets" %}"]').parent().addClass('active');
 
 	const $scope = angular.element('div[ng-controller="mdEditCtrl as vm"]').scope();
 
