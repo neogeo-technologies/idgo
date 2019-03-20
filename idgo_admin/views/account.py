@@ -276,7 +276,7 @@ class SignUp(View):
             raise IntegrityError
         try:
             GdprUser.objects.create(
-                user=profile.user, grpd=Gdpr.objects.latest('issue_date')
+                user=profile.user, gdpr=Gdpr.objects.latest('issue_date')
             )
         except Exception:
             raise IntegrityError

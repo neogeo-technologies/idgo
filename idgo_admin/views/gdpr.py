@@ -38,5 +38,5 @@ class GdprView(View):
 
     def post(self, request):
         user, profile = user_and_profile(request)
-        GdprUser.objects.create(user=user, grpd=Gdpr.objects.latest('issue_date'))
+        GdprUser.objects.create(user=user, gdpr=Gdpr.objects.latest('issue_date'))
         return mama_redirect('idgo_admin:list_my_datasets')
