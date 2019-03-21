@@ -241,8 +241,7 @@ admin.site.unregister(Tag)
 
 
 class KeywordsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name',)
-    list_editable = ('name',)
+    list_display = ('name',)
     list_filter = (KwInputFilter,)
     actions = ('merge_name',)
     readonly_fields = ('slug',)
