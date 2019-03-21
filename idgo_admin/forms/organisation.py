@@ -35,7 +35,9 @@ from idgo_admin.forms import PhoneField
 from idgo_admin.forms import PostcodeField
 from idgo_admin.forms import ReferentField
 from idgo_admin.forms import WebsiteField
+from idgo_admin.models import Category
 from idgo_admin.models import Jurisdiction
+from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import RemoteCkan
 from idgo_admin.models import RemoteCsw
@@ -129,6 +131,7 @@ class RemoteCkanForm(forms.ModelForm):
             'sync_with',
             'sync_frequency',
             )
+        mapping = tuple()
 
     url = forms.URLField(
         label="URL du catalogue CKAN à synchroniser",
@@ -183,6 +186,60 @@ class RemoteCkanForm(forms.ModelForm):
                             'package_count',
                             organisation.get('packages', None))))
                     for organisation in organisations)
+
+            mapping = []
+            try:
+                with CkanBaseHandler(instance.url) as ckan:
+                    remote_categories = ckan.get_all_categories(all_fields=True)
+            except CkanBaseError:
+                pass
+            else:
+                fields_name = []
+                for remote_category in remote_categories:
+                    field_name = remote_category['name']
+                    fields_name.append(field_name)
+
+                    field = forms.ModelChoiceField(
+                        label=remote_category['title'],
+                        empty_label="Sélectionnez une valeur",
+                        required=False,
+                        queryset=Category.objects.all(),
+                        )
+                    self.fields[field_name] = field
+
+                mapping.append({
+                    'name': 'Category',
+                    'title': 'Categories',
+                    'fields_name': fields_name,
+                    })
+
+            try:
+                with CkanBaseHandler(instance.url) as ckan:
+                    remote_licenses = ckan.get_all_licenses(all_fields=True)
+            except CkanBaseError:
+                pass
+            else:
+                fields_name = []
+                for remote_license in remote_licenses:
+                    field_name = remote_license['name']
+                    fields_name.append(field_name)
+
+                    field = forms.ModelChoiceField(
+                        label=remote_license['title'],
+                        empty_label="Sélectionnez une valeur",
+                        required=False,
+                        queryset=License.objects.all(),
+                        )
+                    self.fields[field_name] = field
+
+                mapping.append({
+                    'name': 'License',
+                    'title': 'Licences',
+                    'fields_name': fields_name,
+                    })
+
+            self.Meta.mapping = tuple(mapping)
+
         else:
             self.fields['sync_with'].widget = forms.HiddenInput()
             self.fields['sync_frequency'].widget = forms.HiddenInput()

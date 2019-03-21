@@ -45,7 +45,9 @@
 				<div class="panel panel-default">
 					<div class="panel-body">
 				{% for text in form.sync_with.errors reversed %}
-						<div class="help-block"><span class="glyphicon glyphicon-warning-sign"></span> {{ text }}</div>
+						<div class="help-block">
+							<span class="glyphicon glyphicon-warning-sign"></span> {{ text }}
+						</div>
 				{% endfor %}
 					</div>
 				</div>
@@ -57,6 +59,49 @@
 	</div>
 		{% endif %}
 	{% endfor %}
+	{% if form.Meta.mapping %}
+	{% load extra_tags %}
+	<div class="row">
+		<div class="col-sm-12 col-md-8">
+			<ul class="nav nav-tabs nav-tabs-default" name="mapping-selector" role="tablist">
+				{% for item in form.Meta.mapping %}
+				<li role="presentation" {% if forloop.counter0 == 0 %}class="active"{% endif %}>
+					<a href="#{{ item.name }}" aria-controls="{{ item.name }}" role="tab" data-toggle="tab">{{ item.title }}</a>
+				</li>
+				{% endfor %}
+			</ul>
+			<div class="tab-content tab-content-default">
+				{% for item in form.Meta.mapping %}
+				<div role="tabpanel" class="tab-pane{% if forloop.counter0 == 0 %} active{% endif %}" name="mapping-selector-panel" id="{{ item.name }}">
+					<div class="tab-pane-content">
+						<div class="table-responsive">
+							<table class="table table-condensed">
+								<tr>
+									<th name="left" style="width: 50%">Gauche</th>
+									<th name="right" style="width: 50%">Droite</th>
+								</tr>
+								{% for field_name in item.fields_name %}
+								{% with form|keyvalue:field_name as field %}
+								<tr id="{{ fields_name }}" name="{{ fields_name }}">
+									<td name="left" style="vertical-align: middle;">
+										{{ field.label }}
+										<span style="float: right;">=</span>
+									</td>
+									<td name="right" style="vertical-align: middle;">
+										{% bootstrap_field field show_label=False %}
+									</td>
+								</tr>
+								{% endwith %}
+								{% endfor %}
+							</table>
+						</div>
+					</div>
+				</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+	{% endif %}
 	<br />
 	<div class="buttons-on-the-right-side">
 		{% if instance %}

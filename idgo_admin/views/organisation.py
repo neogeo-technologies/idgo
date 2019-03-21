@@ -29,6 +29,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import functools
+from idgo_admin.ckan_module import CkanBaseHandler
+# from idgo_admin.csw_module import CswBaseHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CswBaseError
 from idgo_admin.exceptions import ExceptionsHandler
@@ -46,6 +48,8 @@ from idgo_admin.models.mail import send_mail_asking_for_crige_partnership
 from idgo_admin.models.mail import send_membership_confirmation_mail
 from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
 from idgo_admin.models.mail import send_referent_confirmation_mail
+from idgo_admin.models import Category
+from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import RemoteCkan

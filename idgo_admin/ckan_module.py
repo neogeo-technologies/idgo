@@ -170,6 +170,19 @@ class CkanBaseHandler(object):
         return self.remote.call_action(action, kwargs)
 
     @CkanExceptionsHandler()
+    def get_all_categories(self, *args, **kwargs):
+        kwargs.setdefault('order_by', 'name')
+        return [
+            category for category
+            in self.call_action('group_list', **kwargs)]
+
+    @CkanExceptionsHandler()
+    def get_all_licenses(self, *args, **kwargs):
+        return [
+            license for license
+            in self.call_action('license_list', **kwargs)]
+
+    @CkanExceptionsHandler()
     def get_all_organisations(self, *args, **kwargs):
         return [
             organisation for organisation
