@@ -128,14 +128,30 @@ def handle_pust_request(request, dataset_name=None):
 
     data = getattr(request, request.method).dict()
 
-    try:
-        organisation = Organisation.objects.get(slug=data.get('organisation'))
-        license = License.objects.get(slug=data.get('license'))
-    except (Organisation.DoesNotExist, License.DoesNotExist) as e:
-        raise GenericException(details=e.__str__())
+    organisation_slug = data.get('organisation')
+    if organisation_slug:
+        try:
+            organisation = Organisation.objects.get(slug=organisation_slug)
+        except Organisation.DoesNotExist as e:
+            raise GenericException(details=e.__str__())
+    elif dataset:
+        organisation = dataset.organisation
+    else:
+        organisation = None
+
+    license_slug = data.get('license')
+    if data.get('license'):
+        try:
+            license = License.objects.get(slug=license_slug)
+        except License.DoesNotExist as e:
+            raise GenericException(details=e.__str__())
+    elif dataset:
+        license = dataset.license
+    else:
+        license = None
 
     data_form = {
-        'title': data.get('title'),
+        'title': data.get('title', dataset and dataset.title),
         'slug': data.get('name', slugify(data.get('title'))),
         'description': data.get('description'),
         # 'thumbnail' -> request.FILES
@@ -191,10 +207,9 @@ def handle_pust_request(request, dataset_name=None):
 
     try:
         with transaction.atomic():
-            if pk:
-                dataset = Dataset.objects.get(pk=pk)
+            if dataset:
                 for k, v in kvp.items():
-                    setattr(instance, k, v)
+                    setattr(dataset, k, v)
             else:
                 kvp['editor'] = user
                 save_opts = {'current_user': user, 'synchronize': False}
