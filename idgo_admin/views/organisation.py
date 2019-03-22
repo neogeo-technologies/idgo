@@ -188,15 +188,15 @@ def organisation(request, id=None):
         'legal_name': instance.legal_name,
         'crige': instance.is_crige_partner,
         # logo -> see below
-        'type': instance.organisation_type and instance.organisation_type.name or '-',
+        'type': instance.organisation_type and instance.organisation_type.name,
         'jurisdiction':
-            instance.jurisdiction and instance.jurisdiction.name or '-',
-        'address': instance.address or '-',
+            instance.jurisdiction and instance.jurisdiction.name,
+        'address': instance.address,
         'postcode': instance.postcode,
         'city': instance.city,
-        'phone': instance.phone or '-',
-        'website': instance.website or '-',
-        'email': instance.email or '-',
+        'phone': instance.phone,
+        'website': instance.website,
+        'email': instance.email,
         'description': instance.description,
         'members': [{
             'username': member.user.username,

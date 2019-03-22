@@ -315,13 +315,26 @@ $(function() {
 		for (const k in data) {
 			if (k == 'website') {
 				$content.find('[name="' + k + '"]').prop('href', data[k]);
-			};
-			if (k == 'email') {
+			}
+			else if (k == 'email') {
 				$content.find('[name="' + k + '"]').prop('href', 'mailto:' + data[k] + '?subject={{ platform_name }}');
-			};
-			if (k == 'logo') {
+			}
+			else if (k == 'logo') {
 				$content.find('[name="' + k + '"]').prop('src', data[k]);
-			} else {
+			}
+			else if (k == 'jurisdiction') {
+				var _content = '';
+				if (data[k]) {
+					_content = data[k];
+				} else {
+					_content = "<p>L'organisation n'est rattachée à aucun territoire de compétence.</p>";
+					if (isReferent()) {
+						_content += "<p>Vous pouvez en faire la demande en éditant l'organisation.</p>";
+					};
+				};
+				$content.find('[name="' + k + '"]').html(_content);
+			}
+			else {
 				$content.find('[name="' + k + '"]').text(data[k]);
 			};
 		};
