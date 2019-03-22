@@ -78,33 +78,33 @@
 				{% bootstrap_field form.up_file %}
 			{% elif mode == 'dl_url' %}
 				{% bootstrap_field form.dl_url %}
-				<div class="row">
-					<div class="col-xs-5 col-sm-5 col-md-4">
-						{% bootstrap_field form.synchronisation_dl %}
-					</div>
+			<div class="row">
+				<div class="col-xs-5 col-sm-5 col-md-4">
+					{% bootstrap_field form.synchronisation_dl %}
 				</div>
-				<div class="row">
-					<div class="col-xs-5 col-sm-5 col-md-4">
-						{% bootstrap_field form.sync_frequency_dl show_label=False %}
-					</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-5 col-sm-5 col-md-4">
+					{% bootstrap_field form.sync_frequency_dl show_label=False %}
 				</div>
+			</div>
 			{% elif mode == 'referenced_url' %}
 				{% bootstrap_field form.referenced_url %}
 			{% elif mode == 'ftp_file' %}
 				{% bootstrap_field form.ftp_file %}
-				<div class="row">
-					<div class="col-xs-5 col-sm-5 col-md-4">
-						{% bootstrap_field form.synchronisation_ftp %}
-					</div>
+			<div class="row">
+				<div class="col-xs-5 col-sm-5 col-md-4">
+					{% bootstrap_field form.synchronisation_ftp %}
 				</div>
-				<div class="row">
-					<div class="col-xs-5 col-sm-5 col-md-4">
-						{% bootstrap_field form.sync_frequency_ftp show_label=False %}
-					</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-5 col-sm-5 col-md-4">
+					{% bootstrap_field form.sync_frequency_ftp show_label=False %}
 				</div>
+			</div>
 			{% endif %}
 		{% else %}
-			<ul class="nav nav-tabs" name="data-selector" role="tablist">
+			<ul class="nav nav-tabs nav-tabs-default" name="data-selector" role="tablist">
 				<li role="presentation">
 					<a name="up_file" href="#up_file" aria-controls="up_file" role="tab" data-toggle="tab">Téléverser un fichier</a>
 				</li>
@@ -118,7 +118,7 @@
 					<a name="ftp_file" href="#ftp_file" aria-controls="ftp_file" role="tab" data-toggle="tab">Dépôt FTP</a>
 				</li>
 			</ul>
-			<div class="tab-content" name="data-selector-panel">
+			<div class="tab-content tab-content-default" name="data-selector-panel">
 				<div role="tabpanel" class="tab-pane" id="up_file">
 					{% bootstrap_field form.up_file show_label=False %}
 				</div>
