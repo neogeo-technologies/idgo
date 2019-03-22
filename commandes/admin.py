@@ -21,18 +21,40 @@ from commandes.models import Order
 from datetime import datetime
 from django.contrib import admin
 from django.utils.html import format_html
-from django_admin_listfilter_dropdown.filters import DropdownFilter
-from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+# from django_admin_listfilter_dropdown.filters import DropdownFilter
+# from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 
 
 # def send_email(modeladmin, request, queryset):
 #     queryset.update(status='p')
 # send_email.short_description = "Mark selected stories as published"
 
+# filtre des commandes par année
+class YearListFilter(admin.SimpleListFilter):
+
+    title = ('année de la demande')
+    parameter_name = 'year'
+
+    def lookups(self, _request, _model_admin):
+        year = 2018
+        years = []
+        while datetime(year, 1, 1) < datetime.now():
+            years.append(year)
+            year += 1
+
+        return [(year, str(year)) for year in years]
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(date__year=self.value())
+
 
 class OrderAdmin(admin.ModelAdmin):
 
-    list_display = ('date', 'applicant', 'email', 'organisation', 'terr', 'status')
+    list_display = ('date', 'user_full_name', 'email', 'orga', 'terr', 'status')
+    raw_id_fields = ('applicant',)
+    readonly_fields = ('orga',)
+    list_filter = (YearListFilter, 'status')
 
     # ajout de l'email de l'utilisateur
     def email(self, obj):
@@ -42,8 +64,19 @@ class OrderAdmin(admin.ModelAdmin):
     # ajout du nom du territoire de compétences
 
     def terr(self, obj):
-        return obj.organisation.jurisdiction
+        if obj:
+            return obj.applicant.profile.organisation.jurisdiction
     terr.short_description = 'Territoire de compétences'
+
+    def orga(self, obj):
+        if obj:
+            return obj.applicant.profile.organisation
+    orga.short_description = 'Organisation'
+
+    def user_full_name(self, obj):
+        if obj:
+            return obj.applicant.first_name + ' ' + obj.applicant.last_name
+    user_full_name.short_description = 'Demandeur'
 
     # action d'export en csv
     actions = [
@@ -54,27 +87,6 @@ class OrderAdmin(admin.ModelAdmin):
     export_as_csv_action.short_description = "Exporter en CSV"
     email_cadastre_wrong_files.short_description = "Email documents invalides"
     email_cadastre_habilitation.short_description = "Email pas d'habilitation"
-
-    # filtre des commandes par année
-    class YearListFilter(admin.SimpleListFilter):
-
-        title = ('année de la demande')
-        parameter_name = 'year'
-
-        def lookups(self, _request, _model_admin):
-            year = 2018
-            years = []
-            while datetime(year, 1, 1) < datetime.now():
-                years.append(year)
-                year += 1
-
-            return [(year, str(year)) for year in years]
-
-        def queryset(self, request, queryset):
-            if self.value() is not None:
-                return queryset.filter(date__year=self.value())
-
-    list_filter = (('organisation', RelatedDropdownFilter), YearListFilter,)
 
 
 admin.site.register(Order, OrderAdmin)
