@@ -16,6 +16,10 @@
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db.models import BooleanField
+from django.db.models import Case
+from django.db.models import Value
+from django.db.models import When
 from django import forms
 from django.forms.models import ModelChoiceIterator
 from django.utils import timezone
@@ -348,6 +352,23 @@ class ResourceForm(forms.ModelForm):
 
         if instance and instance.up_file:
             self.fields['up_file'].widget.attrs['value'] = instance.up_file
+
+        if instance:
+            related_profiles = Case(
+                When(pk__in=[m.pk for m in instance.profiles_allowed.all()], then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+                )
+            self.fields['profiles_allowed'].queryset = \
+                Organisation.objects.annotate(related=related_profiles).order_by('-related', 'slug')
+
+            related_organisations = Case(
+                When(pk__in=[m.pk for m in instance.organisations_allowed.all()], then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+                )
+            self.fields['organisations_allowed'].queryset = \
+                Organisation.objects.annotate(related=related_organisations).order_by('-related', 'slug')
 
     def clean(self):
 
