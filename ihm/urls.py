@@ -14,21 +14,10 @@
 # under the License.
 
 
-from django.http import JsonResponse
-from ihm.models import IHMSettings
-from rest_framework import permissions
-from rest_framework.views import APIView
+from django.conf.urls import url
+from ihm.views import CkanIHMSettings
 
 
-class CkanIHMSettings(APIView):
-
-    permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly,
-        ]
-
-    def get(self, request):
-        data = [{
-            'name': settings.name,
-            'content': settings.contents,
-            } for settings in IHMSettings.objects.filter(target='ckan')]
-        return JsonResponse(data, safe=False)
+urlpatterns = [
+    url('^ckan/settings/?$', CkanIHMSettings.as_view(), name='ckan_settings'),
+    ]
