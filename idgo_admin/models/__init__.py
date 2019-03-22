@@ -40,6 +40,8 @@ from idgo_admin.models.organisation import RemoteCkan
 from idgo_admin.models.organisation import RemoteCkanDataset
 from idgo_admin.models.organisation import RemoteCsw
 from idgo_admin.models.organisation import RemoteCswDataset
+from idgo_admin.models.organisation import MappingLicence
+from idgo_admin.models.organisation import MappingCategory
 from idgo_admin.models.resource import Resource
 from idgo_admin.models.resource import ResourceFormats
 from idgo_admin.models.support import Support
