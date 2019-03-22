@@ -196,6 +196,8 @@ class UserList(APIView):
         ]
 
     def get(self, request):
+        if not hasattr(request.user, 'profile'):
+            raise Http404()
         data = handler_get_request(request)
         return JsonResponse(data, safe=False)
 
