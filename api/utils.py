@@ -15,16 +15,23 @@
 
 
 from django.http.multipartparser import MultiPartParserError
+from django.http.request import MultiValueDict
+from django.http.request import QueryDict
 from io import BytesIO
 
 
 def parse_request(request):
-    if hasattr(request, '_body'):
-        data = BytesIO(request._body)
+    if request.content_type == 'multipart/form-data':
+        if hasattr(request, '_body'):
+            data = BytesIO(request._body)
+        else:
+            data = request
+        try:
+            return request.parse_file_upload(request.META, data)
+        except MultiPartParserError:
+            request._mark_post_parse_error()
+            return
+    elif request.content_type == 'application/x-www-form-urlencoded':
+        return QueryDict(request.body, encoding=request._encoding), MultiValueDict()
     else:
-        data = request
-    try:
-        return request.parse_file_upload(request.META, data)
-    except MultiPartParserError:
-        request._mark_post_parse_error()
-        raise
+        return QueryDict(encoding=request._encoding), MultiValueDict()

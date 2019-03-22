@@ -237,7 +237,6 @@ class DatasetShow(APIView):
 
     def put(self, request, dataset_name):
         """Modifier le jeu de données."""
-        # Django fait les choses à moitié...
         request.PUT, request._files = parse_request(request)
         try:
             handle_pust_request(request, dataset_name=dataset_name)
