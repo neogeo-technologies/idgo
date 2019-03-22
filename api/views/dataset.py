@@ -118,7 +118,7 @@ def handle_pust_request(request, dataset_name=None):
     dataset = None
     if dataset_name:
         for instance in handler_get_request(request):
-            if dataset.slug == dataset_name:
+            if instance.slug == dataset_name:
                 dataset = instance
                 break
         if not instance:
