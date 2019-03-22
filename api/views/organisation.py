@@ -106,7 +106,7 @@ def handle_pust_request(request, organisation_name=None):
         data_form, request.FILES,
         instance=organisation, include={'user': user})
     if not form.is_valid():
-        return GenericException(details=form._errors)
+        raise GenericException(details=form._errors)
 
     data = form.cleaned_data
     kvp = dict((item, form.cleaned_data[item])
@@ -182,6 +182,7 @@ class OrganisationList(APIView):
             raise Http404()
         except GenericException as e:
             return JsonResponse({'error': e.details}, status=400)
+
         response = HttpResponse(status=201)
         response['Content-Location'] = ''
         return response
