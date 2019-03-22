@@ -92,9 +92,9 @@ def serialize(dataset):
         ('type', data_type),
         ('private', dataset.private),
         ('owner_name', dataset.owner_name),
-        ('owner_email', dataset.owner_name),
+        ('owner_email', dataset.owner_email),
         ('broadcaster_name', dataset.broadcaster_name),
-        ('broadcaster_email', dataset.broadcaster_name),
+        ('broadcaster_email', dataset.broadcaster_email),
         ('granularity', granularity),
         ('extent', extent),
         ])
