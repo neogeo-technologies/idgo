@@ -18,7 +18,6 @@ from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils import timezone
-from idgo_admin.models import Organisation
 
 
 TODAY = timezone.now().date()
@@ -50,12 +49,6 @@ class Order(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Demandeur',
         limit_choices_to={'profile__crige_membership': True}
-        )
-
-    organisation = models.ForeignKey(
-        Organisation,
-        default=92,
-        verbose_name='Organisation*'
         )
 
     dpo_cnil = models.FileField(
