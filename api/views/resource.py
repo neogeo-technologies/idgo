@@ -251,7 +251,6 @@ class ResourceShow(APIView):
 
     def put(self, request, dataset_name, resource_id):
         """Modifier la ressource."""
-        # Django fait les choses à moitié...
         request.PUT, request._files = parse_request(request)
         try:
             resource_id = UUID(resource_id)

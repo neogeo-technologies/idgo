@@ -177,7 +177,6 @@ class UserShow(APIView):
 
     def put(self, request, username):
         """Mettre à jour un utilisateur."""
-        # Django fait les choses à moitié...
         request.PUT, request._files = parse_request(request)
         if not request.user.profile.is_admin:
             raise Http404()
