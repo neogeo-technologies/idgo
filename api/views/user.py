@@ -137,7 +137,7 @@ def handle_pust_request(request, username=None):
     if username:
         form = UpdateAccountForm(data_form, instance=user)
     else:
-        form = SignUpForm(data_form)
+        form = SignUpForm(data_form, unlock_terms=True)
     if not form.is_valid():
         raise GenericException(details=form._errors)
     try:

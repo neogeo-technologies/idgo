@@ -25,7 +25,9 @@ TERMS_URL = settings.TERMS_URL
 class TermsRequired(object):
 
     IGNORE_PATH = (
+        # IMPORTANT, sinon le service redirige en boucle sur cette page
         reverse(settings.TERMS_URL),
+        # Un utilisateur doit pouvoir se connecter et se déconnecter
         reverse(settings.LOGIN_URL),
         reverse(settings.LOGOUT_URL),
         )
@@ -35,9 +37,14 @@ class TermsRequired(object):
 
     def __call__(self, request):
         user = request.user
-        if hasattr(user, 'profile') \
-                and not user.profile.is_agree_with_terms \
-                and request.path not in self.IGNORE_PATH:
+
+        # L'utilisateur doit avoir un profil associé
+        # Les administrateurs ne sont pas concernés
+        # Les utilisateurs ayant déjà validés les conditions ne sont pas concernés
+        if request.path not in self.IGNORE_PATH \
+                and hasattr(user, 'profile') \
+                and not user.profile.is_admin \
+                and not user.profile.is_agree_with_terms:
             return redirect(reverse(settings.TERMS_URL))
 
         response = self.get_response(request)

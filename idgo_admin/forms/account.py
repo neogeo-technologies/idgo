@@ -323,14 +323,18 @@ class SignUpForm(forms.Form):
     terms_and_conditions = TermsAndConditionsField()
 
     def __init__(self, *args, **kwargs):
+
+        self.unlock_terms = kwargs.pop('unlock_terms', False)
+
         super().__init__(*args, **kwargs)
 
+        self.fields['terms_and_conditions'].required = not self.unlock_terms
         self.fields['password1'].widget.attrs['placeholder'] = 'Mot de passe'
         self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le mot de passe'
 
     def clean(self):
 
-        if not self.cleaned_data.get('terms_and_conditions'):
+        if not self.unlock_terms and not self.cleaned_data.get('terms_and_conditions'):
             self.add_error('terms_and_conditions', "Vous devez accepter les conditions générales d'utilisation.")
 
         username = self.cleaned_data.get('username')
