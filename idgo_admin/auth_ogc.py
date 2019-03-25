@@ -57,6 +57,7 @@ def retrieve_resources_through_ows_url(url):
     if not layers:
         return None
     layers = set(layers.replace(' ', '').split(','))
+    layers = [layer.split(':')[-1] for layer in layers]
     resources = set()
     for resource in Resource.objects.filter(
             dataset__in=Dataset.objects.filter(slug__in=layers)).distinct():
