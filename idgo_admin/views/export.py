@@ -137,7 +137,7 @@ class Export(View):
 
         outputformat = params.get('format')
         if not outputformat or outputformat not in ('odl', 'datasud'):
-            raise Http404
+            raise Http404()
 
         if outputformat == 'odl':
             annotate = OrderedDict((

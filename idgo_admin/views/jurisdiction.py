@@ -59,7 +59,7 @@ def jurisdiction(request, *args, **kwargs):
 
     id = request.GET.get('id', None)
     if not id:
-        raise Http404
+        raise Http404()
 
     instance = get_object_or_404(Jurisdiction, code=id)
 
@@ -74,7 +74,7 @@ def jurisdictions(request, *args, **kwargs):
 
     # Accès réservé aux administrateurs IDGO
     if not profile.is_admin:
-        raise Http404
+        raise Http404()
 
     jurisdictions = Jurisdiction.objects.all()
 
@@ -114,12 +114,12 @@ class JurisdictionView(View):
 
         if code not in ('for', 'new'):
             if not profile.is_crige_admin:
-                raise Http404
+                raise Http404()
             fake = None
             jurisdiction = get_object_or_404(Jurisdiction, code=code)
         else:
             if code == 'new' and not profile.is_crige_admin:
-                raise Http404
+                raise Http404()
             fake = (code == 'for')
             jurisdiction = None
             code = None
@@ -153,12 +153,12 @@ class JurisdictionView(View):
 
         if code not in ('for', 'new'):
             if not profile.is_crige_admin:
-                raise Http404
+                raise Http404()
             fake = None
             jurisdiction = get_object_or_404(Jurisdiction, code=code)
         else:
             if code == 'new' and not profile.is_crige_admin:
-                raise Http404
+                raise Http404()
             fake = (code == 'for')
             jurisdiction = None
             code = None
@@ -255,7 +255,7 @@ class JurisdictionView(View):
     def delete(self, request, code, *args, **kwargs):
 
         if code == 'new':
-            raise Http404
+            raise Http404()
 
         user, profile = user_and_profile(request)
         jurisdiction = get_object_or_404(Jurisdiction, code=code)

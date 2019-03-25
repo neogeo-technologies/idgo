@@ -116,8 +116,8 @@ def layer_styles(request, dataset_id=None, resource_id=None, layer_id=None, *arg
 def layer_style(request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
     user, profile = user_and_profile(request)
     style_id = request.GET.get('id', None)
-    if not id:
-        raise Http404
+    if not style_id:
+        raise Http404()
     get_object_or_404(Layer, resource=resource_id)
     kwargs = {
         'dataset_id': dataset_id,

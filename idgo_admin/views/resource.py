@@ -66,7 +66,7 @@ def resource(request, dataset_id=None, *args, **kwargs):
 
     id = request.GET.get('id', request.GET.get('ckan_id'))
     if not id:
-        raise Http404
+        raise Http404()
 
     kvp = {}
     try:
@@ -316,7 +316,7 @@ class ResourceManager(View):
 
         id = request.POST.get('id', request.GET.get('id'))
         if not id:
-            raise Http404
+            raise Http404()
         include = {'id': id, 'dataset': dataset}
         resource = get_object_or_404_extended(Resource, user, include=include)
 

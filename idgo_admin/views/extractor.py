@@ -125,7 +125,7 @@ class ExtractorDashboard(View):
 
         user, profile = user_and_profile(request)
         if not profile.crige_membership:
-            raise Http404
+            raise Http404()
 
         order_by = request.GET.get('sortby', '-submission')
 
@@ -172,7 +172,7 @@ class ExtractorDashboard(View):
 
         user, profile = user_and_profile(request)
         if not profile.crige_membership:
-            raise Http404
+            raise Http404()
 
         if 'revoke' in request.POST:
             task = get_object_or_404(
@@ -216,7 +216,7 @@ class Extractor(View):
         try:
             return ModelObj.objects.get(**{key: value})
         except (ModelObj.DoesNotExist, ValueError):
-            raise Http404
+            raise Http404()
 
     def _context(self, user, organisation=None, dataset=None,
                  resource=None, layer=None, task=None):
@@ -379,7 +379,7 @@ class Extractor(View):
     def get(self, request, *args, **kwargs):
         user, profile = user_and_profile(request)
         if not profile.crige_membership:
-            raise Http404
+            raise Http404()
 
         return render_with_info_profile(
             request, self.template,
@@ -389,7 +389,7 @@ class Extractor(View):
     def post(self, request, *args, **kwargs):
         user, profile = user_and_profile(request)
         if not profile.crige_membership:
-            raise Http404
+            raise Http404()
 
         context = self.get_context(request, user)
         footprint = request.POST.get('footprint') or None

@@ -75,7 +75,7 @@ class PasswordManager(View):
             try:
                 uuid.UUID(key)
             except Exception:
-                raise Http404
+                raise Http404()
 
             if process == 'initiate':
                 template = 'idgo_admin/initiatepassword.html'
@@ -146,7 +146,7 @@ class PasswordManager(View):
         try:
             uuid.UUID(key)
         except Exception:
-            raise Http404
+            raise Http404()
 
         if not form.is_valid():
             return render(request, template,
@@ -226,7 +226,7 @@ class ReferentAccountManager(View):
         username = request.GET.get('username')
         target = request.GET.get('target')
         if not organisation_id or not username or target not in ['members', 'contributors', 'referents']:
-            raise Http404
+            raise Http404()
 
         profile = get_object_or_404(Profile, user__username=username)
         organisation = get_object_or_404(Organisation, id=organisation_id)
@@ -235,7 +235,7 @@ class ReferentAccountManager(View):
 
         if target == 'members':
             if profile.organisation != organisation:
-                raise Http404
+                raise Http404()
 
             profile.organisation = None
             profile.membership = False

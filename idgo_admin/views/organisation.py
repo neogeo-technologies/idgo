@@ -245,7 +245,7 @@ def organisation(request, id=None):
 def crige_partnership(request):
     id = request.GET.get('id')
     if not id:
-        raise Http404
+        raise Http404()
     user, profile = user_and_profile(request)
     organisation = get_object_or_404(Organisation, id=id, is_active=True)
     send_mail_asking_for_crige_partnership(user, organisation)

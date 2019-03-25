@@ -226,7 +226,7 @@ def list_all_datasets(request, *args, **kwargs):
     # Réservé aux référents ou administrateurs IDGO
     roles = profile.get_roles()
     if not roles['is_referent'] and not roles['is_admin']:
-        raise Http404
+        raise Http404()
     context = handle_context(
         Dataset.default, request.GET, target='all')
     return render_with_info_profile(
@@ -242,7 +242,7 @@ def list_all_ckan_harvested_datasets(request, *args, **kwargs):
     # Réservé aux référents ou administrateurs IDGO
     roles = profile.get_roles()
     if not roles['is_referent'] and not roles['is_admin']:
-        raise Http404
+        raise Http404()
     context = handle_context(
         Dataset.harvested_ckan, request.GET, target='ckan_harvested')
     return render_with_info_profile(
@@ -258,7 +258,7 @@ def list_all_csw_harvested_datasets(request, *args, **kwargs):
     # Réservé aux référents ou administrateurs IDGO
     roles = profile.get_roles()
     if not roles['is_referent'] and not roles['is_admin']:
-        raise Http404
+        raise Http404()
     context = handle_context(
         Dataset.harvested_csw, request.GET, target='csw_harvested')
     return render_with_info_profile(
@@ -342,7 +342,7 @@ class DatasetManager(View):
 
         if not LiaisonsContributeurs.objects.filter(
                 profile=profile, validated_on__isnull=False).exists():
-            raise Http404
+            raise Http404()
 
         if id != 'new':
             instance = get_object_or_404_extended(Dataset, user, include={'id': id})
@@ -369,7 +369,7 @@ class DatasetManager(View):
 
         if not LiaisonsContributeurs.objects.filter(
                 profile=profile, validated_on__isnull=False).exists():
-            raise Http404
+            raise Http404()
 
         if id != 'new':
             instance = get_object_or_404_extended(Dataset, user, include={'id': id})
@@ -471,13 +471,13 @@ class DatasetManager(View):
     def delete(self, request, id, *args, **kwargs):
 
         if id == 'new':
-            raise Http404
+            raise Http404()
 
         user, profile = user_and_profile(request)
 
         if not LiaisonsContributeurs.objects.filter(
                 profile=profile, validated_on__isnull=False).exists():
-            raise Http404
+            raise Http404()
 
         dataset = get_object_or_404_extended(Dataset, user, include={'id': id})
 
