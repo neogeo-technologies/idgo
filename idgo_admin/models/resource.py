@@ -427,7 +427,8 @@ class Resource(models.Model):
     # Méthodes héritées
     # =================
 
-    def save(self, *args, current_user=None, synchronize=False, file_extras=None, **kwargs):
+    def save(self, *args, current_user=None, synchronize=False,
+             file_extras=None, skip_download=False, **kwargs):
 
         # Version précédante de la ressource (avant modification)
         previous, created = self.pk \
@@ -500,7 +501,7 @@ class Resource(models.Model):
             filename = self.up_file.file.name
             file_must_be_deleted = True
 
-        elif self.dl_url:
+        elif self.dl_url and not skip_download:
             try:
                 directory, filename, content_type = download(
                     self.dl_url, settings.MEDIA_ROOT, max_size=DOWNLOAD_SIZE_LIMIT)

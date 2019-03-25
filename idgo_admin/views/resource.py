@@ -235,9 +235,11 @@ class ResourceManager(View):
                 save_opts = {
                     'current_user': user,
                     'file_extras': file_extras,
-                    'synchronize': True}
+                    'synchronize': True,
+                    }
                 if not id:
                     resource = Resource.default.create(save_opts=save_opts, **kvp)
+                    save_opts['skip_download'] = True  # IMPORTANT
                 else:
                     resource = Resource.objects.get(pk=id)
                     for k, v in kvp.items():
