@@ -85,7 +85,7 @@ def download(url, media_root, **kwargs):
 
     def get_content_header_param(txt, param):
         try:
-            found = re.search('{0}="([^;"\n\r\t\0\s\X\R\v]+)"'.format(param), txt)
+            found = re.search('{0}="?([^;"\n\r\t\0\s\X\R\v]+)"?'.format(param), txt)
         except Exception as e:
             logger.exception(e)
             return None
@@ -117,6 +117,8 @@ def download(url, media_root, **kwargs):
         get_content_header_param(r.headers.get('Content-Disposition'), 'filename')
         or urlparse(url).path.split('/')[-1]
         or 'file')
+
+    print(filename)
 
     # TODO(@m431m) -> https://github.com/django/django/blob/3c447b108ac70757001171f7a4791f493880bf5b/docs/topics/files.txt#L120
 
