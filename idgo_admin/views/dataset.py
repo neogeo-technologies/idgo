@@ -56,15 +56,17 @@ CKAN_URL = settings.CKAN_URL
 
 
 def target(dataset, user):
-    if dataset:
-        if hasattr(dataset, 'remote_csw_dataset'):
-            return 'csw_harvested'
-        elif hasattr(dataset, 'remote_ckan_dataset'):
-            return 'ckan_harvested'
-        elif hasattr(dataset, 'editor') and dataset.editor == user:
-            return 'mine'
-        return 'all'
-    return 'mine'
+    # Permet uniquement de gérer le lien dans le breadcrumb
+    if not dataset:
+        return 'mine'
+    # else:
+    if hasattr(dataset, 'remote_csw_dataset') and dataset.remote_csw_dataset:
+        return 'csw_harvested'
+    elif hasattr(dataset, 'remote_ckan_dataset') and dataset.remote_ckan_dataset:
+        return 'ckan_harvested'
+    elif hasattr(dataset, 'editor') and dataset.editor == user:
+        return 'mine'
+    return 'all'
 
 
 def get_filtered_datasets(QuerySet, params, profile=None):
