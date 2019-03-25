@@ -113,39 +113,54 @@ def handle_pust_request(request, username=None):
     if username:
         user = get_object_or_404(User, username=username)
 
-    data = getattr(request, request.method).dict()
+    query_data = getattr(request, request.method)
 
-    organisation = data.get('organisation')
-    if organisation:
+    # `first_name` est obligatoire
+    first_name = query_data.pop('first_name', user and [user.first_name])
+    query_data.__setitem__('first_name', first_name[-1])
+
+    # `last_name` est obligatoire
+    last_name = query_data.pop('last_name', user and [user.last_name])
+    query_data.__setitem__('last_name', last_name[-1])
+
+    # `email` est obligatoire
+    email = query_data.pop('email', user and [user.email])
+    query_data.__setitem__('email', email[-1])
+
+    # organisation
+    organisation_slug = query_data.pop('organisation', None)
+    if organisation_slug:
         try:
-            organisation = Organisation.objects.get(slug=organisation).pk
-        except Organisation.DoesNotExist:
-            details = {'organisation': ["L'organisation n'existe pas."]}
-            raise GenericException(details=details)
-
-    data_form = {
-        'username': data.get('username'),
-        'first_name': data.get('first_name'),
-        'last_name': data.get('last_name'),
-        'email': data.get('email'),
-        'phone': data.get('phone'),
-        'organisation': organisation,
-        'password1': data.get('password'),
-        'password2': data.get('password'),
-        }
-
-    if username:
-        form = UpdateAccountForm(data_form, instance=user)
+            organisation = Organisation.objects.get(slug=organisation_slug[-1])
+        except Organisation.DoesNotExist as e:
+            raise GenericException(details=e.__str__())
+    elif user and user.profile:
+        organisation = user.profile.organisation
     else:
-        form = SignUpForm(data_form, unlock_terms=True)
+        organisation = None
+    if organisation:
+        query_data.__setitem__('organisation', organisation.pk)
+
+    password = query_data.pop('password', None)
+    if password:
+        query_data.__setitem__('password1', password[-1])
+        query_data.__setitem__('password2', password[-1])
+
+    if user:
+        form = UpdateAccountForm(query_data, instance=user)
+    else:
+        form = SignUpForm(query_data, unlock_terms=True)
     if not form.is_valid():
         raise GenericException(details=form._errors)
     try:
         with transaction.atomic():
-            if username:
+            if user:
                 phone = form.cleaned_data.pop('phone', None)
                 for k, v in form.cleaned_data.items():
-                    setattr(user, k, v)
+                    if k == 'password':
+                        user.set_password(v)
+                    else:
+                        setattr(user, k, v)
                 user.save()
                 if phone:
                     user.profile.phone = phone

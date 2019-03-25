@@ -439,6 +439,8 @@ class UpdateAccountForm(forms.ModelForm):
             self.add_error('password2', 'Vérifiez les mots de passe')
         else:
             self.cleaned_data['password'] = password
+        if not password:
+            del self.cleaned_data['password']
 
         return self.cleaned_data
 

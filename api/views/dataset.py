@@ -24,13 +24,13 @@ from django.http import JsonResponse
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.dataset import DatasetForm as Form
+from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import License
 from idgo_admin.models.mail import send_dataset_creation_mail
 from idgo_admin.models.mail import send_dataset_delete_mail
 from idgo_admin.models.mail import send_dataset_update_mail
 from idgo_admin.models import Organisation
-from idgo_admin.utils import slugify
 from rest_framework import permissions
 from rest_framework.views import APIView
 
@@ -113,7 +113,6 @@ def handler_get_request(request):
 
 def handle_pust_request(request, dataset_name=None):
     # name -> slug
-    # published -> private
     user = request.user
     dataset = None
     if dataset_name:
@@ -124,59 +123,61 @@ def handle_pust_request(request, dataset_name=None):
         if not instance:
             raise Http404()
 
-    # TODO: Vérifier les droits
+    query_data = getattr(request, request.method)  # QueryDict
 
-    data = getattr(request, request.method).dict()
+    # slug/name
+    slug = query_data.pop('name', dataset and [dataset.slug])
+    query_data.__setitem__('slug', slug[-1])
 
-    organisation_slug = data.get('organisation')
+    # `title` est obligatoire
+    title = query_data.pop('title', dataset and [dataset.title])
+    query_data.__setitem__('title', title[-1])
+
+    # Organisation
+    organisation_slug = query_data.pop('organisation', None)
     if organisation_slug:
         try:
-            organisation = Organisation.objects.get(slug=organisation_slug)
+            organisation = Organisation.objects.get(slug=organisation_slug[-1])
         except Organisation.DoesNotExist as e:
             raise GenericException(details=e.__str__())
     elif dataset:
         organisation = dataset.organisation
     else:
         organisation = None
+    if organisation:
+        query_data.__setitem__('organisation', organisation.pk)
 
-    license_slug = data.get('license')
-    if data.get('license'):
+    # Licences
+    license_slug = query_data.pop('license', None)
+    if license_slug:
         try:
-            license = License.objects.get(slug=license_slug)
+            license = License.objects.get(slug=license_slug[-1])
         except License.DoesNotExist as e:
             raise GenericException(details=e.__str__())
     elif dataset:
         license = dataset.license
     else:
         license = None
+    if license:
+        query_data.__setitem__('license', license.pk)
 
-    data_form = {
-        'title': data.get('title', dataset and dataset.title),
-        'slug': data.get('name', slugify(data.get('title'))),
-        'description': data.get('description'),
-        # 'thumbnail' -> request.FILES
-        'keywords': data.get('keywords'),
-        'categories': data.get('categories'),
-        'date_creation': data.get('date_creation'),
-        'date_modification': data.get('date_modification'),
-        'date_publication': data.get('date_publication'),
-        'update_frequency': data.get('update_frequency'),
-        # 'geocover'
-        'granularity': data.get('granularity', 'indefinie'),
-        'organisation': organisation.pk,
-        'license': license.pk,
-        'support': data.get('support', True),
-        'data_type': data.get('type'),
-        'owner_name': data.get('owner_name'),
-        'owner_email': data.get('owner_email'),
-        'broadcaster_name': data.get('broadcaster_name'),
-        'broadcaster_email': data.get('broadcaster_email'),
-        'published': not data.get('private', False),
-        }
+    # Catégories
+    categories_slug = query_data.pop('categories', None)
+    if categories_slug:
+        try:
+            categories = Category.objects.filter(slug__in=categories_slug)
+        except Category.DoesNotExist as e:
+            raise GenericException(details=e.__str__())
+    elif dataset:
+        categories = dataset.categories
+    else:
+        categories = None
+    if categories:
+        query_data.setlist('categories', [category.pk for category in categories])
 
     pk = dataset and dataset.pk or None
     include = {'user': user, 'id': pk, 'identification': pk and True or False}
-    form = Form(data_form, request.FILES, instance=dataset, include=include)
+    form = Form(query_data, request.FILES, instance=dataset, include=include)
     if not form.is_valid():
         raise GenericException(details=form._errors)
 
@@ -215,7 +216,8 @@ def handle_pust_request(request, dataset_name=None):
                 save_opts = {'current_user': user, 'synchronize': False}
                 dataset = Dataset.default.create(save_opts=save_opts, **kvp)
 
-            dataset.categories.set(data.get('categories', []), clear=True)
+            categories = Category.objects.filter(pk__in=data.get('categories'))
+            dataset.categories.set(categories, clear=True)
             keywords = data.get('keywords')
             if keywords:
                 dataset.keywords.clear()

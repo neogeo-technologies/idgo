@@ -85,26 +85,20 @@ def handle_pust_request(request, organisation_name=None):
 
     organisation = None
     if organisation_name:
-        organisation = get_object_or_404(
-            Organisation, slug=organisation_name)
+        organisation = get_object_or_404(Organisation, slug=organisation_name)
 
-    data = getattr(request, request.method).dict()
-    data_form = {
-        'legal_name': data.get('legal_name'),
-        'description': data.get('description'),
-        'organisation_type': data.get('type'),
-        'address': data.get('address'),
-        'postcode': data.get('postcode'),
-        'city': data.get('city'),
-        'phone': data.get('phone'),
-        'email': data.get('email'),
-        'license': data.get('license'),
-        'jurisdiction': data.get('jurisdiction'),
-        }
+    query_data = getattr(request, request.method)
 
-    form = Form(
-        data_form, request.FILES,
-        instance=organisation, include={'user': user})
+    # Slug/Name
+    slug = query_data.pop('name', organisation and [organisation.slug])
+    query_data.__setitem__('slug', slug[-1])
+
+    # `legal_name` est obligatoire
+    title = query_data.pop('legal_name', organisation and [organisation.legal_name])
+    query_data.__setitem__('legal_name', title[-1])
+
+    form = Form(query_data, request.FILES,
+                instance=organisation, include={'user': user})
     if not form.is_valid():
         raise GenericException(details=form._errors)
 
@@ -116,8 +110,8 @@ def handle_pust_request(request, organisation_name=None):
         with transaction.atomic():
             if organisation_name:
                 for item in form.Meta.fields:
-                    if item in data_form:
-                        setattr(organisation, item, data_form[item])
+                    if item in data:
+                        setattr(organisation, item, data[item])
                 organisation.save()
             else:
                 kvp['is_active'] = True

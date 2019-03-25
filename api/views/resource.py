@@ -32,6 +32,7 @@ from idgo_admin.models.mail import send_resource_delete_mail
 from idgo_admin.models.mail import send_resource_update_mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
+from idgo_admin.models import ResourceFormats
 from idgo_admin.shortcuts import get_object_or_404_extended
 from rest_framework import permissions
 from rest_framework.views import APIView
@@ -111,46 +112,39 @@ def handle_pust_request(request, dataset_name, resource_id=None):
     if resource_id:
         resource = get_object_or_404(Resource, ckan_id=resource_id)
 
-    # TODO: Vérifier les droits
+    query_data = getattr(request, request.method)
 
-    data = getattr(request, request.method).dict()
-
-    restricted_list = data.get('restricted_list', [])
+    restricted_list = query_data.pop('restricted_list', [])
     profiles_allowed = None
     organisations_allowed = None
 
-    restricted_level = data.get('restricted_level')
-    if restricted_level == 'only_allowed_users':
+    restricted_level = query_data.pop('restricted_level', resource and [resource.restricted_level])
+    if restricted_level[-1] == 'only_allowed_users':
         profiles_allowed = User.objects.filter(username__in=restricted_list)
-    elif restricted_level in ('same_organization', 'any_organization'):
+        query_data.__setitem__('restricted_level', restricted_level)
+        query_data.__setitem__('profiles_allowed', [instance.pk for instance in profiles_allowed])
+    elif restricted_level[-1] in ('same_organization', 'any_organization'):
         organisations_allowed = Organisation.objects.filter(slug__in=restricted_list)
+        query_data.__setitem__('restricted_level', restricted_level)
+        query_data.__setitem__('organisations_allowed', [instance.pk for instance in organisations_allowed])
 
-    data_form = {
-        'title': data.get('title'),
-        'description': data.get('description'),
-        'lang': data.get('language', 'french'),
-        'format_type': data.get('format'),
-        'data_type': data.get('type'),
-        'restricted_level': restricted_level,
-        'profiles_allowed': profiles_allowed,
-        'organisations_allowed': organisations_allowed,
-        # 'up_file': '',
-        # 'dl_url': '',
-        # 'synchronisation': '',
-        # 'sync_frequency': '',
-        # 'referenced_url': '',
-        # 'ftp_file': '',
-        'crs': data.get('crs', None),
-        'encoding': data.get('encoding', None),
-        # 'extractable': data.get('extractable'),
-        # 'ogc_services': data.get('ogc_services'),
-        # 'geo_restriction': data.get('geo_restriction'),
-        # 'last_update': data.get('last_update'),
-        }
+    lang = query_data.pop('language', None)
+    if lang:
+        query_data.__setitem__('lang', lang[-1])
 
-    form = Form(
-        data_form, request.FILES,
-        instance=resource, dataset=dataset, user=user)
+    format_type = query_data.pop('format', None)
+    if format_type:
+        try:
+            resource_format = ResourceFormats.objects.get(slug=format_type)
+        except ResourceFormats.DoesNotExist as e:
+            raise GenericException(details=e.__str__())
+        query_data.__setitem__('format_type', resource_format.pk)
+
+    data_type = query_data.pop('type', None)
+    if data_type:
+        query_data.__setitem__('data_type', data_type[-1])
+
+    form = Form(query_data, request.FILES, instance=resource, dataset=dataset, user=user)
     if not form.is_valid():
         raise GenericException(details=form._errors)
 

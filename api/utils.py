@@ -32,6 +32,6 @@ def parse_request(request):
             request._mark_post_parse_error()
             return
     elif request.content_type == 'application/x-www-form-urlencoded':
-        return QueryDict(request.body, encoding=request._encoding), MultiValueDict()
+        return QueryDict(request.body, encoding=request._encoding, mutable=True), MultiValueDict()
     else:
-        return QueryDict(encoding=request._encoding), MultiValueDict()
+        return QueryDict(encoding=request._encoding, mutable=True), MultiValueDict()
