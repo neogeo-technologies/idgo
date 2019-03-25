@@ -118,8 +118,6 @@ def download(url, media_root, **kwargs):
         or urlparse(url).path.split('/')[-1]
         or 'file')
 
-    print(filename)
-
     # TODO(@m431m) -> https://github.com/django/django/blob/3c447b108ac70757001171f7a4791f493880bf5b/docs/topics/files.txt#L120
 
     with open(filename, 'wb') as f:
