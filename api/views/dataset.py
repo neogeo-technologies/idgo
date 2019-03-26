@@ -26,6 +26,7 @@ from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
+from idgo_admin.models import DataType
 from idgo_admin.models import License
 from idgo_admin.models.mail import send_dataset_creation_mail
 from idgo_admin.models.mail import send_dataset_delete_mail
@@ -113,6 +114,9 @@ def handler_get_request(request):
 
 def handle_pust_request(request, dataset_name=None):
     # name -> slug
+    # type -> data_type
+    # categories/category -> categories
+
     user = request.user
     dataset = None
     if dataset_name:
@@ -133,7 +137,7 @@ def handle_pust_request(request, dataset_name=None):
     title = query_data.pop('title', dataset and [dataset.title])
     query_data.__setitem__('title', title[-1])
 
-    # Organisation
+    # `organisation`
     organisation_slug = query_data.pop('organisation', None)
     if organisation_slug:
         try:
@@ -147,7 +151,7 @@ def handle_pust_request(request, dataset_name=None):
     if organisation:
         query_data.__setitem__('organisation', organisation.pk)
 
-    # Licences
+    # `licence`
     license_slug = query_data.pop('license', None)
     if license_slug:
         try:
@@ -161,19 +165,38 @@ def handle_pust_request(request, dataset_name=None):
     if license:
         query_data.__setitem__('license', license.pk)
 
-    # Catégories
-    categories_slug = query_data.pop('categories', None)
-    if categories_slug:
+    # `categories`
+    category_slugs = query_data.pop('categories', query_data.pop('category', None))
+    if category_slugs:
         try:
-            categories = Category.objects.filter(slug__in=categories_slug)
+            categories = Category.objects.filter(slug__in=category_slugs)
         except Category.DoesNotExist as e:
             raise GenericException(details=e.__str__())
     elif dataset:
-        categories = dataset.categories
+        categories = dataset.categories.all()
     else:
         categories = None
     if categories:
-        query_data.setlist('categories', [category.pk for category in categories])
+        query_data.setlist('categories', [instance.pk for instance in categories])
+
+    # `data_type`
+    data_type_slugs = query_data.pop('types', query_data.pop('type', query_data.pop('data_type', None)))
+    if data_type_slugs:
+        try:
+            data_type = DataType.objects.filter(slug__in=data_type_slugs)
+        except DataType.DoesNotExist as e:
+            raise GenericException(details=e.__str__())
+    elif dataset:
+        data_type = dataset.data_type.all()
+    else:
+        data_type = None
+    if data_type:
+        query_data.setlist('data_type', [instance.pk for instance in data_type])
+
+    # `keywords`
+    keyword_tags = query_data.pop('keywords', query_data.pop('keyword', None))
+    if keyword_tags:
+        query_data.__setitem__('keywords', ','.join(keyword_tags))
 
     pk = dataset and dataset.pk or None
     include = {'user': user, 'id': pk, 'identification': pk and True or False}
@@ -215,15 +238,18 @@ def handle_pust_request(request, dataset_name=None):
                 kvp['editor'] = user
                 save_opts = {'current_user': user, 'synchronize': False}
                 dataset = Dataset.default.create(save_opts=save_opts, **kvp)
-
+            # categories
             categories = Category.objects.filter(pk__in=data.get('categories'))
             dataset.categories.set(categories, clear=True)
+            # data_type
+            data_type = DataType.objects.filter(pk__in=data.get('data_type'))
+            dataset.data_type.set(data_type, clear=True)
+            # keywords
             keywords = data.get('keywords')
             if keywords:
                 dataset.keywords.clear()
                 for k in keywords:
                     dataset.keywords.add(k)
-            dataset.data_type.set(data.get('data_type', []), clear=True)
             dataset.save(current_user=user, synchronize=True)
     except ValidationError as e:
         form.add_error('__all__', e.__str__())
