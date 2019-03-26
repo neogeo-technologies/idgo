@@ -258,7 +258,7 @@ class ResourceForm(forms.ModelForm):
 
     data_type = forms.ChoiceField(
         label="Type",
-        required=False,
+        required=True,
         choices=Meta.model.TYPE_CHOICES,
         )
 

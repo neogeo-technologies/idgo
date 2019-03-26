@@ -43,7 +43,7 @@ def serialize(resource):
 
     if resource.format_type:
         format = OrderedDict([
-            ('id', resource.format_type.pk),
+            ('name', resource.format_type.slug),
             ('description', resource.format_type.description),
             ])
     else:
@@ -114,6 +114,18 @@ def handle_pust_request(request, dataset_name, resource_id=None):
 
     query_data = getattr(request, request.method)
 
+    # `title` est obligatoire
+    title = query_data.pop('title', resource and [resource.title])
+    query_data.__setitem__('title', title[-1])
+
+    # `lang` est obligatoire
+    lang = query_data.pop('language', query_data.pop('lang', resource and [resource.lang]))
+    query_data.__setitem__('lang', lang[-1])
+
+    # `data_type` est obligatoire
+    data_type = query_data.pop('data_type', query_data.pop('type', resource and [resource.data_type]))
+    query_data.__setitem__('data_type', data_type[-1])
+
     restricted_list = query_data.pop('restricted_list', [])
     profiles_allowed = None
     organisations_allowed = None
@@ -121,21 +133,16 @@ def handle_pust_request(request, dataset_name, resource_id=None):
     restricted_level = query_data.pop('restricted_level', resource and [resource.restricted_level])
     if restricted_level[-1] == 'only_allowed_users':
         profiles_allowed = User.objects.filter(username__in=restricted_list)
-        query_data.__setitem__('restricted_level', restricted_level)
         query_data.__setitem__('profiles_allowed', [instance.pk for instance in profiles_allowed])
     elif restricted_level[-1] in ('same_organization', 'any_organization'):
         organisations_allowed = Organisation.objects.filter(slug__in=restricted_list)
-        query_data.__setitem__('restricted_level', restricted_level)
         query_data.__setitem__('organisations_allowed', [instance.pk for instance in organisations_allowed])
+    query_data.__setitem__('restricted_level', restricted_level[-1])
 
-    lang = query_data.pop('language', None)
-    if lang:
-        query_data.__setitem__('lang', lang[-1])
-
-    format_type = query_data.pop('format', None)
-    if format_type:
+    format_type_slug = query_data.pop('format_type', query_data.pop('format', None))
+    if format_type_slug:
         try:
-            resource_format = ResourceFormats.objects.get(slug=format_type)
+            resource_format = ResourceFormats.objects.get(slug=format_type_slug[-1])
         except ResourceFormats.DoesNotExist as e:
             raise GenericException(details=e.__str__())
         query_data.__setitem__('format_type', resource_format.pk)
@@ -192,19 +199,18 @@ def handle_pust_request(request, dataset_name, resource_id=None):
                 'current_user': user,
                 'file_extras': file_extras,
                 'synchronize': True}
-            if not id:
-                resource = Resource.default.create(save_opts=save_opts, **kvp)
-            else:
-                resource = Resource.objects.get(pk=id)
+            if resource:
                 for k, v in kvp.items():
                     setattr(resource, k, v)
+            else:
+                resource = Resource.default.create(save_opts=save_opts, **kvp)
             if organisations_allowed:
                 resource.organisations_allowed = organisations_allowed
             if profiles_allowed:
                 resource.profiles_allowed = profiles_allowed
                 save_opts['synchronize'] = True
                 save_opts['file_extras'] = None  # IMPORTANT
-                resource.save(**save_opts)
+            resource.save(**save_opts)
     except ValidationError as e:
         if e.code == 'crs':
             form.add_error(e.code, '')
