@@ -360,7 +360,7 @@ class ResourceForm(forms.ModelForm):
                 output_field=BooleanField(),
                 )
             self.fields['profiles_allowed'].queryset = \
-                Organisation.objects.annotate(related=related_profiles).order_by('-related', 'slug')
+                Profile.objects.annotate(related=related_profiles).order_by('-related', 'user__username')
 
             related_organisations = Case(
                 When(pk__in=[m.pk for m in instance.organisations_allowed.all()], then=Value(True)),
