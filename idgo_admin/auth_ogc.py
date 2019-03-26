@@ -28,8 +28,13 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 import django  # noqa: E402
 django.setup()
 from django.contrib.auth.models import User  # noqa: E402
+from django.db.models import Q  # noqa: E402
+from functools import reduce  # noqa: E402
 from idgo_admin.models import Dataset  # noqa: E402
+from idgo_admin.models import Organisation   # noqa: E402
 from idgo_admin.models import Resource  # noqa: E402
+from operator import ior  # noqa: E402
+
 
 logger = logging.getLogger('auth_ogc')
 stream_handler = logging.StreamHandler()
@@ -58,12 +63,16 @@ def retrieve_resources_through_ows_url(url):
         return None
     layers = set(layers.replace(' ', '').split(','))
     layers = [layer.split(':')[-1] for layer in layers]
-    resources = set()
-    for resource in Resource.objects.filter(
-            dataset__in=Dataset.objects.filter(slug__in=layers)).distinct():
-        resources.add(resource)
-    for resource in Resource.objects.filter(layer__name__in=layers).distinct():
-        resources.add(resource)
+    datasets_filters = [
+        Q(slug__in=layers),
+        Q(organisation__in=Organisation.objects.filter(slug__in=layers).disctinct()),
+        ]
+    datasets = Dataset.objects.filter(reduce(ior, datasets_filters)).disctinct()
+    resources_filters = [
+        Q(dataset__in=datasets),
+        Q(layer__name__in=layers),
+        ]
+    resources = Resource.objects.filter(reduce(ior, resources_filters)).distinct()
     return resources
 
 
