@@ -158,7 +158,8 @@ def handle_pust_request(request, username=None):
                 phone = form.cleaned_data.pop('phone', None)
                 for k, v in form.cleaned_data.items():
                     if k == 'password':
-                        user.set_password(v)
+                        # user.set_password(v)
+                        pass
                     else:
                         setattr(user, k, v)
                 user.save()
