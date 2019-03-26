@@ -921,6 +921,8 @@ class Resource(models.Model):
                 data['upload'] = self.ftp_file.file
             data['size'] = self.ftp_file.size
             data['mimetype'] = None  # TODO
+            # Passe dans un validateur pour forcer en base : url_type='upload'
+            data['force_url_type'] = 'upload'
 
         if self.data_type == 'raw':
             if self.ftp_file or self.dl_url or self.up_file:
