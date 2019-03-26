@@ -141,18 +141,18 @@ class OrganisationShow(APIView):
                 return JsonResponse(organisation, safe=True)
         raise Http404()
 
-    def put(self, request, organisation_name):
-        """Créer une nouvelle organisation."""
-        request.PUT, request._files = parse_request(request)
-        if not request.user.profile.is_admin:
-            raise Http404()
-        try:
-            handle_pust_request(request, organisation_name=organisation_name)
-        except Http404:
-            raise Http404()
-        except GenericException as e:
-            return JsonResponse({'error': e.details}, status=400)
-        return HttpResponse(status=204)
+    # def put(self, request, organisation_name):
+    #     """Mettre à jour l'organisation."""
+    #     request.PUT, request._files = parse_request(request)
+    #     if not request.user.profile.is_admin:
+    #         raise Http404()
+    #     try:
+    #         handle_pust_request(request, organisation_name=organisation_name)
+    #     except Http404:
+    #         raise Http404()
+    #     except GenericException as e:
+    #         return JsonResponse({'error': e.details}, status=400)
+    #     return HttpResponse(status=204)
 
 
 class OrganisationList(APIView):
