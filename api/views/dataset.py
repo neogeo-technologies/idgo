@@ -127,15 +127,18 @@ def handle_pust_request(request, dataset_name=None):
         if not instance:
             raise Http404()
 
-    query_data = getattr(request, request.method)  # QueryDict
+    # query_data = getattr(request, request.method)  # QueryDict
+    query_data = request._DATA
 
     # slug/name
     slug = query_data.pop('name', dataset and [dataset.slug])
-    query_data.__setitem__('slug', slug[-1])
+    if slug:
+        query_data.__setitem__('slug', slug[-1])
 
     # `title` est obligatoire
     title = query_data.pop('title', dataset and [dataset.title])
-    query_data.__setitem__('title', title[-1])
+    if title:
+        query_data.__setitem__('title', title[-1])
 
     # `organisation`
     organisation_slug = query_data.pop('organisation', None)
@@ -280,7 +283,7 @@ class DatasetShow(APIView):
 
     def put(self, request, dataset_name):
         """Modifier le jeu de données."""
-        request.PUT, request._files = parse_request(request)
+        request._DATA, request._files = parse_request(request)
         try:
             handle_pust_request(request, dataset_name=dataset_name)
         except Http404:
@@ -318,6 +321,7 @@ class DatasetList(APIView):
 
     def post(self, request):
         """Créer un nouveau jeu de données."""
+        request._DATA, request._files = parse_request(request)
         try:
             handle_pust_request(request)
         except Http404:

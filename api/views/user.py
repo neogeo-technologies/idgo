@@ -113,19 +113,23 @@ def handle_pust_request(request, username=None):
     if username:
         user = get_object_or_404(User, username=username)
 
-    query_data = getattr(request, request.method)
+    # query_data = getattr(request, request.method)  # QueryDict
+    query_data = request._DATA
 
     # `first_name` est obligatoire
     first_name = query_data.pop('first_name', user and [user.first_name])
-    query_data.__setitem__('first_name', first_name[-1])
+    if first_name:
+        query_data.__setitem__('first_name', first_name[-1])
 
     # `last_name` est obligatoire
     last_name = query_data.pop('last_name', user and [user.last_name])
-    query_data.__setitem__('last_name', last_name[-1])
+    if last_name:
+        query_data.__setitem__('last_name', last_name[-1])
 
     # `email` est obligatoire
     email = query_data.pop('email', user and [user.email])
-    query_data.__setitem__('email', email[-1])
+    if email:
+        query_data.__setitem__('email', email[-1])
 
     # organisation
     organisation_slug = query_data.pop('organisation', None)
@@ -193,7 +197,7 @@ class UserShow(APIView):
 
     def put(self, request, username):
         """Mettre à jour un utilisateur."""
-        request.PUT, request._files = parse_request(request)
+        request._DATA, request._files = parse_request(request)
         if not request.user.profile.is_admin:
             raise Http404()
         try:
@@ -219,6 +223,7 @@ class UserList(APIView):
 
     def post(self, request):
         """Créer un utilisateur."""
+        request._DATA, request._files = parse_request(request)
         if not request.user.profile.is_admin:
             raise Http404()
         try:

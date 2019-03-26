@@ -112,19 +112,23 @@ def handle_pust_request(request, dataset_name, resource_id=None):
     if resource_id:
         resource = get_object_or_404(Resource, ckan_id=resource_id)
 
-    query_data = getattr(request, request.method)
+    # query_data = getattr(request, request.method)  # QueryDict
+    query_data = request._DATA
 
     # `title` est obligatoire
     title = query_data.pop('title', resource and [resource.title])
-    query_data.__setitem__('title', title[-1])
+    if title:
+        query_data.__setitem__('title', title[-1])
 
     # `lang` est obligatoire
     lang = query_data.pop('language', query_data.pop('lang', resource and [resource.lang]))
-    query_data.__setitem__('lang', lang[-1])
+    if lang:
+        query_data.__setitem__('lang', lang[-1])
 
     # `data_type` est obligatoire
     data_type = query_data.pop('data_type', query_data.pop('type', resource and [resource.data_type]))
-    query_data.__setitem__('data_type', data_type[-1])
+    if data_type:
+        query_data.__setitem__('data_type', data_type[-1])
 
     restricted_list = query_data.pop('restricted_list', [])
     profiles_allowed = None
@@ -251,7 +255,7 @@ class ResourceShow(APIView):
 
     def put(self, request, dataset_name, resource_id):
         """Modifier la ressource."""
-        request.PUT, request._files = parse_request(request)
+        request._DATA, request._files = parse_request(request)
         try:
             resource_id = UUID(resource_id)
         except ValueError:
@@ -295,6 +299,7 @@ class ResourceList(APIView):
             [serialize(resource) for resource in resources], safe=False)
 
     def post(self, request, dataset_name):
+        request._DATA, request._files = parse_request(request)
         """Ajouter une ressource au jeu de données."""
         try:
             handle_pust_request(request, dataset_name)

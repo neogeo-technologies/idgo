@@ -87,15 +87,18 @@ def handle_pust_request(request, organisation_name=None):
     if organisation_name:
         organisation = get_object_or_404(Organisation, slug=organisation_name)
 
-    query_data = getattr(request, request.method)
+    # query_data = getattr(request, request.method)  # QueryDict
+    query_data = request._DATA
 
     # Slug/Name
     slug = query_data.pop('name', organisation and [organisation.slug])
-    query_data.__setitem__('slug', slug[-1])
+    if slug:
+        query_data.__setitem__('slug', slug[-1])
 
     # `legal_name` est obligatoire
-    title = query_data.pop('legal_name', organisation and [organisation.legal_name])
-    query_data.__setitem__('legal_name', title[-1])
+    legal_name = query_data.pop('legal_name', organisation and [organisation.legal_name])
+    if legal_name:
+        query_data.__setitem__('legal_name', legal_name[-1])
 
     form = Form(query_data, request.FILES,
                 instance=organisation, include={'user': user})
@@ -143,7 +146,7 @@ class OrganisationShow(APIView):
 
     # def put(self, request, organisation_name):
     #     """Mettre à jour l'organisation."""
-    #     request.PUT, request._files = parse_request(request)
+    #     request._DATA, request._files = parse_request(request)
     #     if not request.user.profile.is_admin:
     #         raise Http404()
     #     try:
@@ -168,6 +171,7 @@ class OrganisationList(APIView):
 
     def post(self, request):
         """Créer une nouvelle organisation."""
+        request._DATA, request._files = parse_request(request)
         if not request.user.profile.is_admin:
             raise Http404()
         try:
