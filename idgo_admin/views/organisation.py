@@ -572,6 +572,7 @@ class RemoteCkanEditor(View):
             mapper = request.POST
             for mapping in mappings:
                 if mapping.get('name') == 'Category':
+                    MappingCategory.objects.filter(remote_ckan=instance).delete()
                     fields_name = mapping.get('fields_name')
                     data = dict(
                         filter(
@@ -585,7 +586,8 @@ class RemoteCkanEditor(View):
                             category=Category.objects.get(id=v),
                             slug=k
                         )
-                if mapping.get('name') == 'Licence':
+                if mapping.get('name') == 'License':
+                    MappingLicence.objects.filter(remote_ckan=instance).delete()
                     fields_name = mapping.get('fields_name')
                     data = dict(
                         filter(
@@ -596,7 +598,7 @@ class RemoteCkanEditor(View):
                     for k, v in not_empty.items():
                         MappingLicence.objects.create(
                             remote_ckan=instance,
-                            licence=License.objects.get(id=v),
+                            licence=License.objects.get(slug=v),
                             slug=k
                         )
 
@@ -612,8 +614,8 @@ class RemoteCkanEditor(View):
             messages.error(request, e.__str__())
 
         if 'continue' in request.POST or error:
-            return render_with_info_profile(
-                request, self.template, context=context)
+            return HttpResponseRedirect(
+                reverse('idgo_admin:edit_remote_ckan_link', kwargs={'id': organisation.id}))
 
         return HttpResponseRedirect(
             reverse('idgo_admin:update_organisation', kwargs={'id': organisation.id}))

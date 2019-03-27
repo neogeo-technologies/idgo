@@ -232,7 +232,7 @@ class RemoteCkanForm(forms.ModelForm):
                     field_name = remote_license['id']
                     fields_name.append(field_name)
                     init_lic = MappingLicence.objects.filter(
-                        remote_ckan=instance, slug=field_name).first().category if \
+                        remote_ckan=instance, slug=field_name).first().licence if \
                         MappingLicence.objects.filter(
                             remote_ckan=instance, slug=field_name).exists() else \
                         None
