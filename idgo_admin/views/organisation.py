@@ -29,6 +29,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import functools
+from idgo_admin.ckan_module import CkanBaseHandler
+# from idgo_admin.csw_module import CswBaseHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CswBaseError
 from idgo_admin.exceptions import ExceptionsHandler
@@ -46,6 +48,10 @@ from idgo_admin.models.mail import send_mail_asking_for_crige_partnership
 from idgo_admin.models.mail import send_membership_confirmation_mail
 from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
 from idgo_admin.models.mail import send_referent_confirmation_mail
+from idgo_admin.models import Category
+from idgo_admin.models import License
+from idgo_admin.models import MappingCategory
+from idgo_admin.models import MappingLicence
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import RemoteCkan
@@ -560,6 +566,50 @@ class RemoteCkanEditor(View):
             else:
                 msg = 'Les informations de moissonnage ont été mises à jour.'
             messages.success(request, msg)
+
+        def handle_mapping(request, form):
+            mappings = form.Meta.mapping
+            mapper = request.POST
+            for mapping in mappings:
+                if mapping.get('name') == 'Category':
+                    fields_name = mapping.get('fields_name')
+                    data = dict(
+                        filter(
+                            lambda k: k[0] in fields_name,
+                            mapper.dict().items())
+                    )
+                    not_empty = {k: v for k, v in data.items() if v}
+                    for k, v in not_empty.items():
+                        MappingCategory.objects.create(
+                            remote_ckan=instance,
+                            category=Category.objects.get(id=v),
+                            slug=k
+                        )
+                if mapping.get('name') == 'Licence':
+                    fields_name = mapping.get('fields_name')
+                    data = dict(
+                        filter(
+                            lambda k: k[0] in fields_name,
+                            mapper.dict().items())
+                    )
+                    not_empty = {k: v for k, v in data.items() if v}
+                    for k, v in not_empty.items():
+                        MappingLicence.objects.create(
+                            remote_ckan=instance,
+                            licence=License.objects.get(id=v),
+                            slug=k
+                        )
+
+        try:
+            with transaction.atomic():
+                handle_mapping(request, form)
+        except ValidationError as e:
+            error = True
+            messages.error(request, e.__str__())
+        except CkanBaseError as e:
+            error = True
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
 
         if 'continue' in request.POST or error:
             return render_with_info_profile(

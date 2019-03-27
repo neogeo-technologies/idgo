@@ -565,6 +565,32 @@ class RemoteCkanDataset(models.Model):
         return reduce(urljoin, [base_url, 'dataset/', str(self.remote_dataset)])
 
 
+class MappingLicence(models.Model):
+
+    class Meta(object):
+        verbose_name = "Mapping license"
+        verbose_name_plural = "Mapping licenses"
+
+    remote_ckan = models.ForeignKey('RemoteCkan', on_delete=models.CASCADE)
+
+    licence = models.ForeignKey('License', on_delete=models.CASCADE)
+
+    slug = models.SlugField('Slug', null=True)
+
+
+class MappingCategory(models.Model):
+
+    class Meta(object):
+        verbose_name = "Mapping categorie"
+        verbose_name_plural = "Mapping categories"
+
+    remote_ckan = models.ForeignKey('RemoteCkan', on_delete=models.CASCADE)
+
+    category = models.ForeignKey('Category', on_delete=models.CASCADE)
+
+    slug = models.SlugField('Slug', null=True)
+
+
 # ===============================================
 # MODÈLE DE SYNCHRONISATION AVEC UN CATALOGUE CWS
 # ===============================================
