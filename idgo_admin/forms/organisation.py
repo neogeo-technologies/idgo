@@ -38,6 +38,8 @@ from idgo_admin.forms import WebsiteField
 from idgo_admin.models import Category
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
+from idgo_admin.models import MappingCategory
+from idgo_admin.models import MappingLicence
 from idgo_admin.models import Organisation
 from idgo_admin.models import RemoteCkan
 from idgo_admin.models import RemoteCsw
@@ -199,11 +201,17 @@ class RemoteCkanForm(forms.ModelForm):
                     field_name = remote_category['name']
                     fields_name.append(field_name)
 
+                    init_cat = MappingCategory.objects.filter(
+                        remote_ckan=instance, slug=field_name).first().category if \
+                        MappingCategory.objects.filter(
+                            remote_ckan=instance, slug=field_name).exists() else \
+                        None
                     field = forms.ModelChoiceField(
                         label=remote_category['title'],
                         empty_label="Sélectionnez une valeur",
                         required=False,
                         queryset=Category.objects.all(),
+                        initial=init_cat
                         )
                     self.fields[field_name] = field
 
@@ -223,12 +231,17 @@ class RemoteCkanForm(forms.ModelForm):
                 for remote_license in remote_licenses:
                     field_name = remote_license['name']
                     fields_name.append(field_name)
-
+                    init_lic = MappingLicence.objects.filter(
+                        remote_ckan=instance, slug=field_name).first().category if \
+                        MappingLicence.objects.filter(
+                            remote_ckan=instance, slug=field_name).exists() else \
+                        None
                     field = forms.ModelChoiceField(
                         label=remote_license['title'],
                         empty_label="Sélectionnez une valeur",
                         required=False,
                         queryset=License.objects.all(),
+                        inital=init_lic
                         )
                     self.fields[field_name] = field
 
