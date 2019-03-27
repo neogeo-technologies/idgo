@@ -85,7 +85,7 @@ $(function() {
 	$('button[name="extractor"]').on('click', function(e) {
 		e.preventDefault();
 		const data = tableGrid.getRowValues(tableGrid.lastSelectedRowIndex);
-		redirect('{% url "idgo_admin:extractor" site_name="extractor" %}?&layer=' + data['id'])
+		targetBlank('{% url "idgo_admin:extractor" site_name="extractor" %}?&layer=' + data['id'])
 		e.stopPropagation();
 	});
 	{% endif %}
