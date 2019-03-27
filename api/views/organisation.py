@@ -146,6 +146,7 @@ class OrganisationShow(APIView):
     # def put(self, request, organisation_name):
     #     """Mettre à jour l'organisation."""
     #     request.PUT, request._files = parse_request(request)
+    #     request.PUT._mutable = True
     #     if not request.user.profile.is_admin:
     #         raise Http404()
     #     try:

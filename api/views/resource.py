@@ -250,7 +250,8 @@ class ResourceShow(APIView):
 
     def put(self, request, dataset_name, resource_id):
         """Modifier la ressource."""
-        request._DATA, request._files = parse_request(request)
+        request.PUT, request._files = parse_request(request)
+        request.PUT._mutable = True
         try:
             resource_id = UUID(resource_id)
         except ValueError:

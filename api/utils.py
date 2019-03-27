@@ -21,7 +21,7 @@ from io import BytesIO
 
 
 def parse_request(request):
-    if request.content_type == 'multipart/form-data':
+    if request.content_type.startswith('multipart/form-data'):
         if hasattr(request, '_body'):
             data = BytesIO(request._body)
         else:

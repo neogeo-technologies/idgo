@@ -197,6 +197,7 @@ class UserShow(APIView):
     def put(self, request, username):
         """Mettre à jour un utilisateur."""
         request.PUT, request._files = parse_request(request)
+        request.PUT._mutable = True
         if not request.user.profile.is_admin:
             raise Http404()
         try:

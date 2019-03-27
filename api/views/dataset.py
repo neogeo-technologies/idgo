@@ -201,6 +201,14 @@ def handle_pust_request(request, dataset_name=None):
     if keyword_tags:
         query_data.__setitem__('keywords', ','.join(keyword_tags))
 
+    # `private` or `published`
+    private = query_data.pop('private', None)
+    published = query_data.pop('published', None)
+    if private:
+        query_data.__setitem__('published', private[-1].lower() in ('on', 'true',) and 'off' or 'on')
+    if published:
+        query_data.__setitem__('published', published[-1].lower() in ('on', 'true',) and 'on' or 'off')
+
     pk = dataset and dataset.pk or None
     include = {'user': user, 'id': pk, 'identification': pk and True or False}
     form = Form(query_data, request.FILES, instance=dataset, include=include)
@@ -284,6 +292,7 @@ class DatasetShow(APIView):
     def put(self, request, dataset_name):
         """Modifier le jeu de données."""
         request.PUT, request._files = parse_request(request)
+        request.PUT._mutable = True
         try:
             handle_pust_request(request, dataset_name=dataset_name)
         except Http404:
@@ -321,10 +330,7 @@ class DatasetList(APIView):
 
     def post(self, request):
         """Créer un nouveau jeu de données."""
-        # Fait un peu vite pour que ça marche...
-        files = request.FILES.copy()
-        request._DATA, _ = parse_request(request)
-        request._files = files
+        request.POST._mutable = True
         try:
             dataset = handle_pust_request(request)
         except Http404:
