@@ -65,9 +65,9 @@ def retrieve_resources_through_ows_url(url):
     layers = [layer.split(':')[-1] for layer in layers]
     datasets_filters = [
         Q(slug__in=layers),
-        Q(organisation__in=Organisation.objects.filter(slug__in=layers).disctinct()),
+        Q(organisation__in=Organisation.objects.filter(slug__in=layers).distinct()),
         ]
-    datasets = Dataset.objects.filter(reduce(ior, datasets_filters)).disctinct()
+    datasets = Dataset.objects.filter(reduce(ior, datasets_filters)).distinct()
     resources_filters = [
         Q(dataset__in=datasets),
         Q(layer__name__in=layers),
