@@ -201,13 +201,15 @@ def handle_pust_request(request, dataset_name=None):
     if keyword_tags:
         query_data.__setitem__('keywords', ','.join(keyword_tags))
 
-    # `private` or `published`
-    private = query_data.pop('private', None)
+    # `published` or `private`
     published = query_data.pop('published', None)
-    if private:
-        query_data.__setitem__('published', private[-1].lower() in ('on', 'true',) and 'off' or 'on')
-    if published:
-        query_data.__setitem__('published', published[-1].lower() in ('on', 'true',) and 'on' or 'off')
+    private = query_data.pop('private', None)
+    if (published and published[-1].lower() in ('on', 'true',)) or \
+            (private and private[-1].lower() in ('off', 'false',)):
+        query_data.__setitem__('published', True)
+    elif (published and published[-1].lower() in ('off', 'false',)) or \
+            (private and private[-1].lower() in ('on', 'true',)):
+        query_data.__setitem__('published', False)
 
     pk = dataset and dataset.pk or None
     include = {'user': user, 'id': pk, 'identification': pk and True or False}
