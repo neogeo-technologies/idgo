@@ -113,8 +113,7 @@ def handle_pust_request(request, username=None):
     if username:
         user = get_object_or_404(User, username=username)
 
-    # query_data = getattr(request, request.method)  # QueryDict
-    query_data = request._DATA
+    query_data = getattr(request, request.method)  # QueryDict
 
     # `first_name` est obligatoire
     first_name = query_data.pop('first_name', user and [user.first_name])
@@ -197,7 +196,7 @@ class UserShow(APIView):
 
     def put(self, request, username):
         """Mettre à jour un utilisateur."""
-        request._DATA, request._files = parse_request(request)
+        request.PUT, request._files = parse_request(request)
         if not request.user.profile.is_admin:
             raise Http404()
         try:
@@ -223,16 +222,15 @@ class UserList(APIView):
 
     def post(self, request):
         """Créer un utilisateur."""
-        request._DATA, request._files = parse_request(request)
+        request.POST._mutable = True
         if not request.user.profile.is_admin:
             raise Http404()
         try:
-            handle_pust_request(request)
+            user = handle_pust_request(request)
         except Http404:
             raise Http404()
         except GenericException as e:
             return JsonResponse({'error': e.details}, status=400)
-        # else:
         response = HttpResponse(status=201)
-        response['Content-Location'] = ''
+        response['Content-Location'] = user.profile.api_location
         return response

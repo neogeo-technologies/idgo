@@ -25,7 +25,7 @@ from django.db import IntegrityError
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.http import Http404
+from django.urls import reverse
 from django.utils import timezone
 from functools import reduce
 from idgo_admin.ckan_module import CkanHandler
@@ -411,6 +411,11 @@ class Resource(models.Model):
     def ckan_url(self):
         return urljoin(settings.CKAN_URL, 'dataset/{}/resource/{}/'.format(
             self.dataset.slug, self.ckan_id))
+
+    @property
+    def api_location(self):
+        kwargs = {'dataset_name': self.dataset.slug, 'resource_id': self.ckan_id}
+        return reverse('api:resource_show', kwargs=kwargs)
 
     @property
     def title_overflow(self):

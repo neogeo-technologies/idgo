@@ -23,6 +23,7 @@ from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils.text import slugify
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler
@@ -295,6 +296,11 @@ class Dataset(models.Model):
     @property
     def ckan_url(self):
         return urljoin(CKAN_URL, 'dataset/', self.slug)
+
+    @property
+    def api_location(self):
+        kwargs = {'dataset_name': self.slug}
+        return reverse('api:dataset_show', kwargs=kwargs)
 
     @property
     def geonet_url(self):

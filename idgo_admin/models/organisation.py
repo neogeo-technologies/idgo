@@ -27,6 +27,7 @@ from django.db.models.signals import post_save
 from django.db.models.signals import pre_save
 from django.db import transaction
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils.text import slugify
 from functools import reduce
 from idgo_admin.ckan_module import CkanBaseHandler
@@ -209,6 +210,11 @@ class Organisation(models.Model):
         if MRAHandler.is_workspace_exists(self.slug):
             return OWS_URL_PATTERN.format(organisation=self.slug)
         # else: return None
+
+    @property
+    def api_location(self):
+        kwargs = {'organisation_name': self.slug}
+        return reverse('api:organisation_show', kwargs=kwargs)
 
     def get_datasets(self, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')

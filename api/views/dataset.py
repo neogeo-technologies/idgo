@@ -116,6 +116,7 @@ def handle_pust_request(request, dataset_name=None):
     # name -> slug
     # type -> data_type
     # categories/category -> categories
+    # private -> published
 
     user = request.user
     dataset = None
@@ -127,8 +128,7 @@ def handle_pust_request(request, dataset_name=None):
         if not instance:
             raise Http404()
 
-    # query_data = getattr(request, request.method)  # QueryDict
-    query_data = request._DATA
+    query_data = getattr(request, request.method)  # QueryDict
 
     # slug/name
     slug = query_data.pop('name', dataset and [dataset.slug])
@@ -283,7 +283,7 @@ class DatasetShow(APIView):
 
     def put(self, request, dataset_name):
         """Modifier le jeu de données."""
-        request._DATA, request._files = parse_request(request)
+        request.PUT, request._files = parse_request(request)
         try:
             handle_pust_request(request, dataset_name=dataset_name)
         except Http404:
@@ -321,13 +321,16 @@ class DatasetList(APIView):
 
     def post(self, request):
         """Créer un nouveau jeu de données."""
-        request._DATA, request._files = parse_request(request)
+        # Fait un peu vite pour que ça marche...
+        files = request.FILES.copy()
+        request._DATA, _ = parse_request(request)
+        request._files = files
         try:
-            handle_pust_request(request)
+            dataset = handle_pust_request(request)
         except Http404:
             raise Http404()
         except GenericException as e:
             return JsonResponse({'error': e.details}, status=400)
         response = HttpResponse(status=201)
-        response['Content-Location'] = ''
+        response['Content-Location'] = dataset.api_location
         return response

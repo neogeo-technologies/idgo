@@ -14,7 +14,7 @@
 # under the License.
 
 
-from api.utils import parse_request
+# from api.utils import parse_request
 from collections import OrderedDict
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -87,8 +87,7 @@ def handle_pust_request(request, organisation_name=None):
     if organisation_name:
         organisation = get_object_or_404(Organisation, slug=organisation_name)
 
-    # query_data = getattr(request, request.method)  # QueryDict
-    query_data = request._DATA
+    query_data = getattr(request, request.method)  # QueryDict
 
     # Slug/Name
     slug = query_data.pop('name', organisation and [organisation.slug])
@@ -146,7 +145,7 @@ class OrganisationShow(APIView):
 
     # def put(self, request, organisation_name):
     #     """Mettre à jour l'organisation."""
-    #     request._DATA, request._files = parse_request(request)
+    #     request.PUT, request._files = parse_request(request)
     #     if not request.user.profile.is_admin:
     #         raise Http404()
     #     try:
@@ -171,16 +170,15 @@ class OrganisationList(APIView):
 
     def post(self, request):
         """Créer une nouvelle organisation."""
-        request._DATA, request._files = parse_request(request)
+        request.POST._mutable = True
         if not request.user.profile.is_admin:
             raise Http404()
         try:
-            handle_pust_request(request)
+            organisation = handle_pust_request(request)
         except Http404:
             raise Http404()
         except GenericException as e:
             return JsonResponse({'error': e.details}, status=400)
-
         response = HttpResponse(status=201)
-        response['Content-Location'] = ''
+        response['Content-Location'] = organisation.api_location
         return response

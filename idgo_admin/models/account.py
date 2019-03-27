@@ -149,6 +149,11 @@ class Profile(models.Model):
     def is_ftp_account_exists(self):
         return self.sftp_password and True or False
 
+    @property
+    def api_location(self):
+        kwargs = {'username': self.user.username}
+        return reverse('api:user_show', kwargs=kwargs)
+
     # Méthodes de classe
     # ==================
 

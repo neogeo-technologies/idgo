@@ -112,8 +112,7 @@ def handle_pust_request(request, dataset_name, resource_id=None):
     if resource_id:
         resource = get_object_or_404(Resource, ckan_id=resource_id)
 
-    # query_data = getattr(request, request.method)  # QueryDict
-    query_data = request._DATA
+    query_data = getattr(request, request.method)  # QueryDict
 
     # `title` est obligatoire
     title = query_data.pop('title', resource and [resource.title])
@@ -134,7 +133,7 @@ def handle_pust_request(request, dataset_name, resource_id=None):
     profiles_allowed = None
     organisations_allowed = None
 
-    restricted_level = query_data.pop('restricted_level', resource and [resource.restricted_level])
+    restricted_level = query_data.pop('restricted_level', resource and [resource.restricted_level] or ['public'])
     if restricted_level[-1] == 'only_allowed_users':
         profiles_allowed = User.objects.filter(username__in=restricted_list)
         query_data.__setitem__('profiles_allowed', [instance.pk for instance in profiles_allowed])
@@ -150,10 +149,6 @@ def handle_pust_request(request, dataset_name, resource_id=None):
         except ResourceFormats.DoesNotExist as e:
             raise GenericException(details=e.__str__())
         query_data.__setitem__('format_type', resource_format.pk)
-
-    data_type = query_data.pop('type', None)
-    if data_type:
-        query_data.__setitem__('data_type', data_type[-1])
 
     form = Form(query_data, request.FILES, instance=resource, dataset=dataset, user=user)
     if not form.is_valid():
@@ -299,14 +294,14 @@ class ResourceList(APIView):
             [serialize(resource) for resource in resources], safe=False)
 
     def post(self, request, dataset_name):
-        request._DATA, request._files = parse_request(request)
         """Ajouter une ressource au jeu de données."""
+        request.POST._mutable = True
         try:
-            handle_pust_request(request, dataset_name)
+            resource = handle_pust_request(request, dataset_name)
         except Http404:
             raise Http404()
         except GenericException as e:
             return JsonResponse({'error': e.details}, status=400)
         response = HttpResponse(status=201)
-        response['Content-Location'] = ''
+        response['Content-Location'] = resource.api_location
         return response
