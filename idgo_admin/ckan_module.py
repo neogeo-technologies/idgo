@@ -178,9 +178,11 @@ class CkanBaseHandler(object):
 
     @CkanExceptionsHandler()
     def get_all_licenses(self, *args, **kwargs):
-        return [
-            license for license
-            in self.call_action('license_list', **kwargs)]
+        try:
+            action_result = self.call_action('license_list', **kwargs)
+        except CkanError.CKANAPIError:
+            action_result = self.call_action('licence_list', **kwargs)
+        return [license for license in action_result]
 
     @CkanExceptionsHandler()
     def get_all_organisations(self, *args, **kwargs):

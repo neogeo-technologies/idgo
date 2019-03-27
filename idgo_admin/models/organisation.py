@@ -401,19 +401,25 @@ class RemoteCkan(models.Model):
                             if metadata_modified:
                                 metadata_modified = datetime.strptime(metadata_modified, ISOFORMAT_DATETIME)
 
-                            # Licence
-                            filters = [
-                                Q(slug=package.get('license_id')),
-                                Q(title=package.get('license_title')),
-                                Q(alternate_titles__contains=[package.get('license_title')]),
-                                ]
+                            # filters = [
+                            #     Q(slug=package.get('license_id')),
+                            #     Q(title=package.get('license_title')),
+                            #     Q(alternate_titles__contains=[package.get('license_title')]),
+                            #     ]
+                            # try:
+                            #     license = License.objects.get(reduce(ior, filters))
+                            # except License.DoesNotExist:
+                            #     try:
+                            #         license = License.objects.get(slug='notspecified')
+                            #     except License.DoesNotExist:
+                            #         license = None
                             try:
-                                license = License.objects.get(reduce(ior, filters))
-                            except License.DoesNotExist:
-                                try:
-                                    license = License.objects.get(slug='notspecified')
-                                except License.DoesNotExist:
-                                    license = None
+                                mapping_licence = MappingLicence.objects.get(
+                                    remote_ckan=self, slug=package.get('license_id'))
+                            except MappingLicence.DoesNotExist:
+                                license = None
+                            else:
+                                license = mapping_licence.licence
 
                             kvp = {
                                 'slug': 'sync--{}--{}'.format(value, package.get('name'))[:100],
@@ -445,10 +451,14 @@ class RemoteCkan(models.Model):
 
                             dataset, created = Dataset.harvested_ckan.update_or_create(**kvp)
 
-                            categories = Category.objects.filter(
-                                slug__in=[m['name'] for m in package.get('groups', [])])
-                            if categories:
-                                dataset.categories = categories
+                            # categories = Category.objects.filter(
+                            #     slug__in=[m['name'] for m in package.get('groups', [])])
+                            # if categories:
+                            #     dataset.categories = categories
+                            mapping_categories = MappingCategory.objects.filter(
+                                remote_ckan=self, slug__in=[m['name'] for m in package.get('groups', [])])
+                            if mapping_categories:
+                                dataset.categories = set(mc.category for mc in mapping_categories)
 
                             if not created:
                                 dataset.keywords.clear()

@@ -229,7 +229,7 @@ class RemoteCkanForm(forms.ModelForm):
             else:
                 fields_name = []
                 for remote_license in remote_licenses:
-                    field_name = remote_license['name']
+                    field_name = remote_license['id']
                     fields_name.append(field_name)
                     init_lic = MappingLicence.objects.filter(
                         remote_ckan=instance, slug=field_name).first().category if \
@@ -241,7 +241,7 @@ class RemoteCkanForm(forms.ModelForm):
                         empty_label="Sélectionnez une valeur",
                         required=False,
                         queryset=License.objects.all(),
-                        inital=init_lic
+                        initial=init_lic
                         )
                     self.fields[field_name] = field
 
