@@ -110,7 +110,11 @@ class AccountActionsInline(admin.TabularInline):
         # Si extra != 0 les instances supplémentaires se voient attribuer une url
         # par sécurité on empeche d'afficher un lien si pas d'instance.
         if obj.pk:
-            mark = '<a href="{}">Valider l\'action</a>'.format(obj.get_path())
+            # get_path ne définissant pas d'url pour une action de ce type
+            if obj.action == 'created_organisation_through_api':
+                mark = '<div>N/A</div>'
+            else:
+                mark = '<a href="{}">Valider l\'action</a>'.format(obj.get_path())
             return mark_safe(mark)
     change_link.short_description = 'Lien de validation'
 
