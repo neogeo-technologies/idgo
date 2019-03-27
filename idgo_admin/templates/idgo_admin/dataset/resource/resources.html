@@ -15,7 +15,7 @@
 	{% if user.profile.crige_membership %}
 	<button name="resource-extractor" class="btn btn-default">Service d'extraction</button>
 	{% else %}
-	{% include "idgo_admin/extras/crige_restricted_access/button.html" with class="btn btn-default" text="Service d'extraction" name="resource-extractor" %}
+	{% include "idgo_admin/extras/crige_restricted_access/button.html" with class="btn btn-default" text="Service d'extraction" name="resource-extractor" modal_target="modal_forbidden" %}
 	{% endif %}
 	<button name="view-ckan-resource" class="btn btn-default">Ouvrir dans CKAN</button>
 	<button name="edit-resource" class="btn btn-secondary">Éditer <span class="glyphicon glyphicon-pencil"></span></button>
