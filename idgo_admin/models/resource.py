@@ -464,7 +464,7 @@ class Resource(models.Model):
         file_must_be_deleted = False  # permet d'indiquer si les fichiers doivent être supprimés à la fin de la chaine de traitement
         publish_raw_resource = True  # permet d'indiquer si les ressources brutes sont publiées dans CKAN
 
-        if self.ftp_file:
+        if self.ftp_file and not skip_download:
             filename = self.ftp_file.file.name
             # Si la taille de fichier dépasse la limite autorisée,
             # on traite les données en fonction du type détecté
