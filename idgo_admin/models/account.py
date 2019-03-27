@@ -370,6 +370,10 @@ class AccountActions(models.Model):
             'set_password_admin',
             "Initialisation du mot de passe suite à une inscription par un administrateur"
             ),
+        (
+            'created_organisation_through_api',
+            "Création d'une organisation depuis l'API"
+            ),
         )
 
     action = models.CharField(
