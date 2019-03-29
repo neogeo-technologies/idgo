@@ -64,7 +64,7 @@ class CswBaseHandler(object):
         results = self.remote.results.copy()
         records = self.remote.records.copy()
         data = {
-            'name': id,
+            'name': slugify(id),
             'display_name': id,
             'package_count': results.get('matches'),
             }
