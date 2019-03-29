@@ -25,7 +25,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from idgo_admin import logger
-from idgo_admin.ckan_module import CkanBaseHandler
+from idgo_admin.ckan_module import CkanManagerHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.models import Dataset
 from idgo_admin.models import Keywords
@@ -35,6 +35,7 @@ from idgo_admin.models import ResourceFormats
 import re
 from taggit.admin import Tag
 from taggit.models import TaggedItem
+
 
 def synchronize(modeladmin, request, queryset):
     for dataset in queryset:
@@ -271,8 +272,9 @@ class KeywordsAdmin(admin.ModelAdmin):
                     dataset.keywords.add(new_tag)
                     # On synchronise CKAN
                     try:
-                        CkanBaseHandler.publish_dataset(
-                            id=dataset.ckan_id,
+                        ckan = CkanManagerHandler()
+                        ckan.publish_dataset(
+                            id=str(dataset.ckan_id),
                             tags=[{'name': keyword.name} for keyword in dataset.keywords.all()]
                         )
                     except CkanBaseError as err:
