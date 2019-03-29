@@ -25,6 +25,8 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from idgo_admin import logger
+from idgo_admin.ckan_module import CkanBaseHandler
+from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.models import Dataset
 from idgo_admin.models import Keywords
 from idgo_admin.models import Profile
@@ -33,8 +35,6 @@ from idgo_admin.models import ResourceFormats
 import re
 from taggit.admin import Tag
 from taggit.models import TaggedItem
-from idgo_admin.mra_client import MRAHandler
-
 
 def synchronize(modeladmin, request, queryset):
     for dataset in queryset:
@@ -271,27 +271,12 @@ class KeywordsAdmin(admin.ModelAdmin):
                     dataset.keywords.add(new_tag)
                     # On synchronise CKAN
                     try:
-                        dataset.synchronize()
-                    except Exception as e:
-                        msg = (
-                            "Une erreur est survenue lors de la "
-                            "synchronisation avec CKAN "
-                            "pour le jeu de donnée '{dataset}' : {error}"
-                        ).format(dataset=dataset.name, error=e.__str__())
-                        messages.error(request, msg)
-                    # On synchronise MRA
-                    try:
-                        MRAHandler.publish_dataset(
+                        CkanBaseHandler.publish_dataset(
                             id=dataset.ckan_id,
                             tags=[{'name': keyword.name} for keyword in dataset.keywords.all()]
                         )
-                    except Exception as e:
-                        msg = (
-                            "Une erreur est survenue lors de la "
-                            "synchronisation avec MRA "
-                            "pour le jeu de donnée '{dataset}' : {error}"
-                        ).format(dataset=dataset.name, error=e.__str__())
-                        messages.error(request, msg)
+                    except CkanBaseError as err:
+                        messages.error(request, err)
 
                 # Le clean des vieux tags se fait en dernier
                 # pour garder la selection de tous les datasets
