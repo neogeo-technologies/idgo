@@ -33,6 +33,7 @@ from idgo_admin.models import ResourceFormats
 import re
 from taggit.admin import Tag
 from taggit.models import TaggedItem
+from idgo_admin.mra_client import MRAHandler
 
 
 def synchronize(modeladmin, request, queryset):
@@ -276,7 +277,20 @@ class KeywordsAdmin(admin.ModelAdmin):
                             "Une erreur est survenue lors de la "
                             "synchronisation avec CKAN "
                             "pour le jeu de donnée '{dataset}' : {error}"
-                            ).format(dataset=dataset.name, error=e.__str__())
+                        ).format(dataset=dataset.name, error=e.__str__())
+                        messages.error(request, msg)
+                    # On synchronise MRA
+                    try:
+                        MRAHandler.publish_dataset(
+                            id=dataset.ckan_id,
+                            tags=[{'name': keyword.name} for keyword in dataset.keywords.all()]
+                        )
+                    except Exception as e:
+                        msg = (
+                            "Une erreur est survenue lors de la "
+                            "synchronisation avec MRA "
+                            "pour le jeu de donnée '{dataset}' : {error}"
+                        ).format(dataset=dataset.name, error=e.__str__())
                         messages.error(request, msg)
 
                 # Le clean des vieux tags se fait en dernier

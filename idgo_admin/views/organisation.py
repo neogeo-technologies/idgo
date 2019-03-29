@@ -732,8 +732,9 @@ class RemoteCswEditor(View):
         context['form'] = form
 
         if not form.is_valid():
-            return render_with_info_profile(
-                request, self.template, context=context)
+            messages.error(request, form._errors.__str__())
+            return HttpResponseRedirect(
+                reverse('idgo_admin:edit_remote_csw_link', kwargs={'id': organisation.id}))
 
         for k, v in form.cleaned_data.items():
             setattr(instance, k, v)
