@@ -270,7 +270,7 @@ def gdalinfo(coverage, epsg=None, update={}):
     p = Path(coverage.name)
     layername = slugify(p.name[:-len(p.suffix)]).replace('-', '_')
     table_id = update.get(
-        layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))
+        layername, '{0}_{1}'.format(layername[:48], str(uuid4())[:7]))
 
     xmin, ymin, xmax, ymax = coverage.extent
     if epsg and is_valid_epsg(epsg):
@@ -335,7 +335,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
         ymax = layer.extent.max_y
 
         table_id = update.get(
-            layername, '{0}_{1}'.format(layername, str(uuid4())[:7]))
+            layername, '{0}_{1}'.format(layername[:47], str(uuid4())[:7]))
         if table_id[0].isdigit():
             table_id = '_{}'.format(table_id)
 
