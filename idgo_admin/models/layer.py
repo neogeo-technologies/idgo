@@ -382,17 +382,18 @@ class Layer(models.Model):
                 DEFAULT_SRID = 4326
 
         if self.type == 'vector':
+            outputformat = None
             if self.resource.format_type.extension.lower() in ('json', 'geojson'):
                 outputformat = 'shapezip'  # Il faudrait être sûr que le format existe avec le même nom !
             elif self.resource.format_type.extension.lower() in ('zip', 'tar'):
                 outputformat = 'geojson'   # Il faudrait être sûr que le format existe avec le même nom !
-
-            api[outputformat] = (
-                '{base_url}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature'
-                '&TYPENAME={typename}&OUTPUTFORMAT={outputformat}&CRSNAME=EPSG:{srid}'
-                ).format(
-                    base_url=base_url, typename=id,
-                    outputformat=outputformat, srid=str(DEFAULT_SRID))
+            if outputformat:
+                api[outputformat] = (
+                    '{base_url}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature'
+                    '&TYPENAME={typename}&OUTPUTFORMAT={outputformat}&CRSNAME=EPSG:{srid}'
+                    ).format(
+                        base_url=base_url, typename=id,
+                        outputformat=outputformat, srid=str(DEFAULT_SRID))
 
         CkanHandler.update_resource(str(self.resource.ckan_id), api=json.dumps(api))
         CkanHandler.push_resource_view(
