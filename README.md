@@ -32,6 +32,7 @@
 (idgo_venv) /idgo_venv> pip install django-admin-list-filter-dropdown
 (idgo_venv) /idgo_venv> pip install django-extensions
 (idgo_venv) /idgo_venv> pip install djangorestframework
+(idgo_venv) /idgo_venv> pip install markdown
 ```
 
 #### Récupérer les codes sources

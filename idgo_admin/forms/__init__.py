@@ -289,7 +289,7 @@ class TermsAndConditionsField(forms.BooleanField):
             modal={
                 'id': self.MODAL_ID,
                 'title': gdpr.title,
-                'body': gdpr.description,
+                'body': gdpr.description_as_html,
                 },
             ))
 

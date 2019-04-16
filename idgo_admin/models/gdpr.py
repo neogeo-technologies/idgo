@@ -17,6 +17,7 @@
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.utils import timezone
+from markdown import markdown
 
 
 class Gdpr(models.Model):
@@ -38,6 +39,10 @@ class Gdpr(models.Model):
         null=False,
         default=timezone.now,
         )
+
+    @property
+    def description_as_html(self):
+        return markdown(self.description)
 
 
 class GdprUser(models.Model):

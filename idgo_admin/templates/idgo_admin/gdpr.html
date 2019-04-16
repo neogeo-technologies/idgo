@@ -20,7 +20,7 @@
 					<form method="post">{% csrf_token %}
 						<div class="row">
 							<div class="col-xs-12">
-								<p>{{ terms.description }}</p>
+								<p>{{ terms.description_as_html|safe }}</p>
 							</div>
 						</div>
 						<br />
