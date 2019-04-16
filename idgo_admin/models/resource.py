@@ -458,6 +458,10 @@ class Resource(models.Model):
         if self.geo_restriction:
             self.ogc_services = False
 
+        if created:
+            super().save(*args, **kwargs)
+            kwargs['force_insert'] = False
+
         # Quelques contrôles sur les fichiers de données téléversée ou à télécharger
         filename = False
         content_type = None
@@ -500,9 +504,6 @@ class Resource(models.Model):
         elif (self.up_file and file_extras):
             # GDAL/OGR ne semble pas prendre de fichier en mémoire..
             # ..à vérifier mais si c'est possible comment indiquer le vsi en préfixe du filename ?
-            super().save(*args, **kwargs)
-            kwargs['force_insert'] = False
-
             filename = self.up_file.file.name
             file_must_be_deleted = True
 
@@ -661,12 +662,6 @@ class Resource(models.Model):
                                 raise ValidationError(e.__str__(), code='__all__')
 
                             else:
-                                # Avant de créer des relations, l'objet doit exister
-                                if created:
-                                    # S'il s'agit d'une création, alors on sauve l'objet.
-                                    super().save(*args, **kwargs)
-                                    kwargs['force_insert'] = False
-
                                 # Ensuite, pour tous les jeux de données SIG trouvés,
                                 # on crée le service ows à travers la création de `Layer`
                                 try:
@@ -720,12 +715,6 @@ class Resource(models.Model):
                                     'mais le système de coordonnées de celles-ci '
                                     "n'est pas supporté par l'application.")
                                 raise ValidationError(msg, code='__all__')
-
-                            else:
-                                if created:
-                                    # S'il s'agit d'une création, alors on sauve l'objet.
-                                    super().save(*args, **kwargs)
-                                    kwargs['force_insert'] = False
 
                             # Super Crado Code
                             s0 = str(self.ckan_id)
