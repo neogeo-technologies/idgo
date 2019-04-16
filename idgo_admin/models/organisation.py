@@ -829,7 +829,7 @@ class RemoteCsw(models.Model):
 
     def delete(self, *args, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
-        for dataset in Dataset.harvested.filter(remote_instance=self):
+        for dataset in Dataset.harvested_csw.filter(remote_instance=self):
             dataset.delete()
         return super().delete(*args, **kwargs)
 
