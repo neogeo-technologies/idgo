@@ -388,8 +388,9 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
         elif test == {'Point25D', 'MultiPoint25D'}:
             geometry = 'MultiPointZ'
         else:
-            geometry = len(test) > 1 \
-                and 'Geometry' or handle_ogr_geom_type(layer.geom_type)
+            # geometry = len(test) > 1 \
+            #     and 'Geometry' or handle_ogr_geom_type(layer.geom_type)
+            geometry = len(test) > 1 and 'Geometry' or list(test)[0]
 
         sql.append(CREATE_TABLE.format(
             attrs=',\n  '.join(
