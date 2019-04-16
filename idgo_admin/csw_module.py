@@ -15,11 +15,77 @@
 
 
 from django.utils.text import slugify
+from functools import wraps
 from idgo_admin.exceptions import CswBaseError
 from idgo_admin import logger
+import inspect
+import os
 from owslib.csw import CatalogueServiceWeb
 from owslib.fes import PropertyIsEqualTo
 import re
+import timeout_decorator
+
+
+CSW_TIMEOUT = 36000
+
+
+def timeout(fun):
+    t = CSW_TIMEOUT  # in seconds
+
+    @timeout_decorator.timeout(t, use_signals=False)
+    def return_with_timeout(fun, args=tuple(), kwargs=dict()):
+        return fun(*args, **kwargs)
+
+    @wraps(fun)
+    def wrapper(*args, **kwargs):
+        return return_with_timeout(fun, args=args, kwargs=kwargs)
+
+    return wrapper
+
+
+class CswReadError(CswBaseError):
+    message = "L'url ne semble pas indiquer un service CSW."
+
+
+class CswTimeoutError(CswBaseError):
+    message = "Le service CSW met du temps à répondre, celui-ci est peut-être temporairement inaccessible."
+
+
+class CswError(CswBaseError):
+    message = "Une erreur est survenue."
+
+
+class CswExceptionsHandler(object):
+
+    def __init__(self, ignore=None):
+        self.ignore = ignore or []
+
+    def __call__(self, f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+
+            root_dir = os.path.dirname(os.path.abspath(__file__))
+            info = inspect.getframeinfo(inspect.stack()[1][0])
+            logger.debug(
+                'Run {} (called by file "{}", line {}, in {})'.format(
+                    f.__qualname__,
+                    info.filename.replace(root_dir, '.'),
+                    info.lineno,
+                    info.function))
+
+            try:
+                return f(*args, **kwargs)
+            except Exception as e:
+                logger.exception(e)
+                if isinstance(e, timeout_decorator.TimeoutError):
+                    raise CswTimeoutError
+                if self.is_ignored(e):
+                    return f(*args, **kwargs)
+                raise CswError(e.__str__())
+        return wrapper
+
+    def is_ignored(self, exception):
+        return type(exception) in self.ignore
 
 
 class CswBaseHandler(object):
@@ -28,10 +94,12 @@ class CswBaseHandler(object):
         self.url = url
         self.username = username
         self.password = password
-
-        self.remote = CatalogueServiceWeb(
-            self.url, timeout=3600, lang='fr-FR', version='2.0.2',
-            skip_caps=True, username=self.username, password=self.password)
+        try:
+            self.remote = CatalogueServiceWeb(
+                self.url, timeout=3600, lang='fr-FR', version='2.0.2',
+                skip_caps=True, username=self.username, password=self.password)
+        except Exception:
+            raise CswReadError()
 
     def __enter__(self):
         return self
@@ -43,6 +111,7 @@ class CswBaseHandler(object):
         # Fake
         logger.info('Close CSW connection')
 
+    @CswExceptionsHandler()
     def get_all_organisations(self, *args, **kwargs):
         self.remote.getdomain('OrganisationName', dtype='property')
         result = []
@@ -53,6 +122,7 @@ class CswBaseHandler(object):
             result.append(organisation)
         return result
 
+    @CswExceptionsHandler()
     def get_organisation(self, id, include_datasets=False, **kwargs):
         if include_datasets:
             kwargs['resulttype'] = 'results'
@@ -73,11 +143,7 @@ class CswBaseHandler(object):
                 self.get_package(k) for k in list(records.keys())]
         return data
 
-    def format_csw_record(obj):
-        data = {}
-
-        return data
-
+    @CswExceptionsHandler()
     def get_package(self, id, *args, **kwargs):
 
         self.remote.getrecordbyid(

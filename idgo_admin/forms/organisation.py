@@ -138,6 +138,7 @@ class RemoteCkanForm(forms.ModelForm):
     url = forms.URLField(
         label="URL du catalogue CKAN à synchroniser",
         required=True,
+        max_length=200,
         error_messages={
             'invalid': "L'adresse URL est erronée.",
             },
@@ -274,14 +275,15 @@ class RemoteCswForm(forms.ModelForm):
             )
 
     url = forms.URLField(
-        label="URL du catalogue CKAN à synchroniser",
+        label="URL du catalogue CSW à synchroniser",
         required=True,
+        max_length=200,
         error_messages={
             'invalid': "L'adresse URL est erronée.",
             },
         widget=forms.TextInput(
             attrs={
-                'placeholder': "https://demo.ckan.org",
+                # 'placeholder': "https://demo.ckan.org",
                 },
             ),
         )
@@ -316,7 +318,7 @@ class RemoteCswForm(forms.ModelForm):
                 with CswBaseHandler(instance.url) as csw:
                     organisations = csw.get_all_organisations()
             except CswBaseError as e:
-                self.add_error('url', e.message)
+                self.add_error('url', e.__str__())
             else:
                 self.fields['sync_with'].choices = (
                     (organisation['name'], '{} ({})'.format(
