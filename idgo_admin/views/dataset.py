@@ -18,6 +18,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
@@ -28,6 +29,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from functools import reduce
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import ExceptionsHandler
@@ -36,6 +38,7 @@ from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
+from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import License
 from idgo_admin.models.mail import send_dataset_creation_mail
 from idgo_admin.models.mail import send_dataset_delete_mail
@@ -50,6 +53,7 @@ from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
 import json
 from math import ceil
+from operator import ior
 
 
 CKAN_URL = settings.CKAN_URL
@@ -225,10 +229,18 @@ def list_all_datasets(request, *args, **kwargs):
     user, profile = user_and_profile(request)
     # Réservé aux référents ou administrateurs IDGO
     roles = profile.get_roles()
-    if not roles['is_referent'] and not roles['is_admin']:
+    if roles['is_admin']:
+        QuerySet = Dataset.default.all()
+    elif roles['is_referent']:
+        kwargs = {'profile': profile, 'validated_on__isnull': False}
+        organisation__in = set(instance.organisation for instance
+                               in LiaisonsReferents.objects.filter(**kwargs))
+        filter = ior(Q(editor=user), Q(organisation__in=organisation__in))
+        QuerySet = Dataset.default.filter(filter)
+    else:
         raise Http404()
     context = handle_context(
-        Dataset.default, request.GET, target='all')
+        QuerySet, request.GET, target='all')
     return render_with_info_profile(
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 

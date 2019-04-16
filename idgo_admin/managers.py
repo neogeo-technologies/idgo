@@ -18,6 +18,7 @@ from django.apps import apps
 from django.contrib.gis.db import models
 from django.utils import timezone
 from idgo_admin.utils import clean_my_obj
+from itertools import chain
 
 
 # =========================================================
@@ -34,23 +35,16 @@ class DefaultDatasetManager(models.Manager):
         obj.save(force_insert=True, using=self.db, **save_opts)
         return obj
 
-    def filter(self, **kwargs):
+    def get_queryset(self, **kwargs):
         RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
         RemoteCswDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
+        this = RemoteCkanDataset.objects.all().values_list('dataset__pk', flat=True)
+        that = RemoteCswDataset.objects.all().values_list('dataset__pk', flat=True)
 
-        return super() \
-            .filter(**kwargs) \
-            .exclude(pk__in=[m.dataset.pk for m in RemoteCkanDataset.objects.all()]) \
-            .exclude(pk__in=[m.dataset.pk for m in RemoteCswDataset.objects.all()])
+        return super().get_queryset(**kwargs).exclude(pk__in=list(chain(this, that)))
 
     def all(self):
-        RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-        RemoteCswDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
-
-        return super() \
-            .all() \
-            .exclude(pk__in=[m.dataset.pk for m in RemoteCkanDataset.objects.all()]) \
-            .exclude(pk__in=[m.dataset.pk for m in RemoteCswDataset.objects.all()])
+        return self.get_queryset()
 
     def get(self, **kwargs):
         return super().get(**kwargs)
