@@ -17,4 +17,4 @@ class Migration(migrations.Migration):
             name='uuid',
             field=models.UUIDField(blank=True, db_index=True, editable=False, null=True, unique=True, verbose_name='Id'),
         ),
-    
+    ]
