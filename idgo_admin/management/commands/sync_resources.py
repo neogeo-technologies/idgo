@@ -14,13 +14,72 @@
 # under the License.
 
 
+from celery.decorators import task
+from celery.signals import before_task_publish
+from celery.signals import task_failure
+from celery.signals import task_postrun
+from celery.signals import task_success
+from celery.signals import task_unknown
+from celery.utils.log import get_task_logger
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from idgo_admin.models import Resource
 from idgo_admin.models import Task
+from uuid import UUID
+from uuid import uuid4
 
+
+logger = get_task_logger(__name__)
 
 NOW = timezone.now()
+
+
+@before_task_publish.connect
+def on_beforehand(headers=None, body=None, sender=None, **kwargs):
+    uuid = UUID(headers['id'])
+    resource_pk = body[1]['resource_pk']
+    resource = Resource.objects.get(pk=resource_pk)
+    extras = {'dataset': resource.dataset.id, 'resource': resource.id}
+
+    Task.objects.create(uuid=uuid, action=__name__, extras=extras)
+
+
+@task_unknown.connect
+def on_task_unknown(task_id=None, sender=None, request=None, **kwargs):
+    task = Task.objects.get(uuid=UUID(request.id))
+    task.state = 'failed'
+    task.extras = {**task.extras, **{'error': 'unknown'}}
+    task.save()
+
+
+@task_failure.connect
+def on_task_failure(task_id=None, sender=None, exception=None, **kwargs):
+    task = Task.objects.get(uuid=UUID(task_id))
+    task.state = 'failed'
+    task.extras = {**task.extras, **{'error': exception.__str__()}}
+    task.save()
+
+
+@task_success.connect
+def on_task_success(sender=None, **kwargs):
+    task = Task.objects.get(uuid=UUID(sender.request.id))
+    task.state = 'succesful'
+    task.save()
+
+
+@task_postrun.connect
+def on_task_postrun(task_id=None, **kwargs):
+    if task_id:
+        uuid = UUID(task_id)
+        task = Task.objects.get(uuid=uuid)
+        task.end = timezone.now()
+        task.save()
+
+
+@task(name='save_resource', ignore_result=False)
+def save_resource(resource_pk=None):
+    resource = Resource.objects.get(pk=resource_pk)
+    resource.save(current_user=None, synchronize=True)
 
 
 class Command(BaseCommand):
@@ -36,23 +95,9 @@ class Command(BaseCommand):
         for resource in Resource.objects.all():
             if resource.dl_url and resource.synchronisation:
                 if self.is_to_synchronized(resource):
-
-                    extras = {
-                        'dataset': resource.dataset.id,
-                        'resource': resource.id}
-
-                    task = Task.objects.create(action=__name__)
-                    try:
-                        resource.save(current_user=None, synchronize=True)
-                    except Exception as e:
-                        task.extras = {**extras, **{'error': e.__str__()}}
-                        task.state = 'failed'
-                    else:
-                        task.extras = extras
-                        task.state = 'succesful'
-                    finally:
-                        task.end = timezone.now()
-                        task.save()
+                    save_resource.apply_async(
+                        kwargs={'resource_pk': resource.pk},
+                        task_id=str(uuid4()))
 
     def is_to_synchronized(self, resource):
         return {

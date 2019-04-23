@@ -24,6 +24,15 @@ class Task(models.Model):
         verbose_name = "Tâche de synchronisation"
         verbose_name_plural = "Tâches de synchronisation"
 
+    uuid = models.UUIDField(
+        verbose_name="Id",
+        null=True,
+        blank=True,
+        editable=False,
+        unique=True,
+        db_index=True,
+        )
+
     action = models.TextField(
         verbose_name="Action",
         blank=True,
