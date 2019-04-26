@@ -370,6 +370,11 @@ class ResourceForm(forms.ModelForm):
             self.fields['organisations_allowed'].queryset = \
                 Organisation.objects.annotate(related=related_organisations).order_by('-related', 'slug')
 
+        if user.profile.is_admin:
+            choices = self.Meta.model.EXTRA_FREQUENCY_CHOICES + self.Meta.model.FREQUENCY_CHOICES
+            self.fields['sync_frequency_ftp'].choices = choices
+            self.fields['sync_frequency_dl'].choices = choices
+
     def clean(self):
 
         res_l = {

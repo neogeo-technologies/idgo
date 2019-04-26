@@ -12,3 +12,10 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+
+
+from __future__ import absolute_import
+from celeriac.apps import app as celery_app
+
+
+__all__ = ('celery_app',)

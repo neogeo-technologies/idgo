@@ -354,8 +354,17 @@ class Resource(models.Model):
         default=False,
         )
 
+    EXTRA_FREQUENCY_CHOICES = (
+        ('5mn', 'Toutes les 5 minutes'),
+        ('15mn', 'Toutes les 15 minutes'),
+        ('20mn', 'Toutes les 20 minutes'),
+        ('30mn', 'Toutes les 30 minutes'),
+        )
+
     FREQUENCY_CHOICES = (
-        ('never', 'Jamais'),
+        ('1hour', 'Toutes les heures'),
+        ('3hours', 'Toutes les trois heures'),
+        ('6hours', 'Toutes les six heures'),
         ('daily', 'Quotidienne (tous les jours à minuit)'),
         ('weekly', 'Hebdomadaire (tous les lundi)'),
         ('bimonthly', 'Bimensuelle (1er et 15 de chaque mois)'),
@@ -363,6 +372,7 @@ class Resource(models.Model):
         ('quarterly', 'Trimestrielle (1er des mois de janvier, avril, juillet, octobre)'),
         ('biannual', 'Semestrielle (1er janvier et 1er juillet)'),
         ('annual', 'Annuelle (1er janvier)'),
+        ('never', 'Jamais'),
         )
 
     sync_frequency = models.CharField(
@@ -370,7 +380,7 @@ class Resource(models.Model):
         max_length=20,
         blank=True,
         null=True,
-        choices=FREQUENCY_CHOICES,
+        choices=FREQUENCY_CHOICES + EXTRA_FREQUENCY_CHOICES,
         default='never',
         )
 
