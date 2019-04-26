@@ -54,6 +54,11 @@ def on_task_postrun(state=None, task_id=None, task=None,
 
 
 @celery_app.task()
+def clean_tasktracking_table(*args, **kwargs):
+    TaskTracking.objects.filter(**kwargs).delete()
+
+
+@celery_app.task()
 def save_resource(*args, pk=None, **kwargs):
     resource = Resource.objects.get(pk=pk)
     resource.save(current_user=None, synchronize=True)
