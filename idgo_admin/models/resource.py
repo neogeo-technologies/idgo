@@ -468,6 +468,8 @@ class Resource(models.Model):
         if self.geo_restriction:
             self.ogc_services = False
 
+        self.last_update = timezone.now()
+
         if created:
             super().save(*args, **kwargs)
             kwargs['force_insert'] = False

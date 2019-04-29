@@ -209,6 +209,7 @@ class ResourceForm(forms.ModelForm):
     sync_frequency_dl = forms.ChoiceField(
         label="Fréquence de synchronisation",
         required=False,
+        initial='never',
         choices=Meta.model.FREQUENCY_CHOICES,
         widget=forms.Select(
             attrs={
@@ -227,6 +228,7 @@ class ResourceForm(forms.ModelForm):
     sync_frequency_ftp = forms.ChoiceField(
         label="Fréquence de synchronisation",
         required=False,
+        initial='never',
         choices=Meta.model.FREQUENCY_CHOICES,
         widget=forms.Select(
             attrs={
@@ -350,10 +352,13 @@ class ResourceForm(forms.ModelForm):
                 choices.append((filename, filename[len(dir) + 1:]))
         self.fields['ftp_file'].choices = choices
 
-        if instance and instance.up_file:
-            self.fields['up_file'].widget.attrs['value'] = instance.up_file
+        if user.profile.is_admin:
+            choices = self.Meta.model.EXTRA_FREQUENCY_CHOICES + self.Meta.model.FREQUENCY_CHOICES
+            self.fields['sync_frequency_ftp'].choices = choices
+            self.fields['sync_frequency_dl'].choices = choices
 
         if instance:
+
             related_profiles = Case(
                 When(pk__in=[m.pk for m in instance.profiles_allowed.all()], then=Value(True)),
                 default=Value(False),
@@ -370,10 +375,14 @@ class ResourceForm(forms.ModelForm):
             self.fields['organisations_allowed'].queryset = \
                 Organisation.objects.annotate(related=related_organisations).order_by('-related', 'slug')
 
-        if user.profile.is_admin:
-            choices = self.Meta.model.EXTRA_FREQUENCY_CHOICES + self.Meta.model.FREQUENCY_CHOICES
-            self.fields['sync_frequency_ftp'].choices = choices
-            self.fields['sync_frequency_dl'].choices = choices
+            if instance.up_file:
+                self.fields['up_file'].widget.attrs['value'] = instance.up_file
+            elif instance.ftp_file:
+                self.fields['synchronisation_ftp'].initial = instance.synchronisation
+                self.fields['sync_frequency_ftp'].initial = instance.sync_frequency
+            elif instance.dl_url:
+                self.fields['synchronisation_dl'].initial = instance.synchronisation
+                self.fields['sync_frequency_dl'].initial = instance.sync_frequency
 
     def clean(self):
 
@@ -402,7 +411,5 @@ class ResourceForm(forms.ModelForm):
             for k, v in res_l.items():
                 if v:
                     self.add_error(k, error_msg)
-
-        self.cleaned_data['last_update'] = timezone.now().date()
 
         return self.cleaned_data

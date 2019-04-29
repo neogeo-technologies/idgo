@@ -189,6 +189,7 @@ class ResourceManager(View):
                 else:
                     error['__all__'] = [msg]
                 return JsonResponse(json.dumps({'error': error}), safe=False)
+
             return render_with_info_profile(request, self.template, context)
 
         data = form.cleaned_data
@@ -200,7 +201,7 @@ class ResourceManager(View):
             'lang': data['lang'],
             'data_type': data['data_type'],
             'format_type': data['format_type'],
-            'last_update': data['last_update'],
+            'last_update': data.get('last_update'),
             'restricted_level': data['restricted_level'],
             'up_file': data['up_file'],
             'dl_url': data['dl_url'],

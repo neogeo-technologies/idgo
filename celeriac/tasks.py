@@ -82,10 +82,10 @@ def sync_resources(*args, **kwargs):
 def check_resources_last_update(*args, **kwargs):
 
     delta_map = {
-        '5min': relativedelta(minutes=5),
-        '15min': relativedelta(minutes=15),
-        '20min': relativedelta(minutes=20),
-        '30min': relativedelta(minutes=30),
+        '5mn': relativedelta(minutes=5),
+        '15mn': relativedelta(minutes=15),
+        '20mn': relativedelta(minutes=20),
+        '30mn': relativedelta(minutes=30),
         '1hour': relativedelta(hours=1),
         '3hours': relativedelta(hours=3),
         '6hours': relativedelta(hours=6),
