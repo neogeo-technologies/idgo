@@ -18,8 +18,15 @@ from celeriac.apps import app as celery_app
 from celeriac.models import TaskTracking
 from celery.signals import before_task_publish
 from celery.signals import task_postrun
+import csv
+from dateutil.relativedelta import relativedelta
+from django.conf import settings
+from django.core.mail import EmailMessage
 from django.utils import timezone
+from idgo_admin.models import Mail
+from idgo_admin.models.mail import get_admins_mails
 from idgo_admin.models import Resource
+from io import StringIO
 from uuid import UUID
 
 
@@ -69,3 +76,64 @@ def sync_resources(*args, **kwargs):
     resources = Resource.objects.filter(**kwargs)
     for resource in resources:
         save_resource.apply_async(kwargs={'pk': resource.pk})
+
+
+@celery_app.task()
+def check_resources_last_update(*args, **kwargs):
+
+    delta_map = {
+        '5min': relativedelta(minutes=5),
+        '15min': relativedelta(minutes=15),
+        '20min': relativedelta(minutes=20),
+        '30min': relativedelta(minutes=30),
+        '1hour': relativedelta(hours=1),
+        '3hours': relativedelta(hours=3),
+        '6hours': relativedelta(hours=6),
+        'daily': relativedelta(days=1),
+        'weekly': relativedelta(days=7),
+        'bimonthly': relativedelta(days=15),
+        'monthly': relativedelta(months=1),
+        'quarterly': relativedelta(months=3),
+        'biannual': relativedelta(months=6),
+        'annual': relativedelta(year=1),
+        }
+
+    data = []
+    for resource in Resource.objects.filter(**kwargs):
+        delta = delta_map.get(resource.sync_frequency)
+        if not delta:
+            continue
+
+        delay = timezone.now() - (resource.last_update + delta)
+        if delay.total_seconds() > 0:
+            row = (
+                resource.dataset.slug,
+                resource.ckan_id,
+                resource.sync_frequency,
+                resource.last_update,
+                delay,
+                )
+            data.append(row)
+
+    if not data:
+        return
+    # else:
+
+    col = (
+        'dataset_slug',
+        'resource_uuid',
+        'sync_frequency',
+        'last_update',
+        'delay',
+        )
+    data.insert(0, col)
+
+    f = StringIO()
+    csv.writer(f).writerows(data)
+
+    mail_instance = Mail.objects.get(template_name='resources_update_with_delay')
+    mail = EmailMessage(
+        mail_instance.subject, mail_instance.message,
+        settings.DEFAULT_FROM_EMAIL, get_admins_mails())
+    mail.attach('log.csv', f.getvalue(), 'text/csv')
+    mail.send()
