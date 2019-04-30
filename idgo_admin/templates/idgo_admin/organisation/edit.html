@@ -54,8 +54,15 @@
 	<div class="well">
 		{% if id and user.profile.is_admin %}
 		<div class="buttons-on-the-right-side">
-			<a class="btn btn-default" href="{% url 'idgo_admin:edit_remote_csw_link' id=id %}">Synchroniser avec un catalogue CSW</a>
-			<a class="btn btn-default" href="{% url 'idgo_admin:edit_remote_ckan_link' id=id %}">Synchroniser avec un catalogue CKAN</a>
+			<div class="btn-group">
+				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					Importer un catalogue <span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu dropdown-menu-right">
+					<li><a href="{% url 'idgo_admin:edit_remote_csw_link' id=id %}">Importer un catalogue CSW</a></li>
+					<li><a href="{% url 'idgo_admin:edit_remote_ckan_link' id=id %}">Importer un catalogue CKAN</a></li>
+				</ul>
+			</div>
 		</div>
 		<br />
 		{% endif %}
