@@ -226,19 +226,19 @@ class Organisation(models.Model):
         return [profile.user for profile in qs]
 
     def get_members(self):
-        """Retourner la liste des utilistateurs membres de l'organisation."""
+        """Retourner la liste des utilisateurs membres de l'organisation."""
         Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
         profiles = Profile.objects.filter(organisation=self, membership=True, is_active=True)
         return [e.user for e in profiles]
 
     def get_contributors(self):
-        """Retourner la liste des utilistateurs contributeurs de l'organisation."""
+        """Retourner la liste des utilisateurs contributeurs de l'organisation."""
         Nexus = apps.get_model(app_label='idgo_admin', model_name='LiaisonsContributeurs')
         entries = Nexus.objects.filter(organisation=self, validated_on__isnull=False)
         return [e.profile.user for e in entries if e.profile.is_active]
 
     def get_referents(self):
-        """Retourner la liste des utilistateurs référents de l'organisation."""
+        """Retourner la liste des utilisateurs référents de l'organisation."""
         Nexus = apps.get_model(app_label='idgo_admin', model_name='LiaisonsReferents')
         entries = Nexus.objects.filter(organisation=self, validated_on__isnull=False)
         return [e.profile.user for e in entries if e.profile.is_active]
@@ -539,13 +539,6 @@ class RemoteCkanDataset(models.Model):
         unique=True,
         )
 
-    remote_organisation = models.SlugField(
-        verbose_name="Organisation distante",
-        max_length=100,
-        blank=True,
-        null=True,
-        )
-
     created_by = models.ForeignKey(
         User,
         related_name='creates_dataset_from_remote_ckan',
@@ -622,9 +615,8 @@ class RemoteCsw(models.Model):
         blank=True,
         )
 
-    sync_with = ArrayField(
-        models.SlugField(max_length=100),
-        verbose_name="Organisations synchronisées",
+    getrecords = models.TextField(
+        verbose_name="GetRecords",
         blank=True,
         null=True,
         )
@@ -661,16 +653,8 @@ class RemoteCsw(models.Model):
 
         # (1) Supprimer les jeux de données qui ne sont plus synchronisés
         previous = self.pk and RemoteCsw.objects.get(pk=self.pk)
-
         if previous:
-            remote_organisation__in = [
-                x for x in (previous.sync_with or [])
-                if x not in (self.sync_with or [])]
-            filter = {
-                'remote_instance': previous,
-                'remote_organisation__in': remote_organisation__in}
-            # TODO: 'Dataset.harvested_csw.filter(**filter).delete()' ne fonctionne pas
-            for dataset in Dataset.harvested_csw.filter(**filter):
+            for dataset in Dataset.harvested_csw.filter(remote_instance=previous):
                 dataset.delete()
         else:
             # Dans le cas d'une création, on vérifie si l'URL CSW est valide
@@ -695,137 +679,127 @@ class RemoteCsw(models.Model):
             break
 
         # Puis on moissonne le catalogue
-        if self.sync_with:
-            try:
-                ckan_ids = []
-                with transaction.atomic():
+        try:
+            ckan_ids = []
+            with transaction.atomic():
 
-                    # TODO: Factoriser
-                    for value in self.sync_with:
-                        with CswBaseHandler(self.url) as csw:
-                            csw_organisation = csw.get_organisation(
-                                value, include_datasets=True)
-                        if not csw_organisation.get('package_count', 0):
+                with CswBaseHandler(self.url) as csw:
+                    packages = csw.get_packages(xml=self.getrecords)
+
+                for package in packages:
+                    if not package['type'] == 'dataset':
+                        continue
+
+                    geonet_id = package['id']
+                    update_frequency = dict(Dataset.FREQUENCY_CHOICES).get(
+                        package.get('frequency'), 'unknow')
+                    update_frequency = package.get('frequency')
+                    if not(update_frequency and update_frequency
+                            in dict(Dataset.FREQUENCY_CHOICES).keys()):
+                        update_frequency = 'unknow'
+                    metadata_created = package.get('metadata_created', None)
+                    if metadata_created:
+                        metadata_created = datetime.strptime(metadata_created, ISOFORMAT_DATE)
+                    metadata_modified = package.get('metadata_modified', None)
+                    if metadata_modified:
+                        metadata_modified = datetime.strptime(metadata_modified, ISOFORMAT_DATE)
+
+                    # Licence
+                    filters = [
+                        Q(slug=package.get('license_id')),
+                        Q(title=package.get('license_title')),
+                        Q(alternate_titles__contains=[package.get('license_title')]),
+                        ]
+                    try:
+                        license = License.objects.get(reduce(ior, filters))
+                    except License.DoesNotExist:
+                        try:
+                            license = License.objects.get(slug='notspecified')
+                        except License.DoesNotExist:
+                            license = None
+
+                    kvp = {
+                        'slug': 'sync--{}'.format(package.get('name'))[:100],
+                        'title': package.get('title'),
+                        'description': package.get('notes'),
+                        'date_creation': metadata_created and metadata_created.date(),
+                        'date_modification': metadata_modified and metadata_modified.date(),
+                        'editor': editor,
+                        'license': license,
+                        'owner_email': self.organisation.email or DEFAULT_CONTACT_EMAIL,
+                        'owner_name': self.organisation.legal_name or DEFAULT_PLATFORM_NAME,
+                        'organisation': self.organisation,
+                        'published': not package.get('private'),
+                        'remote_instance': self,
+                        'remote_dataset': geonet_id,
+                        'update_frequency': update_frequency,
+                        # bbox
+                        # broadcaster_email
+                        # broadcaster_name
+                        # date_publication
+                        # data_type
+                        # geocover
+                        # geonet_id
+                        # granularity
+                        # thumbnail
+                        # support
+                        }
+
+                    dataset, created = Dataset.harvested_csw.update_or_create(**kvp)
+
+                    categories = Category.objects.filter(
+                        slug__in=[m['name'] for m in package.get('groups', [])])
+                    if categories:
+                        dataset.categories = categories
+
+                    if not created:
+                        dataset.keywords.clear()
+                    keywords = [tag['display_name'] for tag in package.get('tags')]
+                    dataset.keywords.add(*keywords)
+                    dataset.save(current_user=None, synchronize=True)
+
+                    ckan_ids.append(dataset.ckan_id)
+
+                    for resource in package.get('resources', []):
+                        try:
+                            ckan_id = uuid.uuid4()
+                        except ValueError as e:
+                            logger.exception(e)
+                            logger.error("I can't crash here, so I do not pay any attention to this error.")
                             continue
-                        for package in csw_organisation.get('packages'):
-                            if not package['state'] == 'active' \
-                                    or not package['type'] == 'dataset':
-                                continue
-                            with CswBaseHandler(self.url) as csw:
-                                package = csw.get_package(package['id'])
 
-                            geonet_id = uuid.UUID(package['id'])
+                        filters = []
+                        protocol = resource.get('protocol')
+                        protocol and filters.append(Q(protocol=protocol))
+                        mimetype = resource.get('mimetype')
+                        mimetype and filters.append(Q(mimetype__overlap=[mimetype]))
+                        try:
+                            format_type = ResourceFormats.objects.get(reduce(iand, filters))
+                        except (ResourceFormats.MultipleObjectsReturned, ResourceFormats.DoesNotExist, TypeError):
+                            format_type = None
 
-                            update_frequency = dict(Dataset.FREQUENCY_CHOICES).get(
-                                package.get('frequency'), 'unknow')
-                            update_frequency = package.get('frequency')
-                            if not(update_frequency and update_frequency
-                                    in dict(Dataset.FREQUENCY_CHOICES).keys()):
-                                update_frequency = 'unknow'
-                            metadata_created = package.get('metadata_created', None)
-                            if metadata_created:
-                                metadata_created = datetime.strptime(metadata_created, ISOFORMAT_DATE)
-                            metadata_modified = package.get('metadata_modified', None)
-                            if metadata_modified:
-                                metadata_modified = datetime.strptime(metadata_modified, ISOFORMAT_DATE)
+                        kvp = {
+                            'ckan_id': ckan_id,
+                            'dataset': dataset,
+                            'format_type': format_type,
+                            'title': resource['name'] or resource['url'],
+                            'referenced_url': resource['url'],
+                            }
 
-                            # Licence
-                            filters = [
-                                Q(slug=package.get('license_id')),
-                                Q(title=package.get('license_title')),
-                                Q(alternate_titles__contains=[package.get('license_title')]),
-                                ]
-                            try:
-                                license = License.objects.get(reduce(ior, filters))
-                            except License.DoesNotExist:
-                                try:
-                                    license = License.objects.get(slug='notspecified')
-                                except License.DoesNotExist:
-                                    license = None
+                        try:
+                            resource = Resource.objects.get(ckan_id=ckan_id)
+                        except Resource.DoesNotExist:
+                            resource = Resource.default.create(
+                                save_opts={'current_user': editor, 'synchronize': True}, **kvp)
+                        else:
+                            for k, v in kvp.items():
+                                setattr(resource, k, v)
+                        resource.save(current_user=editor, synchronize=True)
 
-                            kvp = {
-                                'slug': 'sync--{}--{}'.format(slugify(value), package.get('name'))[:100],
-                                'title': package.get('title'),
-                                'description': package.get('notes'),
-                                'date_creation': metadata_created and metadata_created.date(),
-                                'date_modification': metadata_modified and metadata_modified.date(),
-                                'editor': editor,
-                                'license': license,
-                                'owner_email': self.organisation.email or DEFAULT_CONTACT_EMAIL,
-                                'owner_name': self.organisation.legal_name or DEFAULT_PLATFORM_NAME,
-                                'organisation': self.organisation,
-                                'published': not package.get('private'),
-                                'remote_instance': self,
-                                'remote_dataset': geonet_id,
-                                'remote_organisation': value,
-                                'update_frequency': update_frequency,
-                                # bbox
-                                # broadcaster_email
-                                # broadcaster_name
-                                # date_publication
-                                # data_type
-                                # geocover
-                                # geonet_id
-                                # granularity
-                                # thumbnail
-                                # support
-                                }
-
-                            dataset, created = Dataset.harvested_csw.update_or_create(**kvp)
-
-                            categories = Category.objects.filter(
-                                slug__in=[m['name'] for m in package.get('groups', [])])
-                            if categories:
-                                dataset.categories = categories
-
-                            if not created:
-                                dataset.keywords.clear()
-                            keywords = [tag['display_name'] for tag in package.get('tags')]
-                            dataset.keywords.add(*keywords)
-                            dataset.save(current_user=None, synchronize=True)
-
-                            ckan_ids.append(dataset.ckan_id)
-
-                            for resource in package.get('resources', []):
-                                try:
-                                    ckan_id = uuid.uuid4()
-                                except ValueError as e:
-                                    logger.exception(e)
-                                    logger.error("I can't crash here, so I do not pay any attention to this error.")
-                                    continue
-
-                                filters = []
-                                protocol = resource.get('protocol')
-                                protocol and filters.append(Q(protocol=protocol))
-                                mimetype = resource.get('mimetype')
-                                mimetype and filters.append(Q(mimetype__overlap=[mimetype]))
-                                try:
-                                    format_type = ResourceFormats.objects.get(reduce(iand, filters))
-                                except (ResourceFormats.MultipleObjectsReturned, ResourceFormats.DoesNotExist):
-                                    format_type = None
-
-                                kvp = {
-                                    'ckan_id': ckan_id,
-                                    'dataset': dataset,
-                                    'format_type': format_type,
-                                    'title': resource['name'],
-                                    'referenced_url': resource['url'],
-                                    }
-
-                                try:
-                                    resource = Resource.objects.get(ckan_id=ckan_id)
-                                except Resource.DoesNotExist:
-                                    resource = Resource.default.create(
-                                        save_opts={'current_user': editor, 'synchronize': True}, **kvp)
-                                else:
-                                    for k, v in kvp.items():
-                                        setattr(resource, k, v)
-                                resource.save(current_user=editor, synchronize=True)
-
-            except Exception as e:
-                for id in ckan_ids:
-                    CkanHandler.purge_dataset(str(id))
-                raise e
+        except Exception as e:
+            for id in ckan_ids:
+                CkanHandler.purge_dataset(str(id))
+            raise e
 
     def delete(self, *args, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
@@ -853,8 +827,9 @@ class RemoteCswDataset(models.Model):
         to_field='id',
         )
 
-    remote_dataset = models.UUIDField(
-        verbose_name="UUID",
+    remote_dataset = models.CharField(
+        verbose_name="Jeu de données distant",
+        max_length=100,
         editable=False,
         null=True,
         blank=True,
