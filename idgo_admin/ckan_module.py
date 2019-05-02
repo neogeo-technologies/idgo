@@ -165,7 +165,7 @@ class CkanBaseHandler(object):
         self.remote.close()
         logger.info('Close CKAN connection')
 
-    @timeout
+    # @timeout
     def call_action(self, action, **kwargs):
         return self.remote.call_action(action, kwargs)
 
@@ -213,7 +213,7 @@ class CkanBaseHandler(object):
         return self.get_package(name) and True or False
 
     @CkanExceptionsHandler()
-    @timeout
+    # @timeout
     def push_resource(self, package, **kwargs):
         kwargs['package_id'] = package['id']
         kwargs['created'] = datetime.now().isoformat()

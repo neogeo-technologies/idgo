@@ -1130,8 +1130,12 @@ table td .form-group {
     margin: none;
 }
 
-.buttons-on-the-right-side>.btn {
+.buttons-on-the-right-side>.btn:not(:first-child) {
     margin-left: 5px;
+}
+
+.buttons-on-the-right-side>.left {
+    float: left;
 }
 
 .floating-buttons-on-the-right-side {
@@ -1521,4 +1525,18 @@ table td .form-group {
 
 .separator:after {
     content: "|";
+}
+
+/* ************************************************************************* */
+
+textarea.code {
+    font-family: "Andale Mono", monospace !important;
+    font-size: smaller;
+    color: #333333;
+    resize: vertical;
+    tab-size: 3;
+    overflow: auto;
+    text-overflow: initial;
+    white-space: unset;
+    overflow-wrap: unset;
 }

@@ -20,25 +20,24 @@
 {% include "idgo_admin/alert_messages.html" %}
 {% if datasets %}
 <div role="alert" class="alert alert-info">
-	<span class="glyphicon glyphicon-bell" aria-hidden="true"></span> Nombre de jeux de données importés dernièrement : <strong>{{ datasets|length }}</strong>.
+	<span class="glyphicon glyphicon-bell" aria-hidden="true"></span> Nombre de jeux de données importés : <strong>{{ datasets|length }}</strong>
 </div>
 {% endif %}
 <form method="post" action="" class="well">
 	<div class="row">
-		<div class="col-sm-8 col-md-6">
+		<div class="col-sm-10 col-md-8">
 			{% bootstrap_field form.url %}
 		</div>
 	</div>
-	<br />
 	<div class="row">
-		<div class="col-sm-10 col-md-8">
+		<div class="col-xs-6 col-sm-6 col-md-5">
 			{% bootstrap_field form.sync_frequency %}
 		</div>
 	</div>
 	{% for field in form.visible_fields %}
 		{% if field.name == 'sync_with' %}
 	<div class="row">
-		<div class="col-sm-12 col-md-8">
+		<div class="col-sm-10 col-md-8">
 			<div class="form-group{% if form.sync_with.errors %} has-error{% endif %}">
 				<label for="id_{{ form.sync_with.name }}" class="control-label">{{ form.sync_with.label }}</label>
 			{% if form.sync_with.errors %}
@@ -60,9 +59,10 @@
 		{% endif %}
 	{% endfor %}
 	{% if form.Meta.mapping %}
+	<label>Correspondance des catégories et licences</label>
 	{% load extra_tags %}
 	<div class="row">
-		<div class="col-sm-12 col-md-8">
+		<div class="col-sm-10 col-md-8">
 			<ul class="nav nav-tabs nav-tabs-default" name="mapping-selector" role="tablist">
 				{% for item in form.Meta.mapping %}
 				<li role="presentation" {% if forloop.counter0 == 0 %}class="active"{% endif %}>
@@ -75,19 +75,15 @@
 				<div role="tabpanel" class="tab-pane{% if forloop.counter0 == 0 %} active{% endif %}" name="mapping-selector-panel" id="{{ item.name }}">
 					<div class="tab-pane-content">
 						<div class="table-responsive">
-							<table class="table table-condensed">
-								<tr>
-									<th name="left" style="width: 50%">Gauche</th>
-									<th name="right" style="width: 50%">Droite</th>
-								</tr>
+							<table class="table table-condensed table-striped">
 								{% for field_name in item.fields_name %}
 								{% with form|keyvalue:field_name as field %}
 								<tr id="{{ fields_name }}" name="{{ fields_name }}">
-									<td name="left" style="vertical-align: middle;">
+									<td name="left" style="width: 50%; vertical-align: middle;">
 										{{ field.label }}
-										<span style="float: right;">=</span>
+										<!-- <span style="float: right;">=</span> -->
 									</td>
-									<td name="right" style="vertical-align: middle;">
+									<td name="right" style="width: 50%; vertical-align: middle;">
 										{% bootstrap_field field show_label=False %}
 									</td>
 								</tr>
@@ -105,7 +101,7 @@
 	<br />
 	<div class="buttons-on-the-right-side">
 		{% if instance %}
-		<button type="button" name="delete" class="btn btn-danger">Supprimer</button>
+		<button type="button" name="delete" class="btn btn-danger left">Supprimer</button>
 		{% endif %}
 		<a class="btn btn-default" href="{% url 'idgo_admin:update_organisation' id=organisation.pk %}">Annuler</a>
 		{% if instance %}
@@ -114,6 +110,12 @@
 		{% else %}
 		<button type="submit" name="continue" class="btn btn-primary">Suivant</button>
 		{% endif %}
+	</div>
+	<hr />
+	<div class="row">
+		<div class="col-xs-12">
+			<small>* Les champs marqués d'un astérisque sont obligatoires.</small>
+		</div>
 	</div>
 </form>
 <!-- Template de la fenêtre `Modal` -->

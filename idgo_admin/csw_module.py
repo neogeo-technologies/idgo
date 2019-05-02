@@ -112,42 +112,19 @@ class CswBaseHandler(object):
         logger.info('Close CSW connection')
 
     @CswExceptionsHandler()
-    def get_all_organisations(self, *args, **kwargs):
-        self.remote.getdomain('OrganisationName', dtype='property')
-        result = []
-        _get_domain = self.remote.results.copy()
-        for value in _get_domain.get('values'):
-            organisation = \
-                self.get_organisation(value, resulttype='hits', esn='brief')
-            result.append(organisation)
-        return result
-
-    @CswExceptionsHandler()
-    def get_organisation(self, id, include_datasets=False, **kwargs):
-        if include_datasets:
-            kwargs['resulttype'] = 'results'
-            kwargs['esn'] = 'summary'
-        else:
-            kwargs['resulttype'] = 'hits'
-        kwargs['constraints'] = [PropertyIsEqualTo('OrganisationName', id)]
+    def get_packages(self, *args, **kwargs):
         self.remote.getrecords2(**kwargs)
         results = self.remote.results.copy()
         records = self.remote.records.copy()
-        data = {
-            'name': slugify(id),
-            'display_name': id,
-            'package_count': results.get('matches'),
-            }
-        if include_datasets:
-            data['packages'] = [
-                self.get_package(k) for k in list(records.keys())]
-        return data
+
+        return [self.get_package(k) for k in list(records.keys())]
 
     @CswExceptionsHandler()
     def get_package(self, id, *args, **kwargs):
 
         self.remote.getrecordbyid(
             [id], outputschema='http://www.isotc211.org/2005/gmd')
+
         records = self.remote.records.copy()
 
         rec = records[id]
@@ -155,8 +132,8 @@ class CswBaseHandler(object):
         xml = rec.xml
         if not rec.__class__.__name__ == 'MD_Metadata':
             raise CswBaseError('outputschema error')
-        if not (rec.stdname == 'ISO 19115:2003/19139' and rec.stdver == '1.0'):
-            raise CswBaseError('outputschema error')
+        # if not (rec.stdname == 'ISO 19115:2003/19139' and rec.stdver == '1.0'):
+        #     raise CswBaseError('outputschema error: stdname:{} stdver:{}'.format(rec.stdname, rec.stdver))
         if not rec.hierarchy == 'dataset':
             raise CswBaseError('Not a Dataset')
 

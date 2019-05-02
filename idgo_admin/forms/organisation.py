@@ -136,7 +136,7 @@ class RemoteCkanForm(forms.ModelForm):
         mapping = tuple()
 
     url = forms.URLField(
-        label="URL du catalogue CKAN à synchroniser",
+        label="URL du catalogue CKAN*",
         required=True,
         max_length=200,
         error_messages={
@@ -150,7 +150,7 @@ class RemoteCkanForm(forms.ModelForm):
         )
 
     sync_with = forms.MultipleChoiceField(
-        label="Organisations à synchroniser",
+        label="Organisations à synchroniser*",
         required=False,
         choices=(),  # ckan api -> list_organisations
         widget=CustomCheckboxSelectMultiple(
@@ -161,7 +161,7 @@ class RemoteCkanForm(forms.ModelForm):
         )
 
     sync_frequency = forms.ChoiceField(
-        label="Fréquence de synchronisation",
+        label="Fréquence de synchronisation*",
         required=True,
         choices=Meta.model.FREQUENCY_CHOICES,
         initial='never',
@@ -270,12 +270,12 @@ class RemoteCswForm(forms.ModelForm):
         model = RemoteCsw
         fields = (
             'url',
-            'sync_with',
+            'getrecords',
             'sync_frequency',
             )
 
     url = forms.URLField(
-        label="URL du catalogue CSW à synchroniser",
+        label="URL du CSW*",
         required=True,
         max_length=200,
         error_messages={
@@ -288,19 +288,20 @@ class RemoteCswForm(forms.ModelForm):
             ),
         )
 
-    sync_with = forms.MultipleChoiceField(
-        label="Organisations à synchroniser",
+    getrecords = forms.CharField(
+        label="GetRecords*",
         required=False,
-        choices=(),  # ckan api -> list_organisations
-        widget=CustomCheckboxSelectMultiple(
+        widget=forms.Textarea(
             attrs={
-                'class': 'list-group-checkbox',
+                'class': 'code',
+                'placeholder': '''<csw:GetRecords ...''',
+                'rows': 24,
                 },
             ),
         )
 
     sync_frequency = forms.ChoiceField(
-        label="Fréquence de synchronisation",
+        label="Fréquence de synchronisation*",
         required=True,
         choices=Meta.model.FREQUENCY_CHOICES,
         initial='never',
@@ -313,18 +314,11 @@ class RemoteCswForm(forms.ModelForm):
         instance = kwargs.get('instance', None)
         if instance and instance.url:
             self.fields['url'].widget.attrs['readonly'] = True
-            # Récupérer la liste des organisations
             try:
                 with CswBaseHandler(instance.url) as csw:
-                    organisations = csw.get_all_organisations()
+                    pass
             except CswBaseError as e:
                 self.add_error('url', e.__str__())
-            else:
-                self.fields['sync_with'].choices = (
-                    (organisation['name'], '{} ({})'.format(
-                        organisation['display_name'],
-                        organisation.get('package_count', organisation.get('packages', None))))
-                    for organisation in organisations)
         else:
-            self.fields['sync_with'].widget = forms.HiddenInput()
+            self.fields['getrecords'].widget = forms.HiddenInput()
             self.fields['sync_frequency'].widget = forms.HiddenInput()

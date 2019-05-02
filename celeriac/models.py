@@ -18,53 +18,51 @@ from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 
 
-class Task(models.Model):
+class TaskTracking(models.Model):
 
     class Meta(object):
-        verbose_name = "Tâche de synchronisation"
-        verbose_name_plural = "Tâches de synchronisation"
+        # db_table = 'celery_task_tracking'
+        verbose_name = "Suivi"
+        verbose_name_plural = "Suivi des tâches"
 
     uuid = models.UUIDField(
-        verbose_name="Id",
-        null=True,
-        blank=True,
-        editable=False,
+        verbose_name="UUID",
         unique=True,
-        db_index=True,
         )
 
-    action = models.TextField(
-        verbose_name="Action",
+    task = models.TextField(
+        verbose_name="Tâche",
         blank=True,
         null=True,
         )
 
-    extras = JSONField(
-        verbose_name="Extras",
+    detail = JSONField(
+        verbose_name="Détail",
         blank=True,
         null=True,
         )
 
     STATE_CHOICES = (
-        ('succesful', "Tâche terminée avec succés"),
-        ('failed', "Echec de la tâche"),
         ('running', "Tâche en cours de traitement"),
+        ('succesful', "Tâche terminée avec succés"),
+        ('failed', "Échec de la tâche"),
+        ('unknown', "Tâche perdue"),
         )
 
     state = models.CharField(
         verbose_name="État",
-        max_length=20,
+        max_length=10,
         choices=STATE_CHOICES,
         default='running',
         )
 
-    starting = models.DateTimeField(
-        verbose_name="Début du traitement",
+    start = models.DateTimeField(
+        verbose_name="Début",
         auto_now_add=True,
         )
 
     end = models.DateTimeField(
-        verbose_name="Fin du traitement",
+        verbose_name="Fin",
         blank=True,
         null=True,
         )
