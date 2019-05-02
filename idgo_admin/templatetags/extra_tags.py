@@ -108,8 +108,3 @@ def url(parser, token):
             args.append(parser.compile_filter(value))
 
     return CustomURLNode(viewname, args, kwargs, asvar, site_name=site_name)
-
-
-@register.filter
-def keyvalue(dict, key):
-    return dict[key]

@@ -68,8 +68,7 @@ class HarvestedCkanDatasetManager(models.Manager):
             created_by=dataset.editor,
             dataset=dataset,
             remote_instance=remote_instance,
-            remote_dataset=remote_dataset,
-            remote_organisation=remote_organisation)
+            remote_dataset=remote_dataset)
 
         # Enfin on met à jour le jeu de données et on le synchronize avec CKAN
         DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')

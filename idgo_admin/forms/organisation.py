@@ -199,14 +199,14 @@ class RemoteCkanForm(forms.ModelForm):
             else:
                 fields_name = []
                 for remote_category in remote_categories:
-                    field_name = remote_category['name']
+                    field_name = "".join(['cat_', remote_category['name']])
                     fields_name.append(field_name)
+                    try:
+                        init_cat = MappingCategory.objects.filter(
+                            remote_ckan=instance, slug=field_name[4:]).first().category
+                    except Exception:
+                        init_cat = None
 
-                    init_cat = MappingCategory.objects.filter(
-                        remote_ckan=instance, slug=field_name).first().category if \
-                        MappingCategory.objects.filter(
-                            remote_ckan=instance, slug=field_name).exists() else \
-                        None
                     field = forms.ModelChoiceField(
                         label=remote_category['title'],
                         empty_label="Sélectionnez une valeur",
@@ -230,13 +230,15 @@ class RemoteCkanForm(forms.ModelForm):
             else:
                 fields_name = []
                 for remote_license in remote_licenses:
-                    field_name = remote_license['id']
+
+                    field_name = "".join(['lic_', remote_license['id']])
                     fields_name.append(field_name)
-                    init_lic = MappingLicence.objects.filter(
-                        remote_ckan=instance, slug=field_name).first().licence if \
-                        MappingLicence.objects.filter(
-                            remote_ckan=instance, slug=field_name).exists() else \
-                        None
+                    try:
+                        init_lic = MappingLicence.objects.filter(
+                            remote_ckan=instance, slug=field_name[4:]).first().licence
+                    except Exception:
+                        init_lic = None
+
                     field = forms.ModelChoiceField(
                         label=remote_license['title'],
                         empty_label="Sélectionnez une valeur",
@@ -252,11 +254,15 @@ class RemoteCkanForm(forms.ModelForm):
                     'fields_name': fields_name,
                     })
 
-            self.Meta.mapping = tuple(mapping)
-
         else:
             self.fields['sync_with'].widget = forms.HiddenInput()
             self.fields['sync_frequency'].widget = forms.HiddenInput()
+
+    def get_category_fields(self):
+        return [self[field_name] for field_name in self.fields if field_name.startswith('cat')]
+
+    def get_licence_fields(self):
+        return [self[field_name] for field_name in self.fields if field_name.startswith('lic')]
 
 
 # ================================

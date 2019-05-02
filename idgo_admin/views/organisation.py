@@ -568,39 +568,38 @@ class RemoteCkanEditor(View):
             messages.success(request, msg)
 
         def handle_mapping(request, form):
-            mappings = form.Meta.mapping
             mapper = request.POST
-            for mapping in mappings:
-                if mapping.get('name') == 'Category':
-                    MappingCategory.objects.filter(remote_ckan=instance).delete()
-                    fields_name = mapping.get('fields_name')
-                    data = dict(
-                        filter(
-                            lambda k: k[0] in fields_name,
-                            mapper.dict().items())
-                    )
-                    not_empty = {k: v for k, v in data.items() if v}
-                    for k, v in not_empty.items():
-                        MappingCategory.objects.create(
-                            remote_ckan=instance,
-                            category=Category.objects.get(id=v),
-                            slug=k
-                        )
-                if mapping.get('name') == 'License':
-                    MappingLicence.objects.filter(remote_ckan=instance).delete()
-                    fields_name = mapping.get('fields_name')
-                    data = dict(
-                        filter(
-                            lambda k: k[0] in fields_name,
-                            mapper.dict().items())
-                    )
-                    not_empty = {k: v for k, v in data.items() if v}
-                    for k, v in not_empty.items():
-                        MappingLicence.objects.create(
-                            remote_ckan=instance,
-                            licence=License.objects.get(slug=v),
-                            slug=k
-                        )
+
+            MappingCategory.objects.filter(remote_ckan=instance).delete()
+
+            data = list(
+                filter(
+                    lambda k: k in [el.name for el in form.get_category_fields()],
+                    mapper.dict().keys())
+            )
+
+            not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
+            for k, v in not_empty.items():
+                MappingCategory.objects.create(
+                    remote_ckan=instance,
+                    category=Category.objects.get(id=v),
+                    slug=k[4:]
+                )
+
+            MappingLicence.objects.filter(remote_ckan=instance).delete()
+            data = list(
+                filter(
+                    lambda k: k in [el.name for el in form.get_licence_fields()],
+                    mapper.dict().keys())
+            )
+            # not_empty = {k: v for k, v in data.items() if v}
+            not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
+            for k, v in not_empty.items():
+                MappingLicence.objects.create(
+                    remote_ckan=instance,
+                    licence=License.objects.get(slug=v),
+                    slug=k[4:]
+                )
 
         try:
             with transaction.atomic():
