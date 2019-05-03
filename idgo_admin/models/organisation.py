@@ -479,7 +479,9 @@ class RemoteCkan(models.Model):
                                 try:
                                     ckan_format = resource['format'].upper()
                                     format_type = ResourceFormats.objects.get(ckan_format=ckan_format)
-                                except ResourceFormats.DoesNotExist:
+                                except (ResourceFormats.MultipleObjectsReturned, ResourceFormats.DoesNotExist, TypeError) as e:
+                                    logger.exception(e)
+                                    logger.error("I can't crash here, so I do not pay any attention to this error.")
                                     format_type = ''
 
                                 kvp = {
