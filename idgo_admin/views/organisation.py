@@ -540,7 +540,8 @@ class RemoteCkanEditor(View):
 
         try:
             with transaction.atomic():
-                self.handle_mapping(instance, request.POST, form)
+                self.map_categories(instance, request.POST, form)
+                self.map_licences(instance, request.POST, form)
         except ValidationError as e:
             error = True
             messages.error(request, e.__str__())
@@ -589,33 +590,27 @@ class RemoteCkanEditor(View):
         return HttpResponseRedirect(
             reverse('idgo_admin:update_organisation', kwargs={'id': organisation.id}))
 
-    def handle_mapping(self, instance, mapper, form):
-
-        # (1) Mapping des catégories
+    def map_categories(self, instance, mapper, form):
         MappingCategory.objects.filter(remote_ckan=instance).delete()
+
         data = list(filter(
             lambda k: k in [el.name for el in form.get_category_fields()],
             mapper.dict().keys()))
-
         not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
         for k, v in not_empty.items():
             MappingCategory.objects.create(
-                remote_ckan=instance,
-                category=Category.objects.get(id=v),
-                slug=k[4:])
+                remote_ckan=instance, category=Category.objects.get(id=v), slug=k[4:])
 
-        # (2) Mapping des licences
+    def map_licence(self, instance, mapper, form):
         MappingLicence.objects.filter(remote_ckan=instance).delete()
+
         data = list(filter(
             lambda k: k in [el.name for el in form.get_licence_fields()],
             mapper.dict().keys()))
-
         not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
         for k, v in not_empty.items():
             MappingLicence.objects.create(
-                remote_ckan=instance,
-                licence=License.objects.get(slug=v),
-                slug=k[4:])
+                remote_ckan=instance, licence=License.objects.get(slug=v), slug=k[4:])
 
 
 @method_decorator(decorators, name='dispatch')
