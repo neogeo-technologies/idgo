@@ -442,7 +442,7 @@ class RemoteCkan(models.Model):
                                 'published': not package.get('private'),
                                 'remote_instance': self,
                                 'remote_dataset': ckan_id,
-                                # 'remote_organisation': value,
+                                'remote_organisation': value,
                                 'update_frequency': update_frequency,
                                 # bbox
                                 # broadcaster_email
