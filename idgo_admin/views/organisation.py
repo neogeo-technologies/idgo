@@ -538,17 +538,9 @@ class RemoteCkanEditor(View):
             context['instance'] = instance
             form = RemoteCkanForm(request.POST, instance=instance)
 
-        context['form'] = form
-
-        if not form.is_valid():
-            return render_with_info_profile(
-                request, self.template, context=context)
-
-        for k, v in form.cleaned_data.items():
-            setattr(instance, k, v)
         try:
             with transaction.atomic():
-                instance.save()
+                self.handle_mapping(instance, request.POST, form)
         except ValidationError as e:
             error = True
             messages.error(request, e.__str__())
@@ -556,61 +548,39 @@ class RemoteCkanEditor(View):
             error = True
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
+
         else:
-            error = False
-            context['datasets'] = \
-                Dataset.harvested_ckan.filter(organisation=organisation)
-            context['form'] = RemoteCkanForm(instance=instance)
-            if created:
-                msg = "Veuillez indiquez les organisations distantes à moissonner."
+
+            # Une fois le mapping effectué, on sauvegarde l'instance
+
+            context['form'] = form
+
+            if not form.is_valid():
+                return render_with_info_profile(
+                    request, self.template, context=context)
+
+            for k, v in form.cleaned_data.items():
+                setattr(instance, k, v)
+            try:
+                with transaction.atomic():
+                    instance.save()
+            except ValidationError as e:
+                error = True
+                messages.error(request, e.__str__())
+            except CkanBaseError as e:
+                error = True
+                form.add_error('__all__', e.__str__())
+                messages.error(request, e.__str__())
             else:
-                msg = 'Les informations de moissonnage ont été mises à jour.'
-            messages.success(request, msg)
-
-        def handle_mapping(request, form):
-            mapper = request.POST
-
-            MappingCategory.objects.filter(remote_ckan=instance).delete()
-
-            data = list(
-                filter(
-                    lambda k: k in [el.name for el in form.get_category_fields()],
-                    mapper.dict().keys())
-            )
-
-            not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
-            for k, v in not_empty.items():
-                MappingCategory.objects.create(
-                    remote_ckan=instance,
-                    category=Category.objects.get(id=v),
-                    slug=k[4:]
-                )
-
-            MappingLicence.objects.filter(remote_ckan=instance).delete()
-            data = list(
-                filter(
-                    lambda k: k in [el.name for el in form.get_licence_fields()],
-                    mapper.dict().keys())
-            )
-            # not_empty = {k: v for k, v in data.items() if v}
-            not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
-            for k, v in not_empty.items():
-                MappingLicence.objects.create(
-                    remote_ckan=instance,
-                    licence=License.objects.get(slug=v),
-                    slug=k[4:]
-                )
-
-        try:
-            with transaction.atomic():
-                handle_mapping(request, form)
-        except ValidationError as e:
-            error = True
-            messages.error(request, e.__str__())
-        except CkanBaseError as e:
-            error = True
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
+                error = False
+                context['datasets'] = \
+                    Dataset.harvested_ckan.filter(organisation=organisation)
+                context['form'] = RemoteCkanForm(instance=instance)
+                if created:
+                    msg = "Veuillez indiquez les organisations distantes à moissonner."
+                else:
+                    msg = 'Les informations de moissonnage ont été mises à jour.'
+                messages.success(request, msg)
 
         if 'continue' in request.POST or error:
             return HttpResponseRedirect(
@@ -618,6 +588,34 @@ class RemoteCkanEditor(View):
 
         return HttpResponseRedirect(
             reverse('idgo_admin:update_organisation', kwargs={'id': organisation.id}))
+
+    def handle_mapping(self, instance, mapper, form):
+
+        # (1) Mapping des catégories
+        MappingCategory.objects.filter(remote_ckan=instance).delete()
+        data = list(filter(
+            lambda k: k in [el.name for el in form.get_category_fields()],
+            mapper.dict().keys()))
+
+        not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
+        for k, v in not_empty.items():
+            MappingCategory.objects.create(
+                remote_ckan=instance,
+                category=Category.objects.get(id=v),
+                slug=k[4:])
+
+        # (2) Mapping des licences
+        MappingLicence.objects.filter(remote_ckan=instance).delete()
+        data = list(filter(
+            lambda k: k in [el.name for el in form.get_licence_fields()],
+            mapper.dict().keys()))
+
+        not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
+        for k, v in not_empty.items():
+            MappingLicence.objects.create(
+                remote_ckan=instance,
+                licence=License.objects.get(slug=v),
+                slug=k[4:])
 
 
 @method_decorator(decorators, name='dispatch')

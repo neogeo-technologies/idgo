@@ -338,7 +338,9 @@ class RemoteCkan(models.Model):
                 if x not in (self.sync_with or [])]
             filter = {
                 'remote_instance': previous,
-                'remote_organisation__in': remote_organisation__in}
+                'remote_organisation__in': remote_organisation__in,
+                }
+
             # TODO: 'Dataset.harvested_ckan.filter(**filter).delete()' ne fonctionne pas
             for dataset in Dataset.harvested_ckan.filter(**filter):
                 dataset.delete()
@@ -413,12 +415,17 @@ class RemoteCkan(models.Model):
                             #         license = License.objects.get(slug='notspecified')
                             #     except License.DoesNotExist:
                             #         license = None
+
                             try:
                                 mapping_licence = MappingLicence.objects.get(
                                     remote_ckan=self, slug=package.get('license_id'))
                             except MappingLicence.DoesNotExist:
-                                license = None
+                                try:
+                                    license = License.objects.get(slug='other-at')
+                                except MappingLicence.DoesNotExist:
+                                    license = None
                             else:
+                                logger.warning("'{}' non trouvé".format(package.get('license_id')))
                                 license = mapping_licence.licence
 
                             kvp = {
@@ -435,7 +442,7 @@ class RemoteCkan(models.Model):
                                 'published': not package.get('private'),
                                 'remote_instance': self,
                                 'remote_dataset': ckan_id,
-                                'remote_organisation': value,
+                                # 'remote_organisation': value,
                                 'update_frequency': update_frequency,
                                 # bbox
                                 # broadcaster_email
@@ -539,6 +546,13 @@ class RemoteCkanDataset(models.Model):
         null=True,
         blank=True,
         unique=True,
+        )
+
+    remote_organisation = models.SlugField(
+        verbose_name="Organisation distante",
+        max_length=100,
+        blank=True,
+        null=True,
         )
 
     created_by = models.ForeignKey(
@@ -836,13 +850,6 @@ class RemoteCswDataset(models.Model):
         null=True,
         blank=True,
         unique=True,
-        )
-
-    remote_organisation = models.SlugField(
-        verbose_name="Organisation distante",
-        max_length=100,
-        blank=True,
-        null=True,
         )
 
     created_by = models.ForeignKey(
