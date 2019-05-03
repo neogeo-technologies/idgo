@@ -482,7 +482,7 @@ class RemoteCkan(models.Model):
                                 except (ResourceFormats.MultipleObjectsReturned, ResourceFormats.DoesNotExist, TypeError) as e:
                                     logger.exception(e)
                                     logger.error("I can't crash here, so I do not pay any attention to this error.")
-                                    format_type = ''
+                                    format_type = None
 
                                 kvp = {
                                     'ckan_id': ckan_id,
