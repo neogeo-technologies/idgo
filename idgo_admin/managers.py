@@ -142,7 +142,6 @@ class HarvestedCswDatasetManager(models.Manager):
     def create(self, **kwargs):
         remote_instance = kwargs.pop('remote_instance', None)
         remote_dataset = kwargs.pop('remote_dataset', None)
-        remote_organisation = kwargs.pop('remote_organisation', None)
 
         # Dans un premier temps on crée le jeu de données sans le synchroniser à CSW
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
@@ -156,7 +155,7 @@ class HarvestedCswDatasetManager(models.Manager):
             dataset=dataset,
             remote_instance=remote_instance,
             remote_dataset=remote_dataset,
-            remote_organisation=remote_organisation)
+            )
 
         # Enfin on met à jour le jeu de données et on le synchronize avec CSW
         DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
@@ -168,14 +167,11 @@ class HarvestedCswDatasetManager(models.Manager):
     def filter(self, **kwargs):
         remote_instance = kwargs.pop('remote_instance', None)
         remote_dataset = kwargs.pop('remote_dataset', None)
-        remote_organisation = kwargs.pop('remote_organisation', None)
-        remote_organisation__in = kwargs.pop('remote_organisation__in', None)
 
         kvp = clean_my_obj({
             'remote_instance': remote_instance,
             'remote_dataset': remote_dataset,
-            'remote_organisation': remote_organisation,
-            'remote_organisation__in': remote_organisation__in})
+            })
         if kvp:
             Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
@@ -213,7 +209,7 @@ class HarvestedCswDatasetManager(models.Manager):
             created = False
             harvested = RemoteDataset.objects.get(dataset=dataset)
             harvested.updated_on = timezone.now()
-            harvested.remote_organisation = kwargs.pop('remote_organisation', None)
+            # harvested.remote_organisation = kwargs.pop('remote_organisation', None)
             harvested.save()
 
             for k, v in kwargs.items():

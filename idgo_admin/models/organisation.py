@@ -694,13 +694,16 @@ class RemoteCsw(models.Model):
                 continue
             break
 
+        if not previous:
+            return
+
         # Puis on moissonne le catalogue
         try:
             ckan_ids = []
             with transaction.atomic():
 
                 with CswBaseHandler(self.url) as csw:
-                    packages = csw.get_packages(xml=self.getrecords)
+                    packages = csw.get_packages(xml=self.getrecords or None)
 
                 for package in packages:
                     if not package['type'] == 'dataset':

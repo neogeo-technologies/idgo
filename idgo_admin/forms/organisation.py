@@ -321,7 +321,7 @@ class RemoteCswForm(forms.ModelForm):
 
     sync_frequency = forms.ChoiceField(
         label="Fréquence de synchronisation*",
-        required=True,
+        required=False,
         choices=Meta.model.FREQUENCY_CHOICES,
         initial='never',
         )
