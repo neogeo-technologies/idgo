@@ -22,8 +22,7 @@ from django.db.models import Value
 from django.db.models import When
 from django import forms
 from django.forms.models import ModelChoiceIterator
-from django.utils import timezone
-from idgo_admin.forms import CustomCheckboxSelectMultiple
+from idgo_admin.forms.fields import CustomCheckboxSelectMultiple
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource

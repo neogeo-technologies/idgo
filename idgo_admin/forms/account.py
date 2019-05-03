@@ -22,26 +22,26 @@ from django.core.exceptions import ValidationError
 from django import forms
 from django.forms.models import ModelChoiceIterator
 from idgo_admin.ckan_module import CkanHandler
-from idgo_admin.forms import AddressField
-from idgo_admin.forms import CityField
-from idgo_admin.forms import ContributorField
-from idgo_admin.forms import DescriptionField
-from idgo_admin.forms import EMailField
-from idgo_admin.forms import FirstNameField
-from idgo_admin.forms import JurisdictionField
-from idgo_admin.forms import LastNameField
-from idgo_admin.forms import LicenseField
-from idgo_admin.forms import OrganisatioLegalNameField
-from idgo_admin.forms import OrganisationLogoField
-from idgo_admin.forms import OrganisationTypeField
-from idgo_admin.forms import PasswordField
-from idgo_admin.forms import PhoneField
-from idgo_admin.forms import PostcodeField
-from idgo_admin.forms import ReferentField
-from idgo_admin.forms import TermsAndConditionsField
-from idgo_admin.forms import UsernameField
-from idgo_admin.forms import WebsiteField
+from idgo_admin.forms.fields import AddressField
+from idgo_admin.forms.fields import CityField
+from idgo_admin.forms.fields import ContributorField
+from idgo_admin.forms.fields import DescriptionField
+from idgo_admin.forms.fields import EMailField
+from idgo_admin.forms.fields import FirstNameField
+from idgo_admin.forms.fields import JurisdictionField
+from idgo_admin.forms.fields import LastNameField
+from idgo_admin.forms.fields import LicenseField
+from idgo_admin.forms.fields import OrganisatioLegalNameField
+from idgo_admin.forms.fields import OrganisationLogoField
+from idgo_admin.forms.fields import OrganisationTypeField
+from idgo_admin.forms.fields import PasswordField
+from idgo_admin.forms.fields import PhoneField
+from idgo_admin.forms.fields import PostcodeField
+from idgo_admin.forms.fields import ReferentField
+from idgo_admin.forms.fields import UsernameField
+from idgo_admin.forms.fields import WebsiteField
 from idgo_admin.models import Dataset
+from idgo_admin.models import Gdpr
 from idgo_admin.models import Organisation
 from mama_cas.forms import LoginForm as MamaLoginForm
 
@@ -245,6 +245,19 @@ class ModelOrganisationField(forms.ModelChoiceField):
     iterator = ModelOrganisationIterator
 
 
+class TermsAndConditionsCheckBoxInput(forms.CheckboxInput):
+    template_name = 'idgo_admin/widgets/terms_and_conditions.html'
+
+    def __init__(self, attrs=None, check_test=None, modal=None):
+        self.modal = modal
+        super().__init__(attrs)
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context['modal'] = self.modal
+        return context
+
+
 class SignUpForm(forms.Form):
 
     class Meta(object):
@@ -320,15 +333,36 @@ class SignUpForm(forms.Form):
     contributor = ContributorField()
     referent = ReferentField()
 
-    terms_and_conditions = TermsAndConditionsField()
+    terms_and_conditions = forms.BooleanField(
+        label=(
+            '<a data-toggle="modal" data-target="#modal-terms">'
+            "J'ai lu et j'accepte les conditions générales d'utilisation du service."
+            '<a>'),
+        initial=False,
+        required=True,
+        widget=TermsAndConditionsCheckBoxInput(
+            attrs={
+                'oninvalid': "this.setCustomValidity('Vous devez accepter les conditions générales d'utilisation.')",
+                'oninput': "setCustomValidity('')",
+                },
+            modal={
+                'id': 'modal-terms',
+                'title': '',
+                'body': '',
+                },
+            )
+        )
 
     def __init__(self, *args, **kwargs):
-
         self.unlock_terms = kwargs.pop('unlock_terms', False)
 
         super().__init__(*args, **kwargs)
 
+        gdpr = Gdpr.objects.latest('issue_date')
+        self.fields['terms_and_conditions'].widget.modal['title'] = gdpr.title
+        self.fields['terms_and_conditions'].widget.modal['body'] = gdpr.description_as_html
         self.fields['terms_and_conditions'].required = not self.unlock_terms
+
         self.fields['password1'].widget.attrs['placeholder'] = 'Mot de passe'
         self.fields['password2'].widget.attrs['placeholder'] = 'Confirmez le mot de passe'
 
