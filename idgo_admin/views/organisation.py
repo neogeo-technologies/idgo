@@ -601,7 +601,7 @@ class RemoteCkanEditor(View):
             MappingCategory.objects.create(
                 remote_ckan=instance, category=Category.objects.get(id=v), slug=k[4:])
 
-    def map_licence(self, instance, mapper, form):
+    def map_licences(self, instance, mapper, form):
         MappingLicence.objects.filter(remote_ckan=instance).delete()
 
         data = list(filter(
