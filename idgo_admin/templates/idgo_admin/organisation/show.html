@@ -1,0 +1,32 @@
+{% extends "idgo_admin/organisation/organisations_future.html" %}
+
+{% block organisation_show %}
+<ul class="nav nav-tabs" role="tablist">
+	<li role="presentation" class="active">
+		<a href="#info" aria-controls="info" role="tab" data-toggle="tab">Informations générales</a>
+	</li>
+	<li role="presentation">
+		<a href="#members" aria-controls="members" role="tab" data-toggle="tab">Utilisateurs</a>
+	</li>
+	<li role="presentation">
+		<a href="#service" aria-controls="ows" role="tab" data-toggle="tab">Service OGC</a>
+	</li>
+</ul>
+<div class="tab-content well">
+	<div role="tabpanel" class="tab-pane active" id="info">
+		<div class="tab-pane-content">
+			{% include "idgo_admin/organisation/info.html" %}
+		</div>
+	</div>
+	<div role="tabpanel" class="tab-pane" id="members">
+		<div class="tab-pane-content">
+			{% include "idgo_admin/organisation/members.html" %}
+		</div>
+	</div>
+	<div role="tabpanel" class="tab-pane" id="ows">
+		<div class="tab-pane-content">
+			{% include "idgo_admin/organisation/ows.html" %}
+		</div>
+	</div>
+</div>
+{% endblock organisation_show %}

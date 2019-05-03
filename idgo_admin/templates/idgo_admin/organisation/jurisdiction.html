@@ -1,0 +1,16 @@
+{% load static %}
+
+<script src="{% static 'libs/leaflet/leaflet.js' %}"></script>
+<link rel="stylesheet" href="{% static 'libs/leaflet/leaflet.css' %}"/>
+
+<div id="map" style="width: 100%; height: 400px; margin: 5px 0 20px 0;">
+</div>
+
+<script>
+$(function() {
+	var layers = [L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {})];
+	const map = L.map('map', {
+		'layers': layers
+	});
+});
+</script>

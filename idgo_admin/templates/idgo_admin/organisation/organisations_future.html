@@ -1,0 +1,61 @@
+{% extends "idgo_admin/base.html" %}
+
+{% block breadcrumb_content %}
+<ol class="breadcrumb">
+	<li><span class="glyphicon glyphicon-home"></span></li>
+	<li class="active">Organisations</li>
+</ol>
+{% endblock breadcrumb_content %}
+
+{% block main_content %}
+
+{% include "idgo_admin/alert_messages.html" %}
+
+<div id="allorganisations">
+{% if awaiting_member_status or awaiting_contributor_status|length > 0 or awaiting_referent_statut|length > 0 %}
+	{% if awaiting_member_status|length > 0 %}
+	<div class="alert alert-info">
+		<p><span class="glyphicon glyphicon-bell" aria-hidden="true"></span>Demande de <strong>rattachement</strong> à l'organisation « <strong>{{ awaiting_member_status.1 }}</strong> » en attente de validation.</p>
+	</div>
+	{% endif %}
+	{% if awaiting_contributor_status|length > 0 %}
+	<div class="alert alert-info">
+		<p><span class="glyphicon glyphicon-bell" aria-hidden="true"></span>Demande(s) de statut de <strong>contributeur</strong> en attente de validation pour : {% for organisation in awaiting_contributor_status %}<strong class="comma-separated-list">{{ organisation.1 }}</strong>{% endfor %}</p>
+	</div>
+	{% endif %}
+	{% if awaiting_referent_statut|length > 0 %}
+	<div class="alert alert-info">
+		<p><span class="glyphicon glyphicon-bell" aria-hidden="true"></span>Demande(s) de statut de <strong>référent technique</strong> en attente de validation pour : {% for organisation in awaiting_referent_statut %}<strong class="comma-separated-list">{{ organisation.1 }}</strong>{% endfor %}</p>
+	</div>
+	{% endif %}
+{% endif %}
+
+{% if not all_organisations|length %}
+	<div class="alert alert-warning" role="alert">
+		<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Aucune organisation n'est encore disponible, <a href='{% url "idgo_admin:create_organisation" %}'>ajoutez une organisation</a>.
+	</div>
+{% else %}
+	<div class="row">
+		<div class="buttons-on-the-right-side">
+			<a href='{{ crige_url }}' target="_blank"  class="btn btn-link"><span class="glyphicon glyphicon-info-sign"></span></a>
+			<a href='{% url "idgo_admin:create_organisation" %}' class="btn btn-primary">Ajouter une organisation</a>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-4">
+			{% include "idgo_admin/organisation/list.html" %}
+		</div>
+		<div class="col-md-8">
+			{% block organisation_show %}
+			{% endblock organisation_show %}
+		</div>
+	</div>
+</div>
+
+<script>
+$(function() {
+	$('#menu a[href="{% url "idgo_admin:all_organisations" %}"]').parent().addClass('active');
+});
+</script>
+{% endif %}
+{% endblock main_content %}

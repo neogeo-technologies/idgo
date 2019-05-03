@@ -92,7 +92,7 @@ class Organisation(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        )
+    )
 
     jurisdiction = models.ForeignKey(
         to='Jurisdiction',
@@ -215,6 +215,40 @@ class Organisation(models.Model):
     def api_location(self):
         kwargs = {'organisation_name': self.slug}
         return reverse('api:organisation_show', kwargs=kwargs)
+
+    @property
+    def members(self):
+        Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
+        Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
+        LiaisonsContributeurs = apps.get_model(app_label='idgo_admin', model_name='LiaisonsContributeurs')
+        LiaisonsReferents = apps.get_model(app_label='idgo_admin', model_name='LiaisonsReferents')
+
+        filter = reduce(ior, [
+            Q(organisation=self.pk),
+            reduce(iand, [
+                Q(liaisonscontributeurs__organisation=self.pk),
+                Q(liaisonscontributeurs__validated_on__isnull=False)
+                ]),
+            reduce(iand, [
+                Q(liaisonsreferents__organisation=self.pk),
+                Q(liaisonsreferents__validated_on__isnull=False),
+                ])
+            ])
+
+        profiles = Profile.objects.filter(filter).distinct().order_by('user__username')
+
+        data = [{
+            'username': member.user.username,
+            'full_name': member.user.get_full_name(),
+            'is_member': Profile.objects.filter(organisation=self.pk, id=member.id).exists(),
+            'is_contributor': LiaisonsContributeurs.objects.filter(profile=member, organisation__id=self.pk, validated_on__isnull=False).exists(),
+            'is_referent': LiaisonsReferents.objects.filter(profile=member, organisation__id=self.pk, validated_on__isnull=False).exists(),
+            'crige_membership': member.crige_membership,
+            'datasets_count': len(Dataset.objects.filter(organisation=self.pk, editor=member.user)),
+            'profile_id': member.id
+            } for member in profiles]
+
+        return data
 
     def get_datasets(self, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')

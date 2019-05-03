@@ -58,7 +58,7 @@
 	</div>
 		{% endif %}
 	{% endfor %}
-	{% if form.Meta.mapping %}
+	{% if form.Meta.mapping|length > 0 %}
 	<label>Correspondance des catégories et licences</label>
 	{% load extra_tags %}
 	<div class="row">

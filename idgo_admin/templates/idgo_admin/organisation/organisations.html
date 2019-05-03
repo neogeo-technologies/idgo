@@ -701,41 +701,41 @@ $(function() {
 
 	};
 
-	const $typeahead = $('.typeahead input[name="organisation"]')
-		.on('input', function(e) {
-			this.value.length > 0 ? activateButton($typeaheadButton) : deactivateButton($typeaheadButton);
-		})
-		.typeahead({
-			source: (function() {
-				var arr = [];
-				{% for item in organisations %}
-				arr.push({'id': {{ item.pk }}, 'name': '{{ item.legal_name }}'});
-				{% endfor %}
-				return arr;
-			})(),
-			autoSelect: true,
-			fitToElement: true,
-			afterSelect: function(val) {
-				deactivateButton($typeaheadButton);
-				handler(val.id);
-				// selectRowByDataId(val.id);
-			}
-		});
+	// const $typeahead = $('.typeahead input[name="organisation"]')
+	// 	.on('input', function(e) {
+	// 		this.value.length > 0 ? activateButton($typeaheadButton) : deactivateButton($typeaheadButton);
+	// 	})
+	// 	.typeahead({
+	// 		source: (function() {
+	// 			var arr = [];
+	// 			{% for item in organisations %}
+	// 			arr.push({'id': {{ item.pk }}, 'name': '{{ item.legal_name }}'});
+	// 			{% endfor %}
+	// 			return arr;
+	// 		})(),
+	// 		autoSelect: true,
+	// 		fitToElement: true,
+	// 		afterSelect: function(val) {
+	// 			deactivateButton($typeaheadButton);
+	// 			handler(val.id);
+	// 			// selectRowByDataId(val.id);
+	// 		}
+	// 	});
 
-	const $typeaheadButton = $('.typeahead button').click(function(e) {
-		const selected = $typeahead.typeahead("getActive");
-		selected && selectRowByDataId(selected['id']);
-	});
+	// const $typeaheadButton = $('.typeahead button').click(function(e) {
+	// 	const selected = $typeahead.typeahead("getActive");
+	// 	selected && selectRowByDataId(selected['id']);
+	// });
 
-	$.each($('.label-name'), function() {
-		$(this).width("calc(100% - " + ($(this).next('.label-badges').width() + 5) + "px)");
-	})
-
-	const $organisations = $('label, input[type=radio][name=organisations]').bind('mouseup change click', function(e) {
-		e.stopPropagation();
-	}).mousedown(function(e) {
-		handler($(this).children('input').val());
-	});
+	// $.each($('.label-name'), function() {
+	// 	$(this).width("calc(100% - " + ($(this).next('.label-badges').width() + 5) + "px)");
+	// })
+	//
+	// const $organisations = $('label, input[type=radio][name=organisations]').bind('mouseup change click', function(e) {
+	// 	e.stopPropagation();
+	// }).mousedown(function(e) {
+	// 	handler($(this).children('input').val());
+	// });
 
 	$(window).bind('hashchange', function(e) {
 		// TODO

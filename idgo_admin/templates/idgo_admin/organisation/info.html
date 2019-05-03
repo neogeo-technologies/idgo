@@ -1,0 +1,57 @@
+<div class="row">
+	<div class="col-sm-8">
+		<div class="row">
+			<div class="col-sm-12">
+				<h3>{{ organisation.legal_name }}</h3>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-12">
+				<h4><span class="crige-partner-badge" hidden></span></h4>
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-4">
+		<img src="{% if organisation.logo %}{{ organisation.logo.url }}{% else %}/static/img/logo_default_organisation.png{% endif %}" style="width: 100%;"></img>
+	</div>
+</div>
+<div class="row">
+	<div class="col-sm-12">
+		<p style="margin-top: 20px;">{{ organisation.description|default:'-' }}</p>
+	</div>
+</div>
+<div class="row">
+	<div class="col-sm-4">
+		<h5>CONTACT</h5>
+		<hr />
+		<address>
+			<span class="glyphicon glyphicon-home" aria-hidden="true"></span> {{ organisation.address|default:'-' }}<br />
+			<span class="glyphicon glyphicon-home" style="color: transparent;" aria-hidden="true"></span> {{ organisation.postcode|default:'-' }} {{ organisation.city|default:'-' }}<br />
+			<br />
+			<span class="glyphicon glyphicon-earphone" aria-hidden="true"></span> {{ organisation.phone|default:'-' }}<br />
+			<span class="glyphicon glyphicon-envelope" aria-hidden="true"></span> <a href="mailto:#">{{ organisation.email|default:'-' }}</a><br />
+			<span class="glyphicon glyphicon-globe" aria-hidden="true"></span> <a target="_blank">{{ organisation.website|default:'-' }}</a><br />
+		</address>
+	</div>
+	<div class="col-sm-8">
+		<h5>TERRITOIRE DE COMPÉTENCE</h5>
+		<hr />
+		{{ organisation.jurisdiction|default:'-' }}
+		{% include "idgo_admin/organisation/jurisdiction.html" %}
+	</div>
+</div>
+<br />
+<div class="buttons-on-the-right-side">
+	<div class="btn-group">
+		<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			Actions <span class="caret"></span>
+		</button>
+		<ul class="dropdown-menu dropdown-menu-right">
+			<li><a name="switch-member">J'appartiens à l'organisation</a></li>
+			<li><a name="switch-contributor">Je souhaite devenir contributeur</a></li>
+			{% if not is_admin %}
+			<li><a name="switch-referent">Je souhaite devenir référent technique</a></li>
+			{% endif %}
+		</ul>
+	</div>
+</div>

@@ -54,6 +54,10 @@ from idgo_admin.views.mdedit import DatasetMDEditTplEdit
 from idgo_admin.views.mdedit import mdhandler
 from idgo_admin.views.mdedit import ServiceMDEdit
 from idgo_admin.views.mdedit import ServiceMDEditTplEdit
+
+from idgo_admin.views.organisation_future import handle_show_organisation
+from idgo_admin.views.organisation_future import show_organisation
+
 from idgo_admin.views.organisation import all_organisations
 from idgo_admin.views.organisation import CreateOrganisation
 from idgo_admin.views.organisation import crige_partnership
@@ -114,6 +118,13 @@ urlpatterns = [
     url('^mdedit/service/(?P<id>(\d+))/edit/?$', ServiceMDEditTplEdit.as_view(), name='service_mdedit_tpl_edit'),
 
     url('^member/all/?$', ReferentAccountManager.as_view(), name='all_members'),
+
+    url('^organisations/?$', all_organisations, name='all_organisations'),
+
+    # ORGANISATION FUTURE
+    url('^organisation/?$', handle_show_organisation, name='handle_show_organisation'),
+    url('^organisation/(?P<id>(\d+))/show/?$', show_organisation, name='show_organisation'),
+    # ORGANISATION FUTURE
 
     url('^organisation/all/?$', all_organisations, name='all_organisations'),
     url('^organisation/new/?$', CreateOrganisation.as_view(), name='create_organisation'),
