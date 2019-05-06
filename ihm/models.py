@@ -19,19 +19,24 @@ from django.db import models
 
 class IHMSettings(models.Model):
 
-    TARGET_CHOICES = (
-        ('ckan', "Ckan"),
-        ('admin', "Admin"),
-    )
+    class Meta(object):
+        verbose_name = "Configuration particulière des IHM"
+        verbose_name_plural = "Configurations particulières des IHM"
+        ordering = ('name', )
 
     name = models.SlugField(
         verbose_name="Identifiant de l'objet",
         unique=True,
         db_index=True,
-        max_length=100
-    )
+        max_length=100,
+        )
 
     contents = models.TextField(verbose_name='Contenu')
+
+    TARGET_CHOICES = (
+        ('ckan', "Ckan"),
+        ('admin', "Admin"),
+        )
 
     target = models.CharField(
         verbose_name='Cible',
@@ -39,13 +44,13 @@ class IHMSettings(models.Model):
         blank=True,
         null=True,
         choices=TARGET_CHOICES,
-        default='ckan'
-    )
+        default='ckan',
+        )
 
-    class Meta:
-        verbose_name = "champs IHM"
-        verbose_name_plural = "Éditions des IHM"
-        ordering = ("name", )
+    activate = models.BooleanField(
+        verbose_name="Activer",
+        default=False,
+        )
 
     def __str__(self):
         return str(self.name)
