@@ -27,9 +27,10 @@ class CkanIHMSettings(APIView):
         ]
 
     def get(self, request):
-        data = [{
-            'name': settings.name,
-            'content': settings.contents,
-            'active': settings.activate,
-            } for settings in IHMSettings.objects.filter(target='ckan')]
+        data = dict([
+            (settings.name, {
+                'content': settings.contents,
+                'active': settings.activate,
+                }) for settings in IHMSettings.objects.filter(target='ckan')
+            ])
         return JsonResponse(data, safe=False)
