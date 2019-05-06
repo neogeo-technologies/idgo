@@ -526,9 +526,16 @@ $(function() {
 		$switchMember = $($organisationWell.find('#info [name="switch-member"]')).on('click', function(e) {
 			openModalChangeStatus('{% url "idgo_admin:subscription" status="member" subscription="subscribe" %}', ORGANISATION_ID);
 		});
+
+		var _defaultorga = {{ organisation.pk|default:0 }};
+		if (!_defaultorga) {
+			data['id'] = _defaultorga = 1;
+			console.log(data['id'])
+		};
+
 		if ({{ awaiting_member_status | length }} > 0) {
 			deactivateButton($switchMember.off('click'));
-		} else if (data['id'] == {{ organisation.pk }}) {
+		} else if (data['id'] == _defaultorga) {
 			$switchMember.off('click').on('click', function(e) {
 				openModalChangeStatus('{% url "idgo_admin:subscription" status="member" subscription="unsubscribe" %}', ORGANISATION_ID);
 			}).html('Je <strong>n</strong>\'appartiens <strong>plus</strong> à l\'organisation');
