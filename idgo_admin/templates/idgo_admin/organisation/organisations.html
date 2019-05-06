@@ -585,60 +585,60 @@ $(function() {
 			{% endif %}
 		{% endif %}
 
-		{% if is_admin %}
-			{% for item in referent %}
-			if (data['id'] == {{ item.0 }}) {
-				addUpdateButton('{% url "idgo_admin:update_organisation" id=item.0 %}');
+		// {% if is_admin %}
+		// 	{% for item in referent %}
+		// 	if (data['id'] == {{ item.0 }}) {
+		// 		addUpdateButton('{% url "idgo_admin:update_organisation" id=item.0 %}');
+		//
+		// 		$('button[name="ows-meta"]')
+		// 			.on('click', function(e) {
+		// 				e.preventDefault();
+		// 				redirect('{% url "idgo_admin:service_mdedit" id=item.0 %}');
+		// 				e.stopPropagation();
+		// 			});
+		// 	};
+		// 	{% endfor %}
+		// {% endif %}
 
-				$('button[name="ows-meta"]')
-					.on('click', function(e) {
-						e.preventDefault();
-						redirect('{% url "idgo_admin:service_mdedit" id=item.0 %}');
-						e.stopPropagation();
-					});
-			};
-			{% endfor %}
-		{% endif %}
-
-		if (data.osw) {
-			$('#ows-title').val(data.osw.title);
-			$('#ows-abstract').val(data.osw.abstract);
-			$('#ows-url').attr('href', data.osw.url).text(data.osw.url);
-			if (!(isReferent() || {{ is_admin | yesno:'true,false,null' }})) {
-				$('#ows-title').prop('disabled', true).addClass('disabled');
-				$('#ows-abstract').prop('disabled', true).addClass('disabled');
-				$('button[name=ows-meta]').remove();
-				$('button[name=ows-save]').remove();
-			} else {
-				$('button[name="ows-meta"]')
-					.on('click', function(e) {
-						e.preventDefault();
-						redirect('{% url "idgo_admin:mdhandler" type="service" %}?id=' + ORGANISATION_ID);
-						e.stopPropagation();
-					});
-
-				$('button[name=ows-save]').click(function(e) {
-					e.preventDefault();
-					$.ajax({
-						type: 'POST',
-						url: '{% url "idgo_admin:organisation_ows" %}?id=' + ORGANISATION_ID,
-						data: {
-							'title': $('#ows-title').val(),
-							'abstract': $('#ows-abstract').val()
-						},
-						success: function(data, status, xhr) {
-							location.reload();
-						},
-						error: function(xhr, statut, error) {
-							location.reload();
-						}
-					});
-				});
-			};
-		} else {
-			$('li[role="presentation"]>a[href="#service"]').prop('href', '#').parent('li').addClass('disabled').prop('disabled', true);
-			$('#service.tab-pane[role="tabpanel"]').empty();
-		};
+		// if (data.osw) {
+		// 	$('#ows-title').val(data.osw.title);
+		// 	$('#ows-abstract').val(data.osw.abstract);
+		// 	$('#ows-url').attr('href', data.osw.url).text(data.osw.url);
+		// 	if (!(isReferent() || {{ is_admin | yesno:'true,false,null' }})) {
+		// 		$('#ows-title').prop('disabled', true).addClass('disabled');
+		// 		$('#ows-abstract').prop('disabled', true).addClass('disabled');
+		// 		$('button[name=ows-meta]').remove();
+		// 		$('button[name=ows-save]').remove();
+		// 	} else {
+		// 		$('button[name="ows-meta"]')
+		// 			.on('click', function(e) {
+		// 				e.preventDefault();
+		// 				redirect('{% url "idgo_admin:mdhandler" type="service" %}?id=' + ORGANISATION_ID);
+		// 				e.stopPropagation();
+		// 			});
+		//
+		// 		$('button[name=ows-save]').click(function(e) {
+		// 			e.preventDefault();
+		// 			$.ajax({
+		// 				type: 'POST',
+		// 				url: '{% url "idgo_admin:organisation_ows" %}?id=' + ORGANISATION_ID,
+		// 				data: {
+		// 					'title': $('#ows-title').val(),
+		// 					'abstract': $('#ows-abstract').val()
+		// 				},
+		// 				success: function(data, status, xhr) {
+		// 					location.reload();
+		// 				},
+		// 				error: function(xhr, statut, error) {
+		// 					location.reload();
+		// 				}
+		// 			});
+		// 		});
+		// 	};
+		// } else {
+		// 	$('li[role="presentation"]>a[href="#service"]').prop('href', '#').parent('li').addClass('disabled').prop('disabled', true);
+		// 	$('#service.tab-pane[role="tabpanel"]').empty();
+		// };
 
 	};
 

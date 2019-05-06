@@ -30,5 +30,6 @@ class CkanIHMSettings(APIView):
         data = [{
             'name': settings.name,
             'content': settings.contents,
+            'active': settings.active,
             } for settings in IHMSettings.objects.filter(target='ckan')]
         return JsonResponse(data, safe=False)

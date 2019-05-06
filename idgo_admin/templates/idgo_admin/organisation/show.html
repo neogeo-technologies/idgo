@@ -8,25 +8,29 @@
 	<li role="presentation">
 		<a href="#members" aria-controls="members" role="tab" data-toggle="tab">Utilisateurs</a>
 	</li>
+	{% if organisation.ows_url %}
 	<li role="presentation">
-		<a href="#service" aria-controls="ows" role="tab" data-toggle="tab">Service OGC</a>
+		<a href="#ows" aria-controls="ows" role="tab" data-toggle="tab">Service OGC</a>
 	</li>
+	{% endif %}
 </ul>
 <div class="tab-content well">
 	<div role="tabpanel" class="tab-pane active" id="info">
 		<div class="tab-pane-content">
-			{% include "idgo_admin/organisation/info.html" %}
+			{% include "idgo_admin/organisation/info.html" with organisation=organisation %}
 		</div>
 	</div>
 	<div role="tabpanel" class="tab-pane" id="members">
 		<div class="tab-pane-content">
-			{% include "idgo_admin/organisation/members.html" %}
+			{% include "idgo_admin/organisation/members.html" with organisation=organisation %}
 		</div>
 	</div>
+	{% if organisation.ows_url %}
 	<div role="tabpanel" class="tab-pane" id="ows">
 		<div class="tab-pane-content">
-			{% include "idgo_admin/organisation/ows.html" %}
+			{% include "idgo_admin/organisation/ows.html" with organisation=organisation %}
 		</div>
 	</div>
+	{% endif %}
 </div>
 {% endblock organisation_show %}

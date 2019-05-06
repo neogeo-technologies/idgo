@@ -4,50 +4,46 @@
 	{% else %}
 	<div class="table-responsive">
 		<table class="board table table-striped table-bordered table-hover table-condensed">
-			<thead>
-				<tr>
-					<th name="username">Utilisateur</th>
-					<th name="full_name">Nom</th>
-					<th name="is_member">Membre</th>
-					<th name="is_contributor">Contributeur</th>
-					<th name="is_referent">Référent</th>
-					{% if user.profile.is_crige_admin %}
-					<th name="is_crige_member">CRIGE</th>
+			<tr>
+				<th name="username">Utilisateur</th>
+				<th name="full_name">Nom</th>
+				<th name="is_member">Membre</th>
+				<th name="is_contributor">Contributeur</th>
+				<th name="is_referent">Référent</th>
+				{% if user.profile.is_crige_admin %}
+				<th name="is_crige_member">CRIGE</th>
+				{% endif %}
+				<th name="datasets_count">Jeux de données</th>
+			</tr>
+			{% for member in organisation.members %}
+			<tr id="{{ member.username }}">
+				<td name="username">{{ member.username }}</td>
+				<td name="full_name">{{ member.full_name }}</td>
+				<td name="is_member" style="text-align: center;">
+					{% if member.is_member %}
+					<span class="glyphicon glyphicon-ok"></span>
 					{% endif %}
-					<th name="datasets_count">Jeux de données</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for member in organisation.members %}
-				<tr id="{{ member.pk }}" name="{{ member.username }}">
-					<td name="username">{{ member.username }}</td>
-					<td name="full_name">{{ member.full_name }}</td>
-					<td name="is_member" style="text-align: center;">
-						{% if member.is_member %}
-						<span class="glyphicon glyphicon-ok"></span>
-						{% endif %}
-					</td>
-					<td name="is_contributor" style="text-align: center;">
-						{% if member.is_contributor %}
-						<span class="glyphicon glyphicon-ok"></span>
-						{% endif %}
-					</td>
-					<td name="is_referent" style="text-align: center;">
-						{% if member.is_referent %}
-						<span class="glyphicon glyphicon-ok"></span>
-						{% endif %}
-					</td>
-					{% if user.profile.is_crige_admin %}
-					<td name="is_crige_member" style="text-align: center;">
-						{% if member.is_crige_member %}
-						<span class="glyphicon glyphicon-ok"></span>
-						{% endif %}
-					</td>
+				</td>
+				<td name="is_contributor" style="text-align: center;">
+					{% if member.is_contributor %}
+					<span class="glyphicon glyphicon-ok"></span>
 					{% endif %}
-					<td name="datasets_count">{{ member.datasets_count }}</td>
-				</tr>
-				{% endfor %}
-			</tbody>
+				</td>
+				<td name="is_referent" style="text-align: center;">
+					{% if member.is_referent %}
+					<span class="glyphicon glyphicon-ok"></span>
+					{% endif %}
+				</td>
+				{% if user.profile.is_crige_admin %}
+				<td name="is_crige_member" style="text-align: center;">
+					{% if member.is_crige_member %}
+					<span class="glyphicon glyphicon-ok"></span>
+					{% endif %}
+				</td>
+				{% endif %}
+				<td name="datasets_count" style="text-align: right;">{{ member.datasets_count }}</td>
+			</tr>
+			{% endfor %}
 		</table>
 	</div>
 </div>
@@ -56,9 +52,9 @@
 	<!-- <button role="button" name="send-mail-to-crige-member" class="btn btn-default">Envoyer un e-mail aux membres CRIGE</button> -->
 	{% endif %}
 	<button role="button" name="ckan-card" class="btn btn-default">Ouvrir la fiche Ckan</button>
-	<div class="btn-group">
+	<div class="btn-group dropup">
 		<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-			Supprimer un statut <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
+			Supprimer un statut <span class="caret"></span>
 		</button>
 		<ul class="dropdown-menu dropdown-menu-right">
 			<li>
@@ -78,27 +74,32 @@ $(function() {
 
 	const $div = $('#members');
 
-	const $ckanUserCard = $($div.find('button[name="ckan-card"]'));
-	const $btnGroup = $($div.find('.btn-group'));
-	const $dropdownButton = $($div.find('.btn-group>button.dropdown-toggle'));
-	const $deleteMember = $($btnGroup.find('a[name="delete-member"]'));
-	const $deleteContributor = $($btnGroup.find('a[name="delete-contributor"]'));
-	const $deleteReferent = $($btnGroup.find('a[name="delete-referent"]'));
+	const $ckanUserCard = $div.find('button[name="ckan-card"]');
+	const $btnGroup = $div.find('.btn-group');
+	const $dropdownButton = $div.find('.btn-group>button.dropdown-toggle');
+	const $deleteMember = $btnGroup.find('a[name="delete-member"]');
+	const $deleteContributor = $btnGroup.find('a[name="delete-contributor"]');
+	const $deleteReferent = $btnGroup.find('a[name="delete-referent"]');
 
-	deactivateButton($ckanUserCard);
-	deactivateButton($dropdownButton);
-	deactivateButton($deleteMember);
-	deactivateButton($deleteReferent);
-	deactivateButton($deleteContributor);
+	// deactivateButton($ckanUserCard);
+	// deactivateButton($dropdownButton);
+	// deactivateButton($deleteMember);
+	// deactivateButton($deleteReferent);
+	// deactivateButton($deleteContributor);
+
+	const ORGANISATION_ID = {{ organisation.pk }};
 
 	const $table = $div.find('table');
+
 	$table.find('tr')
 		.on('row.selected', function(e) {
+
 			const $row = $(this);
 			const id = $row.attr('id');
 			if (!id) {
 				return;
 			};
+
 			$row.prop('selected', true).addClass('selected');
 
 			$ckanUserCard.off('click').on('click', function(e) {
@@ -116,65 +117,79 @@ $(function() {
 			$deleteReferent.off('click').on('click', function(e) {
 				openModalDelete(ORGANISATION_ID, data.username, 'referents');
 			});
+			$deleteMember.removeClass('disabled').prop('disabled', false);
+			$deleteContributor.removeClass('disabled').prop('disabled', false);
+			$deleteReferent.removeClass('disabled').prop('disabled', false);
+			$dropdownButton.removeClass('disabled').prop('disabled', false);
 
 		})
 		.on('row.unselected', function(e) {
 			const $row = $(this);
 			$row.prop('selected', false).removeClass('selected');
 
-			deactivateButton($deleteMember);
-			deactivateButton($deleteMember);
-			deactivateButton($deleteContributor);
-			deactivateButton($deleteReferent);
-			deactivateButton($dropdownButton);
+			$deleteMember.addClass('disabled').prop('disabled', true);
+			$deleteContributor.addClass('disabled').prop('disabled', true);
+			$deleteReferent.addClass('disabled').prop('disabled', true);
+			$dropdownButton.addClass('disabled').prop('disabled', true);
 
 		})
 		.on('click', function(e) {
-
-		});
-
-	grid.rowSelected = function(pRowIdx, nRowIdx) {
-		$(grid.getRow(pRowIdx)).removeClass('selected');
-
-		deactivateButton($deleteMember);
-		deactivateButton($deleteMember);
-		deactivateButton($deleteContributor);
-		deactivateButton($deleteReferent);
-		deactivateButton($dropdownButton);
-
-		const data = grid.getRowValues(nRowIdx);
-
-		if (nRowIdx > -1) {
-
-			$ckanUserCard.off('click').on('click', function(e) {
-				targetBlank('{{ ckan_url }}/user/' + data.username);
-			});
-
-			$deleteMember.off('click').on('click', function(e) {
-				openModalDelete(ORGANISATION_ID, data.username, 'members');
-			});
-
-			$deleteContributor.off('click').on('click', function(e) {
-				openModalDelete(ORGANISATION_ID, data.username, 'contributors');
-			});
-
-			$deleteReferent.off('click').on('click', function(e) {
-				openModalDelete(ORGANISATION_ID, data.username, 'referents');
-			});
-
-			if (pRowIdx != nRowIdx) {
-				$(this.getRow(nRowIdx)).addClass('selected');
-				activateButton($ckanUserCard);
-				if (!data.is_referent && (isReferent()) || {{ is_admin | yesno:'true,false,null' }})  {
-					data.is_member ? activateButton($deleteMember) : deactivateButton($deleteMember);
-					data.is_contributor ? activateButton($deleteContributor) : deactivateButton($deleteContributor);
-					data.is_referent ? activateButton($deleteReferent) : deactivateButton($deleteReferent);
-					(data.is_member || data.is_contributor || data.is_referent) ? activateButton($dropdownButton) : deactivateButton($dropdownButton);
+			const $that = $table.find('tr:selected');
+			const $this = $(this);
+			if ($that) {
+				$that.trigger('row.unselected');
+				if ($this.index() != $that.index()) {
+					history.pushState(null, null, '#members/' + $this.attr('id'));
+					$this.trigger('row.selected');
+				} else {
+					history.pushState(null, null, '#members');
 				};
 			};
+		});
 
-		};
-	};
+	// grid.rowSelected = function(pRowIdx, nRowIdx) {
+	// 	$(grid.getRow(pRowIdx)).removeClass('selected');
+	//
+	// 	deactivateButton($deleteMember);
+	// 	deactivateButton($deleteMember);
+	// 	deactivateButton($deleteContributor);
+	// 	deactivateButton($deleteReferent);
+	// 	deactivateButton($dropdownButton);
+	//
+	// 	const data = grid.getRowValues(nRowIdx);
+	//
+	// 	if (nRowIdx > -1) {
+	//
+	// 		$ckanUserCard.off('click').on('click', function(e) {
+	// 			targetBlank('{{ ckan_url }}/user/' + data.username);
+	// 		});
+	//
+	// 		$deleteMember.off('click').on('click', function(e) {
+	// 			openModalDelete(ORGANISATION_ID, data.username, 'members');
+	// 		});
+	//
+	// 		$deleteContributor.off('click').on('click', function(e) {
+	// 			openModalDelete(ORGANISATION_ID, data.username, 'contributors');
+	// 		});
+	//
+	// 		$deleteReferent.off('click').on('click', function(e) {
+	// 			openModalDelete(ORGANISATION_ID, data.username, 'referents');
+	// 		});
+	//
+	// 		if (pRowIdx != nRowIdx) {
+	// 			$(this.getRow(nRowIdx)).addClass('selected');
+	// 			activateButton($ckanUserCard);
+	// 			if (!data.is_referent && (isReferent()) || {{ is_admin | yesno:'true,false,null' }})  {
+	// 				data.is_member ? activateButton($deleteMember) : deactivateButton($deleteMember);
+	// 				data.is_contributor ? activateButton($deleteContributor) : deactivateButton($deleteContributor);
+	// 				data.is_referent ? activateButton($deleteReferent) : deactivateButton($deleteReferent);
+	// 				(data.is_member || data.is_contributor || data.is_referent) ? activateButton($dropdownButton) : deactivateButton($dropdownButton);
+	// 			};
+	// 		};
+	//
+	// 	};
+	// };
+
 });
 </script>
 {% endif %}

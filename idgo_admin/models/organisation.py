@@ -92,7 +92,7 @@ class Organisation(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-    )
+        )
 
     jurisdiction = models.ForeignKey(
         to='Jurisdiction',
@@ -209,7 +209,11 @@ class Organisation(models.Model):
     def ows_url(self):
         if MRAHandler.is_workspace_exists(self.slug):
             return OWS_URL_PATTERN.format(organisation=self.slug)
-        # else: return None
+
+    @property
+    def ows_settings(self):
+        if MRAHandler.is_workspace_exists(self.slug):
+            return MRAHandler.get_ows_settings('ows', self.slug)
 
     @property
     def api_location(self):
