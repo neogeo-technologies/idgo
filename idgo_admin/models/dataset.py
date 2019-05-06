@@ -567,8 +567,9 @@ class Dataset(models.Model):
         return Model.objects.filter(dataset=self, **kwargs)
 
     def get_layers(self):
-        Model = apps.get_model(app_label='idgo_admin', model_name='Layer')
-        return Model.objects.filter(resource__dataset__pk=self.pk)
+        if self.pk:
+            Model = apps.get_model(app_label='idgo_admin', model_name='Layer')
+            return Model.objects.filter(resource__dataset__pk=self.pk)
 
     def is_contributor(self, profile):
         Model = apps.get_model(app_label='idgo_admin', model_name='LiaisonsContributeurs')
