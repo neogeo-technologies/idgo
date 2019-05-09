@@ -18,19 +18,16 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.db.models import Q
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-import functools
-from idgo_admin.ckan_module import CkanBaseHandler
-# from idgo_admin.csw_module import CswBaseHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CswBaseError
 from idgo_admin.exceptions import ExceptionsHandler
@@ -40,20 +37,20 @@ from idgo_admin.forms.organisation import OrganisationForm as Form
 from idgo_admin.forms.organisation import RemoteCkanForm
 from idgo_admin.forms.organisation import RemoteCswForm
 from idgo_admin.models import AccountActions
+from idgo_admin.models import BaseMaps
+from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
+from idgo_admin.models import License
 from idgo_admin.models.mail import send_contributor_confirmation_mail
 from idgo_admin.models.mail import send_mail_asking_for_crige_partnership
 from idgo_admin.models.mail import send_membership_confirmation_mail
 from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
 from idgo_admin.models.mail import send_referent_confirmation_mail
-from idgo_admin.models import Category
-from idgo_admin.models import License
 from idgo_admin.models import MappingCategory
 from idgo_admin.models import MappingLicence
 from idgo_admin.models import Organisation
-from idgo_admin.models import Profile
 from idgo_admin.models import RemoteCkan
 from idgo_admin.models import RemoteCsw
 from idgo_admin.models import SupportedCrs
@@ -62,7 +59,6 @@ from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
 import operator
-from urllib.parse import urljoin
 
 
 CKAN_URL = settings.CKAN_URL
@@ -148,104 +144,6 @@ def referent_unsubscribe_process(request, profile, organisation):
         organisation=organisation, profile=profile).delete()
 
 
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-@login_required(login_url=settings.LOGIN_URL)
-@csrf_exempt
-def all_organisations(request, *args, **kwargs):
-
-    user, profile = user_and_profile(request)
-
-    organisations = [{
-        'contributor':
-            item in Organisation.objects.filter(
-                liaisonscontributeurs__profile=profile,
-                liaisonscontributeurs__validated_on__isnull=False),
-        'legal_name': item.legal_name,
-        'member': item == profile.organisation,
-        'pk': item.pk,
-        'referent':
-            profile.is_admin and True or item in Organisation.objects.filter(
-                liaisonsreferents__profile=profile,
-                liaisonsreferents__validated_on__isnull=False),
-        } for item in Organisation.objects.filter(is_active=True)]
-
-    organisations.sort(key=operator.itemgetter('contributor'), reverse=True)
-    organisations.sort(key=operator.itemgetter('referent'), reverse=True)
-    organisations.sort(key=operator.itemgetter('member'), reverse=True)
-
-    return render_with_info_profile(
-        request, 'idgo_admin/organisation/organisations.html',
-        context={
-            'organisation_base_url': '/organisation',  # Moche
-            'organisations': organisations})
-
-
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-@login_required(login_url=settings.LOGIN_URL)
-@csrf_exempt
-def organisation(request, id=None):
-
-    user, profile = user_and_profile(request)
-
-    instance = get_object_or_404(Organisation, id=id, is_active=True)
-
-    data = {
-        'id': instance.id,
-        'legal_name': instance.legal_name,
-        'crige': instance.is_crige_partner,
-        # logo -> see below
-        'type': instance.organisation_type and instance.organisation_type.name,
-        'jurisdiction':
-            instance.jurisdiction and instance.jurisdiction.name,
-        'address': instance.address,
-        'postcode': instance.postcode,
-        'city': instance.city,
-        'phone': instance.phone,
-        'website': instance.website,
-        'email': instance.email,
-        'description': instance.description,
-        'members': [{
-            'username': member.user.username,
-            'full_name': member.user.get_full_name(),
-            'is_member': Profile.objects.filter(
-                organisation=id, id=member.id).exists(),
-            'is_contributor': LiaisonsContributeurs.objects.filter(
-                profile=member, organisation__id=id, validated_on__isnull=False
-                ).exists(),
-            'is_referent': LiaisonsReferents.objects.filter(
-                profile=member, organisation__id=id, validated_on__isnull=False
-                ).exists(),
-            'crige_membership': member.crige_membership,
-            'datasets_count': len(Dataset.objects.filter(
-                organisation=id, editor=member.user)),
-            'profile_id': member.id
-            } for member in Profile.objects.filter(
-                functools.reduce(operator.or_, [
-                    Q(organisation=id),
-                    functools.reduce(operator.and_, [
-                        Q(liaisonscontributeurs__organisation=id),
-                        Q(liaisonscontributeurs__validated_on__isnull=False)]),
-                    functools.reduce(operator.and_, [
-                        Q(liaisonsreferents__organisation=id),
-                        Q(liaisonsreferents__validated_on__isnull=False)])])
-                ).distinct().order_by('user__username')]}
-
-    if instance.ows_url:
-        ows_settings = MRAHandler.get_ows_settings('ows', instance.slug)
-        data['osw'] = {
-            'url': instance.ows_url,
-            'title': ows_settings.pop('title', None),
-            'abstract': ows_settings.pop('abstract', None)}
-
-    try:
-        data['logo'] = urljoin(settings.DOMAIN_NAME, instance.logo.url)
-    except ValueError:
-        pass
-
-    return JsonResponse(data=data, safe=False)
-
-
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def crige_partnership(request):
@@ -255,6 +153,57 @@ def crige_partnership(request):
     user, profile = user_and_profile(request)
     organisation = get_object_or_404(Organisation, id=id, is_active=True)
     send_mail_asking_for_crige_partnership(user, organisation)
+
+
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def handle_show_organisation(request, *args, **kwargs):
+    user, profile = user_and_profile(request)
+
+    pk = request.GET.get('id')
+    if pk:
+        try:
+            pk = int(pk)
+        except Exception:
+            raise Http404()
+    else:
+        if profile.organisation:
+            pk = profile.organisation.pk
+        elif profile.is_referent:
+            pk = profile.referent_for[0].pk
+        elif profile.is_contributor:
+            pk = profile.contribute_for[0].pk
+    organisation = get_object_or_404(Organisation, pk=pk)
+    return redirect(reverse('idgo_admin:show_organisation', kwargs={'id': organisation.id}))
+
+
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def show_organisation(request, id, *args, **kwargs):
+    user, profile = user_and_profile(request)
+
+    all_organisations = []
+    for instance in Organisation.objects.filter(is_active=True):
+        all_organisations.append({
+            'pk': instance.pk,
+            'legal_name': instance.legal_name,
+            'member': (instance == profile.organisation),
+            'contributor': (instance in profile.contribute_for),
+            'referent': profile.is_admin and True or (instance in profile.referent_for),
+            })
+    all_organisations.sort(key=operator.itemgetter('contributor'), reverse=True)
+    all_organisations.sort(key=operator.itemgetter('referent'), reverse=True)
+    all_organisations.sort(key=operator.itemgetter('member'), reverse=True)
+
+    organisation = get_object_or_404(Organisation, pk=id)
+    context = {
+        'all_organisations': all_organisations,
+        'basemaps': BaseMaps.objects.all(),
+        'organisation': organisation,
+        }
+
+    return render_with_info_profile(
+        request, 'idgo_admin/organisation/show.html', context=context)
 
 
 @method_decorator(decorators, name='dispatch')
@@ -308,7 +257,7 @@ class CreateOrganisation(View):
 
         messages.success(request, 'La demande a bien été envoyée.')
 
-        return HttpResponseRedirect(reverse('idgo_admin:all_organisations'))
+        return HttpResponseRedirect(reverse('idgo_admin:handle_show_organisation'))
 
 
 @method_decorator(decorators, name='dispatch')
@@ -372,8 +321,8 @@ class UpdateOrganisation(View):
             return render_with_info_profile(
                 request, self.template, context=context)
 
-        return HttpResponseRedirect('{0}#{1}'.format(
-            reverse('idgo_admin:all_organisations'), instance.id))
+        return HttpResponseRedirect(
+            reverse('idgo_admin:show_organisation', kwargs={'id': instance.id}))
 
 
 @method_decorator(decorators, name='dispatch')
@@ -408,8 +357,6 @@ class OrganisationOWS(View):
 
 @method_decorator(decorators, name='dispatch')
 class Subscription(View):
-
-    namespace = 'idgo_admin:all_organisations'
 
     @ExceptionsHandler(
         ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
@@ -461,8 +408,8 @@ class Subscription(View):
         # TODO Revoir la gestion de l'AJAX sur la page des organisations
 
         return JsonResponse(data={})  # Bidon
-        # return HttpResponseRedirect('{0}#{1}'.format(
-        #     reverse(self.namespace), organisation.id))
+        # return HttpResponseRedirect(
+        #     reverse('idgo_admin:show_organisation', kwargs={'id': organisation.id}))
 
 
 # ========================

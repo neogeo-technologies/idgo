@@ -11,10 +11,10 @@
 		<span class="glyphicon glyphicon-home"></span>
 	</li>
 	<li>
-		<a href="{% url "idgo_admin:all_organisations" %}#{{ organisation.id }}">Organisations</a>
+		<a href="{% url 'idgo_admin:show_organisation' id=organisation.id %}">Organisations</a>
 	</li>
 	<li class="active">
-		<a href="{% url "idgo_admin:update_organisation" id=organisation.id %}">{{ organisation.legal_name }}</a>
+		<a href="{% url 'idgo_admin:update_organisation' id=organisation.id %}">{{ organisation.legal_name }}</a>
 	</li>
 	<li class="active">Édition de la fiche de métadonnées de service INSPIRE</li>
 </ol>
@@ -64,7 +64,7 @@
 								<!-- Content -->
 							</div>
 							<div class="buttons-on-the-right-side">
-								<a class="btn btn-default" target="_self" href="{% url "idgo_admin:all_organisations" %}#{{ organisation.id }}">Annuler</a>
+								<a class="btn btn-default" target="_self" href="{% url 'idgo_admin:show_organisation' id=organisation.id %}">Annuler</a>
 								<button id="validate" type="button" class="btn btn-primary">Enregistrer</button>
 							</div>
 						</form>
@@ -157,7 +157,7 @@ function runApp(configSrv, modelsSrv, viewsSrv, xmlSrv, AppDataSrv, BroadcastSrv
 <script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.services.js" %}"></script>
 <script>
 $(function() {
-	$('#menu a[href="{% url "idgo_admin:all_organisations" %}"]').parent().addClass('active');
+	$('#menu a[href="{% url 'idgo_admin:show_organisation' id=organisation.id %}"]').parent().addClass('active');
 
 	const $scope = angular.element('div[ng-controller="mdEditCtrl as vm"]').scope();
 

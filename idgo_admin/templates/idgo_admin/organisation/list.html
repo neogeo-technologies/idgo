@@ -1,4 +1,4 @@
-<div>
+<div id="organisations">
 	<div class="input-group typeahead">
 		<input name="organisation" type="text" class="form-control" placeholder="Rechercher l'organisation..."></input>
 		<span class="input-group-btn">
@@ -35,48 +35,37 @@
 </div>
 <script>
 $(function() {
+	const $div = $('#organisations');
 
-	const $typeahead = $('.typeahead input[name="organisation"]')
-		.on('input', function(e) {
-			this.value.length > 0 ? activateButton($typeaheadButton) : deactivateButton($typeaheadButton);
-		})
+	const $typeahead = $div.find('.typeahead input[name="organisation"]')
 		.typeahead({
 			source: (function() {
 				var arr = [];
 				{% for item in all_organisations %}
-				arr.push({
-					'id': {{ item.pk }},
-					'name': '{{ item.legal_name }}'
-				});
+				arr.push({'id': {{ item.pk }}, 'name': '{{ item.legal_name }}'});
 				{% endfor %}
 				return arr;
 			})(),
 			autoSelect: true,
 			fitToElement: true,
-			afterSelect: function(val) {
-				deactivateButton($typeaheadButton);
-				const id = val.id;
-				redirect('{% url "idgo_admin:handle_show_organisation" %}?id=' + id);
+			afterSelect: function(value) {
+				redirect('{% url "idgo_admin:handle_show_organisation" %}?id=' + value.id);
 			}
 		});
 
-	const $typeaheadButton = $('.typeahead button').click(function(e) {
-		const selected = $typeahead.typeahead("getActive");
-		if (selected) {
-			// selectRowByDataId(selected['id']);
-		};
-	});
-
-	$.each($('.label-name'), function() {
+	const $labelName = $div.find('.label-name')
+	$.each($labelName, function() {
 		$(this).width("calc(100% - " + ($(this).next('.label-badges').width() + 5) + "px)");
-	})
-
-	const $organisations = $('label, input[type=radio][name=organisations]').bind('mouseup change click', function(e) {
-		e.stopPropagation();
-	}).mousedown(function(e) {
-		const id = $(this).children('input').val();
-		redirect('{% url "idgo_admin:handle_show_organisation" %}?id=' + id);
 	});
+
+	const $organisations = $('label, input[type=radio][name=organisations]')
+		.bind('mouseup change click', function(e) {
+			e.stopPropagation();
+		})
+		.mousedown(function(e) {
+			const id = $(this).children('input').val();
+			redirect('{% url "idgo_admin:handle_show_organisation" %}?id=' + id);
+		});
 
 });
 </script>

@@ -69,10 +69,7 @@ $(function() {
 	const $deleteContributor = $btnGroup.find('a[name="delete-contributor"]');
 	const $deleteReferent = $btnGroup.find('a[name="delete-referent"]');
 
-	const ORGANISATION_ID = {{ organisation.pk }};
-
 	const $table = $div.find('table');
-
 	$table.find('tr')
 		.on('row.selected', function(e) {
 			const $row = $(this);
@@ -96,7 +93,7 @@ $(function() {
 			$deleteMember.off('click')
 			if (isMember) {
 				$deleteMember.on('click', function(e) {
-					openModalDelete(ORGANISATION_ID, username, 'members');
+					openModalDelete(username, 'members');
 				});
 				$deleteMember.parent().removeClass('disabled').prop('disabled', false);
 			};
@@ -104,7 +101,7 @@ $(function() {
 			$deleteContributor.off('click');
 			if (isContributor) {
 				$deleteContributor.on('click', function(e) {
-					openModalDelete(ORGANISATION_ID, username, 'contributors');
+					openModalDelete(username, 'contributors');
 				});
 				$deleteContributor.parent().removeClass('disabled').prop('disabled', false);
 			};
@@ -112,7 +109,7 @@ $(function() {
 			$deleteReferent.off('click');
 			if (isReferent) {
 				$deleteReferent.on('click', function(e) {
-					openModalDelete(ORGANISATION_ID, username, 'referents');
+					openModalDelete(username, 'referents');
 				});
 				$deleteReferent.parent().removeClass('disabled').prop('disabled', false);
 			};
@@ -142,6 +139,51 @@ $(function() {
 				};
 			};
 		});
+
+		const openModalDelete = function(username, target) {
+			const $button = $('<button/>')
+				.prop('type', 'button')
+				.prop('class', 'btn btn-danger disabled')
+				.prop('disabled', true)
+				.text('Oui, je confirme')
+				.on('click', function(e) {
+					e.preventDefault();
+					closeAllModalDialog();
+					$.ajax({
+						type: 'DELETE',
+						url: '{% url "idgo_admin:all_members" %}?organisation=' + {{ organisation.id }} + '&username=' + username + '&target=' + target
+					})
+					.done(function(response, textStatus, jqXHR) {
+						location.reload();
+					})
+					.fail(function(jqXHR, textStatus, errorThrown) {
+						location.reload();
+					});
+					e.stopPropagation();
+				});
+
+			const $input = $('<input/>')
+				.prop('type', 'text')
+				.prop('class', 'form-control')
+				.prop('placeholder', 'Nom du compte de l\'utilisateur')
+				.on('input', function(e) {
+					if ($(this).val() === username) {
+						$button.removeClass('disabled').prop('disabled', false);
+					} else {
+						$button.addClass('disabled').prop('disabled', true);
+					};
+				});
+
+			$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
+			$modal.find('.modal-body')
+				.append($('<form/>')
+					.append($('<div/>').prop('class', 'form-group')
+						.append('<p>Pour confirmer, veuillez réécrire le nom du compte de l\'utilisateur.</p>').append($input))
+					.append($('<div class="buttons-on-the-right-side">')
+						.append($button).append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
+
+			$modal.modal('show');
+		};
 
 });
 </script>

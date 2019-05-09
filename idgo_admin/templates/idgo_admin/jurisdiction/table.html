@@ -19,7 +19,7 @@
 					</button>
 					<ul class="dropdown-menu">{% for organisation in jurisdiction.organisations %}
 						<li>
-							<a href="{% url 'idgo_admin:all_organisations' %}#{{ organisation.pk }}">{{ organisation.legal_name }}</a>
+							<a href="{% url 'idgo_admin:show_organisation' id=organisation.id %}">{{ organisation.legal_name }}</a>
 						</li>{% endfor %}
 					</ul>
 				</td>
@@ -27,7 +27,7 @@
 				<td name="organisations">
 					{% if jurisdiction.organisations|length == 1 %}
 						{% with jurisdiction.organisations|first as organisation %}
-					<a href='{% url "idgo_admin:all_organisations" %}#{{ organisation.pk }}'>{{ organisation.legal_name }}</a>
+					<a href='{% url "idgo_admin:show_organisation" id=organisation.id %}'>{{ organisation.legal_name }}</a>
 						{% endwith %}
 					{% endif %}
 				</td>

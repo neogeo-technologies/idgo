@@ -8,7 +8,7 @@
 		<span class="glyphicon glyphicon-home"></span>
 	</li>
 	<li>
-		<a href="{% url 'idgo_admin:all_organisations' %}{% if id %}#{{ id }}{% endif %}">Organisations</a>
+		<a href="{% url 'idgo_admin:handle_show_organisation' %}{% if id %}?id={{ id }}{% endif %}">Organisations</a>
 	</li>
 	<li class="active">
 		{% if id %}
@@ -44,7 +44,7 @@
 			</div>
 		</div>
 			{% else %}
-				Vous pouvez en faire la demande en cliquant ici : <a class="btn btn-link" href="{% url 'idgo_admin:jurisdiction_editor' code='for' %}?organisation={{ organisation.pk }}">définir le territoire de compétence</a>
+				Vous pouvez en faire la demande en cliquant ici : <a class="btn btn-link" href="{% url 'idgo_admin:jurisdiction_editor' code='for' %}?organisation={{ organisation.id }}">définir le territoire de compétence</a>
 			</div>
 		</div>
 			{% endif %}
@@ -142,7 +142,7 @@
 		{% bootstrap_field form.referent_process show_label=False %}
 		<br />
 		<div class="buttons-on-the-right-side">
-			<a class="btn btn-default" href="{% url 'idgo_admin:all_organisations' %}#{{ id }}">Annuler</a>
+			<a class="btn btn-default" href="{% url 'idgo_admin:handle_show_organisation' %}{% if organisation %}?id={{ organisation.id }}{% endif %}">Annuler</a>
 			{% if update %}<button type="submit" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>{% endif %}
 			<button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
 		</div>
@@ -161,7 +161,7 @@ $(function() {
 	const $inputReferent = $('input[name="{{ form.referent_process.name }}"]').prop('checked', false).change(function() {
 		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
 	});
-	$('#menu a[href=\'{% url "idgo_admin:all_organisations" %}\']').parent().addClass('active');
+	$('#menu a[href=\'{% url "idgo_admin:handle_show_organisation" %}\']').parent().addClass('active');
 });
 </script>
 {% endblock main_content %}
