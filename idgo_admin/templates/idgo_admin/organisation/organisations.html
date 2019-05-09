@@ -54,10 +54,10 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-md-4">
+		<div class="col-md-4" id="organisation-list">
 			{% include "idgo_admin/organisation/list.html" %}
 		</div>
-		<div class="col-md-8">
+		<div class="col-md-8" id="organisation-show">
 			{% block organisation_show %}
 			{% endblock organisation_show %}
 		</div>
@@ -65,6 +65,7 @@
 </div>
 <script>
 $(function() {
+	$('#organisation-list').find('.well').height($('#organisation-show').innerHeight() - $('#organisation-list').find('.typeahead').outerHeight(true));
 	$('#menu a[href="{% url "idgo_admin:handle_show_organisation" %}"]').parent().addClass('active');
 });
 </script>
