@@ -7,7 +7,7 @@
 			</button>
 		</span>
 	</div>
-	<div class="btn-group-vertical btn-block scrolling-box well" data-toggle="buttons" style="min-height: 500px; padding: 0;">
+	<div class="btn-group-vertical btn-block scrolling-box well" data-toggle="buttons" style="padding: 0; margin-bottom: 0px;">
 		{% for item in all_organisations %}
 		<label for="id_organisation_{{ item.pk }}" class="btn btn-radio{% if organisation.pk == item.pk %} active{% endif %}">
 			<span class="label-name">{{ item.legal_name }}</span>
