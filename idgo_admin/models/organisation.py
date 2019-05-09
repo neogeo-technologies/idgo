@@ -376,7 +376,9 @@ class RemoteCkan(models.Model):
                 if x not in (self.sync_with or [])]
             filter = {
                 'remote_instance': previous,
-                'remote_organisation__in': remote_organisation__in}
+                'remote_organisation__in': remote_organisation__in,
+                }
+
             # TODO: 'Dataset.harvested_ckan.filter(**filter).delete()' ne fonctionne pas
             for dataset in Dataset.harvested_ckan.filter(**filter):
                 dataset.delete()
@@ -451,12 +453,17 @@ class RemoteCkan(models.Model):
                             #         license = License.objects.get(slug='notspecified')
                             #     except License.DoesNotExist:
                             #         license = None
+
                             try:
                                 mapping_licence = MappingLicence.objects.get(
                                     remote_ckan=self, slug=package.get('license_id'))
                             except MappingLicence.DoesNotExist:
-                                license = None
+                                try:
+                                    license = License.objects.get(slug='other-at')
+                                except MappingLicence.DoesNotExist:
+                                    license = None
                             else:
+                                logger.warning("'{}' non trouvé".format(package.get('license_id')))
                                 license = mapping_licence.licence
 
                             kvp = {
@@ -517,8 +524,10 @@ class RemoteCkan(models.Model):
                                 try:
                                     ckan_format = resource['format'].upper()
                                     format_type = ResourceFormats.objects.get(ckan_format=ckan_format)
-                                except ResourceFormats.DoesNotExist:
-                                    format_type = ''
+                                except (ResourceFormats.MultipleObjectsReturned, ResourceFormats.DoesNotExist, TypeError) as e:
+                                    logger.exception(e)
+                                    logger.error("I can't crash here, so I do not pay any attention to this error.")
+                                    format_type = None
 
                                 kvp = {
                                     'ckan_id': ckan_id,
@@ -575,6 +584,13 @@ class RemoteCkanDataset(models.Model):
         null=True,
         blank=True,
         unique=True,
+        )
+
+    remote_organisation = models.SlugField(
+        verbose_name="Organisation distante",
+        max_length=100,
+        blank=True,
+        null=True,
         )
 
     created_by = models.ForeignKey(
@@ -716,13 +732,16 @@ class RemoteCsw(models.Model):
                 continue
             break
 
+        if not previous:
+            return
+
         # Puis on moissonne le catalogue
         try:
             ckan_ids = []
             with transaction.atomic():
 
                 with CswBaseHandler(self.url) as csw:
-                    packages = csw.get_packages(xml=self.getrecords)
+                    packages = csw.get_packages(xml=self.getrecords or None)
 
                 for package in packages:
                     if not package['type'] == 'dataset':
@@ -872,13 +891,6 @@ class RemoteCswDataset(models.Model):
         null=True,
         blank=True,
         unique=True,
-        )
-
-    remote_organisation = models.SlugField(
-        verbose_name="Organisation distante",
-        max_length=100,
-        blank=True,
-        null=True,
         )
 
     created_by = models.ForeignKey(

@@ -19,22 +19,23 @@ from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.csw_module import CswBaseHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CswBaseError
-from idgo_admin.forms import AddressField
-from idgo_admin.forms import CityField
-from idgo_admin.forms import ContributorField
-from idgo_admin.forms import CustomCheckboxSelectMultiple
-from idgo_admin.forms import DescriptionField
-from idgo_admin.forms import EMailField
-from idgo_admin.forms import JurisdictionField
-from idgo_admin.forms import LicenseField
-from idgo_admin.forms import MemberField
-from idgo_admin.forms import OrganisatioLegalNameField
-from idgo_admin.forms import OrganisationLogoField
-from idgo_admin.forms import OrganisationTypeField
-from idgo_admin.forms import PhoneField
-from idgo_admin.forms import PostcodeField
-from idgo_admin.forms import ReferentField
-from idgo_admin.forms import WebsiteField
+from idgo_admin.forms.fields import AddressField
+from idgo_admin.forms.fields import CityField
+from idgo_admin.forms.fields import ContributorField
+from idgo_admin.forms.fields import CustomCheckboxSelectMultiple
+from idgo_admin.forms.fields import DescriptionField
+from idgo_admin.forms.fields import EMailField
+from idgo_admin.forms.fields import JurisdictionField
+from idgo_admin.forms.fields import LicenseField
+from idgo_admin.forms.fields import MemberField
+from idgo_admin.forms.fields import OrganisatioLegalNameField
+from idgo_admin.forms.fields import OrganisationLogoField
+from idgo_admin.forms.fields import OrganisationTypeField
+from idgo_admin.forms.fields import PhoneField
+from idgo_admin.forms.fields import PostcodeField
+from idgo_admin.forms.fields import ReferentField
+from idgo_admin.forms.fields import WebsiteField
+from idgo_admin import logger
 from idgo_admin.models import Category
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
@@ -191,30 +192,37 @@ class RemoteCkanForm(forms.ModelForm):
                     for organisation in organisations)
 
             mapping = []
+
+            # Initialize categories mapping
+            # =============================
             try:
                 with CkanBaseHandler(instance.url) as ckan:
                     remote_categories = ckan.get_all_categories(all_fields=True)
-            except CkanBaseError:
-                pass
+            except CkanBaseError as e:
+                logger.error(e)
             else:
                 fields_name = []
                 for remote_category in remote_categories:
-                    field_name = remote_category['name']
+                    field_name = ''.join(['cat_', remote_category['name']])
                     fields_name.append(field_name)
+                    try:
+                        filter = {'remote_ckan': instance, 'slug': field_name[4:]}
+                        initial = MappingCategory.objects.filter(**filter).first().category
+                    except Exception as e:
+                        logger.warning(e)
+                        try:
+                            initial = Category.objects.get(slug=field_name[4:])
+                        except Exception as e:
+                            logger.warning(e)
+                            initial = None
 
-                    init_cat = MappingCategory.objects.filter(
-                        remote_ckan=instance, slug=field_name).first().category if \
-                        MappingCategory.objects.filter(
-                            remote_ckan=instance, slug=field_name).exists() else \
-                        None
-                    field = forms.ModelChoiceField(
+                    self.fields[field_name] = forms.ModelChoiceField(
                         label=remote_category['title'],
                         empty_label="Sélectionnez une valeur",
                         required=False,
                         queryset=Category.objects.all(),
-                        initial=init_cat
+                        initial=initial,
                         )
-                    self.fields[field_name] = field
 
                 mapping.append({
                     'name': 'Category',
@@ -222,29 +230,36 @@ class RemoteCkanForm(forms.ModelForm):
                     'fields_name': fields_name,
                     })
 
+            # Initialize licences mapping
+            # ===========================
             try:
                 with CkanBaseHandler(instance.url) as ckan:
                     remote_licenses = ckan.get_all_licenses(all_fields=True)
-            except CkanBaseError:
-                pass
+            except CkanBaseError as e:
+                logger.error(e)
             else:
                 fields_name = []
                 for remote_license in remote_licenses:
-                    field_name = remote_license['id']
+                    field_name = ''.join(['lic_', remote_license['id']])
                     fields_name.append(field_name)
-                    init_lic = MappingLicence.objects.filter(
-                        remote_ckan=instance, slug=field_name).first().licence if \
-                        MappingLicence.objects.filter(
-                            remote_ckan=instance, slug=field_name).exists() else \
-                        None
-                    field = forms.ModelChoiceField(
+                    try:
+                        filter = {'remote_ckan': instance, 'slug': field_name[4:]}
+                        initial = MappingLicence.objects.filter(**filter).first().licence
+                    except Exception as e:
+                        logger.warning(e)
+                        try:
+                            initial = License.objects.get(slug=field_name[4:])
+                        except Exception as e:
+                            logger.warning(e)
+                            initial = None
+
+                    self.fields[field_name] = forms.ModelChoiceField(
                         label=remote_license['title'],
                         empty_label="Sélectionnez une valeur",
                         required=False,
                         queryset=License.objects.all(),
-                        initial=init_lic
+                        initial=initial,
                         )
-                    self.fields[field_name] = field
 
                 mapping.append({
                     'name': 'License',
@@ -252,11 +267,15 @@ class RemoteCkanForm(forms.ModelForm):
                     'fields_name': fields_name,
                     })
 
-            self.Meta.mapping = tuple(mapping)
-
         else:
             self.fields['sync_with'].widget = forms.HiddenInput()
             self.fields['sync_frequency'].widget = forms.HiddenInput()
+
+    def get_category_fields(self):
+        return [self[val] for val in self.fields if val.startswith('cat')]
+
+    def get_licence_fields(self):
+        return [self[val] for val in self.fields if val.startswith('lic')]
 
 
 # ================================
@@ -302,7 +321,7 @@ class RemoteCswForm(forms.ModelForm):
 
     sync_frequency = forms.ChoiceField(
         label="Fréquence de synchronisation*",
-        required=True,
+        required=False,
         choices=Meta.model.FREQUENCY_CHOICES,
         initial='never',
         )

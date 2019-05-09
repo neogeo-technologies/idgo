@@ -15,7 +15,7 @@
 
 
 from django import forms
-from idgo_admin.forms import DescriptionField
+from idgo_admin.forms.fields import DescriptionField
 from idgo_admin.models import Layer
 
 
