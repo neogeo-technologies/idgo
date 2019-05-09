@@ -54,15 +54,15 @@ from idgo_admin.views.mdedit import DatasetMDEditTplEdit
 from idgo_admin.views.mdedit import mdhandler
 from idgo_admin.views.mdedit import ServiceMDEdit
 from idgo_admin.views.mdedit import ServiceMDEditTplEdit
-from idgo_admin.views.organisation import all_organisations
 from idgo_admin.views.organisation import CreateOrganisation
 from idgo_admin.views.organisation import crige_partnership
 from idgo_admin.views.organisation import DeleteRemoteCkanLinked
 from idgo_admin.views.organisation import DeleteRemoteCswLinked
-from idgo_admin.views.organisation import organisation
+from idgo_admin.views.organisation import handle_show_organisation
 from idgo_admin.views.organisation import OrganisationOWS
 from idgo_admin.views.organisation import RemoteCkanEditor
 from idgo_admin.views.organisation import RemoteCswEditor
+from idgo_admin.views.organisation import show_organisation
 from idgo_admin.views.organisation import Subscription
 from idgo_admin.views.organisation import UpdateOrganisation
 from idgo_admin.views.resource import resource
@@ -115,12 +115,12 @@ urlpatterns = [
 
     url('^member/all/?$', ReferentAccountManager.as_view(), name='all_members'),
 
-    url('^organisation/all/?$', all_organisations, name='all_organisations'),
-    url('^organisation/new/?$', CreateOrganisation.as_view(), name='create_organisation'),
+    url('^organisation/?$', handle_show_organisation, name='handle_show_organisation'),
+    url('^organisation/(?P<id>(\d+))/show/?$', show_organisation, name='show_organisation'),
+    url('^organisation/new/edit/?$', CreateOrganisation.as_view(), name='create_organisation'),
+    url('^organisation/(?P<id>(\d+))/edit/?$', UpdateOrganisation.as_view(), name='update_organisation'),
 
     url('^organisation/ows/?$', OrganisationOWS.as_view(), name='organisation_ows'),
-    url('^organisation/(?P<id>(\d+))/?$', organisation, name='organisation'),
-    url('^organisation/(?P<id>(\d+))/edit/?$', UpdateOrganisation.as_view(), name='update_organisation'),
     url('^organisation/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
 
     url('^organisation/crige/?$', crige_partnership, name='crige_partnership'),

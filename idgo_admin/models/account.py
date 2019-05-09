@@ -187,6 +187,23 @@ class Profile(models.Model):
             'validated_on__isnull': False}
         return LiaisonsReferents.objects.filter(**kwargs).exists()
 
+    @property
+    def awaiting_member_status(self):
+        try:
+            action = AccountActions.objects.get(
+                action='confirm_rattachement', profile=self, closed__isnull=True)
+        except Exception:
+            return
+        return action.organisation
+
+    @property
+    def awaiting_contributor_status(self):
+        return LiaisonsContributeurs.get_pending(profile=self)
+
+    @property
+    def awaiting_referent_statut(self):
+        return LiaisonsReferents.get_pending(profile=self)
+
     # Actions sur le compte FTP
 
     def create_ftp_account(self):
