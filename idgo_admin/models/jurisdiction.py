@@ -18,6 +18,7 @@ from django.apps import apps
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Union
 from django.contrib.gis.geos import MultiPolygon
+import json
 
 
 class Jurisdiction(models.Model):
@@ -93,6 +94,26 @@ class Jurisdiction(models.Model):
         extent = self.communes.envelope().aggregate(models.Extent('geom')).get('geom__extent')
         if extent:
             return ((extent[1], extent[0]), (extent[3], extent[2]))
+
+    def get_communes_as_feature_collection_geojson(self):
+        features = []
+        for instance in JurisdictionCommune.objects.filter(jurisdiction=self):
+            geojson = {
+                'type': 'Feature',
+                'geometry': json.loads(instance.commune.geom.geojson),
+                'properties': {
+                    'code': instance.commune.code,
+                    'name': instance.commune.name,
+                    }
+                }
+            features.append(geojson)
+
+        feature_collection = {
+            'type': 'FeatureCollection',
+            'features': features,
+            }
+
+        return json.dumps(feature_collection)
 
 
 class Commune(models.Model):

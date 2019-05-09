@@ -52,32 +52,32 @@ def render_with_info_profile(
     if not context:
         context = {}
 
-    organisation = (profile.organisation and profile.membership) and profile.organisation
+    # organisation = (profile.organisation and profile.membership) and profile.organisation
 
-    try:
-        action = AccountActions.objects.get(
-            action='confirm_rattachement', profile=profile, closed__isnull=True)
-    except Exception:
-        awaiting_member_status = []
-    else:
-        awaiting_member_status = action.organisation \
-            and [action.organisation.id, action.organisation.legal_name]
+    # try:
+    #     action = AccountActions.objects.get(
+    #         action='confirm_rattachement', profile=profile, closed__isnull=True)
+    # except Exception:
+    #     awaiting_member_status = []
+    # else:
+    #     awaiting_member_status = action.organisation \
+    #         and [action.organisation.id, action.organisation.legal_name]
 
     contributor = [
         [c.id, c.legal_name] for c
         in LiaisonsContributeurs.get_contribs(profile=profile)]
 
-    awaiting_contributor_status = [
-        [c.id, c.legal_name] for c
-        in LiaisonsContributeurs.get_pending(profile=profile)]
+    # awaiting_contributor_status = [
+    #     [c.id, c.legal_name] for c
+    #     in LiaisonsContributeurs.get_pending(profile=profile)]
 
     referent = [
         [c.id, c.legal_name] for c
         in LiaisonsReferents.get_subordinated_organisations(profile=profile)]
 
-    awaiting_referent_statut = [
-        [c.id, c.legal_name] for c
-        in LiaisonsReferents.get_pending(profile=profile)]
+    # awaiting_referent_statut = [
+    #     [c.id, c.legal_name] for c
+    #     in LiaisonsReferents.get_pending(profile=profile)]
 
     context.update({
         'contact_email': DEFAULT_CONTACT_EMAIL,
@@ -96,11 +96,11 @@ def render_with_info_profile(
         'is_contributor': len(contributor) > 0,
         'is_admin': profile.is_admin,
         # 'organisation': organisation,
-        'awaiting_member_status': awaiting_member_status,
+        # 'awaiting_member_status': awaiting_member_status,
         'contributor': contributor,
-        'awaiting_contributor_status': awaiting_contributor_status,
+        # 'awaiting_contributor_status': awaiting_contributor_status,
         'referent': referent,
-        'awaiting_referent_statut': awaiting_referent_statut,
+        # 'awaiting_referent_statut': awaiting_referent_statut,
         })
 
     return render(request, template_name, context=context,

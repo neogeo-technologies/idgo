@@ -248,7 +248,7 @@ class JurisdictionView(View):
         if fake:
             # S'il s'agit d'une simple demande on revient
             # toujours sur la liste des organisations
-            to = reverse('idgo_admin:all_organisations')
+            to = reverse('idgo_admin:handle_show_organisation')
 
         return HttpResponseRedirect(to)
 
