@@ -1397,15 +1397,15 @@ table td .form-group {
 
 /* ************************************************************************* */
 
-#allorganisations .btn-group-vertical {
+#organisations .btn-group-vertical {
     max-height: 500px;
 }
 
-#allorganisations .dropdown-menu>li>a {
+#organisations .dropdown-menu>li>a {
     text-align: left;
 }
 
-#allorganisations span.label-name {
+#organisations span.label-name {
     display: inline-block;
     text-overflow: ellipsis;
     overflow: hidden;

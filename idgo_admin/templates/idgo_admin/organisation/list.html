@@ -67,5 +67,12 @@ $(function() {
 			redirect('{% url "idgo_admin:handle_show_organisation" %}?id=' + id);
 		});
 
+	const $container = $('div.scrolling-box');
+	const $next = $('input[type=radio][name=organisations][value={{ organisation.id }}]').parent();
+	$container.animate({scrollTop: $next.offset().top - $container.offset().top + $container.scrollTop() - 7}, 33);
+	$.each($('.label-name'), function() {
+		$(this).width("calc(100% - " + ($(this).next('.label-badges').width() + 5) + "px)");
+	})
+
 });
 </script>
