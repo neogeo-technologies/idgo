@@ -1,5 +1,5 @@
 <div id="jurisdictions">
-	<div class="table-responsive">
+	<div class="table-responsive" style="overflow-x: inherit;">
 		<table class="board table table-striped table-bordered table-hover table-condensed">
 			<thead>
 				<tr>
@@ -15,13 +15,15 @@
 					<td name="name">{{ jurisdiction_instance.name }}</td>
 					{% if jurisdiction_instance.organisations|length > 1 %}
 					<td name="organisations" class="dropdown table-cell-dropdown">
-						<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">
+						<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown" style="text-align: left;">
 							Voir les {{ jurisdiction_instance.organisations|length }} organisations <span class="caret"></span>
 						</button>
-						<ul class="dropdown-menu">{% for organisation_instance in jurisdiction_instance.organisations %}
-							<li>
+						<ul class="dropdown-menu" style="max-height: 404px; overflow-y: scroll;">
+							{% for organisation_instance in jurisdiction_instance.organisations %}
+							<li style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
 								<a href="{% url 'idgo_admin:show_organisation' id=organisation_instance.id %}">{{ organisation_instance.legal_name }}</a>
-							</li>{% endfor %}
+							</li>
+							{% endfor %}
 						</ul>
 					</td>
 					{% else %}
