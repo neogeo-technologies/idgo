@@ -18,7 +18,7 @@
 						<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">
 							Voir les {{ jurisdiction_instance.organisations|length }} organisations <span class="caret"></span>
 						</button>
-						<ul class="dropdown-menu">{% for organisation_instance in jurisdiction.organisations %}
+						<ul class="dropdown-menu">{% for organisation_instance in jurisdiction_instance.organisations %}
 							<li>
 								<a href="{% url 'idgo_admin:show_organisation' id=organisation_instance.id %}">{{ organisation_instance.legal_name }}</a>
 							</li>{% endfor %}
