@@ -1,50 +1,51 @@
-<div class="table-responsive">
-	<table class="board table table-striped table-bordered table-hover table-condensed">
-		<thead>
-			<tr>
-				<th name="code">Code <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
-				<th name="name">Nom <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
-				<th name="organisations">Organisations rattachées</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for jurisdiction in jurisdictions %}
-			<tr id="{{ jurisdiction.code }}" name="{{ jurisdiction.code }}">
-				<td name="code">{{ jurisdiction.code }}</td>
-				<td name="name">{{ jurisdiction.name }}</td>
-				{% if jurisdiction.organisations|length > 1 %}
-				<td name="organisations" class="dropdown table-cell-dropdown">
-					<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">
-						Voir les {{ jurisdiction.organisations|length }} organisations <span class="caret"></span>
-					</button>
-					<ul class="dropdown-menu">{% for organisation in jurisdiction.organisations %}
-						<li>
-							<a href="{% url 'idgo_admin:show_organisation' id=organisation.id %}">{{ organisation.legal_name }}</a>
-						</li>{% endfor %}
-					</ul>
-				</td>
-				{% else %}
-				<td name="organisations">
-					{% if jurisdiction.organisations|length == 1 %}
-						{% with jurisdiction.organisations|first as organisation %}
-					<a href='{% url "idgo_admin:show_organisation" id=organisation.id %}'>{{ organisation.legal_name }}</a>
-						{% endwith %}
+<div id="jurisdictions">
+	<div class="table-responsive">
+		<table class="board table table-striped table-bordered table-hover table-condensed">
+			<thead>
+				<tr>
+					<th name="code">Code <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
+					<th name="name">Nom <a role="button" name="sort"><span class="glyphicon glyphicon-sort"></span></a></th>
+					<th name="organisations">Organisations rattachées</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for jurisdiction_instance in jurisdictions %}
+				<tr id="{{ jurisdiction_instance.code }}" name="{{ jurisdiction_instance.code }}">
+					<td name="code">{{ jurisdiction_instance.code }}</td>
+					<td name="name">{{ jurisdiction_instance.name }}</td>
+					{% if jurisdiction_instance.organisations|length > 1 %}
+					<td name="organisations" class="dropdown table-cell-dropdown">
+						<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">
+							Voir les {{ jurisdiction_instance.organisations|length }} organisations <span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu">{% for organisation_instance in jurisdiction.organisations %}
+							<li>
+								<a href="{% url 'idgo_admin:show_organisation' id=organisation_instance.id %}">{{ organisation_instance.legal_name }}</a>
+							</li>{% endfor %}
+						</ul>
+					</td>
+					{% else %}
+					<td name="organisations">
+						{% if jurisdiction_instance.organisations|length == 1 %}
+							{% with jurisdiction_instance.organisations|first as organisation_instance %}
+						<a href='{% url "idgo_admin:show_organisation" id=organisation_instance.id %}'>{{ organisation_instance.legal_name }}</a>
+							{% endwith %}
+						{% endif %}
+					</td>
 					{% endif %}
-				</td>
-				{% endif %}
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	<div id="actions" class="buttons-on-the-right-side">
+		<a role="button" name="edit" class="btn btn-default disabled">Éditer</a>
+		<button type="button" name="delete" class="btn btn-danger disabled" data-toggle="modal" data-target="#modal" disabled>
+			Supprimer <span class="glyphicon glyphicon-trash"></span>
+		</button>
+	</div>
+	{% include "idgo_admin/widgets/paginator.html" with count=pagination.total current=pagination.current %}
 </div>
-<div id="actions" class="buttons-on-the-right-side">
-	<a role="button" name="edit" class="btn btn-default disabled">Éditer</a>
-	<button type="button" name="delete" class="btn btn-danger disabled" data-toggle="modal" data-target="#modal" disabled>
-		Supprimer <span class="glyphicon glyphicon-trash"></span>
-	</button>
-</div>
-{% include "idgo_admin/widgets/paginator.html" with count=pagination.total current=pagination.current %}
-
 <script>
 $(function() {
 	const $window = $(window);
@@ -80,7 +81,6 @@ $(function() {
 	const $actions = $div.find('#actions');
 	const $delete = $actions.find('[name="delete"]');
 	const $edit = $actions.find('[name="edit"]');
-
 	const $table = $div.find('table');
 
 	$table.find('tr>th>a[name="sort"]')
