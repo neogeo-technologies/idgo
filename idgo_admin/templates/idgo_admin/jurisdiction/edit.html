@@ -19,44 +19,68 @@
 	<li>
 		<span class="glyphicon glyphicon-home"></span>
 	</li>
-	{% if user.profile.crige_membership %}
+	{% if fake %}
+	<li class="active">{% if instance %}{{ instance.name }}{% else %}Demande de création d'un territoire de compétence{% endif %}</li>
+	{% else %}
 	<li>
 		<a href="{% url 'idgo_admin:jurisdictions' %}">Territoires de compétence</a>
 	</li>
 	<li class="active">{% if instance %}{{ instance.name }}{% else %}Nouveau{% endif %}</li>
-	{% else %}
-	<li class="active">{% if instance %}{{ instance.name }}{% else %}Demande de création d'un territoire de compétence{% endif %}</li>
 	{% endif %}
 </ol>
 {% endblock breadcrumb_content %}
 
 {% block main_content %}
 {% include "idgo_admin/alert_messages.html" %}
-<div id="jurisdiction">
-	<form method="post" action="" class="well">
+<div id="jurisdiction" class="well">
+	<form type="submit" method="post">
+	{% if not instance %}
 		<div class="row">
-			<div class="col-xs-8">
-				<div id="map" class="map"></div>
+			<p>
+				<center>
+					<strong>{{ form.jurisdiction.label }}</strong>
+				</center>
+			</p>
+			<div class="col-xs-offset-3 col-xs-6">
+				{% bootstrap_field form.jurisdiction show_label=false %}{{ form.prefill }}
 			</div>
-			<div class="col-xs-4">
+		</div>
+		{% if form.prefill.value %}
+		<div class="row">
+			<div class="col-xs-offset-4 col-xs-4">
+				<button type="submit" name="reuse" class="btn btn-block btn-primary">Utiliser ce même territoire</button>
+			</div>
+		</div>
+		<br/ >
+		<center>
+			<strong>Ou utiliser ce territoire comme modèle</strong>
+		</center>
+		<br/ >
+		{% endif %}
+	{% endif %}
+		<div class="row">
+			<div class="col-sm-8">
+				<div id="map" style="margin-bottom: 15px;"></div>
+			</div>
+			<div class="col-sm-4" id="right">
 				<div class="row">
-					<div class="col-xs-12">
+					<div class="col-sm-12">
 						{% bootstrap_field form.name %}
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-xs-12">
+					<div class="col-sm-12">
 						{% bootstrap_field form.code %}
 					</div>
 				</div>
 				<hr />
 				<div class="row">
-					<div class="col-xs-12">
+					<div class="col-sm-12">
 						<h4>{{ form.communes.label }}</h4>
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-xs-12">
+					<div class="col-sm-12">
 						<div class="form-group">
 							<p>Liste de codes INSEE séparés par la virgule</p>
 							<input type="text" name="insee_list" class="form-control" id="id_insee_list" placeholder="Par exemple : 05061, 05013, 05037...">
@@ -64,7 +88,7 @@
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-xs-12">
+					<div class="col-sm-12">
 						<div class="checkbox">
 							<label>
 								<input type="checkbox" name="check-all"> Sélectionner/Désélectionner tout
@@ -210,6 +234,7 @@ $(function() {
 	});
 	layers.push(communesLayers);
 
+	$('#map').height($('#right').height() - 15);
 	const map = L
 		.map('map', {
 			'layers': layers
@@ -320,6 +345,20 @@ $(function() {
 		const $form = $('form[name="' + this.name + '"]');
 		$form.submit();
 	});
+
+	{% if not instance %}
+	$('select[name="{{ form.jurisdiction.name }}"]')
+		.change(function(e) {
+			const value = this.value;
+			const $form = $('form').attr('method', "POST");
+			$modalHourglass.one('show.bs.modal', function(e) {
+				$('<input/>').attr('type', 'hidden').attr('name', "prefill").appendTo($form);
+				$('<input/>').attr('type', 'hidden').attr('name', '{{ form.jurisdiction.name }}').val(value).appendTo($form);
+				$form.submit();
+			}).modal('show');
+			e.stopPropagation();
+		});
+	{% endif %}
 
 });
 </script>

@@ -19,6 +19,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.serializers import serialize
+from django.db import IntegrityError
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
@@ -37,7 +38,9 @@ from idgo_admin.models import BaseMaps
 from idgo_admin.models import Commune
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import JurisdictionCommune
+from idgo_admin.models.mail import send_jurisdiction_attachment_mail
 from idgo_admin.models.mail import send_jurisdiction_creation_mail
+from idgo_admin.models.mail import send_mail_asking_for_jurisdiction_attachment
 from idgo_admin.models.mail import send_mail_asking_for_jurisdiction_creation
 from idgo_admin.models import Organisation
 # from idgo_admin.shortcuts import on_profile_http404
@@ -143,7 +146,8 @@ class JurisdictionView(View):
             'fake': fake,
             'form': form,
             'instance': jurisdiction,
-            'organisation': organisation}
+            'organisation': organisation,
+            }
 
         return render_with_info_profile(request, self.template, context=context)
 
@@ -163,18 +167,42 @@ class JurisdictionView(View):
             jurisdiction = None
             code = None
 
+        basemaps = BaseMaps.objects.all()
+        communes = serialize(
+            'geojson',
+            Commune.objects.all().transform(srid=4326),
+            geometry_field='geom')
+
         organisation_pk = request.GET.get('organisation')
         if organisation_pk:
             organisation = get_object_or_404(Organisation, pk=organisation_pk)
         else:
             organisation = None
 
-        form = Form(request.POST, instance=jurisdiction, include={'user': user})
+        if 'reuse' in request.POST:
+            jurisdiction_pk = request.POST.get('jurisdiction')
+            try:
+                instance = Jurisdiction.objects.get(pk=jurisdiction_pk)
+            except Jurisdiction.DoesNotExist:
+                pass
+            else:
+                # E-mail envoyé aux administrateurs
+                send_mail_asking_for_jurisdiction_attachment(user, instance, organisation)
+                # E-mail envoyé  à l'utilisateur
+                send_jurisdiction_attachment_mail(user, instance, organisation)
 
-        basemaps = BaseMaps.objects.all()
-        communes = serialize(
-            'geojson', Commune.objects.all().transform(srid=4326),
-            geometry_field='geom')
+                messages.success(request, (
+                    'Votre demande de rattachement au territoire '
+                    'de compétence « {name} » a été envoyée aux administrateurs.'
+                    ).format(name=instance.name))
+
+                return HttpResponseRedirect(
+                    reverse('idgo_admin:show_organisation', kwargs={'id': organisation.id}))
+        # else:
+        form = Form(request.POST, instance=jurisdiction, include={'user': user})
+        if 'save' in request.POST:
+            form.fields['name'].required = True
+            form.fields['code'].required = True
 
         context = {
             'basemaps': basemaps,
@@ -182,17 +210,46 @@ class JurisdictionView(View):
             'fake': fake,
             'form': form,
             'instance': jurisdiction,
-            'organisation': organisation}
+            'organisation': organisation,
+            }
 
         if not form.is_valid():
+            return render_with_info_profile(request, self.template, context=context)
+
+        prefill = form.cleaned_data.get('prefill', False)
+
+        context['prefill'] = prefill
+        if prefill and 'save' not in request.POST:
+            del context['form']
+            jurisdiction = form.cleaned_data['jurisdiction']
+            if jurisdiction:
+                initial = {
+                    'jurisdiction': jurisdiction,
+                    'prefill': prefill,
+                    'communes': [
+                        item.commune for item in
+                        JurisdictionCommune.objects.filter(jurisdiction=jurisdiction)
+                        ],
+                    }
+                context['form'] = Form(initial=initial, include={'user': user})
+                return render_with_info_profile(request, self.template, context=context)
+            else:
+                context['form'] = Form(include={'user': user})
+                return render_with_info_profile(request, self.template, context=context)
+
+        if not ('save' in request.POST or 'continue' in request.POST):
             return render_with_info_profile(request, self.template, context=context)
 
         try:
             with transaction.atomic():
                 if not code:
-                    jurisdiction = Jurisdiction.objects.create(**dict(
-                        (item, form.cleaned_data[item])
-                        for item in form.Meta.property_fields))
+                    properties = dict(
+                        (item, form.cleaned_data[item]) for item in form.Meta.property_fields)
+                    try:
+                        jurisdiction = Jurisdiction.objects.create(**properties)
+                    except IntegrityError:
+                        if prefill:
+                            jurisdiction = Jurisdiction.objects.get(**properties)
                 else:
                     for item in form.Meta.property_fields:
                         setattr(jurisdiction, item, form.cleaned_data[item])
@@ -228,10 +285,14 @@ class JurisdictionView(View):
 
         except ValidationError as e:
             messages.error(request, ' '.join(e))
-        except FakeError as e:
+        except FakeError:
+            # S'il s'agit d'une simple demande on revient
+            # toujours sur la liste des organisations
             messages.success(request, (
                 'Votre demande de création de territoire '
                 'de compétence a été envoyée aux administrateurs.'))
+            return HttpResponseRedirect(
+                reverse('idgo_admin:show_organisation', kwargs={'id': organisation.id}))
         else:
             messages.success(request, (
                 'Le territoire de compétence a été '
@@ -240,15 +301,10 @@ class JurisdictionView(View):
         if 'save' in request.POST:
             to = '{}#{}'.format(
                 reverse('idgo_admin:jurisdictions'), jurisdiction.code)
-        else:
+        else:  # continue
             to = reverse(
                 'idgo_admin:jurisdiction_editor',
                 kwargs={'code': jurisdiction.code})
-
-        if fake:
-            # S'il s'agit d'une simple demande on revient
-            # toujours sur la liste des organisations
-            to = reverse('idgo_admin:handle_show_organisation')
 
         return HttpResponseRedirect(to)
 

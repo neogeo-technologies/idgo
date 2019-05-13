@@ -316,6 +316,21 @@ def send_resource_delete_mail(user, resource):
         username=user.username)
 
 
+# Pour demander le rattachement à un territoire de compétence existant
+def send_mail_asking_for_jurisdiction_attachment(user, jurisdiction, organisation):
+    return sender(
+        'ask_for_jurisdiction_attachment',
+        # bcc=[user.email],
+        full_name=user.get_full_name(),
+        user_email=user.email,
+        jurisdiction=jurisdiction.name,
+        jurisdiction_pk=jurisdiction.code,
+        organisation=organisation.legal_name,
+        organisation_pk=organisation.pk,
+        to=get_admins_mails(crige=True),
+        username=user.username)
+
+
 # Pour demander la création d'un territoire de compétence
 def send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation, url):
     JurisdictionCommune = apps.get_model(
@@ -335,6 +350,20 @@ def send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation,
         organisation=organisation.legal_name,
         organisation_pk=organisation.pk,
         to=get_admins_mails(crige=True),
+        username=user.username)
+
+
+# Pour informer l'utilisateur de la demande de rattachement à un territoire de compétence
+def send_jurisdiction_attachment_mail(user, jurisdiction, organisation):
+    return sender(
+        'ask_for_jurisdiction_attachment_copy_to_user',
+        full_name=user.get_full_name(),
+        user_email=user.email,
+        jurisdiction=jurisdiction.name,
+        jurisdiction_pk=jurisdiction.code,
+        organisation=organisation.legal_name,
+        organisation_pk=organisation.pk,
+        to=[user.email],
         username=user.username)
 
 

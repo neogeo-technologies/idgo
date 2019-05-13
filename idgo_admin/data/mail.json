@@ -28,6 +28,20 @@
 	}
 }, {
 	"model": "idgo_admin.mail",
+	"pk": "ask_for_jurisdiction_attachment",
+	"fields": {
+		"subject": "Demande de rattachement \u00e0 un territoire de comp\u00e9tence",
+		"message": "Bonjour,\r\n\r\nL'utilisateur {full_name} ({user_email}) demande \u00e0 rattacher le territoire de comp\u00e9tence {jurisdiction} ({jurisdiction_pk}) \u00e0 l'organisation {organisation} ({organisation_pk}).\r\n\r\n\r\n--\r\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
+	"model": "idgo_admin.mail",
+	"pk": "ask_for_jurisdiction_attachment_copy_to_user",
+	"fields": {
+		"subject": "Demande de rattachement \u00e0 un territoire de comp\u00e9tence",
+		"message": "Bonjour,\r\n\r\nVous avez demand\u00e9 le rattachement de l'organisation {organisation} au territoire de comp\u00e9tence : {jurisdiction} ({jurisdiction_pk})\r\n\r\n\r\nCette demande sera trait\u00e9e dans les 24h par un administrateur.\r\n\r\n\r\n--\r\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
+	"model": "idgo_admin.mail",
 	"pk": "ask_for_jurisdiction_creation",
 	"fields": {
 		"subject": "Demande de cr\u00e9ation d'un territoire de comp\u00e9tence",

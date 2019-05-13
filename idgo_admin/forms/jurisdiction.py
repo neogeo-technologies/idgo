@@ -28,28 +28,60 @@ class JurisdictionForm(forms.ModelForm):
         fields = property_fields + ('communes',)
 
     name = forms.CharField(
-        label='Nom*',
+        label="Nom*",
         widget=forms.TextInput(
             attrs={
-                'placeholder': 'Le nom du territoire'}))
+                'placeholder': "Le nom du territoire",
+                },
+            )
+        )
 
     code = forms.CharField(
         label="Code d'identification*",
         widget=forms.TextInput(
             attrs={
-                'placeholder': 'Par exemple le code INSEE'}))
+                'placeholder': "Par exemple le code INSEE",
+                },
+            )
+        )
 
     communes = forms.ModelMultipleChoiceField(
-        label='Communes',
+        label="Communes",
         queryset=Commune.objects.all(),
         required=False,
         to_field_name='code',
         widget=CustomCheckboxSelectMultiple(
-            attrs={'class': 'list-group-checkbox'}))
+            attrs={
+                'class': 'list-group-checkbox',
+                },
+            )
+        )
+
+    jurisdiction = forms.ModelChoiceField(
+        label="Charger un territoire existant",
+        empty_label="Aucun",
+        required=False,
+        queryset=Jurisdiction.objects.all(),
+        )
+
+    prefill = forms.BooleanField(
+        label=None,
+        initial=False,
+        required=False,
+        widget=forms.HiddenInput(),
+        )
 
     def __init__(self, *args, **kwargs):
         include = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            del self.fields['jurisdiction']
+            del self.fields['prefill']
+        else:
+            self.fields['name'].required = False
+            self.fields['code'].required = False
 
     def clean(self):
+        if self.cleaned_data.get('jurisdiction'):
+            self.cleaned_data['prefill'] = True
         return self.cleaned_data
