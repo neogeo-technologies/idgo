@@ -124,6 +124,7 @@ class JurisdictionView(View):
             if code == 'new' and not profile.is_crige_admin:
                 raise Http404()
             fake = (code == 'for')
+            new = (code == 'new')
             jurisdiction = None
             code = None
 
@@ -144,6 +145,7 @@ class JurisdictionView(View):
             'basemaps': basemaps,
             'communes': communes,
             'fake': fake,
+            'new': new,
             'form': form,
             'instance': jurisdiction,
             'organisation': organisation,
@@ -164,6 +166,7 @@ class JurisdictionView(View):
             if code == 'new' and not profile.is_crige_admin:
                 raise Http404()
             fake = (code == 'for')
+            new = (code == 'new')
             jurisdiction = None
             code = None
 
@@ -208,6 +211,7 @@ class JurisdictionView(View):
             'basemaps': basemaps,
             'communes': communes,
             'fake': fake,
+            'new': new,
             'form': form,
             'instance': jurisdiction,
             'organisation': organisation,
@@ -310,7 +314,7 @@ class JurisdictionView(View):
 
     def delete(self, request, code, *args, **kwargs):
 
-        if code == 'new':
+        if code not in ('for', 'new'):
             raise Http404()
 
         user, profile = user_and_profile(request)

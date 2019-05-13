@@ -74,6 +74,7 @@ class JurisdictionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         include = kwargs.pop('include', {})
         super().__init__(*args, **kwargs)
+
         if self.instance.pk:
             del self.fields['jurisdiction']
             del self.fields['prefill']

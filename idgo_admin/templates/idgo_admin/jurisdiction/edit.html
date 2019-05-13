@@ -34,7 +34,7 @@
 {% include "idgo_admin/alert_messages.html" %}
 <div id="jurisdiction" class="well">
 	<form type="submit" method="post">
-	{% if not instance %}
+	{% if not new and not instance %}
 		<div class="row">
 			<p>
 				<center>
