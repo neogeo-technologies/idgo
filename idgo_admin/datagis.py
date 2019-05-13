@@ -187,8 +187,7 @@ def get_gdalogr_object(filename, extension):
 
 CREATE_TABLE = '''
 CREATE TABLE {schema}."{table}" (
-  fid serial NOT NULL,
-  {attrs},
+  fid serial NOT NULL, {attrs}
   {the_geom} geometry({geometry}, {to_epsg}),
   CONSTRAINT "{table}_pkey" PRIMARY KEY (fid)) WITH (OIDS=FALSE);
 ALTER TABLE {schema}."{table}" OWNER TO {owner};
@@ -199,8 +198,8 @@ GRANT SELECT ON TABLE  {schema}."{table}" TO {mra_datagis_user};
 
 
 INSERT_INTO = '''
-INSERT INTO {schema}."{table}" ({attrs_name}, {the_geom})
-VALUES ({attrs_value}, ST_Transform({geom}, {to_epsg}));'''
+INSERT INTO {schema}."{table}" ({attrs_name}{the_geom})
+VALUES ({attrs_value}ST_Transform({geom}, {to_epsg}));'''
 
 
 def handle_ogr_field_type(k, n=None, p=None):
@@ -345,13 +344,13 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
             'bbox': bounds_to_wkt(xmin, ymin, xmax, ymax),
             'extent': ((xmin, ymin), (xmax, ymax))})
 
-        attrs = {}
+        attributes = {}
         for i, k in enumerate(layer.fields):
             t = handle_ogr_field_type(
                 layer.field_types[i].__qualname__,
                 n=layer.field_widths[i],
                 p=layer.field_precisions[i])
-            attrs[k] = t
+            attributes[k] = t
 
         # Erreur dans Django
         # Lorsqu'un 'layer' est composé de 'feature' de géométrie différente,
@@ -392,9 +391,15 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
             #     and 'Geometry' or handle_ogr_geom_type(layer.geom_type)
             geometry = len(test) > 1 and 'Geometry' or list(test)[0]
 
+        if attributes:
+            attrs = '\n  {attrs},\n  '.format(
+                attrs=',\n  '.join(['"{}" {}'.format(k, v) for k, v in attributes.items()])
+                )
+        else:
+            attrs = ''
+
         sql.append(CREATE_TABLE.format(
-            attrs=',\n  '.join(
-                ['"{}" {}'.format(k, v) for k, v in attrs.items()]),
+            attrs=attrs,
             # description=layer.name,
             epsg=epsg,
             geometry=geometry,
@@ -406,7 +411,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
             to_epsg=TO_EPSG))
 
         for feature in layer:
-            attrs = {}
+            properties = {}
             for field in feature.fields:
                 k = field.decode()
                 try:
@@ -415,22 +420,33 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
                     logger.exception(e)
                     raise DataDecodingError()
                 if isinstance(v, type(None)):
-                    attrs[k] = 'null'
+                    properties[k] = 'null'
                 elif isinstance(v, (datetime.date, datetime.time, datetime.datetime)):
-                    attrs[k] = "'{}'".format(v.isoformat())
+                    properties[k] = "'{}'".format(v.isoformat())
                 elif isinstance(v, str):
-                    attrs[k] = "'{}'".format(v.replace("'", "''"))
+                    properties[k] = "'{}'".format(v.replace("'", "''"))
                 else:
-                    attrs[k] = "{}".format(v)
+                    properties[k] = "{}".format(v)
 
             if geometry.startswith('Multi'):
                 geom = "ST_Multi(ST_GeomFromtext('{wkt}', {epsg}))"
             else:
                 geom = "ST_GeomFromtext('{wkt}', {epsg})"
 
+            if properties:
+                attrs_name = '{attrs}, '.format(
+                    attrs=', '.join(['"{}"'.format(x) for x in properties.keys()]),
+                    )
+                attrs_value = '{attrs}, '.format(
+                    attrs=', '.join(properties.values()),
+                    )
+            else:
+                attrs_name = ''
+                attrs_value = ''
+
             sql.append(INSERT_INTO.format(
-                attrs_name=', '.join(['"{}"'.format(x) for x in attrs.keys()]),
-                attrs_value=', '.join(attrs.values()),
+                attrs_name=attrs_name,
+                attrs_value=attrs_value,
                 geom=geom.format(epsg=epsg, wkt=feature.geom),
                 owner=OWNER,
                 schema=SCHEMA,
