@@ -115,7 +115,7 @@ urlpatterns = [
 
     url('^member/all/?$', ReferentAccountManager.as_view(), name='all_members'),
 
-    url('^organisation/?$', handle_show_organisation, name='handle_show_organisation'),
+    url('^organisation(/all)?/?$', handle_show_organisation, name='handle_show_organisation'),
     url('^organisation/(?P<id>(\d+))/show/?$', show_organisation, name='show_organisation'),
     url('^organisation/new/edit/?$', CreateOrganisation.as_view(), name='create_organisation'),
     url('^organisation/(?P<id>(\d+))/edit/?$', UpdateOrganisation.as_view(), name='update_organisation'),
