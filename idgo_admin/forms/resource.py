@@ -379,6 +379,19 @@ class ResourceForm(forms.ModelForm):
             elif instance.ftp_file:
                 self.fields['synchronisation_ftp'].initial = instance.synchronisation
                 self.fields['sync_frequency_ftp'].initial = instance.sync_frequency
+                try:
+                    instance.ftp_file.file
+                except FileNotFoundError:
+                    self.fields['ftp_file'] = forms.CharField(
+                        label="Fichier initialement déposé sur votre compte FTP (ce fichier n'est plus détecté) :",
+                        required=False,
+                        widget=forms.TextInput(
+                            attrs={
+                                'class': 'disabled',
+                                'disabled': True,
+                                },
+                            ),
+                        )
             elif instance.dl_url:
                 self.fields['synchronisation_dl'].initial = instance.synchronisation
                 self.fields['sync_frequency_dl'].initial = instance.sync_frequency
