@@ -65,6 +65,11 @@
 			</div>
 		</div>
 		<br />
+			{% elif organisation in user.profile.referent_for %}
+		<div class="buttons-on-the-right-side">
+			<a href="{% url 'idgo_admin:edit_remote_ckan_link' id=id %}" class="btn btn-default">Importer un catalogue CKAN</a>
+		</div>
+		<br />
 		{% endif %}
 		<div class="row">
 			<div class="col-sm-12">
