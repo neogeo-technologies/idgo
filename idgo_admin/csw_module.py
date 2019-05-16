@@ -81,7 +81,7 @@ class CswExceptionsHandler(object):
                     raise CswTimeoutError
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
-                raise CswError(e.__str__())
+                raise CswError("Une erreur critique est survenue lors de l'appel au CSW distant.")
         return wrapper
 
     def is_ignored(self, exception):
@@ -270,4 +270,5 @@ class CswBaseHandler(object):
             'num_resources': len(resources),
             'resources': resources,
             'spatial': bbox,
+            'xml': xml,
             }

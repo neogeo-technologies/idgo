@@ -83,6 +83,9 @@ class GeonetUserHandler(metaclass=Singleton):
     def update_record(self, id, record):
         return self._transaction('update', id, record)
 
+    def delete_record(self, id):
+        return self.remote.transaction('delete', id)
+
     def publish(self, id):
         return self._md_publish(self._q(id))
 

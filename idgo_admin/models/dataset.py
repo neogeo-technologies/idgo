@@ -260,7 +260,7 @@ class Dataset(models.Model):
         default=False,
         )
 
-    geonet_id = models.UUIDField(
+    geonet_id = models.TextField(
         verbose_name="Identifiant de la fiche de métadonnées",
         null=True,
         blank=True,

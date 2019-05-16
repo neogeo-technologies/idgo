@@ -35,6 +35,7 @@ from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.csw_module import CswBaseHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CswBaseError
+from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin import logger
 from idgo_admin.mra_client import MRAHandler
 import inspect
@@ -183,7 +184,7 @@ class Organisation(models.Model):
         default=False,
         )
 
-    geonet_id = models.UUIDField(
+    geonet_id = models.TextField(
         verbose_name="UUID de la métadonnées",
         unique=True,
         db_index=True,
@@ -738,6 +739,7 @@ class RemoteCsw(models.Model):
         # Puis on moissonne le catalogue
         try:
             ckan_ids = []
+            geonet_ids = []
             with transaction.atomic():
 
                 with CswBaseHandler(self.url) as csw:
@@ -754,7 +756,7 @@ class RemoteCsw(models.Model):
                     if not(update_frequency and update_frequency
                             in dict(Dataset.FREQUENCY_CHOICES).keys()):
                         update_frequency = 'unknow'
-                    metadata_created = package.get('metadata_created', None)
+                    metadata_created = package.get(' ', None)
                     if metadata_created:
                         metadata_created = datetime.strptime(metadata_created, ISOFORMAT_DATE)
                     metadata_modified = package.get('metadata_modified', None)
@@ -774,6 +776,24 @@ class RemoteCsw(models.Model):
                             license = License.objects.get(slug='notspecified')
                         except License.DoesNotExist:
                             license = None
+
+                    # On pousse la fiche de MD dans Geonet
+                    if not geonet.get_record(geonet_id):
+                        try:
+                            geonet.create_record(geonet_id, package['xml'])
+                        except Exception as e:
+                            logger.warning('La création de la fiche de métadonnées a échoué.')
+                            logger.error(e)
+                        else:
+                            geonet.publish(geonet_id)  # Toujours publier la fiche
+                    else:
+                        try:
+                            geonet.update_record(geonet_id, package['xml'])
+                        except Exception as e:
+                            logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
+                            logger.error(e)
+
+                    geonet_ids.append(geonet_id)
 
                     kvp = {
                         'slug': 'sync--{}'.format(package.get('name'))[:100],
@@ -796,13 +816,15 @@ class RemoteCsw(models.Model):
                         # date_publication
                         # data_type
                         # geocover
-                        # geonet_id
+                        'geonet_id': geonet_id,
                         # granularity
                         # thumbnail
                         # support
                         }
 
                     dataset, created = Dataset.harvested_csw.update_or_create(**kvp)
+
+                    ckan_ids.append(dataset.ckan_id)
 
                     categories = Category.objects.filter(
                         slug__in=[m['name'] for m in package.get('groups', [])])
@@ -813,9 +835,8 @@ class RemoteCsw(models.Model):
                         dataset.keywords.clear()
                     keywords = [tag['display_name'] for tag in package.get('tags')]
                     dataset.keywords.add(*keywords)
-                    dataset.save(current_user=None, synchronize=True)
 
-                    ckan_ids.append(dataset.ckan_id)
+                    dataset.save(current_user=None, synchronize=True)
 
                     for resource in package.get('resources', []):
                         try:
@@ -855,7 +876,11 @@ class RemoteCsw(models.Model):
 
         except Exception as e:
             for id in ckan_ids:
+                print('delete ckan', id)
                 CkanHandler.purge_dataset(str(id))
+            for id in geonet_ids:
+                print('delete md', id)
+                res = geonet.delete_record(geonet_id)
             raise e
 
     def delete(self, *args, **kwargs):

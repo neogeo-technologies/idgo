@@ -44,6 +44,7 @@ from idgo_admin.shortcuts import render_with_info_profile
 from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.utils import clean_my_obj
 from idgo_admin.utils import open_json_staticfile
+from idgo_admin.views.dataset import target
 import os
 import re
 from urllib.parse import urljoin
@@ -254,9 +255,12 @@ class DatasetMDEdit(View):
             'modal_template': {
                 'help': join_url('modal-help.html', path=MDEDIT_HTML_PATH)}}
 
-        context = {'dataset': instance,
-                   'doc_url': READTHEDOC_URL_INSPIRE,
-                   'config': config}
+        context = {
+            'dataset': instance,
+            'doc_url': READTHEDOC_URL_INSPIRE,
+            'config': config,
+            'target': target(instance, user),
+            }
 
         record = instance.geonet_id and geonet.get_record(str(instance.geonet_id)) or None
 
@@ -296,7 +300,7 @@ class DatasetMDEdit(View):
                 messages.error(request, 'La création de la fiche de métadonnées a échoué.')
             else:
                 geonet.publish(id)  # Toujours publier la fiche
-                dataset.geonet_id = UUID(id)
+                dataset.geonet_id = id
                 dataset.save(current_user=None)
                 messages.success(
                     request, 'La fiche de metadonnées a été créée avec succès.')
@@ -406,7 +410,7 @@ class ServiceMDEdit(View):
                 messages.error(request, 'La création de la fiche de métadonnées a échoué.')
             else:
                 geonet.publish(id)  # Toujours publier la fiche
-                instance.geonet_id = UUID(id)
+                instance.geonet_id = id
                 instance.save()
                 messages.success(
                     request, 'La fiche de metadonnées a été créée avec succès.')
