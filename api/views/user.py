@@ -184,7 +184,7 @@ def handle_pust_request(request, username=None):
 class UserShow(APIView):
 
     permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly,
+        permissions.IsAuthenticated,
         ]
 
     def get(self, request, username):
@@ -212,7 +212,7 @@ class UserShow(APIView):
 class UserList(APIView):
 
     permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly,
+        permissions.IsAuthenticated,
         ]
 
     def get(self, request):
