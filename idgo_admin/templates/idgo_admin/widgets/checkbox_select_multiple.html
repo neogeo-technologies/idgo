@@ -20,6 +20,9 @@
 </div>
 <script>
 $(function() {
+	function unescape(string) {
+		return new DOMParser().parseFromString(string, 'text/html').querySelector('html').textContent;
+	};
 
 	const $checkboxes = $('#{{ id }}');
 
@@ -42,7 +45,7 @@ $(function() {
 			source: [{% for group, options, index in widget.optgroups %}{% for option in options %}
 				{
 					'id': '{{ option.value }}',
-					'name': '{{ option.label }}'
+					'name': unescape("{{ option.label }}")
 				},{% endfor %}{% endfor %}
 			],
 			autoSelect: true,

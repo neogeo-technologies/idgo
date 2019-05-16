@@ -16,6 +16,7 @@
 
 from django import forms
 from idgo_admin.forms.fields import CustomCheckboxSelectMultiple
+from idgo_admin.forms.fields import InputTypeahead
 from idgo_admin.models import Commune
 from idgo_admin.models import Jurisdiction
 
@@ -58,10 +59,15 @@ class JurisdictionForm(forms.ModelForm):
         )
 
     jurisdiction = forms.ModelChoiceField(
-        label="Charger un territoire existant",
-        empty_label="Aucun",
-        required=False,
+        label="Rechercher un territoire existant",
         queryset=Jurisdiction.objects.all(),
+        required=False,
+        empty_label=None,
+        widget=InputTypeahead(
+            attrs={
+                'placeholder': "Aucun",
+                }
+            ),
         )
 
     prefill = forms.BooleanField(

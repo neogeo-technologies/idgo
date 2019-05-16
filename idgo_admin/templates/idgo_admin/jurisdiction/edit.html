@@ -42,7 +42,8 @@
 				</center>
 			</p>
 			<div class="col-xs-offset-3 col-xs-6">
-				{% bootstrap_field form.jurisdiction show_label=false %}{{ form.prefill }}
+				{{ form.jurisdiction }}
+				{{ form.prefill }}
 			</div>
 		</div>
 		{% if form.prefill.value %}
@@ -347,8 +348,7 @@ $(function() {
 	});
 
 	{% if not instance %}
-	$('select[name="{{ form.jurisdiction.name }}"]')
-		.change(function(e) {
+	$('#id_{{ form.jurisdiction.name }}').change(function(e) {
 			const value = this.value;
 			const $form = $('form').attr('method', "POST");
 			$modalHourglass.one('show.bs.modal', function(e) {
