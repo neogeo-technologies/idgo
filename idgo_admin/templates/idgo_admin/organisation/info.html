@@ -121,12 +121,10 @@ $(function() {
 		$modal.modal('show');
 	};
 
-	{% if not organisation.jurisdiction %}
-		{% if user.profile.is_admin or organisation in user.profile.referent_for %}
+	{% if user.profile.is_admin or organisation in user.profile.referent_for %}
 	$('button[name="ask-crige-partnership"]').click(function() {
 		openModalChangeStatus('{% url "idgo_admin:crige_partnership" %}', {{ organisation.id }})
 	});
-		{% endif %}
 	{% endif %}
 
 	{% if not organisation == user.profile.awaiting_member_status %}
