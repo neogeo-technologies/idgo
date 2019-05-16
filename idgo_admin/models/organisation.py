@@ -785,6 +785,7 @@ class RemoteCsw(models.Model):
                             logger.warning('La création de la fiche de métadonnées a échoué.')
                             logger.error(e)
                         else:
+                            geonet_ids.append(geonet_id)
                             geonet.publish(geonet_id)  # Toujours publier la fiche
                     else:
                         try:
@@ -792,8 +793,6 @@ class RemoteCsw(models.Model):
                         except Exception as e:
                             logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
                             logger.error(e)
-
-                    geonet_ids.append(geonet_id)
 
                     kvp = {
                         'slug': 'sync--{}'.format(package.get('name'))[:100],
@@ -823,8 +822,8 @@ class RemoteCsw(models.Model):
                         }
 
                     dataset, created = Dataset.harvested_csw.update_or_create(**kvp)
-
-                    ckan_ids.append(dataset.ckan_id)
+                    if created:
+                        ckan_ids.append(dataset.ckan_id)
 
                     categories = Category.objects.filter(
                         slug__in=[m['name'] for m in package.get('groups', [])])
@@ -876,11 +875,11 @@ class RemoteCsw(models.Model):
 
         except Exception as e:
             for id in ckan_ids:
-                print('delete ckan', id)
+                logger.warning('Delete CKAN package : {id}.'.format(id=str(id)))
                 CkanHandler.purge_dataset(str(id))
             for id in geonet_ids:
-                print('delete md', id)
-                res = geonet.delete_record(geonet_id)
+                logger.warning('Delete MD : {id}.'.format(id=str(id)))
+                geonet.delete_record(id)
             raise e
 
     def delete(self, *args, **kwargs):
