@@ -153,7 +153,7 @@ def prefill_dataset_model(dataset):
             'url': '{0}/dataset/{1}/resource/{2}'.format(
                 CKAN_URL, dataset.slug, resource.ckan_id),
             'description': resource.description}
-        protocol = resource.format_type.protocol
+        protocol = resource.format_type and resource.format_type.protocol
         if protocol:
             entry['protocol'] = protocol
         data['dataLinkages'].insert(0, entry)
@@ -280,8 +280,19 @@ class DatasetMDEdit(View):
         dataset = get_object_or_404(Dataset, id=id)
 
         if not request.is_ajax():
+            if 'delete' in request.POST and dataset.geonet_id:
+                try:
+                    geonet.delete_record(dataset.geonet_id)
+                    dataset.geonet_id = None
+                    dataset.save(current_user=None)
+                except Exception as e:
+                    messages.error(
+                        request, "La fiche de metadonnées a été supprimée avec succès.")
+                else:
+                    messages.success(
+                        request, "La fiche de metadonnées a été supprimée avec succès.")
             return HttpResponseRedirect(
-                reverse(self.namespace, kwargs={'dataset_id': id}))
+                reverse(self.namespace, kwargs={'id': id}))
 
         root = ET.fromstring(request.body)
         ns = {'gmd': 'http://www.isotc211.org/2005/gmd',
@@ -392,6 +403,17 @@ class ServiceMDEdit(View):
         instance = get_object_or_404(Organisation, id=id, is_active=True)
 
         if not request.is_ajax():
+            if 'delete' in request.POST and instance.geonet_id:
+                try:
+                    geonet.delete_record(instance.geonet_id)
+                    instance.geonet_id = None
+                    instance.save()
+                except Exception as e:
+                    messages.error(
+                        request, "La fiche de metadonnées a été supprimée avec succès.")
+                else:
+                    messages.success(
+                        request, "La fiche de metadonnées a été supprimée avec succès.")
             return HttpResponseRedirect(
                 reverse(self.namespace, kwargs={'id': instance.id}))
 
