@@ -119,6 +119,10 @@
 <script>
 $(function() {
 
+	function unescape(string) {
+		return new DOMParser().parseFromString(string, 'text/html').querySelector('html').textContent;
+	};
+
 	const $div = $('#datasets-filter');
 
 	var query = window.location.search.substring(1);
@@ -145,17 +149,17 @@ $(function() {
 				return false;
 			};
 		})
-
 		.typeahead({
 			source: [{% for item in all_datasets %}
 				{
 					id: '{{ item.id }}',
-					name: '{{ item.title }}'.replace('&lt;', '<').replace('&gt;', '>').replace('&#39;', '\'').replace('&quot;', '\"').replace('&amp;', '&')
+					name: unescape('{{ item.title }}')
 				},{% endfor %}
 			],
 			autoSelect: false,
 			fitToElement: false,
 			afterSelect: function(val) {
+				qs['q'] = val.name;
 				qs['dataset'] = val.id;
 			}
 		})
@@ -170,7 +174,7 @@ $(function() {
 			source: [{% for item in all_organisations %}
 				{
 					id: '{{ item.id }}',
-					name: '{{ item.legal_name }}'.replace('&lt;', '<').replace('&gt;', '>').replace('&#39;', '\'').replace('&quot;', '\"').replace('&amp;', '&')
+					name: unescape('{{ item.legal_name }}')
 				},{% endfor %}
 			],
 			autoSelect: false,
