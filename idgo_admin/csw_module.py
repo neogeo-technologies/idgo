@@ -169,7 +169,7 @@ class CswBaseHandler(object):
                     dataset_creation_date = item.date
                 elif item.type == 'publication':
                     dataset_publication_date = item.date
-                elif item.type == 'modification':
+                elif item.type in ('modification', 'revision'):
                     dataset_modification_date = item.date
 
         frequency = update_frequency = None

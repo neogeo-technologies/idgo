@@ -473,6 +473,7 @@ class RemoteCkan(models.Model):
                                 'description': package.get('notes'),
                                 'date_creation': metadata_created and metadata_created.date(),
                                 'date_modification': metadata_modified and metadata_modified.date(),
+                                # date_publication
                                 'editor': editor,
                                 'license': license,
                                 'owner_email': self.organisation.email or DEFAULT_CONTACT_EMAIL,
@@ -486,7 +487,6 @@ class RemoteCkan(models.Model):
                                 # bbox
                                 # broadcaster_email
                                 # broadcaster_name
-                                # date_publication
                                 # data_type
                                 # geocover
                                 # geonet_id
@@ -756,12 +756,18 @@ class RemoteCsw(models.Model):
                     if not(update_frequency and update_frequency
                             in dict(Dataset.FREQUENCY_CHOICES).keys()):
                         update_frequency = 'unknow'
-                    metadata_created = package.get(' ', None)
-                    if metadata_created:
-                        metadata_created = datetime.strptime(metadata_created, ISOFORMAT_DATE)
-                    metadata_modified = package.get('metadata_modified', None)
-                    if metadata_modified:
-                        metadata_modified = datetime.strptime(metadata_modified, ISOFORMAT_DATE)
+
+                    date_creation = package.get('dataset_creation_date', None)
+                    if date_creation:
+                        date_creation = datetime.strptime(date_creation, ISOFORMAT_DATE)
+
+                    date_modification = package.get('dataset_modification_date', None)
+                    if date_modification:
+                        date_modification = datetime.strptime(date_modification, ISOFORMAT_DATE)
+
+                    date_publication = package.get('dataset_publication_date', None)
+                    if date_publication:
+                        date_publication = datetime.strptime(date_publication, ISOFORMAT_DATE)
 
                     # Licence
                     filters = [
@@ -798,8 +804,9 @@ class RemoteCsw(models.Model):
                         'slug': 'sync--{}'.format(package.get('name'))[:100],
                         'title': package.get('title'),
                         'description': package.get('notes'),
-                        'date_creation': metadata_created and metadata_created.date(),
-                        'date_modification': metadata_modified and metadata_modified.date(),
+                        'date_creation': date_creation and date_creation.date(),
+                        'date_modification': date_modification and date_modification.date(),
+                        'date_publication': date_publication and date_publication.date(),
                         'editor': editor,
                         'license': license,
                         'owner_email': self.organisation.email or DEFAULT_CONTACT_EMAIL,
@@ -812,7 +819,6 @@ class RemoteCsw(models.Model):
                         # bbox
                         # broadcaster_email
                         # broadcaster_name
-                        # date_publication
                         # data_type
                         # geocover
                         'geonet_id': geonet_id,

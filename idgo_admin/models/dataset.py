@@ -484,14 +484,25 @@ class Dataset(models.Model):
             ows = resource.ogc_services
 
         # On regarde si le jeu de données est moissonnées
+        # ===============================================
+        # Soit CKAN :
         RemoteCkanDataset = apps.get_model(
             app_label='idgo_admin', model_name='RemoteCkanDataset')
         try:
-            remote_ckan_dataset = RemoteCkanDataset.objects.get(dataset=self)
+            remote_dataset = RemoteCkanDataset.objects.get(dataset=self)
         except RemoteCkanDataset.DoesNotExist:
-            remote_ckan_url = ''
+            remote_url = None
         else:
-            remote_ckan_url = remote_ckan_dataset.url
+            remote_url = remote_dataset.url
+        # Soit CSW :
+        RemoteCswDataset = apps.get_model(
+            app_label='idgo_admin', model_name='RemoteCswDataset')
+        try:
+            remote_dataset = RemoteCswDataset.objects.get(dataset=self)
+        except RemoteCkanDataset.DoesNotExist:
+            remote_url = None
+        else:
+            remote_url = remote_dataset.url
 
         spatial = self.bbox and self.bbox.geojson or ''
         support = self.support and self.support.slug or ''
@@ -521,7 +532,7 @@ class Dataset(models.Model):
             'owner_org': str(self.organisation.ckan_id),
             'ows': str(ows),  # IMPORTANT
             'private': self.private,
-            'remote_ckan_url': remote_ckan_url,
+            'remote_ckan_url': remote_url or '',
             'spatial': spatial,
             'state': 'active',
             'support': support,
