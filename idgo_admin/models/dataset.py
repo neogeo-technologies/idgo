@@ -305,7 +305,7 @@ class Dataset(models.Model):
     @property
     def geonet_url(self):
         if self.geonet_id:
-            return urljoin(GEONETWORK_URL, 'srv/fre/catalog.search#/metadata/', self.geonet_id)
+            return urljoin(GEONETWORK_URL, 'srv/fre/catalog.search#/metadata/{id}'.format(id=self.geonet_id))
 
     @property
     def bounds(self):

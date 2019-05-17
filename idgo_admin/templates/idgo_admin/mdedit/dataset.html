@@ -40,6 +40,9 @@
 					{% endif %}
 					<div class="well">
 						<div class="buttons-on-the-right-side">
+							{% if dataset.geonet_id %}
+							<a class="btn btn-default" target="_blank" href="{{ dataset.geonet_url }}">Ouvrir dans Geonetwork</a>
+							{% endif %}
 							<span ng-show="vm.data.view == 1" ng-hide="vm.data.view == 3">
 								<a role="button" class="btn btn-default" target="_blank" href="{{ doc_url }}">
 									<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
@@ -58,6 +61,7 @@
 								<span class="glyphicon glyphicon-eye-open"></span>
 							</a>
 						</div>
+						<br />
 						<div ng-hide="vm.data.pageLoaded" id="alert" class="" role="alert">
 							<uib-progressbar class="progress-striped active" value="100" type="info">Chargement...</uib-progressbar>
 						</div>
@@ -65,12 +69,14 @@
 							<div id="content" ng-include="vm.data.template_url">
 								<!-- Content -->
 							</div>
+							<br />
 							<div class="buttons-on-the-right-side">
 								{% if dataset.geonet_id %}
-								<button id="delete" name="delete" value="delete" type="button" class="btn btn-danger left">Supprimer</button>
+								<button type="button" name="delete" value="delete" class="btn btn-danger left">Supprimer</button>
 								{% endif %}
-								<a class="btn btn-default" target="_self" href="{% url 'idgo_admin:dataset' %}?id={{ dataset.id }}#dataset">Annuler</a>
-								<button id="validate" name="validate" type="button" class="btn btn-primary">Enregistrer</button>
+								<a class="btn btn-default" href="{% url 'idgo_admin:dataset' %}?id={{ dataset.id }}#dataset">Annuler</a>
+								<button type="button" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>
+								<button type="button" name="save" class="btn btn-primary">Enregistrer</button>
 							</div>
 						</form>
 					</div>
@@ -171,7 +177,7 @@ $(function() {
 	$scope.vm.record = {{ record_obj | safe }};
 	{% endif %}
 
-	$('#delete').click(function(e) {
+	$('button[name="delete"]').click(function(e) {
 		const $form = $('form').attr('method', 'POST');
 		$('<input/>').attr('type', 'hidden').attr('name', "delete").appendTo($form);
 		$modalHourglass.one('show.bs.modal', function(e) {
@@ -180,23 +186,16 @@ $(function() {
 		e.stopPropagation();
 	});
 
-	$('#validate').click(function(e) {
-		e.preventDefault();
+	$('button[name="save"], button[name="continue"]').click(function(e) {
+		const $form = $('form').attr('method', 'POST');
+		$inputBtnName = $('<input/>').attr('type', 'hidden').attr('name', this.name);
+		$inputBtnName.appendTo($form);
+		$inputXML = $('<input/>').attr('type', 'hidden').attr('name', "xml").val($scope.vm.getXml());
+		$inputXML.appendTo($form);
 		$modalHourglass.one('show.bs.modal', function(e) {
-			$.ajax({
-				type: 'POST',
-				data: $scope.vm.getXml(),
-				contentType: 'text/xml',
-				dataType: 'xml',
-				success: function(data, status, xhr) {
-					location.reload();  // C'est moche..
-				},
-				error: function(xhr, statut, error) {
-					location.reload();  // C'est moche..
-				},
-				url: "{% url 'idgo_admin:dataset_mdedit' id=dataset.id %}"
-			})
+			$form.submit();
 		}).modal('show');
+		e.stopPropagation();
 	});
 });
 </script>

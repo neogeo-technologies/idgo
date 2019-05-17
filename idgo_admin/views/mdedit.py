@@ -13,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
+from datetime import datetime
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -48,7 +48,6 @@ from idgo_admin.views.dataset import target
 import os
 import re
 from urllib.parse import urljoin
-from uuid import UUID
 import xml.etree.ElementTree as ET
 
 
@@ -114,19 +113,19 @@ def prefill_dataset_model(dataset):
             'dateType': 'revision'})
 
     data['dataMaintenanceFrequency'] = {
-        'never': 'notPlanned',          # [011] There are no plans to update the data
-        'asneeded': 'asNeeded',         # [009] Data is updated as deemed necessary
-        'intermittently': 'irregular',  # [010] Data is updated in intervals that are uneven in duration
-        'continuously': 'continual',    # [001] Data is repeatedly and frequently updated
+        'never': 'notPlanned',          # [011]
+        'asneeded': 'asNeeded',         # [009]
+        'intermittently': 'irregular',  # [010]
+        'continuously': 'continual',    # [001]
         'realtime': 'continual',        # ??? -> [001]
-        'daily': 'daily',               # [002] Data is updated each day
-        'weekly': 'weekly',             # [003] data is updated on a weekly basis
-        'fortnightly': 'fortnightly',   # [004] data is updated every two weeks
-        'monthly': 'monthly',           # [005] data is updated each month
-        'quarterly': 'quaterly',        # [006] data is updated every three months
-        'semiannual': 'biannually',     # [007] data is updated twice each year
-        'annual': 'annually'            # [008] data is updated every year
-        }.get(dataset.update_frequency, 'unknow')  # [012] frequency of maintenance for the data is not known
+        'daily': 'daily',               # [002]
+        'weekly': 'weekly',             # [003]
+        'fortnightly': 'fortnightly',   # [004]
+        'monthly': 'monthly',           # [005]
+        'quarterly': 'quaterly',        # [006]
+        'semiannual': 'biannually',     # [007]
+        'annual': 'annually'            # [008]
+        }.get(dataset.update_frequency, 'unknow')  # [012]
 
     if dataset.keywords:
         data['dataKeywords'].insert(0, {
@@ -215,9 +214,6 @@ class DatasetMDEditTplEdit(View):
 @method_decorator(decorators, name='dispatch')
 class DatasetMDEdit(View):
 
-    template = 'idgo_admin/mdedit/dataset.html'
-    namespace = 'idgo_admin:dataset_mdedit'
-
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, id, *args, **kwargs):
         user, profile = user_and_profile(request)
@@ -270,61 +266,112 @@ class DatasetMDEdit(View):
         else:
             context['record_obj'] = prefill_dataset_model(instance)
 
-        return render_with_info_profile(request, self.template, context=context)
+        return render_with_info_profile(request, 'idgo_admin/mdedit/dataset.html', context=context)
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def post(self, request, id, *args, **kwargs):
 
         user, profile = user_and_profile(request)
-
         dataset = get_object_or_404(Dataset, id=id)
 
-        if not request.is_ajax():
-            if 'delete' in request.POST and dataset.geonet_id:
+        delete = 'delete' in request.POST
+        save = 'save' in request.POST
+        save_and_continue = 'continue' in request.POST
+
+        if delete and dataset.geonet_id:
+            try:
+                geonet.delete_record(dataset.geonet_id)
+                dataset.geonet_id = None
+                dataset.save(current_user=None)
+            except Exception:
+                messages.error(
+                    request, "La fiche de metadonnées a été supprimée avec succès.")
+            else:
+                messages.success(
+                    request, "La fiche de metadonnées a été supprimée avec succès.")
+            # finally:
+            return HttpResponseRedirect(
+                reverse('idgo_admin:dataset_mdedit', kwargs={'id': id}))
+
+        if save or save_and_continue:
+            data = dict(request.POST)
+
+            dataset.title = data['dataTitle'][0] or dataset.title
+            dataset.description = data['dataAbstract'][0] or None
+
+            date_creation = data['dataDateCreation'][0] or None
+            if date_creation:
+                dataset.date_creation = datetime.strptime(date_creation, "%Y-%m-%d").date()
+
+            date_modification = data['dataDateRevision'][0] or None
+            if date_modification:
+                dataset.date_modification = datetime.strptime(date_modification, "%Y-%m-%d").date()
+
+            date_publication = data['dataDatePublication'][0] or None
+            if date_publication:
+                dataset.date_publication = datetime.strptime(date_publication, "%Y-%m-%d").date()
+
+            dataset.update_frequency = {
+                'notPlanned': 'never',          # [011]
+                'asNeeded': 'asneeded',         # [009]
+                'irregular': 'intermittently',  # [010]
+                'continual': 'continuously',    # [001]
+                'daily': 'daily',               # [002]
+                'weekly': 'weekly',             # [003]
+                'fortnightly': 'fortnightly',   # [004]
+                'monthly': 'monthly',           # [005]
+                'quarterly': 'quaterly',        # [006]
+                'semiannual': 'biannually',     # [007]
+                'annual': 'annually'            # [008]
+                }.get(data['dataMaintenanceFrequency'][0], 'unknow')  # [012]
+
+            keywords = [k.strip() for l in [s.split(',') for s in data['keyword']] for k in l if k]
+            if keywords:
+                dataset.keywords.clear()
+                for k in keywords:
+                    dataset.keywords.add(k)
+
+            root = ET.fromstring(request.POST.get('xml'))
+            ns = {'gmd': 'http://www.isotc211.org/2005/gmd',
+                  'gco': 'http://www.isotc211.org/2005/gco'}
+            geonet_id = root.find('gmd:fileIdentifier/gco:CharacterString', ns).text
+
+            record = ET.tostring(
+                root, encoding='utf-8', method='xml', short_empty_elements=True)
+
+            error = False
+            if not geonet.get_record(geonet_id):
                 try:
-                    geonet.delete_record(dataset.geonet_id)
-                    dataset.geonet_id = None
-                    dataset.save(current_user=None)
-                except Exception as e:
+                    geonet.create_record(geonet_id, record)
+                except Exception:
+                    error = True
                     messages.error(
-                        request, "La fiche de metadonnées a été supprimée avec succès.")
+                        request, "La création de la fiche de métadonnées a échoué.")
+                else:
+                    # Toujours publier la fiche
+                    geonet.publish(geonet_id)
+                    dataset.geonet_id = geonet_id
+                    messages.success(
+                        request, "La fiche de metadonnées a été créée avec succès.")
+            else:
+                try:
+                    geonet.update_record(geonet_id, record)
+                except Exception:
+                    error = True
+                    messages.error(
+                        request, "La mise à jour de la fiche de métadonnées a échoué.")
                 else:
                     messages.success(
-                        request, "La fiche de metadonnées a été supprimée avec succès.")
-            return HttpResponseRedirect(
-                reverse(self.namespace, kwargs={'id': id}))
+                        request, "La fiche de metadonnées a été mise à jour avec succès.")
+            if not error:
+                dataset.save(current_user=user, synchronize=True)
 
-        root = ET.fromstring(request.body)
-        ns = {'gmd': 'http://www.isotc211.org/2005/gmd',
-              'gco': 'http://www.isotc211.org/2005/gco'}
-        id = root.find('gmd:fileIdentifier/gco:CharacterString', ns).text
-
-        record = ET.tostring(
-            root, encoding='utf-8', method='xml', short_empty_elements=True)
-
-        # Ça marche mais c'est moche et illisible...
-        # TODO: faire du code plus beau ; gérer les exceptions mieux que ça.
-        if not geonet.get_record(id):
-            try:
-                geonet.create_record(id, record)
-            except Exception:
-                messages.error(request, 'La création de la fiche de métadonnées a échoué.')
-            else:
-                geonet.publish(id)  # Toujours publier la fiche
-                dataset.geonet_id = id
-                dataset.save(current_user=None)
-                messages.success(
-                    request, 'La fiche de metadonnées a été créée avec succès.')
+        if save_and_continue:
+            reverse_to = reverse('idgo_admin:dataset_mdedit', kwargs={'id': id})
         else:
-            try:
-                geonet.update_record(id, record)
-            except Exception:
-                messages.error(request, 'La mise à jour de la fiche de métadonnées a échoué.')
-            else:
-                messages.success(
-                    request, 'La fiche de metadonnées a été créée avec succès.')
+            reverse_to = reverse('idgo_admin:list_my_datasets')
 
-        return HttpResponse()
+        return HttpResponseRedirect(reverse_to)
 
 
 @method_decorator(decorators, name='dispatch')
