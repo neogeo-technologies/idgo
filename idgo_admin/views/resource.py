@@ -241,6 +241,7 @@ class ResourceManager(View):
                 if not id:
                     resource = Resource.default.create(save_opts=save_opts, **kvp)
                     save_opts['skip_download'] = True  # IMPORTANT
+                    save_opts['file_extras'] = None  # IMPORTANT
                 else:
                     resource = Resource.objects.get(pk=id)
                     for k, v in kvp.items():
@@ -250,7 +251,6 @@ class ResourceManager(View):
                 if profiles_allowed:
                     resource.profiles_allowed = profiles_allowed
                 save_opts['synchronize'] = True
-                save_opts['file_extras'] = None  # IMPORTANT
                 resource.save(**save_opts)
         except ValidationError as e:
             if e.code == 'crs':

@@ -445,6 +445,9 @@ class Resource(models.Model):
     def save(self, *args, current_user=None, synchronize=False,
              file_extras=None, skip_download=False, **kwargs):
 
+        if 'update_fields' in kwargs:
+            return super().save(*args, **kwargs)
+
         # Version précédante de la ressource (avant modification)
         previous, created = self.pk \
             and (Resource.objects.get(pk=self.pk), False) or (None, True)
@@ -516,7 +519,8 @@ class Resource(models.Model):
         elif (self.up_file and file_extras):
             # GDAL/OGR ne semble pas prendre de fichier en mémoire..
             # ..à vérifier mais si c'est possible comment indiquer le vsi en préfixe du filename ?
-            filename = self.up_file.file.name
+            filename = self.up_file.path
+            self.save(update_fields=('up_file',))
             file_must_be_deleted = True
 
         elif self.dl_url and not skip_download:
@@ -570,7 +574,6 @@ class Resource(models.Model):
 
         # Détection des données SIG
         # =========================
-
         if filename:
             # On vérifie s'il s'agit de données SIG, uniquement pour
             # les extensions de fichier autorisées..
