@@ -499,7 +499,7 @@ class Dataset(models.Model):
             app_label='idgo_admin', model_name='RemoteCswDataset')
         try:
             remote_dataset = RemoteCswDataset.objects.get(dataset=self)
-        except RemoteCkanDataset.DoesNotExist:
+        except RemoteCswDataset.DoesNotExist:
             remote_url = None
         else:
             remote_url = remote_dataset.url
