@@ -56,8 +56,7 @@
 				{% endif %}
 			</div>
 			<br />
-			{% if count > 0 %}
-			<label>{{ count }} jeu{% if count > 1 %}x{% endif %} de données</label>
+			{% if pagination.count > 0 %}
 			{% include "idgo_admin/dataset/table.html" %}
 			{% else %}
 			<label>Aucun jeu de données</label>

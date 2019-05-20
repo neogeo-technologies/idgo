@@ -184,6 +184,7 @@ def handle_context(QuerySet, qs, user=None, target='mine'):
         'all_update_frequencies': all_update_frequencies,
         'all_resourceformats': all_resourceformats,
         'pagination': {
+            'count': len(datasets),
             'current': page_number,
             'total': number_of_pages,
             },
