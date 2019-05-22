@@ -34,6 +34,7 @@ from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.csw_module import CswBaseHandler
 from idgo_admin.exceptions import CkanBaseError
+from idgo_admin.exceptions import CriticalError
 from idgo_admin.exceptions import CswBaseError
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin import logger
@@ -468,8 +469,9 @@ class RemoteCkan(models.Model):
                                 logger.warning("'{}' non trouvé".format(package.get('license_id')))
                                 license = mapping_licence.licence
 
+                            slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), package.get('name'))[:100]
                             kvp = {
-                                'slug': 'sync--{}--{}'.format(value, package.get('name'))[:100],
+                                'slug': slug,
                                 'title': package.get('title'),
                                 'description': package.get('notes'),
                                 'date_creation': metadata_created and metadata_created.date(),
@@ -511,7 +513,7 @@ class RemoteCkan(models.Model):
                                 dataset.keywords.clear()
                             keywords = [tag['display_name'] for tag in package.get('tags')]
                             dataset.keywords.add(*keywords)
-                            dataset.save(current_user=None, synchronize=True)
+                            dataset.save(current_user=None, synchronize=True, activate=False)
 
                             ckan_ids.append(dataset.ckan_id)
 
@@ -552,7 +554,11 @@ class RemoteCkan(models.Model):
             except Exception as e:
                 for id in ckan_ids:
                     CkanHandler.purge_dataset(str(id))
-                raise e
+                logger.error(e)
+                raise CriticalError()
+            else:
+                for id in ckan_ids:
+                    CkanHandler.publish_dataset(id=str(id), state='active')
 
     def delete(self, *args, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
@@ -801,8 +807,9 @@ class RemoteCsw(models.Model):
                             logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
                             logger.error(e)
 
+                    slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), package.get('name'))[:100]
                     kvp = {
-                        'slug': 'sync--{}'.format(package.get('name'))[:100],
+                        'slug': slug,
                         'title': package.get('title'),
                         'description': package.get('notes'),
                         'date_creation': date_creation and date_creation.date(),
@@ -842,7 +849,7 @@ class RemoteCsw(models.Model):
                     keywords = [tag['display_name'] for tag in package.get('tags')]
                     dataset.keywords.add(*keywords)
 
-                    dataset.save(current_user=None, synchronize=True)
+                    dataset.save(current_user=None, synchronize=True, activate=False)
 
                     for resource in package.get('resources', []):
                         try:
@@ -887,7 +894,11 @@ class RemoteCsw(models.Model):
             for id in geonet_ids:
                 logger.warning('Delete MD : {id}.'.format(id=str(id)))
                 geonet.delete_record(id)
-            raise e
+            logger.error(e)
+            raise CriticalError()
+        else:
+            for id in ckan_ids:
+                CkanHandler.publish_dataset(id=str(id), state='active')
 
     def delete(self, *args, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')

@@ -332,11 +332,13 @@ class Dataset(models.Model):
     # Méthodes héritées
     # =================
 
-    def save(self, *args, current_user=None, synchronize=True, **kwargs):
+    def save(self, *args, current_user=None, synchronize=True, activate=None, **kwargs):
 
         # Version précédante du jeu de données (avant modification)
         previous, created = self.pk \
             and (Dataset.objects.get(pk=self.pk), False) or (None, True)
+        if created:
+            activate = True
 
         # Quelques valeurs par défaut
         # ===========================
@@ -407,7 +409,7 @@ class Dataset(models.Model):
 
         # Enfin...
         if synchronize:
-            ckan_dataset = self.synchronize(with_user=current_user)
+            ckan_dataset = self.synchronize(with_user=current_user, activate=activate)
             # puis on met à jour `ckan_id`
             self.ckan_id = UUID(ckan_dataset['id'])
             super().save(update_fields=['ckan_id'])
@@ -447,7 +449,7 @@ class Dataset(models.Model):
             if UUID(ckan_dataset['id']) != self.ckan_id and ckan_dataset['name'] == slug:
                 raise ValidationError("L'URL du jeu de données est réservé.")
 
-    def synchronize(self, with_user=None):
+    def synchronize(self, with_user=None, activate=None):
         """Synchronizer le jeu de données avec l'instance de CKAN."""
 
         # Identifiant du package CKAN :
@@ -534,13 +536,15 @@ class Dataset(models.Model):
             'private': self.private,
             'remote_ckan_url': remote_url or '',
             'spatial': spatial,
-            'state': 'active',
             'support': support,
             'tags': tags,
             'title': self.title,
             'thumbnail': thumbnail,
             'url': '',  # IMPORTANT
             }
+
+        if activate is not None:
+            data['state'] = activate and 'active' or 'deleted'
 
         # Synchronisation des catégories :
         for category in self.categories.all():

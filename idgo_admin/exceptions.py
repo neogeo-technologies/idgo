@@ -51,6 +51,10 @@ class CkanBaseError(GenericException):
     pass
 
 
+class CriticalError(GenericException):
+    pass
+
+
 class CswBaseError(GenericException):
     pass
 

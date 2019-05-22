@@ -29,6 +29,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.exceptions import CkanBaseError
+from idgo_admin.exceptions import CriticalError
 from idgo_admin.exceptions import CswBaseError
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import GenericException
@@ -516,6 +517,10 @@ class RemoteCkanEditor(View):
                 error = True
                 messages.error(request, e.__str__())
             except CkanBaseError as e:
+                error = True
+                form.add_error('__all__', e.__str__())
+                messages.error(request, e.__str__())
+            except CriticalError as e:
                 error = True
                 form.add_error('__all__', e.__str__())
                 messages.error(request, e.__str__())
