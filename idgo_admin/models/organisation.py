@@ -118,6 +118,7 @@ class Organisation(models.Model):
     website = models.URLField(
         verbose_name="Site internet",
         blank=True,
+        null=True,
         )
 
     email = models.EmailField(

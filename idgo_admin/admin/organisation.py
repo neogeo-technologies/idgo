@@ -49,6 +49,12 @@ class OrganisationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['is_active'].initial = True
 
+    def clean(self):
+        for k, v in self.cleaned_data.items():
+            if v == '':
+                self.cleaned_data[k] = None
+        return self.cleaned_data
+
 
 class OrganisationAdmin(geo_admin.OSMGeoAdmin):
     list_display = ['legal_name', 'organisation_type']
