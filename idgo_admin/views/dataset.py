@@ -285,48 +285,48 @@ class DatasetManager(View):
 
         layer_rows = []
         resource_rows = []
-        for resource in Resource.objects.filter(dataset=dataset):
+        if dataset:
+            for resource in Resource.objects.filter(dataset=dataset):
+                resource_row_data = (
+                    resource.pk,
+                    resource.title,
+                    resource.format_type.description if resource.format_type else None,
+                    resource.get_data_type_display(),
+                    resource.created_on.isoformat() if resource.created_on else None,
+                    resource.last_update.isoformat() if resource.last_update else None,
+                    resource.get_restricted_level_display(),
+                    str(resource.ckan_id),
+                    [layer.pk for layer in resource.get_layers()],
+                    resource.ogc_services,
+                    resource.extractable,
+                    )
+                resource_rows.append(resource_row_data)
 
-            resource_row_data = (
-                resource.pk,
-                resource.title,
-                resource.format_type.description if resource.format_type else None,
-                resource.get_data_type_display(),
-                resource.created_on.isoformat() if resource.created_on else None,
-                resource.last_update.isoformat() if resource.last_update else None,
-                resource.get_restricted_level_display(),
-                str(resource.ckan_id),
-                [layer.pk for layer in resource.get_layers()],
-                resource.ogc_services,
-                resource.extractable,
-                )
-            resource_rows.append(resource_row_data)
+                common = [
+                    resource.pk,
+                    resource.title,
+                    resource.get_data_type_display(),
+                    resource.get_restricted_level_display(),
+                    resource.geo_restriction,
+                    resource.extractable,
+                    resource.ogc_services,
+                    ]
 
-            common = [
-                resource.pk,
-                resource.title,
-                resource.get_data_type_display(),
-                resource.get_restricted_level_display(),
-                resource.geo_restriction,
-                resource.extractable,
-                resource.ogc_services,
-                ]
-
-            layers = resource.get_layers()
-            if layers:
-                for layer in resource.get_layers():
-                    layer_row_data = common.copy()
-                    layer_row_data.extend((
-                        layer.pk,
-                        layer.mra_info['name'],
-                        layer.mra_info['title'],
-                        layer.mra_info['type'],
-                        layer.mra_info['enabled'],
-                        layer.mra_info['bbox'],
-                        layer.mra_info['attributes'],
-                        layer.mra_info['styles'],
-                        ))
-                    layer_rows.append(layer_row_data)
+                layers = resource.get_layers()
+                if layers:
+                    for layer in resource.get_layers():
+                        layer_row_data = common.copy()
+                        layer_row_data.extend((
+                            layer.pk,
+                            layer.mra_info['name'],
+                            layer.mra_info['title'],
+                            layer.mra_info['type'],
+                            layer.mra_info['enabled'],
+                            layer.mra_info['bbox'],
+                            layer.mra_info['attributes'],
+                            layer.mra_info['styles'],
+                            ))
+                        layer_rows.append(layer_row_data)
 
         licenses = [
             (m.pk, m.license.pk) for m
