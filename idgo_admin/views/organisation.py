@@ -684,7 +684,7 @@ class RemoteCswEditor(View):
             setattr(instance, k, v)
         try:
             with transaction.atomic():
-                instance.save()
+                instance.save(harvest=not created)
         except ValidationError as e:
             error = True
             messages.error(request, e.__str__())
@@ -702,7 +702,7 @@ class RemoteCswEditor(View):
                 Dataset.harvested_csw.filter(organisation=organisation)
             context['form'] = RemoteCswForm(instance=instance)
             if created:
-                msg = "Veuillez indiquez les organisations distantes à moissonner."
+                msg = "Veuillez indiquez une requête <strong>GetRecord</strong> avant moissonnage du service."
             else:
                 msg = 'Les informations de moissonnage ont été mises à jour.'
             messages.success(request, msg)

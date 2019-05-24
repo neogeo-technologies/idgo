@@ -706,7 +706,7 @@ class RemoteCsw(models.Model):
     def __str__(self):
         return self.url
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, harvest=True, **kwargs):
         Category = apps.get_model(app_label='idgo_admin', model_name='Category')
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
         License = apps.get_model(app_label='idgo_admin', model_name='License')
@@ -743,174 +743,175 @@ class RemoteCsw(models.Model):
         if not previous:
             return
 
-        # Puis on moissonne le catalogue
-        try:
-            ckan_ids = []
-            geonet_ids = []
-            with transaction.atomic():
+        if harvest:
+            # Puis on moissonne le catalogue
+            try:
+                ckan_ids = []
+                geonet_ids = []
+                with transaction.atomic():
 
-                with CswBaseHandler(self.url) as csw:
-                    packages = csw.get_packages(xml=self.getrecords or None)
+                    with CswBaseHandler(self.url) as csw:
+                        packages = csw.get_packages(xml=self.getrecords or None)
 
-                for package in packages:
-                    if not package['type'] == 'dataset':
-                        continue
-
-                    geonet_id = package['id']
-                    update_frequency = dict(Dataset.FREQUENCY_CHOICES).get(
-                        package.get('frequency'), 'unknown')
-                    update_frequency = package.get('frequency')
-                    if not(update_frequency and update_frequency
-                            in dict(Dataset.FREQUENCY_CHOICES).keys()):
-                        update_frequency = 'unknown'
-
-                    date_creation = package.get('dataset_creation_date', None)
-                    if date_creation:
-                        try:
-                            date_creation = datetime.strptime(date_creation, ISOFORMAT_DATE)
-                        except ValueError as e:
-                            logger.warning(e)
-                            date_creation = None
-
-                    date_modification = package.get('dataset_modification_date', None)
-                    if date_modification:
-                        try:
-                            date_modification = datetime.strptime(date_modification, ISOFORMAT_DATE)
-                        except ValueError as e:
-                            logger.warning(e)
-                            date_modification = None
-
-                    date_publication = package.get('dataset_publication_date', None)
-                    if date_publication:
-                        try:
-                            date_publication = datetime.strptime(date_publication, ISOFORMAT_DATE)
-                        except ValueError as e:
-                            logger.warning(e)
-                            date_publication = None
-
-                    # Licence
-                    filters = [
-                        Q(slug=package.get('license_id')),
-                        Q(title=package.get('license_title')),
-                        Q(alternate_titles__contains=[package.get('license_title')]),
-                        ]
-                    try:
-                        license = License.objects.get(reduce(ior, filters))
-                    except License.DoesNotExist:
-                        try:
-                            license = License.objects.get(slug='notspecified')
-                        except License.DoesNotExist:
-                            license = None
-
-                    # On pousse la fiche de MD dans Geonet
-                    if not geonet.get_record(geonet_id):
-                        try:
-                            geonet.create_record(geonet_id, package['xml'])
-                        except Exception as e:
-                            logger.warning('La création de la fiche de métadonnées a échoué.')
-                            logger.error(e)
-                        else:
-                            geonet_ids.append(geonet_id)
-                            geonet.publish(geonet_id)  # Toujours publier la fiche
-                    else:
-                        try:
-                            geonet.update_record(geonet_id, package['xml'])
-                        except Exception as e:
-                            logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
-                            logger.error(e)
-
-                    slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), slugify(package.get('name')))[:100]
-                    kvp = {
-                        'slug': slug,
-                        'title': package.get('title'),
-                        'description': package.get('notes'),
-                        'date_creation': date_creation and date_creation.date(),
-                        'date_modification': date_modification and date_modification.date(),
-                        'date_publication': date_publication and date_publication.date(),
-                        'editor': editor,
-                        'license': license,
-                        'owner_email': self.organisation.email or DEFAULT_CONTACT_EMAIL,
-                        'owner_name': self.organisation.legal_name or DEFAULT_PLATFORM_NAME,
-                        'organisation': self.organisation,
-                        'published': not package.get('private'),
-                        'remote_instance': self,
-                        'remote_dataset': geonet_id,
-                        'update_frequency': update_frequency,
-                        # bbox
-                        # broadcaster_email
-                        # broadcaster_name
-                        # data_type
-                        # geocover
-                        'geonet_id': geonet_id,
-                        # granularity
-                        # thumbnail
-                        # support
-                        }
-
-                    dataset, created = Dataset.harvested_csw.update_or_create(**kvp)
-                    if created:
-                        ckan_ids.append(dataset.ckan_id)
-
-                    categories = Category.objects.filter(
-                        slug__in=[m['name'] for m in package.get('groups', [])])
-                    if categories:
-                        dataset.categories = categories
-
-                    if not created:
-                        dataset.keywords.clear()
-                    keywords = [tag['display_name'] for tag in package.get('tags')]
-                    dataset.keywords.add(*keywords)
-
-                    dataset.save(current_user=None, synchronize=True, activate=False)
-
-                    for resource in package.get('resources', []):
-                        try:
-                            ckan_id = uuid.uuid4()
-                        except ValueError as e:
-                            logger.exception(e)
-                            logger.error("I can't crash here, so I do not pay any attention to this error.")
+                    for package in packages:
+                        if not package['type'] == 'dataset':
                             continue
 
-                        filters = []
-                        protocol = resource.get('protocol')
-                        protocol and filters.append(Q(protocol=protocol))
-                        mimetype = resource.get('mimetype')
-                        mimetype and filters.append(Q(mimetype__overlap=[mimetype]))
-                        try:
-                            format_type = ResourceFormats.objects.get(reduce(iand, filters))
-                        except (ResourceFormats.MultipleObjectsReturned, ResourceFormats.DoesNotExist, TypeError):
-                            format_type = None
+                        geonet_id = package['id']
+                        update_frequency = dict(Dataset.FREQUENCY_CHOICES).get(
+                            package.get('frequency'), 'unknown')
+                        update_frequency = package.get('frequency')
+                        if not(update_frequency and update_frequency
+                                in dict(Dataset.FREQUENCY_CHOICES).keys()):
+                            update_frequency = 'unknown'
 
+                        date_creation = package.get('dataset_creation_date', None)
+                        if date_creation:
+                            try:
+                                date_creation = datetime.strptime(date_creation, ISOFORMAT_DATE)
+                            except ValueError as e:
+                                logger.warning(e)
+                                date_creation = None
+
+                        date_modification = package.get('dataset_modification_date', None)
+                        if date_modification:
+                            try:
+                                date_modification = datetime.strptime(date_modification, ISOFORMAT_DATE)
+                            except ValueError as e:
+                                logger.warning(e)
+                                date_modification = None
+
+                        date_publication = package.get('dataset_publication_date', None)
+                        if date_publication:
+                            try:
+                                date_publication = datetime.strptime(date_publication, ISOFORMAT_DATE)
+                            except ValueError as e:
+                                logger.warning(e)
+                                date_publication = None
+
+                        # Licence
+                        filters = [
+                            Q(slug=package.get('license_id')),
+                            Q(title=package.get('license_title')),
+                            Q(alternate_titles__contains=[package.get('license_title')]),
+                            ]
+                        try:
+                            license = License.objects.get(reduce(ior, filters))
+                        except License.DoesNotExist:
+                            try:
+                                license = License.objects.get(slug='notspecified')
+                            except License.DoesNotExist:
+                                license = None
+
+                        # On pousse la fiche de MD dans Geonet
+                        if not geonet.get_record(geonet_id):
+                            try:
+                                geonet.create_record(geonet_id, package['xml'])
+                            except Exception as e:
+                                logger.warning('La création de la fiche de métadonnées a échoué.')
+                                logger.error(e)
+                            else:
+                                geonet_ids.append(geonet_id)
+                                geonet.publish(geonet_id)  # Toujours publier la fiche
+                        else:
+                            try:
+                                geonet.update_record(geonet_id, package['xml'])
+                            except Exception as e:
+                                logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
+                                logger.error(e)
+
+                        slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), slugify(package.get('name')))[:100]
                         kvp = {
-                            'ckan_id': ckan_id,
-                            'dataset': dataset,
-                            'format_type': format_type,
-                            'title': resource['name'] or resource['url'],
-                            'referenced_url': resource['url'],
+                            'slug': slug,
+                            'title': package.get('title'),
+                            'description': package.get('notes'),
+                            'date_creation': date_creation and date_creation.date(),
+                            'date_modification': date_modification and date_modification.date(),
+                            'date_publication': date_publication and date_publication.date(),
+                            'editor': editor,
+                            'license': license,
+                            'owner_email': self.organisation.email or DEFAULT_CONTACT_EMAIL,
+                            'owner_name': self.organisation.legal_name or DEFAULT_PLATFORM_NAME,
+                            'organisation': self.organisation,
+                            'published': not package.get('private'),
+                            'remote_instance': self,
+                            'remote_dataset': geonet_id,
+                            'update_frequency': update_frequency,
+                            # bbox
+                            # broadcaster_email
+                            # broadcaster_name
+                            # data_type
+                            # geocover
+                            'geonet_id': geonet_id,
+                            # granularity
+                            # thumbnail
+                            # support
                             }
 
-                        try:
-                            resource = Resource.objects.get(ckan_id=ckan_id)
-                        except Resource.DoesNotExist:
-                            resource = Resource.default.create(
-                                save_opts={'current_user': editor, 'synchronize': True}, **kvp)
-                        else:
-                            for k, v in kvp.items():
-                                setattr(resource, k, v)
-                        resource.save(current_user=editor, synchronize=True)
+                        dataset, created = Dataset.harvested_csw.update_or_create(**kvp)
+                        if created:
+                            ckan_ids.append(dataset.ckan_id)
 
-        except Exception as e:
-            for id in ckan_ids:
-                logger.warning('Delete CKAN package : {id}.'.format(id=str(id)))
-                CkanHandler.purge_dataset(str(id))
-            for id in geonet_ids:
-                logger.warning('Delete MD : {id}.'.format(id=str(id)))
-                geonet.delete_record(id)
-            logger.error(e)
-            raise CriticalError()
-        else:
-            for id in ckan_ids:
-                CkanHandler.publish_dataset(id=str(id), state='active')
+                        categories = Category.objects.filter(
+                            slug__in=[m['name'] for m in package.get('groups', [])])
+                        if categories:
+                            dataset.categories = categories
+
+                        if not created:
+                            dataset.keywords.clear()
+                        keywords = [tag['display_name'] for tag in package.get('tags')]
+                        dataset.keywords.add(*keywords)
+
+                        dataset.save(current_user=None, synchronize=True, activate=False)
+
+                        for resource in package.get('resources', []):
+                            try:
+                                ckan_id = uuid.uuid4()
+                            except ValueError as e:
+                                logger.exception(e)
+                                logger.error("I can't crash here, so I do not pay any attention to this error.")
+                                continue
+
+                            filters = []
+                            protocol = resource.get('protocol')
+                            protocol and filters.append(Q(protocol=protocol))
+                            mimetype = resource.get('mimetype')
+                            mimetype and filters.append(Q(mimetype__overlap=[mimetype]))
+                            try:
+                                format_type = ResourceFormats.objects.get(reduce(iand, filters))
+                            except (ResourceFormats.MultipleObjectsReturned, ResourceFormats.DoesNotExist, TypeError):
+                                format_type = None
+
+                            kvp = {
+                                'ckan_id': ckan_id,
+                                'dataset': dataset,
+                                'format_type': format_type,
+                                'title': resource['name'] or resource['url'],
+                                'referenced_url': resource['url'],
+                                }
+
+                            try:
+                                resource = Resource.objects.get(ckan_id=ckan_id)
+                            except Resource.DoesNotExist:
+                                resource = Resource.default.create(
+                                    save_opts={'current_user': editor, 'synchronize': True}, **kvp)
+                            else:
+                                for k, v in kvp.items():
+                                    setattr(resource, k, v)
+                            resource.save(current_user=editor, synchronize=True)
+
+            except Exception as e:
+                for id in ckan_ids:
+                    logger.warning('Delete CKAN package : {id}.'.format(id=str(id)))
+                    CkanHandler.purge_dataset(str(id))
+                for id in geonet_ids:
+                    logger.warning('Delete MD : {id}.'.format(id=str(id)))
+                    geonet.delete_record(id)
+                logger.error(e)
+                raise CriticalError()
+            else:
+                for id in ckan_ids:
+                    CkanHandler.publish_dataset(id=str(id), state='active')
 
     def delete(self, *args, **kwargs):
         Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
