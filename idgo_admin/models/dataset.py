@@ -168,7 +168,7 @@ class Dataset(models.Model):
         ('quarterly', "Trimestrielle"),
         ('semiannual', "Bi-annuelle"),
         ('annual', "Annuelle"),
-        ('unknow', "Inconnue"),
+        ('unknown', "Inconnue"),
         )
 
     update_frequency = models.CharField(
@@ -521,7 +521,7 @@ class Dataset(models.Model):
             'dataset_creation_date': date_creation,
             'dataset_modification_date': date_modification,
             'dataset_publication_date': date_publication,
-            'frequency': self.update_frequency or 'unknow',
+            'frequency': self.update_frequency or 'unknown',
             'geocover': geocover,
             'granularity': granularity,
             'groups': [],

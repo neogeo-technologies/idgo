@@ -125,7 +125,7 @@ def prefill_dataset_model(dataset):
         'quarterly': 'quaterly',        # [006]
         'semiannual': 'biannually',     # [007]
         'annual': 'annually'            # [008]
-        }.get(dataset.update_frequency, 'unknow')  # [012]
+        }.get(dataset.update_frequency, 'unknown')  # [012]
 
     if dataset.keywords:
         data['dataKeywords'].insert(0, {
@@ -323,7 +323,7 @@ class DatasetMDEdit(View):
                 'quarterly': 'quaterly',        # [006]
                 'semiannual': 'biannually',     # [007]
                 'annual': 'annually'            # [008]
-                }.get(data['dataMaintenanceFrequency'][0], 'unknow')  # [012]
+                }.get(data['dataMaintenanceFrequency'][0], 'unknown')  # [012]
 
             keywords = [k.strip() for l in [s.split(',') for s in data['keyword']] for k in l if k]
             if keywords:

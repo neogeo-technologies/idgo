@@ -432,11 +432,11 @@ class RemoteCkan(models.Model):
                             ckan_id = uuid.UUID(package['id'])
 
                             update_frequency = dict(Dataset.FREQUENCY_CHOICES).get(
-                                package.get('frequency'), 'unknow')
+                                package.get('frequency'), 'unknown')
                             update_frequency = package.get('frequency')
                             if not(update_frequency and update_frequency
                                     in dict(Dataset.FREQUENCY_CHOICES).keys()):
-                                update_frequency = 'unknow'
+                                update_frequency = 'unknown'
                             metadata_created = package.get('metadata_created', None)
                             if metadata_created:
                                 metadata_created = datetime.strptime(metadata_created, ISOFORMAT_DATETIME)
@@ -758,11 +758,11 @@ class RemoteCsw(models.Model):
 
                     geonet_id = package['id']
                     update_frequency = dict(Dataset.FREQUENCY_CHOICES).get(
-                        package.get('frequency'), 'unknow')
+                        package.get('frequency'), 'unknown')
                     update_frequency = package.get('frequency')
                     if not(update_frequency and update_frequency
                             in dict(Dataset.FREQUENCY_CHOICES).keys()):
-                        update_frequency = 'unknow'
+                        update_frequency = 'unknown'
 
                     date_creation = package.get('dataset_creation_date', None)
                     if date_creation:
