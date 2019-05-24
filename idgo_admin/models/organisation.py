@@ -766,15 +766,27 @@ class RemoteCsw(models.Model):
 
                     date_creation = package.get('dataset_creation_date', None)
                     if date_creation:
-                        date_creation = datetime.strptime(date_creation, ISOFORMAT_DATE)
+                        try:
+                            date_creation = datetime.strptime(date_creation, ISOFORMAT_DATE)
+                        except ValueError as e:
+                            logger.warning(e)
+                            date_creation = None
 
                     date_modification = package.get('dataset_modification_date', None)
                     if date_modification:
-                        date_modification = datetime.strptime(date_modification, ISOFORMAT_DATE)
+                        try:
+                            date_modification = datetime.strptime(date_modification, ISOFORMAT_DATE)
+                        except ValueError as e:
+                            logger.warning(e)
+                            date_modification = None
 
                     date_publication = package.get('dataset_publication_date', None)
                     if date_publication:
-                        date_publication = datetime.strptime(date_publication, ISOFORMAT_DATE)
+                        try:
+                            date_publication = datetime.strptime(date_publication, ISOFORMAT_DATE)
+                        except ValueError as e:
+                            logger.warning(e)
+                            date_publication = None
 
                     # Licence
                     filters = [
@@ -807,7 +819,7 @@ class RemoteCsw(models.Model):
                             logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
                             logger.error(e)
 
-                    slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), package.get('name'))[:100]
+                    slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), slugify(package.get('name')))[:100]
                     kvp = {
                         'slug': slug,
                         'title': package.get('title'),

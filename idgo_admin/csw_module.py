@@ -114,10 +114,16 @@ class CswBaseHandler(object):
     @CswExceptionsHandler()
     def get_packages(self, *args, **kwargs):
         self.remote.getrecords2(**kwargs)
-        results = self.remote.results.copy()
         records = self.remote.records.copy()
-
-        return [self.get_package(k) for k in list(records.keys())]
+        res = []
+        for k in list(records.keys()):
+            try:
+                package = self.get_package(k)
+            except CswBaseError as e:
+                logger.warning(e)
+            else:
+                res.append(package)
+        return res
 
     @CswExceptionsHandler()
     def get_package(self, id, *args, **kwargs):
@@ -135,7 +141,7 @@ class CswBaseHandler(object):
         # if not (rec.stdname == 'ISO 19115:2003/19139' and rec.stdver == '1.0'):
         #     raise CswBaseError('outputschema error: stdname:{} stdver:{}'.format(rec.stdname, rec.stdver))
         if not rec.hierarchy == 'dataset':
-            raise CswBaseError('Not a Dataset')
+            raise CswBaseError('MD {id} is not a Dataset'.format(rec.identifier))
 
         # _encoding = rec.charset
 
@@ -151,6 +157,8 @@ class CswBaseHandler(object):
             for k in l]
         tags = []
         for keyword in keywords:
+            if not keyword:
+                continue
             keyword_match = re.compile('[\w\s\-.]*$', re.UNICODE)
             if keyword_match.match(keyword):
                 tags.append({'display_name': keyword})
@@ -230,12 +238,17 @@ class CswBaseHandler(object):
 
         resources = []
         for item in rec.distribution.online:
+            name = hasattr(item, 'name') and item.name or ''
+            description = hasattr(item, 'description') and item.description or ''
+            protocol = hasattr(item, 'protocol') and item.protocol or ''
+            mimetype = hasattr(item, 'mimetype') and item.mimetype or ''
+            url = hasattr(item, 'url') and item.url or ''
             resource = {
-                'name': item.name,
-                'description': item.description,
-                'protocol': item.protocol,
-                'mimetype': item.mimetype,
-                'url': item.url,
+                'name': name,
+                'description': description,
+                'protocol': protocol,
+                'mimetype': mimetype,
+                'url': url,
                 }
             resources.append(resource)
 

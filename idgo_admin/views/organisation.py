@@ -692,6 +692,10 @@ class RemoteCswEditor(View):
             error = True
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
+        except CriticalError as e:
+            error = True
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
         else:
             error = False
             context['datasets'] = \
