@@ -123,18 +123,18 @@ $(function() {
 		return new DOMParser().parseFromString(string, 'text/html').querySelector('html').textContent;
 	};
 
+	const $window = $(window);
+
+	var qs = (function(items) {
+		var kvp = {};
+		for (var i = 0; i < items.length; i ++) {
+			const kv = items[i].split('=');
+			kvp[decodeURIComponent(kv[0])]= decodeURIComponent(kv[1]);
+		};
+		return kvp;
+	})($window[0].location.search.substring(1).split('&'));
+
 	const $div = $('#datasets-filter');
-
-	var query = window.location.search.substring(1);
-
-	var vars = query.split('&');
-
-	var qs = {};
-
-	for (var i = 0; i < vars.length; i ++) {
-		const pair = vars[i].split('=');
-		qs[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
-	};
 
 	$div.find('input.typeahead[name="dataset"]')
 		// Recherche libre ou filtre strict sur jeu de données
@@ -151,10 +151,7 @@ $(function() {
 		})
 		.typeahead({
 			source: [{% for item in all_datasets %}
-				{
-					id: '{{ item.id }}',
-					name: unescape('{{ item.title }}')
-				},{% endfor %}
+				{id: '{{ item.id }}', name: unescape('{{ item.title }}')},{% endfor %}
 			],
 			autoSelect: false,
 			fitToElement: false,
@@ -165,25 +162,29 @@ $(function() {
 		})
 		.val(qs['q']);
 
+	const _organisationsSource = [{% for item in all_organisations %}
+		{id: '{{ item.id }}', name: unescape('{{ item.legal_name }}')},{% endfor %}
+	];
+
 	$div.find('input.typeahead[name="organisation"]')
 		// Recherche strict sur organisation
 		.on('input', function() {
 			qs['organisation'] = this.value;
 		})
 		.typeahead({
-			source: [{% for item in all_organisations %}
-				{
-					id: '{{ item.id }}',
-					name: unescape('{{ item.legal_name }}')
-				},{% endfor %}
-			],
+			source: _organisationsSource,
 			autoSelect: false,
 			fitToElement: false,
 			afterSelect: function(val) {
 				qs['organisation'] = val.id;
 			}
 		})
-		.typeahead('selectBy', 'id', qs['organisation']);
+		.val((function(value) {
+			for(var i = 0; i < _organisationsSource.length; i++) {
+				var item = _organisationsSource[i];
+				if (item.id == value) { return item.name };
+			};
+		})(qs['organisation']));
 
 	const $selectCategory = $div.find('select[name="category"]')
 		// Recherche strict sur catégorie
@@ -298,7 +299,7 @@ $(function() {
 					}
 				};
 			};
-			window.location.search = kvp.join('&');
+			$window[0].location.search = kvp.join('&');
 		});
 });
 </script>

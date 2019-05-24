@@ -73,7 +73,7 @@ $(function() {
 		var kvp = {};
 		for (var i = 0; i < items.length; i ++) {
 			const kv = items[i].split('=');
-			kvp[kv[0]]= kv[1];
+			kvp[decodeURIComponent(kv[0])]= decodeURIComponent(kv[1]);
 		};
 		return kvp;
 	})($window[0].location.search.substring(1).split('&'));
