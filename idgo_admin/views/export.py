@@ -255,7 +255,7 @@ class Export(View):
                 resources_dl = 0
                 for resource in package.get('resources'):
                     if 'tracking_summary' in resource:
-                        resources_dl += int(package['tracking_summary'].get('total'))
+                        resources_dl += int(resource['tracking_summary'].get('total'))
                 row['DATASUD_RESSOURCES_TELECHARGEMENT'] = resources_dl
                 row['DATASUD_DATASET_NOTE'] = package.get('rating')
                 row['DATASUD_DATASET_NB_NOTES'] = package.get('ratings_count')
