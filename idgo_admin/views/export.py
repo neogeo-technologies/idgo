@@ -82,7 +82,7 @@ NOMBRE_RESSOURCES = Count('resource')
 FORMAT_RESSOURCES = Func(
     StringAgg('resource__format_type__extension', distinct=True, delimiter=';'),
     function='LOWER')
-PROJECTION = F('resource__crs__auth_code')
+PROJECTION = StringAgg('resource__crs__auth_code', distinct=True, delimiter=';')
 LANG = Value('FR', output_field=CharField())  # StringAgg('resource__lang', distinct=True, delimiter=';')
 URL = Concat(
     Value(urljoin(settings.CKAN_URL, 'dataset/')), F('slug'),
