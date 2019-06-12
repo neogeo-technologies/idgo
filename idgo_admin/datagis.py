@@ -424,7 +424,20 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
                 elif isinstance(v, (datetime.date, datetime.time, datetime.datetime)):
                     properties[k] = "'{}'".format(v.isoformat())
                 elif isinstance(v, str):
-                    properties[k] = "'{}'".format(v.replace("'", "''"))
+                    # Si type `array` :
+                    if attributes[k].endswith('[]'):
+                        regex = '^\((?P<count>\d+)\:(?P<array>.*)\)$'
+                        matched = re.search(regex, v)
+                        if matched:
+                            count = matched.group('count')
+                            array = matched.group('array')
+                            if not int(count) == len(array.split(',')):
+                                raise DataDecodingError()
+                            properties[k] = "'{{{array}}}'".format(array=array)
+                        else:
+                            raise DataDecodingError()
+                    else:
+                        properties[k] = "'{}'".format(v.replace("'", "''"))
                 else:
                     properties[k] = "{}".format(v)
 
