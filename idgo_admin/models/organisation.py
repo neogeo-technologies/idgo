@@ -45,7 +45,7 @@ from operator import ior
 from urllib.parse import urljoin
 import uuid
 
-
+DEFAULT_USER_ID = settings.DEFAULT_USER_ID
 DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
 DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
 ISOFORMAT_DATE = '%Y-%m-%d'
@@ -399,7 +399,7 @@ class RemoteCkan(models.Model):
         # (3) Créer/Mettre à jour les jeux de données synchronisés
 
         # On récupère dans le `stack` l'utilisateur effectuant l'opération
-        editor = None
+        editor = User.objects.get(pk=DEFAULT_USER_ID)
         for entry in inspect.stack():
             try:
                 editor = entry[0].f_locals['request'].user._wrapped
@@ -545,11 +545,11 @@ class RemoteCkan(models.Model):
                                     resource = Resource.objects.get(ckan_id=ckan_id)
                                 except Resource.DoesNotExist:
                                     resource = Resource.default.create(
-                                        save_opts={'current_user': editor, 'synchronize': True}, **kvp)
+                                        save_opts={'current_user': None, 'synchronize': True}, **kvp)
                                 else:
                                     for k, v in kvp.items():
                                         setattr(resource, k, v)
-                                resource.save(current_user=editor, synchronize=True)
+                                resource.save(current_user=None, synchronize=True)
 
             except Exception as e:
                 for id in ckan_ids:
