@@ -45,6 +45,7 @@ from operator import ior
 from urllib.parse import urljoin
 import uuid
 
+
 DEFAULT_USER_ID = settings.DEFAULT_USER_ID
 DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
 DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
