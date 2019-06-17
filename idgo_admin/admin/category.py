@@ -20,6 +20,7 @@ from idgo_admin.models import Category
 
 class CategoryAdmin(admin.ModelAdmin):
     model = Category
+    list_display = ('name', 'iso_topic',)
     readonly_fields = ['slug']
     ordering = ('name',)
 
