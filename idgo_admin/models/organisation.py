@@ -39,6 +39,7 @@ from idgo_admin.exceptions import CswBaseError
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin import logger
 from idgo_admin.mra_client import MRAHandler
+from idgo_admin.models.category import ISO_TOPIC_CHOICES
 import inspect
 from operator import iand
 from operator import ior
@@ -501,10 +502,6 @@ class RemoteCkan(models.Model):
 
                             dataset, created = Dataset.harvested_ckan.update_or_create(**kvp)
 
-                            # categories = Category.objects.filter(
-                            #     slug__in=[m['name'] for m in package.get('groups', [])])
-                            # if categories:
-                            #     dataset.categories = categories
                             mapping_categories = MappingCategory.objects.filter(
                                 remote_ckan=self, slug__in=[m['name'] for m in package.get('groups', [])])
                             if mapping_categories:
@@ -853,10 +850,20 @@ class RemoteCsw(models.Model):
                         if created:
                             ckan_ids.append(dataset.ckan_id)
 
+                        categories_name = [m['name'] for m in package.get('groups', [])]
+                        iso_topic_reverse = dict((v, k) for k, v in Category._meta.fields[5].choices)
+
                         categories = Category.objects.filter(
-                            slug__in=[m['name'] for m in package.get('groups', [])])
+                            reduce(ior, [
+                                Q(slug__in=categories_name),
+                                Q(name__in=categories_name),
+                                Q(iso_topic__in=[m['name'] for m in package.get('groups', [])]),
+                                Q(iso_topic__in=[iso_topic_reverse.get(name) for name in categories_name]),
+                                ])
+                            )
+
                         if categories:
-                            dataset.categories = categories
+                            dataset.categories.set(categories, clear=True)
 
                         if not created:
                             dataset.keywords.clear()
