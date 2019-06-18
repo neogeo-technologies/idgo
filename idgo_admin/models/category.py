@@ -16,6 +16,7 @@
 
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
@@ -66,9 +67,17 @@ class Category(models.Model):
         default=uuid.uuid4,
         )
 
-    name = models.CharField(
+    name = models.CharField(  # TODO title->TextField
         verbose_name="Nom",
         max_length=100,
+        )
+
+    alternate_titles = ArrayField(
+        models.TextField(),
+        verbose_name="Autres titres",
+        blank=True,
+        null=True,
+        size=None,
         )
 
     description = models.CharField(

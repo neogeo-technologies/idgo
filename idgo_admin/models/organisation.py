@@ -446,19 +446,6 @@ class RemoteCkan(models.Model):
                             if metadata_modified:
                                 metadata_modified = datetime.strptime(metadata_modified, ISOFORMAT_DATETIME)
 
-                            # filters = [
-                            #     Q(slug=package.get('license_id')),
-                            #     Q(title=package.get('license_title')),
-                            #     Q(alternate_titles__contains=[package.get('license_title')]),
-                            #     ]
-                            # try:
-                            #     license = License.objects.get(reduce(ior, filters))
-                            # except License.DoesNotExist:
-                            #     try:
-                            #         license = License.objects.get(slug='notspecified')
-                            #     except License.DoesNotExist:
-                            #         license = None
-
                             try:
                                 mapping_licence = MappingLicence.objects.get(
                                     remote_ckan=self, slug=package.get('license_id'))
@@ -788,18 +775,11 @@ class RemoteCsw(models.Model):
                                 date_publication = None
 
                         # Licence
-                        filters = [
-                            Q(slug=package.get('license_id')),
-                            Q(title=package.get('license_title')),
-                            Q(alternate_titles__contains=[package.get('license_title')]),
-                            ]
-                        try:
-                            license = License.objects.get(reduce(ior, filters))
-                        except License.DoesNotExist:
-                            try:
-                                license = License.objects.get(slug='notspecified')
-                            except License.DoesNotExist:
-                                license = None
+                        license = License.objects.filter(
+                            alternate_titles__icontains=package.get('license_titles')
+                            ).first()
+                        if not license:
+                            license = License.objects.get(slug='notspecified')
 
                         # On pousse la fiche de MD dans Geonet
                         if not geonet.get_record(geonet_id):
@@ -853,15 +833,15 @@ class RemoteCsw(models.Model):
                         categories_name = [m['name'] for m in package.get('groups', [])]
                         iso_topic_reverse = dict((v, k) for k, v in Category._meta.fields[5].choices)
 
-                        categories = Category.objects.filter(
-                            reduce(ior, [
-                                Q(slug__in=categories_name),
-                                Q(name__in=categories_name),
-                                Q(iso_topic__in=[m['name'] for m in package.get('groups', [])]),
-                                Q(iso_topic__in=[iso_topic_reverse.get(name) for name in categories_name]),
-                                ])
-                            )
+                        filters = [
+                            Q(slug__in=categories_name),
+                            Q(name__in=categories_name),
+                            Q(iso_topic__in=[m['name'] for m in package.get('groups', [])]),
+                            Q(iso_topic__in=[iso_topic_reverse.get(name) for name in categories_name]),
+                            Q(alternate_titles__contained_by=categories_name),
+                            ]
 
+                        categories = Category.objects.filter(reduce(ior, filters)).distinct()
                         if categories:
                             dataset.categories.set(categories, clear=True)
 

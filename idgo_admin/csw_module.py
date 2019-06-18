@@ -152,10 +152,14 @@ class CswBaseHandler(object):
         notes = description = rec.identification.abstract
         thumbnail = None
 
-        keywords = [k for l in [
-            m.keywords for m in rec.identification.keywords2
-            if m.__class__.__name__ == 'MD_Keywords']
-            for k in l]
+        keywords, themes = [], []
+        for item in rec.identification.keywords2:
+            if not item.__class__.__name__ == 'MD_Keywords':
+                continue
+            if item.type == 'theme':
+                themes += item.keywords
+            keywords += item.keywords
+
         tags = []
         for keyword in keywords:
             if not keyword:
@@ -164,12 +168,14 @@ class CswBaseHandler(object):
             if keyword_match.match(keyword):
                 tags.append({'display_name': keyword})
 
-        groups = categories = [
+        groups = [
             {'name': name} for name in rec.identification.topiccategory]
+        if themes:
+            groups += [{'name': name} for name in themes]
 
-        dataset_creation_date = date_creation = None
-        dataset_modification_date = date_modification = None
-        dataset_publication_date = date_publication = None
+        dataset_creation_date = None
+        dataset_modification_date = None
+        dataset_publication_date = None
         if rec.identification.date:
             for item in rec.identification.date:
                 if not item.__class__.__name__ == 'CI_Date':
@@ -181,7 +187,7 @@ class CswBaseHandler(object):
                 elif item.type in ('modification', 'revision'):
                     dataset_modification_date = item.date
 
-        frequency = update_frequency = None
+        frequency = None
         geocover = None
         granularity = None
         organisation = {
@@ -197,13 +203,12 @@ class CswBaseHandler(object):
             'approval_status': 'approved',
             }
 
-        license_id = None
-        license_title = None
+        license_titles = rec.identification.uselimitation or []
 
         support = None
         data_type = None
-        author = owner_name = None
-        author_email = owner_email = None
+        author = None
+        author_email = None
         maintainer = None
         maintainer_email = None
 
@@ -263,8 +268,7 @@ class CswBaseHandler(object):
             'geocover': geocover,
             'granularity': granularity,
             'organization': organisation,
-            'license_id': license_id,
-            'license_title': license_title,
+            'license_titles': license_titles,
             'support': support,
             'datatype': data_type,
             'author': author,
