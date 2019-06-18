@@ -382,7 +382,7 @@ class Dataset(models.Model):
                 # Prend l'étendue par défaut définie en settings
                 setattr(self, 'bbox', DEFAULT_BBOX)
             else:
-                setattr(self, 'bbox', None)
+                setattr(self, 'bbox', self.bbox or None)  # ATTENTION AUX EFFETS DE BORD !
 
         # On sauvegarde le jeu de données
         super().save(*args, **kwargs)

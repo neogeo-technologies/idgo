@@ -835,7 +835,7 @@ class RemoteCsw(models.Model):
                             'remote_instance': self,
                             'remote_dataset': geonet_id,
                             'update_frequency': update_frequency,
-                            # bbox
+                            'bbox': package.get('bbox'),
                             # broadcaster_email
                             # broadcaster_name
                             # data_type

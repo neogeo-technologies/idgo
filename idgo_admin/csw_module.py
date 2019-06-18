@@ -16,12 +16,13 @@
 
 from django.utils.text import slugify
 from functools import wraps
+from idgo_admin.datagis import bounds_to_wkt
+from idgo_admin.datagis import transform
 from idgo_admin.exceptions import CswBaseError
 from idgo_admin import logger
 import inspect
 import os
 from owslib.csw import CatalogueServiceWeb
-from owslib.fes import PropertyIsEqualTo
 import re
 import timeout_decorator
 
@@ -206,34 +207,24 @@ class CswBaseHandler(object):
         maintainer = None
         maintainer_email = None
 
+        spatial = None
         bbox = None
         if rec.identification.bbox:
-            bbox = {
+            xmin = rec.identification.bbox.minx
+            ymin = rec.identification.bbox.miny
+            xmax = rec.identification.bbox.maxx
+            ymax = rec.identification.bbox.maxy
+
+            bbox = transform(bounds_to_wkt(xmin, ymin, xmax, ymax), '4326')
+            spatial = {
                 'type': 'Polygon',
-                'coordinates': [
-                    [
-                        [
-                            rec.identification.bbox.minx,
-                            rec.identification.bbox.miny
-                            ],
-                        [
-                            rec.identification.bbox.maxx,
-                            rec.identification.bbox.miny
-                            ],
-                        [
-                            rec.identification.bbox.maxx,
-                            rec.identification.bbox.maxy
-                            ],
-                        [
-                            rec.identification.bbox.minx,
-                            rec.identification.bbox.maxy
-                            ],
-                        [
-                            rec.identification.bbox.minx,
-                            rec.identification.bbox.miny
-                            ],
-                        ],
-                    ]
+                'coordinates': [[
+                    [xmin, ymin],
+                    [xmax, ymin],
+                    [xmax, ymax],
+                    [xmin, ymax],
+                    [xmin, ymin]
+                    ]]
                 }
 
         resources = []
@@ -282,6 +273,7 @@ class CswBaseHandler(object):
             'maintainer_email': maintainer_email,
             'num_resources': len(resources),
             'resources': resources,
-            'spatial': bbox,
+            'spatial': spatial,
+            'bbox': bbox,
             'xml': xml,
             }
