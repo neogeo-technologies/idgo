@@ -806,7 +806,7 @@ class RemoteCsw(models.Model):
                                 logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
                                 logger.error(e)
 
-                        slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), slugify(package.get('name')))[:100]
+                        slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), slugify(geonet_id))[:100]
                         kvp = {
                             'slug': slug,
                             'title': package.get('title'),
