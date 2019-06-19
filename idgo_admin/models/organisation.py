@@ -779,7 +779,10 @@ class RemoteCsw(models.Model):
                             alternate_titles__icontains=package.get('license_titles')
                             ).first()
                         if not license:
-                            license = License.objects.get(slug='notspecified')
+                            try:
+                                license = License.objects.get(slug=settings.DEFAULTS_VALUES.get('LICENSE'))
+                            except License.DoesNotExist:
+                                license = License.objects.first()
 
                         # On pousse la fiche de MD dans Geonet
                         if not geonet.get_record(geonet_id):
