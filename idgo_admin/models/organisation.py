@@ -44,6 +44,7 @@ import inspect
 from operator import iand
 from operator import ior
 from urllib.parse import urljoin
+from urllib.parse import urlparse
 import uuid
 
 
@@ -966,7 +967,5 @@ class RemoteCswDataset(models.Model):
 
     @property
     def url(self):
-        base_url = self.remote_instance.url
-        if not base_url.endswith('/'):
-            base_url += '/'
-        return reduce(urljoin, [base_url, 'dataset/', str(self.remote_dataset)])
+        parsed = urlparse(self.remote_instance.url)
+        return '{scheme}://{netloc}/'.format(scheme=parsed.scheme, netloc=parsed.netloc)
