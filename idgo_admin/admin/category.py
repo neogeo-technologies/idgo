@@ -15,10 +15,22 @@
 
 
 from django.contrib import admin
+from django import forms
 from idgo_admin.models import Category
 
 
+class CategoryAdminForm(forms.ModelForm):
+
+    class Meta(object):
+        model = Category
+        fields = '__all__'
+        widgets = {
+            'alternate_titles': forms.Textarea(),
+            }
+
+
 class CategoryAdmin(admin.ModelAdmin):
+    form = CategoryAdminForm
     model = Category
     list_display = ('name', 'iso_topic',)
     readonly_fields = ['slug']

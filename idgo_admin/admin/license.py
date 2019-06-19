@@ -15,12 +15,25 @@
 
 
 from django.contrib import admin
-from idgo_admin.models import License
 from django.contrib.admin.utils import get_deleted_objects
 from django.db import router
+from django import forms
+from idgo_admin.models import License
+
+
+class LicenseAdminForm(forms.ModelForm):
+
+    class Meta(object):
+        model = License
+        fields = '__all__'
+        widgets = {
+            'alternate_titles': forms.Textarea(),
+            'alternate_urls': forms.Textarea(),
+            }
 
 
 class LicenseAdmin(admin.ModelAdmin):
+    form = LicenseAdminForm
     ordering = ['title']
 
     def get_actions(self, request):
