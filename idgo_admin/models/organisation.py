@@ -775,10 +775,13 @@ class RemoteCsw(models.Model):
                                 date_publication = None
 
                         # Licence
-                        license = License.objects.filter(
-                            alternate_titles__overlap=package.get('license_titles')
-                            ).distinct().first()
-
+                        license_titles = package.get('license_titles')
+                        filters = [
+                            Q(slug__in=license_titles),
+                            Q(title__in=license_titles),
+                            Q(alternate_titles__overlap=license_titles),
+                            ]
+                        license = License.objects.filter(reduce(ior, filters)).distinct().first()
                         if not license:
                             try:
                                 license = License.objects.get(slug=settings.DEFAULTS_VALUES.get('LICENSE'))
