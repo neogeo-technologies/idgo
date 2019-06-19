@@ -776,8 +776,9 @@ class RemoteCsw(models.Model):
 
                         # Licence
                         license = License.objects.filter(
-                            alternate_titles__icontains=package.get('license_titles')
-                            ).first()
+                            alternate_titles__overlap=package.get('license_titles')
+                            ).distinct().first()
+
                         if not license:
                             try:
                                 license = License.objects.get(slug=settings.DEFAULTS_VALUES.get('LICENSE'))
@@ -841,7 +842,7 @@ class RemoteCsw(models.Model):
                             Q(name__in=categories_name),
                             Q(iso_topic__in=[m['name'] for m in package.get('groups', [])]),
                             Q(iso_topic__in=[iso_topic_reverse.get(name) for name in categories_name]),
-                            Q(alternate_titles__contained_by=categories_name),
+                            Q(alternate_titles__overlap=categories_name),
                             ]
 
                         categories = Category.objects.filter(reduce(ior, filters)).distinct()
