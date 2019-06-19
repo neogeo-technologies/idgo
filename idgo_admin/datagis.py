@@ -187,8 +187,7 @@ def get_gdalogr_object(filename, extension):
 
 CREATE_TABLE = '''
 CREATE TABLE {schema}."{table}" (
-  fid serial NOT NULL, {attrs}
-  {the_geom} geometry({geometry}, {to_epsg}),
+  fid serial NOT NULL, {attrs}{the_geom} geometry({geometry}, {to_epsg}),
   CONSTRAINT "{table}_pkey" PRIMARY KEY (fid)) WITH (OIDS=FALSE);
 ALTER TABLE {schema}."{table}" OWNER TO {owner};
 CREATE UNIQUE INDEX "{table}_fid" ON {schema}."{table}" USING btree (fid);
@@ -392,11 +391,11 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
             geometry = len(test) > 1 and 'Geometry' or list(test)[0]
 
         if attributes:
-            attrs = '\n  {attrs},\n  '.format(
-                attrs=',\n  '.join(['"{}" {}'.format(k, v) for k, v in attributes.items()])
-                )
-        else:
-            attrs = ''
+            attrs = '\n  '
+            for key, value in attributes.items():
+                if key.lower() == 'fid':
+                    continue
+                attrs += '"{key}" {value},\n  '.format(key=key, value=value)
 
         sql.append(CREATE_TABLE.format(
             attrs=attrs,
@@ -414,6 +413,8 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
             properties = {}
             for field in feature.fields:
                 k = field.decode()
+                if k.lower() == 'fid':
+                    continue
                 try:
                     v = feature.get(k)
                 except DjangoUnicodeDecodeError as e:
