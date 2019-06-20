@@ -34,7 +34,8 @@ class LicenseAdminForm(forms.ModelForm):
 
 class LicenseAdmin(admin.ModelAdmin):
     form = LicenseAdminForm
-    ordering = ['title']
+    list_display = ('title', 'alternate_titles',)
+    ordering = ('title',)
 
     def get_actions(self, request):
         actions = super().get_actions(request)

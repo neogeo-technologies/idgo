@@ -32,8 +32,8 @@ class CategoryAdminForm(forms.ModelForm):
 class CategoryAdmin(admin.ModelAdmin):
     form = CategoryAdminForm
     model = Category
-    list_display = ('name', 'iso_topic',)
-    readonly_fields = ['slug']
+    list_display = ('name', 'iso_topic', 'alternate_titles',)
+    readonly_fields = ('slug',)
     ordering = ('name',)
 
     def has_delete_permission(self, request, obj=None):
