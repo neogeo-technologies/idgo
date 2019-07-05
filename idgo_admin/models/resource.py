@@ -787,7 +787,7 @@ class Resource(models.Model):
 
                 # Si les données changent..
                 if existing_layers and \
-                        previous.get_layers() != self.get_layers():
+                        set(previous.get_layers()) != set(self.get_layers()):
                     # on supprime les anciens `layers`..
                     for layer in previous.get_layers():
                         layer.delete()
