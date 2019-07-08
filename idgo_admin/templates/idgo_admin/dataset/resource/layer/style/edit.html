@@ -11,13 +11,46 @@
 <link rel="stylesheet" href="{% static 'libs/bootstrap-slider/css/bootstrap-slider.css' %}"/>
 {% endblock head_extras %}
 
-{% block layer_tab_extend %}
-<li role="presentation" class="active">
-	<a href="#" role="tab">Éditeur de style</a>
-</li>
-{% endblock layer_tab_extend %}
-
 {% block layer_tab_content %}
+<template id="style_well_template">
+	<div class="row">
+		<div class="col-xs-10">
+			<div class="form-group">
+				<label for="style-name" class="control-label">Nom</label>
+				<input class="form-control input-sm" id="style-name"></input>
+			</div>
+			<div class="form-group">
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" name="is-default-style"></input> Style par défaut
+					</label>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="classes">Règles de représentation</label>
+		<div class="row">
+			<div class="col-xs-10">
+				<select class="form-control input-sm" id="classes" size="7" multiple style="height: 106px"></select>
+			</div>
+			<div class="col-xs-2">
+				<div class="btn-group-vertical" role="group">
+					<button type="button" name="class-up" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span></button>
+					<button type="button" name="class-down" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>
+					<button type="button" name="class-clone" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></button>
+					<button type="button" name="class-add" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+					<button type="button" name="class-remove" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<hr />
+	<div id="class_well">
+		<!-- class_well_template -->
+	</div>
+</template>
+
 <template id="class_well_template">
 	<div class="row">
 		<div class="col-xs-10">
@@ -56,6 +89,7 @@
 		</div>
 	</div>
 </template>
+
 <template id="filter_well_template">
 	<div class="form-group">
 		<label for="filter-operator" class="control-label">Opérateur</label>
@@ -80,6 +114,7 @@
 		</div>
 	</div>
 </template>
+
 <template  id="polygon_symbolizer_well_template">
 	<div class="row">
 		<div class="col-xs-6">
@@ -110,6 +145,7 @@
 		</div>
 	</div>
 </template>
+
 <template id="linestring_symbolizer_well_template">
 	<div class="row">
 		<div class="col-xs-6">
@@ -126,6 +162,7 @@
 		</div>
 	</div>
 </template>
+
 <template id="point_symbolizer_well_template">
 	<div class="row">
 		<div class="col-xs-6">
@@ -177,6 +214,7 @@
 		</div>
 	</div>
 </template>
+
 <template id="text_symbolizer_well_template">
 	<div class="row">
 		<div class="col-xs-8">
@@ -227,52 +265,45 @@
 		</div>
 	</div>
 </template>
+
 <form method="post">
 	<div class="row">
-		<div class="col-xs-offset-4 col-sm-offset-5 col-md-offset-6 col-lg-offset-7 col-xs-8 col-sm-7 col-md-6 col-lg-5">
-			<div class="input-group">
-				<select name="style" class="form-control input-sm disabled" disabled></select>
-				<span class="input-group-btn">
-					<button name="export-sld" class="btn btn-sm btn-default" type="button">Exporter le SLD</button>
-				</span>
+		<div class="col-xs-12">
+			<div class="buttons-on-the-right-side">
+				<button name="load-sld" class="btn btn-sm btn-default" type="button">Importer un SLD</button>
+				<button name="export-sld" class="btn btn-sm btn-default" type="button">Exporter le SLD</button>
 			</div>
 		</div>
 	</div>
+	<hr />
 	<div class="row">
 		<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
 			<div id="map_well">
-				<div id="map" style="height: 606px;"></div>
+				<div id="map" style="height: 800px; margin-bottom: 15px;"></div>
 			</div>
 		</div>
 		<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
-			<!--
-			<div class="checkbox">
-				<label>
-					<input type="checkbox" name="is-default-style"></input> Style par défaut
-				</label>
-			</div>
-			-->
 			<div id="style-editor-container">
-				<div name="form" style="height: 650px">
+				<div name="form">
 					<div class="form-group">
-						<label for="classes">Règles de représentation</label>
+						<label for="styles">Styles</label>
 						<div class="row">
 							<div class="col-xs-10">
-								<select class="form-control input-sm" id="classes" size="7" multiple style="height: 106px"></select>
+								<select class="form-control input-sm" id="styles" size="4" multiple style="height: 106px"></select>
 							</div>
 							<div class="col-xs-2">
 								<div class="btn-group-vertical" role="group">
-									<button type="button" name="up" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span></button>
-									<button type="button" name="down" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>
-									<button type="button" name="clone" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></button>
-									<button type="button" name="add" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
-									<button type="button" name="remove" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+									<button type="button" name="style-up" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span></button>
+									<button type="button" name="style-down" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>
+									<button type="button" name="style-clone" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></button>
+									<button type="button" name="style-add" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+									<button type="button" name="style-remove" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div id="class_well">
-						<!-- class_well_template -->
+					<div id="style_well">
+						<!-- style_well_template -->
 					</div>
 				</div>
 			</div>
@@ -281,13 +312,16 @@
 	<div class="row">
 		<div class="col-xs-12">
 			<div class="buttons-on-the-right-side">
-				<a class="btn btn-default" href="{% url "idgo_admin:dataset" %}?id={{ dataset.id }}#resources">Annuler</a>
-				<button type="submit" name="continue" value="continue" class="btn btn-default disabled" disabled>Enregistrer et continuer les modifications</button>
-				<button type="submit" name="save" value="save" class="btn btn-primary disabled" disabled>Enregistrer</button>
+				<button type="submit" class="btn btn-default disabled" disabled>Enregistrer et continuer les modifications</button>
 			</div>
 		</div>
 	</div>
 <form>
+<script>
+$(function() {
+	$('#layer_menu a[href="{% url "idgo_admin:layer_style_editor" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id %}"]').parent().addClass('active');
+});
+</script>
 <script>
 $(function() {
 	var glob = {};
@@ -345,118 +379,196 @@ $(function() {
 		};
 		/* Utils */
 
-		const $featureTypeStyle = $sld.find('NamedLayer:last>UserStyle:last>FeatureTypeStyle:last');
+		// Selection du style
 
-		const getSelectedClassRule = function(callback) {
-			const $option = $classes.find('option:selected');
-			const $rule = $featureTypeStyle.find('Rule>Name:textEquals("' + $option.val() + '")').parent();
-			callback($option, $rule);
+		const getSelectedStyleName = function(callback) {
+			const $option = $styles.find('option:selected');
+			const $style = $stylesList.find('Name:textEquals("' + $option.val() + '")').parent();
+			callback($option, $style);
 		};
 
-		const $removeClass = $container.find('button[name="remove"]').click(function(e) {
+		const $removeStyle = $container.find('button[name="style-remove"]').click(function(e) {
 			e.preventDefault();
-			if ($classes.find('option').length > 1) {
-				getSelectedClassRule(function($option, $rule) {
-					$option.remove();
-					$rule.remove();
-					glob.overviewingStyle();
-				});
+			if ($styles.find('option').length > 1) {
+
 			};
 		});
 
-		const $addClass = $container.find('button[name="add"]').click(function(e) {
+		const $addStyle = $container.find('button[name="style-add"]').click(function(e) {
 			e.preventDefault();
 			const m = []
 			for (var i = 0; i < $classes.children('option').length; i ++) {
 				m.push($($classes.children('option')[i]).val());
 			};
-			const value = increment('Nouvelle classe', m);
-			$featureTypeStyle.append($.parseXML('<Rule><Name>' + value + '</Name></Rule>').documentElement);
+			const value = increment('Nouveau style', m);
+			$featureTypeStyle.append($.parseXML('<NamedLayer><Name>' + value + '</Name></NamedLayer>').documentElement);
 			$classes.append($('<option>', {value: value, text : value}));
 		});
 
-		const $cloneClass = $container.find('button[name="clone"]').click(function(e) {
+		const $cloneStyle = $container.find('button[name="style-clone"]').click(function(e) {
 			e.preventDefault();
-			getSelectedClassRule(function($option, $rule) {
-				const m = []
-				for (var i = 0; i < $classes.children('option').length; i ++) {
-					m.push($($classes.children('option')[i]).val());
-				};
-				const value = increment($option.val(), m)
-				$clone = $rule.clone();
-				$clone.children('Rule>Name').text(value);
-				$rule.parent().append($clone);
-				$classes.append($('<option>', {value: value, text : value}));
-			});
+			// TODO
 
 		});
 
-		const $moveUpClass = $container.find('button[name="up"]').click(function(e) {
+		const $moveUpStyle = $container.find('button[name="style-up"]').click(function(e) {
 			e.preventDefault();
-			getSelectedClassRule(function($option, $rule) {
-				if ($option.length) {
-					$option.first().prev().before($option);
-					$rule.first().prev().before($rule);
-				};
-				glob.overviewingStyle();
-			});
+			// TODO
 		});
 
-		const $moveDownClass = $container.find('button[name="down"]').click(function(e) {
+		const $moveDownStyle = $container.find('button[name="style-down"]').click(function(e) {
 			e.preventDefault();
-			getSelectedClassRule(function($option, $rule) {
-				if ($option.length) {
-					$option.last().next().after($option);
-					$rule.last().next().after($rule);
-				};
-				glob.overviewingStyle();
-			});
+			// TODO
 		});
 
-		const $classes = $container.find('#classes').change(function(e) {
-			$('#class_well').empty();
+		const $styles = $container.find('#styles').change(function(e) {
+			$('#style_well').empty();
 			if (this.value) {
-				const $rule = $featureTypeStyle.find('Rule>Name:textEquals("' + this.value + '")').parent();
-				displayRuleForm($container, $rule, {
-					'type': params['type'],
-					'attributes': params['attributes'],
-					'operators': [
-						{
-							'value': 'PropertyIsEqualTo',
-							'text': 'Egal à (=)'
-							// 'attributes': {'matchCase': false}
-						}, {
-							'value': 'PropertyIsNotEqualTo',
-							'text': 'Différent de (≠)'
-						}, {
-							'value': 'PropertyIsLessThan',
-							'text': 'Inférieur à (<)'
-						}, {
-							'value': 'PropertyIsLessThanOrEqualTo',
-							'text': 'Inférieur ou égale à (≤)'
-						}, {
-							'value': 'PropertyIsGreaterThan',
-							'text': 'Supérieur à (>)'
-						}, {
-							'value': 'PropertyIsGreaterThanOrEqualTo',
-							'text': 'Supérieur ou égale à (≥)'
-						}, {
-							'value': 'PropertyIsLike',
-							'text': 'Comme (« LIKE »)',
-							'attributes': {'wildCard': '*', 'singleChar': '.', 'escape': '!'}
-						}
-					]
+				const $rule = getSelectedStyleName(function($container, $style) {
+
+					const $template = $('#style_well_template');
+					const $content = $($template.prop('content')).clone();
+					const $well = $('#style_well');
+
+					const $styleName = $style.children('Name');
+					$content.find('#style-name').val($styleName.text()).change(function() {
+						const value = ($(this).val());
+						$well.parent().find('#styles option[value="'+ $styleName.text() +'"]').prop({'text': value, 'value': value});
+						$styleName.text(value);
+						glob.overviewingStyle();
+					});
+
+					// RULES
+
+					const $featureTypeStyle = $sld.find('NamedLayer:last>UserStyle:last>FeatureTypeStyle:last');
+
+					const getSelectedClassRule = function(callback) {
+						const $option = $classes.find('option:selected');
+						const $rule = $featureTypeStyle.find('Rule>Name:textEquals("' + $option.val() + '")').parent();
+						callback($option, $rule);
+					};
+
+					const $removeClass = $content.find('button[name="class-remove"]').click(function(e) {
+						e.preventDefault();
+						if ($classes.find('option').length > 1) {
+							getSelectedClassRule(function($option, $rule) {
+								$option.remove();
+								$rule.remove();
+								glob.overviewingStyle();
+							});
+						};
+					});
+
+					const $addClass = $content.find('button[name="class-add"]').click(function(e) {
+						e.preventDefault();
+						const m = []
+						for (var i = 0; i < $classes.children('option').length; i ++) {
+							m.push($($classes.children('option')[i]).val());
+						};
+						const value = increment('Nouvelle classe', m);
+						$featureTypeStyle.append($.parseXML('<Rule><Name>' + value + '</Name></Rule>').documentElement);
+						$classes.append($('<option>', {value: value, text : value}));
+					});
+
+					const $cloneClass = $content.find('button[name="class-clone"]').click(function(e) {
+						e.preventDefault();
+						getSelectedClassRule(function($option, $rule) {
+							const m = []
+							for (var i = 0; i < $classes.children('option').length; i ++) {
+								m.push($($classes.children('option')[i]).val());
+							};
+							const value = increment($option.val(), m)
+							$clone = $rule.clone();
+							$clone.children('Rule>Name').text(value);
+							$rule.parent().append($clone);
+							$classes.append($('<option>', {value: value, text : value}));
+						});
+
+					});
+
+					const $moveUpClass = $content.find('button[name="class-up"]').click(function(e) {
+						e.preventDefault();
+						getSelectedClassRule(function($option, $rule) {
+							if ($option.length) {
+								$option.first().prev().before($option);
+								$rule.first().prev().before($rule);
+							};
+							glob.overviewingStyle();
+						});
+					});
+
+					const $moveDownClass = $content.find('button[name="class-down"]').click(function(e) {
+						e.preventDefault();
+						getSelectedClassRule(function($option, $rule) {
+							if ($option.length) {
+								$option.last().next().after($option);
+								$rule.last().next().after($rule);
+							};
+							glob.overviewingStyle();
+						});
+					});
+
+					const $classes = $content.find('#classes').change(function(e) {
+						$('#class_well').empty();
+						if (this.value) {
+							const $rule = $featureTypeStyle.find('Rule>Name:textEquals("' + this.value + '")').parent();
+							displayRuleForm($content, $rule, {
+								'type': params['type'],
+								'attributes': params['attributes'],
+								'operators': [
+									{
+										'value': 'PropertyIsEqualTo',
+										'text': 'Egal à (=)'
+										// 'attributes': {'matchCase': false}
+									}, {
+										'value': 'PropertyIsNotEqualTo',
+										'text': 'Différent de (≠)'
+									}, {
+										'value': 'PropertyIsLessThan',
+										'text': 'Inférieur à (<)'
+									}, {
+										'value': 'PropertyIsLessThanOrEqualTo',
+										'text': 'Inférieur ou égale à (≤)'
+									}, {
+										'value': 'PropertyIsGreaterThan',
+										'text': 'Supérieur à (>)'
+									}, {
+										'value': 'PropertyIsGreaterThanOrEqualTo',
+										'text': 'Supérieur ou égale à (≥)'
+									}, {
+										'value': 'PropertyIsLike',
+										'text': 'Comme (« LIKE »)',
+										'attributes': {'wildCard': '*', 'singleChar': '.', 'escape': '!'}
+									}
+								]
+							});
+						};
+					});
+
+					$style.find('FeatureTypeStyle:last>Rule').each(function() {
+						const value = $(this).children('Name').text()
+						$classes.append($('<option>', {value: value, text : value}));
+					});
+
+					// RULES END
+
+					$well.append($content);
+
 				});
 			};
 		});
 
-		$classes.children('option').change(function() {})
 
 		const $namedLayer = $sld.children('NamedLayer').last();
 		($namedLayer.children('Name').last() == params['name']) || $namedLayer.children('Name').last().text(params['name']);
-		$namedLayer.find('UserStyle:last>FeatureTypeStyle:last>Rule').each(function() {
-			const value = $(this).find('Name').text()
-			$classes.append($('<option>', {value: value, text : value}));
+
+		const $stylesList = $namedLayer.find('NamedStyle,UserStyle').each(function() {
+			const $Name = $(this).getChildrenOrCreate('Name').last()
+			if (!$Name.text()) {
+				$Name.text('Style par défaut')
+			}
+			const value = $Name.text()
+			$styles.append($('<option>', {value: value, text : value}));
 		});
 
 		const $exportSld = $('button[name="export-sld"]').click(function(e) {
@@ -731,7 +843,7 @@ $(function() {
 			const value = options.attributes[i];
 			$propertyName.append($('<option>', {
 				value: value,
-				text : value,
+				text: value,
 				selected: ($propertyNameParameter && value == $propertyNameParameter.text()) ? true : false
 			}));
 		};
@@ -792,6 +904,8 @@ $(function() {
 
 	var layerData = {{ layer_asjson | safe }};
 
+	const $style = $('select[name="style"]');
+
 	const $selectStyle = $('select[name="style"]');
 	const default_style = layerData['styles']['default'];
 
@@ -808,7 +922,7 @@ $(function() {
 	for (var i = 0; i < styles.length; i ++) {
 		$selectStyle.append($('<option>', {
 			value: styles[i]['name'],
-			text: styles[i]['text']
+			text: styles[i]['text'],
 		}));
 	};
 
@@ -816,10 +930,11 @@ $(function() {
 		format: 'image/png',
 		layers: layerData['name'],
 		styles: $selectStyle.val(),
-		transparent: true
+		transparent: true,
 	});
 
-	const _sld = $.parseXML(getSldByName($selectStyle.val()));
+
+	const _sld = $.parseXML(getSldByName('default'));
 	const $sld  = $(_sld).children('StyledLayerDescriptor').last();
 
 	displayStyleForm($('#style-editor-container'), $sld, layer, layerData);

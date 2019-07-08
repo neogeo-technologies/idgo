@@ -135,6 +135,10 @@ class Layer(models.Model):
         return self.mra_info['styles']['styles']
 
     @property
+    def default_style(self):
+        return self.mra_info['styles']['styles'][0]
+
+    @property
     def id(self):
         return self.name
 
@@ -166,9 +170,20 @@ class Layer(models.Model):
         organisation = self.resource.dataset.organisation
         ws_name = organisation.slug
 
+        self.mra_info = {
+            'name': None,
+            'title': None,
+            'type': None,
+            'enabled': None,
+            'abstract': None,
+            'bbox': None,
+            'attributes': None,
+            'styles': {'default': None, 'styles': None}}
+
         try:
             l = MRAHandler.get_layer(self.name)
-        except MraBaseError:
+        except MraBaseError as e:
+            logger.error(e)
             return
 
         # Récupération des informations de couche vecteur

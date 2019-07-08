@@ -41,7 +41,6 @@ from idgo_admin.views.jurisdiction import jurisdiction
 from idgo_admin.views.jurisdiction import jurisdictions
 from idgo_admin.views.jurisdiction import JurisdictionView
 from idgo_admin.views.layer import layer_style
-from idgo_admin.views.layer import layer_styles
 from idgo_admin.views.layer import LayerStyleEditorView
 from idgo_admin.views.layer import LayerView
 from idgo_admin.views.mailer import confirm_contribution
@@ -92,8 +91,7 @@ urlpatterns = [
     url('^dataset/(?P<dataset_id>(\d+))/resource/?$', ResourceManager.as_view(), name='resource'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/edit/?$', LayerView.as_view(), name='layer_editor'),
     url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/?$', layer_style, name='layer_style'),
-    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/all/?$', layer_styles, name='layer_styles'),
-    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/(?P<style_id>([a-z0-9_]*))/edit/?$', LayerStyleEditorView.as_view(), name='layer_style_editor'),
+    url('^dataset/(?P<dataset_id>(\d+))/resource/(?P<resource_id>(\d+))/layer/(?P<layer_id>([a-z0-9_]*))/style/default/edit/?$', LayerStyleEditorView.as_view(), name='layer_style_editor'),
 
     url('^dataset/export/?$', Export.as_view(), name='export'),
 

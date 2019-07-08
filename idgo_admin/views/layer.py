@@ -66,7 +66,8 @@ class LayerView(View):
 
         context = {
             'form': form,
-            'layer': layer}
+            'layer': layer,
+            }
 
         if not form.is_valid():
             return render_with_info_profile(request, self.template, context=context)
@@ -75,7 +76,8 @@ class LayerView(View):
             MRAHandler.update_layer(layer_id, {
                 'name': layer_id,
                 'title': form.cleaned_data['title'],
-                'abstract': form.cleaned_data['abstract']})
+                'abstract': form.cleaned_data['abstract'],
+                })
         except ValidationError as e:
             messages.error(request, ' '.join(e))
         except Exception as e:
@@ -83,32 +85,11 @@ class LayerView(View):
         else:
             messages.success(request, 'Les informations ont été mise à jour avec succès.')
 
-        if 'save' in request.POST:
-            to = reverse('idgo_admin:layer_editor', kwargs={
-                'dataset_id': dataset_id,
-                'resource_id': resource_id,
-                'layer_id': layer_id})
-        else:
-            to = reverse('idgo_admin:layer_editor', kwargs={
-                'dataset_id': dataset_id,
-                'resource_id': resource_id,
-                'layer_id': layer_id})
-
-        return HttpResponseRedirect(to)
-
-
-@login_required(login_url=settings.LOGIN_URL)
-@csrf_exempt
-def layer_styles(request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
-    user, profile = user_and_profile(request)
-    layer = get_object_or_404(Layer, resource=resource_id)
-    target = datasets_target(layer.resource.dataset, user)
-    context = {
-        'target': target,
-        'layer': layer,
-        }
-    return render_with_info_profile(
-        request, 'idgo_admin/dataset/resource/layer/style/styles.html', context=context)
+        return HttpResponseRedirect(reverse('idgo_admin:layer_editor', kwargs={
+            'dataset_id': dataset_id,
+            'resource_id': resource_id,
+            'layer_id': layer_id,
+            }))
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -131,7 +112,7 @@ def layer_style(request, dataset_id=None, resource_id=None, layer_id=None, *args
 @method_decorator(decorators, name='dispatch')
 class LayerStyleEditorView(View):
 
-    def get(self, request, dataset_id=None, resource_id=None, layer_id=None, style_id=None, *args, **kwargs):
+    def get(self, request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
         user, profile = user_and_profile(request)
         layer = get_object_or_404(Layer, resource=resource_id)
         target = datasets_target(layer.resource.dataset, user)
@@ -141,10 +122,11 @@ class LayerStyleEditorView(View):
             'fonts_asjson': json.dumps(MRAHandler.get_fonts()),
             'layer_asjson': json.dumps(layer.mra_info),
             }
+
         return render_with_info_profile(
             request, 'idgo_admin/dataset/resource/layer/style/edit.html', context=context)
 
-    def post(self, request, dataset_id=None, resource_id=None, layer_id=None, style_id=None, *args, **kwargs):
+    def post(self, request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
 
         user, profile = user_and_profile(request)
 
@@ -161,16 +143,8 @@ class LayerStyleEditorView(View):
             message = 'Le style a été mis à jour avec succès.'
             messages.success(request, message)
 
-        if 'save' in request.POST:
-            to = reverse('idgo_admin:layer_styles', kwargs={
-                'dataset_id': dataset_id,
-                'resource_id': resource_id,
-                'layer_id': layer_id})
-        else:
-            to = reverse('idgo_admin:layer_style_editor', kwargs={
-                'dataset_id': dataset_id,
-                'resource_id': resource_id,
-                'layer_id': layer_id,
-                'style_id': style_id})
-
-        return HttpResponseRedirect(to)
+        return HttpResponseRedirect(reverse('idgo_admin:layer_style_editor', kwargs={
+            'dataset_id': dataset_id,
+            'resource_id': resource_id,
+            'layer_id': layer_id,
+            }))
