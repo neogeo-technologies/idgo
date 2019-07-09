@@ -200,19 +200,32 @@ class Layer(models.Model):
             ll = ft['featureType']['latLonBoundingBox']
             bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
             attributes = [item['name'] for item in ft['featureType']['attributes']]
-            default_style_name = l['defaultStyle']['name']
-            styles = [{
-                'name': 'default',
-                'text': 'Style par défaut',
-                'url': l['defaultStyle']['href'].replace('json', 'sld'),
-                'sld': MRAHandler.get_style(l['defaultStyle']['name'])}]
+
+            default_style_name = None
+            styles = []
+            if 'defaultStyle' in l:
+                default_style_name = l['defaultStyle']['name']
+                try:
+                    sld = MRAHandler.get_style(l['defaultStyle']['name'])
+                except MraBaseError as e:
+                    logger.error(e)
+                    styles = {}
+                else:
+                    styles = [{
+                        'name': 'default',
+                        'text': 'Style par défaut',
+                        'url': l['defaultStyle']['href'].replace('json', 'sld'),
+                        'sld': sld,
+                        }]
+
             if l.get('styles'):
                 for style in l.get('styles')['style']:
                     styles.append({
                         'name': style['name'],
                         'text': style['name'],
                         'url': style['href'].replace('json', 'sld'),
-                        'sld': MRAHandler.get_style(style['name'])})
+                        'sld': MRAHandler.get_style(style['name']),
+                        })
 
         # Récupération des informations de couche raster
         # ==============================================

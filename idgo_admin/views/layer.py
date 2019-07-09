@@ -26,6 +26,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from idgo_admin.exceptions import MraBaseError
 from idgo_admin.forms.layer import LayerForm as Form
 from idgo_admin.models import Layer
 from idgo_admin.mra_client import MRAHandler
@@ -80,7 +81,7 @@ class LayerView(View):
                 })
         except ValidationError as e:
             messages.error(request, ' '.join(e))
-        except Exception as e:
+        except MraBaseError as e:
             messages.error(request, e.__str__())
         else:
             messages.success(request, 'Les informations ont été mise à jour avec succès.')
@@ -137,7 +138,7 @@ class LayerStyleEditorView(View):
             MRAHandler.update_layer_defaultstyle(layer_id, layer_id)
         except ValidationError as e:
             messages.error(request, ' '.join(e))
-        except Exception as e:
+        except MraBaseError as e:
             messages.error(request, e.__str__())
         else:
             message = 'Le style a été mis à jour avec succès.'

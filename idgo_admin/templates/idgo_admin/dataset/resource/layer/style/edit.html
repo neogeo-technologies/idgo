@@ -266,12 +266,54 @@
 	</div>
 </template>
 
+<template id="import_sld_modal_well_template">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+		<h4 class="modal-title">Importer un SLD</h4>
+	</div>
+	<div class="modal-header">
+		<form>
+			<div class="form-group">
+				<label class="control-label" for="id_styledlayerdescriptor">StyledLayerDescriptor</label>
+				<textarea name="styledlayerdescriptor" rows="24" placeholder="<StyledLayerDescriptor ..." cols="40" id="id_styledlayerdescriptor" title="" class="form-control code"></textarea>
+			</div>
+			<div class="buttons-on-the-right-side">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
+				<button type="button" id="id_loadsld" class="btn btn-danger disabled" disabled>Enregistrer</button>
+			</div>
+		</form>
+		<script>
+		$(function() {
+			$(document).on('input propertychange', "textarea[name='styledlayerdescriptor']", function(e) {
+				e.preventDefault();
+				if ($(this).val()) {
+					$loadSldButton.prop('disabled', false).removeClass('disabled');
+				} else {
+					$loadSldButton.prop('disabled', true).addClass('disabled');
+				}
+			});
+			const $loadSldButton = $('#id_loadsld').click(function(e) {
+				e.preventDefault();
+				const val = $('#id_styledlayerdescriptor').val();
+				const $form = $('form');
+				$form.append($('<input type="text"/>').prop('name', 'sldBody').val(val));
+				$modalHourglass.one('show.bs.modal', function(e) {
+					$form.submit();
+				}).modal('show');
+			});
+		});
+		</script>
+	</div>
+</template>
+
 <form method="post">
 	<div class="row">
 		<div class="col-xs-12">
 			<div class="buttons-on-the-right-side">
-				<button name="load-sld" class="btn btn-sm btn-default" type="button">Importer un SLD</button>
-				<button name="export-sld" class="btn btn-sm btn-default" type="button">Exporter le SLD</button>
+				<button type="button" name="import-sld" class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal">Importer un SLD</button>
+				<a name="export-sld" class="btn btn-sm btn-default" type="button">Exporter le SLD</a>
 			</div>
 		</div>
 	</div>
@@ -317,6 +359,7 @@
 		</div>
 	</div>
 <form>
+
 <script>
 $(function() {
 	$('#layer_menu a[href="{% url "idgo_admin:layer_style_editor" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id %}"]').parent().addClass('active');
@@ -359,7 +402,6 @@ $(function() {
 		return xmlString;
 	};
 
-
 	const displayStyleForm = function($container, $sld, layer, params) {
 
 		/* Utils */
@@ -390,36 +432,37 @@ $(function() {
 		const $removeStyle = $container.find('button[name="style-remove"]').click(function(e) {
 			e.preventDefault();
 			if ($styles.find('option').length > 1) {
-
+				const $option = $styles.find('option:selected');
+				const $style = $sld.find('NamedLayer:last>UserStyle>Name:textEquals("' + $option.val() + '")').parent();
+				$option.remove();
+				$style.remove();
+				glob.overviewingStyle();
 			};
 		});
 
 		const $addStyle = $container.find('button[name="style-add"]').click(function(e) {
 			e.preventDefault();
 			const m = []
-			for (var i = 0; i < $classes.children('option').length; i ++) {
-				m.push($($classes.children('option')[i]).val());
+			for (var i = 0; i < $styles.children('option').length; i ++) {
+				m.push($($styles.children('option')[i]).val());
 			};
 			const value = increment('Nouveau style', m);
-			$featureTypeStyle.append($.parseXML('<NamedLayer><Name>' + value + '</Name></NamedLayer>').documentElement);
-			$classes.append($('<option>', {value: value, text : value}));
+			console.log($sld)
+			$sld.find('NamedLayer:last').append($.parseXML('<UserStyle><Name>' + value + '</Name></UserStyle>').documentElement);
+			$styles.append($('<option>', {value: value, text : value}));
 		});
 
-		const $cloneStyle = $container.find('button[name="style-clone"]').click(function(e) {
-			e.preventDefault();
-			// TODO
+		// const $cloneStyle = $container.find('button[name="style-clone"]').click(function(e) {
+		// 	e.preventDefault();
+		// });
 
-		});
-
-		const $moveUpStyle = $container.find('button[name="style-up"]').click(function(e) {
-			e.preventDefault();
-			// TODO
-		});
-
-		const $moveDownStyle = $container.find('button[name="style-down"]').click(function(e) {
-			e.preventDefault();
-			// TODO
-		});
+		// const $moveUpStyle = $container.find('button[name="style-up"]').click(function(e) {
+		// 	e.preventDefault();
+		// });
+		//
+		// const $moveDownStyle = $container.find('button[name="style-down"]').click(function(e) {
+		// 	e.preventDefault();
+		// });
 
 		const $styles = $container.find('#styles').change(function(e) {
 			$('#style_well').empty();
@@ -571,7 +614,8 @@ $(function() {
 			$styles.append($('<option>', {value: value, text : value}));
 		});
 
-		const $exportSld = $('button[name="export-sld"]').click(function(e) {
+		const $exportSld = $('a[name="export-sld"]').click(function(e) {
+			console.log(0)
 			const filename = $sld.children('namedlayer').last().children('name').last().text();
 			// const xmlstr = (new XMLSerializer()).serializeToString($sld);
 			const xmlstr = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
@@ -945,8 +989,20 @@ $(function() {
 		attribution: 'CartoDB',
 	}).addTo(map);
 
-	glob.map = map
+	glob.map = map;
 	glob.map.addLayer(layer);
+
+	$('button[name="import-sld"]').on('click', function(e) {
+		e.preventDefault();
+		const $template = $('#import_sld_modal_well_template');
+		const $content = $($template.prop('content')).clone();
+		const $modal = $('#modal-dialog');
+		const $modalContent = $modal.find('.modal-content');
+		$modalContent.empty();
+		$modalContent.append($content);
+		$modal.modal('show');
+		e.stopPropagation();
+	});
 
 });
 </script>
