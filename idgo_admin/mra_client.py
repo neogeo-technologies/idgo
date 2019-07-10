@@ -392,8 +392,12 @@ class MRAHandler(metaclass=Singleton):
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def update_layer_defaultstyle(self, l_name, s_name):
         json = {'layer': self.get_layer(l_name)}
-        json['layer']['defaultStyle']['name'] = s_name
-        json['layer']['defaultStyle']['href'] = '{0}styles/{1}.json'.format(MRA['URL'], s_name)
+        json['layer'].update({
+            'defaultStyle': {
+                'name': s_name,
+                'href': '{0}styles/{1}.json'.format(MRA['URL'], s_name),
+                }
+            })
         return self.remote.put('layers', l_name, json=json)
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
