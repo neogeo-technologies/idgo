@@ -626,7 +626,6 @@ $(function() {
 		glob.overviewingStyle = function() {
 
 			var sldBody = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
-			console.log(sldBody);
 			layer.remove();
 			layer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 				format: 'image/png',
@@ -973,7 +972,7 @@ $(function() {
 	var layer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 		format: 'image/png',
 		layers: layerData['name'],
-		styles: $selectStyle.val(),
+		styles: '',
 		transparent: true,
 	});
 

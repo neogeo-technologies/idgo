@@ -23,6 +23,8 @@ from idgo_admin.exceptions import MraBaseError
 from idgo_admin import logger
 from idgo_admin.utils import Singleton
 import inspect
+from lxml import etree
+from lxml import objectify
 import os
 from requests import request
 import timeout_decorator
@@ -36,6 +38,19 @@ MRA = settings.MRA
 MRA_TIMEOUT = MRA.get('TIMEOUT', 3600)
 MRA_DATAGIS_USER = MRA['DATAGIS_DB_USER']
 DB_SETTINGS = settings.DATABASES[settings.DATAGIS_DB]
+
+
+def preprocessing_sld(data):
+    parser = etree.XMLParser(remove_blank_text=True)
+    root = etree.fromstring(data, parser)
+    for elem in root.getiterator():
+        if not hasattr(elem.tag, 'find'):
+            continue
+        i = elem.tag.find('}')
+        if i >= 0:
+            elem.tag = elem.tag[i + 1:]
+    objectify.deannotate(root, cleanup_namespaces=True)
+    return etree.tostring(root, pretty_print=True)
 
 
 def timeout(fun):
@@ -366,13 +381,13 @@ class MRAHandler(metaclass=Singleton):
     @MRAExceptionsHandler()
     def create_style(self, s_name, data):
         return self.remote.post(
-            'styles', extension='sld', params={'name': s_name}, data=data,
+            'styles', extension='sld', params={'name': s_name}, data=preprocessing_sld(data),
             headers={'content-type': 'application/vnd.ogc.sld+xml; charset=utf-8'})
 
     @MRAExceptionsHandler()
     def update_style(self, s_name, data):
         return self.remote.put(
-            'styles', s_name, extension='sld', data=data,
+            'styles', s_name, extension='sld', data=preprocessing_sld(data),
             headers={'content-type': 'application/vnd.ogc.sld+xml; charset=utf-8'})
 
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
