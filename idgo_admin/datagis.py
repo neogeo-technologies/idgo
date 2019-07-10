@@ -223,7 +223,7 @@ def handle_ogr_field_type(k, n=None, p=None):
         'OFTInteger64List': 'integer[]'}.get(k, 'text').format(n=n, p=p)
 
 
-def handle_ogr_geom_type(ogr_geom_type):
+def handle_ogr_geom_type(m):
     return {
         'geometrycollection25d': 'GeometryCollectionZ',
         'linestring25d': 'LineStringZ',
@@ -232,7 +232,7 @@ def handle_ogr_geom_type(ogr_geom_type):
         'multipolygon25d': 'MultiPolygonZ',
         'point25d': 'PointZ',
         'polygon25d': 'PolygonZ'
-        }.get(ogr_geom_type.name.lower(), ogr_geom_type.name)  # 'Geometry')
+        }.get(m.lower(), m)
 
 
 def get_epsg(obj):
@@ -386,9 +386,8 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
         elif test == {'Point25D', 'MultiPoint25D'}:
             geometry = 'MultiPointZ'
         else:
-            # geometry = len(test) > 1 \
-            #     and 'Geometry' or handle_ogr_geom_type(layer.geom_type)
-            geometry = len(test) > 1 and 'Geometry' or list(test)[0]
+            geometry = \
+                len(test) > 1 and 'Geometry' or handle_ogr_geom_type(list(test)[0])
 
         if attributes:
             attrs = '\n  '
