@@ -116,9 +116,10 @@ class OrganisationForm(forms.ModelForm):
             self.fields['jurisdiction'].widget.attrs['class'] = 'disabled'
 
     def clean(self):
-        legal_name = self.cleaned_data.get('legal_name')
-        if Organisation.objects.filter(slug=slugify(legal_name)).count() > 0:
-            self.add_error('legal_name', 'Une organisation portant le même nom existe déjà.')
+        if self.instance:
+            legal_name = self.cleaned_data.get('legal_name')
+            if Organisation.objects.filter(slug=slugify(legal_name)).count() > 0:
+                self.add_error('legal_name', 'Une organisation portant le même nom existe déjà.')
         if self.instance and not self.user.profile.is_crige_admin:
             self.cleaned_data['jurisdiction'] = self.instance.jurisdiction
         return self.cleaned_data
