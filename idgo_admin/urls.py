@@ -66,10 +66,10 @@ from idgo_admin.views.organisation import Subscription
 from idgo_admin.views.organisation import UpdateOrganisation
 from idgo_admin.views.resource import resource
 from idgo_admin.views.resource import ResourceManager
+from idgo_admin.views.sld_preview import SLDPreviewGetter
+from idgo_admin.views.sld_preview import SLDPreviewSetter
 from idgo_admin.views.stuffs import DisplayLicenses
 from idgo_admin.views.stuffs import ows_preview
-from idgo_admin.views.stuffs import SLDPreviewGetter
-from idgo_admin.views.stuffs import SLDPreviewSetter
 
 
 urlpatterns = [
@@ -144,7 +144,7 @@ urlpatterns = [
 
     url('^owspreview/?$', ows_preview, name='ows_preview'),
     url('^sldpreview/?$', SLDPreviewSetter.as_view(), name='sld_preview_setter'),
-    url('^sldpreview/(?P<key>.+).sld$', SLDPreviewGetter.as_view(), name='sld_preview_getter'),
+    url('^sldpreview/(?P<key>.+)\.sld$', SLDPreviewGetter.as_view(), name='sld_preview_getter'),
     ]
 
 
