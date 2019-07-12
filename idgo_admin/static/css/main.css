@@ -555,6 +555,9 @@ table td .form-group {
     background-color: #f3f1f0;
 }
 
+.nav-tabs-xs>li>a {
+    padding: 5px 10px; 
+}
 
 /* ************************************************************************* */
 

@@ -49,6 +49,8 @@ def preprocessing_sld(data):
         i = elem.tag.find('}')
         if i >= 0:
             elem.tag = elem.tag[i + 1:]
+        if elem.tag == 'SvgParameter':
+            elem.tag = 'CssParameter'
     objectify.deannotate(root, cleanup_namespaces=True)
     return etree.tostring(root, pretty_print=True)
 

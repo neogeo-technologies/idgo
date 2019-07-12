@@ -1,5 +1,4 @@
 {% extends "idgo_admin/dataset/resource/layer/base.html" %}
-
 {% load static %}
 
 {% block head_extras %}
@@ -12,312 +11,343 @@
 {% endblock head_extras %}
 
 {% block layer_tab_content %}
-<template id="style_well_template">
+<script>
+$(function() {
+	$('#layer_menu a[href="{% url "idgo_admin:layer_style_editor" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id %}"]').parent().addClass('active');
+});
+</script>
+
+<!-- DEFINITION DES TEMPLATES  -->
+
+<template id="id_style_well_template">
+<div class="row">
+	<div class="col-xs-10">
+		<div class="form-group">
+			<label for="id_style_name" class="control-label">Nom</label>
+			<input class="form-control input-sm" id="id_style_name"></input>
+		</div>
+	</div>
+</div>
+<div class="form-group">
+	<label for="classes">Règles de représentation</label>
 	<div class="row">
 		<div class="col-xs-10">
-			<div class="form-group">
-				<label for="style-name" class="control-label">Nom</label>
-				<input class="form-control input-sm" id="style-name"></input>
-			</div>
-			<div class="form-group">
-				<div class="checkbox">
-					<label>
-						<input type="checkbox" name="is-default-style"></input> Style par défaut
-					</label>
-				</div>
+			<select class="form-control input-sm" id="classes" size="7" multiple style="height: 106px"></select>
+		</div>
+		<div class="col-xs-2">
+			<div class="btn-group-vertical" role="group">
+				<button type="button" name="class-up" class="btn btn-xs btn-default">
+					<span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>
+				</button>
+				<button type="button" name="class-down" class="btn btn-xs btn-default">
+					<span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
+				</button>
+				<button type="button" name="class-clone" class="btn btn-xs btn-default">
+					<span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span>
+				</button>
+				<button type="button" name="class-add" class="btn btn-xs btn-default">
+					<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+				</button>
+				<button type="button" name="class-remove" class="btn btn-xs btn-default">
+					<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+				</button>
 			</div>
 		</div>
 	</div>
-	<div class="form-group">
-		<label for="classes">Règles de représentation</label>
-		<div class="row">
-			<div class="col-xs-10">
-				<select class="form-control input-sm" id="classes" size="7" multiple style="height: 106px"></select>
-			</div>
-			<div class="col-xs-2">
-				<div class="btn-group-vertical" role="group">
-					<button type="button" name="class-up" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span></button>
-					<button type="button" name="class-down" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>
-					<button type="button" name="class-clone" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></button>
-					<button type="button" name="class-add" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
-					<button type="button" name="class-remove" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
-				</div>
-			</div>
-		</div>
-	</div>
-	<hr />
-	<div id="class_well">
-		<!-- class_well_template -->
-	</div>
+</div>
+
+<div id="class_well">
+	<!-- class_well_template -->
+</div>
+<script>
+$(function() {
+
+});
+</script>
 </template>
 
 <template id="class_well_template">
-	<div class="row">
-		<div class="col-xs-10">
-			<div class="form-group">
-				<label for="rule-name" class="control-label">Nom</label>
-				<input class="form-control input-sm" id="rule-name"></input>
-			</div>
+<div class="row">
+	<div class="col-xs-10">
+		<div class="form-group">
+			<label for="rule-name" class="control-label">Nom</label>
+			<input class="form-control input-sm" id="rule-name"></input>
 		</div>
 	</div>
-	<ul class="nav nav-tabs nav-justified" role="tablist">
-		<li role="presentation" class="active">
-			<a href="#filter" aria-controls="configuration" role="tab" data-toggle="tab">Filtre</a>
-		</li>
-		<li role="presentation">
-			<a href="#representation" aria-controls="styles" role="tab" data-toggle="tab">Représentation</a>
-		</li>
-		<li role="label">
-			<a href="#label" aria-controls="styles" role="tab" data-toggle="tab">Etiquette</a>
-		</li>
-	</ul>
-	<div class="tab-content">
-		<div role="tabpanel" class="tab-pane active" id="filter">
-			<div class="tab-pane-content">
-				<div id='filter_well'><!-- filter_well_template --></div>
-			</div>
-		</div>
-		<div role="tabpanel" class="tab-pane" id="representation">
-			<div class="tab-pane-content">
-				<div id='symbolizer_well'><!-- {geometry type}_symbolizer_well_template --></div>
-			</div>
-		</div>
-		<div role="tabpanel" class="tab-pane" id="label">
-			<div class="tab-pane-content">
-				<div id='text_symbolizer_well'><!-- text_symbolizer_well_template --></div>
-			</div>
+</div>
+<ul class="nav nav-tabs nav-tabs-xs nav-justified" role="tablist">
+	<li role="presentation" class="active">
+		<a href="#filter" aria-controls="configuration" role="tab" data-toggle="tab">Filtre</a>
+	</li>
+	<li role="presentation">
+		<a href="#representation" aria-controls="styles" role="tab" data-toggle="tab">Représentation</a>
+	</li>
+	<li role="label">
+		<a href="#label" aria-controls="styles" role="tab" data-toggle="tab">Étiquette</a>
+	</li>
+</ul>
+<div class="tab-content">
+	<div role="tabpanel" class="tab-pane active" id="filter">
+		<div class="tab-pane-content">
+			<div id='filter_well'><!-- filter_well_template --></div>
 		</div>
 	</div>
+	<div role="tabpanel" class="tab-pane" id="representation">
+		<div class="tab-pane-content">
+			<div id='symbolizer_well'><!-- {geometry type}_symbolizer_well_template --></div>
+		</div>
+	</div>
+	<div role="tabpanel" class="tab-pane" id="label">
+		<div class="tab-pane-content">
+			<div id='text_symbolizer_well'><!-- text_symbolizer_well_template --></div>
+		</div>
+	</div>
+</div>
 </template>
 
 <template id="filter_well_template">
-	<div class="form-group">
-		<label for="filter-operator" class="control-label">Opérateur</label>
-		<select class="form-control input-sm" id="filter-operator" name="sld-handler">
-			<option value="" selected>Aucun</option>
-		</select>
-	</div>
-	<div class="row">
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="property-name" class="control-label">Attribut</label>
-				<select class="form-control input-sm" id="property-name" name="sld-handler">
-					<option value="" selected>Aucun</option>
-				</select>
-			</div>
-		</div>
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="literal" class="control-label">Valeur</label>
-				<input class="form-control input-sm" id="literal"></input>
-			</div>
+<div class="form-group">
+	<label for="filter-operator" class="control-label">Opérateur</label>
+	<select class="form-control input-sm" id="filter-operator" name="sld-handler">
+		<option value="" selected>Aucun</option>
+	</select>
+</div>
+<div class="row">
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="property-name" class="control-label">Attribut</label>
+			<select class="form-control input-sm" id="property-name" name="sld-handler">
+				<option value="" selected>Aucun</option>
+			</select>
 		</div>
 	</div>
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="literal" class="control-label">Valeur</label>
+			<input class="form-control input-sm" id="literal"></input>
+		</div>
+	</div>
+</div>
 </template>
 
 <template  id="polygon_symbolizer_well_template">
-	<div class="row">
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="fill" class="control-label">Couleur du fond</label>
-				<input type="color" class="form-control input-sm" id="fill" name="sld-handler"></input>
-			</div>
-		</div>
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="fill-opacity" class="control-label">Opacité du fond</label>
-				<input name="sld-handler" class="form-control" id="fill-opacity" data-slider-id='fill-opacity-slider' type="text" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1"/>
-			</div>
+<div class="row">
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="fill" class="control-label">Couleur du fond</label>
+			<input type="color" class="form-control input-sm" id="fill" name="sld-handler"></input>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="stroke" class="control-label">Couleur du contour</label>
-				<input type="color" class="form-control input-sm" id="stroke" name="sld-handler"></input>
-			</div>
-		</div>
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="stroke-width" class="control-label">Epaisseur du contour</label>
-				<input class="form-control input-sm" id="stroke-width" name="sld-handler"></input>
-			</div>
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="fill-opacity" class="control-label">Opacité du fond</label>
+			<input name="sld-handler" class="form-control" id="fill-opacity" data-slider-id='fill-opacity-slider' type="text" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1"/>
 		</div>
 	</div>
+</div>
+<div class="row">
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="stroke" class="control-label">Couleur du contour</label>
+			<input type="color" class="form-control input-sm" id="stroke" name="sld-handler"></input>
+		</div>
+	</div>
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="stroke-width" class="control-label">Epaisseur du contour</label>
+			<input class="form-control input-sm" id="stroke-width" name="sld-handler"></input>
+		</div>
+	</div>
+</div>
 </template>
 
 <template id="linestring_symbolizer_well_template">
-	<div class="row">
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="stroke" class="control-label">Couleur du trait</label>
-				<input type="color" class="form-control input-sm" id="stroke" name="sld-handler"></input>
-			</div>
-		</div>
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="stroke-width" class="control-label">Epaisseur du trait</label>
-				<input class="form-control input-sm" id="stroke-width" name="sld-handler"></input>
-			</div>
+<div class="row">
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="stroke" class="control-label">Couleur du trait</label>
+			<input type="color" class="form-control input-sm" id="stroke" name="sld-handler"></input>
 		</div>
 	</div>
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="stroke-width" class="control-label">Epaisseur du trait</label>
+			<input class="form-control input-sm" id="stroke-width" name="sld-handler"></input>
+		</div>
+	</div>
+</div>
 </template>
 
 <template id="point_symbolizer_well_template">
-	<div class="row">
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="wellknownname" class="control-label">Symbole</label>
-				<select class="form-control input-sm" id="wellknownname" name="sld-handler">
-				</select>
-			</div>
-		</div>
-		<div class="col-xs-3">
-			<div class="form-group">
-				<label for="size" class="control-label">Taille</label>
-				<input type="text" class="form-control input-sm" id="size" name="sld-handler"></input>
-			</div>
-		</div>
-		<div class="col-xs-3">
-			<div class="form-group">
-				<label for="rotation" class="control-label">Rotation</label>
-				<input type="text" class="form-control input-sm" id="rotation" name="sld-handler"></input>
-			</div>
+<div class="row">
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="wellknownname" class="control-label">Symbole</label>
+			<select class="form-control input-sm" id="wellknownname" name="sld-handler">
+			</select>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="fill" class="control-label">Couleur du fond</label>
-				<input type="color" class="form-control input-sm" id="fill" name="sld-handler" placeholder="#000000"></input>
-			</div>
-		</div>
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="fill-opacity" class="control-label">Opacité du fond</label>
-				<input name="sld-handler" class="form-control" id="fill-opacity" data-slider-id='fill-opacity-slider' type="text" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1"/>
-			</div>
+	<div class="col-xs-3">
+		<div class="form-group">
+			<label for="size" class="control-label">Taille</label>
+			<input type="text" class="form-control input-sm" id="size" name="sld-handler"></input>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="stroke" class="control-label">Couleur du trait</label>
-				<input type="color" class="form-control input-sm" id="stroke" name="sld-handler"></input>
-			</div>
-		</div>
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="stroke-width" class="control-label">Epaisseur du trait</label>
-				<input class="form-control input-sm" id="stroke-width" name="sld-handler"></input>
-			</div>
+	<div class="col-xs-3">
+		<div class="form-group">
+			<label for="rotation" class="control-label">Rotation</label>
+			<input type="text" class="form-control input-sm" id="rotation" name="sld-handler"></input>
 		</div>
 	</div>
+</div>
+<div class="row">
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="fill" class="control-label">Couleur du fond</label>
+			<input type="color" class="form-control input-sm" id="fill" name="sld-handler" placeholder="#000000"></input>
+		</div>
+	</div>
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="fill-opacity" class="control-label">Opacité du fond</label>
+			<input name="sld-handler" class="form-control" id="fill-opacity" data-slider-id='fill-opacity-slider' type="text" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1"/>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="stroke" class="control-label">Couleur du trait</label>
+			<input type="color" class="form-control input-sm" id="stroke" name="sld-handler"></input>
+		</div>
+	</div>
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="stroke-width" class="control-label">Epaisseur du trait</label>
+			<input class="form-control input-sm" id="stroke-width" name="sld-handler"></input>
+		</div>
+	</div>
+</div>
 </template>
 
 <template id="text_symbolizer_well_template">
-	<div class="row">
-		<div class="col-xs-8">
-			<div class="form-group">
-				<label for="property-name" class="control-label">Attribut</label>
-				<select class="form-control input-sm" id="property-name" name="sld-handler">
-					<option value='' selected>Aucun</option>
-				</select>
-			</div>
+<div class="row">
+	<div class="col-xs-8">
+		<div class="form-group">
+			<label for="property-name" class="control-label">Attribut</label>
+			<select class="form-control input-sm" id="property-name" name="sld-handler">
+				<option value='' selected>Aucun</option>
+			</select>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col-xs-8">
-			<div class="form-group">
-				<label for="font-family" class="control-label">Police de caractère</label>
-				<select class="form-control input-sm" id="font-family" name="sld-handler" placeholder="Arial">
-					<option value='' selected>Aucun</option>
-				</select>
-			</div>
+</div>
+<div class="row">
+	<div class="col-xs-8">
+		<div class="form-group">
+			<label for="font-family" class="control-label">Police de caractère</label>
+			<select class="form-control input-sm" id="font-family" name="sld-handler" placeholder="Arial">
+				<option value='' selected>Aucun</option>
+			</select>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col-xs-6">
-			<div class="form-group">
-				<label for="fill" class="control-label">Couleur</label>
-				<input type="color" class="form-control input-sm" id="fill" name="sld-handler" placeholder="#000000"></input>
-			</div>
+</div>
+<div class="row">
+	<div class="col-xs-6">
+		<div class="form-group">
+			<label for="fill" class="control-label">Couleur</label>
+			<input type="color" class="form-control input-sm" id="fill" name="sld-handler" placeholder="#000000"></input>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col-xs-2">
-			<div class="form-group">
-				<label for="font-size" class="control-label">Taille</label>
-				<input class="form-control input-sm" id="font-size" name="sld-handler" placeholder="10"></input>
-			</div>
-		</div>
-		<div class="col-xs-4">
-			<div class="form-group">
-				<label for="font-style" class="control-label">Style</label>
-				<select class="form-control input-sm" id="font-style" name="sld-handler"></select>
-			</div>
-		</div>
-		<div class="col-xs-4">
-			<div class="form-group">
-				<label for="font-weight" class="control-label">Epaisseur</label>
-				<select class="form-control input-sm" id="font-weight" name="sld-handler"></select>
-			</div>
+</div>
+<div class="row">
+	<div class="col-xs-2">
+		<div class="form-group">
+			<label for="font-size" class="control-label">Taille</label>
+			<input class="form-control input-sm" id="font-size" name="sld-handler" placeholder="10"></input>
 		</div>
 	</div>
+	<div class="col-xs-4">
+		<div class="form-group">
+			<label for="font-style" class="control-label">Style</label>
+			<select class="form-control input-sm" id="font-style" name="sld-handler"></select>
+		</div>
+	</div>
+	<div class="col-xs-4">
+		<div class="form-group">
+			<label for="font-weight" class="control-label">Epaisseur</label>
+			<select class="form-control input-sm" id="font-weight" name="sld-handler"></select>
+		</div>
+	</div>
+</div>
 </template>
 
 <template id="import_sld_modal_well_template">
-	<div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-			<span aria-hidden="true">&times;</span>
-		</button>
-		<h4 class="modal-title">Importer un SLD</h4>
-	</div>
-	<div class="modal-header">
-		<form>
-			<div class="form-group">
-				<label class="control-label" for="id_styledlayerdescriptor">StyledLayerDescriptor</label>
-				<textarea name="styledlayerdescriptor" rows="24" placeholder="<StyledLayerDescriptor ..." cols="40" id="id_styledlayerdescriptor" title="" class="form-control code"></textarea>
-			</div>
-			<div class="buttons-on-the-right-side">
-				<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
-				<button type="button" id="id_loadsld" class="btn btn-danger disabled" disabled>Enregistrer</button>
-			</div>
-		</form>
-		<script>
-		$(function() {
-			$(document).on('input propertychange', "textarea[name='styledlayerdescriptor']", function(e) {
-				e.preventDefault();
-				if ($(this).val()) {
-					$loadSldButton.prop('disabled', false).removeClass('disabled');
-				} else {
-					$loadSldButton.prop('disabled', true).addClass('disabled');
-				}
-			});
-			const $loadSldButton = $('#id_loadsld').click(function(e) {
-				e.preventDefault();
-				const val = $('#id_styledlayerdescriptor').val();
-				const $form = $('form');
-				$form.append($('<input type="text"/>').prop('name', 'sldBody').val(val));
-				$modalHourglass.one('show.bs.modal', function(e) {
-					$form.submit();
-				}).modal('show');
-			});
+<div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		<span aria-hidden="true">&times;</span>
+	</button>
+	<h4 class="modal-title">Importer un document SLD</h4>
+</div>
+<div class="modal-header">
+	<form style="font-size: 12px;">
+		<div class="form-group">
+			<label class="control-label" for="id_styledlayerdescriptor">StyledLayerDescriptor</label>
+			<textarea name="styledlayerdescriptor" rows="24" placeholder="<StyledLayerDescriptor ..." cols="40" id="id_styledlayerdescriptor" title="" class="form-control code"></textarea>
+		</div>
+		<div class="buttons-on-the-right-side">
+			<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
+			<button type="button" id="id_loadsld" class="btn btn-danger disabled" disabled>Enregistrer</button>
+		</div>
+	</form>
+	<script>
+	$(function() {
+		$(document).on('input propertychange', "textarea[name='styledlayerdescriptor']", function(e) {
+			e.preventDefault();
+			if ($(this).val()) {
+				$loadSldButton.prop('disabled', false).removeClass('disabled');
+			} else {
+				$loadSldButton.prop('disabled', true).addClass('disabled');
+			}
 		});
-		</script>
-	</div>
+		const $loadSldButton = $('#id_loadsld').click(function(e) {
+			e.preventDefault();
+			const val = $('#id_styledlayerdescriptor').val();
+			const $form = $('form');
+			$form.append($('<input type="text"/>').prop('name', 'sldBody').val(val));
+			$modalHourglass.one('show.bs.modal', function(e) {
+				$form.submit();
+			}).modal('show');
+		});
+	});
+	</script>
+</div>
 </template>
-
-<form method="post">
+<!--  -->
+<form method="post" style="font-size: 12px;">
 	<div class="row">
 		<div class="col-xs-12">
 			<div class="buttons-on-the-right-side">
 				<button type="button" name="import-sld" class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal">Importer un SLD</button>
+				<script>
+				$(function() {
+					$('button[name="import-sld"]').on('click', function(e) {
+						e.preventDefault();
+						const $template = $('#import_sld_modal_well_template');
+						const $content = $($template.prop('content')).clone();
+						const $modal = $('#modal-dialog');
+						const $modalContent = $modal.find('.modal-content');
+						$modalContent.empty();
+						$modalContent.append($content);
+						$modal.modal('show');
+						e.stopPropagation();
+					});
+				});
+				</script>
 				<a name="export-sld" class="btn btn-sm btn-default" type="button">Exporter le SLD</a>
 			</div>
 		</div>
 	</div>
-	<hr />
+	<br />
 	<div class="row">
 		<div class="col-xs-4 col-sm-5 col-md-6 col-lg-7">
 			<div id="map_well">
@@ -327,25 +357,35 @@
 		<div class="col-xs-8 col-sm-7 col-md-6 col-lg-5">
 			<div id="style-editor-container">
 				<div name="form">
-					<div class="form-group">
+					<div class="form-group disabled">
 						<label for="styles">Styles</label>
 						<div class="row">
 							<div class="col-xs-10">
-								<select class="form-control input-sm" id="styles" size="4" multiple style="height: 106px"></select>
+								<select class="form-control input-sm" id="id_styles" size="3" multiple></select>
 							</div>
 							<div class="col-xs-2">
 								<div class="btn-group-vertical" role="group">
-									<button type="button" name="style-up" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span></button>
-									<button type="button" name="style-down" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>
-									<button type="button" name="style-clone" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></button>
-									<button type="button" name="style-add" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
-									<button type="button" name="style-remove" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+									<!-- <button type="button" name="style-up" class="btn btn-xs btn-default">
+										<span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>
+									</button> -->
+									<!-- <button type="button" name="style-down" class="btn btn-xs btn-default">
+										<span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
+									</button> -->
+									<!-- <button type="button" name="style-clone" class="btn btn-xs btn-default">
+										<span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span>
+									</button> -->
+									<button type="button" name="style-add" class="btn btn-xs btn-default">
+										<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+									</button>
+									<button type="button" name="style-remove" class="btn btn-xs btn-default">
+										<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+									</button>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div id="style_well">
-						<!-- style_well_template -->
+					<div id="id_style_well">
+						<!-- id_style_well_template -->
 					</div>
 				</div>
 			</div>
@@ -362,23 +402,19 @@
 
 <script>
 $(function() {
-	$('#layer_menu a[href="{% url "idgo_admin:layer_style_editor" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id %}"]').parent().addClass('active');
-});
-</script>
-<script>
-$(function() {
-	var glob = {};
+
+	let that = {};
 
 	$.expr[':'].textEquals = $.expr.createPseudo(function(arg) {
 		return function( elem ) {
-			return $(elem).text().match("^" + arg + "$");
+			return $(elem).text().match('^' + arg + '$');
 		};
 	});
 
 	const pullXml = function($xml) {
 		var xmlString = '';
 		$xml.children().each(function() {
-			var attrs = []
+			var attrs = [];
 			for (var att, i = 0, atts = this.attributes, n = atts.length; i < n; i ++) {
 				att = atts[i];
 				attrs.push(att.nodeName + '="' + att.nodeValue + '"');
@@ -402,7 +438,7 @@ $(function() {
 		return xmlString;
 	};
 
-	const displayStyleForm = function($container, $sld, layer, params) {
+	const displayStyleForm = function($container, $sld, params) {
 
 		/* Utils */
 		var increment = function(value, m) {
@@ -436,7 +472,7 @@ $(function() {
 				const $style = $sld.find('NamedLayer:last>UserStyle>Name:textEquals("' + $option.val() + '")').parent();
 				$option.remove();
 				$style.remove();
-				glob.overviewingStyle();
+				that.overviewingStyle();
 			};
 		});
 
@@ -459,26 +495,27 @@ $(function() {
 		// const $moveUpStyle = $container.find('button[name="style-up"]').click(function(e) {
 		// 	e.preventDefault();
 		// });
-		//
+
 		// const $moveDownStyle = $container.find('button[name="style-down"]').click(function(e) {
 		// 	e.preventDefault();
 		// });
 
-		const $styles = $container.find('#styles').change(function(e) {
-			$('#style_well').empty();
+		const $styles = $container.find('#id_styles');
+		$styles.change(function(e) {
+			$('#id_style_well').empty();
+
 			if (this.value) {
 				const $rule = getSelectedStyleName(function($container, $style) {
 
-					const $template = $('#style_well_template');
+					const $template = $('#id_style_well_template');
 					const $content = $($template.prop('content')).clone();
-					const $well = $('#style_well');
 
 					const $styleName = $style.children('Name');
-					$content.find('#style-name').val($styleName.text()).change(function() {
+					$content.find('#id_style_name').val($styleName.text()).change(function() {
 						const value = ($(this).val());
-						$well.parent().find('#styles option[value="'+ $styleName.text() +'"]').prop({'text': value, 'value': value});
+						$('#id_style_well').parent().find('#id_styles option[value="'+ $styleName.text() +'"]').prop({'text': value, 'value': value});
 						$styleName.text(value);
-						glob.overviewingStyle();
+						that.overviewingStyle();
 					});
 
 					// RULES
@@ -497,12 +534,12 @@ $(function() {
 							getSelectedClassRule(function($option, $rule) {
 								$option.remove();
 								$rule.remove();
-								glob.overviewingStyle();
+								that.overviewingStyle();
 							});
 						};
 					});
 
-					const $addClass = $content.find('button[name="class-add"]').click(function(e) {
+					$content.find('button[name="class-add"]').click(function(e) {
 						e.preventDefault();
 						const m = []
 						for (var i = 0; i < $classes.children('option').length; i ++) {
@@ -513,7 +550,7 @@ $(function() {
 						$classes.append($('<option>', {value: value, text : value}));
 					});
 
-					const $cloneClass = $content.find('button[name="class-clone"]').click(function(e) {
+					$content.find('button[name="class-clone"]').click(function(e) {
 						e.preventDefault();
 						getSelectedClassRule(function($option, $rule) {
 							const m = []
@@ -529,25 +566,25 @@ $(function() {
 
 					});
 
-					const $moveUpClass = $content.find('button[name="class-up"]').click(function(e) {
+					$content.find('button[name="class-up"]').click(function(e) {
 						e.preventDefault();
 						getSelectedClassRule(function($option, $rule) {
 							if ($option.length) {
 								$option.first().prev().before($option);
 								$rule.first().prev().before($rule);
 							};
-							glob.overviewingStyle();
+							that.overviewingStyle();
 						});
 					});
 
-					const $moveDownClass = $content.find('button[name="class-down"]').click(function(e) {
+					$content.find('button[name="class-down"]').click(function(e) {
 						e.preventDefault();
 						getSelectedClassRule(function($option, $rule) {
 							if ($option.length) {
 								$option.last().next().after($option);
 								$rule.last().next().after($rule);
 							};
-							glob.overviewingStyle();
+							that.overviewingStyle();
 						});
 					});
 
@@ -595,17 +632,18 @@ $(function() {
 
 					// RULES END
 
-					$well.append($content);
+					$('#id_style_well').append($content);
+					// Sélectionne le premier
+					$classes.val($classes.children('option').first().val()).trigger('change');
 
 				});
 			};
 		});
 
-
 		const $namedLayer = $sld.children('NamedLayer').last();
 		($namedLayer.children('Name').last() == params['name']) || $namedLayer.children('Name').last().text(params['name']);
 
-		const $stylesList = $namedLayer.find('NamedStyle,UserStyle').each(function() {
+		const $stylesList = $namedLayer.find('UserStyle').each(function() {
 			const $Name = $(this).getChildrenOrCreate('Name').last()
 			if (!$Name.text()) {
 				$Name.text('Style par défaut')
@@ -613,9 +651,10 @@ $(function() {
 			const value = $Name.text()
 			$styles.append($('<option>', {value: value, text : value}));
 		});
+		// Sélectionne le premier
+		$styles.val($styles.children('option').first().val()).trigger('change');
 
 		const $exportSld = $('a[name="export-sld"]').click(function(e) {
-			console.log(0)
 			const filename = $sld.children('namedlayer').last().children('name').last().text();
 			// const xmlstr = (new XMLSerializer()).serializeToString($sld);
 			const xmlstr = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
@@ -623,17 +662,32 @@ $(function() {
 			$(this).attr('href', 'data:text/xml;charset=UTF-8,' + encodeURIComponent(xmlstr));
 		});
 
-		glob.overviewingStyle = function() {
-
+		that.overviewingStyle = function() {
 			var sldBody = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
-			layer.remove();
-			layer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
-				format: 'image/png',
-				layers: params['name'],
-				sld_body: sldBody,
-				transparent: true
+
+			const getPreviewSLD = $.post('{% url "idgo_admin:sld_preview_setter" %}', {'sld': sldBody}, function(data, textStatus, jqXHR) {
+				const location = jqXHR.getResponseHeader('Content-Location')
+				if (location) {
+					that.layer.remove();
+					that.layer = null;
+					that.layer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+						format: 'image/png',
+						layers: params['name'],
+						sld: location,
+						transparent: true
+					});
+					that.map.addLayer(that.layer);
+				}
+			})
+			.done(function() {
+				return false;
+			})
+			.fail(function(data, textStatus, jqXHR) {
+				return false
+			})
+			.always(function() {
+				return false;
 			});
-			glob.map.addLayer(layer);
 
 			var $save = $('button[type="submit"]').click(function(e) {
 				e.preventDefault();
@@ -682,7 +736,7 @@ $(function() {
 			e.preventDefault();
 			const value = $(this).val();
 			$parameter.text(value);
-			glob.overviewingStyle();
+			that.overviewingStyle();
 		});
 		if (optionsList) {
 			for (var i = 0; i < optionsList.length; i ++) {
@@ -718,7 +772,7 @@ $(function() {
 		const fillOpacityValue = $fillOpacity.val();
 		$fillOpacity.slider().slider('setValue', fillOpacityValue);
 		declareParameter($content, $symbolizer, 'Stroke', 'CssParameter', 'stroke', '#000000');
-		declareParameter($content, $symbolizer, 'Stroke', 'CssParameter', 'stroke-width', 1);
+		declareParameter($content, $symbolizer, 'Stroke', 'CssParameter', 'stroke-width', 0);
 		$well.append($content);
 	};
 
@@ -856,7 +910,7 @@ $(function() {
 				$filterTagOperator = $filter.children(value);
 				$filterTagOperator.append($children);
 			};
-			glob.overviewingStyle();
+			that.overviewingStyle();
 		});
 
 		if ($filterTagOperator.length) {
@@ -880,7 +934,7 @@ $(function() {
 			$filterTagOperator.empty();
 			$filterTagOperator.append($.parseXML('<PropertyName>' + value + '</PropertyName>').documentElement);
 			$filterTagOperator.append($children);
-			glob.overviewingStyle();
+			that.overviewingStyle();
 		});
 		for (var i = 0; i < options.attributes.length; i ++) {
 			const value = options.attributes[i];
@@ -899,7 +953,7 @@ $(function() {
 			$filterTagOperator.empty();
 			$filterTagOperator.append($.parseXML('<Literal>' + value + '</Literal>').documentElement);
 			$filterTagOperator.append($children);
-			glob.overviewingStyle();
+			that.overviewingStyle();
 		});
 
 		if (tagName) {
@@ -924,7 +978,7 @@ $(function() {
 			const value = ($(this).val());
 			$well.parent().find('#classes option[value="'+ $ruleName.text() +'"]').prop({'text': value, 'value': value});
 			$ruleName.text(value);
-			glob.overviewingStyle();
+			that.overviewingStyle();
 		});
 
 		parseFilter($rule, $content, {
@@ -969,10 +1023,9 @@ $(function() {
 		}));
 	};
 
-	var layer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
-		format: 'image/png',
+	that.layer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 		layers: layerData['name'],
-		styles: '',
+		format: 'image/png',
 		transparent: true,
 	});
 
@@ -980,28 +1033,16 @@ $(function() {
 	const _sld = $.parseXML(getSldByName('default'));
 	const $sld  = $(_sld).children('StyledLayerDescriptor').last();
 
-	displayStyleForm($('#style-editor-container'), $sld, layer, layerData);
 
-	const map = L.map('map').fitBounds(layerData['bbox']);
+	that.map = L.map('map').fitBounds(layerData['bbox']);
 
 	L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
 		attribution: 'CartoDB',
-	}).addTo(map);
+	}).addTo(that.map);
 
-	glob.map = map;
-	glob.map.addLayer(layer);
+	that.map.addLayer(that.layer);
 
-	$('button[name="import-sld"]').on('click', function(e) {
-		e.preventDefault();
-		const $template = $('#import_sld_modal_well_template');
-		const $content = $($template.prop('content')).clone();
-		const $modal = $('#modal-dialog');
-		const $modalContent = $modal.find('.modal-content');
-		$modalContent.empty();
-		$modalContent.append($content);
-		$modal.modal('show');
-		e.stopPropagation();
-	});
+	displayStyleForm($('#style-editor-container'), $sld, layerData);
 
 });
 </script>

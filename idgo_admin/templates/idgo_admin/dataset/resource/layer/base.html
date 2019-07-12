@@ -49,10 +49,10 @@
 		<li role="presentation">
 			{% if user.profile.crige_membership %}
 			<a href="{% url "idgo_admin:layer_style_editor" dataset_id=layer.resource.dataset.id resource_id=layer.resource.id layer_id=layer.id %}" role="tab">
-				Éditeur de styles
+				Styles
 			</a>
 			{% else %}
-			{% include "idgo_admin/extras/crige_restricted_access/link.html" with text="Éditeur de styles" target="modal_forbidden" body="<p>Vous ne disposez pas des droits nécessaires pour accéder à cette application.</p><p>Seules les organisations partenaires du CRIGE sont habilitées.</p><p>Pour faire votre demande d'affiliation et en savoir plus, rendez-vous à la section Organisation de l'espace utilisateur de DATA SUD.</p>" %}
+			{% include "idgo_admin/extras/crige_restricted_access/link.html" with text="Styles" target="modal_forbidden" body="<p>Vous ne disposez pas des droits nécessaires pour accéder à cette application.</p><p>Seules les organisations partenaires du CRIGE sont habilitées.</p><p>Pour faire votre demande d'affiliation et en savoir plus, rendez-vous à la section Organisation de l'espace utilisateur de DATA SUD.</p>" %}
 			{% endif %}
 		</li>
 	</ul>
