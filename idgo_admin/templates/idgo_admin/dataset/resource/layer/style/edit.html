@@ -325,10 +325,10 @@ $(function() {
 	<div class="row">
 		<div class="col-xs-12">
 			<div class="buttons-on-the-right-side">
-				<button type="button" name="import-sld" class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal">Importer un SLD</button>
+				<button type="button" id="id_import_sld" class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal">Importer un SLD</button>
 				<script>
 				$(function() {
-					$('button[name="import-sld"]').on('click', function(e) {
+					$('#id_import_sld').on('click', function(e) {
 						e.preventDefault();
 						const $template = $('#import_sld_modal_well_template');
 						const $content = $($template.prop('content')).clone();
@@ -341,7 +341,7 @@ $(function() {
 					});
 				});
 				</script>
-				<a name="export-sld" class="btn btn-sm btn-default" type="button">Exporter le SLD</a>
+				<a type="button" id="id_export_sld" class="btn btn-sm btn-default" href="#">Exporter le SLD</a>
 			</div>
 		</div>
 	</div>
@@ -394,7 +394,7 @@ $(function() {
 	<div class="row">
 		<div class="col-xs-12">
 			<div class="buttons-on-the-right-side">
-				<button type="submit" class="btn btn-primary">Enregistrer</button>
+				<button id="id_save_sld" type="button" class="btn btn-primary">Enregistrer</button>
 			</div>
 		</div>
 	</div>
@@ -484,7 +484,6 @@ $(function() {
 				m.push($($styles.children('option')[i]).val());
 			};
 			const value = increment('Nouveau style', m);
-			console.log($sld)
 			$sld.find('NamedLayer:last').append($.parseXML('<UserStyle><Name>' + value + '</Name></UserStyle>').documentElement);
 			$styles.append($('<option>', {value: value, text : value}));
 		});
@@ -655,17 +654,8 @@ $(function() {
 		// Sélectionne le premier
 		$styles.val($styles.children('option').first().val()).trigger('change');
 
-		const $exportSld = $('a[name="export-sld"]').click(function(e) {
-			const filename = $sld.children('namedlayer').last().children('name').last().text();
-			// const xmlstr = (new XMLSerializer()).serializeToString($sld);
-			const xmlstr = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
-			$(this).attr('download', filename + '.sld');
-			$(this).attr('href', 'data:text/xml;charset=UTF-8,' + encodeURIComponent(xmlstr));
-		});
-
 		that.overviewingStyle = function() {
 			var sldBody = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
-
 			const getPreviewSLD = $.post('{% url "idgo_admin:sld_preview_setter" %}', {'sld': sldBody}, function(data, textStatus, jqXHR) {
 				const location = jqXHR.getResponseHeader('Content-Location')
 				if (location) {
@@ -689,25 +679,23 @@ $(function() {
 			.always(function() {
 				return false;
 			});
-
-			var $save = $('button[type="submit"]').click(function(e) {
-				e.preventDefault();
-				const $form = $('form');
-				$form.append($('<input type="text"/>').prop('name', 'sldBody').val(sldBody));
-				$modalHourglass.one('show.bs.modal', function(e) {
-					$form.submit();
-				}).modal('show');
-			});
-
-			$exportSld.click(function(e) {
-				const filename = $sld.children('namedlayer').last().children('name').last().text();
-				const xmlstr = sldBody;
-				$(this).attr('download', filename + '.sld');
-				$(this).attr('href', 'data:text/xml;charset=UTF-8,' + encodeURIComponent(xmlstr));
-			});
-
-			activateButton($save);
 		};
+
+		$('#id_export_sld').click(function(e) {
+			const sldBody = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
+			const filename = $sld.children('namedlayer').last().children('name').last().text();
+			$(this).attr('download', filename + '.sld');
+			$(this).attr('href', 'data:text/xml;charset=UTF-8,' + encodeURIComponent(sldBody));
+		});
+
+		$('#id_save_sld').click(function(e) {
+			const sldBody = '<StyledLayerDescriptor>' + pullXml($sld) + '</StyledLayerDescriptor>';
+			const $form = $('form');
+			$form.append($('<input type="text"/>').prop('name', 'sldBody').val(sldBody));
+			$modalHourglass.one('show.bs.modal', function(e) {
+				$form.submit();
+			}).modal('show');
+		});
 
 	};
 
