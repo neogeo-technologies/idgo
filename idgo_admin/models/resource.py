@@ -929,7 +929,10 @@ class Resource(models.Model):
             if not url:
                 data['upload'] = self.ftp_file.file
             data['size'] = self.ftp_file.size
-            data['mimetype'] = None  # TODO
+            if self.format_type and len(self.format_type.mimetype):
+                data['mimetype'] = self.format_type.mimetype[0]
+            else:
+                data['mimetype'] = 'text/plain'
             # Passe dans un validateur pour forcer en base : url_type='upload'
             data['force_url_type'] = 'upload'
 
