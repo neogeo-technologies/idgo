@@ -16,6 +16,7 @@
 
 from api.utils import parse_request
 from collections import OrderedDict
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
@@ -130,6 +131,16 @@ def handle_pust_request(request, dataset_name=None):
 
     query_data = getattr(request, request.method)  # QueryDict
 
+    # Forcer l'éditeur (attention privilège d'admin)
+    editor = None
+    if user.profile.is_admin:
+        editor = query_data.pop('editor', None)
+        if editor:
+            try:
+                editor = User.objects.get(username=editor[-1])
+            except User.DoesNotExist as e:
+                raise GenericException(details={'editor': e.__str__()})
+
     # slug/name
     slug = query_data.pop('name', dataset and [dataset.slug])
     if slug:
@@ -212,7 +223,11 @@ def handle_pust_request(request, dataset_name=None):
         query_data.__setitem__('published', False)
 
     pk = dataset and dataset.pk or None
-    include = {'user': user, 'id': pk, 'identification': pk and True or False}
+    include = {'user': editor or user, 'id': pk, 'identification': pk and True or False}
+
+    # TODO: Extent
+    extent = query_data.pop('extent', None)
+
     form = Form(query_data, request.FILES, instance=dataset, include=include)
     if not form.is_valid():
         raise GenericException(details=form._errors)
@@ -248,7 +263,7 @@ def handle_pust_request(request, dataset_name=None):
                 for k, v in kvp.items():
                     setattr(dataset, k, v)
             else:
-                kvp['editor'] = user
+                kvp['editor'] = editor or user
                 save_opts = {'current_user': user, 'synchronize': False}
                 dataset = Dataset.default.create(save_opts=save_opts, **kvp)
             # categories

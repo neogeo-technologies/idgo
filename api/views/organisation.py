@@ -14,7 +14,7 @@
 # under the License.
 
 
-# from api.utils import parse_request
+from api.utils import parse_request
 from collections import OrderedDict
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -89,6 +89,12 @@ def handle_pust_request(request, organisation_name=None):
 
     query_data = getattr(request, request.method)  # QueryDict
 
+    is_crige_partner = query_data.pop('is_crige_partner', ['False'])
+    if is_crige_partner and is_crige_partner[-1] in ['True', 'true', '1', 1]:
+        is_crige_partner = True
+    else:
+        is_crige_partner = False
+
     # Slug/Name
     slug = query_data.pop('name', organisation and [organisation.slug])
     if slug:
@@ -114,6 +120,7 @@ def handle_pust_request(request, organisation_name=None):
                 for item in form.Meta.fields:
                     if item in data:
                         setattr(organisation, item, data[item])
+                setattr(organisation, 'is_crige_partner', is_crige_partner)
                 organisation.save()
             else:
                 kvp['is_active'] = True
@@ -143,19 +150,20 @@ class OrganisationShow(APIView):
                 return JsonResponse(organisation, safe=True)
         raise Http404()
 
-    # def put(self, request, organisation_name):
-    #     """Mettre à jour l'organisation."""
-    #     request.PUT, request._files = parse_request(request)
-    #     request.PUT._mutable = True
-    #     if not request.user.profile.is_admin:
-    #         raise Http404()
-    #     try:
-    #         handle_pust_request(request, organisation_name=organisation_name)
-    #     except Http404:
-    #         raise Http404()
-    #     except GenericException as e:
-    #         return JsonResponse({'error': e.details}, status=400)
-    #     return HttpResponse(status=204)
+    def put(self, request, organisation_name):
+        """Mettre à jour l'organisation."""
+        request.PUT, request._files = parse_request(request)
+        request.PUT._mutable = True
+
+        if not request.user.profile.is_admin:
+            raise Http404()
+        try:
+            handle_pust_request(request, organisation_name=organisation_name)
+        except Http404:
+            raise Http404()
+        except GenericException as e:
+            return JsonResponse({'error': e.details}, status=400)
+        return HttpResponse(status=204)
 
 
 class OrganisationList(APIView):

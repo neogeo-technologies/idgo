@@ -319,7 +319,8 @@ class DatasetForm(forms.ModelForm):
 
         title = self.cleaned_data.get('title')
 
-        if not re.match('^[a-z0-9\-]{1,100}$', self.cleaned_data.get('slug')):
+        if self.cleaned_data.get('slug') \
+                and not re.match('^[a-z0-9\-]{1,100}$', self.cleaned_data.get('slug')):
             self.add_error('slug', (
                 "Seuls les caractères alphanumériques et le tiret sont "
                 "autorisés (100 caractères maximum)."))

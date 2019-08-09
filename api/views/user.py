@@ -20,16 +20,21 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.db import transaction
+from django.db.utils import IntegrityError
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from functools import reduce
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.account import SignUpForm
 from idgo_admin.forms.account import UpdateAccountForm
+from idgo_admin.models import AccountActions
+from idgo_admin.models import LiaisonsContributeurs
+from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from operator import iand
@@ -177,6 +182,49 @@ def handle_pust_request(request, username=None):
                 CkanHandler.add_user(user, form.cleaned_user_data['password'], state='active')
     except (ValidationError, CkanBaseError) as e:
         raise GenericException(details=e.__str__())
+
+    # WIP
+    #
+
+    if organisation:
+        user.profile.membership = True
+        user.profile.save(update_fields=['membership'])
+
+    # contribute
+    contribute_for = None
+    contribute_for_slugs = query_data.pop('contribute', None)
+    if contribute_for_slugs:
+        try:
+            contribute_for = Organisation.objects.get(slug__in=contribute_for_slugs)
+        except Organisation.DoesNotExist as e:
+            raise GenericException(details=e.__str__())
+
+    # referent
+    referent_for = None
+    referent_for_slugs = query_data.pop('referent', None)
+    if referent_for_slugs:
+        try:
+            referent_for = Organisation.objects.get(slug__in=referent_for_slugs)
+        except Organisation.DoesNotExist as e:
+            raise GenericException(details=e.__str__())
+
+    if contribute_for:
+        try:
+            LiaisonsContributeurs.objects.get_or_create(
+                profile=user.profile, organisation=organisation, validated_on=timezone.now())
+        except IntegrityError:
+            # rien à faire
+            pass
+        else:
+            AccountActions.objects.create(
+                action='confirm_contribution', organisation=organisation,
+                profile=user.profile, closed=timezone.now())
+
+    if referent_for:
+        pass  # TODO
+
+    #
+    # WIP
 
     return user
 

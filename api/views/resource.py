@@ -162,7 +162,7 @@ def handle_pust_request(request, dataset_name, resource_id=None):
         'lang': data['lang'],
         'data_type': data['data_type'],
         'format_type': data['format_type'],
-        'last_update': data['last_update'],
+        # 'last_update': data['last_update'],
         'restricted_level': data['restricted_level'],
         'up_file': data['up_file'],
         'dl_url': data['dl_url'],
