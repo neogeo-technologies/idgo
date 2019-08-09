@@ -443,7 +443,7 @@ class Dataset(models.Model):
     def clean(self):
 
         # Vérifie la disponibilité du « slug » dans CKAN
-        slug = self.slug or slugify(self.title)
+        slug = self.slug or slugify(self.title)[:100]
         ckan_dataset = CkanHandler.get_package(slug)
         if ckan_dataset:
             if UUID(ckan_dataset['id']) != self.ckan_id and ckan_dataset['name'] == slug:
@@ -622,7 +622,7 @@ class Keywords(Tag):
 @receiver(pre_save, sender=Dataset)
 def pre_save_dataset(sender, instance, **kwargs):
     if not instance.slug:
-        instance.slug = slugify(instance.title)
+        instance.slug = slugify(instance.title)[:100]
 
 
 @receiver(post_delete, sender=Dataset)

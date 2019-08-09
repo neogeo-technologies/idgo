@@ -302,7 +302,11 @@ class ResourceList(APIView):
         except Http404:
             raise Http404()
         except GenericException as e:
-            return JsonResponse({'error': e.details}, status=400)
+            if hasattr(e, 'details'):
+                error = e.details
+            else:
+                error = e.__str__()
+            return JsonResponse({'error': error}, status=400)
         response = HttpResponse(status=201)
         response['Content-Location'] = resource.api_location
         return response
