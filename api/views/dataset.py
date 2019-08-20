@@ -25,6 +25,7 @@ from django.http import JsonResponse
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.dataset import DatasetForm as Form
+from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import DataType
@@ -35,6 +36,7 @@ from idgo_admin.models.mail import send_dataset_update_mail
 from idgo_admin.models import Organisation
 from rest_framework import permissions
 from rest_framework.views import APIView
+import xml.etree.ElementTree as ET
 
 
 def serialize(dataset):
@@ -357,3 +359,69 @@ class DatasetList(APIView):
         response = HttpResponse(status=201)
         response['Content-Location'] = dataset.api_location
         return response
+
+
+class DatasetMDShow(APIView):
+
+    permission_classes = [
+        permissions.IsAuthenticated,
+        ]
+
+    def get(self, request, dataset_name):
+        """Voir la fiche de metadonnées du jeu de données."""
+        instance = None
+        for dataset in handler_get_request(request):
+            if dataset.slug == dataset_name:
+                instance = dataset
+                break
+        if not instance or (instance and not instance.geonet_id):
+            raise Http404()
+        try:
+            record = geonet.get_record(str(instance.geonet_id))
+        except Exception as e:
+            return JsonResponse({'error': e.__str__()}, status=400)
+        else:
+            return HttpResponse(record.xml, content_type='application/xml')
+
+    def put(self, request, dataset_name):
+        """Enregistrer la ficher de métadonnées du jeu de données."""
+        request.PUT, _ = parse_request(request)
+        request.PUT._mutable = True
+
+        instance = None
+        for dataset in handler_get_request(request):
+            if dataset.slug == dataset_name:
+                instance = dataset
+                break
+        if not instance:
+            raise Http404()
+
+        root = ET.fromstring(request.PUT.get('xml'))
+        ns = {'gmd': 'http://www.isotc211.org/2005/gmd',
+              'gco': 'http://www.isotc211.org/2005/gco'}
+        geonet_id = root.find('gmd:fileIdentifier/gco:CharacterString', ns).text
+        if not geonet_id:
+            return JsonResponse({'error': 'fileIdentifier not found'}, status=400)
+
+        record = ET.tostring(
+            root, encoding='utf-8', method='xml', short_empty_elements=True)
+        try:
+            if not geonet.get_record(geonet_id):
+                try:
+                    geonet.create_record(geonet_id, record)
+                except Exception as e:
+                    return JsonResponse({'error': e.__str__()}, status=400)
+                else:
+                    geonet.publish(geonet_id)
+                    dataset.geonet_id = geonet_id
+            else:
+                try:
+                    geonet.update_record(geonet_id, record)
+                except Exception as e:
+                    return JsonResponse({'error': e.__str__()}, status=400)
+            dataset.save(synchronize=True)
+
+        except GenericException as e:
+            return JsonResponse({'error': e.details}, status=400)
+
+        return HttpResponse(status=204)

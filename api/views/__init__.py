@@ -16,6 +16,7 @@
 
 from api.views.dataset import DatasetList
 from api.views.dataset import DatasetShow
+from api.views.dataset import DatasetMDShow
 from api.views.organisation import OrganisationList
 from api.views.organisation import OrganisationShow
 from api.views.resource import ResourceList
@@ -27,6 +28,7 @@ from api.views.user import UserShow
 __all__ = [
     DatasetShow,
     DatasetList,
+    DatasetMDShow,
     OrganisationShow,
     OrganisationList,
     ResourceShow,
