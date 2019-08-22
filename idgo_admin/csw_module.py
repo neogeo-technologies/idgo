@@ -141,7 +141,7 @@ class CswBaseHandler(object):
             raise CswBaseError('outputschema error')
         # if not (rec.stdname == 'ISO 19115:2003/19139' and rec.stdver == '1.0'):
         #     raise CswBaseError('outputschema error: stdname:{} stdver:{}'.format(rec.stdname, rec.stdver))
-        if not rec.hierarchy == 'dataset':
+        if rec.hierarchy and not rec.hierarchy == 'dataset':  # 7218
             raise CswBaseError('MD {id} is not a Dataset'.format(rec.identifier))
 
         # _encoding = rec.charset
