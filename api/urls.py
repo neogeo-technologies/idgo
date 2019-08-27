@@ -28,7 +28,7 @@ from django.conf.urls import url
 
 urlpatterns = [
     url('^user/?$', APIUserList.as_view(), name='user_list'),
-    url('^user/(?P<username>\w+)/?$', APIUserShow.as_view(), name='user_show'),
+    url('^user/(?P<username>[a-z0-9\\-]+)/?$', APIUserShow.as_view(), name='user_show'),
     url('^organisation/?$', APIOrganisationList.as_view(), name='organisation_list'),
     url('^organisation/(?P<organisation_name>[a-z0-9\\-]+)/?$', APIOrganisationShow.as_view(), name='organisation_show'),
     url('^dataset/?$', APIDatasetList.as_view(), name='dataset_list'),
