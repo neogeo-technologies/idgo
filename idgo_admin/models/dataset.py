@@ -30,6 +30,7 @@ from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin import logger
+from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.managers import DefaultDatasetManager
 from idgo_admin.managers import HarvestedCkanDatasetManager
 from idgo_admin.managers import HarvestedCswDatasetManager
@@ -623,6 +624,12 @@ class Keywords(Tag):
 def pre_save_dataset(sender, instance, **kwargs):
     if not instance.slug:
         instance.slug = slugify(instance.title)[:100]
+
+
+@receiver(post_delete, sender=Dataset)
+def delete_attached_md(sender, instance, **kwargs):
+    if instance.geonet_id:
+        geonet.delete_record(instance.geonet_id)
 
 
 @receiver(post_delete, sender=Dataset)
