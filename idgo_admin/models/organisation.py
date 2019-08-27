@@ -309,6 +309,12 @@ def post_save_organisation(sender, instance, **kwargs):
         CkanHandler.update_organisation(instance)
 
 
+# @receiver(post_delete, sender=Organisation)
+# def delete_attached_md(sender, instance, **kwargs):
+#     if instance.geonet_id:
+#         geonet.delete_record(instance.geonet_id)
+
+
 @receiver(post_delete, sender=Organisation)
 def post_delete_organisation(sender, instance, **kwargs):
     if CkanHandler.is_organisation_exists(str(instance.ckan_id)):

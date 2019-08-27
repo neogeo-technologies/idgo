@@ -626,10 +626,10 @@ def pre_save_dataset(sender, instance, **kwargs):
         instance.slug = slugify(instance.title)[:100]
 
 
-@receiver(post_delete, sender=Dataset)
-def delete_attached_md(sender, instance, **kwargs):
-    if instance.geonet_id:
-        geonet.delete_record(instance.geonet_id)
+# @receiver(post_delete, sender=Dataset)
+# def delete_attached_md(sender, instance, **kwargs):
+#     if instance.geonet_id:
+#         geonet.delete_record(instance.geonet_id)
 
 
 @receiver(post_delete, sender=Dataset)

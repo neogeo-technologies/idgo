@@ -63,7 +63,9 @@ class OrganisationAdmin(geo_admin.OSMGeoAdmin):
     ordering = ['legal_name']
     readonly_fields = ['slug']
     form = OrganisationForm
-    actions = [send_email_to_crige_membership]
+    actions = (
+        send_email_to_crige_membership,
+        )
 
     send_email_to_crige_membership.short_description = \
         'Envoyer e-mail aux utilisateurs CRIGE'
@@ -72,6 +74,12 @@ class OrganisationAdmin(geo_admin.OSMGeoAdmin):
         if not request.user.is_superuser and not request.user.profile.is_crige_admin:
             self.form._meta.exclude = ['is_crige_partner']
         return super().get_form(request, obj, **kwargs)
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
 
 
 class OrganisationTypeAdmin(admin.ModelAdmin):
