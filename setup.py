@@ -14,6 +14,7 @@ def get_long_description():
 
 
 setup(
+    name="idgo",
     descrtiption="Site d'administration d'IDGO",
     packages=find_packages(),
     long_description=get_long_description(),
