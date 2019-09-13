@@ -13,12 +13,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import os
+import importlib
 
 from celery import Celery
-import os
 
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+django_config_spec = importlib.util.find_spec("django_config")
+if django_config_spec:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_config.settings')
+else:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
 app = Celery('celeriac')
 app.config_from_object('django.conf:settings', namespace='CELERY')
