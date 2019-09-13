@@ -33,7 +33,9 @@ MDEDIT_LOCALES_PATH = os.path.join(MDEDIT_CONFIG_PATH, 'locales/fr/locales.json'
 MDEDIT_DATASET_MODEL = 'models/model-dataset-empty.json'
 MDEDIT_SERVICE_MODEL = 'models/model-service-empty.json'
 
-locales_path = os.path.join(settings.BASE_DIR, 'idgo_admin/static/', MDEDIT_LOCALES_PATH)
+locales_path = (settings.MDEDIT_LOCALES_PATH or
+                os.path.join(settings.BASE_DIR, 'idgo_admin/static/',
+                             MDEDIT_LOCALES_PATH))
 try:
     with open(locales_path, 'r', encoding='utf-8') as f:
         MDEDIT_LOCALES = json.loads(f.read())
