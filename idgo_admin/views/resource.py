@@ -31,6 +31,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import ExceptionsHandler
+from idgo_admin.exceptions import MraBaseError
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
@@ -265,6 +266,10 @@ class ResourceManager(View):
             error = dict(
                 [(k, [str(m) for m in v]) for k, v in form.errors.items()])
         except CkanBaseError as e:
+            error = {'__all__': [e.__str__()]}
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
+        except MraBaseError as e:
             error = {'__all__': [e.__str__()]}
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())

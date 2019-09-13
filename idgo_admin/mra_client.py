@@ -105,6 +105,13 @@ class MRATimeoutError(MraBaseError):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+class MRACriticalError(MraBaseError):
+
+    message = "Le jeu de données provoque une erreur critique. Veuillez contacter l'administrateur du site."
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
 
 class MRAExceptionsHandler(object):
 
@@ -134,6 +141,8 @@ class MRAExceptionsHandler(object):
                         raise MRANotFoundError()
                     if e.response.status_code == 409:
                         raise MRAConflictError()
+                    if e.response.status_code == 500:
+                        raise MRACriticalError()
                 if isinstance(e, timeout_decorator.TimeoutError):
                     raise MRATimeoutError()
                 if self.is_ignored(e):
