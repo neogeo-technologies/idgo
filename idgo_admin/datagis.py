@@ -219,8 +219,8 @@ def handle_ogr_field_type(k, n=None, p=None):
         'OFTDate': 'date',
         'OFTTime': 'time',
         'OFTDateTime': 'timestamp',
-        'OFTInteger64': 'integer',
-        'OFTInteger64List': 'integer[]'}.get(k, 'text').format(n=n, p=p)
+        'OFTInteger64': 'bigint',
+        'OFTInteger64List': 'bigint[]'}.get(k, 'text').format(n=n, p=p)
 
 
 def handle_ogr_geom_type(m):
