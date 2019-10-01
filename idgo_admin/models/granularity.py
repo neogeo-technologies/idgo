@@ -20,8 +20,8 @@ from django.contrib.gis.db import models
 class Granularity(models.Model):
 
     class Meta(object):
-        verbose_name = "Granularité de la couverture territoriale"
-        verbose_name_plural = "Granularités des couvertures territoriales"
+        verbose_name = "Granularité"
+        verbose_name_plural = "Granularités"
 
     slug = models.SlugField(
         verbose_name="Slug",

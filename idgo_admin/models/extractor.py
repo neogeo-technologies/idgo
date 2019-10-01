@@ -30,8 +30,8 @@ import uuid
 class ExtractorSupportedFormat(models.Model):
 
     class Meta(object):
-        verbose_name = "Format pris en charge par le service d'extraction"
-        verbose_name_plural = "Formats pris en charge par le service d'extraction"
+        verbose_name = "Format du service d'extraction"
+        verbose_name_plural = "Formats du service d'extraction"
 
     name = models.SlugField(
         verbose_name="Nom",
@@ -68,8 +68,8 @@ class ExtractorSupportedFormat(models.Model):
 class AsyncExtractorTask(models.Model):
 
     class Meta(object):
-        verbose_name = "Tâche exécutée par l'extracteur de données"
-        verbose_name_plural = "Tâches exécutées par l'extracteur de données"
+        verbose_name = "Tâche de l'extracteur"
+        verbose_name_plural = "Tâches de l'extracteur"
 
     uuid = models.UUIDField(
         editable=False,

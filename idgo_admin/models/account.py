@@ -62,14 +62,14 @@ class Profile(models.Model):
         to='Organisation',
         through='LiaisonsReferents',
         related_name='profile_referents',
-        verbose_name="Organisations dont l'utilisateur est réferent",
+        verbose_name="Organisation dont l'utilisateur est réferent",
         )
 
     contributions = models.ManyToManyField(
         to='Organisation',
         through='LiaisonsContributeurs',
         related_name='profile_contributions',
-        verbose_name="Organisations dont l'utilisateur est contributeur",
+        verbose_name="Organisation dont l'utilisateur est contributeur",
         )
 
     phone = models.CharField(
@@ -80,7 +80,7 @@ class Profile(models.Model):
         )
 
     is_active = models.BooleanField(
-        verbose_name="Validation suite à confirmation mail par utilisateur",
+        verbose_name="Validation suite à confirmation par e-mail",
         default=False,
         )
 

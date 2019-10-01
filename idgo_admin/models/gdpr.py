@@ -23,7 +23,7 @@ from markdown import markdown
 class Gdpr(models.Model):
 
     class Meta(object):
-        verbose_name = "Modalités et conditions d'utilisation (RGPD)"
+        verbose_name = "Modalités RGPD"
 
     title = models.TextField(
         verbose_name="Title",
