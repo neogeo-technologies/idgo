@@ -32,6 +32,7 @@ from taggit.forms import TagWidget
 
 
 CKAN_URL = settings.CKAN_URL
+DOMAIN_NAME = settings.DOMAIN_NAME
 DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
 DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
 DOMAIN_NAME = settings.DOMAIN_NAME
@@ -118,7 +119,7 @@ class DatasetForm(forms.ModelForm):
         max_length=100,
         widget=forms.TextInput(
             attrs={
-                'addon_before': '{}/dataset/'.format(CKAN_URL),
+                'addon_before': '{}/dataset/'.format(DOMAIN_NAME),
                 'addon_before_class': 'input-group-addon',
                 'addon_after': '<button class="btn btn-default" type="button" />',
                 'addon_after_class': 'input-group-btn',
