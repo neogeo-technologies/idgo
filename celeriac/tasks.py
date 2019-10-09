@@ -23,6 +23,8 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
+from idgo_admin.ckan_module import CkanHandler
+from idgo_admin.models import Category
 from idgo_admin.models import Mail
 from idgo_admin.models.mail import get_admins_mails
 from idgo_admin.models import Resource
@@ -137,3 +139,10 @@ def check_resources_last_update(*args, **kwargs):
         settings.DEFAULT_FROM_EMAIL, get_admins_mails())
     mail.attach('log.csv', f.getvalue(), 'text/csv')
     mail.send()
+
+
+@celery_app.task()
+def sync_categories():
+    for category in Category.objects.all():
+        if not CkanHandler.is_group_exists(category.slug):
+            CkanHandler.add_group(category)
