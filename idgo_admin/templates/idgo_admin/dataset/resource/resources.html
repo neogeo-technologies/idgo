@@ -1,5 +1,4 @@
 {% load bootstrap3 %}
-{% load extra_tags %}
 
 {% include "idgo_admin/alert_messages.html" %}
 
@@ -15,7 +14,7 @@
 	{% if user.profile.crige_membership %}
 	<button name="resource-extractor" class="btn btn-default">Service d'extraction</button>
 	{% else %}
-	{% include "idgo_admin/extras/crige_restricted_access/button.html" with class="btn btn-default" text="Service d'extraction" name="resource-extractor" modal_target="modal_forbidden" %}
+	{% include "idgo_admin/extras/restricted_access/button.html" with class="btn btn-default" text="Service d'extraction" name="resource-extractor" modal_target="modal_forbidden" %}
 	{% endif %}
 	<button name="view-ckan-resource" class="btn btn-default">Ouvrir dans CKAN</button>
 	<button name="edit-resource" class="btn btn-secondary">Éditer <span class="glyphicon glyphicon-pencil"></span></button>
@@ -91,7 +90,7 @@ $(function() {
 	{% if user.profile.crige_membership %}
 	$('button[name="resource-extractor"]').on('click', function(e) {
 		e.preventDefault();
-		targetBlank('{% url "idgo_admin:extractor" site_name="extractor" %}?&resource=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
+		targetBlank('{% url "idgo_admin:extractor" %}?&resource=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
 		e.stopPropagation();
 	});
 	{% endif %}

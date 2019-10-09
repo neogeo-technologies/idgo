@@ -458,7 +458,7 @@ class Resource(models.Model):
 
         # Quelques valeur par défaut à la création de l'instance
         if created or not (
-                # Ou si l'éditeur n'est pas partenaire du CRIGE
+                # Ou si l'éditeur n'est pas partenaire IDGO
                 current_user and current_user.profile.crige_membership):
 
             # Mais seulement s'il s'agit de données SIG, sauf

@@ -2,28 +2,28 @@
 	"model": "idgo_admin.mail",
 	"pk": "account_activated",
 	"fields": {
-		"subject": "Bienvenue sur la plateforme Datasud",
-		"message": "Bonjour {full_name} ({username}),\n\nNous confirmons votre inscription sur la plateforme Datasud.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+		"subject": "Bienvenue sur la plateforme IDGO",
+		"message": "Bonjour {full_name} ({username}),\n\nNous confirmons votre inscription sur la plateforme IDGO.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
 	}
 }, {
 	"model": "idgo_admin.mail",
 	"pk": "account_creation_by_admin",
 	"fields": {
-		"subject": "Un nouveau compte vous a \u00e9t\u00e9 cr\u00e9e sur la plateforme Datasud",
-		"message": "Bonjour,\n\nUn compte vous a \u00e9t\u00e9 cr\u00e9\u00e9 sur la plateforme Datasud par les services d'administration.\n\nVoici votre identifiant de connexion : {username}.\n\nPour initialiser votre compte, veuillez cliquer sur le lien ci-dessous :\n\n{url}\n\n\n--\nCe message est envoy\u00e9 automatiquement. Veuillez ne pas r\u00e9pondre. "
+		"subject": "Un nouveau compte vous a \u00e9t\u00e9 cr\u00e9e sur la plateforme IDGO",
+		"message": "Bonjour,\n\nUn compte vous a \u00e9t\u00e9 cr\u00e9\u00e9 sur la plateforme IDGO par les services d'administration.\n\nVoici votre identifiant de connexion : {username}.\n\nPour initialiser votre compte, veuillez cliquer sur le lien ci-dessous :\n\n{url}\n\n\n--\nCe message est envoy\u00e9 automatiquement. Veuillez ne pas r\u00e9pondre. "
 	}
 }, {
 	"model": "idgo_admin.mail",
 	"pk": "account_deleted",
 	"fields": {
-		"subject": "Confirmation de la suppression de votre compte de la plateforme Datasud",
-		"message": "Bonjour {full_name} ({username}),\n\nNous confirmons la suppression de votre compte de la plateforme Datasud.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+		"subject": "Confirmation de la suppression de votre compte de la plateforme IDGO",
+		"message": "Bonjour {full_name} ({username}),\n\nNous confirmons la suppression de votre compte de la plateforme IDGO.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
 	}
 }, {
 	"model": "idgo_admin.mail",
-	"pk": "ask_for_crige_partnership",
+	"pk": "ask_for_idgo_partnership",
 	"fields": {
-		"subject": "Demande de partenariat CRIGE",
+		"subject": "Demande de partenariat IDGO",
 		"message": "Bonjour,\n\nL'utilisateur {full_name} ({user_email}), r\u00e9f\u00e9rent de l'organisation {organisation} ({organisation_pk}), demande un partenariat.\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
 	}
 }, {
@@ -79,8 +79,8 @@
 	"model": "idgo_admin.mail",
 	"pk": "confirm_account_creation",
 	"fields": {
-		"subject": "Confirmer votre inscription sur la plateforme Datasud",
-		"message": "Bonjour {full_name} ({username}),\n\nAfin de valider votre inscription sur la plateforme Datasud, veuillez cliquer sur le lien suivant :\n\n{url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+		"subject": "Confirmer votre inscription sur la plateforme IDGO",
+		"message": "Bonjour {full_name} ({username}),\n\nAfin de valider votre inscription sur la plateforme IDGO, veuillez cliquer sur le lien suivant :\n\n{url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
 	}
 }, {
 	"model": "idgo_admin.mail",
@@ -168,10 +168,10 @@
 	}
 }, {
 	"model": "idgo_admin.mail",
-	"pk": "inform_user_he_is_crige",
+	"pk": "inform_user_he_is_idgo",
 	"fields": {
-		"subject": "Vous \u00eates membre CRIGE",
-		"message": "Bonjour {full_name} ({username}),\n\nVous \u00eates membre CRIGE.\n\nVous avez d\u00e9sormais acc\u00e8s \u00e0 plusieurs fonctionnalit\u00e9s : extracteur de donn\u00e9es, etc.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.\n"
+		"subject": "Vous \u00eates membre partenaire IDGO",
+		"message": "Bonjour {full_name} ({username}),\n\nVous \u00eates membre partenaire IDGO.\n\nVous avez d\u00e9sormais acc\u00e8s \u00e0 plusieurs fonctionnalit\u00e9s : extracteur de donn\u00e9es, etc.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre.\n"
 	}
 }, {
 	"model": "idgo_admin.mail",
@@ -198,7 +198,7 @@
 	"model": "idgo_admin.mail",
 	"pk": "reset_password",
 	"fields": {
-		"subject": "R\u00e9initialisation de votre mot de passe sur la plateforme Datasud",
+		"subject": "R\u00e9initialisation de votre mot de passe sur la plateforme IDGO",
 		"message": "Bonjour {full_name} ({username})\n\nVous avez demand\u00e9 la r\u00e9initialisation de mot de passe.\n\nSi vous \u00eates \u00e0 l'origine de cette demande, veuillez suivre ce lien :\n\n{url}\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
 	}
 }, {

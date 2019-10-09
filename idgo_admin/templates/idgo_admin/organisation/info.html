@@ -4,17 +4,17 @@
 			<div class="col-sm-12">
 				<h3>{{ organisation.legal_name }}</h3>
 				{% if organisation.is_crige_partner %}
-				<span class='crige-partner-badge'></span>
+				<span class='idgo-partner-badge'></span>
 				{% else %}
 					{% if user.profile.is_admin or organisation in user.profile.referent_for %}
-				<button role="button" name="ask-crige-partnership" class="btn btn-sm btn-default">Demander à être partenaire CRIGE</button>
+				<button role="button" name="ask-idgo-partnership" class="btn btn-sm btn-default">Demander à être partenaire</button>
 					{% endif %}
 				{% endif %}
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-sm-12">
-				<h4><span class="crige-partner-badge" hidden></span></h4>
+				<h4><span class="idgo-partner-badge" hidden></span></h4>
 			</div>
 		</div>
 	</div>
@@ -122,8 +122,8 @@ $(function() {
 	};
 
 	{% if user.profile.is_admin or organisation in user.profile.referent_for %}
-	$('button[name="ask-crige-partnership"]').click(function() {
-		openModalChangeStatus('{% url "idgo_admin:crige_partnership" %}', {{ organisation.id }})
+	$('button[name="ask-idgo-partnership"]').click(function() {
+		openModalChangeStatus('{% url "idgo_admin:idgo_partnership" %}', {{ organisation.id }})
 	});
 	{% endif %}
 

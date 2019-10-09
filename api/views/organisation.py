@@ -62,7 +62,7 @@ def serialize(organisation):
             ])),
         ('license', license),
         ('active', organisation.is_active),
-        ('crige', organisation.is_crige_partner),
+        ('is_idgo_partner', organisation.is_crige_partner),
         ])
 
 
@@ -89,11 +89,11 @@ def handle_pust_request(request, organisation_name=None):
 
     query_data = getattr(request, request.method)  # QueryDict
 
-    is_crige_partner = query_data.pop('is_crige_partner', ['False'])
-    if is_crige_partner and is_crige_partner[-1] in ['True', 'true', '1', 1]:
-        is_crige_partner = True
+    is_idgo_partner = query_data.pop('is_idgo_partner', ['False'])
+    if is_idgo_partner and is_idgo_partner[-1] in ['True', 'true', '1', 1]:
+        is_idgo_partner = True
     else:
-        is_crige_partner = False
+        is_idgo_partner = False
 
     # Slug/Name
     slug = query_data.pop('name', organisation and [organisation.slug])
@@ -120,7 +120,7 @@ def handle_pust_request(request, organisation_name=None):
                 for item in form.Meta.fields:
                     if item in data:
                         setattr(organisation, item, data[item])
-                setattr(organisation, 'is_crige_partner', is_crige_partner)
+                setattr(organisation, 'is_crige_partner', is_idgo_partner)
                 organisation.save()
             else:
                 kvp['is_active'] = True

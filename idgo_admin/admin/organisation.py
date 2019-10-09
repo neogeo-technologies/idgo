@@ -27,13 +27,13 @@ geo_admin.GeoModelAdmin.default_lat = 5404331
 geo_admin.GeoModelAdmin.default_zoom = 14
 
 
-def send_email_to_crige_membership(modeladmin, request, queryset):
+def send_email_to_idgo_membership(modeladmin, request, queryset):
     for organisation in queryset:
         if not organisation.is_crige_partner:
             continue
-        for user in organisation.get_crige_membership():
+        for user in organisation.get_idgo_membership():
             mail_sender(
-                'inform_user_he_is_crige',
+                'inform_user_he_is_idgo',
                 to=[user.email],
                 full_name=user.get_full_name(),
                 username=user.username)
@@ -64,11 +64,11 @@ class OrganisationAdmin(geo_admin.OSMGeoAdmin):
     readonly_fields = ['slug']
     form = OrganisationForm
     actions = (
-        send_email_to_crige_membership,
+        send_email_to_idgo_membership,
         )
 
-    send_email_to_crige_membership.short_description = \
-        'Envoyer e-mail aux utilisateurs CRIGE'
+    send_email_to_idgo_membership.short_description = \
+        'Envoyer e-mail aux utilisateurs partenaire IDGO'
 
     def get_form(self, request, obj=None, **kwargs):
         if not request.user.is_superuser and not request.user.profile.is_crige_admin:

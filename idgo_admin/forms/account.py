@@ -171,7 +171,7 @@ class DeleteAdminForm(forms.Form):
         deleted_user.delete()
 
 
-# Re-définition de forms.Select pour le CRIGE
+# Re-définition de forms.Select pour les organisations partenaires IDGO
 
 
 class ModelOrganisationIterator(ModelChoiceIterator):
@@ -189,7 +189,7 @@ class ModelOrganisationIterator(ModelChoiceIterator):
         return (
             self.field.prepare_value(obj),
             self.field.label_from_instance(obj),
-            obj.is_crige_partner)  # l'organisation est partenaire du CRIGE
+            obj.is_crige_partner)  # l'organisation est partenaire IDGO
 
 
 class OrganisationSelect(forms.Select):
@@ -197,7 +197,7 @@ class OrganisationSelect(forms.Select):
     @staticmethod
     def _choice_has_empty_value(choice):
         """Return True if the choice's value is empty string or None."""
-        value, _, crige = choice
+        value, _, is_idgo_partner = choice
         return value is None or value == ''
 
     def optgroups(self, name, value, attrs=None):
@@ -205,7 +205,7 @@ class OrganisationSelect(forms.Select):
         groups = []
         has_selected = False
 
-        for index, (option_value, option_label, option_crige) in enumerate(self.choices):
+        for index, (option_value, option_label, option_is_idgo_partner) in enumerate(self.choices):
             if option_value is None:
                 option_value = ''
 
@@ -217,7 +217,7 @@ class OrganisationSelect(forms.Select):
             else:
                 group_name = None
                 subindex = None
-                choices = [(option_value, option_label, option_crige)]
+                choices = [(option_value, option_label, option_is_idgo_partner)]
             groups.append((group_name, subgroup, index))
 
             for subvalue, sublabel, subextra in choices:
@@ -229,15 +229,15 @@ class OrganisationSelect(forms.Select):
                 subgroup.append(
                     self.create_option(
                         name, subvalue, sublabel, selected, index,
-                        subindex=subindex, crige=option_crige))
+                        subindex=subindex, is_idgo_partner=option_is_idgo_partner))
                 if subindex is not None:
                     subindex += 1
         return groups
 
-    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None, crige=None):
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None, is_idgo_partner=None):
         result = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
-        if crige:
-            result['attrs']['crige'] = True
+        if is_idgo_partner:
+            result['attrs']['is-idgo-partner'] = True
         return result
 
 
@@ -313,7 +313,7 @@ class SignUpForm(forms.Form):
         label='Organisation',
         queryset=Organisation.objects.filter(is_active=True),
         empty_label="Je ne suis rattaché à aucune organisation",
-        widget=OrganisationSelect(attrs={"crige": False}))
+        widget=OrganisationSelect(attrs={"idgo-partner": False}))
 
     # Organisation fields
     new_orga = OrganisatioLegalNameField()

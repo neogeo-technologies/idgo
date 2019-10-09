@@ -7,14 +7,17 @@
 {% block nav %}{% endblock nav %}
 {% block breadcrumb %}{% endblock breadcrumb %}
 {% block main %}
+
 <div class="outer">
 	<div class="v-middle">
 		<div class="h-middle container-signup">
 			{% include "idgo_admin/alert_messages.html" %}
 			<div class="panel">
 				<div class="panel-heading">
-					<img src="{% static "img/logo_datasud.png" %}" style="height: 60px;"></img>
-					<h3>Créer votre compte sur la plateforme <strong style="font-variant: small-caps;">Data Sud</strong></h3>
+					<div class="panel-heading-logo">
+						<img src="{% static 'img/logo.png' %}"></img>
+					</div>
+					<h3>Créer votre compte {{ platform_name|default:"IDGO" }}</h3>
 				</div>
 				<div class="panel-body">
 					<form method="post" action="" enctype="multipart/form-data">
@@ -57,7 +60,7 @@
 									{% bootstrap_field form.organisation show_label=False %}
 								</div>
 								<div class="col-xs-1">
-									<span class="crige-partner-badge" style="position: absolute;"></span>
+									<span class="idgo-partner-badge" style="position: absolute;"></span>
 								</div>
 							</div>
 							<p>Si celle-ci n'est pas dans la liste, vous pouvez <a name="open" type="button">indiquer une nouvelle organisation</a>. </p>
@@ -157,6 +160,7 @@
 		</div>
 	</div>
 </div>
+
 <script>
 $(function() {
 
@@ -165,17 +169,17 @@ $(function() {
 		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
 	});
 
-	const $crige = $('.crige-partner-badge').hide();
+	const $idgo = $('.idgo-partner-badge').hide();
 
 	const toggleInputVisibility = function() {
 		var selected = parseInt($selectOrganisation.val());
 		selected = isNaN(selected) ? null : selected;
 
-		const isCrige = $selectOrganisation.find(':selected').attr('crige');
-		if (typeof isCrige !== typeof undefined && isCrige !== false) {
-			$crige.show();
+		const isIDGO = $selectOrganisation.find(':selected').attr('is-idgo-partner');
+		if (typeof isIDGO !== typeof undefined && isIDGO !== false) {
+			$idgo.show();
 		} else {
-			$crige.hide();
+			$idgo.hide();
 		};
 
 		if (!selected && $collapseOne.hasClass('in')) {
@@ -235,5 +239,49 @@ $(function() {
 
 });
 </script>
+
+<style>
+.container-signup {
+    width: 755px;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.container-signup .panel {
+    border-radius: 0;
+    border-left: 1px solid #ddd;
+    border-top: 1px solid #eee;
+    border-right: : 1px solid #ddd;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 5px;
+    -webkit-box-shadow: 0 2px 4px 0px rgba(0,0,0,.25);
+            box-shadow: 0 2px 4px 0px rgba(0,0,0,.25);
+}
+
+.container-signup .panel>.panel-heading {
+    border-bottom: none;
+    padding: 60px 60px 15px 60px;
+    background-color: #fff;
+}
+
+.container-signup .panel>.panel-heading>.panel-heading-logo {
+    margin: 0px 0px 30px 0px;
+    text-align: center;
+}
+
+.container-signup .panel>.panel-body {
+    padding: 15px 60px 60px 60px;
+}
+
+.container-signup .panel>.panel-body .well {
+    border-radius: 4px;
+    border: 1px solid #eee;
+    background-color: #fcfcfc;
+    margin-left: -20px;
+    margin-right: -20px;
+    -webkit-box-shadow: 0 2px 3px -1px rgba(238,238,238,.5);
+            box-shadow: 0 2px 3px -1px rgba(238,238,238,.5);
+}
+</style>
 {% endblock main %}
 {% block footer %}{% endblock footer %}

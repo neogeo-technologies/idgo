@@ -1,5 +1,4 @@
 {% load bootstrap3 %}
-{% load extra_tags %}
 
 {% include "idgo_admin/alert_messages.html" %}
 
@@ -12,7 +11,7 @@
 	{% if user.profile.crige_membership %}
 	<button name="extractor" class="btn btn-default">Service d'extraction</button>
 	{% else %}
-	{% include "idgo_admin/extras/crige_restricted_access/button.html" with class="btn btn-default" text="Service d'extraction" name="extractor" modal_target="modal_forbidden" %}
+	{% include "idgo_admin/extras/restricted_access/button.html" with class="btn btn-default" text="Service d'extraction" name="extractor" modal_target="modal_forbidden" %}
 	{% endif %}
 	<button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
 	<button name="edit-layer" class="btn btn-default">Configurer le service</button>
@@ -85,7 +84,7 @@ $(function() {
 	$('button[name="extractor"]').on('click', function(e) {
 		e.preventDefault();
 		const data = tableGrid.getRowValues(tableGrid.lastSelectedRowIndex);
-		targetBlank('{% url "idgo_admin:extractor" site_name="extractor" %}?&layer=' + data['id'])
+		targetBlank('{% url "idgo_admin:extractor" %}?&layer=' + data['id'])
 		e.stopPropagation();
 	});
 	{% endif %}
@@ -180,7 +179,7 @@ $(function() {
 				deactivateButton($(this));
 				$(this).hide();
 			});
-			$containerId.before('<div role="alert" class="alert alert-warning"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n\'avez encore aucun service Géo-Datasud.<div/>');
+			$containerId.before('<div role="alert" class="alert alert-warning"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n\'avez encore aucun service OGC.<div/>');
 			$containerId.before('<div role="alert" class="alert alert-info"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>Un service se crée automatiquement lorsque vous déposerez une ressource de données de type géographique.<div/>');
 		};
 	};

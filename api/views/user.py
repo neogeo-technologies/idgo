@@ -34,7 +34,7 @@ from idgo_admin.forms.account import SignUpForm
 from idgo_admin.forms.account import UpdateAccountForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import LiaisonsContributeurs
-from idgo_admin.models import LiaisonsReferents
+# from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from operator import iand
@@ -55,7 +55,7 @@ def serialize(user):
             ('first_name', user.first_name),
             ('last_name', user.last_name),
             ('admin', user.profile.is_admin),
-            ('crige', user.profile.crige_membership),
+            ('is_idgo_partner', user.profile.crige_membership),
             # Organisation de rattachement de l'utilisateur
             ('organisation', user.profile.organisation and OrderedDict([
                 ('name', user.profile.organisation.slug),

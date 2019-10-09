@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Datasud.
+ * Copyright (c) 2017-2018 IDGO.
  * All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -17,7 +17,7 @@
 
 html {
     min-width: 767px;
-    background-color: #f3f1f0;
+    background-color: #e3e1e0;
 }
 
 a {
@@ -326,10 +326,10 @@ table td .form-group {
 
 .input-group .btn-primary {
     color: #fff;
-    background-color: #0072bc;
-    border-top: 1px solid #0072bc;
-    border-right: 1px solid #0072bc;
-    border-bottom: 1px solid #0072bc;
+    background-color: #6a6a6b;
+    border-top: 1px solid #6a6a6b;
+    border-right: 1px solid #6a6a6b;
+    border-bottom: 1px solid #6a6a6b;
 }
 
 .input-group-addon:first-child {
@@ -403,18 +403,18 @@ table td .form-group {
 }
 
 .btn-primary {
-    background-color: #0072bc;
-    border-color: #0072bc;
+    background-color: #6a6a6b;
+    border-color: #6a6a6b;
     color: #fff;
 }
 
 .btn-primary.focus,
 .btn-primary:focus,
 .btn-primary:hover {
-    background-color: #005b96;
-    color: #e5f0f8;
-    -webkit-box-shadow: 0 2px 1px 0 rgba(0,91,150,.25);
-            box-shadow: 0 2px 1px 0 rgba(0,91,150,.25);
+    background-color: #4a4a4b;
+    color: #efefee;
+    -webkit-box-shadow: 0 2px 1px 0 rgba(0,0,0,.25);
+            box-shadow: 0 2px 1px 0 rgba(0,0,0,.25);
 }
 
 .btn-secondary {
@@ -493,7 +493,7 @@ table td .form-group {
 .btn-radio.active,
 .btn-radio.active:hover,
 .btn-radio.active:focus {
-    background-color: #0072bc;
+    background-color: #6a6a6b;
     border-color: #ccc;
     box-shadow: none;
     color: #fff;
@@ -556,7 +556,7 @@ table td .form-group {
 }
 
 .nav-tabs-xs>li>a {
-    padding: 5px 10px; 
+    padding: 5px 10px;
 }
 
 /* ************************************************************************* */
@@ -689,52 +689,6 @@ table td .form-group {
 
 /* ************************************************************************* */
 
-.container-signin {
-    width: 480px;
-}
-
-.container-signup {
-    width: 755px;
-    padding-left: 6px;
-    padding-right: 6px;
-}
-
-.container-signin .panel,
-.container-signup .panel {
-    border-radius: 0;
-    border-left: 1px solid #ddd;
-    border-top: 1px solid #eee;
-    border-right: : 1px solid #ddd;
-    border-bottom: 1px solid #ccc;
-    margin-bottom: 5px;
-    -webkit-box-shadow: 0 2px 4px 0px rgba(0,0,0,.25);
-            box-shadow: 0 2px 4px 0px rgba(0,0,0,.25);
-}
-
-.container-signin .panel-heading,
-.container-signup .panel-heading {
-    border-bottom: none;
-    padding: 60px 60px 15px 60px;
-    background-color: #fff;
-}
-
-.container-signin .panel-body,
-.container-signup .panel-body {
-    padding: 15px 60px 60px 60px;
-}
-
-.container-signup .panel-body .well {
-    border-radius: 4px;
-    border: 1px solid #eee;
-    background-color: #fcfcfc;
-    margin-left: -20px;
-    margin-right: -20px;
-    -webkit-box-shadow: 0 2px 3px -1px rgba(238,238,238,.5);
-            box-shadow: 0 2px 3px -1px rgba(238,238,238,.5);
-}
-
-/* ************************************************************************* */
-
 .progress-bar-on-top {
     position: fixed;
     width: 100%;
@@ -749,7 +703,7 @@ table td .form-group {
 }
 
 .progress-bar-on-top>.progress-bar {
-    background-color: #0072bc;
+    background-color: #6a6a6b;
     width: 0%;
 }
 
@@ -757,11 +711,11 @@ table td .form-group {
 
 .page-header {
     padding-top: 30px;
-    padding-bottom: 30px;
+    padding-bottom: 10px;
     margin: 0 0;
     border-bottom: none;
     background-color: #fff;
-    color: #0072bc;
+    color: #6a6a6b;
     position: relative;
     z-index: 1005;
 }
@@ -794,7 +748,7 @@ table td .form-group {
     position: relative;
     float: left;
     padding: 5px 12px;
-    color: #f3096a;
+    color: #a10fcc;
     font-size: 14px;
     font-weight: bold;
 }
@@ -802,10 +756,7 @@ table td .form-group {
 .page-header .login button,
 .page-header .login button.focus
 .page-header .login button:focus {
-    background: linear-gradient(
-        rgba(238,238,238,.8) 0%,
-        rgba(238,238,238,.4) 5%,
-        transparent 20%);
+    background-color: transparent;
     padding: 5px 12px;
     border-radius: 0;
     border-top: 0;
@@ -861,12 +812,8 @@ table td .form-group {
     float: left;
 }
 
-.nav-container .nav.nav-default>li:not(:last-child) {
-    margin-right: 4px;
-}
-
 .nav-container .nav.nav-default>li>a {
-    font-family: "Libre Franklin", "Helvetica Neue", helvetica, arial, sans-serif;
+    /* font-family: "Libre Franklin", "Helvetica Neue", helvetica, arial, sans-serif; */
     border-radius: 0;
     margin: 0;
     padding-top: 15px;
@@ -874,14 +821,10 @@ table td .form-group {
     border-left: -1px solid transparent;
     border-right: -1px solid transparent;
     background: transparent;
-    color: #0072bc;
+    color: #666;
     font-weight: 400;
     text-transform: uppercase;
     font-size: 16px;
-    -webkit-box-shadow: 0 7px 0 0 #0072bc inset;
-            box-shadow: 0 7px 0 0 #0072bc inset;
-    -webkit-transition: box-shadow .4s, color .2s;
-            transition: box-shadow .4s, color .2s;
 }
 
 /* .nav-container .nav.nav-default>li>.btn-group>button.focus,
@@ -891,8 +834,8 @@ table td .form-group {
 .nav-container .nav.nav-default>li>a:focus,
 .nav-container .nav.nav-default>li>a:hover {
     color: #fff;
-    -webkit-box-shadow: 0 99px 0 0 #0072bc inset;
-            box-shadow: 0 99px 0 0 #0072bc inset;
+    -webkit-box-shadow: 0 99px 0 0 #6a6a6b inset;
+            box-shadow: 0 99px 0 0 #6a6a6b inset;
 }
 
 /* .nav-container .nav.nav-default>li.active>.btn-group>button,
@@ -904,36 +847,9 @@ table td .form-group {
 .nav-container .nav.nav-default>li.active>a:focus,
 .nav-container .nav.nav-default>li.active>a:hover {
     color: #fff  ;
-    background-color: #0072bc;
-    border-left: 1px solid #0072bc;
-    border-right: 1px solid #0072bc;
-}
-
-.nav-container .nav.nav-default>li[name=account] {
-    float: right;
-}
-
-.nav-container .nav.nav-default>li[name=account]>a {
-    font-size: 16px;
-    z-index: 1;
-    padding-left: 30px;
-    padding-right: 30px;
-}
-
-.nav-container .nav.nav-default>li[name=account].active::after {
-    z-index: 0;
-    content: '';
-    position: absolute;
-    bottom: -15px;
-    height: 40px;
-    width: 100%;
-    background-color: #0072bc;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    -webkit-transform: skew(0deg, 6deg);
-            transform: skew(0deg, 5deg);
+    background-color: #6a6a6b;
+    border-left: 1px solid #6a6a6b;
+    border-right: 1px solid #6a6a6b;
 }
 
 .nav-container .dropdown-menu {
@@ -953,7 +869,7 @@ table td .form-group {
     margin: 0 -1px;
     padding-top: 15px;
     padding-bottom: 15px;
-    color: #0072bc;
+    color: #6a6a6b;
     font-weight: 400;
     text-transform: uppercase;
     font-size: 13px;
@@ -968,13 +884,13 @@ table td .form-group {
 .nav-container .dropdown-menu li>a:focus,
 .nav-container .dropdown-menu li>a:hover {
     color: #fff;
-    background-color: #0072bc;
+    background-color: #6a6a6b;
 }
 
 /* ************************************************************************* */
 
 .breadcrumb-container {
-    background-color: #e9e7e4;
+    background-color: #d9d7d4;
     margin-top: 0px;
     margin-bottom: 0px;
     min-height: 50px;
@@ -1011,9 +927,9 @@ table td .form-group {
     min-height: 300px;
     bottom: 0;
     background: linear-gradient(
-        #e9e7e4 0px,
-        #e9e7e4 50px,
-        #f3f1f0 300px
+        #d9d7d4 0px,
+        #d9d7d4 50px,
+        #e3e1e0 300px
         );
     padding-bottom: 40px;
 }
@@ -1217,7 +1133,7 @@ table td .form-group {
 }
 
 .dz-focus {
-    background-color: #0072bc;
+    background-color: #6a6a6b;
 }
 
 /* ************************************************************************* */
@@ -1315,7 +1231,7 @@ table td .form-group {
 .container-progress .progress-bar {
     font-size: 8px;
     line-height: 10px;
-    background-color: #0072bc;
+    background-color: #6a6a6b;
     width: 0%;
 }
 
@@ -1497,25 +1413,18 @@ table td .form-group {
 
 /* ************************************************************************* */
 
-.crige-partner-badge {
-    background: linear-gradient(#006666 0%, #006666 50%, #197575 95%, #66a3a3 100%);
-    color: #e5efef;
-    border-radius: 3px;
-    border-bottom-right-radius: 9px;
-    padding: 2px 6px 6px 4px;
-    line-height: 10px;
-    -webkit-box-shadow: 1px 2px 1px 0 rgba(0,102,102,.25);
-            box-shadow: 1px 2px 1px 0 rgba(0,102,102,.25);
+.idgo-partner-badge {
+    background-color: transparent;
+    border: 1px dashed #ccc;
+    color: #888;
+    border-radius: 4px;
+    padding: 6px 6px;
 }
 
-.crige-partner-badge::before {
-    content: "partenaire\A";
-    font-size: 9px;
-}
-
-.crige-partner-badge::after {
-    content: "CRIGE";
-    font-size: 13px;
+.idgo-partner-badge::before {
+    content: "Membre";
+    font-size: 12px;
+    font-weight: 400;
 }
 
 /* ************************************************************************* */

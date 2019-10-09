@@ -1,7 +1,6 @@
 {% extends "idgo_admin/base.html" %}
 
 {% load static %}
-{% load extra_tags %}
 
 {% block head_extras %}
 <script src="{% static 'libs/leaflet/leaflet.js' %}"></script>
@@ -168,7 +167,7 @@ $(function() {
 
 					$modal.find('.modal-title').html('<code>' + taskId + '</code>');
 					$modal.find('.modal-body').append($content);
-					$modal.find('a[name="modify"]').attr('href', '{% url "idgo_admin:extractor" site_name="extractor" %}?task=' + taskId);
+					$modal.find('a[name="modify"]').attr('href', '{% url "idgo_admin:extractor" %}?task=' + taskId);
 
 					var baseMaps = {};
 					{% if basemaps %}

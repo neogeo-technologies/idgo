@@ -45,7 +45,7 @@ from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import License
 from idgo_admin.models.mail import send_contributor_confirmation_mail
-from idgo_admin.models.mail import send_mail_asking_for_crige_partnership
+from idgo_admin.models.mail import send_mail_asking_for_idgo_partnership
 from idgo_admin.models.mail import send_membership_confirmation_mail
 from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
 from idgo_admin.models.mail import send_referent_confirmation_mail
@@ -147,13 +147,13 @@ def referent_unsubscribe_process(request, profile, organisation):
 
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
-def crige_partnership(request):
+def idgo_partnership(request):
     id = request.GET.get('id')
     if not id:
         raise Http404()
     user, profile = user_and_profile(request)
     organisation = get_object_or_404(Organisation, id=id, is_active=True)
-    send_mail_asking_for_crige_partnership(user, organisation)
+    send_mail_asking_for_idgo_partnership(user, organisation)
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -400,10 +400,9 @@ class Subscription(View):
                     "traitement. Celle-ci ne sera effective qu'après "
                     'validation par un administrateur.').format(
                         status_fr_label[status], organisation.legal_name)
-                # Spécial CRIGE
+                # partnership
                 if status == 'member':
-                    messages.info(request, "L'organisation est partenaire du CRIGE.")
-                # Fin [Spécial CRIGE]
+                    messages.info(request, "L'organisation est partenaire IDGO.")
             messages.success(request, message)
 
         # TODO Revoir la gestion de l'AJAX sur la page des organisations

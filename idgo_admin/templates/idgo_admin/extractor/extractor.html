@@ -1,7 +1,6 @@
 {% extends "idgo_admin/base.html" %}
 
 {% load static %}
-{% load extra_tags %}
 
 {% block head_extras %}
 <script src="{% static 'libs/leaflet/leaflet.js' %}"></script>
@@ -13,7 +12,7 @@
 <script src="{% static 'libs/wicket/wicket.js' %}"></script>
 <link rel="stylesheet" href="{% static 'libs/leaflet/leaflet.css' %}"/>
 <link rel="stylesheet" href="{% static 'libs/leaflet.draw/leaflet.draw.css' %}"/>
-<link rel="stylesheet" href="{% static 'css/extractor-crige.css' %}"/>
+<link rel="stylesheet" href="{% static 'css/extractor.css' %}"/>
 {% endblock head_extras %}
 
 {% block body %}
@@ -63,23 +62,22 @@
 						</button>
 						<ul class="dropdown-menu">
 							<li>
-								<a href="{% url 'idgo_admin:update_account' site_name='admin' %}">Mon profil</a>
+								<a href="{% url 'idgo_admin:update_account' %}">Mon profil</a>
 							</li>
 							<li>
 								<a href="{% url 'server_cas:signOut' %}">Me déconnecter</a>
 							</li>
 							<li role="separator" class="divider"></li>
 							<li>
-								<a href="{% url 'idgo_admin:extractor_dashboard' site_name='admin' %}" aria-controls="all-extracts" role="tab">Mes extractions</a>
+								<a href="{% url 'idgo_admin:extractor_dashboard' %}" aria-controls="all-extracts" role="tab">Mes extractions</a>
 							</li>
 						</ul>
 					</div>
-					<img class="logo-crige" src="{% static 'img/logo_crige_rond.png' %}"/>
 					<h1 class=title>Extracteur de données</h1>
 					<div class="logo-title">
 						<span class="logo-title-background"></span>
 						<span class="logo-title-image">
-							<img src="{% static 'img/logo_geodatasud.png' %}"/>
+							<img src="{% static 'img/logo.png' %}"/>
 						</span>
 					</div>
 				</div>
@@ -220,7 +218,7 @@
 						</div>
 						<div class="col-xs-6">
 							<span>
-								© Tous droits réservés - <span name="current-year"></span> - <a href="http://www.crige-paca.org" target="blank">CRIGE Provence-Alpes-Côte d'Azur</a>
+								© Tous droits réservés - <span name="current-year"></span>
 							</span>
 						</div>
 						<div class="col-xs-2">

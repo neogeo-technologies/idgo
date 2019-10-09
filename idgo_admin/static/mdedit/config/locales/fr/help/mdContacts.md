@@ -40,14 +40,14 @@ Il est recommandé de saisir l’ensemble des informations descriptives du conta
 
 ## Exemples
 
-- Nom: Mathieu KASMIERSKI
-- Fonction: Chef de projet CRIGE
-- Organisme: CRIGE-PACA
-- Adresse: Technopôle de l'Environnement Arbois-Méditerranée, Domaine du Petit Arbois, Avenue Louis Philibert - Bât G. Mégie, CS 90646
-- Code postal: 13547
-- Ville: Aix-en-Provence CEDEX 4
-- Tél: 04 42 90 72 22
-- Email: geocatalogue@crige-paca.org
-- Rôle: Point de contact
+- Nom:
+- Fonction:
+- Organisme:
+- Adresse:
+- Code postal:
+- Ville:
+- Tél:
+- Email:
+- Rôle: 
 
 <!-- End @contacts.md -->

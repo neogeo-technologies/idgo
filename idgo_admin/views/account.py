@@ -100,7 +100,7 @@ class PasswordManager(View):
                 profile = Profile.objects.get(
                     user__email=form.cleaned_data["email"], is_active=True)
             except Exception:
-                message = "Cette adresse n'est pas liée a un compte IDGO actif "
+                message = "Cette adresse n'est pas liée a un compte actif "
                 return render(request, 'idgo_admin/message.html',
                               {'message': message}, status=200)
             forget_action, created = AccountActions.objects.get_or_create(

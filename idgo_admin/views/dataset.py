@@ -228,7 +228,7 @@ def list_my_datasets(request, *args, **kwargs):
 @csrf_exempt
 def list_all_datasets(request, *args, **kwargs):
     user, profile = user_and_profile(request)
-    # Réservé aux référents ou administrateurs IDGO
+    # Réservé aux référents ou administrateurs métiers
     roles = profile.get_roles()
     if roles['is_admin']:
         QuerySet = Dataset.default.all()
@@ -252,7 +252,7 @@ def list_all_datasets(request, *args, **kwargs):
 def list_all_ckan_harvested_datasets(request, *args, **kwargs):
     user, profile = user_and_profile(request)
 
-    # Réservé aux référents ou administrateurs IDGO
+    # Réservé aux référents ou administrateurs métiers
     roles = profile.get_roles()
     if not roles['is_referent'] and not roles['is_admin']:
         raise Http404()
@@ -268,7 +268,7 @@ def list_all_ckan_harvested_datasets(request, *args, **kwargs):
 def list_all_csw_harvested_datasets(request, *args, **kwargs):
     user, profile = user_and_profile(request)
 
-    # Réservé aux référents ou administrateurs IDGO
+    # Réservé aux référents ou administrateurs métiers
     roles = profile.get_roles()
     if not roles['is_referent'] and not roles['is_admin']:
         raise Http404()
