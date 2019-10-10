@@ -174,8 +174,13 @@ def handle_show_organisation(request, *args, **kwargs):
             pk = profile.referent_for[0].pk
         elif profile.is_contributor:
             pk = profile.contribute_for[0].pk
-    organisation = get_object_or_404(Organisation, pk=pk)
-    return redirect(reverse('idgo_admin:show_organisation', kwargs={'id': organisation.id}))
+    try:
+        organisation = Organisation.objects.get(pk=pk)
+    except Organisation.DoesNotExist:
+        id = -1
+    else:
+        id = organisation.id
+    return redirect(reverse('idgo_admin:show_organisation', kwargs={'id': id}))
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -196,7 +201,11 @@ def show_organisation(request, id, *args, **kwargs):
     all_organisations.sort(key=operator.itemgetter('referent'), reverse=True)
     all_organisations.sort(key=operator.itemgetter('member'), reverse=True)
 
-    organisation = get_object_or_404(Organisation, pk=id)
+    try:
+        organisation = Organisation.objects.get(pk=id)
+    except Organisation.DoesNotExist:
+        organisation = None
+
     context = {
         'all_organisations': all_organisations,
         'basemaps': BaseMaps.objects.all(),
