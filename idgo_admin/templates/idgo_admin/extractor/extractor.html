@@ -338,7 +338,7 @@ $(function() {
 	};
 
 	{% if organisation and dataset and resource and layer %}
-	targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" site_name="admin" %}', {
+	targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 		format: 'image/png',
 		layers: '{{ layer.mra_info.name }}',
 		{% if layer.mra_info.styles.default %}
@@ -359,7 +359,7 @@ $(function() {
 		{% for instance in resources %}
 			{% for layer in instance.get_layers %}
 	layers.push(
-		new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" site_name="admin" %}', {
+		new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 			format: 'image/png',
 			layers: '{{ layer.mra_info.name }}',
 			// styles: '{{ layer.mra_info.styles.default }}',
