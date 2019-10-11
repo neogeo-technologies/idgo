@@ -90,7 +90,7 @@ class Profile(models.Model):
         )
 
     crige_membership = models.BooleanField(
-        verbose_name="Utilisateur affilié au CRIGE",
+        verbose_name="Utilisateur partenaire IDGO",
         default=False,
         )
 
@@ -158,7 +158,7 @@ class Profile(models.Model):
     # ==================
 
     @classmethod
-    def get_crige_membership(cls):
+    def get_idgo_membership(cls):
         return Profile.objects.filter(is_active=True, crige_membership=True)
 
     # Autres méthodes
@@ -477,8 +477,8 @@ def delete_ckan_user(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Profile)
-def handle_crige_partner(sender, instance, **kwargs):
-    groupname = 'crige-partner'
+def handle_idgo_partner(sender, instance, **kwargs):
+    groupname = 'idgo-partner'
 
     username = instance.user.username
     if CkanHandler.is_user_exists(username):

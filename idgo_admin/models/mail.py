@@ -63,9 +63,9 @@ class Mail(models.Model):
         return self.template_name
 
 
-def get_admins_mails(crige=False):
+def get_admins_mails(idgo_membership=False):
     kwargs = {'is_active': True, 'is_admin': True}
-    if crige:
+    if idgo_membership:  # Uniquement les administrateurs partenaires IDGO
         kwargs['crige_membership'] = True
     Model = apps.get_model(app_label='idgo_admin', model_name='Profile')
     profiles = Model.objects.filter(**kwargs)
@@ -339,7 +339,7 @@ def send_mail_asking_for_jurisdiction_attachment(user, jurisdiction, organisatio
         jurisdiction_pk=jurisdiction.code,
         organisation=organisation.legal_name,
         organisation_pk=organisation.pk,
-        to=get_admins_mails(crige=True),
+        to=get_admins_mails(idgo_membership=True),
         username=user.username)
 
 
@@ -361,7 +361,7 @@ def send_mail_asking_for_jurisdiction_creation(user, jurisdiction, organisation,
         url=url,
         organisation=organisation.legal_name,
         organisation_pk=organisation.pk,
-        to=get_admins_mails(crige=True),
+        to=get_admins_mails(idgo_membership=True),
         username=user.username)
 
 
@@ -399,15 +399,15 @@ def send_jurisdiction_creation_mail(user, jurisdiction, organisation):
         username=user.username)
 
 
-# Pour demander un partenariat avec le CRIGE
-def send_mail_asking_for_crige_partnership(user, organisation):
+# Pour demander un partenariat avec IDGO
+def send_mail_asking_for_idgo_partnership(user, organisation):
     return sender(
-        'ask_for_crige_partnership',
+        'ask_for_idgo_partnership',
         full_name=user.get_full_name(),
         user_email=user.email,
         organisation=organisation.legal_name,
         organisation_pk=organisation.pk,
-        to=get_admins_mails(crige=True),
+        to=get_admins_mails(idgo_membership=True),
         )
 
 

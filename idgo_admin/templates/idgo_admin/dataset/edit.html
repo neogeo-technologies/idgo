@@ -89,7 +89,7 @@
 		<div class="col-xs-8">
 			<div class="alert alert-info">
 				<span class="glyphicon glyphicon-alert"></span>
-				L'organisation à laquelle est rattaché ce jeu de données ne dispose pas de territoire de compétence. Veuillez contacter un administrateur CRIGE.
+				L'organisation à laquelle est rattaché ce jeu de données ne dispose pas de territoire de compétence. Veuillez contacter un administrateur IDGO.
 			</div>
 		</div>
 	</div>
@@ -178,8 +178,8 @@ $(function() {
 			name = supports[this.value]['name'];
 			email = supports[this.value]['email'];
 		} else {
-			name = '{{ platform_name }}';
-			email = '{{ contact_email }}';
+			name = '{{ platform_name|default:"IDGO" }}';
+			email = '{{ contact_email|default:"contact@idgo.fr" }}';
 		};
 		$('input[name="{{ form.broadcaster_name.name }}"]').prop('placeholder', name)
 		$('input[name="{{ form.broadcaster_email.name }}"]').prop('placeholder', email)

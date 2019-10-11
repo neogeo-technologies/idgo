@@ -47,7 +47,6 @@ from urllib.parse import urljoin
 from uuid import UUID
 
 
-# Définition des champs ODL :
 COLL_NOM = F('organisation__legal_name')
 COLL_SIRET = Value('', output_field=CharField())
 ID = F('ckan_id')
@@ -88,32 +87,6 @@ URL = Concat(
     Value(urljoin(settings.CKAN_URL, 'dataset/')), F('slug'),
     output_field=CharField())
 
-# Définition des champs DATASUD :
-DATASUD_ID = F('slug')
-DATASUD_ORGA_ID = F('organisation__slug')
-DATASUD_ORGA_URL = F('organisation__website')
-DATASUD_PRODUCTEUR_NOM = F('owner_name')
-DATASUD_PRODUCTEUR_EMAIL = F('owner_email')
-DATASUD_DIFFUSEUR_NOM = F('broadcaster_name')
-DATASUD_DIFFUSEUR_EMAIL = F('broadcaster_email')
-DATASUD_COUV_TERR = F('granularity')
-# DATASUD_INSPIRE =
-# DATASUD_DATASET_URL =
-# DATASUD_INSPIRE_URL =
-# ..un ou plusieurs champs liens vers les APIs à précider.
-# ..un ou plusieurs champs statistique à précider.
-DATASUD_DATE_CREATION = F('date_creation')
-# ..champs import/export (catalogue source, dernier moissonage, etc.)
-# DATASUD_RESSOURCE_URLS =
-# DATASUD_RESSOURCE_TAILLE =
-DATASUD_RESSOURCE_TYPES = FORMAT_RESSOURCES  # ???
-
-DATASUD_DATASET_VUES = Value('', output_field=CharField())
-DATASUD_RESSOURCES_TELECHARGEMENT = Value('', output_field=CharField())
-EXTRAS_TELECHARGEMENT = Value('', output_field=CharField())
-DATASUD_DATASET_NOTE = Value('', output_field=CharField())
-DATASUD_DATASET_NB_NOTES = Value('', output_field=CharField())
-
 
 @method_decorator([csrf_exempt], name='dispatch')
 class Export(View):
@@ -132,7 +105,7 @@ class Export(View):
         qs = request.POST or request.GET
 
         outputformat = qs.get('format')
-        if not outputformat or outputformat not in ('odl', 'datasud'):
+        if not outputformat or outputformat not in ('odl',):
             raise Http404()
 
         if outputformat == 'odl':
@@ -160,53 +133,6 @@ class Export(View):
                 # ('PROJECTION', PROJECTION),
                 # ('LANG', LANG),
                 ('URL', URL)
-                ))
-        else:
-            annotate = OrderedDict((
-                ('COLL_NOM', COLL_NOM),
-                ('COLL_SIRET', COLL_SIRET),
-                ('ID', ID),
-                ('TITRE', TITRE),
-                ('DESCRIPTION', DESCRIPTION),
-                ('THEME', THEME),
-                ('PRODUCTEUR_NOM', PRODUCTEUR_NOM),
-                ('PRODUCTEUR_SIRET', PRODUCTEUR_SIRET),
-                ('COUV_SPAT_MAILLE', COUV_SPAT_MAILLE),
-                ('COUV_SPAT_NOM', COUV_SPAT_NOM),
-                ('COUV_TEMP_DEBUT', COUV_TEMP_DEBUT),
-                ('COUV_TEMP_FIN', COUV_TEMP_DEBUT),
-                ('DATE_PUBL', DATE_PUBL),
-                ('FREQ_MAJ', FREQ_MAJ),
-                ('DATE_MAJ', DATE_MAJ),
-                ('MOTS_CLES', MOTS_CLES),
-                ('LICENCE', LICENCE),
-                ('NOMBRE_RESSOURCES', NOMBRE_RESSOURCES),
-                ('FORMAT_RESSOURCES', FORMAT_RESSOURCES),
-                ('URL', URL),
-                ('DATASUD_ID', DATASUD_ID),
-                # ('DATASUD_MOT_CLES', DATASUD_MOT_CLES),
-                # ('DATASUD_ORGA', DATASUD_ORGA),
-                ('DATASUD_ORGA_ID', DATASUD_ORGA_ID),
-                ('DATASUD_ORGA_URL', DATASUD_ORGA_URL),
-                ('DATASUD_PRODUCTEUR_NOM', DATASUD_PRODUCTEUR_NOM),
-                # ('DATASUD_PRODUCTEUR_EMAIL', DATASUD_PRODUCTEUR_EMAIL),
-                ('DATASUD_DIFFUSEUR_NOM', DATASUD_DIFFUSEUR_NOM),
-                # ('DATASUD_DIFFUSEUR_EMAIL', DATASUD_DIFFUSEUR_EMAIL),
-                ('DATASUD_COUV_TERR', DATASUD_COUV_TERR),
-                # ('DATASUD_INSPIRE', DATASUD_INSPIRE),
-                # ('DATASUD_DATASET_URL', DATASUD_DATASET_URL),
-                # ('DATASUD_INSPIRE_URL', DATASUD_INSPIRE_URL),
-                ('DATASUD_DATE_CREATION', DATASUD_DATE_CREATION),
-                # ('DATASUD_RESSOURCE_URLS', DATASUD_RESSOURCE_URLS),
-                # ('DATASUD_RESSOURCE_TAILLE', DATASUD_RESSOURCE_TAILLE),
-                ('DATASUD_RESSOURCE_TYPES', DATASUD_RESSOURCE_TYPES),
-                ('DATASUD_DATASET_VUES', DATASUD_DATASET_VUES),
-                ('DATASUD_RESSOURCES_TELECHARGEMENT', DATASUD_RESSOURCES_TELECHARGEMENT),
-                ('DATASUD_DATASET_NOTE', DATASUD_DATASET_NOTE),
-                ('DATASUD_DATASET_NB_NOTES', DATASUD_DATASET_NB_NOTES),
-                ('DIFFUSEUR', DIFFUSEUR),
-                ('PROJECTION', PROJECTION),
-                ('LANG', LANG),
                 ))
 
         values = list(annotate.keys())
@@ -244,22 +170,6 @@ class Export(View):
         writer = unicodecsv.writer(response, encoding='utf-8', quoting=csv.QUOTE_ALL, delimiter=',', quotechar='"')
         writer.writerow(values)
         for row in datasets.annotate(**annotate).values(*values):
-            if not outputformat == 'odl':
-                package = CkanHandler.get_package(str(row['ID']), include_tracking=True)
-
-                dataset_view = 0
-                if 'tracking_summary' in package:
-                    dataset_view = package['tracking_summary'].get('total')
-                row['DATASUD_DATASET_VUES'] = dataset_view
-
-                resources_dl = 0
-                for resource in package.get('resources'):
-                    if 'tracking_summary' in resource:
-                        resources_dl += int(resource['tracking_summary'].get('total'))
-                row['DATASUD_RESSOURCES_TELECHARGEMENT'] = resources_dl
-                row['DATASUD_DATASET_NOTE'] = package.get('rating')
-                row['DATASUD_DATASET_NB_NOTES'] = package.get('ratings_count')
-
             writer.writerow([row[value] for value in values])
 
         return response

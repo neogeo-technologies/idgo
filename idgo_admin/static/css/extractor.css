@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Datasud.
+ * Copyright (c) 2017-2018 IDGO.
  * All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -124,7 +124,7 @@
     margin-top: 5px;
     padding-right: 1px;
     padding-bottom: 1px;
-    background-color: #0072bc;
+    background-color: #6a6a6b;
     border-radius: 20px;
     color: #fff;
     -webkit-box-shadow: 0 2px 1px 0 rgba(187,171,130,.25);
@@ -137,8 +137,8 @@
 #extractor .leaflet-control-zoom-out.focus,
 #extractor .leaflet-control-zoom-out:focus,
 #extractor .leaflet-control-zoom-out:hover {
-    background-color: #005b96;
-    color: #e5f0f8;
+    background-color: #4a4a4b;
+    color: #efefee;
     -webkit-box-shadow: 0 2px 1px 0 rgba(187,171,130,.5);
             box-shadow: 0 2px 1px 0 rgba(187,171,130,.5);
 }

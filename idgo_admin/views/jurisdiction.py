@@ -75,7 +75,7 @@ def jurisdictions(request, *args, **kwargs):
 
     user, profile = user_and_profile(request)
 
-    # Accès réservé aux administrateurs IDGO
+    # Accès réservé aux administrateurs métiers
     if not profile.is_admin:
         raise Http404()
 

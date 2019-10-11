@@ -20,7 +20,7 @@
 				<td name="date_creation">{{ dataset.date_creation|date:"d/m/y"|default:"" }}</td>
 				<td name="date_modification">{{ dataset.date_modification|date:"d/m/y"|default:"" }}</td>
 				<td name="date_publication">{{ dataset.date_publication|date:"d/m/y"|default:"" }}</td>
-				<td name="organisation" {% if dataset.organisation.is_crige_partner %}crige{% endif %}>{{ dataset.organisation }}</td>
+				<td name="organisation" {% if dataset.organisation.is_crige_partner %}idgo{% endif %}>{{ dataset.organisation }}</td>
 				{% if all %}
 				<td name="editor">{% if dataset.editor == user %}Moi{% else %}{{ dataset.editor.get_full_name }}{% endif %}</td>
 				{% endif %}
@@ -136,8 +136,8 @@ $(function() {
 			$editResources.prop('href', '{% url "idgo_admin:dataset" %}?id=' + id + '#resources');
 
 			{% if user.profile.crige_membership %}
-			const isCrige = $row.find('td[name="organisation"]').attr('crige');
-			if (typeof isCrige !== typeof undefined && isCrige !== false) {
+			const isIDGO = $row.find('td[name="organisation"]').attr('idgo');
+			if (typeof isIDGO !== typeof undefined && isIDGO !== false) {
 				$MDEditDatasets.show();
 				$MDEditDatasets.prop('href', '{% url "idgo_admin:mdhandler" type="dataset" %}?id=' + id);
 			} else {

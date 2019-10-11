@@ -7,16 +7,19 @@
 {% block nav %}{% endblock nav %}
 {% block breadcrumb %}{% endblock breadcrumb %}
 {% block main %}
+
 <div class="outer">
 	<div class="v-middle">
 		<div class="h-middle container-signin">
-			<div class="panel panel-default">
+			<div class="panel">
 				<div class="panel-heading">
-					<img src="{% static 'img/logo_datasud.png' %}" style="height: 80px;"></img>
+					<div class="panel-heading-logo">
+						<img src="{% static 'img/logo.png' %}"></img>
+					</div>
+					<h3 class="panel-title">Saisissez vos identifiants {{ platform_name|default:"IDGO" }}</h3>
 				</div>
 				<div class="panel-body">
 					<form id="signin" method="post" action="">
-						<label>Saisissez vos identifiants</label>
 						{% csrf_token %}
 						<div class="row">
 							<div class="col-xs-12">
@@ -56,6 +59,7 @@
 		</div>
 	</div>
 </div>
+
 <script>
 $(function() {
 	$rememberMe = $('input[name="remember-me"]');
@@ -90,5 +94,38 @@ $(function() {
 	});
 });
 </script>
+
+<style>
+.container-signin {
+    width: 480px;
+}
+
+.container-signin .panel {
+    border-radius: 0;
+    border-left: 1px solid #ddd;
+    border-top: 1px solid #eee;
+    border-right: : 1px solid #ddd;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 5px;
+    -webkit-box-shadow: 0 2px 4px 0px rgba(0,0,0,.25);
+            box-shadow: 0 2px 4px 0px rgba(0,0,0,.25);
+}
+
+.container-signin .panel>.panel-heading {
+    border-bottom: none;
+    padding: 60px 60px 15px 60px;
+    background-color: #fff;
+}
+
+.container-signin .panel>.panel-heading>.panel-heading-logo {
+    margin: 0px 0px 30px 0px;
+    text-align: center;
+}
+
+.container-signin .panel>.panel-body {
+    padding: 15px 60px 60px 60px;
+}
+</style>
+
 {% endblock main %}
 {% block footer %}{% endblock footer %}

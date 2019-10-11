@@ -16,7 +16,6 @@
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.contrib.sites.models import Site
 from django.http import Http404
 from django.http import HttpResponse
 from django.urls import reverse
@@ -29,12 +28,6 @@ import uuid
 
 strict_redis = redis.StrictRedis()
 REDIS_EXPIRATION = 120
-
-try:
-    IS_SECURE = settings.IS_SECURE
-except AttributeError:
-    IS_SECURE = False
-
 OWS_PREVIEW_URL = settings.OWS_PREVIEW_URL
 
 
@@ -48,11 +41,8 @@ class SLDPreviewSetter(View):
         strict_redis.set(key, sld)
         strict_redis.expire(key, REDIS_EXPIRATION)
 
-        location = 'http{secure}://{domain}{path}'.format(
-            secure=IS_SECURE and 's' or '',
-            domain=Site.objects.get(name='admin').domain,
-            path=reverse('idgo_admin:sld_preview_getter', kwargs={'key': key})
-            )
+        location = reverse('idgo_admin:sld_preview_getter', kwargs={'key': key})
+        print(location)
 
         response = HttpResponse(status=201)
         response['Content-Location'] = location

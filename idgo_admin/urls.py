@@ -54,7 +54,7 @@ from idgo_admin.views.mdedit import mdhandler
 from idgo_admin.views.mdedit import ServiceMDEdit
 from idgo_admin.views.mdedit import ServiceMDEditTplEdit
 from idgo_admin.views.organisation import CreateOrganisation
-from idgo_admin.views.organisation import crige_partnership
+from idgo_admin.views.organisation import idgo_partnership
 from idgo_admin.views.organisation import DeleteRemoteCkanLinked
 from idgo_admin.views.organisation import DeleteRemoteCswLinked
 from idgo_admin.views.organisation import handle_show_organisation
@@ -123,7 +123,7 @@ urlpatterns = [
     url('^organisation/ows/?$', OrganisationOWS.as_view(), name='organisation_ows'),
     url('^organisation/(?P<status>(member|contributor|referent))/(?P<subscription>(subscribe|unsubscribe))?$', Subscription.as_view(), name='subscription'),
 
-    url('^organisation/crige/?$', crige_partnership, name='crige_partnership'),
+    url('^organisation/idgo/?$', idgo_partnership, name='idgo_partnership'),
 
     url('^organisation/(?P<id>(\d+))/remoteckan/edit/?$', RemoteCkanEditor.as_view(), name='edit_remote_ckan_link'),
     url('^organisation/(?P<id>(\d+))/remoteckan/delete/?$', DeleteRemoteCkanLinked.as_view(), name='delete_remote_ckan_link'),

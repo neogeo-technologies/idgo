@@ -55,7 +55,7 @@ STATIC_URL = settings.STATIC_URL
 GEONETWORK_URL = settings.GEONETWORK_URL
 CKAN_URL = settings.CKAN_URL
 DOMAIN_NAME = settings.DOMAIN_NAME
-READTHEDOC_URL_INSPIRE = settings.READTHEDOC_URL_INSPIRE
+READTHEDOC_URL = settings.READTHEDOC_URL
 
 
 def join_url(filename, path=MDEDIT_CONFIG_PATH):
@@ -253,7 +253,7 @@ class DatasetMDEdit(View):
 
         context = {
             'dataset': instance,
-            'doc_url': READTHEDOC_URL_INSPIRE,
+            'doc_url': READTHEDOC_URL,
             'config': config,
             'target': target(instance, user),
             }
@@ -429,7 +429,7 @@ class ServiceMDEdit(View):
                 'help': join_url('modal-help.html', path=MDEDIT_HTML_PATH)}}
 
         context = {'organisation': instance,
-                   'doc_url': READTHEDOC_URL_INSPIRE,
+                   'doc_url': READTHEDOC_URL,
                    'config': config}
 
         record = instance.geonet_id and geonet.get_record(str(instance.geonet_id)) or None

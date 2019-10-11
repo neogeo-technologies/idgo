@@ -20,7 +20,7 @@
 				<a target="_blank" href="{{ resource.dataset.organisation.ows_url }}">{{ resource.dataset.organisation.ows_url }}</a>
 			</p>
 			{% if not user.profile.crige_membership %}
-			<p>Pour configurer votre service, veuillez contacter le CRIGE.</p>
+			<p>Pour configurer votre service, veuillez contacter un administrateur IDGO.</p>
 			{% endif %}
 		</div>
 	</div>
@@ -228,7 +228,7 @@
 					<div class="checkbox">
 						<label for="id_{{ form.geo_restriction.name }}">
 						{% if not user.profile.crige_membership %}
-							{% include "idgo_admin/extras/crige_restricted_access/checkbox.html" with type="checkbox" name=form.geo_restriction.name checked=form.geo_restriction.value %}
+							{% include "idgo_admin/extras/restricted_access/checkbox.html" with type="checkbox" name=form.geo_restriction.name checked=form.geo_restriction.value %}
 						{% else %}
 							{{ form.geo_restriction }}
 						{% endif %}
@@ -244,7 +244,7 @@
 					<div class="checkbox">
 						<label for="id_{{ form.ogc_services.name }}">
 						{% if not user.profile.crige_membership %}
-							{% include "idgo_admin/extras/crige_restricted_access/checkbox.html" with type="checkbox" name=form.ogc_services.name checked=form.ogc_services.value %}
+							{% include "idgo_admin/extras/restricted_access/checkbox.html" with type="checkbox" name=form.ogc_services.name checked=form.ogc_services.value %}
 						{% else %}
 							{{ form.ogc_services }}
 						{% endif %}
@@ -260,7 +260,7 @@
 					<div class="checkbox">
 						<label for="id_{{ form.extractable.name }}">
 						{% if not user.profile.crige_membership %}
-							{% include "idgo_admin/extras/crige_restricted_access/checkbox.html" with type="checkbox" name=form.extractable.name checked=form.extractable.value %}
+							{% include "idgo_admin/extras/restricted_access/checkbox.html" with type="checkbox" name=form.extractable.name checked=form.extractable.value %}
 						{% else %}
 							{{ form.extractable }}
 						{% endif %}

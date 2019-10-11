@@ -157,7 +157,7 @@ class BaseProfileChangeForm(forms.ModelForm):
         return self.cleaned_data
 
 
-class CrigeProfileChangeForm(BaseProfileChangeForm):
+class IDGOProfileChangeForm(BaseProfileChangeForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -178,10 +178,10 @@ class ProfileAdmin(admin.ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         if request.user.is_superuser:
-            Form = CrigeProfileChangeForm
+            Form = IDGOProfileChangeForm
         else:
             profile = request.user.profile
-            Form = profile.is_crige_admin and CrigeProfileChangeForm or StandardProfileChangeForm
+            Form = profile.is_crige_admin and IDGOProfileChangeForm or StandardProfileChangeForm
         if obj:
             return Form
         else:

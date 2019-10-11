@@ -11,7 +11,7 @@
 				<th name="is_contributor">Contributeur</th>
 				<th name="is_referent">Référent</th>
 				{% if user.profile.is_crige_admin %}
-				<th name="is_crige_member">CRIGE</th>
+				<th name="is_idgo_member">Partenaire IDGO</th>
 				{% endif %}
 				<th name="datasets_count">Jeux de données</th>
 			</tr>
@@ -29,7 +29,7 @@
 					<span class="glyphicon glyphicon-ok"></span>{% endif %}
 				</td>
 				{% if user.profile.is_crige_admin %}
-				<td name="is_crige_member" style="text-align: center;">{% if member.is_crige_member %}
+				<td name="is_idgo_member" style="text-align: center;">{% if member.is_crige_member %}
 					<span class="glyphicon glyphicon-ok"></span>{% endif %}
 				</td>
 				{% endif %}
@@ -81,7 +81,6 @@ $(function() {
 			const isMember = $row.find('td[name="is_member"]').find('.glyphicon-ok').length ? true : false;
 			const isContributor = $row.find('td[name="is_contributor"]').find('.glyphicon-ok').length ? true : false;
 			const isReferent = $row.find('td[name="is_referent"]').find('.glyphicon-ok').length ? true : false;
-			const isCrigeAdmin = $row.find('td[name="is_crige_admin"]').find('.glyphicon-ok').length ? true : false;
 
 			$row.prop('selected', true).addClass('selected');
 

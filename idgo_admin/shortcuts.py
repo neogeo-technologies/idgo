@@ -22,7 +22,7 @@ from django.shortcuts import render
 from django.shortcuts import reverse
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
-from idgo_admin.models import AccountActions
+# from idgo_admin.models import AccountActions
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Profile
@@ -30,8 +30,6 @@ from idgo_admin.models import Resource
 
 
 CKAN_URL = settings.CKAN_URL
-CRIGE_URL = settings.CRIGE_URL
-WORDPRESS_URL = settings.WORDPRESS_URL
 READTHEDOC_URL = settings.READTHEDOC_URL
 DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
 DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
@@ -84,13 +82,10 @@ def render_with_info_profile(
         'platform_name': DEFAULT_PLATFORM_NAME,
         'ftp_url': FTP_URL,
         'doc_url': READTHEDOC_URL,
-        'wordpress_url': WORDPRESS_URL,
-        'crige_url': CRIGE_URL,
         'ckan_url': CKAN_URL,
         'username': user.username,
         'first_name': user.first_name,
         'last_name': user.last_name,
-        'is_crige': profile.crige_membership,
         'is_membership': profile.membership,
         'is_referent': profile.get_roles()['is_referent'],
         'is_contributor': len(contributor) > 0,
