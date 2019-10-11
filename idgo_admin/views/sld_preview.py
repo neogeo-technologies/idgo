@@ -28,12 +28,6 @@ import uuid
 
 strict_redis = redis.StrictRedis()
 REDIS_EXPIRATION = 120
-
-try:
-    IS_SECURE = settings.IS_SECURE
-except AttributeError:
-    IS_SECURE = False
-
 OWS_PREVIEW_URL = settings.OWS_PREVIEW_URL
 
 
