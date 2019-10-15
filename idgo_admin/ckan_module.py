@@ -27,6 +27,7 @@ from idgo_admin import logger
 from idgo_admin.utils import Singleton
 import inspect
 import os
+import time
 import timeout_decorator
 import unicodedata
 from urllib.parse import urljoin
@@ -606,4 +607,15 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
         return self.call_action('resource_show', id=id)
 
 
-CkanHandler = CkanManagerHandler()
+def handle_connection(attempt):
+    try:
+        return CkanManagerHandler()
+    except CkanNotFoundError as e:
+        if attempt > 5:
+            raise(e)
+        logger.warning(e)
+        logger.warning('Attempt to connect to CKAN [{}]'.format(attempt))
+        time.sleep(1)
+        return handle_connection(attempt + 1)
+
+CkanHandler = handle_connection(1)
