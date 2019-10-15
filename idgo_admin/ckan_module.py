@@ -610,7 +610,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
 def handle_connection(attempt):
     try:
         return CkanManagerHandler()
-    except CkanNotFoundError as e:
+    except CkanReadError as e:
         if attempt > 5:
             raise(e)
         logger.warning(e)
