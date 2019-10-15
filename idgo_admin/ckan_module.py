@@ -611,7 +611,7 @@ def handle_connection(attempt):
     try:
         return CkanManagerHandler()
     except CkanReadError as e:
-        if attempt > 7:
+        if attempt > 19:
             raise(e)
         logger.warning(e)
         logger.warning('Attempt to connect to CKAN [{}]'.format(attempt))
