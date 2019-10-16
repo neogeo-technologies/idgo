@@ -606,4 +606,20 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
         return self.call_action('resource_show', id=id)
 
 
+<<<<<<< Updated upstream
 CkanHandler = CkanManagerHandler()
+=======
+def handle_connection(attempt):
+    try:
+        return CkanManagerHandler()
+    except CkanReadError as e:
+        if attempt > 31:
+            raise(e)
+        logger.warning(e)
+        logger.warning('Attempt to connect to CKAN [{}]'.format(attempt))
+        logger.warning('URL: {}'.format(CKAN_URL))
+        time.sleep(10)
+        return handle_connection(attempt + 1)
+
+CkanHandler = handle_connection(1)
+>>>>>>> Stashed changes
