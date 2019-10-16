@@ -27,6 +27,7 @@ from idgo_admin import logger
 from idgo_admin.utils import Singleton
 import inspect
 import os
+import time
 import timeout_decorator
 import unicodedata
 from urllib.parse import urljoin
@@ -606,9 +607,6 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
         return self.call_action('resource_show', id=id)
 
 
-<<<<<<< Updated upstream
-CkanHandler = CkanManagerHandler()
-=======
 def handle_connection(attempt):
     try:
         return CkanManagerHandler()
@@ -622,4 +620,3 @@ def handle_connection(attempt):
         return handle_connection(attempt + 1)
 
 CkanHandler = handle_connection(1)
->>>>>>> Stashed changes
