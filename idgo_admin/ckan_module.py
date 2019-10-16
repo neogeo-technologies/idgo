@@ -148,7 +148,8 @@ class CkanBaseHandler(object):
         self.remote = RemoteCKAN(url, apikey=self.apikey)
         try:
             res = self.call_action('site_read')
-        except Exception:
+        except Exception as e:
+            logger.error(e)
             raise CkanReadError()
         # else:
         logger.info('Open CKAN connection with api key: {}'.format(apikey))
