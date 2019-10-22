@@ -26,7 +26,10 @@ import redis
 import uuid
 
 
-strict_redis = redis.StrictRedis(settings.REDIS_HOST)
+try:
+    strict_redis = redis.StrictRedis(settings.REDIS_HOST)
+except AttributeError:
+    strict_redis = redis.StrictRedis()
 REDIS_EXPIRATION = 120
 OWS_PREVIEW_URL = settings.OWS_PREVIEW_URL
 
