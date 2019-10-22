@@ -26,7 +26,7 @@ import redis
 import uuid
 
 
-strict_redis = redis.StrictRedis()
+strict_redis = redis.StrictRedis(settings.REDIS_HOST)
 REDIS_EXPIRATION = 120
 OWS_PREVIEW_URL = settings.OWS_PREVIEW_URL
 
@@ -41,8 +41,8 @@ class SLDPreviewSetter(View):
         strict_redis.set(key, sld)
         strict_redis.expire(key, REDIS_EXPIRATION)
 
-        location = reverse('idgo_admin:sld_preview_getter', kwargs={'key': key})
-        print(location)
+        location = request.build_absolute_uri(
+            reverse('idgo_admin:sld_preview_getter', kwargs={'key': key}))
 
         response = HttpResponse(status=201)
         response['Content-Location'] = location
