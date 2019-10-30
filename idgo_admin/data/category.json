@@ -1,177 +1,155 @@
 [{
 	"model": "idgo_admin.category",
+	"pk": 1,
+	"fields": {
+		"name": "Administration et action publique",
+		"description": "Administration et action publique",
+		"slug": "administration-et-action-publique",
+		"ckan_id": "c45a64dd-355a-4bc9-a46a-7c558d880b71",
+		"iso_topic": "society",
+		"picto": ""
+	}
+}, {
+	"model": "idgo_admin.category",
+	"pk": 2,
+	"fields": {
+		"name": "Agriculture",
+		"description": "Agriculture",
+		"slug": "agriculture",
+		"ckan_id": "6561f7df-b20c-42e5-a16a-47ba52ce1540",
+		"iso_topic": "farming",
+		"picto": ""
+	}
+}, {
+	"model": "idgo_admin.category",
+	"pk": 3,
+	"fields": {
+		"name": "Am\u00e9nagement du territoire et urbanisme",
+		"description": "Am\u00e9nagement du territoire et urbanisme",
+		"slug": "amenagement-du-territoire-et-urbanisme",
+		"ckan_id": "7c618acf-0147-48e3-b2c3-a2e9cb13382f",
+		"iso_topic": "structure",
+		"picto": ""
+	}
+}, {
+	"model": "idgo_admin.category",
 	"pk": 4,
 	"fields": {
-		"name": "Agriculture, sylviculture et p\u00eache",
-		"description": "Agriculture, sylviculture et p\u00eache",
-		"slug": "agriculture-sylviculture-et-peche",
-		"ckan_id": "0dc4e5d8-67d1-4780-b45e-bd558c1a7254",
-		"iso_topic": "farming",
-		"picto": "logos/agriculture.png"
+		"name": "Biodiversit\u00e9 et eau",
+		"description": "Biodiversit\u00e9 et eau",
+		"slug": "biodiversite-et-eau",
+		"ckan_id": "8142ea83-b81b-4851-89dd-5aef0ae5ef3a",
+		"iso_topic": "environment",
+		"picto": ""
 	}
 }, {
 	"model": "idgo_admin.category",
 	"pk": 5,
 	"fields": {
-		"name": "Administration et action publique",
-		"description": "Administration et action publique",
-		"slug": "administration-et-action-publique",
-		"ckan_id": "115bdc3b-b3c5-4843-9b0e-6d959b557770",
-		"iso_topic": "society",
-		"picto": "logos/administration.png"
-	}
-}, {
-	"model": "idgo_admin.category",
-	"pk": 6,
-	"fields": {
 		"name": "Citoyennet\u00e9 et d\u00e9mocratie",
 		"description": "Citoyennet\u00e9 et d\u00e9mocratie",
 		"slug": "citoyennete-et-democratie",
-		"ckan_id": "f5ce36ba-dbaf-468f-9f4b-8fb65c6229bb",
+		"ckan_id": "bf6bb49f-5171-49b8-a022-0a80042ba466",
 		"iso_topic": "society",
-		"picto": "logos/citoyennete.png"
+		"picto": ""
+	}
+}, {
+	"model": "idgo_admin.category",
+	"fields": {
+		"pk": 6,
+		"name": "Climat, air et \u00e9nergie",
+		"description": "Climat, air et \u00e9nergie",
+		"slug": "climat-air-et-energie",
+		"ckan_id": "56bdb98f-fdc5-404e-8020-1606dbbd5648",
+		"iso_topic": "climatologyMeteorologyAtmosphere",
+		"picto": ""
 	}
 }, {
 	"model": "idgo_admin.category",
 	"pk": 7,
 	"fields": {
-		"name": "Economie et entreprises",
-		"description": "Economie et entreprises",
-		"slug": "economie-et-entreprises",
-		"ckan_id": "4c679f98-fabd-4de2-a0f8-1d0839e0715c",
-		"iso_topic": "economy",
-		"picto": "logos/economie.png"
+		"name": "Culture, patrimoine et tourisme",
+		"description": "Culture, patrimoine et tourisme",
+		"slug": "culture-patrimoine-et-tourisme",
+		"ckan_id": "37bde9c8-f22e-4f2e-9d14-7f0ec1a87086",
+		"iso_topic": "society",
+		"picto": ""
 	}
 }, {
 	"model": "idgo_admin.category",
 	"pk": 8,
 	"fields": {
-		"name": "Imagerie et occupation du sol",
-		"description": "Imagerie et occupation du sol",
-		"slug": "imagerie-et-occupation-du-sol",
-		"ckan_id": "e27a203d-c7d4-4ccb-926d-710ed949898e",
-		"iso_topic": "planningCadastre",
-		"picto": "logos/imagerie.png"
+		"name": "Economie et entreprises",
+		"description": "Economie et entreprises",
+		"slug": "economie-et-entreprises",
+		"ckan_id": "a0de94e1-42a1-46a7-a3b1-0113229e3280",
+		"iso_topic": "economy",
+		"picto": ""
 	}
 }, {
 	"model": "idgo_admin.category",
 	"pk": 9,
 	"fields": {
-		"name": "Limites administratives et r\u00e9f\u00e9rentiels",
-		"description": "Limites administratives et r\u00e9f\u00e9rentiels",
-		"slug": "limites-administratives-et-referentiels",
-		"ckan_id": "fc34da70-99b7-44cf-b756-a711fea5f051",
-		"iso_topic": "imageryBaseMapsEarthCover",
-		"picto": "logos/limites-administratives.png"
+		"name": "Equipements, b\u00e2timents et logements",
+		"description": "Equipements, b\u00e2timents et logements",
+		"slug": "equipements-batiments-et-logements",
+		"ckan_id": "fdb6ebc1-4a62-46f9-b405-e9fc2c4e000f",
+		"iso_topic": "structure",
+		"picto": ""
 	}
 }, {
 	"model": "idgo_admin.category",
 	"pk": 10,
 	"fields": {
-		"name": "Mer, littoral et montagne",
-		"description": "Mer, littoral et montagne",
-		"slug": "mer-littoral-et-montagne",
-		"ckan_id": "e20563aa-ade1-4811-aafa-b1be1ed10346",
-		"iso_topic": "elevation",
-		"picto": "logos/mer.png"
+		"name": "Formation, \u00e9ducation et emploi",
+		"description": "Formation, \u00e9ducation et emploi",
+		"slug": "formation-education-et-emploi",
+		"ckan_id": "dccdafcb-bfe9-47fb-a1d5-2eb27db2ebdc",
+		"iso_topic": "society",
+		"picto": ""
 	}
 }, {
 	"model": "idgo_admin.category",
 	"pk": 11,
 	"fields": {
-		"name": "Social, sant\u00e9 et sports",
-		"description": "Social, sant\u00e9 et sports",
-		"slug": "social-sante-et-sports",
-		"ckan_id": "3f6ee72c-881a-49de-8453-c154d4300e15",
-		"iso_topic": "health",
-		"picto": "logos/sante.png"
+		"name": "Mobilit\u00e9 et transports",
+		"description": "Mobilit\u00e9 et transports",
+		"slug": "mobilite-et-transports",
+		"ckan_id": "5b2f1721-f4e9-48ff-bd95-97e2d8cb8d0e",
+		"iso_topic": "transportation",
+		"picto": ""
 	}
 }, {
 	"model": "idgo_admin.category",
 	"pk": 12,
 	"fields": {
-		"name": "Am\u00e9nagement et urbanisme",
-		"description": "Am\u00e9nagement et urbanisme",
-		"slug": "amenagement-et-urbanisme",
-		"ckan_id": "d719f9db-4e4a-4da3-b0ae-7c326d738ea8",
-		"iso_topic": "structure",
-		"picto": "logos/amenagement.png"
+		"name": "Nuisances, d\u00e9chets et risques",
+		"description": "Nuisances, d\u00e9chets et risques",
+		"slug": "nuisances-dechets-et-risques",
+		"ckan_id": "dea573f5-b699-4ace-93c5-50530094f987",
+		"iso_topic": "environment",
+		"picto": ""
 	}
 }, {
 	"model": "idgo_admin.category",
 	"pk": 13,
 	"fields": {
-		"name": "Sciences, recherche et innovation",
-		"description": "Sciences, recherche et innovation",
-		"slug": "sciences-recherche-et-innovation",
-		"ckan_id": "d2fe35da-573e-4657-900f-758fd17a7fb2",
-		"iso_topic": "geoscientificInformation",
-		"picto": "logos/sciences.png"
+		"name": "Occupation des sols",
+		"description": "Occupation des sols",
+		"slug": "occupation-des-sols",
+		"ckan_id": "7706b038-0342-4351-85da-1c204c270170",
+		"iso_topic": "planningCadastre",
+		"picto": ""
 	}
 }, {
 	"model": "idgo_admin.category",
 	"pk": 14,
 	"fields": {
-		"name": "Energies et r\u00e9seaux",
-		"description": "Energies et r\u00e9seaux",
-		"slug": "energies-et-reseaux",
-		"ckan_id": "b9c953fa-707a-4131-adb5-15063b976ce6",
-		"iso_topic": "utilitiesCommunication",
-		"picto": "logos/energie.png"
-	}
-}, {
-	"model": "idgo_admin.category",
-	"pk": 15,
-	"fields": {
-		"name": "Equipements, b\u00e2timents et logement",
-		"description": "Equipements, b\u00e2timents et logement",
-		"slug": "equipements-batiments-et-logement",
-		"ckan_id": "7915150e-1434-4093-b167-c22dbf562bdd",
-		"iso_topic": "structure",
-		"picto": "logos/equipement.png"
-	}
-}, {
-	"model": "idgo_admin.category",
-	"pk": 16,
-	"fields": {
-		"name": "Formation, \u00e9ducation et emploi",
-		"description": "Formation, \u00e9ducation et emploi",
-		"slug": "formation-education-et-emploi",
-		"ckan_id": "5b5a986d-c169-4daa-aded-bc912743f094",
-		"iso_topic": "society",
-		"picto": "logos/formation.png"
-	}
-}, {
-	"model": "idgo_admin.category",
-	"pk": 17,
-	"fields": {
-		"name": "Culture, patrimoine et tourisme",
-		"description": "Culture, patrimoine et tourisme",
-		"slug": "culture-patrimoine-et-tourisme",
-		"ckan_id": "3f7039a9-9f5b-4289-b8b3-1c45d1b43cc0",
-		"iso_topic": "society",
-		"picto": "logos/culture.png"
-	}
-}, {
-	"model": "idgo_admin.category",
-	"pk": 18,
-	"fields": {
-		"name": "Mobilit\u00e9 et transports",
-		"description": "Mobilit\u00e9 et transports",
-		"slug": "mobilite-et-transports",
-		"ckan_id": "26436f34-57be-4e9e-84f8-50d96d4851e7",
-		"iso_topic": "transportation",
-		"picto": "logos/mobilite.png"
-	}
-}, {
-	"model": "idgo_admin.category",
-	"pk": 19,
-	"fields": {
-		"name": "Environnement et climat",
-		"description": "Environnement et climat",
-		"slug": "environnement-et-climat",
-		"ckan_id": "544208c7-5206-463d-b6be-f336bc631e35",
-		"iso_topic": "climatologyMeteorologyAtmosphere",
-		"picto": "logos/environnement.png"
+		"name": "Social, sant\u00e9 et sports",
+		"description": "Social, sant\u00e9 et sports",
+		"slug": "social-sante-et-sports",
+		"ckan_id": "577b9c93-600f-470e-ab15-bc0b08fd1b64",
+		"iso_topic": "health",
+		"picto": ""
 	}
 }]
