@@ -54,6 +54,8 @@ try:
 except AttributeError:
     BOUNDS = [[40, -14], [55, 28]]
 
+DB_SETTINGS = settings.DATABASES[settings.DATAGIS_DB]
+
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
@@ -431,10 +433,19 @@ class Extractor(View):
                     'source': layer.filename,
                     }, **dst_format_raster}
             elif layer.type == 'vector':
-                data_extraction = {**{
-                    'layer': layer.name,
-                    'source': 'PG:host=postgis-master user=datagis dbname=datagis',
-                    }, **dst_format_vector}
+                data_extraction = {
+                    **{
+                        'layer': layer.name,
+                        'source': 'PG:host={host} port={port} dbname={database} user={user} password={password}'.format(
+                            host=DB_SETTINGS['HOST'],
+                            port=DB_SETTINGS['PORT'],
+                            database=DB_SETTINGS['NAME'],
+                            user=DB_SETTINGS['USER'],
+                            password=DB_SETTINGS['PASSWORD'],
+                            ),
+                        },
+                    **dst_format_vector
+                    }
 
             data_extraction['dst_srs'] = dst_crs or 'EPSG:2154'
 
