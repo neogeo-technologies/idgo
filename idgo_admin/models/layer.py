@@ -267,7 +267,7 @@ class Layer(models.Model):
         # Puis sauvegarde
         super().save(*args, **kwargs)
         self.handle_enable_ows_status()
-        self.handle_layergroup()
+        # self.handle_layergroup()
 
         if synchronize:
             self.synchronize()
