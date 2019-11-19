@@ -312,6 +312,8 @@ class MRAHandler(metaclass=Singleton):
             return self.get_featuretype(ws_name, ds_name, ft_name)
         except MRANotFoundError:
             pass
+        except Exception:
+            pass
         return self.create_featuretype(ws_name, ds_name, ft_name, **kwargs)
 
     # Coverage store
