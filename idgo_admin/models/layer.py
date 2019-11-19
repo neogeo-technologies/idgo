@@ -183,7 +183,7 @@ class Layer(models.Model):
         try:
             l = MRAHandler.get_layer(self.name)
         except MraBaseError as e:
-            logger.error(e)
+            logger.warning(e)
             return
 
         # Récupération des informations de couche vecteur
