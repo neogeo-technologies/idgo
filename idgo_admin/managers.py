@@ -279,7 +279,7 @@ class VectorLayerManager(models.Manager):
 # ========================================
 
 
-class DefaultCommunesManager(models.Manager):
+class DefaultCommuneManager(models.Manager):
 
     def get_queryset(self, **kwargs):
         return super().get_queryset(**kwargs).filter(code__regex=COMMUNES_REGEX)
