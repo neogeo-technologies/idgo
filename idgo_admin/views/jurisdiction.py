@@ -139,7 +139,7 @@ class JurisdictionView(View):
 
         basemaps = BaseMaps.objects.all()
         communes = serialize(
-            'geojson', Commune.objects.all().transform(srid=4326),
+            'geojson', Commune.default.all().transform(srid=4326),
             geometry_field='geom')
 
         context = {
@@ -174,7 +174,7 @@ class JurisdictionView(View):
         basemaps = BaseMaps.objects.all()
         communes = serialize(
             'geojson',
-            Commune.objects.all().transform(srid=4326),
+            Commune.default.all().transform(srid=4326),
             geometry_field='geom')
 
         organisation_pk = request.GET.get('organisation')

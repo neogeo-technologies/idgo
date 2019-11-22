@@ -18,6 +18,7 @@ from django.apps import apps
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Union
 from django.contrib.gis.geos import MultiPolygon
+from idgo_admin.managers import DefaultCommuneManager
 import json
 
 
@@ -124,6 +125,7 @@ class Commune(models.Model):
         ordering = ('code',)
 
     objects = models.GeoManager()
+    default = DefaultCommuneManager()
 
     code = models.CharField(
         verbose_name="Code INSEE",

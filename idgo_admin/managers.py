@@ -14,11 +14,15 @@
 # under the License.
 
 
+from django.conf import settings
 from django.apps import apps
 from django.contrib.gis.db import models
 from django.utils import timezone
 from idgo_admin.utils import clean_my_obj
 from itertools import chain
+
+
+COMMUNES_REGEX = settings.DEFAULTS_VALUES.get('COMMUNES_REGEX', '^\d(\d|A|B)\d{3}$')
 
 
 # =========================================================
@@ -265,6 +269,23 @@ class VectorLayerManager(models.Manager):
         self._for_write = True
         obj.save(force_insert=True, using=self.db, **save_opts)
         return obj
+
+    def get(self, **kwargs):
+        return super().get(**kwargs)
+
+
+# ========================================
+# Définition de Managers pour les communes
+# ========================================
+
+
+class DefaultCommunesManager(models.Manager):
+
+    def get_queryset(self, **kwargs):
+        return super().get_queryset(**kwargs).filter(code__regex=COMMUNES_REGEX)
+
+    def all(self):
+        return self.get_queryset()
 
     def get(self, **kwargs):
         return super().get(**kwargs)
