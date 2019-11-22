@@ -231,7 +231,7 @@ class Extractor(View):
             'resource': None,
             'layer': None,
             'task': None,
-            'communes': Commune.objects.all().transform(srid=4326),
+            'communes': Commune.default.all().transform(srid=4326),
             'supported_crs': SupportedCrs.objects.all(),
             'supported_format': ExtractorSupportedFormat.objects.all(),
             'format_raster': None,

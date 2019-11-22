@@ -48,7 +48,7 @@ class JurisdictionForm(forms.ModelForm):
 
     communes = forms.ModelMultipleChoiceField(
         label="Communes",
-        queryset=Commune.objects.all(),
+        queryset=Commune.default.all(),
         required=False,
         to_field_name='code',
         widget=CustomCheckboxSelectMultiple(
