@@ -26,7 +26,7 @@ from smtplib import SMTPDataError
 from urllib.parse import urljoin
 
 
-EXTRACTOR_URL = settings.EXTRACTOR_URL
+EXTRACTOR_URL_PUBLIC = settings.EXTRACTOR_URL_PUBLIC
 DEFAULT_FROM_EMAIL = settings.DEFAULT_FROM_EMAIL
 
 
@@ -418,7 +418,7 @@ def send_extraction_successfully_mail(user, instance):
         full_name=user.get_full_name(),
         title=instance.target_object.__str__(),
         to=[user.email],
-        url=urljoin(EXTRACTOR_URL, 'jobs/{}/download'.format(instance.uuid)),
+        url=urljoin(EXTRACTOR_URL_PUBLIC, 'jobs/{}/download'.format(instance.uuid)),
         username=user.username)
 
 
