@@ -45,21 +45,20 @@ class SLDPreviewSetter(View):
         strict_redis.set(key, sld)
         strict_redis.expire(key, REDIS_EXPIRATION)
 
+        response = HttpResponse(status=201)
         location = request.build_absolute_uri(
             reverse('idgo_admin:sld_preview_getter', kwargs={'key': key}))
 
-        print(location)
-        if hasattr(settings, 'HOST_INTERNAL') and hasattr(settings, 'PORT_INTERNAL'):
-            print(settings.HOST_INTERNAL, settings.PORT_INTERNAL)
-            netloc = '{host}:{port}'.format(host=settings.HOST_INTERNAL, port=settings.PORT_INTERNAL)
-            print(netloc)
+        if hasattr(settings, 'HOST_INTERNAL') \
+                and hasattr(settings, 'PORT_INTERNAL'):
+            netloc = '{host}:{port}'.format(
+                host=settings.HOST_INTERNAL, port=settings.PORT_INTERNAL)
             parsed = urllib.parse.urlparse(location)
             replaced = parsed._replace(netloc=netloc)
-            location = replaced.geturl()
-            print(location)
+            response['Content-Location'] = replaced.geturl()
+        else:
+            response['Content-Location'] = location
 
-        response = HttpResponse(status=201)
-        response['Content-Location'] = location
         return response
 
 
