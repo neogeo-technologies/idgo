@@ -48,11 +48,15 @@ class SLDPreviewSetter(View):
         location = request.build_absolute_uri(
             reverse('idgo_admin:sld_preview_getter', kwargs={'key': key}))
 
+        print(location)
         if hasattr(settings, 'HOST_INTERNAL') and hasattr(settings, 'PORT_INTERNAL'):
+            print(settings.HOST_INTERNAL, settings.PORT_INTERNAL)
             netloc = '{host}:{port}'.format(host=settings.HOST_INTERNAL, port=settings.PORT_INTERNAL)
+            print(netloc)
             parsed = urllib.parse.urlparse(location)
             replaced = parsed._replace(netloc=netloc)
             location = replaced.geturl()
+            print(location)
 
         response = HttpResponse(status=201)
         response['Content-Location'] = location
