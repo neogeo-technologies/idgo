@@ -49,7 +49,7 @@ class SLDPreviewSetter(View):
             reverse('idgo_admin:sld_preview_getter', kwargs={'key': key}))
 
         if hasattr(settings, 'HOST_INTERNAL') and hasattr(settings, 'PORT_INTERNAL'):
-            netloc = '{host}:{port}'.format(settings.HOST_INTERNAL, settings.PORT_INTERNAL)
+            netloc = '{host}:{port}'.format(host=settings.HOST_INTERNAL, port=settings.PORT_INTERNAL)
             parsed = urllib.parse.urlparse(location)
             replaced = parsed._replace(netloc=netloc)
             location = replaced.geturl()
