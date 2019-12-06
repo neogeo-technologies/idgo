@@ -23,6 +23,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import redis
+import urllib.parse
 import uuid
 
 
@@ -46,6 +47,12 @@ class SLDPreviewSetter(View):
 
         location = request.build_absolute_uri(
             reverse('idgo_admin:sld_preview_getter', kwargs={'key': key}))
+
+        if hasattr(settings, 'HOST_INTERNAL') and hasattr(settings, 'PORT_INTERNAL'):
+            netloc = '{host}:{port}'.format(settings.HOST_INTERNAL, settings.PORT_INTERNAL)
+            parsed = urllib.parse.urlparse(location)
+            replaced = parsed._replace(netloc=netloc)
+            location = replaced.geturl()
 
         response = HttpResponse(status=201)
         response['Content-Location'] = location
