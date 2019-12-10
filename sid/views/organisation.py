@@ -14,21 +14,21 @@
 # under the License.
 
 
-import logging
-
 from django.http import HttpResponse
+from idgo_admin.models import License
+from idgo_admin.models import Organisation
+from idgo_admin.models import OrganisationType
+import logging
 from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser
-import xmltodict
-
-# TODO switcher sur modules idgo_admin.models
-from sid.models import License, Organisation, OrganisationType
 from sid.xml_io import XMLRenderer
 from sid.xml_io import XMLtParser
 from sid.exceptions import SidGenericError
+import xmltodict
+
 
 logger = logging.getLogger('django')
 
@@ -47,7 +47,7 @@ class AbstractOrgViews(
     ]
     renderer_classes = [XMLRenderer, ]
     permission_classes = [
-        # permissions.IsAuthenticated, # TODO limiter aux connectés
+        # permissions.IsAuthenticated,  # TODO limiter aux connectés
         permissions.AllowAny
     ]
     lookup_field = 'sid_id'
@@ -97,8 +97,10 @@ class AbstractOrgViews(
                 instance.pk,
                 instance.sid_id,
                 {
-                    'image/png': 'png', 'image/jpeg': 'jpg',
-                    'image/tiff': 'tif', 'image/bmp': 'bmp',
+                    'image/png': 'png',
+                    'image/jpeg': 'jpg',
+                    'image/tiff': 'tif',
+                    'image/bmp': 'bmp',
                 }.get(logo.headers.get('Content-Type', 'image/png'))
             )
             files.File(logo.fp)
@@ -108,7 +110,7 @@ class AbstractOrgViews(
     def parse_and_create(self, data):
         root = data.get(self.class_type.lower(), {})
         sid_id = root.get('id', None)
-        if Organisation.objects.filter(sid_id=sid_id).exists():
+        if Organisation.objects.filter(slug=sid_id).exists():
             raise SidGenericError(
                 client_error_code='005',
                 extra_context={
@@ -131,6 +133,7 @@ class AbstractOrgViews(
             )
 
             defaults = {
+                'slug': root['id'],
                 'legal_name': root['label'],  # PHTTERNUM-395: valeur à synchroniser
                 'description': root['name'],  # PHTTERNUM-395: ancienne valeur
                 'email': root['email'],
@@ -138,7 +141,6 @@ class AbstractOrgViews(
                 'postcode': root['address']['postalCode'],
                 'city': root['address']['city'],
                 'is_active': True,
-                'sid_id': root['id'],
                 'logo': root.get('logoUrl'),  # Optionnelle
                 'phone': root.get('phone'),  # Optionnelle
                 'organisation_type': organisation_type,
@@ -181,7 +183,7 @@ class AbstractOrgViews(
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        if not Organisation.objects.filter(sid_id=sid_id).exists():
+        if not Organisation.objects.filter(slug=sid_id).exists():
             raise SidGenericError(
                 client_error_code='003',
                 extra_context={
@@ -285,14 +287,12 @@ class AbstractOrgViews(
 
 
 class OrganismViews(AbstractOrgViews):
-
     class_type = 'ORGANISM'
     organisation_type_code = 'organisme-public'
     organisation_type_defaults = {'name': 'Organisme publique'}
 
 
 class CompanyViews(AbstractOrgViews):
-
     class_type = 'COMPANY'
     organisation_type_code = 'entreprise'
     organisation_type_defaults = {'name': 'Entreprise'}

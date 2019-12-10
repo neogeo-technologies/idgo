@@ -14,16 +14,14 @@
 # under the License.
 
 
-import logging
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.urls import reverse
+from idgo_admin.models import Profile
+import logging
 
-# TODO switcher vers idgo_admin
-from sid.models import Profile
 
 User = get_user_model()
 logger = logging.getLogger('django')

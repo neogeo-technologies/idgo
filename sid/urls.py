@@ -13,24 +13,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+
 from django.conf.urls import url
 from rest_framework import routers
-
 from sid.views.user import AgentViews
 from sid.views.user import EmployeeViews
+from sid.views.organisation import CompanyViews
+from sid.views.organisation import OrganismViews
 
 
 # TODO a supprimer en fin de dev du middleware
 from sid.views.user import TestAuthentViews
 
-from sid.views.organisation import CompanyViews
-from sid.views.organisation import OrganismViews
-
 
 app_name = 'sid'
 
 router = routers.DefaultRouter()
-
 router.register(r'agent', AgentViews, base_name='agent')
 router.register(r'employee', EmployeeViews, base_name='employee')
 router.register(r'organism', OrganismViews, base_name='organism')
@@ -38,7 +36,6 @@ router.register(r'company', CompanyViews, base_name='company')
 
 urlpatterns = [
     # Si besoin d'urls supplémentaires
-    url(r'mon-compte/?', TestAuthentViews.as_view())
+    url(r'^mon-compte/?', TestAuthentViews.as_view())
 ]
-
 urlpatterns += router.urls

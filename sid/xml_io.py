@@ -14,9 +14,8 @@
 # under the License.
 
 
-import logging
-
 from django.template.loader import render_to_string
+import logging
 from rest_framework.parsers import BaseParser
 from rest_framework.renderers import BaseRenderer
 import xmltodict
@@ -28,7 +27,7 @@ logger = logging.getLogger('d0jango')
 class XMLRenderer(BaseRenderer):
     """
     Les retours xml se font pour contextualiser les erreurs de l'api SID
-    cf fichiers exemple et schema: error.xml et error.xsd
+    Cf. fichiers exemple et schema: `error.xml` et `error.xsd`
 
     <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <error xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="error.xsd">

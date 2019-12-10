@@ -14,26 +14,25 @@
 # under the License.
 
 
-import logging
-
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import HttpResponse
+from idgo_admin.models import LiaisonsContributeurs
+from idgo_admin.models import Organisation
+from idgo_admin.models import Profile
 from rest_framework.views import APIView
+import logging
 from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
-
-import xmltodict
-
-# TODO switcher sur modules idgo_admin.models
-from sid.models import LiaisonsContributeurs, Organisation, Profile
 from sid.xml_io import XMLtParser
 from sid.xml_io import XMLRenderer
 from sid.exceptions import SidGenericError
+import xmltodict
+
 
 logger = logging.getLogger('django')
 
@@ -78,7 +77,7 @@ class AbstractUsrViews(
     def parse_and_create(self, data):
         root = data.get(self.profile_element, {})
         sid_id = root.get('id', None)
-        if Profile.objects.filter(sid_id=sid_id).exists():
+        if User.objects.filter(username=sid_id).exists():
             raise SidGenericError(
                 client_error_code='005',
                 extra_context={
@@ -95,7 +94,7 @@ class AbstractUsrViews(
             if data_orga.get(self.orga_element):
                 orga_sid = data_orga[self.orga_element]['id']
                 try:
-                    orga = Organisation.objects.get(sid_id=orga_sid)
+                    orga = Organisation.objects.get(slug=orga_sid)
                 except Organisation.DoesNotExist:
                     # TODO tester les mécanismes de rejeu de la synchronisation
                     raise SidGenericError(
@@ -110,20 +109,19 @@ class AbstractUsrViews(
 
             data_user = root['user']
             user = User.objects.create(
+                username=root['id'],  # data_user['username']
+                email=root['email'],
                 first_name=data_user['firstname'],
                 last_name=data_user['lastname'],
-                username=data_user['username'],
-                email=root['email'],
                 is_superuser=root['roles']['role']['label'] == "Administrateur Global",
                 is_staff=root['roles']['role']['label'] == "Administrateur Global",
                 is_active=data_user['enabled'] == "true",
             )
 
             profile = Profile.objects.create(
-                sid_id=root['id'],
                 user=user,
                 organisation=orga,
-                is_active=data_user['enabled'] == "true",
+                is_active=data_user['enabled'] == 'true',
                 membership=orga is not None,
                 # crige_membership,  # Manquant
                 # is_admin,  # Manquant
@@ -164,7 +162,7 @@ class AbstractUsrViews(
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        if not Profile.objects.filter(sid_id=sid_id).exists():
+        if not User.objects.filter(username=sid_id).exists():
             raise SidGenericError(
                 client_error_code='003',
                 extra_context={
@@ -181,7 +179,7 @@ class AbstractUsrViews(
             if data_orga.get(self.orga_element):
                 orga_sid = data_orga[self.orga_element]['id']
                 try:
-                    orga = Organisation.objects.get(sid_id=orga_sid)
+                    orga = Organisation.objects.get(slug=orga_sid)
                 except Organisation.DoesNotExist:
                     # TODO tester les mécanismes de rejeu de la synchronisation
                     raise SidGenericError(
@@ -336,11 +334,11 @@ class TestAuthentViews(APIView):
     def get(self, request, *args, **kargs):
         prf = Profile.objects.get(user=request.user)
         data = {
-            'username': prf.user.username,
+            # 'username': prf.user.username,
             'first_name': prf.user.first_name,
             'last_name': prf.user.last_name,
             'is_staff': prf.user.is_staff,
-            'sid_id': prf.sid_id,
+            'sid_id': prf.user.username,
             'organisation': prf.organisation.legal_name if prf.organisation else ''
         }
         return Response(data=data, status=status.HTTP_200_OK)
