@@ -55,8 +55,8 @@
 	}
 }, {
 	"model": "idgo_admin.category",
+	"pk": 6,
 	"fields": {
-		"pk": 6,
 		"name": "Climat, air et \u00e9nergie",
 		"description": "Climat, air et \u00e9nergie",
 		"slug": "climat-air-et-energie",
