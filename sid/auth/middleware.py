@@ -19,7 +19,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.urls import reverse
-from idgo_admin.models import Profile
 import logging
 
 
@@ -46,11 +45,9 @@ class SidRemoteUserMiddleware(object):
 
     def get_user(self, unique_id):
         try:
-            prf = Profile.objects.get(sid_id=unique_id)
+            return User.objects.get(username=unique_id)
         except Exception:
             logger.exception(self.__class__.__name__)
-        else:
-            return prf.user
 
     def process_request(self, request):
         sid_user_id = request.META.get(self.header)
