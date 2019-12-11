@@ -17,6 +17,8 @@
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import HttpResponse
+from idgo_admin.ckan_module import CkanBaseError
+from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
@@ -42,7 +44,7 @@ class AbstractUsrViews(
         mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,
         viewsets.GenericViewSet):
-    queryset = Profile.objects.all()
+    queryset = User.objects.all()
     parser_classes = [
         # Si le contenu est envoyé en raw
         XMLtParser,
@@ -144,8 +146,22 @@ class AbstractUsrViews(
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        else:
-            return user
+
+        try:
+            CkanHandler.add_user(user, 'fake', state='active')
+        except CkanBaseError:
+            logger.exception(CkanBaseError.message)
+            raise SidGenericError(
+                client_error_code='006',
+                extra_context={
+                    'classType': self.class_type,
+                    'methodType': self.request.method,
+                    'resourceId': sid_id,
+                },
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        return user
 
     @transaction.atomic
     def parse_and_update(self, instance, data):
@@ -222,8 +238,22 @@ class AbstractUsrViews(
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        else:
-            return instance
+
+        try:
+            CkanHandler.update_user(instance.user)
+        except CkanBaseError:
+            logger.exception(CkanBaseError.message)
+            raise SidGenericError(
+                client_error_code='006',
+                extra_context={
+                    'classType': self.class_type,
+                    'methodType': self.request.method,
+                    'resourceId':instance.username,
+                },
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        return instance
 
     def get_data(self, request):
         data = None
