@@ -54,8 +54,8 @@ class AbstractUsrViews(
         # permissions.IsAuthenticated, # TODO limiter aux connectés
         permissions.AllowAny
     ]
-    lookup_field = 'sid_id'
-    lookup_url_kwarg = 'sid_id'
+    lookup_field = 'username'
+    lookup_url_kwarg = 'username'
     http_method_names = ['post', 'put', 'delete']
 
     def get_object(self):
@@ -67,7 +67,7 @@ class AbstractUsrViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': self.kwargs.get('sid_id', 'N/A'),
+                    'resourceId': self.kwargs.get('username', 'N/A'),
                 },
                 status_code=status.HTTP_404_NOT_FOUND
             )
@@ -152,13 +152,13 @@ class AbstractUsrViews(
 
         root = data.get(self.profile_element, {})
         sid_id = root.get('id', None)
-        if sid_id != str(instance.sid_id):
+        if sid_id != str(instance.username):
             raise SidGenericError(
                 client_error_code='002',
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.sid_id,
+                    'resourceId': instance.username,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -168,7 +168,7 @@ class AbstractUsrViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.sid_id,
+                    'resourceId': instance.username,
                 },
                 status_code=status.HTTP_404_NOT_FOUND
             )
@@ -218,7 +218,7 @@ class AbstractUsrViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.sid_id,
+                    'resourceId': instance.username,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -249,7 +249,7 @@ class AbstractUsrViews(
             instance = self.parse_and_create(data)
             logger.info('create() OK: id->{}, sid_id->{}'.format(
                 instance.id,
-                instance.sid_id,
+                instance.username,
             ))
             return HttpResponse(status=201)
 
@@ -263,7 +263,7 @@ class AbstractUsrViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.sid_id,
+                    'resourceId': instance.username,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -271,7 +271,7 @@ class AbstractUsrViews(
             instance = self.parse_and_update(instance, data)
             logger.info('update() OK: id->{}, sid_id->{}'.format(
                 instance.id,
-                instance.sid_id,
+                instance.username,
             ))
             return HttpResponse(status=200)
 
@@ -288,7 +288,7 @@ class AbstractUsrViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.sid_id,
+                    'resourceId': instance.username,
                 },
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

@@ -50,8 +50,8 @@ class AbstractOrgViews(
         # permissions.IsAuthenticated,  # TODO limiter aux connectés
         permissions.AllowAny
     ]
-    lookup_field = 'sid_id'
-    lookup_url_kwarg = 'sid_id'
+    lookup_field = 'slug'
+    lookup_url_kwarg = 'slug'
     http_method_names = ['post', 'put', 'delete']
 
     license_slug = 'lov2'
@@ -69,7 +69,7 @@ class AbstractOrgViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': self.kwargs.get('sid_id', 'N/A'),
+                    'resourceId': self.kwargs.get('slug', 'N/A'),
                 },
                 status_code=status.HTTP_404_NOT_FOUND
             )
@@ -95,7 +95,7 @@ class AbstractOrgViews(
             logo = urlopen(logo_url)
             file_name = '{}_{}.{}'.format(
                 instance.pk,
-                instance.sid_id,
+                instance.slug,
                 {
                     'image/png': 'png',
                     'image/jpeg': 'jpg',
@@ -173,13 +173,13 @@ class AbstractOrgViews(
     def parse_and_update(self, instance, data):
         root = data.get(self.class_type.lower(), {})
         sid_id = root.get('id', None)
-        if sid_id != str(instance.sid_id):
+        if sid_id != str(instance.slug):
             raise SidGenericError(
                 client_error_code='002',
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.sid_id,
+                    'resourceId': instance.slug,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -189,7 +189,7 @@ class AbstractOrgViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.sid_id,
+                    'resourceId': instance.slug,
                 },
                 status_code=status.HTTP_404_NOT_FOUND
             )
@@ -216,7 +216,7 @@ class AbstractOrgViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.sid_id,
+                    'resourceId': instance.slug,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -240,7 +240,7 @@ class AbstractOrgViews(
             organisation = self.parse_and_create(data)
             logger.info('Organisation::create() OK: id->{}, sid_id->{}'.format(
                 organisation.id,
-                organisation.sid_id,
+                organisation.slug,
             ))
             return HttpResponse(status=201)
 
@@ -255,7 +255,7 @@ class AbstractOrgViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.sid_id,
+                    'resourceId': instance.slug,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -263,7 +263,7 @@ class AbstractOrgViews(
             instance = self.parse_and_update(instance, data)
             logger.info('update() OK: id->{}, sid_id->{}'.format(
                 instance.id,
-                instance.sid_id,
+                instance.slug,
             ))
             return HttpResponse(status=200)
 
@@ -278,7 +278,7 @@ class AbstractOrgViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.sid_id,
+                    'resourceId': instance.slug,
                 },
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
