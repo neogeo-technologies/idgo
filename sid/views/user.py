@@ -145,7 +145,7 @@ class AbstractUsrViews(
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         else:
-            return profile
+            return user
 
     @transaction.atomic
     def parse_and_update(self, instance, data):
