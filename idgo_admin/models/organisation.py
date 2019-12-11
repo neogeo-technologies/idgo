@@ -293,7 +293,8 @@ class Organisation(models.Model):
 
 @receiver(pre_save, sender=Organisation)
 def pre_save_organisation(sender, instance, **kwargs):
-    instance.slug = slugify(instance.legal_name)
+    if not instance.slug:
+        instance.slug = slugify(instance.legal_name)
 
 
 @receiver(post_save, sender=Organisation)
