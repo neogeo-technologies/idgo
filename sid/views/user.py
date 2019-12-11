@@ -17,6 +17,7 @@
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import HttpResponse
+from django.utils import timezone
 from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.models import LiaisonsContributeurs
@@ -133,7 +134,9 @@ class AbstractUsrViews(
             if orga:
                 LiaisonsContributeurs.objects.create(
                     profile=profile,
-                    organisation=orga
+                    organisation=orga,
+                    created_on=timezone.now().date(),
+                    validated_on=timezone.now().date(),
                 )
         except Exception:
             logger.exception(self.__class__.__name__)
@@ -164,17 +167,17 @@ class AbstractUsrViews(
         return user
 
     @transaction.atomic
-    def parse_and_update(self, instance, data):
+    def parse_and_update(self, user, data):
 
         root = data.get(self.profile_element, {})
         sid_id = root.get('id', None)
-        if sid_id != str(instance.username):
+        if sid_id != str(user.username):
             raise SidGenericError(
                 client_error_code='002',
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.username,
+                    'resourceId': user.username,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -184,14 +187,14 @@ class AbstractUsrViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.username,
+                    'resourceId': user.username,
                 },
                 status_code=status.HTTP_404_NOT_FOUND
             )
         try:
             data_orga = root[self.orga_dept_element]
             orga = None
-            instance.contributions.clear()
+            user.profile.contributions.clear()
             if data_orga.get(self.orga_element):
                 orga_sid = data_orga[self.orga_element]['id']
                 try:
@@ -209,22 +212,24 @@ class AbstractUsrViews(
                     )
 
             data_user = root['user']
-            instance.user.first_name = data_user['firstname']
-            instance.user.last_name = data_user['lastname']
-            # instance.user.username = data_user['username']  # Modifiable
-            instance.user.email = root['email']
-            instance.user.is_superuser = root['roles']['role']['name'] == "administrateur"
-            instance.user.is_staff = root['roles']['role']['name'] == "administrateur"
-            instance.user.is_active = data_user['enabled'] == "true"
-            instance.user.save()
+            user.first_name = data_user['firstname']
+            user.last_name = data_user['lastname']
+            # user.username = data_user['username']  # Modifiable
+            user.email = root['email']
+            user.is_superuser = root['roles']['role']['name'] == "administrateur"
+            user.is_staff = root['roles']['role']['name'] == "administrateur"
+            user.is_active = data_user['enabled'] == "true"
+            user.save()
 
-            instance.organisation = orga
-            instance.is_active = data_user['enabled'] == "true"
-            instance.membership = orga is not None
+            user.profile.organisation = orga
+            user.profile.is_active = data_user['enabled'] == "true"
+            user.profile.membership = orga is not None
             if orga:
                 LiaisonsContributeurs.objects.create(
-                    profile=instance,
-                    organisation=orga
+                    profile=user.profile,
+                    organisation=orga,
+                    created_on=timezone.now().date(),
+                    validated_on=timezone.now().date(),
                 )
 
         except Exception:
@@ -234,13 +239,13 @@ class AbstractUsrViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.username,
+                    'resourceId': user.username,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
         try:
-            CkanHandler.update_user(instance.user)
+            CkanHandler.update_user(user)
         except CkanBaseError:
             logger.exception(CkanBaseError.message)
             raise SidGenericError(
@@ -248,12 +253,12 @@ class AbstractUsrViews(
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId':instance.username,
+                    'resourceId': user.username,
                 },
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        return instance
+        return user
 
     def get_data(self, request):
         data = None
