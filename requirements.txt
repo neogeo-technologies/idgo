@@ -1,6 +1,6 @@
 psycopg2
 django>=1.11,<1.12
-djangorestframework
+djangorestframework>=3.11,<3.12
 django-extensions
 django-mama-cas
 django-taggit
