@@ -313,9 +313,9 @@ class AbstractUsrViews(
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         try:
-            instance.user.delete()
-            instance.contributions.clear()
             instance.delete()
+            instance.profile.contributions.clear()
+            instance.profile.delete()
         except Exception:
             logger.exception(self.__class__.__name__)
             raise SidGenericError(
