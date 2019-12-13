@@ -200,8 +200,8 @@ class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                     )
 
             data_user = root['user']
-            user.first_name = data_user['firstname']
-            user.last_name = data_user['lastname']
+            user.first_name = data_user['firstname'][:30]
+            user.last_name = data_user['lastname'][:30]
             # user.username = data_user['username']  # Modifiable
             user.email = root['email']
             user.is_superuser = root['roles']['role']['name'] == "administrateur"

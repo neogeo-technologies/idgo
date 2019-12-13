@@ -193,11 +193,11 @@ class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
             )
 
         try:
-            instance.legal_name = root['name']
+            instance.legal_name = root['name'][:100]
             instance.email = root['email']
             instance.address = root['address']['postalAddress']
-            instance.postcode = root['address']['postalCode']
-            instance.city = root['address']['city']
+            instance.postcode = root['address']['postalCode'][:5]
+            instance.city = root['address']['city'][:100]
             instance.description = root['label']
 
             if self.class_type == 'ORGANISM':
