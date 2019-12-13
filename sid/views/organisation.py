@@ -49,7 +49,7 @@ class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
     ]
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
-    http_method_names = ['post', 'put', 'delete']
+    http_method_names = ['post', 'put']  # ['post', 'put', 'delete']
 
     license_slug = 'lov2'
     license_defaults = {
@@ -233,13 +233,14 @@ class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
-        else:
-            organisation = self.parse_and_create(data)
-            logger.info('Organisation::create() OK: id->{}, sid_id->{}'.format(
-                organisation.id,
-                organisation.slug,
-            ))
-            return HttpResponse(status=201)
+        instance = self.parse_and_create(data)
+        logger.info('Organisation::create() OK: id->{}, sid_id->{}'.format(
+            instance.id,
+            instance.slug,
+        ))
+        response = HttpResponse(status=201)
+        response['Content-Location'] = ''  # Pas de content-Location
+        return response
 
     def update(self, request, *args, **kwargs):
         # On appel get_object() pour le 404 custom
@@ -256,13 +257,13 @@ class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        else:
-            instance = self.parse_and_update(instance, data)
-            logger.info('update() OK: id->{}, sid_id->{}'.format(
-                instance.id,
-                instance.slug,
-            ))
-            return HttpResponse(status=200)
+
+        instance = self.parse_and_update(instance, data)
+        logger.info('Organisation::update() OK: id->{}, sid_id->{}'.format(
+            instance.id,
+            instance.slug,
+        ))
+        return HttpResponse(status=200)
 
     def destroy(self, request, *args, **kwargs):
         # On appel get_object() pour le 404 custom
@@ -279,8 +280,8 @@ class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                 },
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        else:
-            return HttpResponse(status=200)
+
+        return HttpResponse(status=200)
 
 
 class OrganismViews(AbstractOrgViews):

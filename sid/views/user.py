@@ -59,7 +59,7 @@ class AbstractUsrViews(
     ]
     lookup_field = 'username'
     lookup_url_kwarg = 'username'
-    http_method_names = ['post', 'put', 'delete']
+    http_method_names = ['post', 'put']  # ['post', 'put', 'delete']
 
     def get_object(self):
         try:
@@ -280,13 +280,15 @@ class AbstractUsrViews(
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        else:
-            instance = self.parse_and_create(data)
-            logger.info('create() OK: id->{}, sid_id->{}'.format(
-                instance.id,
-                instance.username,
-            ))
-            return HttpResponse(status=201)
+
+        instance = self.parse_and_create(data)
+        logger.info('User::create() OK: id->{}, sid_id->{}'.format(
+            instance.id,
+            instance.username,
+        ))
+        response = HttpResponse(status=201)
+        response['Content-Location'] = ''  # Pas de content-Location
+        return response
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -302,13 +304,13 @@ class AbstractUsrViews(
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        else:
-            instance = self.parse_and_update(instance, data)
-            logger.info('update() OK: id->{}, sid_id->{}'.format(
-                instance.id,
-                instance.username,
-            ))
-            return HttpResponse(status=200)
+
+        instance = self.parse_and_update(instance, data)
+        logger.info('User::update() OK: id->{}, sid_id->{}'.format(
+            instance.id,
+            instance.username,
+        ))
+        return HttpResponse(status=200)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -327,8 +329,8 @@ class AbstractUsrViews(
                 },
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        else:
-            return HttpResponse(status=200)
+
+        return HttpResponse(status=200)
 
 
 class AgentViews(AbstractUsrViews):
