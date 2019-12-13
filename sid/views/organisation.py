@@ -145,7 +145,7 @@ class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                 'organisation_type': organisation_type,
                 'license': lic,
                 'geonet_id': None,
-                'is_idgo_partner': False,
+                'is_crige_partner': False,
             }
 
             if self.class_type == 'ORGANISM':

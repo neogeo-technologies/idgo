@@ -25,9 +25,9 @@ from sid.views.organisation import OrganismViews
 app_name = 'sid'
 
 router = routers.DefaultRouter()
-router.register(r'agent', AgentViews, base_name='agent')
-router.register(r'employee', EmployeeViews, base_name='employee')
-router.register(r'organism', OrganismViews, base_name='organism')
-router.register(r'company', CompanyViews, base_name='company')
+router.register(r'agent', AgentViews, basename='agent')
+router.register(r'employee', EmployeeViews, basename='employee')
+router.register(r'organism', OrganismViews, basename='organism')
+router.register(r'company', CompanyViews, basename='company')
 
 urlpatterns = router.urls
