@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2019 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -23,7 +23,7 @@ ERRORS = {
         'classType': None,
         'errorCode': '001',
         'errorLabel': 'SYNTAX_ERROR',
-        'errorMessage': "Syntaxe du message en entrée incorrecte",
+        'errorMessage': "Syntaxe du message en entrée incorrecte.",
         'methodType': None,
         'resourceId': None,
     },
@@ -31,7 +31,7 @@ ERRORS = {
         'classType': None,
         'errorCode': '002',
         'errorLabel': 'FORMAT_ERROR',
-        'errorMessage': "Un champ de la ressource est invalide",
+        'errorMessage': "Un champ de la ressource est invalide.",
         'methodType': None,
         'resourceId': None,
     },
@@ -39,7 +39,7 @@ ERRORS = {
         'classType': None,
         'errorCode': '003',
         'errorLabel': 'RESOURCE_MISSING',
-        'errorMessage': "La ressource spécifiée est introuvable",
+        'errorMessage': "La ressource spécifiée est introuvable.",
         'methodType': None,
         'resourceId': None,
     },
@@ -47,7 +47,7 @@ ERRORS = {
         'classType': None,
         'errorCode': '004',
         'errorLabel': 'RELATION_MISSING',
-        'errorMessage': "Une relation avec l'entité est manquante",
+        'errorMessage': "Une relation avec l'entité est manquante.",
         'methodType': None,
         'resourceId': None,
     },
@@ -55,7 +55,7 @@ ERRORS = {
         'classType': None,
         'errorCode': '004',
         'errorLabel': 'RESOURCE_ALREADY_EXISTS',
-        'errorMessage': "La ressource existe déja",
+        'errorMessage': "La ressource existe déja.",
         'methodType': None,
         'resourceId': None,
     },
@@ -63,15 +63,15 @@ ERRORS = {
         'classType': None,
         'errorCode': '006',
         'errorLabel': 'INTERNAL_SERVER_ERROR',
-        'errorMessage': "Erreur interne au serveur",
+        'errorMessage': "Erreur interne au serveur.",
         'methodType': None,
         'resourceId': None,
     },
-    '007': {
+    '007': {  # A voir si ce code 007 est vraiment nécessaire.
         'classType': None,
         'errorCode': '007',
         'errorLabel': 'INTERNAL_CLIENT_ERROR',
-        'errorMessage': "Erreur interne au client",
+        'errorMessage': "Erreur interne au client.",
         'methodType': None,
         'resourceId': None,
     },

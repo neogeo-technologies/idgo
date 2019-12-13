@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2019 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,37 +14,35 @@
 # under the License.
 
 
-from django.contrib.auth.models import User
+import logging
+
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import HttpResponse
-# from django.utils import timezone
-from idgo_admin.ckan_module import CkanBaseError
-from idgo_admin.ckan_module import CkanHandler
-# from idgo_admin.models import LiaisonsContributeurs
-from idgo_admin.models import Organisation
-from idgo_admin.models import Profile
 from rest_framework.views import APIView
-import logging
 from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
+import xmltodict
+
+from idgo_admin.ckan_module import CkanBaseError
+from idgo_admin.ckan_module import CkanHandler
+from idgo_admin.models import Organisation
+from idgo_admin.models import Profile
 from sid.xml_io import XMLtParser
 from sid.xml_io import XMLRenderer
 from sid.exceptions import SidGenericError
-import xmltodict
 
 
+User = get_user_model()
 logger = logging.getLogger('django')
 
 
-class AbstractUsrViews(
-        mixins.CreateModelMixin,
-        mixins.UpdateModelMixin,
-        mixins.DestroyModelMixin,
-        viewsets.GenericViewSet):
+class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
+                       mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = User.objects.all()
     parser_classes = [
         # Si le contenu est envoyé en raw
@@ -104,21 +102,21 @@ class AbstractUsrViews(
                         client_error_code='004',
                         extra_context={
                             'classType': self.class_orga_type,
-                            'methodType': self.request.method,  # method en cours ou POST de création d'orga
-                            'resourceId': orga_sid,  # identifiant de la relation manquante ou de la ressource
+                            'methodType': self.request.method,  # Méthode en cours ou POST de création d'organisation
+                            'resourceId': orga_sid,  # Identifiant de la relation manquante ou de la ressource
                         },
                         status_code=status.HTTP_400_BAD_REQUEST
                     )
 
             data_user = root['user']
             user = User.objects.create(
-                username=root['id'],  # data_user['username']
+                username=root['id'],
                 email=root['email'],
-                first_name=data_user['firstname'],
-                last_name=data_user['lastname'],
+                first_name=data_user['firstname'][:30],
+                last_name=data_user['lastname'][:30],
                 is_superuser=root['roles']['role']['label'] == "Administrateur Global",
                 is_staff=root['roles']['role']['label'] == "Administrateur Global",
-                is_active=data_user['enabled'] == "true",
+                is_active=data_user['enabled'] == 'true',
             )
 
             profile = Profile.objects.create(
@@ -126,18 +124,8 @@ class AbstractUsrViews(
                 organisation=orga,
                 is_active=data_user['enabled'] == 'true',
                 membership=orga is not None,
-                # crige_membership,  # Manquant
-                # is_admin,  # Manquant
-                # sftp_password,  # Manquant
-                # phone,  # Manquant
             )
-            # if orga:
-            #     LiaisonsContributeurs.objects.create(
-            #         profile=profile,
-            #         organisation=orga,
-            #         created_on=timezone.now().date(),
-            #         validated_on=timezone.now().date(),
-            #     )
+
         except Exception:
             logger.exception(self.__class__.__name__)
             raise SidGenericError(
@@ -224,13 +212,6 @@ class AbstractUsrViews(
             user.profile.organisation = orga
             user.profile.is_active = data_user['enabled'] == "true"
             user.profile.membership = orga is not None
-            # if orga:
-            #     LiaisonsContributeurs.objects.create(
-            #         profile=user.profile,
-            #         organisation=orga,
-            #         created_on=timezone.now().date(),
-            #         validated_on=timezone.now().date(),
-            #     )
 
         except Exception:
             logger.exception(self.__class__.__name__)

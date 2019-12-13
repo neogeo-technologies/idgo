@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2019 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,20 +14,22 @@
 # under the License.
 
 
-from django.http import HttpResponse
-from idgo_admin.models import License
-from idgo_admin.models import Organisation
-from idgo_admin.models import OrganisationType
 import logging
+
+from django.http import HttpResponse
 from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser
+import xmltodict
+
+from idgo_admin.models import License
+from idgo_admin.models import Organisation
+from idgo_admin.models import OrganisationType
 from sid.xml_io import XMLRenderer
 from sid.xml_io import XMLtParser
 from sid.exceptions import SidGenericError
-import xmltodict
 
 
 logger = logging.getLogger('django')
@@ -131,20 +133,19 @@ class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
 
             defaults = {
                 'slug': root['id'],
-                'legal_name': root['label'],  # PHTTERNUM-395: valeur à synchroniser
-                'description': root['name'],  # PHTTERNUM-395: ancienne valeur
+                'legal_name': root['label'][:100],
+                'description': root['name'],
                 'email': root['email'],
                 'address': root['address']['postalAddress'],
-                'postcode': root['address']['postalCode'],
-                'city': root['address']['city'],
+                'postcode': root['address']['postalCode'][:5],
+                'city': root['address']['city'][:100],
                 'is_active': True,
                 'logo': root.get('logoUrl'),  # Optionnelle
                 'phone': root.get('phone'),  # Optionnelle
                 'organisation_type': organisation_type,
                 'license': lic,
                 'geonet_id': None,
-                'is_crige_partner': False,
-                # 'jurisdiction': None  # Manquant
+                'is_idgo_partner': False,
             }
 
             if self.class_type == 'ORGANISM':
@@ -164,8 +165,8 @@ class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        else:
-            return organisation
+
+        return organisation
 
     def parse_and_update(self, instance, data):
         root = data.get(self.class_type.lower(), {})
@@ -217,8 +218,8 @@ class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        else:
-            return instance
+
+        return instance
 
     def create(self, request, *args, **kwargs):
         data = self.get_data(request)

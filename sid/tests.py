@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2019 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,13 +14,15 @@
 # under the License.
 
 
-from django.test import tag
-from django.urls import reverse
-from idgo_admin.models import Organisation
-from idgo_admin.models import Profile
 import logging
 from pprint import pformat
+
+from django.test import tag
+from django.urls import reverse
 from rest_framework.test import APITransactionTestCase
+
+from idgo_admin.models import Organisation
+from idgo_admin.models import Profile
 
 
 logger = logging.getLogger('django')

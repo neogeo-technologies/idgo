@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2019 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,12 +14,14 @@
 # under the License.
 
 
+import logging
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import login
 from django.contrib.auth import logout
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse
-import logging
 
 
 User = get_user_model()
@@ -28,35 +30,34 @@ logger = logging.getLogger('django')
 
 class SidRemoteUserMiddleware(object):
 
-    # TODO definir les url ouvertes
     IGNORE_PATH = (
-        # reverse(settings.TERMS_URL),
-        # Un utilisateur doit pouvoir se connecter et se déconnecter
-        # reverse(settings.LOGIN_URL),
-        # reverse(settings.LOGOUT_URL),
+        # Urls ouvertes:
+        # ...
     )
 
     header = getattr(settings, 'HEADER_UID', 'OIDC_CLAIM_uid')
-
     oidc_setted = getattr(settings, 'OIDC_SETTED', False)
 
     def __init__(self, get_response):
         self.get_response = get_response
 
-    def get_user(self, unique_id):
-        try:
-            return User.objects.get(username=unique_id)
-        except Exception:
-            logger.exception(self.__class__.__name__)
-
     def process_request(self, request):
         sid_user_id = request.META.get(self.header)
-        if sid_user_id and self.oidc_setted:
-            logger.info("HEADER_UID: {}, VALUE: {}".format(self.header, sid_user_id))
+        if self.oidc_setted and sid_user_id:
+            logger.info('HEADER_UID: {header_uid}, VALUE: {value}'.format(
+                header_uid=self.header,
+                value=sid_user_id,
+            ))
             logout(request)
-            user = self.get_user(sid_user_id)
-            if user:
-                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            try:
+                user = User.objects.get(username=sid_user_id)
+            except User.DoesNotExist as e:
+                logger.debug(e)
+                raise PermissionDenied()
+            else:
+                backend = 'django.contrib.auth.backends.ModelBackend'
+                login(request, user, backend=backend)
+        # Sinon rien
 
     def __call__(self, request):
         if request.path not in self.IGNORE_PATH or \

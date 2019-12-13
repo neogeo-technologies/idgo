@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2019 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,8 +14,9 @@
 # under the License.
 
 
-from django.template.loader import render_to_string
 import logging
+
+from django.template.loader import render_to_string
 from rest_framework.parsers import BaseParser
 from rest_framework.renderers import BaseRenderer
 import xmltodict
@@ -66,5 +67,4 @@ class XMLtParser(BaseParser):
             tree = xmltodict.parse(stream)
         except Exception:
             logger.exception('xmlparser')
-        else:
-            return tree
+        return tree

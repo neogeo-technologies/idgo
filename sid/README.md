@@ -1,72 +1,47 @@
-# Notes pour intégration
 
-[] Ajouter sid_id pour les modèles Organisation et Profile:
-```
-# idgo_admin/models.py
+# SID
 
-    # Pour le moment on sait pas si on garde des TextField ou si on aura des uuid
-    sid_id = models.TextField(
-        verbose_name="Référence du socle identité",
-        unique=True,
-        db_index=True,
-        blank=True,
-        null=True,
-        )
-```
+## Configuration
 
-[] Modifier le modèle Organisation en changeant la longueur max des champs 'legal_name' et 'slug':
-```
-# idgo_admin/models.py
+**Dans le fichier _settings.py_ de l'application :**
 
-    legal_name = models.CharField(
-        verbose_name="Dénomination sociale",
-        max_length=255,
-        unique=True,
-        db_index=True,
-    )
+* Ajouter l'application :
 
-    slug = models.SlugField(
-        verbose_name="Slug",
-        max_length=255,
-        unique=True,
-        db_index=True,
-    )
-```
+    ```
+    INSTALLED_APPS = [
+        # ...
+        'idgo_admin',
+        'sid',
+        # ...
+    ]
+    ```
 
-[] Les champs 'first_name' et 'last_name' du modèle User de Django sont limités à 30 char,
-les données du stock sont limités à 255 char.
+* Ajouter le module d'authentification à la liste des Middleware dans le settings.py de l'application :
 
-[] Switcher les imports: sid.models vers idgo_admin.models
+    ```
+    MIDDLEWARE = [
+        # ...
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'sid.auth.middleware.SidRemoteUserMiddleware',
+        # ...
+    ```
 
-[] Ajouter les dépendances pour connecter django à une base mysql:
-(https://pypi.org/project/mysqlclient/)
-```
-$ sudo apt-get install python-dev default-libmysqlclient-dev
-$ sudo apt-get install python3-dev
-$ pip install mysqlclient
-```
+* Activer le module et indiquer l'attribut du HEADER
 
-[] Router la base mysql de stock
-```
-# settings.py
-DATABASES = {
-    # ...
-    'sid_stock': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': CHANGE_ME,
-        'USER': CHANGE_ME,
-        'HOST': CHANGE_ME,
-        'PASSWORD': CHANGE_ME,
-        'PORT': CHANGE_ME}
-    # ...
-```
+    ```
+    OIDC_SETTED = True  # False par défaut
+    HEADER_UID = 'OIDC_CLAIM_uid'  # Valeur par défaut
+    ```
 
-[] Ajouter le middleware d'authentification
-```
-# settings.py
-MIDDLEWARE = [
-    # ...
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'sid.auth.middleware.SidRemoteUserMiddleware',
-    # ...
-```
+
+### Dans le fichier _urls.py_ de l'application
+
+
+## Informations utiles
+
+
+L'_username_ du modèle **User** de Django correspond à l'identifiant de l'agent/employée.
+
+Le _slug_ du modèle **Organisation** de IDGO correspond à l'identifiant de l'organisme/la companie.
+
+
