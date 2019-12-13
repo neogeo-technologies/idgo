@@ -17,10 +17,10 @@
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import HttpResponse
-from django.utils import timezone
+# from django.utils import timezone
 from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler
-from idgo_admin.models import LiaisonsContributeurs
+# from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from rest_framework.views import APIView
@@ -131,13 +131,13 @@ class AbstractUsrViews(
                 # sftp_password,  # Manquant
                 # phone,  # Manquant
             )
-            if orga:
-                LiaisonsContributeurs.objects.create(
-                    profile=profile,
-                    organisation=orga,
-                    created_on=timezone.now().date(),
-                    validated_on=timezone.now().date(),
-                )
+            # if orga:
+            #     LiaisonsContributeurs.objects.create(
+            #         profile=profile,
+            #         organisation=orga,
+            #         created_on=timezone.now().date(),
+            #         validated_on=timezone.now().date(),
+            #     )
         except Exception:
             logger.exception(self.__class__.__name__)
             raise SidGenericError(
@@ -224,13 +224,13 @@ class AbstractUsrViews(
             user.profile.organisation = orga
             user.profile.is_active = data_user['enabled'] == "true"
             user.profile.membership = orga is not None
-            if orga:
-                LiaisonsContributeurs.objects.create(
-                    profile=user.profile,
-                    organisation=orga,
-                    created_on=timezone.now().date(),
-                    validated_on=timezone.now().date(),
-                )
+            # if orga:
+            #     LiaisonsContributeurs.objects.create(
+            #         profile=user.profile,
+            #         organisation=orga,
+            #         created_on=timezone.now().date(),
+            #         validated_on=timezone.now().date(),
+            #     )
 
         except Exception:
             logger.exception(self.__class__.__name__)

@@ -33,11 +33,8 @@ import xmltodict
 logger = logging.getLogger('django')
 
 
-class AbstractOrgViews(
-        mixins.CreateModelMixin,
-        mixins.UpdateModelMixin,
-        mixins.DestroyModelMixin,
-        viewsets.GenericViewSet):
+class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
+                       mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Organisation.objects.all()
     parser_classes = [
         # Si le contenu est envoyé raw
