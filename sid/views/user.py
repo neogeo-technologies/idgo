@@ -114,8 +114,8 @@ class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                 email=root['email'],
                 first_name=data_user['firstname'][:30],
                 last_name=data_user['lastname'][:30],
-                is_superuser=root['roles']['role']['label'] == "Administrateur Global",
-                is_staff=root['roles']['role']['label'] == "Administrateur Global",
+                is_superuser=root['roles']['role']['name'] == "administrateur",
+                is_staff=root['roles']['role']['name'] == "administrateur",
                 is_active=data_user['enabled'] == 'true',
             )
 
