@@ -21,6 +21,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.core.exceptions import PermissionDenied
+from django.shortcuts import redirect
 from django.urls import reverse
 
 
@@ -65,3 +66,16 @@ class SidRemoteUserMiddleware(object):
             self.process_request(request)
         response = self.get_response(request)
         return response
+
+
+class ForceRedirectToHome(object):
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = request.user
+        if user and hasattr(user, 'profile') \
+                and request.path == reverse('server_cas:signIn'):
+            return redirect(reverse('idgo_admin:home'))
+        return self.get_response(request)
