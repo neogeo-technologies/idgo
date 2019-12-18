@@ -17,8 +17,4 @@ redis
 celery
 -e git+https://github.com/neogeo-technologies/OWSLib.git@idgo#egg=OWSLib
 markdown
-<<<<<<< HEAD
 xmltodict
-=======
-xmltodict
->>>>>>> feature/new_app_sid
