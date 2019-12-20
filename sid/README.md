@@ -16,21 +16,23 @@
     ]
     ```
 
-* Ajouter le module d'authentification à la liste des Middleware dans le settings.py de l'application :
+* Ajouter les modules d'authentification à la liste des Middleware dans le settings.py de l'application :
 
     ```
     MIDDLEWARE = [
         # ...
         'django.contrib.auth.middleware.AuthenticationMiddleware',
         'sid.auth.middleware.SidRemoteUserMiddleware',
+        'sid.auth.middleware.LogOut',
         # ...
     ```
 
-* Activer le module et indiquer l'attribut du HEADER
+* Activer le module, indiquer l'attribut du HEADER et l'url de fermeture de session
 
     ```
     OIDC_SETTED = True  # False par défaut
     HEADER_UID = 'OIDC_CLAIM_uid'  # Valeur par défaut
+    SSO_LOGOUT_URL = ''
     ```
 
 
