@@ -81,9 +81,23 @@ class ForceRedirectToHome(object):
 
     def __call__(self, request):
         user = request.user
+        request_uri = request.META.get('REQUEST_URI')
+        ckan_url = getattr(settings, 'CKAN_URL')
+
+        try:
+            parsed_uri = urlparse(request_uri).query
+            service_url = parse_qs(parsed_uri).get('service')[0]
+            requester = urlparse(service_url).netloc
+        except Exception:
+            req_ckan = False
+        else:
+            req_ckan = requester == urlparse(ckan_url).netloc
+
         if user and hasattr(user, 'profile') \
-                and request.path == reverse('server_cas:signIn'):
+                and request.path == reverse('server_cas:signIn') \
+                and not req_ckan:
             return redirect(reverse('idgo_admin:home'))
+
         return self.get_response(request)
 
 
