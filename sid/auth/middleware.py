@@ -15,6 +15,8 @@
 
 
 import logging
+from urllib.parse import parse_qs
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -23,6 +25,10 @@ from django.contrib.auth import logout
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 from django.urls import reverse
+from mama_cas.compat import is_authenticated
+from mama_cas.models import ServiceTicket
+from mama_cas.models import ProxyTicket
+from mama_cas.models import ProxyGrantingTicket
 
 
 User = get_user_model()
@@ -78,4 +84,31 @@ class ForceRedirectToHome(object):
         if user and hasattr(user, 'profile') \
                 and request.path == reverse('server_cas:signIn'):
             return redirect(reverse('idgo_admin:home'))
+        return self.get_response(request)
+
+
+class LogOut(object):
+
+    sso_logout_url = getattr(settings, 'SSO_LOGOUT_URL', None)
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = request.user
+
+        if user and hasattr(user, 'profile') \
+                and request.path == reverse('server_cas:signOut') \
+                and is_authenticated(user):
+
+            ServiceTicket.objects.consume_tickets(user)
+            ProxyTicket.objects.consume_tickets(user)
+            ProxyGrantingTicket.objects.consume_tickets(user)
+            ServiceTicket.objects.request_sign_out(user)
+
+            logger.info("Single sign-on session ended for %s" % user)
+            logout(request)
+
+            return redirect(self.sso_logout_url)
+
         return self.get_response(request)
