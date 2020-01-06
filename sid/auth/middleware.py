@@ -67,9 +67,28 @@ class SidRemoteUserMiddleware(object):
         # Sinon rien
 
     def __call__(self, request):
+
+        request_uri = request.META.get('REQUEST_URI')
+        ckan_url = getattr(settings, 'CKAN_URL')
+        viewerstudio_url = getattr(settings, 'VIEWERSTUDIO_URL')
+
+        try:
+            parsed_uri = urlparse(request_uri).query
+            service_url = parse_qs(parsed_uri).get('service')[0]
+            requester = urlparse(service_url).netloc
+        except Exception:
+            from_ckan = False
+            from_viewerstudio = False
+        else:
+            from_ckan = requester == urlparse(ckan_url).netloc
+            from_viewerstudio = requester == urlparse(viewerstudio_url).netloc
+
         if request.path not in self.IGNORE_PATH or \
-                not request.path.startswith(reverse('admin:index')):
+                not request.path.startswith(reverse('admin:index')) \
+                and not from_ckan \
+                and not from_viewerstudio:
             self.process_request(request)
+
         response = self.get_response(request)
         return response
 
@@ -83,19 +102,23 @@ class ForceRedirectToHome(object):
         user = request.user
         request_uri = request.META.get('REQUEST_URI')
         ckan_url = getattr(settings, 'CKAN_URL')
+        viewerstudio_url = getattr(settings, 'VIEWERSTUDIO_URL')
 
         try:
             parsed_uri = urlparse(request_uri).query
             service_url = parse_qs(parsed_uri).get('service')[0]
             requester = urlparse(service_url).netloc
         except Exception:
-            req_ckan = False
+            from_ckan = False
+            from_viewerstudio = False
         else:
-            req_ckan = requester == urlparse(ckan_url).netloc
+            from_ckan = requester == urlparse(ckan_url).netloc
+            from_viewerstudio = requester == urlparse(viewerstudio_url).netloc
 
         if user and hasattr(user, 'profile') \
                 and request.path == reverse('server_cas:signIn') \
-                and not req_ckan:
+                and not from_ckan \
+                and not from_viewerstudio:
             return redirect(reverse('idgo_admin:home'))
 
         return self.get_response(request)
