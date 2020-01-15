@@ -25,7 +25,7 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 
 
-logger = logging.getLogger('django')
+logger = logging.getLogger(__name__)
 
 
 class RootTestCase(APITransactionTestCase):
@@ -80,24 +80,76 @@ class RootTestCase(APITransactionTestCase):
             self.assertEqual(self.queryset.all().count(), 1)
 
 
+@tag('selected')
 class TestOrganism(RootTestCase):
 
     create_xml_path = 'data/organism.xml'
+    put_create_xml_path = 'data/organism_pust.xml'
     update_xml_path = 'data/organism_update1.xml'
     create_url_path = 'sid:organism-list'
     update_url_path = 'sid:organism-detail'
     sid_id = '294680'
     queryset = Organisation.objects.all()
 
+    def test_pust(self):
+        """
+        On test la création d'orga & company à travers un PUT
+        """
 
+        with open(self.put_create_xml_path) as fp2:
+            d = {'file': fp2}
+
+            r = self.client.put(
+                reverse(
+                    self.update_url_path,
+                    kwargs={'sid_id': '123456789'}
+                    # kwargs={'sid_id': self.sid_id}
+                ),
+                data=fp2.read(),
+                content_type='application/xml',
+            )
+
+            logger.info(
+                pformat(self.queryset.get(sid_id='123456789').__dict__)
+            )
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(self.queryset.all().count(), 1)
+
+
+@tag('selected')
 class TestCompany(RootTestCase):
 
     create_xml_path = 'data/company.xml'
+    put_create_xml_path = 'data/company_pust.xml'
     update_xml_path = 'data/company_update1.xml'
     create_url_path = 'sid:company-list'
     update_url_path = 'sid:company-detail'
     sid_id = '294679'
     queryset = Organisation.objects.all()
+
+    def test_pust(self):
+        """
+        On test la création d'orga & company à travers un PUT
+        """
+
+        with open(self.put_create_xml_path) as fp2:
+            d = {'file': fp2}
+
+            r = self.client.put(
+                reverse(
+                    self.update_url_path,
+                    kwargs={'sid_id': '987654321'}
+                    # kwargs={'sid_id': self.sid_id}
+                ),
+                data=fp2.read(),
+                content_type='application/xml',
+            )
+
+            logger.info(
+                pformat(self.queryset.get(sid_id='987654321').__dict__)
+            )
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(self.queryset.all().count(), 1)
 
 
 class TestAgent(RootTestCase):
@@ -114,7 +166,6 @@ class TestAgent(RootTestCase):
     queryset = Profile.objects.all()
 
 
-@tag('selected')
 class TestEmployee(RootTestCase):
     fixtures = [
         'data/license.json',
