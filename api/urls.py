@@ -14,16 +14,20 @@
 # under the License.
 
 
+from django.conf.urls import url
+
 from api.views import DatasetList as APIDatasetList
 from api.views import DatasetShow as APIDatasetShow
 from api.views import DatasetMDShow as APIDatasetMDShow
+from api.views import LayerList as APILayerList
+from api.views import LayerShow as APILayerShow
+from api.views import LayerStyleDefaultShow as APILayerStyleDefaultShow
 from api.views import OrganisationList as APIOrganisationList
 from api.views import OrganisationShow as APIOrganisationShow
 from api.views import ResourceList as APIResourceList
 from api.views import ResourceShow as APIResourceShow
 from api.views import UserList as APIUserList
 from api.views import UserShow as APIUserShow
-from django.conf.urls import url
 
 
 urlpatterns = [
@@ -36,4 +40,7 @@ urlpatterns = [
     url('^dataset/(?P<dataset_name>[a-z0-9\\-]+)/md/?$', APIDatasetMDShow.as_view(), name='dataset_md_show'),
     url('^dataset/(?P<dataset_name>[a-z0-9\\-]+)/resource/?$', APIResourceList.as_view(), name='resource_list'),
     url('^dataset/(?P<dataset_name>[a-z0-9\\-]+)/resource/(?P<resource_id>[a-z0-9\\-]+)/?$', APIResourceShow.as_view(), name='resource_show'),
+    url('^dataset/(?P<dataset_name>[a-z0-9\\-]+)/resource/(?P<resource_id>[a-z0-9\\-]+)/layer/?$', APILayerList.as_view(), name='layer_list'),
+    url('^dataset/(?P<dataset_name>[a-z0-9\\-]+)/resource/(?P<resource_id>[a-z0-9\\-]+)/layer/(?P<layer_name>[a-z0-9\\_]+)/?$', APILayerShow.as_view(), name='layer_show'),
+    url('^dataset/(?P<dataset_name>[a-z0-9\\-]+)/resource/(?P<resource_id>[a-z0-9\\-]+)/layer/(?P<layer_name>[a-z0-9\\_]+)/style/default.sld$', APILayerStyleDefaultShow.as_view(), name='layer_style_default_show'),
     ]

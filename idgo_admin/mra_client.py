@@ -105,6 +105,7 @@ class MRATimeoutError(MraBaseError):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+
 class MRACriticalError(MraBaseError):
 
     message = "Le jeu de données provoque une erreur critique. Veuillez contacter l'administrateur du site."
@@ -407,6 +408,13 @@ class MRAHandler(metaclass=Singleton):
             self.update_style(s_name, data)
         except MRANotFoundError:
             self.create_style(s_name, data)
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def get_layer_styles(self, l_name):
+        data = []
+        for style in self.remote.get('layers', l_name, 'styles')['styles']:
+            data.append(self.remote.get('styles', style['name'])['style'])
+        return data
 
     # Layer
     # =====
