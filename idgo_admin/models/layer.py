@@ -136,7 +136,8 @@ class Layer(models.Model):
 
     @property
     def default_style(self):
-        return self.mra_info['styles']['styles'][0]
+        if self.styles:
+            return self.mra_info['styles']['styles'][0]
 
     @property
     def id(self):
@@ -452,6 +453,11 @@ class Layer(models.Model):
                 'title': dataset.title,
                 'abstract': dataset.description,
                 'layers': [layer.name for layer in layers]})
+
+    def get_default_sld(self):
+        style = MRAHandler.get_layer(self.name)['defaultStyle']
+        if style:
+            return MRAHandler.get_style(style['name'])
 
 
 # Signaux
