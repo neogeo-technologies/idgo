@@ -272,26 +272,38 @@ class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
         return response
 
     def update(self, request, *args, **kwargs):
-        instance = self.get_object()
 
         data = self.get_data(request)
+        sid_id = self.kwargs.get(self.lookup_url_kwarg, '')
         if not data:
             raise SidGenericError(
                 client_error_code='001',
                 extra_context={
                     'classType': self.class_type,
                     'methodType': self.request.method,
-                    'resourceId': instance.username,
+                    'resourceId': sid_id,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+        else:
+            # On permet la creation à partir du PUT
+            try:
+                # On appel get_object() pour le 404 custom
+                instance = self.get_object()
+            except SidGenericError:
+                instance = self.parse_and_create(data)
+                logger.info('create() from PUT OK: id->{}, sid_id->{}'.format(
+                    instance.id,
+                    instance.sid_id,
+                ))
+            else:
+                instance = self.parse_and_update(instance, data)
+                logger.info('update() OK: id->{}, sid_id->{}'.format(
+                    instance.id,
+                    instance.sid_id,
+                ))
 
-        instance = self.parse_and_update(instance, data)
-        logger.info('User::update() OK: id->{}, sid_id->{}'.format(
-            instance.id,
-            instance.username,
-        ))
-        return HttpResponse(status=200)
+            return HttpResponse(status=200)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
