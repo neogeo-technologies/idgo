@@ -30,10 +30,12 @@ logger = logging.getLogger(__name__)
 
 class RootTestCase(APITransactionTestCase):
     create_xml_path = ''
+    put_create_xml_path = ''
     update_xml_path = ''
     create_url_path = ''
     update_url_path = ''
     sid_id = ''
+    sid_id_pust = ''
     queryset = None
 
     def test_create(self):
@@ -79,8 +81,28 @@ class RootTestCase(APITransactionTestCase):
             self.assertEqual(r.status_code, 200)
             self.assertEqual(self.queryset.all().count(), 1)
 
+    def test_pust(self):
+        """
+        On test la création d'orga & company & employee & agent à travers un PUT
+        """
 
-@tag('selected')
+        with open(self.put_create_xml_path) as fp2:
+            d = {'file': fp2}
+            r = self.client.put(
+                reverse(
+                    self.update_url_path,
+                    kwargs={'sid_id': self.sid_id_pust}
+                ),
+                data=fp2.read(),
+                content_type='application/xml',
+            )
+            logger.info(
+                pformat(self.queryset.get(sid_id=self.sid_id_pust).__dict__)
+            )
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(self.queryset.all().count(), 1)
+
+
 class TestOrganism(RootTestCase):
 
     create_xml_path = 'data/organism.xml'
@@ -89,34 +111,10 @@ class TestOrganism(RootTestCase):
     create_url_path = 'sid:organism-list'
     update_url_path = 'sid:organism-detail'
     sid_id = '294680'
+    sid_id_pust = '123456789'
     queryset = Organisation.objects.all()
 
-    def test_pust(self):
-        """
-        On test la création d'orga & company à travers un PUT
-        """
 
-        with open(self.put_create_xml_path) as fp2:
-            d = {'file': fp2}
-
-            r = self.client.put(
-                reverse(
-                    self.update_url_path,
-                    kwargs={'sid_id': '123456789'}
-                    # kwargs={'sid_id': self.sid_id}
-                ),
-                data=fp2.read(),
-                content_type='application/xml',
-            )
-
-            logger.info(
-                pformat(self.queryset.get(sid_id='123456789').__dict__)
-            )
-            self.assertEqual(r.status_code, 200)
-            self.assertEqual(self.queryset.all().count(), 1)
-
-
-@tag('selected')
 class TestCompany(RootTestCase):
 
     create_xml_path = 'data/company.xml'
@@ -125,31 +123,8 @@ class TestCompany(RootTestCase):
     create_url_path = 'sid:company-list'
     update_url_path = 'sid:company-detail'
     sid_id = '294679'
+    sid_id_pust = '123456789'
     queryset = Organisation.objects.all()
-
-    def test_pust(self):
-        """
-        On test la création d'orga & company à travers un PUT
-        """
-
-        with open(self.put_create_xml_path) as fp2:
-            d = {'file': fp2}
-
-            r = self.client.put(
-                reverse(
-                    self.update_url_path,
-                    kwargs={'sid_id': '987654321'}
-                    # kwargs={'sid_id': self.sid_id}
-                ),
-                data=fp2.read(),
-                content_type='application/xml',
-            )
-
-            logger.info(
-                pformat(self.queryset.get(sid_id='987654321').__dict__)
-            )
-            self.assertEqual(r.status_code, 200)
-            self.assertEqual(self.queryset.all().count(), 1)
 
 
 class TestAgent(RootTestCase):
@@ -160,12 +135,15 @@ class TestAgent(RootTestCase):
     ]
     create_xml_path = 'data/agent.xml'
     update_xml_path = 'data/agent_update1.xml'
+    put_create_xml_path = 'data/agent_pust.xml'
     create_url_path = 'sid:agent-list'
     update_url_path = 'sid:agent-detail'
     sid_id = '307164'
+    sid_id_pust = '123456789'
     queryset = Profile.objects.all()
 
 
+@tag('selected')
 class TestEmployee(RootTestCase):
     fixtures = [
         'data/license.json',
@@ -173,8 +151,10 @@ class TestEmployee(RootTestCase):
         'data/organisation.json',
     ]
     create_xml_path = 'data/employee.xml'
+    put_create_xml_path = 'data/employee_pust.xml'
     update_xml_path = 'data/employee_update1.xml'
     create_url_path = 'sid:employee-list'
     update_url_path = 'sid:employee-detail'
     sid_id = '307163'
+    sid_id_pust = '123456789'
     queryset = Profile.objects.all()
