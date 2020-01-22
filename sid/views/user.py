@@ -104,7 +104,7 @@ class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                         'methodType': self.request.method,  # Méthode en cours ou POST de création d'organisation
                         'resourceId': orga_sid,  # Identifiant de la relation manquante ou de la ressource
                     },
-                    status_code=status.HTTP_400_BAD_REQUEST
+                    status_code=status.HTTP_404_NOT_FOUND
                 )
 
         try:
@@ -195,7 +195,7 @@ class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                         'methodType': self.request.method,  # method en cours ou POST de création d'orga
                         'resourceId': orga_sid,  # identifiant de la relation manquante ou de la ressource en cours
                     },
-                    status_code=status.HTTP_400_BAD_REQUEST
+                    status_code=status.HTTP_404_NOT_FOUND
                 )
 
         try:
