@@ -53,7 +53,7 @@ ERRORS = {
     },
     '005': {
         'classType': None,
-        'errorCode': '004',
+        'errorCode': '005',
         'errorLabel': 'RESOURCE_ALREADY_EXISTS',
         'errorMessage': "La ressource existe déja.",
         'methodType': None,
