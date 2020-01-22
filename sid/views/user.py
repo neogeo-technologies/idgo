@@ -89,25 +89,25 @@ class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            data_orga = root[self.orga_dept_element]
-            orga = None
-            if data_orga.get(self.orga_element):
-                orga_sid = data_orga[self.orga_element]['id']
-                try:
-                    orga = Organisation.objects.get(slug=orga_sid)
-                except Organisation.DoesNotExist:
-                    # TODO tester les mécanismes de rejeu de la synchronisation
-                    raise SidGenericError(
-                        client_error_code='004',
-                        extra_context={
-                            'classType': self.class_orga_type,
-                            'methodType': self.request.method,  # Méthode en cours ou POST de création d'organisation
-                            'resourceId': orga_sid,  # Identifiant de la relation manquante ou de la ressource
-                        },
-                        status_code=status.HTTP_400_BAD_REQUEST
-                    )
+        data_orga = root[self.orga_dept_element]
+        orga = None
+        if data_orga.get(self.orga_element):
+            orga_sid = data_orga[self.orga_element]['id']
+            try:
+                orga = Organisation.objects.get(slug=orga_sid)
+            except Organisation.DoesNotExist:
+                # TODO tester les mécanismes de rejeu de la synchronisation
+                raise SidGenericError(
+                    client_error_code='004',
+                    extra_context={
+                        'classType': self.class_orga_type,
+                        'methodType': self.request.method,  # Méthode en cours ou POST de création d'organisation
+                        'resourceId': orga_sid,  # Identifiant de la relation manquante ou de la ressource
+                    },
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
 
+        try:
             data_user = root['user']
             user = User.objects.create(
                 username=root['id'],
@@ -179,26 +179,27 @@ class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                 },
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        try:
-            data_orga = root[self.orga_dept_element]
-            orga = None
-            user.profile.contributions.clear()
-            if data_orga.get(self.orga_element):
-                orga_sid = data_orga[self.orga_element]['id']
-                try:
-                    orga = Organisation.objects.get(slug=orga_sid)
-                except Organisation.DoesNotExist:
-                    # TODO tester les mécanismes de rejeu de la synchronisation
-                    raise SidGenericError(
-                        client_error_code='004',
-                        extra_context={
-                            'classType': self.class_orga_type,
-                            'methodType': self.request.method,  # method en cours ou POST de création d'orga
-                            'resourceId': orga_sid,  # identifiant de la relation manquante ou de la ressource en cours
-                        },
-                        status_code=status.HTTP_400_BAD_REQUEST
-                    )
 
+        data_orga = root[self.orga_dept_element]
+        orga = None
+        if data_orga.get(self.orga_element):
+            orga_sid = data_orga[self.orga_element]['id']
+            try:
+                orga = Organisation.objects.get(slug=orga_sid)
+            except Organisation.DoesNotExist:
+                # TODO tester les mécanismes de rejeu de la synchronisation
+                raise SidGenericError(
+                    client_error_code='004',
+                    extra_context={
+                        'classType': self.class_orga_type,
+                        'methodType': self.request.method,  # method en cours ou POST de création d'orga
+                        'resourceId': orga_sid,  # identifiant de la relation manquante ou de la ressource en cours
+                    },
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
+
+        try:
+            user.profile.contributions.clear()
             data_user = root['user']
             user.first_name = data_user['firstname'][:30]
             user.last_name = data_user['lastname'][:30]
