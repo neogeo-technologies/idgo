@@ -266,7 +266,7 @@ class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
             )
 
         instance = self.parse_and_create(data)
-        logger.info('User::create() OK: id->{}, sid_id->{}'.format(
+        logger.info('User::create() OK: id->{}, username->{}'.format(
             instance.id,
             instance.username,
         ))
@@ -295,15 +295,15 @@ class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                 instance = self.get_object()
             except SidGenericError:
                 instance = self.parse_and_create(data)
-                logger.info('create() from PUT OK: id->{}, sid_id->{}'.format(
+                logger.info('create() from PUT OK: id->{}, username->{}'.format(
                     instance.id,
-                    instance.sid_id,
+                    instance.username,
                 ))
             else:
                 instance = self.parse_and_update(instance, data)
-                logger.info('update() OK: id->{}, sid_id->{}'.format(
+                logger.info('update() OK: id->{}, username->{}'.format(
                     instance.id,
-                    instance.sid_id,
+                    instance.username,
                 ))
 
             return HttpResponse(status=200)
