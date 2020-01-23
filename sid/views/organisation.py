@@ -265,15 +265,15 @@ class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                 instance = self.get_object()
             except SidGenericError:
                 instance = self.parse_and_create(data)
-                logger.info('create() from PUT OK: id->{}, sid_id->{}'.format(
+                logger.info('create() from PUT OK: id->{}, slug->{}'.format(
                     instance.id,
-                    instance.sid_id,
+                    instance.slug,
                 ))
             else:
                 instance = self.parse_and_update(instance, data)
-                logger.info('update() OK: id->{}, sid_id->{}'.format(
+                logger.info('update() OK: id->{}, slug->{}'.format(
                     instance.id,
-                    instance.sid_id,
+                    instance.slug,
                 ))
             return HttpResponse(status=200)
 

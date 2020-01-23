@@ -47,8 +47,7 @@ class XMLRenderer(BaseRenderer):
         self.charset = 'UTF-8'
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
-        xml_as_string = render_to_string('sid/default_renderer.xml', {'data': data})
-        return xml_as_string.replace("\n", "")
+        return render_to_string('sid/default_renderer.xml', {'data': data})
 
 
 class XMLtParser(BaseParser):
