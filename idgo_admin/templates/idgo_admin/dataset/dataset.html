@@ -27,6 +27,11 @@
 	<li role="presentation">
 		<a href="#resources" aria-controls="resources" role="tab" data-toggle="tab">Ressource(s) associée(s)</a>
 	</li>
+
+	<li role="presentation">
+		<a href="#resources_store" aria-controls="resources_store" role="tab" data-toggle="tab">Répertoire(s) de données</a>
+	</li>
+
 	<li role="presentation">
 		<a href="#owslayers" aria-controls="service" role="tab" data-toggle="tab">Service OGC</a>
 	</li>
@@ -42,6 +47,12 @@
 		<br />
 		{% include "idgo_admin/dataset/resource/resources.html" %}
 	</div>
+
+	<div id="resources_store" role="tabpanel" class="tab-pane fade in">
+		<br />
+		{% include "idgo_admin/dataset/resource/resources_store.html" %}
+	</div>
+
 	<div id="owslayers" role="tabpanel" class="tab-pane fade in">
 		<br />
 		{% include "idgo_admin/dataset/resource/layer/layers.html" %}
