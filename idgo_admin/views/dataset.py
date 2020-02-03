@@ -55,7 +55,7 @@ import json
 from math import ceil
 from operator import ior
 
-from resource.models import Resource as NewResourceModel
+from idgo_resource.models import Resource as NewResourceModel
 
 
 CKAN_URL = settings.CKAN_URL

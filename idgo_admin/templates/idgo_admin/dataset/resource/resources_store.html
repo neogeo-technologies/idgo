@@ -3,7 +3,7 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <div class="buttons-on-the-right-side">
-	<a name="add-resource" class="btn btn-primary" href="{% url "resource:emit_resource_store" dataset_id=dataset.id %}">Ajouter un nouveau répertoire de données</a>
+	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_resource:emit_resource_store" dataset_id=dataset.id %}">Ajouter un nouveau répertoire de données</a>
 </div>
 <br />
 {% if resource_store_rows_count > 0 %}
@@ -23,7 +23,7 @@
 
 <script>
 $(function() {
-	var RESOURCE_URL = '{% url "resource:redirect_resource" dataset_id=dataset.id %}';
+	var RESOURCE_URL = '{% url "idgo_resource:redirect_resource" dataset_id=dataset.id %}';
 	var RESOURCES = {{ resource_store_rows | safe }};
 	var RESOURCES_CONTAINER = 'table-resources-store';
 	var RESOURCES_METADATA = [
