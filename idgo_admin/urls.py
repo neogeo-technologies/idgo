@@ -17,6 +17,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import url
+from idgo_admin.views.account import change_sftp_password
 from idgo_admin.views.account import create_sftp_account
 from idgo_admin.views.account import delete_account
 from idgo_admin.views.account import delete_sftp_account
@@ -81,6 +82,7 @@ urlpatterns = [
 
     url('^account/sftp/create/?$', create_sftp_account, name='create_sftp_account'),
     url('^account/sftp/delete/?$', delete_sftp_account, name='delete_sftp_account'),
+    url('^account/sftp/change_password/?$', change_sftp_password, name='change_sftp_password'),
 
     url('^dataset/?$', list_dataset, name='dataset'),  # ?id=[<dataset.pk>|<dataset.slug>]
     url('^dataset/mine/?$', list_my_datasets, name='list_my_datasets'),

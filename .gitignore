@@ -51,6 +51,8 @@ coverage.xml
 
 # Django stuff:
 *.log
+manage.py
+django_config/
 
 # Flask stuff:
 instance/
@@ -80,6 +82,8 @@ celerybeat-schedule
 # virtualenv
 venv/
 ENV/
+Pipfile
+Pipfile.lock
 
 # Spyder project settings
 .spyderproject
@@ -92,3 +96,6 @@ ENV/
 
 # mdedit
 */static/libs/mdedit
+
+# vim
+*swp
