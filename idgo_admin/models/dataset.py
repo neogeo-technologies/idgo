@@ -419,7 +419,7 @@ class Dataset(models.Model):
         with_user = current_user
 
         # > > > > > > #
-        NewResource = apps.get_model(app_label='resource', model_name='Resource')
+        NewResource = apps.get_model(app_label='idgo_resource', model_name='Resource')
         for new_resource in NewResource.objects.filter(dataset=self):
             if hasattr(new_resource, 'store'):
                 new_resource.store.delete()
