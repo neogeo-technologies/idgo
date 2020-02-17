@@ -45,9 +45,9 @@ except AttributeError:
     FTP_UPLOADS_DIR = 'uploads'
 
 try:
-    FTP_PREFIX_USER_DIR = settings.FTP_PREFIX_USER_DIR
+    FTP_USER_PREFIX = settings.FTP_USER_PREFIX
 except AttributeError:
-    FTP_PREFIX_USER_DIR = ''
+    FTP_USER_PREFIX = ''
 
 
 def file_size(value):
@@ -349,7 +349,7 @@ class ResourceForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         subdir = '{prefix}{username}'.format(
-            prefix=FTP_PREFIX_USER_DIR, username=user.username)
+            prefix=FTP_USER_PREFIX, username=user.username)
         dir = os.path.join(FTP_DIR, subdir, FTP_UPLOADS_DIR)
         choices = [(None, 'Veuillez sélectionner un fichier')]
         for path, subdirs, files in os.walk(dir):
