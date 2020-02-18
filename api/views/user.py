@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2019 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -34,7 +34,7 @@ from idgo_admin.forms.account import SignUpForm
 from idgo_admin.forms.account import UpdateAccountForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import LiaisonsContributeurs
-# from idgo_admin.models import LiaisonsReferents
+from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 from operator import iand
@@ -55,7 +55,7 @@ def serialize(user):
             ('first_name', user.first_name),
             ('last_name', user.last_name),
             ('admin', user.profile.is_admin),
-            ('is_idgo_partner', user.profile.crige_membership),
+            ('crige', user.profile.crige_membership),
             # Organisation de rattachement de l'utilisateur
             ('organisation', user.profile.organisation and OrderedDict([
                 ('name', user.profile.organisation.slug),
@@ -183,9 +183,6 @@ def handle_pust_request(request, username=None):
     except (ValidationError, CkanBaseError) as e:
         raise GenericException(details=e.__str__())
 
-    # WIP
-    #
-
     if organisation:
         user.profile.membership = True
         user.profile.save(update_fields=['membership'])
@@ -195,7 +192,7 @@ def handle_pust_request(request, username=None):
     contribute_for_slugs = query_data.pop('contribute', None)
     if contribute_for_slugs:
         try:
-            contribute_for = Organisation.objects.get(slug__in=contribute_for_slugs)
+            contribute_for = Organisation.objects.filter(slug__in=contribute_for_slugs)
         except Organisation.DoesNotExist as e:
             raise GenericException(details=e.__str__())
 
@@ -204,27 +201,33 @@ def handle_pust_request(request, username=None):
     referent_for_slugs = query_data.pop('referent', None)
     if referent_for_slugs:
         try:
-            referent_for = Organisation.objects.get(slug__in=referent_for_slugs)
+            referent_for = Organisation.objects.filter(slug__in=referent_for_slugs)
         except Organisation.DoesNotExist as e:
             raise GenericException(details=e.__str__())
 
     if contribute_for:
-        try:
-            LiaisonsContributeurs.objects.get_or_create(
-                profile=user.profile, organisation=organisation, validated_on=timezone.now())
-        except IntegrityError:
-            # rien à faire
-            pass
-        else:
-            AccountActions.objects.create(
-                action='confirm_contribution', organisation=organisation,
-                profile=user.profile, closed=timezone.now())
+        for organisation in contribute_for:
+            try:
+                LiaisonsContributeurs.objects.get_or_create(
+                    profile=user.profile, organisation=organisation, validated_on=timezone.now())
+            except IntegrityError:
+                pass
+            else:
+                AccountActions.objects.create(
+                    action='confirm_contribution', organisation=organisation,
+                    profile=user.profile, closed=timezone.now())
 
     if referent_for:
-        pass  # TODO
-
-    #
-    # WIP
+        for organisation in referent_for:
+            try:
+                LiaisonsReferents.objects.get_or_create(
+                    profile=user.profile, organisation=organisation, validated_on=timezone.now())
+            except IntegrityError:
+                pass
+            else:
+                AccountActions.objects.create(
+                    action='confirm_referent', organisation=organisation,
+                    profile=user.profile, closed=timezone.now())
 
     return user
 
