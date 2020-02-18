@@ -359,7 +359,7 @@ class ResourceForm(forms.ModelForm):
                     filename_label = filename[len(FTP_DIR):]
                 else:
                     filename_label = filename
-                choices.append((filename, filename_label))
+                choices.append((filename, 'file://{}'.format(filename_label)))
         self.fields['ftp_file'].choices = choices
 
         if user.profile.is_admin:
