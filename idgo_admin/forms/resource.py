@@ -355,7 +355,11 @@ class ResourceForm(forms.ModelForm):
         for path, subdirs, files in os.walk(dir):
             for name in files:
                 filename = os.path.join(path, name)
-                choices.append((filename, filename))
+                if filename.startswith(FTP_DIR):
+                    filename_label = filename[len(FTP_DIR):]
+                else:
+                    filename_label = filename
+                choices.append((filename, filename_label))
         self.fields['ftp_file'].choices = choices
 
         if user.profile.is_admin:
