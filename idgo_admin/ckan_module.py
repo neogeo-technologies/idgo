@@ -234,7 +234,12 @@ class CkanBaseHandler(object):
                 #         del resource['upload']
                 # Fin de 'Moche pour tester'
                 return self.remote.action.resource_update(**resource)
-        return self.remote.action.resource_create(**kwargs)
+
+        with open(kwargs.get('upload').name, 'rb') as file:
+            kwargs['upload'] = file
+            res = self.remote.action.resource_create(**kwargs)
+
+        return res
 
     @CkanExceptionsHandler()
     def push_resource_view(self, **kwargs):
