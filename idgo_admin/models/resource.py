@@ -220,6 +220,7 @@ class Resource(models.Model):
         blank=True,
         null=True,
         upload_to=_ftp_file_upload_to,
+        max_length=255,
         )
 
     referenced_url = models.URLField(
@@ -241,6 +242,7 @@ class Resource(models.Model):
         blank=True,
         null=True,
         upload_to=_up_file_upload_to,
+        max_length=255,
         )
 
     LANG_CHOICES = (
