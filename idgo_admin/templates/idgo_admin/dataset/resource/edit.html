@@ -332,7 +332,8 @@ $encodingInputContainer.show();
 
 	$selectFtpFile = $('select[name="{{ form.ftp_file.name }}"]').change(function() {
 		$this = $('select[name="{{ form.ftp_file.name }}"] option:selected')
-		$('input[name="{{ form.title.name }}"]').val($this.text());
+		const filename = $this.text().split(/[\\/]/).pop();
+		$('input[name="{{ form.title.name }}"]').val(filename);
 	});
 
 	$selectAccess = $('select[name="{{ form.restricted_level.name }}"]').change(function() {
