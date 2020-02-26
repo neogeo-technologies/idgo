@@ -189,7 +189,7 @@ def handle_pust_request(request, username=None):
 
     # contribute
     contribute_for = None
-    contribute_for_slugs = query_data.pop('contribute', None)
+    contribute_for_slugs = query_data.pop('contribute', [])
     if contribute_for_slugs:
         try:
             contribute_for = Organisation.objects.filter(slug__in=contribute_for_slugs)
@@ -209,25 +209,30 @@ def handle_pust_request(request, username=None):
         for organisation in contribute_for:
             try:
                 LiaisonsContributeurs.objects.get_or_create(
-                    profile=user.profile, organisation=organisation, validated_on=timezone.now())
+                    profile=user.profile, organisation=organisation,
+                    defaults={'validated_on': timezone.now()}
+                )
             except IntegrityError:
                 pass
             else:
-                AccountActions.objects.create(
+                AccountActions.objects.get_or_create(
                     action='confirm_contribution', organisation=organisation,
-                    profile=user.profile, closed=timezone.now())
+                    profile=user.profile, defaults={'closed': timezone.now()}
+                )
 
     if referent_for:
         for organisation in referent_for:
             try:
                 LiaisonsReferents.objects.get_or_create(
-                    profile=user.profile, organisation=organisation, validated_on=timezone.now())
+                    profile=user.profile, organisation=organisation,
+                    defaults={'validated_on': timezone.now()})
             except IntegrityError:
                 pass
             else:
-                AccountActions.objects.create(
+                AccountActions.objects.get_or_create(
                     action='confirm_referent', organisation=organisation,
-                    profile=user.profile, closed=timezone.now())
+                    profile=user.profile, defaults={'closed': timezone.now()}
+                )
 
     return user
 
