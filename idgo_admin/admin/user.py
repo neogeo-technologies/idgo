@@ -351,9 +351,9 @@ class ProfileAdmin(admin.ModelAdmin):
                 kept = AccountActions.objects.filter(**row).first()
                 AccountActions.objects.filter(**row).exclude(pk=kept.pk).delete()
         except Exception:
-            messages.error(request, "La liste des actions de validation n'a pu etre modifié.")
+            messages.error(request, "Une erreur est survenue.")
         else:
-            messages.success(request, "La liste des actions de validation a été nettoyé. ")
+            messages.success(request, "La liste des actions de validation a été nettoyée.")
 
         return redirect('admin:idgo_admin_profile_changelist')
 
