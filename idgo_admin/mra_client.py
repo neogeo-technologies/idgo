@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -104,6 +104,7 @@ class MRATimeoutError(MraBaseError):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
 
 class MRACriticalError(MraBaseError):
 
@@ -407,6 +408,13 @@ class MRAHandler(metaclass=Singleton):
             self.update_style(s_name, data)
         except MRANotFoundError:
             self.create_style(s_name, data)
+
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
+    def get_layer_styles(self, l_name):
+        data = []
+        for style in self.remote.get('layers', l_name, 'styles')['styles']:
+            data.append(self.remote.get('styles', style['name'])['style'])
+        return data
 
     # Layer
     # =====

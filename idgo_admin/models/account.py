@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -24,6 +24,7 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler
+from idgo_admin.sftp import sftp_user_operation
 import requests
 import uuid
 
@@ -206,18 +207,43 @@ class Profile(models.Model):
 
     # Actions sur le compte FTP
 
-    def create_ftp_account(self):
-        params = {'action': 'create', 'login': self.user.username}
-        r = requests.get(FTP_SERVICE_URL, params=params)
-        if r.status_code == 200:
-            details = r.json()
-            self.sftp_password = details.get('message')
+    @property
+    def change_password_allowed(self):
+        """
+        mot de passe n'est changeable que chez WL, mechanisme json_file
+        """
+        return getattr(settings, 'FTP_MECHANISM', 'cgi') == "json_file"
+
+    def create_ftp_account(self, change=False):
+
+        mechanism = getattr(settings, 'FTP_MECHANISM', 'cgi')
+        user_prefix = getattr(settings, 'FTP_USER_PREFIX', '')
+        if mechanism == 'cgi':
+            params = {'action': 'create', 'login': user_prefix + self.user.username}
+            r = requests.get(FTP_SERVICE_URL, params=params)
+            if r.status_code == 200:
+                details = r.json()
+                self.sftp_password = details.get('message')
+                self.save()
+        elif mechanism == "json_file":
+            operation = "modify" if change else "create"
+            password = sftp_user_operation(operation, user_prefix + self.user.username)
+            self.sftp_password = "password"
             self.save()
+            return password
 
     def delete_ftp_account(self):
-        params = {'action': 'delete', 'login': self.user.username}
-        r = requests.get(FTP_SERVICE_URL, params=params)
-        if r.status_code == 200:
+        mechanism = getattr(settings, 'FTP_MECHANISM', 'cgi')
+        user_prefix = getattr(settings, 'FTP_USER_PREFIX', '')
+        if mechanism == 'cgi':
+            params = {'action': 'delete', 'login': user_prefix + self.user.username}
+            r = requests.get(FTP_SERVICE_URL, params=params)
+            if r.status_code == 200:
+                self.sftp_password = None
+                self.save()
+        elif mechanism == "json_file":
+            operation = "delete"
+            password = sftp_user_operation(operation, user_prefix + self.user.username)
             self.sftp_password = None
             self.save()
 

@@ -1,5 +1,5 @@
 #!/idgo_venv/bin/python3
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may

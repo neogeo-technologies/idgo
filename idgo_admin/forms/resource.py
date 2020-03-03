@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -43,6 +43,11 @@ try:
     FTP_UPLOADS_DIR = settings.FTP_UPLOADS_DIR
 except AttributeError:
     FTP_UPLOADS_DIR = 'uploads'
+
+try:
+    FTP_USER_PREFIX = settings.FTP_USER_PREFIX
+except AttributeError:
+    FTP_USER_PREFIX = ''
 
 
 def file_size(value):
@@ -343,12 +348,18 @@ class ResourceForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        dir = os.path.join(FTP_DIR, user.username, FTP_UPLOADS_DIR)
+        subdir = '{prefix}{username}'.format(
+            prefix=FTP_USER_PREFIX, username=user.username)
+        dir = os.path.join(FTP_DIR, subdir, FTP_UPLOADS_DIR)
         choices = [(None, 'Veuillez sélectionner un fichier')]
         for path, subdirs, files in os.walk(dir):
             for name in files:
                 filename = os.path.join(path, name)
-                choices.append((filename, filename[len(dir) + 1:]))
+                if filename.startswith(FTP_DIR):
+                    filename_label = filename[len(FTP_DIR):]
+                else:
+                    filename_label = filename
+                choices.append((filename, 'file://{}'.format(filename_label)))
         self.fields['ftp_file'].choices = choices
 
         if user.profile.is_admin:

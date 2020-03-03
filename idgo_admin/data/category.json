@@ -7,7 +7,7 @@
 		"slug": "administration-et-action-publique",
 		"ckan_id": "c45a64dd-355a-4bc9-a46a-7c558d880b71",
 		"iso_topic": "society",
-		"picto": ""
+		"picto": "logos/administration-et-action-publique.png"
 	}
 }, {
 	"model": "idgo_admin.category",
@@ -18,7 +18,7 @@
 		"slug": "agriculture",
 		"ckan_id": "6561f7df-b20c-42e5-a16a-47ba52ce1540",
 		"iso_topic": "farming",
-		"picto": ""
+		"picto": "logos/agriculture.png"
 	}
 }, {
 	"model": "idgo_admin.category",
@@ -29,7 +29,7 @@
 		"slug": "amenagement-du-territoire-et-urbanisme",
 		"ckan_id": "7c618acf-0147-48e3-b2c3-a2e9cb13382f",
 		"iso_topic": "structure",
-		"picto": ""
+		"picto": "logos/amenagement-du-territoire-et-urbanisme.png"
 	}
 }, {
 	"model": "idgo_admin.category",
@@ -40,7 +40,7 @@
 		"slug": "biodiversite-et-eau",
 		"ckan_id": "8142ea83-b81b-4851-89dd-5aef0ae5ef3a",
 		"iso_topic": "environment",
-		"picto": ""
+		"picto": "logos/biodiversite-et-eau.png"
 	}
 }, {
 	"model": "idgo_admin.category",
@@ -51,18 +51,18 @@
 		"slug": "citoyennete-et-democratie",
 		"ckan_id": "bf6bb49f-5171-49b8-a022-0a80042ba466",
 		"iso_topic": "society",
-		"picto": ""
+		"picto": "logos/citoyennete-et-democratie.png"
 	}
 }, {
 	"model": "idgo_admin.category",
+	"pk": 6,
 	"fields": {
-		"pk": 6,
 		"name": "Climat, air et \u00e9nergie",
 		"description": "Climat, air et \u00e9nergie",
 		"slug": "climat-air-et-energie",
 		"ckan_id": "56bdb98f-fdc5-404e-8020-1606dbbd5648",
 		"iso_topic": "climatologyMeteorologyAtmosphere",
-		"picto": ""
+		"picto": "logos/climat-air-et-energie.png"
 	}
 }, {
 	"model": "idgo_admin.category",
@@ -73,7 +73,7 @@
 		"slug": "culture-patrimoine-et-tourisme",
 		"ckan_id": "37bde9c8-f22e-4f2e-9d14-7f0ec1a87086",
 		"iso_topic": "society",
-		"picto": ""
+		"picto": "logos/culture-patrimoine-et-tourisme.png"
 	}
 }, {
 	"model": "idgo_admin.category",
@@ -84,7 +84,7 @@
 		"slug": "economie-et-entreprises",
 		"ckan_id": "a0de94e1-42a1-46a7-a3b1-0113229e3280",
 		"iso_topic": "economy",
-		"picto": ""
+		"picto": "logos/economie-et-entreprises.png"
 	}
 }, {
 	"model": "idgo_admin.category",
@@ -95,7 +95,7 @@
 		"slug": "equipements-batiments-et-logements",
 		"ckan_id": "fdb6ebc1-4a62-46f9-b405-e9fc2c4e000f",
 		"iso_topic": "structure",
-		"picto": ""
+		"picto": "logos/equipements-batiments-et-logements.png"
 	}
 }, {
 	"model": "idgo_admin.category",
@@ -106,7 +106,7 @@
 		"slug": "formation-education-et-emploi",
 		"ckan_id": "dccdafcb-bfe9-47fb-a1d5-2eb27db2ebdc",
 		"iso_topic": "society",
-		"picto": ""
+		"picto": "logos/formation-education-et-emploi.png"
 	}
 }, {
 	"model": "idgo_admin.category",
@@ -117,7 +117,7 @@
 		"slug": "mobilite-et-transports",
 		"ckan_id": "5b2f1721-f4e9-48ff-bd95-97e2d8cb8d0e",
 		"iso_topic": "transportation",
-		"picto": ""
+		"picto": "logos/mobilite-et-transports.png"
 	}
 }, {
 	"model": "idgo_admin.category",
@@ -128,7 +128,7 @@
 		"slug": "nuisances-dechets-et-risques",
 		"ckan_id": "dea573f5-b699-4ace-93c5-50530094f987",
 		"iso_topic": "environment",
-		"picto": ""
+		"picto": "logos/nuisances-dechets-et-risques.png"
 	}
 }, {
 	"model": "idgo_admin.category",
@@ -139,7 +139,7 @@
 		"slug": "occupation-des-sols",
 		"ckan_id": "7706b038-0342-4351-85da-1c204c270170",
 		"iso_topic": "planningCadastre",
-		"picto": ""
+		"picto": "logos/occupation-des-sols.png"
 	}
 }, {
 	"model": "idgo_admin.category",
@@ -150,6 +150,6 @@
 		"slug": "social-sante-et-sports",
 		"ckan_id": "577b9c93-600f-470e-ab15-bc0b08fd1b64",
 		"iso_topic": "health",
-		"picto": ""
+		"picto": "logos/social-sante-et-sports.png"
 	}
 }]

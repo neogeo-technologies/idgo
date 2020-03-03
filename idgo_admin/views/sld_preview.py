@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -23,6 +23,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import redis
+import urllib.parse
 import uuid
 
 
@@ -44,11 +45,20 @@ class SLDPreviewSetter(View):
         strict_redis.set(key, sld)
         strict_redis.expire(key, REDIS_EXPIRATION)
 
+        response = HttpResponse(status=201)
         location = request.build_absolute_uri(
             reverse('idgo_admin:sld_preview_getter', kwargs={'key': key}))
 
-        response = HttpResponse(status=201)
-        response['Content-Location'] = location
+        if hasattr(settings, 'HOST_INTERNAL') \
+                and hasattr(settings, 'PORT_INTERNAL'):
+            netloc = '{host}:{port}'.format(
+                host=settings.HOST_INTERNAL, port=settings.PORT_INTERNAL)
+            parsed = urllib.parse.urlparse(location)
+            replaced = parsed._replace(netloc=netloc)
+            response['Content-Location'] = replaced.geturl()
+        else:
+            response['Content-Location'] = location
+
         return response
 
 

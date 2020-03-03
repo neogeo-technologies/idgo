@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -293,7 +293,8 @@ class Organisation(models.Model):
 
 @receiver(pre_save, sender=Organisation)
 def pre_save_organisation(sender, instance, **kwargs):
-    instance.slug = slugify(instance.legal_name)
+    if not instance.slug:
+        instance.slug = slugify(instance.legal_name)
 
 
 @receiver(post_save, sender=Organisation)

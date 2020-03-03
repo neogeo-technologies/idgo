@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -110,6 +110,8 @@ def sender(template_name, to=None, cc=None, bcc=None, attach_files=[], **kvp):
 
     for attach_file in attach_files:
         mail.attach_file(attach_file)
+
+    return
 
     try:
         mail.send()

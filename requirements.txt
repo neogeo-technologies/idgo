@@ -1,6 +1,6 @@
 psycopg2
 django>=1.11,<1.12
-djangorestframework
+djangorestframework>=3.11,<3.12
 django-extensions
 django-mama-cas
 django-taggit
@@ -17,3 +17,6 @@ redis
 celery
 -e git+https://github.com/neogeo-technologies/OWSLib.git@idgo#egg=OWSLib
 markdown
+xmltodict
+# A supprimer quand passage Python 3.6+
+python2-secrets

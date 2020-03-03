@@ -1,6 +1,7 @@
 {% extends "idgo_admin/base.html" %}
 
 {% load bootstrap3 %}
+{% load idgo_tags %}
 
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
@@ -67,9 +68,10 @@
 	<a class="btn btn-default" href="{% url "idgo_admin:create_sftp_account" %}">Créer mon compte FTP</a>
 {% else %}
 	<p>Adresse FTP : <strong>{{ ftp_url }}</strong></p>
-	<p>Votre compte FTP est activé : <em>compte utilisateur</em> <strong>{{ user.username }}</strong> / <em>mot de passe</em> <strong>{{ user.profile.sftp_password }}</strong></p>
-	<p>Attention, l'accès à ce compte FTP est sécurisé. Il ne peut se faire qu'avec le protocole SFTP (sur le port 22), donc avec une application spécifique comme FileZilla (<a class="link" href="https://filezilla-project.org">https://filezilla-project.org</a>)</p>
+    <p>Votre compte FTP est activé : <em>compte utilisateur</em> <strong>{% settings_value "FTP_USER_PREFIX" %}{{ user.username }}</strong> {% if not user.profile.change_password_allowed %} / <em>mot de passe</em> <strong>{{ user.profile.sftp_password }}</strong>{% endif %}</p>
+    <p>Attention, l'accès à ce compte FTP est sécurisé. Il ne peut se faire qu'avec le protocole SFTP (sur le port {% settings_value "SFTP_PORT" "22" %}), donc avec une application spécifique comme FileZilla (<a class="link" href="https://filezilla-project.org">https://filezilla-project.org</a>)</p>
 	<a class="btn btn-default" href="{% url "idgo_admin:delete_sftp_account" %}">Supprimer mon compte FTP</a></li>
+{% if user.profile.change_password_allowed %} <a class="btn btn-default" href="{% url "idgo_admin:change_sftp_password" %}">Générer nouveau mot de passe FTP</a></li> {% endif %}
 {% endif %}
 </div>
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,8 +14,10 @@
 # under the License.
 
 
+from django import forms
 from django.conf.urls import url
 from django.contrib import admin
+from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.forms import UserCreationForm
@@ -24,12 +26,13 @@ from django.contrib.auth.models import User
 from django.contrib.gis import admin as geo_admin
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django import forms
+from django.db.models import Count
 from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from django.utils import timezone
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.forms.account import DeleteAdminForm
 from idgo_admin.models import AccountActions
@@ -176,6 +179,9 @@ class ProfileAdmin(admin.ModelAdmin):
     search_fields = ['user__last_name', 'user__username']
     ordering = ['user__last_name', 'user__first_name']
 
+    # Permet de definir un boutton de suppression des AccountAction doublons
+    change_list_template = 'admin/idgo_admin/profile_change_list.html'
+
     def get_form(self, request, obj=None, **kwargs):
         if request.user.is_superuser:
             Form = IDGOProfileChangeForm
@@ -311,10 +317,18 @@ class ProfileAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         urls = super().get_urls()
-        custom_urls = [url(
-            '^(?P<profile_id>.+)/delete-account/$',
-            self.admin_site.admin_view(self.process_deleting),
-            name='delete-account')]
+        custom_urls = [
+            url(
+                '^(?P<profile_id>.+)/delete-account/$',
+                self.admin_site.admin_view(self.process_deleting),
+                name='delete-account'
+            ),
+            url(
+                'clean-actions/',
+                self.clean_actions,
+                name='clean_account_actions'
+            ),
+        ]
         return custom_urls + urls
 
     def delete_account_action(self, obj):
@@ -324,6 +338,24 @@ class ProfileAdmin(admin.ModelAdmin):
 
     delete_account_action.short_description = 'Supprimer'
     delete_account_action.allow_tags = True
+
+    def clean_actions(self, request):
+        try:
+            duplicates = AccountActions.objects.values(
+                'action', 'organisation', 'profile'
+            ).annotate(
+                profile_count=Count('profile')
+            ).filter(profile_count__gt=1)
+            for row in duplicates:
+                row.pop('profile_count', None)
+                kept = AccountActions.objects.filter(**row).first()
+                AccountActions.objects.filter(**row).exclude(pk=kept.pk).delete()
+        except Exception:
+            messages.error(request, "Une erreur est survenue.")
+        else:
+            messages.success(request, "La liste des actions de validation a été nettoyée.")
+
+        return redirect('admin:idgo_admin_profile_changelist')
 
 
 admin.site.register(Profile, ProfileAdmin)

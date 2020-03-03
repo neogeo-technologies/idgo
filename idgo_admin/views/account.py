@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -420,19 +420,57 @@ def create_sftp_account(request):
 
     user, profile = user_and_profile(request)
 
+    password = ""
     try:
-        profile.create_ftp_account()
+        password = profile.create_ftp_account()
     except Exception as e:
         print(e)
         # TODO: Géré les exceptions
         messages.error(
             request, 'Une erreur est survenue lors de la création de votre compte FTP.')
     else:
-        messages.success(request, (
-            'Le compte FTP a été créé avec succès. '
-            "Le processus d'activation peut prendre quelques minutes. "
-            'Un mot de passe a été généré automatiquement. '
-            "Celui-ci n'est pas modifiable."))
+        if password:
+            messages.success(request, (
+                'Le compte FTP a été créé avec succès. '
+                "Notez-le, il ne vous sera plus jamais communiqué."
+                'Votre mot de passe est {password}'.format(password=password)))
+        else:
+
+            messages.success(request, (
+                'Le compte FTP a été créé avec succès. '
+                "Le processus d'activation peut prendre quelques minutes. "
+                'Un mot de passe a été généré automatiquement. '
+                "Celui-ci n'est pas modifiable."))
+
+    return HttpResponseRedirect(reverse('idgo_admin:update_account'))
+
+
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def change_sftp_password(request):
+
+    user, profile = user_and_profile(request)
+
+    password = ""
+    try:
+        password = profile.create_ftp_account(change=True)
+    except Exception as e:
+        print(e)
+        # TODO: Géré les exceptions
+        messages.error(
+            request, 'Une erreur est survenue lors de la création de votre compte FTP.')
+    else:
+        if password:
+            messages.success(request, (
+                "Notez votre mot de passe, il ne vous sera plus jamais communiqué."
+                'Votre nouveau mot de passe est {password}'.format(password=password)))
+        else:
+
+            messages.success(request, (
+                'Le compte FTP a été créé avec succès. '
+                "Le processus d'activation peut prendre quelques minutes. "
+                'Un mot de passe a été généré automatiquement. '
+                "Celui-ci n'est pas modifiable."))
 
     return HttpResponseRedirect(reverse('idgo_admin:update_account'))
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -55,6 +55,11 @@ try:
     FTP_UPLOADS_DIR = settings.FTP_UPLOADS_DIR
 except AttributeError:
     FTP_UPLOADS_DIR = 'uploads'
+
+try:
+    FTP_USER_PREFIX = settings.FTP_USER_PREFIX
+except AttributeError:
+    FTP_USER_PREFIX = ''
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -195,6 +200,12 @@ class ResourceManager(View):
 
         data = form.cleaned_data
 
+        if data['ftp_file']:
+            ftp_sub_dir = '{prefix}{username}'.format(prefix=FTP_USER_PREFIX, username=user.username)
+            data_ftp_file = os.path.join(FTP_DIR, ftp_sub_dir, data['ftp_file'])
+        else:
+            data_ftp_file = None
+
         kvp = {
             'dataset': dataset,
             'title': data['title'],
@@ -209,7 +220,7 @@ class ResourceManager(View):
             'synchronisation': data['synchronisation'],
             'sync_frequency': data['sync_frequency'],
             'referenced_url': data['referenced_url'],
-            'ftp_file': data['ftp_file'] and os.path.join(FTP_DIR, user.username, data['ftp_file']) or None,
+            'ftp_file': data_ftp_file,
             'crs': data['crs'],
             'encoding': data.get('encoding') or None,
             'extractable': data['extractable'],

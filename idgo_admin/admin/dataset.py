@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -79,7 +79,7 @@ class ResourceInline(admin.StackedInline):
     model = Resource
     formset = ResourceInlineFormset
     extra = 0
-    can_delete = True
+    can_delete = False
     fieldsets = [
         ('Synchronisation distante', {
             'classes': ['collapse'],
@@ -131,6 +131,15 @@ class DatasetAdmin(admin.ModelAdmin):
     actions = [synchronize]
 
     synchronize.short_description = 'Forcer la synchronisation des jeux de données'
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     def nb_resources(self, obj):
         return Resource.objects.filter(dataset=obj).count()

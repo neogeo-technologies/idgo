@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -17,6 +17,9 @@
 from api.views.dataset import DatasetList
 from api.views.dataset import DatasetShow
 from api.views.dataset import DatasetMDShow
+from api.views.layer import LayerList
+from api.views.layer import LayerShow
+from api.views.layer_style import LayerStyleDefaultShow
 from api.views.organisation import OrganisationList
 from api.views.organisation import OrganisationShow
 from api.views.resource import ResourceList
@@ -26,13 +29,16 @@ from api.views.user import UserShow
 
 
 __all__ = [
-    DatasetShow,
     DatasetList,
+    DatasetShow,
     DatasetMDShow,
-    OrganisationShow,
+    LayerList,
+    LayerShow,
+    LayerStyleDefaultShow,
     OrganisationList,
-    ResourceShow,
+    OrganisationShow,
     ResourceList,
+    ResourceShow,
     UserList,
     UserShow,
     ]

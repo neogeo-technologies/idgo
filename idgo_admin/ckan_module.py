@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -25,6 +25,7 @@ from functools import wraps
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin import logger
 from idgo_admin.utils import Singleton
+from idgo_admin.utils import slugify
 import inspect
 import os
 import time
@@ -234,7 +235,12 @@ class CkanBaseHandler(object):
                 #         del resource['upload']
                 # Fin de 'Moche pour tester'
                 return self.remote.action.resource_update(**resource)
-        return self.remote.action.resource_create(**kwargs)
+
+        with open(kwargs.get('upload').name, 'rb') as file:
+            kwargs['upload'] = file
+            res = self.remote.action.resource_create(**kwargs)
+
+        return res
 
     @CkanExceptionsHandler()
     def push_resource_view(self, **kwargs):
@@ -368,7 +374,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
     def add_organisation(self, organisation):
         params = {
             'id': str(organisation.ckan_id),
-            'name': organisation.slug,
+            'name': slugify(organisation.legal_name)[:100],
             'title': organisation.legal_name,
             'description': organisation.description,
             'extras': [
@@ -393,7 +399,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
 
         ckan_organisation.update({
             'title': organisation.legal_name,
-            'name': organisation.slug,
+            'name': slugify(organisation.legal_name)[:100],
             'description': organisation.description,
             'extras': [
                 {'key': 'email', 'value': organisation.email or ''},

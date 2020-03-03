@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -220,6 +220,7 @@ class Resource(models.Model):
         blank=True,
         null=True,
         upload_to=_ftp_file_upload_to,
+        max_length=255,
         )
 
     referenced_url = models.URLField(
@@ -241,6 +242,7 @@ class Resource(models.Model):
         blank=True,
         null=True,
         upload_to=_up_file_upload_to,
+        max_length=255,
         )
 
     LANG_CHOICES = (

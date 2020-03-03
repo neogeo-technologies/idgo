@@ -30,14 +30,25 @@ $(function() {
 			return fileName + (fileSize ? ' (' + readableFileSize(fileSize) + ')' : '');
 		},
 		reject: function(file, err) {
+			let text, fileSize, maxSize;
 			if (err.maxSize) {
-				var fileSize = readableFileSize(file.size);
-				var maxSize = readableFileSize({{ widget.attrs.max_size_info }});
-				var text = 'Le fichier ' + file.name + ' (' + fileSize + ') dépasse la limite de taille autorisée ' + maxSize + '.';
+				fileSize = readableFileSize(file.size);
+				maxSize = readableFileSize({{ widget.attrs.max_size_info }});
+				text = "Le fichier " + file.name + " (" + fileSize + ") dépasse la limite de taille autorisée " + maxSize + ".";
 				$inputFile.parent().parent().parent().siblings('.help-block').remove();
 				$inputFile.parent().parent().parent().parent().addClass('has-error');
 				$inputFile.parent().parent().parent().after($('<div class="help-block">' + text + '</div>'));
 			};
+			if (err.mimeType) {
+				if (file.type) {
+					text = "Le type <em>MIME</em> <strong>" + file.type + "</strong> n'est pas authorisée.";
+				} else {
+					text = "Aucun type <em>MIME</em> n'est détecté.";
+				};
+				$inputFile.parent().parent().parent().siblings('.help-block').remove();
+				$inputFile.parent().parent().parent().parent().addClass('has-error');
+				$inputFile.parent().parent().parent().after($('<div class="help-block">' + text + '</div>'));
+			}
 		}
 	});
 });

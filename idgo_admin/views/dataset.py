@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -54,6 +54,8 @@ from idgo_admin.shortcuts import user_and_profile
 import json
 from math import ceil
 from operator import ior
+
+from idgo_resource.models import Resource as NewResourceModel
 
 
 CKAN_URL = settings.CKAN_URL
@@ -283,6 +285,23 @@ class DatasetManager(View):
 
     def get_context(self, form, user, dataset):
 
+        # > > > > > > #
+        resource_store_rows = []
+        if dataset:
+            for resource in NewResourceModel.objects.filter(dataset=dataset):
+                resource_store_row_data = (
+                    resource.pk,
+                    resource.title,
+                    resource.format_type.description if resource.format_type else None,
+                    resource.get_resource_type_display(),
+                    resource.created_on.isoformat() if resource.created_on else None,
+                    resource.last_update.isoformat() if resource.last_update else None,
+                    'Aucune',
+                    str(resource.ckan_id),
+                    )
+                resource_store_rows.append(resource_store_row_data)
+        # < < < < < < #
+
         layer_rows = []
         resource_rows = []
         if dataset:
@@ -337,7 +356,6 @@ class DatasetManager(View):
             for m in Support.objects.all()]
 
         tags = CkanHandler.get_tags()
-
         return {
             'target': target(dataset, user),
             'dataset': dataset,
@@ -345,6 +363,10 @@ class DatasetManager(View):
             'licenses': dict(licenses),
             'layer_rows': json.dumps(layer_rows),
             'resource_rows': json.dumps(resource_rows),
+            # > > > > > > #
+            'resource_store_rows': json.dumps(resource_store_rows),
+            'resource_store_rows_count': len(resource_store_rows),
+            # < < < < < < #
             'supports': json.dumps(dict(supports)),
             'tags': json.dumps(tags),
             }

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Neogeo-Technologies.
+# Copyright (c) 2017-2020 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -417,6 +417,16 @@ class Dataset(models.Model):
 
     def delete(self, *args, current_user=None, **kwargs):
         with_user = current_user
+
+        # > > > > > > #
+        NewResource = apps.get_model(app_label='idgo_resource', model_name='Resource')
+        for new_resource in NewResource.objects.filter(dataset=self):
+            if hasattr(new_resource, 'store'):
+                new_resource.store.delete()
+            else:
+                raise NotImplementedError
+            new_resource.delete()
+        # < < < < < < #
 
         # On supprime toutes les ressources attachées au jeu de données
         Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
