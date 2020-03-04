@@ -25,6 +25,7 @@ from functools import wraps
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin import logger
 from idgo_admin.utils import Singleton
+from idgo_admin.utils import slugify
 import inspect
 import os
 import time
@@ -373,7 +374,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
     def add_organisation(self, organisation):
         params = {
             'id': str(organisation.ckan_id),
-            'name': organisation.slug,
+            'name': slugify(organisation.legal_name)[:100],
             'title': organisation.legal_name,
             'description': organisation.description,
             'extras': [
@@ -398,7 +399,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
 
         ckan_organisation.update({
             'title': organisation.legal_name,
-            'name': organisation.slug,
+            'name': slugify(organisation.legal_name)[:100],
             'description': organisation.description,
             'extras': [
                 {'key': 'email', 'value': organisation.email or ''},
