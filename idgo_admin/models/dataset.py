@@ -406,7 +406,7 @@ class Dataset(models.Model):
                         url = '{0}#{1}'.format(
                             OWS_URL_PATTERN.format(organisation=self.organisation.slug),
                             layer.name)
-                        CkanHandler.update_resource(layer.name, url=url)
+                        CkanHandler.update_resource(str(resource.ckan_id), url=url)
 
         # Enfin...
         if synchronize:
