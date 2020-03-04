@@ -327,7 +327,7 @@ class Layer(models.Model):
                 # auquel cas il est nécessaire de supprimer les objets MRA
                 # afin de les recréer dans le bon workspace (c-à-d Mapfile).
                 previous_layer = MRAHandler.get_layer(self.name)
-                regex = '/workspaces/(?P<ws_name>[a-z_\-]+)/coveragestores/'
+                regex = '/workspaces/(?P<ws_name>[a-z0-9_\-]+)/coveragestores/'
 
                 matched = re.search(regex, previous_layer['resource']['href'])
                 if matched:
@@ -359,7 +359,7 @@ class Layer(models.Model):
                 # auquel cas il est nécessaire de supprimer les objets MRA
                 # afin de les recréer dans le bon workspace (c-à-d Mapfile).
                 previous_layer = MRAHandler.get_layer(self.name)
-                regex = '/workspaces/(?P<ws_name>[a-z_\-]+)/datastores/'
+                regex = '/workspaces/(?P<ws_name>[a-z0-9_\-]+)/datastores/'
 
                 matched = re.search(regex, previous_layer['resource']['href'])
                 if matched:
