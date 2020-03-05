@@ -349,6 +349,8 @@ class Layer(models.Model):
         ws_name = organisation.slug
         ds_name = 'public'
 
+        styles_sld = []
+
         if self.pk:
             try:
                 Layer.objects.get(pk=self.pk)
@@ -365,6 +367,11 @@ class Layer(models.Model):
                 if matched:
                     previous_ws_name = matched.group('ws_name')
                     if not ws_name == previous_ws_name:
+                        layer_styles = MRAHandler.get_layer_styles(self.name)
+                        for style in layer_styles:
+                            sld = MRAHandler.get_style(style['name'])
+                            styles_sld.append(sld)
+
                         MRAHandler.del_layer(self.name)
                         MRAHandler.del_featuretype(
                             previous_ws_name, ds_name, self.name)
@@ -374,6 +381,12 @@ class Layer(models.Model):
         MRAHandler.get_or_create_featuretype(
             ws_name, ds_name, self.name, enabled=True,
             title=self.resource.title, abstract=self.resource.description)
+
+        for sld in styles_sld:
+            MRAHandler.create_or_update_style(self.name, data=sld)
+            MRAHandler.update_layer_defaultstyle(self.name, self.name)
+            break  # only first is default
+
 
     def synchronize(self, with_user=None):
         """Synchronizer le jeu de données avec l'instance de CKAN."""

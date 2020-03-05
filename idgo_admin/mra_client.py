@@ -402,6 +402,10 @@ class MRAHandler(metaclass=Singleton):
             'styles', s_name, extension='sld', data=preprocessing_sld(data),
             headers={'content-type': 'application/vnd.ogc.sld+xml; charset=utf-8'})
 
+    @MRAExceptionsHandler()
+    def delete_style(self, s_name):
+        raise NotImplementedError  # Not implemented on MRA!
+
     @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def create_or_update_style(self, s_name, data):
         try:
