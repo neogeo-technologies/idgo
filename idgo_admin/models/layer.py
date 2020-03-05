@@ -387,7 +387,6 @@ class Layer(models.Model):
             MRAHandler.update_layer_defaultstyle(self.name, self.name)
             break  # only first is default
 
-
     def synchronize(self, with_user=None):
         """Synchronizer le jeu de données avec l'instance de CKAN."""
         # 'with_user' n'est pas utiliser dans ce contexte
@@ -437,7 +436,11 @@ class Layer(models.Model):
                         base_url=base_url, typename=id,
                         outputformat=outputformat, srid=str(DEFAULT_SRID))
 
-        CkanHandler.update_resource(str(self.resource.ckan_id), api=json.dumps(api))
+        url = '{0}#{1}'.format(OWS_URL_PATTERN.format(
+            organisation=self.resource.dataset.organisation.slug
+            ), self.name)
+
+        CkanHandler.update_resource(str(self.resource.ckan_id), url=url, api=json.dumps(api))
         CkanHandler.push_resource_view(
             title=name, description=description,
             resource_id=str(self.resource.ckan_id), view_type='geo_view')

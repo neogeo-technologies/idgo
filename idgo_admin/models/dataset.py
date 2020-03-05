@@ -402,12 +402,7 @@ class Dataset(models.Model):
             if previous.organisation != self.organisation:
                 for resource in previous.get_resources():
                     for layer in resource.get_layers():
-                        layer.save()
-                        url = '{0}#{1}'.format(
-                            OWS_URL_PATTERN.format(organisation=self.organisation.slug),
-                            layer.name)
-                        CkanHandler.update_resource(str(resource.ckan_id), url=url)
-
+                        layer.save(synchronize=True)
         # Enfin...
         if synchronize:
             ckan_dataset = self.synchronize(with_user=current_user, activate=activate)
