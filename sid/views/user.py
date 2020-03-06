@@ -201,7 +201,6 @@ class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
                 )
 
         try:
-            user.profile.contributions.clear()
             data_user = root['user']
             user.first_name = data_user['firstname'][:30]
             user.last_name = data_user['lastname'][:30]
