@@ -14,10 +14,13 @@
 # under the License.
 
 
+import io
 import logging
 
+from django.core import files
 from django.http import Http404
 from django.http import HttpResponse
+import requests
 from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework import viewsets
@@ -85,27 +88,19 @@ class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
         return data
 
     def save_logo(self, instance, root):
-
-        from django.core import files
-        from urllib.request import urlopen
-
         logo_url = root.get('logoUrl')
+        if not logo_url:
+            return
 
-        if logo_url:
-            logo = urlopen(logo_url)
-            file_name = '{}_{}.{}'.format(
-                instance.pk,
-                instance.slug,
-                {
-                    'image/png': 'png',
-                    'image/jpeg': 'jpg',
-                    'image/tiff': 'tif',
-                    'image/bmp': 'bmp',
-                }.get(logo.headers.get('Content-Type', 'image/png'))
-            )
-            files.File(logo.fp)
-            instance.logo.delete()
-            instance.logo.save(file_name, files.File(logo.fp))
+        res = requests.get(logo_url)
+        if not res.status_code == 200:
+            return
+
+        file = io.BytesIO(res.content)
+
+        instance.logo.delete()
+        instance.logo.save('logo', files.File(file), save=True)
+        file.close()
 
     def parse_and_create(self, data):
         root = data.get(self.class_type.lower(), {})
