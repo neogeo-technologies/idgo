@@ -111,8 +111,6 @@ def sender(template_name, to=None, cc=None, bcc=None, attach_files=[], **kvp):
     for attach_file in attach_files:
         mail.attach_file(attach_file)
 
-    return
-
     try:
         mail.send()
     except SMTPDataError as e:
