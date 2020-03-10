@@ -3,7 +3,7 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <div class="buttons-on-the-right-side">
-	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_resource:emit_resource_store" dataset_id=dataset.id %}">Ajouter un nouveau répertoire de données</a>
+	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_resource:new_resource" dataset_id=dataset.id %}">Ajouter un nouveau répertoire de données</a>
 </div>
 <br />
 {% if resource_store_rows_count > 0 %}

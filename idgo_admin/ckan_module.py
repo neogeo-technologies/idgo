@@ -236,9 +236,14 @@ class CkanBaseHandler(object):
                 # Fin de 'Moche pour tester'
                 return self.remote.action.resource_update(**resource)
 
-        with open(kwargs.get('upload').name, 'rb') as file:
+        try:
+            file = open(kwargs.get('upload').name, 'rb')
             kwargs['upload'] = file
             res = self.remote.action.resource_create(**kwargs)
+        except:
+            res = self.remote.action.resource_create(**kwargs)
+        else:
+            file.close()
 
         return res
 
