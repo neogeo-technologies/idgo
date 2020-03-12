@@ -20,6 +20,7 @@ from ckanapi import RemoteCKAN
 from datetime import datetime
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.files.base import File
 from django.db import IntegrityError
 from functools import wraps
 from idgo_admin.exceptions import CkanBaseError
@@ -32,7 +33,6 @@ import time
 import timeout_decorator
 import unicodedata
 from urllib.parse import urljoin
-
 
 CKAN_URL = settings.CKAN_URL
 CKAN_API_KEY = settings.CKAN_API_KEY
@@ -236,16 +236,17 @@ class CkanBaseHandler(object):
                 # Fin de 'Moche pour tester'
                 return self.remote.action.resource_update(**resource)
 
-        try:
-            file = open(kwargs.get('upload').name, 'rb')
+        # L'ENVOI DES DONNEES EST A REPRENDRE COMPLETEMENT AVEC LA REFONTE
+        # DE LA PUBLICATION DE RESOURCE
+        upload = kwargs.get('upload')
+        if upload and isinstance(upload, File):
+            file = open(upload.name, 'rb')
             kwargs['upload'] = file
             res = self.remote.action.resource_create(**kwargs)
-        except:
-            res = self.remote.action.resource_create(**kwargs)
-        else:
             file.close()
-
-        return res
+            return res
+        else:
+            return self.remote.action.resource_create(**kwargs)
 
     @CkanExceptionsHandler()
     def push_resource_view(self, **kwargs):
@@ -630,5 +631,6 @@ def handle_connection(attempt):
         logger.warning('URL: {}'.format(CKAN_URL))
         time.sleep(10)
         return handle_connection(attempt + 1)
+
 
 CkanHandler = handle_connection(1)
