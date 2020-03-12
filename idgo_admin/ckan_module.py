@@ -236,9 +236,16 @@ class CkanBaseHandler(object):
                 # Fin de 'Moche pour tester'
                 return self.remote.action.resource_update(**resource)
 
-        with open(kwargs.get('upload').name, 'rb') as file:
+        # L'ENVOI DES DONNEES EST A REPRENDRE COMPLETEMENT AVEC LA REFONTE
+        # DE LA PUBLICATION DE RESOURCE
+        try:
+            file = open(kwargs.get('upload').name, 'rb')
             kwargs['upload'] = file
             res = self.remote.action.resource_create(**kwargs)
+        except:
+            res = self.remote.action.resource_create(**kwargs)
+        else:
+            file.close()
 
         return res
 
@@ -625,5 +632,6 @@ def handle_connection(attempt):
         logger.warning('URL: {}'.format(CKAN_URL))
         time.sleep(10)
         return handle_connection(attempt + 1)
+
 
 CkanHandler = handle_connection(1)
