@@ -95,7 +95,6 @@ $(function() {
 	{% endif %}
 
 	$('button[name="view-ckan"]').on('click', function(e) {
-      console.log(tableGrid.getRowValues(tableGrid.lastSelectedRowIndex))
 		e.preventDefault();
 		targetBlank('{{ ckan_url }}/dataset/{{ dataset.slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['resource_ckan_id']);
 		e.stopPropagation();
