@@ -323,6 +323,7 @@ class DatasetManager(View):
 
                 common = [
                     resource.pk,
+                    str(resource.ckan_id),
                     resource.title,
                     resource.get_data_type_display(),
                     resource.get_restricted_level_display(),

@@ -73,6 +73,11 @@ $(function() {
 			editable: false,
 			datatype: 'string'
 		}, {
+			name: 'resource_ckan_id',
+			label: '_HIDDEN',
+			editable: false,
+			datatype: 'string'
+		}, {
 			name: 'id',
 			label: '_HIDDEN',
 			editable: false,
@@ -90,8 +95,9 @@ $(function() {
 	{% endif %}
 
 	$('button[name="view-ckan"]').on('click', function(e) {
+      console.log(tableGrid.getRowValues(tableGrid.lastSelectedRowIndex))
 		e.preventDefault();
-		targetBlank('{{ ckan_url }}/dataset/{{ dataset.slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
+		targetBlank('{{ ckan_url }}/dataset/{{ dataset.slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['resource_ckan_id']);
 		e.stopPropagation();
 	});
 
@@ -194,17 +200,18 @@ $(function() {
 				m.push({
 					id: i,
 					values: [
-						data[i][1],   // resource_name
-						data[i][9],   // title
-						data[i][6],   // ogc_enabled
-						data[i][5],   // extractor_enabled
-						data[i][3],   // restrictions
-						data[i][4],   // geo_restrictions
-						data[i][11],  // bbox
-						data[i][12],  // attributes
-						data[i][13],  // styles
+						data[i][2],   // resource_name
+						data[i][10],   // title
+						data[i][7],   // ogc_enabled
+						data[i][6],   // extractor_enabled
+						data[i][4],   // restrictions
+						data[i][5],   // geo_restrictions
+						data[i][13],  // bbox
+						data[i][14],  // attributes
+						data[i][15],  // styles
 						data[i][0],   // resource_pk
-						data[i][7]    // datagis_id
+						data[i][1],   // resource_ckan_id
+						data[i][7]    // layer_id
 					]
 				});
 			};
