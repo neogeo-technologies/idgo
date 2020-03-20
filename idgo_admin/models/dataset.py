@@ -416,8 +416,10 @@ class Dataset(models.Model):
         # > > > > > > #
         NewResource = apps.get_model(app_label='idgo_resource', model_name='Resource')
         for new_resource in NewResource.objects.filter(dataset=self):
-            if hasattr(new_resource, 'store'):
-                new_resource.store.delete()
+            if hasattr(new_resource, 'storeupload'):
+                new_resource.storeupload.delete()
+            elif hasattr(new_resource, 'storeftp'):
+                new_resource.storeftp.delete()
             else:
                 raise NotImplementedError
             new_resource.delete()
