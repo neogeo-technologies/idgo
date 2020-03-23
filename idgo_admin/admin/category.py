@@ -13,10 +13,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import logging
 
-from django.contrib import admin
 from django import forms
+from django.conf.urls import url
+from django.contrib import admin
+from django.contrib import messages
+from django.core.management import call_command
+from django.shortcuts import redirect
+
 from idgo_admin.models import Category
+
+
+logger = logging.getLogger('glob')
 
 
 class CategoryAdminForm(forms.ModelForm):
@@ -26,15 +35,16 @@ class CategoryAdminForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'alternate_titles': forms.Textarea(),
-            }
+        }
 
 
 class CategoryAdmin(admin.ModelAdmin):
     form = CategoryAdminForm
     model = Category
-    list_display = ('name', 'iso_topic', 'alternate_titles',)
-    readonly_fields = ('slug',)
-    ordering = ('name',)
+    list_display = ('name', 'iso_topic', 'alternate_titles', )
+    readonly_fields = ('slug', )
+    ordering = ('name', )
+    change_list_template = 'admin/idgo_admin/category_change_list.html'
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -44,6 +54,24 @@ class CategoryAdmin(admin.ModelAdmin):
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            url('sync-ckan-categories/', self.sync_ckan_categories_view, name='sync_ckan_categories'),
+        ]
+        return my_urls + urls
+
+    def sync_ckan_categories_view(self, request):
+        try:
+            call_command('sync_ckan_categories')
+        except Exception:
+            logger.exception('CKAN Categories sync failed')
+            messages.error(request, "Synchronisation échouée.")
+        else:
+            messages.success(request, "Synchronisation réussie.")
+
+        return redirect('admin:idgo_admin_category_changelist')
 
 
 admin.site.register(Category, CategoryAdmin)
