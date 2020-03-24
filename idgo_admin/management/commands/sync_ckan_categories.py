@@ -30,7 +30,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for category in Category.objects.all():
             if self.ckan.is_group_exists(category.slug):
-                self.stdout.write("'{0}' already exists".format(category.slug))
-                continue
-            self.ckan.add_group(category)
-            self.stdout.write("'{0}' is created".format(category.slug))
+                self.ckan.update_group(category)
+                self.stdout.write("'{0}' is udpated".format(category.slug))
+            else:
+                self.ckan.add_group(category)
+                self.stdout.write("'{0}' is created".format(category.slug))
