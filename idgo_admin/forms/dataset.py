@@ -317,8 +317,8 @@ class DatasetForm(forms.ModelForm):
             self.fields['granularity'].initial = 'indefinie'
 
     def clean(self):
-
-        title = self.cleaned_data.get('title')
+        title = re.sub('\r\n|\n|\r', ' ', self.cleaned_data.get('title')).strip()
+        self.cleaned_data['title'] = title
 
         if self.cleaned_data.get('slug') \
                 and not re.match('^[a-z0-9\-]{1,100}$', self.cleaned_data.get('slug')):
