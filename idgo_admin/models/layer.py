@@ -436,11 +436,10 @@ class Layer(models.Model):
                         base_url=base_url, typename=id,
                         outputformat=outputformat, srid=str(DEFAULT_SRID))
 
-        url = '{0}#{1}'.format(OWS_URL_PATTERN.format(
-            organisation=self.resource.dataset.organisation.slug
-            ), self.name)
-
-        CkanHandler.update_resource(str(self.resource.ckan_id), url=url, api=json.dumps(api))
+        # Cf. redmine issue 8524:
+        # url = '{base_url}#{name}'.format(base_url=base_url, name=self.name)
+        # CkanHandler.update_resource(str(self.resource.ckan_id), url=url, api=json.dumps(api))
+        CkanHandler.update_resource(str(self.resource.ckan_id), api=json.dumps(api))
         CkanHandler.push_resource_view(
             title=name, description=description,
             resource_id=str(self.resource.ckan_id), view_type='geo_view')
