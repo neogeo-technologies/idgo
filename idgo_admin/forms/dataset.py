@@ -317,8 +317,8 @@ class DatasetForm(forms.ModelForm):
             self.fields['granularity'].initial = 'indefinie'
 
     def clean(self):
-        title = re.sub('\r\n|\n|\r', ' ', self.cleaned_data.get('title')).strip()
-        self.cleaned_data['title'] = title
+
+        title = self.cleaned_data.get('title')
 
         if self.cleaned_data.get('slug') \
                 and not re.match('^[a-z0-9\-]{1,100}$', self.cleaned_data.get('slug')):
@@ -338,14 +338,15 @@ class DatasetForm(forms.ModelForm):
             self.add_error('title', 'Le jeu de données "{0}" existe déjà'.format(title))
             raise ValidationError("Dataset '{0}' already exists".format(title))
 
-        kwords = self.cleaned_data.get('keywords')
-        if kwords:
-            for w in kwords:
-                if len(w) < 2:
+        keywords = self.cleaned_data.get('keywords')
+        if keywords:
+            for keyword in keywords:
+                if len(keyword) < 2:
                     self.add_error('keywords', "La taille minimum pour un mot clé est de 2 caractères. ")
                     raise ValidationError("KeywordsError")
-                regex = '^[a-zA-Z0-9áàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ\._\-\s]*$'
-                if not re.match(regex, w):
+
+                keyword_match = re.compile("[\w\s\-.']*$", re.UNICODE)
+                if not keyword_match.match(keyword):
                     self.add_error('keywords', "Les mots-clés ne peuvent pas contenir de caractères spéciaux. ")
                     raise ValidationError('KeywordsError')
 
