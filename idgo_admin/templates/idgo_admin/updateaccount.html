@@ -63,6 +63,7 @@
 	</div>
 </form>
 
+{% if ENABLE_FTP_ACCOUNT %}
 <div class="well">
 	<h4 class="modal-title">Compte FTP</h4>
 	<br />
@@ -77,6 +78,7 @@
 {% if user.profile.change_password_allowed %} <a class="btn btn-default" href="{% url "idgo_admin:change_sftp_password" %}">Générer nouveau mot de passe FTP</a></li> {% endif %}
 {% endif %}
 </div>
+{% endif %}
 
 {% for extension in ACCOUNT_MANAGER_APPS %}{% include extension.template %}{% endfor %}
 
