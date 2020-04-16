@@ -114,9 +114,11 @@
 				<li role="presentation">
 					<a name="referenced_url" href="#referenced_url" aria-controls="referenced_url" role="tab" data-toggle="tab">Référencer une URL</a>
 				</li>
+				{% if ENABLE_FTP_ACCOUNT %}
 				<li role="presentation">
 					<a name="ftp_file" href="#ftp_file" aria-controls="ftp_file" role="tab" data-toggle="tab">Dépôt FTP</a>
 				</li>
+				{% endif %}
 			</ul>
 			<div class="tab-content tab-content-default" name="data-selector-panel">
 				<div role="tabpanel" class="tab-pane" id="up_file">
@@ -141,6 +143,7 @@
 					{% bootstrap_field form.referenced_url show_label=False %}
 				</div>
 				<div role="tabpanel" class="tab-pane" id="ftp_file">
+				{% if ENABLE_FTP_ACCOUNT %}
 				{% if user.profile.is_ftp_account_exists %}
 					<p>{{ form.ftp_file.label }}</p>
 					{% bootstrap_field form.ftp_file show_label=False %}
@@ -156,6 +159,7 @@
 					</div>
 				{% else %}
 					<p>Votre compte FTP n'est pas activé. Pour l'activer, veuillez <a href="{% url 'idgo_admin:create_sftp_account' %}" class="btn btn-link">cliquez ici</a>.</p>
+				{% endif %}
 				{% endif %}
 				</div>
 			</div>
