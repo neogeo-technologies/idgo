@@ -797,21 +797,26 @@ class RemoteCsw(models.Model):
                                 license = License.objects.first()
 
                         # On pousse la fiche de MD dans Geonet
-                        if not geonet.get_record(geonet_id):
-                            try:
-                                geonet.create_record(geonet_id, package['xml'])
-                            except Exception as e:
-                                logger.warning('La création de la fiche de métadonnées a échoué.')
-                                logger.error(e)
-                            else:
-                                geonet_ids.append(geonet_id)
-                                geonet.publish(geonet_id)  # Toujours publier la fiche
+                        try:
+                            geonet_record = geonet.get_record(geonet_id)
+                        except Exception as e:
+                            logger.error(e)
                         else:
-                            try:
-                                geonet.update_record(geonet_id, package['xml'])
-                            except Exception as e:
-                                logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
-                                logger.error(e)
+                            if not geonet_record:
+                                try:
+                                    geonet.create_record(geonet_id, package['xml'])
+                                except Exception as e:
+                                    logger.warning('La création de la fiche de métadonnées a échoué.')
+                                    logger.error(e)
+                                else:
+                                    geonet_ids.append(geonet_id)
+                                    geonet.publish(geonet_id)  # Toujours publier la fiche
+                            else:
+                                try:
+                                    geonet.update_record(geonet_id, package['xml'])
+                                except Exception as e:
+                                    logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
+                                    logger.error(e)
 
                         slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), slugify(geonet_id))[:100]
                         kvp = {

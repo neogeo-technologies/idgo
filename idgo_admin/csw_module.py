@@ -142,7 +142,7 @@ class CswBaseHandler(object):
         # if not (rec.stdname == 'ISO 19115:2003/19139' and rec.stdver == '1.0'):
         #     raise CswBaseError('outputschema error: stdname:{} stdver:{}'.format(rec.stdname, rec.stdver))
         if rec.hierarchy and not rec.hierarchy == 'dataset':  # 7218
-            raise CswBaseError('MD {id} is not a Dataset'.format(rec.identifier))
+            raise CswBaseError('MD {id} is not a Dataset'.format(id=rec.identifier))
 
         # _encoding = rec.charset
 
@@ -212,9 +212,9 @@ class CswBaseHandler(object):
         maintainer = None
         maintainer_email = None
 
-        spatial = None
         bbox = None
-        if rec.identification.bbox:
+        spatial = None
+        if hasattr(rec.identification, 'bbox'):
             xmin = rec.identification.bbox.minx
             ymin = rec.identification.bbox.miny
             xmax = rec.identification.bbox.maxx
@@ -229,8 +229,8 @@ class CswBaseHandler(object):
                     [xmax, ymax],
                     [xmin, ymax],
                     [xmin, ymin]
-                    ]]
-                }
+                ]]
+            }
 
         resources = []
         for item in rec.distribution.online:
