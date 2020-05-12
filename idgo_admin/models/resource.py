@@ -820,8 +820,11 @@ class Resource(models.Model):
 
         # [Crado] on met à jour la ressource CKAN
         if synchronize:
-            CkanHandler.update_resource(
-                str(self.ckan_id), extracting_service=str(self.extractable))
+            try:
+                CkanHandler.update_resource(
+                    str(self.ckan_id), extracting_service=str(self.extractable))
+            except:
+                pass
 
         for layer in self.get_layers():
             layer.save(synchronize=synchronize)
