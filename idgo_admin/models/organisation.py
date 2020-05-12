@@ -906,7 +906,7 @@ class RemoteCsw(models.Model):
                             else:
                                 for k, v in kvp.items():
                                     setattr(resource, k, v)
-                            resource.save(current_user=editor, synchronize=True)
+                                resource.save(current_user=editor, synchronize=True)
 
             except Exception as e:
                 for id in ckan_ids:
