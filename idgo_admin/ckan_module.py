@@ -502,8 +502,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
 
         if username not in [user['name'] for user in ckan_group['users']]:
             ckan_group['users'].append({'name': username})
-        import pdb; pdb.set_trace()
-        
+
         self.call_action('group_update', **ckan_group)
 
     @CkanExceptionsHandler()
