@@ -20,9 +20,10 @@ from django.urls import reverse
 
 
 TERMS_URL = settings.TERMS_URL
+LOGIN_URL = settings.LOGIN_URL
 
 
-class TermsRequired(object):
+class IdgoBaseMiddleware(object):
 
     IGNORE_PATH = (
         # IMPORTANT, sinon le service redirige en boucle sur cette page
@@ -35,6 +36,9 @@ class TermsRequired(object):
     def __init__(self, get_response):
         self.get_response = get_response
 
+
+class TermsRequired(IdgoBaseMiddleware):
+
     def __call__(self, request):
         user = request.user
 
@@ -45,7 +49,27 @@ class TermsRequired(object):
                 and hasattr(user, 'profile') \
                 and not user.profile.is_admin \
                 and not user.profile.is_agree_with_terms:
-            return redirect(reverse(settings.TERMS_URL))
+            return redirect(settings.TERMS_URL)
+
+        response = self.get_response(request)
+        return response
+
+
+class LogginRequired(IdgoBaseMiddleware):
+
+    def __call__(self, request):
+        user = request.user
+
+        # Les requetes non authentifiées ne sont authorisées que sur certaines url
+        if request.path not in self.IGNORE_PATH and not user.is_authenticated():
+            return redirect(LOGIN_URL)
+
+        # Les requetes authentifié doivent concerner un utilisateur avec profile
+        # sauf pour l'acces à l'admin django
+        if not request.path.startswith(reverse('admin:index')) \
+                and user.is_authenticated() \
+                and not hasattr(user, 'profile'):
+            return redirect(LOGIN_URL)
 
         response = self.get_response(request)
         return response

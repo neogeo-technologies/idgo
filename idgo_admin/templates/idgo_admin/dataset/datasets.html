@@ -27,7 +27,7 @@
 	{% else %}
 <div role="alert" class="alert alert-info">
 	<span class="glyphicon glyphicon-bell" aria-hidden="true"></span>
-	Vous êtes un utilisateur enregistré. Pour profiter des fonctionnalités participatives de {{ platform_name|default:"IDGO" }}, vous pouvez parcourir <a href="{{ ckan_url }}" target="_blank">Le Catalogue</a>.
+	Vous êtes un utilisateur enregistré. Pour profiter des fonctionnalités participatives de {{ DEFAULT_PLATFORM_NAME }}, vous pouvez parcourir <a href="{{ CKAN_URL }}" target="_blank">Le Catalogue</a>.
 </div>
 		{% if user.profile.is_contributor %}
 <div role="alert" class="alert alert-warning">

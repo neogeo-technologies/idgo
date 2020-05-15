@@ -26,12 +26,12 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
+from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-# from idgo_admin.exceptions import ExceptionsHandler
-# from idgo_admin.exceptions import ProfileHttp404
+
 from idgo_admin.exceptions import FakeError
 from idgo_admin.forms.jurisdiction import JurisdictionForm as Form
 from idgo_admin.models import BaseMaps
@@ -43,9 +43,7 @@ from idgo_admin.models.mail import send_jurisdiction_creation_mail
 from idgo_admin.models.mail import send_mail_asking_for_jurisdiction_attachment
 from idgo_admin.models.mail import send_mail_asking_for_jurisdiction_creation
 from idgo_admin.models import Organisation
-# from idgo_admin.shortcuts import on_profile_http404
-from idgo_admin.shortcuts import render_with_info_profile
-from idgo_admin.shortcuts import user_and_profile
+
 from math import ceil
 
 
@@ -57,8 +55,6 @@ decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def jurisdiction(request, *args, **kwargs):
-
-    user, profile = user_and_profile(request)
 
     id = request.GET.get('id', None)
     if not id:
@@ -72,11 +68,10 @@ def jurisdiction(request, *args, **kwargs):
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def jurisdictions(request, *args, **kwargs):
-
-    user, profile = user_and_profile(request)
+    user = request.user
 
     # Accès réservé aux administrateurs métiers
-    if not profile.is_admin:
+    if not user.profile.is_admin:
         raise Http404()
 
     jurisdictions = Jurisdiction.objects.all()
@@ -103,7 +98,7 @@ def jurisdictions(request, *args, **kwargs):
             'total': number_of_pages},
         'total': len(jurisdictions)}
 
-    return render_with_info_profile(
+    return render(
         request, 'idgo_admin/jurisdiction/jurisdictions.html', context=context)
 
 
@@ -113,16 +108,16 @@ class JurisdictionView(View):
     template = 'idgo_admin/jurisdiction/edit.html'
 
     def get(self, request, code):
-        user, profile = user_and_profile(request)
+        user = request.user
 
         if code not in ('for', 'new'):
-            if not profile.is_crige_admin:
+            if not user.profile.is_crige_admin:
                 raise Http404()
             fake = None
             new = None
             jurisdiction = get_object_or_404(Jurisdiction, code=code)
         else:
-            if code == 'new' and not profile.is_crige_admin:
+            if code == 'new' and not user.profile.is_crige_admin:
                 raise Http404()
             fake = (code == 'for')
             new = (code == 'new')
@@ -152,19 +147,19 @@ class JurisdictionView(View):
             'organisation': organisation,
             }
 
-        return render_with_info_profile(request, self.template, context=context)
+        return render(request, self.template, context=context)
 
     def post(self, request, code):
 
-        user, profile = user_and_profile(request)
+        user = request.user
 
         if code not in ('for', 'new'):
-            if not profile.is_crige_admin:
+            if not user.profile.is_crige_admin:
                 raise Http404()
             fake = None
             jurisdiction = get_object_or_404(Jurisdiction, code=code)
         else:
-            if code == 'new' and not profile.is_crige_admin:
+            if code == 'new' and not user.profile.is_crige_admin:
                 raise Http404()
             fake = (code == 'for')
             new = (code == 'new')
@@ -219,7 +214,7 @@ class JurisdictionView(View):
             }
 
         if not form.is_valid():
-            return render_with_info_profile(request, self.template, context=context)
+            return render(request, self.template, context=context)
 
         prefill = form.cleaned_data.get('prefill', False)
 
@@ -237,13 +232,13 @@ class JurisdictionView(View):
                         ],
                     }
                 context['form'] = Form(initial=initial, include={'user': user})
-                return render_with_info_profile(request, self.template, context=context)
+                return render(request, self.template, context=context)
             else:
                 context['form'] = Form(include={'user': user})
-                return render_with_info_profile(request, self.template, context=context)
+                return render(request, self.template, context=context)
 
         if not ('save' in request.POST or 'continue' in request.POST):
-            return render_with_info_profile(request, self.template, context=context)
+            return render(request, self.template, context=context)
 
         try:
             with transaction.atomic():
@@ -270,7 +265,7 @@ class JurisdictionView(View):
                     try:
                         JurisdictionCommune.objects.get(**kvp)
                     except JurisdictionCommune.DoesNotExist:
-                        kvp['created_by'] = profile
+                        kvp['created_by'] = request.profile
                         JurisdictionCommune.objects.create(**kvp)
                 jurisdiction.set_geom()
 
@@ -318,7 +313,6 @@ class JurisdictionView(View):
         if code not in ('for', 'new'):
             raise Http404()
 
-        user, profile = user_and_profile(request)
         jurisdiction = get_object_or_404(Jurisdiction, code=code)
 
         try:

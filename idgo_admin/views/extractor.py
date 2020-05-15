@@ -18,17 +18,16 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import Http404
-from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
+from django.shortcuts import redirect
+from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.datagis import intersect
-from idgo_admin.exceptions import ExceptionsHandler
-from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import AsyncExtractorTask
 from idgo_admin.models import BaseMaps
 from idgo_admin.models import Commune
@@ -38,9 +37,7 @@ from idgo_admin.models import Layer
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.models import SupportedCrs
-from idgo_admin.shortcuts import on_profile_http404
-from idgo_admin.shortcuts import render_with_info_profile
-from idgo_admin.shortcuts import user_and_profile
+
 import json
 from math import ceil
 import re
@@ -59,11 +56,10 @@ DB_SETTINGS = settings.DATABASES[settings.DATAGIS_DB]
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 
 
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def extractor_task(request, *args, **kwargs):
-    user, profile = user_and_profile(request)
+
     instance = get_object_or_404(AsyncExtractorTask, uuid=request.GET.get('id'))
     query = instance.query or instance.details.get['query']
 
@@ -124,8 +120,8 @@ class ExtractorDashboard(View):
 
     def get(self, request, *args, **kwargs):
 
-        user, profile = user_and_profile(request)
-        if not profile.crige_membership:
+        user = request.user
+        if not user.profile.crige_membership:
             raise Http404()
 
         order_by = request.GET.get('sortby', '-submission')
@@ -147,7 +143,7 @@ class ExtractorDashboard(View):
         x = items_per_page * page_number - items_per_page
         y = x + items_per_page
 
-        if profile.is_admin and profile.crige_membership:
+        if user.profile.is_admin and user.profile.crige_membership:
             tasks = AsyncExtractorTask.objects.all()
         else:
             tasks = AsyncExtractorTask.objects.filter(user=user)
@@ -165,14 +161,13 @@ class ExtractorDashboard(View):
             'supported_format': ExtractorSupportedFormat.objects.all(),
             'tasks': tasks[x:y]}
 
-        return render_with_info_profile(
+        return render(
             request, 'idgo_admin/extractor/dashboard.html', context=context)
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def post(self, request, *args, **kwargs):
 
-        user, profile = user_and_profile(request)
-        if not profile.crige_membership:
+        user = request.user
+        if not user.profile.crige_membership:
             raise Http404()
 
         if 'revoke' in request.POST:
@@ -193,7 +188,7 @@ class ExtractorDashboard(View):
                     else:
                         messages.error(request, r.json().get('detail'))
 
-        return HttpResponseRedirect(reverse('idgo_admin:extractor_dashboard'))
+        return redirect('idgo_admin:extractor_dashboard')
 
 
 @method_decorator(decorators, name='dispatch')
@@ -376,20 +371,18 @@ class Extractor(View):
 
         return context
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, *args, **kwargs):
-        user, profile = user_and_profile(request)
-        if not profile.crige_membership:
+        user = request.user
+        if not user.profile.crige_membership:
             raise Http404()
 
-        return render_with_info_profile(
+        return render(
             request, self.template,
             context=self.get_context(request, user))
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def post(self, request, *args, **kwargs):
-        user, profile = user_and_profile(request)
-        if not profile.crige_membership:
+        user = request.user
+        if not user.profile.crige_membership:
             raise Http404()
 
         context = self.get_context(request, user)
@@ -455,10 +448,10 @@ class Extractor(View):
                 if footprint:
                     try:
                         data_extraction['footprint'] = intersect(json.dumps(footprint), json.dumps(footprint_restriction))
-                    except Exception as e:
+                    except Exception:
                         msg = "La zone d'extraction génère une erreur"
                         messages.error(request, msg)
-                        return render_with_info_profile(request, self.template, context=context)
+                        return render(request, self.template, context=context)
                 else:
                     data_extraction['footprint'] = footprint_restriction
                 data_extraction['footprint_srs'] = 'EPSG:4326'
@@ -538,7 +531,7 @@ class Extractor(View):
                 "L'extraction a été ajoutée à la liste de tâche. "
                 "Vous allez recevoir un e-mail une fois l'extraction réalisée."))
 
-            return HttpResponseRedirect(reverse('idgo_admin:extractor_dashboard'))
+            return redirect('idgo_admin:extractor_dashboard')
         else:
             if r.status_code == 400:
                 details = r.json().get('detail')
@@ -547,4 +540,4 @@ class Extractor(View):
             else:
                 msg = "L'extracteur n'est pas disponible pour le moment."
             messages.error(request, msg)
-            return render_with_info_profile(request, self.template, context=context)
+            return render(request, self.template, context=context)

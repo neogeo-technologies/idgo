@@ -26,8 +26,8 @@ from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
-from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -52,8 +52,6 @@ from idgo_admin.models.mail import send_account_deletion_mail
 from idgo_admin.models.mail import send_reset_password_link_to_user
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
-from idgo_admin.shortcuts import render_with_info_profile
-from idgo_admin.shortcuts import user_and_profile
 from idgo_admin.views.organisation import contributor_subscribe_process
 from idgo_admin.views.organisation import creation_process
 from idgo_admin.views.organisation import member_subscribe_process
@@ -181,8 +179,7 @@ class PasswordManager(View):
             messages.success(
                 request, message_success)
 
-        return HttpResponseRedirect(
-            reverse('idgo_admin:update_account'))
+        return redirect('idgo_admin:update_account')
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -191,13 +188,13 @@ def delete_account(request):
 
     user = request.user
     if request.method == 'GET':
-        return render_with_info_profile(
+        return render(
             request, 'idgo_admin/deleteaccount.html',
             {'uform': UserDeleteForm()})
 
     uform = UserDeleteForm(data=request.POST)
     if not uform.is_valid():
-        return render_with_info_profile(
+        return render(
             request, 'idgo_admin/deleteaccount.html', {'uform': uform})
 
     email = user.email
@@ -351,32 +348,26 @@ class SignUp(View):
                       context={'message': message}, status=200)
 
 
-@method_decorator(decorators[0], name='dispatch')
+@method_decorator(decorators, name='dispatch')
 class UpdateAccount(View):
     template = 'idgo_admin/updateaccount.html'
 
     def get(self, request):
+        user = request.user
 
-        try:
-            user, profile = user_and_profile(request)
-        except ProfileHttp404:
-            return HttpResponseRedirect(reverse('server_cas:signIn'))
-
-        return render_with_info_profile(
+        return render(
             request, self.template, {'form': UpdateAccountForm(instance=user)})
 
     @transaction.atomic
     def post(self, request):
 
-        try:
-            user, profile = user_and_profile(request)
-        except ProfileHttp404:
-            return HttpResponseRedirect(reverse('server_cas:signIn'))
+        user = request.user
+        profile = user.profile
 
         form = UpdateAccountForm(request.POST, instance=user)
 
         if not form.is_valid():
-            return render_with_info_profile(
+            return render(
                 request, self.template, context={'form': form})
 
         try:
@@ -400,17 +391,17 @@ class UpdateAccount(View):
 
         except ValidationError as e:
             messages.error(request, e.message)
-            return render_with_info_profile(
+            return render(
                 request, self.template, context={'form': form})
         except CkanBaseError as e:
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
-            return render_with_info_profile(
+            return render(
                 request, self.template, context={'form': form})
 
         messages.success(request, 'Votre compte a bien été mis à jour.')
 
-        return render_with_info_profile(
+        return render(
             request, self.template, context={'form': form}, status=200)
 
 
@@ -418,11 +409,11 @@ class UpdateAccount(View):
 @csrf_exempt
 def create_sftp_account(request):
 
-    user, profile = user_and_profile(request)
+    user = request.user
 
     password = ""
     try:
-        password = profile.create_ftp_account()
+        password = user.profile.create_ftp_account()
     except Exception as e:
         print(e)
         # TODO: Géré les exceptions
@@ -442,14 +433,14 @@ def create_sftp_account(request):
                 'Un mot de passe a été généré automatiquement. '
                 "Celui-ci n'est pas modifiable."))
 
-    return HttpResponseRedirect(reverse('idgo_admin:update_account'))
+    return redirect('idgo_admin:update_account')
 
 
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def change_sftp_password(request):
 
-    user, profile = user_and_profile(request)
+    profile = request.user.profile
 
     password = ""
     try:
@@ -472,14 +463,14 @@ def change_sftp_password(request):
                 'Un mot de passe a été généré automatiquement. '
                 "Celui-ci n'est pas modifiable."))
 
-    return HttpResponseRedirect(reverse('idgo_admin:update_account'))
+    return redirect('idgo_admin:update_account')
 
 
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def delete_sftp_account(request):
 
-    user, profile = user_and_profile(request)
+    profile = request.user.profile
 
     try:
         profile.delete_ftp_account()
@@ -491,4 +482,4 @@ def delete_sftp_account(request):
     else:
         messages.success(request, 'Le compte FTP a été supprimé avec succès.')
 
-    return HttpResponseRedirect(reverse('idgo_admin:update_account'))
+    return redirect('idgo_admin:update_account')

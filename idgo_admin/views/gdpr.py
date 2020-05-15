@@ -19,10 +19,10 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from django.shortcuts import render
 from idgo_admin.models import Gdpr
 from idgo_admin.models import GdprUser
-from idgo_admin.shortcuts import render_with_info_profile
-from idgo_admin.shortcuts import user_and_profile
+
 from mama_cas.utils import redirect as mama_redirect
 
 
@@ -31,12 +31,10 @@ decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 class GdprView(View):
 
     def get(self, request):
-        user, profile = user_and_profile(request)
         context = {'terms': Gdpr.objects.latest('issue_date')}
-        return render_with_info_profile(
+        return render(
             request, 'idgo_admin/gdpr.html', context=context)
 
     def post(self, request):
-        user, profile = user_and_profile(request)
-        GdprUser.objects.create(user=user, gdpr=Gdpr.objects.latest('issue_date'))
+        GdprUser.objects.create(user=request.user, gdpr=Gdpr.objects.latest('issue_date'))
         return mama_redirect('idgo_admin:list_my_datasets')

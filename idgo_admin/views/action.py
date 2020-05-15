@@ -26,7 +26,6 @@ from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import Dataset
 from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
-from idgo_admin.shortcuts import user_and_profile
 
 
 decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
@@ -37,8 +36,7 @@ class ActionsManager(View):
 
     @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, *args, **kwargs):
-
-        user, profile = user_and_profile(request)
+        user = request.user
 
         dataset_id = request.GET.get('id', None)
         publish = request.GET.get('publish', None)

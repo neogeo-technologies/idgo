@@ -289,3 +289,36 @@ class DefaultCommuneManager(models.GeoManager):
 
     def get(self, **kwargs):
         return super().get(**kwargs)
+
+
+# =============================================
+# Définition de Managers pour les organisations
+# =============================================
+
+
+class OrganisationManager(models.GeoManager):
+
+    def get_queryset(self, **kwargs):
+        return super().get_queryset(**kwargs)
+
+    def get_contribs(self, profile):
+        LiaisonsContributeurs = apps.get_model(
+            app_label='idgo_admin', model_name='LiaisonsContributeurs')
+        orga_pks = LiaisonsContributeurs.objects.filter(
+            profile=profile, validated_on__isnull=False
+        ).values_list('organisation__pk')
+
+        return self.get_queryset().filter(pk__in=orga_pks)
+
+    def get_subordinated_organisations(self, profile):
+        qs = self.get_queryset().filter(is_active=True)
+        if profile.is_admin:
+            return qs
+
+        LiaisonsReferents = apps.get_model(
+            app_label='idgo_admin', model_name='LiaisonsReferents')
+        orga_pks = LiaisonsReferents.objects.filter(
+            profile=profile, validated_on__isnull=False
+        ).values_list('organisation__pk')
+
+        return qs.filter(pk__in=orga_pks)
