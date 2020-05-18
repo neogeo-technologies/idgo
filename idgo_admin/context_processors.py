@@ -20,15 +20,14 @@ from django.apps import apps
 
 def global_vars(request):
 
-    if request.user.is_authenticated:
+    user = request.user
+    if user.is_authenticated and hasattr(user, 'profile'):
         Organisation = apps.get_model(app_label='idgo_admin', model_name='Organisation')
-
         profile = request.user.profile
         contributor = Organisation.extras.get_contribs(
             profile).values_list('pk', 'legal_name')
         referent = Organisation.extras.get_subordinated_organisations(
             profile).values_list('pk', 'legal_name')
-
     else:
         contributor, referent = [], []
 
@@ -37,9 +36,9 @@ def global_vars(request):
         'ENABLE_FTP_ACCOUNT': getattr(settings, 'ENABLE_FTP_ACCOUNT', True),
         'DEFAULT_PLATFORM_NAME': getattr(settings, 'DEFAULT_PLATFORM_NAME', 'IDGO'),
         'DEFAULT_CONTACT_EMAIL': getattr(settings, 'DEFAULT_CONTACT_EMAIL', 'contact@idgo.fr'),
-        'FTP_URL': settings.FTP_URL,
-        'READTHEDOC_URL': settings.READTHEDOC_URL,
-        'CKAN_URL': settings.CKAN_URL,
+        'FTP_URL': getattr(settings, 'FTP_URL', None),
+        'READTHEDOC_URL': getattr(settings, 'READTHEDOC_URL', None),
+        'CKAN_URL': getattr(settings, 'CKAN_URL', None),
         'CONTRIBUTOR': contributor,
         'REFERENT': referent,
     }
