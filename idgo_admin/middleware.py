@@ -51,5 +51,5 @@ class TermsRequired(BaseMiddleware):
         if request.path not in self.IGNORE_PATH:
             if user.is_authenticated() and hasattr(user, 'profile'):
                 if not user.profile.is_admin and not user.profile.is_agree_with_terms:
-                    return redirect(settings.TERMS_URL)
+                    return redirect(reverse(settings.TERMS_URL))
         return self.get_response(request)
