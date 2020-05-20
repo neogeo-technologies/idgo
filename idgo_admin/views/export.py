@@ -77,7 +77,7 @@ FREQ_MAJ = Case(*[
 DATE_MAJ = F('date_modification')
 MOTS_CLES = StringAgg('keywords__name', distinct=True, delimiter=';')
 LICENCE = F('license__title')
-NOMBRE_RESSOURCES = Count('resource')
+NOMBRE_RESSOURCES = Count('resource', distinct=True)
 FORMAT_RESSOURCES = Func(
     StringAgg('resource__format_type__extension', distinct=True, delimiter=';'),
     function='LOWER')
