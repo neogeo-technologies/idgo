@@ -200,7 +200,7 @@ $(function() {
 
 	const $collapseOne = $('#collapse-one').collapse({toggle: false})
 		.on('hidden.bs.collapse', function() {
-			{% if is_membership %}
+			{% if user.profile.is_membership %}
 			$inputReferent.prop('checked', false).trigger('change');
 			{% else %}
 			$inputReferent.prop('checked', true).trigger('change');

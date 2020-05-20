@@ -64,7 +64,7 @@
 	</div>
 	<br />
 {% if tasks|length == 0 %}
-	{% if is_admin %}
+	{% if user.profile.is_admin %}
 	<div role="alert" class="alert alert-info">
 		<span class="glyphicon glyphicon-bell" aria-hidden="true"></span>Le service d'extraction n'a pas encore été utilisé.
 	</div>
