@@ -21,4 +21,5 @@ def global_vars(request):
     return {
         'HREF_WWW': getattr(settings, 'HREF_WWW', None),
         'ENABLE_FTP_ACCOUNT': getattr(settings, 'ENABLE_FTP_ACCOUNT', True),
+        'ENABLE_ORGANISATION_CREATE': getattr(settings, 'ENABLE_ORGANISATION_CREATE', True),
     }
