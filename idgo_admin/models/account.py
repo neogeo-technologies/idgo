@@ -134,6 +134,11 @@ class Profile(models.Model):
         return LiaisonsReferents.get_subordinated_organisations(profile=self)
 
     @property
+    def strict_referent_for(self):  # Temporaire (A supprimer)
+        kwargs = {'profile': self, 'validated_on__isnull': False}
+        return [e.organisation for e in LiaisonsReferents.objects.filter(**kwargs)]
+
+    @property
     def is_contributor(self):
         kwargs = {'profile': self, 'validated_on__isnull': False}
         return LiaisonsContributeurs.objects.filter(**kwargs).exists()
