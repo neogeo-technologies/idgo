@@ -65,7 +65,7 @@ def serialize(user):
             ('referent', nullify([OrderedDict([
                 ('name', organisation.slug),
                 ('legal_name', organisation.legal_name)
-                ]) for organisation in user.profile.referent_for])),
+                ]) for organisation in user.profile.strict_referent_for])),
             # Listes des organisations pour lesquelles l'utilisateur est contributeur
             ('contribute', nullify([OrderedDict([
                 ('name', organisation.slug),
@@ -103,7 +103,7 @@ def handler_get_request(request):
     elif user.profile.is_referent:
         # Un référent « métiers » peut voir les utilisateurs des
         # organisations pour lesquelles il est référent.
-        qs.update({'profile__organisation__in': user.profile.referent_for})
+        qs.update({'profile__organisation__in': user.profile.strict_referent_for})
         or_clause.update({'username': user.username})
     else:
         # L'utilisateur peut se voir lui même.

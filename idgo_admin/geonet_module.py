@@ -73,9 +73,15 @@ class GeonetUserHandler(metaclass=Singleton):
         return self.get_record(id) and True or False
 
     def get_record(self, id):
-        self.remote.getrecordbyid(
-            id=[id], outputschema='http://www.isotc211.org/2005/gmd')
-        return self.remote.records.get(id)
+        try:
+            self.remote.getrecordbyid(
+                id=[id], outputschema='http://www.isotc211.org/2005/gmd')
+        except requests.exceptions.HTTPError as e:
+            if (e.response.status_code == 404):
+                return None
+            raise e
+        else:
+            return self.remote.records.get(id)
 
     def create_record(self, id, record):
         return self._transaction('insert', id, record)
