@@ -36,6 +36,8 @@
 			{% bootstrap_field form.phone %}
 		</div>
 	</div>
+	{% settings_value "DISABLE_ACCOUNT_PASSWORD" as disable_account_password %}
+	{% if not disable_account_password %}
 	<div class="row">
 		<div class="col-xs-8">
 			<div class="well">
@@ -54,6 +56,7 @@
 			</div>
 		</div>
 	</div>
+	{% endif %}
 	<div class="buttons-on-the-right-side">
 		<a class="btn btn-default" href="{% url "idgo_admin:update_account" %}">Annuler</a>
 		<button type="submit" class="btn btn-primary">Valider</button>
@@ -76,6 +79,8 @@
 {% endif %}
 </div>
 {% endif %}
+
+{% for extension in ACCOUNT_MANAGER_APPS %}{% include extension.template %}{% endfor %}
 
 <div class="well">
 	<h3 class="modal-title">Supprimer mon compte</h3>

@@ -41,7 +41,7 @@
 {% endif %}
 {% if not all_organisations|length %}
 	<div class="alert alert-warning" role="alert">
-		<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Aucune organisation n'est encore disponible, <a href='{% url "idgo_admin:create_organisation" %}'>ajoutez une organisation</a>.
+		<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Aucune organisation n'est encore disponible{% if ENABLE_ORGANISATION_CREATE %}, <a href='{% url "idgo_admin:create_organisation" %}'>ajoutez une organisation</a>{% endif %}.
 	</div>
 {% else %}
 	<div class="row">

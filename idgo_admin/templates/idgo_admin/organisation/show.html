@@ -1,5 +1,6 @@
 {% extends "idgo_admin/organisation/organisations.html" %}
 {% block organisation_show %}
+{% if ENABLE_ORGANISATION_CREATE %}
 <div class="row">
 	<div class="col-sm-12">
 		<div class="buttons-on-the-right-side" style="margin-bottom: 10px;">
@@ -8,6 +9,7 @@
 		<br />
 	</div>
 </div>
+{% endif %}
 <div class="row">
 	<div class="col-sm-12">
 		<ul class="nav nav-tabs nav-tabs-default" role="tablist">

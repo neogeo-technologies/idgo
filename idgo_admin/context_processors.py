@@ -34,6 +34,7 @@ def global_vars(request):
     return {
         'HREF_WWW': getattr(settings, 'HREF_WWW', None),
         'ENABLE_FTP_ACCOUNT': getattr(settings, 'ENABLE_FTP_ACCOUNT', True),
+        'ENABLE_ORGANISATION_CREATE': getattr(settings, 'ENABLE_ORGANISATION_CREATE', True),
         'DEFAULT_PLATFORM_NAME': getattr(settings, 'DEFAULT_PLATFORM_NAME', 'IDGO'),
         'DEFAULT_CONTACT_EMAIL': getattr(settings, 'DEFAULT_CONTACT_EMAIL', 'contact@idgo.fr'),
         'FTP_URL': getattr(settings, 'FTP_URL', None),

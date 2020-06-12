@@ -310,7 +310,9 @@ class JurisdictionView(View):
 
     def delete(self, request, code, *args, **kwargs):
 
-        if code not in ('for', 'new'):
+        if code in ('for', 'new'):
+            raise Http404()
+         if not request.user.profile.is_crige_admin:
             raise Http404()
 
         jurisdiction = get_object_or_404(Jurisdiction, code=code)
