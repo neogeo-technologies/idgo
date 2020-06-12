@@ -18,6 +18,15 @@ Application initialement développée dans un environnement virtuel __Python 3.5
 _**TODO** : Création des fichiers de configuration, création des bases de données, etc._
 
 
+### Installer OWSLib [IMPORTANT]
+
+Dernière version : **idgo/0.17.1.patch200520**
+
+```shell
+(idgo_venv) /idgo_venv> pip install -e git+https://github.com/neogeo-technologies/OWSLib.git@idgo/0.17.1.patch200520#egg=OWSLib
+```
+
+
 ### Installer MDEDIT
 
 https://github.com/neogeo-technologies/mdedit
