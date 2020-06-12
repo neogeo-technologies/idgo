@@ -34,14 +34,16 @@ from idgo_admin.models.jurisdiction import JurisdictionCommune
 from idgo_admin.models.layer import Layer
 from idgo_admin.models.license import License
 from idgo_admin.models.mail import Mail
+from idgo_admin.models.organisation import MappingCategory
+from idgo_admin.models.organisation import MappingLicence
 from idgo_admin.models.organisation import Organisation
 from idgo_admin.models.organisation import OrganisationType
 from idgo_admin.models.organisation import RemoteCkan
 from idgo_admin.models.organisation import RemoteCkanDataset
 from idgo_admin.models.organisation import RemoteCsw
 from idgo_admin.models.organisation import RemoteCswDataset
-from idgo_admin.models.organisation import MappingLicence
-from idgo_admin.models.organisation import MappingCategory
+from idgo_admin.models.organisation import RemoteDcat
+from idgo_admin.models.organisation import RemoteDcatDataset
 from idgo_admin.models.resource import Resource
 from idgo_admin.models.resource import ResourceFormats
 from idgo_admin.models.support import Support
@@ -69,6 +71,8 @@ __all__ = [
     LiaisonsContributeurs,
     LiaisonsReferents,
     Mail,
+    MappingCategory,
+    MappingLicence,
     Organisation,
     OrganisationType,
     Profile,
@@ -76,6 +80,8 @@ __all__ = [
     RemoteCkanDataset,
     RemoteCsw,
     RemoteCswDataset,
+    RemoteDcat,
+    RemoteDcatDataset,
     Resource,
     ResourceFormats,
     Support,

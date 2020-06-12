@@ -32,10 +32,14 @@ from django.views import View
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CriticalError
 from idgo_admin.exceptions import CswBaseError
+from idgo_admin.exceptions import DcatBaseError
+from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import GenericException
+from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.organisation import OrganisationForm as Form
 from idgo_admin.forms.organisation import RemoteCkanForm
 from idgo_admin.forms.organisation import RemoteCswForm
+from idgo_admin.forms.organisation import RemoteDcatForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import BaseMaps
 from idgo_admin.models import Category
@@ -53,6 +57,7 @@ from idgo_admin.models import MappingLicence
 from idgo_admin.models import Organisation
 from idgo_admin.models import RemoteCkan
 from idgo_admin.models import RemoteCsw
+from idgo_admin.models import RemoteDcat
 from idgo_admin.models import SupportedCrs
 from idgo_admin.mra_client import MRAHandler
 import operator
@@ -725,6 +730,193 @@ class DeleteRemoteCswLinked(View):
         except ValidationError as e:
             messages.error(request, e.__str__())
         except CswBaseError as e:
+            messages.error(request, e.__str__())
+        else:
+            messages.success(request, (
+                'Les informations ainsi que les jeux de données et '
+                'ressources synchronisés avec le catalogue distant '
+                'ont été supprimés avec succès.'))
+
+        return redirect('idgo_admin:update_organisation', id=organisation.id)
+
+
+# ========================
+# MOISSONNAGE DE SITE DCAT
+# ========================
+
+
+@method_decorator(decorators, name='dispatch')
+class RemoteDcatEditor(View):
+
+    template = 'idgo_admin/organisation/remotedcat/edit.html'
+
+    def get(self, request, id, *args, **kwargs):
+
+        profile = request.user.profile
+
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation__id=id,
+            validated_on__isnull=False) and True or False
+
+        if is_referent or is_admin:
+            organisation = get_object_or_404(Organisation, id=id)
+
+            context = {'organisation': organisation}
+
+            try:
+                instance = RemoteDcat.objects.get(organisation=organisation)
+            except RemoteDcat.DoesNotExist:
+                form = RemoteDcatForm()
+            else:
+                context['datasets'] = Dataset.harvested_dcat.filter(organisation=organisation)
+                context['instance'] = instance
+                form = RemoteDcatForm(instance=instance)
+
+            context['form'] = form
+
+            return render(
+                request, self.template, context=context)
+
+        raise Http404()
+
+    def post(self, request, id, *args, **kwargs):
+
+        profile = request.user.profile
+
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation__id=id,
+            validated_on__isnull=False) and True or False
+
+        if not(is_referent or is_admin):
+            raise Http404()
+
+        organisation = get_object_or_404(Organisation, id=id)
+
+        context = {'organisation': organisation}
+
+        url = request.POST.get('url')
+        try:
+            with transaction.atomic():
+                instance, created = \
+                    RemoteDcat.objects.get_or_create(
+                        organisation=organisation, url=url)
+        except DcatBaseError as e:
+            form = RemoteDcatForm(request.POST)
+            form.add_error('url', e.__str__())
+        except ValidationError as e:
+            form = RemoteDcatForm(request.POST)
+            form.add_error(e.code, e.message)
+        else:
+            context['datasets'] = Dataset.harvested_dcat.filter(organisation=organisation)
+            context['instance'] = instance
+            form = RemoteDcatForm(request.POST, instance=instance)
+
+        try:
+            # with transaction.atomic():
+            #     self.map_categories(instance, request.POST, form)
+            #     self.map_licences(instance, request.POST, form)
+            pass
+        except ValidationError as e:
+            error = True
+            messages.error(request, e.__str__())
+        except DcatBaseError as e:
+            error = True
+            form.add_error('__all__', e.__str__())
+            messages.error(request, e.__str__())
+
+        else:
+
+            # Une fois le mapping effectué, on sauvegarde l'instance
+
+            context['form'] = form
+
+            if not form.is_valid():
+                return render(
+                    request, self.template, context=context)
+
+            for k, v in form.cleaned_data.items():
+                setattr(instance, k, v)
+            try:
+                with transaction.atomic():
+                    instance.save(harvest=not created)
+            except ValidationError as e:
+                error = True
+                messages.error(request, e.__str__())
+            except DcatBaseError as e:
+                error = True
+                form.add_error('__all__', e.__str__())
+                messages.error(request, e.__str__())
+            except CriticalError as e:
+                error = True
+                form.add_error('__all__', e.__str__())
+                messages.error(request, e.__str__())
+            else:
+                error = False
+                context['datasets'] = \
+                    Dataset.harvested_dcat.filter(organisation=organisation)
+                context['form'] = RemoteDcatForm(instance=instance)
+                if created:
+                    msg = "Veuillez configurer les informations ci-dessous et poursuivre le moissonnage du catalogue."
+                else:
+                    msg = "Les informations de moissonnage ont été mises à jour."
+                messages.success(request, msg)
+
+        if 'continue' in request.POST or error:
+            namespace = 'idgo_admin:edit_remote_dcat_link'
+        else:
+            namespace = 'idgo_admin:update_organisation'
+
+        return redirect(namespace, id=organisation.id)
+
+    # def map_categories(self, instance, mapper, form):
+    #     MappingCategory.objects.filter(remote_dcat=instance).delete()
+    #
+    #     data = list(filter(
+    #         lambda k: k in [el.name for el in form.get_category_fields()],
+    #         mapper.dict().keys()))
+    #     not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
+    #     for k, v in not_empty.items():
+    #         MappingCategory.objects.create(
+    #             remote_ckan=instance, category=Category.objects.get(id=v), slug=k[4:])
+
+    # def map_licences(self, instance, mapper, form):
+    #     MappingLicence.objects.filter(remote_ckan=instance).delete()
+    #
+    #     data = list(filter(
+    #         lambda k: k in [el.name for el in form.get_licence_fields()],
+    #         mapper.dict().keys()))
+    #     not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
+    #     for k, v in not_empty.items():
+    #         MappingLicence.objects.create(
+    #             remote_ckan=instance, licence=License.objects.get(slug=v), slug=k[4:])
+
+
+@method_decorator(decorators, name='dispatch')
+class DeleteRemoteDcatLinked(View):
+
+    def post(self, request, id, *args, **kwargs):
+
+        profile = request.user.profile
+
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation__id=id,
+            validated_on__isnull=False) and True or False
+
+        if not(is_referent or is_admin):
+            raise Http404()
+
+        organisation = get_object_or_404(Organisation, id=id)
+        instance = get_object_or_404(RemoteDcat, organisation=organisation)
+
+        try:
+            with transaction.atomic():
+                instance.delete()
+        except ValidationError as e:
+            messages.error(request, e.__str__())
+        except DcatBaseError as e:
             messages.error(request, e.__str__())
         else:
             messages.success(request, (

@@ -20,3 +20,5 @@ markdown
 xmltodict
 # A supprimer quand passage Python 3.6+
 python2-secrets
+rdflib
+geomet

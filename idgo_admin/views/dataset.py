@@ -66,6 +66,8 @@ def target(dataset, user):
         return 'csw_harvested'
     elif hasattr(dataset, 'remote_ckan_dataset') and dataset.remote_ckan_dataset:
         return 'ckan_harvested'
+    elif hasattr(dataset, 'remote_dcat_dataset') and dataset.remote_dcat_dataset:
+        return 'dcat_harvested'
     elif hasattr(dataset, 'editor') and dataset.editor == user:
         return 'mine'
     return 'all'
@@ -264,6 +266,21 @@ def list_all_csw_harvested_datasets(request, *args, **kwargs):
         raise Http404()
     context = handle_context(
         Dataset.harvested_csw, request.GET, target='csw_harvested')
+    return render(
+        request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
+
+
+@login_required(login_url=settings.LOGIN_URL)
+@csrf_exempt
+def list_all_dcat_harvested_datasets(request, *args, **kwargs):
+    user = request.user
+
+    # Réservé aux référents ou administrateurs IDGO
+    roles = user.profile.get_roles()
+    if not roles['is_referent'] and not roles['is_admin']:
+        raise Http404()
+    context = handle_context(
+        Dataset.harvested_dcat, request.GET, target='dcat_harvested')
     return render(
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 

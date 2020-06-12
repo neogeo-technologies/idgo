@@ -29,6 +29,7 @@ from idgo_admin.views.action import ActionsManager
 from idgo_admin.views.dataset import DatasetManager
 from idgo_admin.views.dataset import list_all_ckan_harvested_datasets
 from idgo_admin.views.dataset import list_all_csw_harvested_datasets
+from idgo_admin.views.dataset import list_all_dcat_harvested_datasets
 from idgo_admin.views.dataset import list_all_datasets
 from idgo_admin.views.dataset import list_dataset
 from idgo_admin.views.dataset import list_my_datasets
@@ -58,10 +59,12 @@ from idgo_admin.views.organisation import CreateOrganisation
 from idgo_admin.views.organisation import idgo_partnership
 from idgo_admin.views.organisation import DeleteRemoteCkanLinked
 from idgo_admin.views.organisation import DeleteRemoteCswLinked
+from idgo_admin.views.organisation import DeleteRemoteDcatLinked
 from idgo_admin.views.organisation import handle_show_organisation
 from idgo_admin.views.organisation import OrganisationOWS
 from idgo_admin.views.organisation import RemoteCkanEditor
 from idgo_admin.views.organisation import RemoteCswEditor
+from idgo_admin.views.organisation import RemoteDcatEditor
 from idgo_admin.views.organisation import show_organisation
 from idgo_admin.views.organisation import Subscription
 from idgo_admin.views.organisation import UpdateOrganisation
@@ -89,6 +92,7 @@ urlpatterns = [
     url('^dataset/all/?$', list_all_datasets, name='list_all_datasets'),
     url('^dataset/harvested/ckan/?$', list_all_ckan_harvested_datasets, name='list_all_ckan_harvested_datasets'),
     url('^dataset/harvested/csw/?$', list_all_csw_harvested_datasets, name='list_all_csw_harvested_datasets'),
+    url('^dataset/harvested/dcat/?$', list_all_dcat_harvested_datasets, name='list_all_dcat_harvested_datasets'),
     url('^dataset/(?P<id>(new|(\d+)))/edit/?$', DatasetManager.as_view(), name='dataset_editor'),
 
     url('^resource/?$', resource, name='resources'),
@@ -131,6 +135,8 @@ urlpatterns = [
     url('^organisation/(?P<id>(\d+))/remoteckan/delete/?$', DeleteRemoteCkanLinked.as_view(), name='delete_remote_ckan_link'),
     url('^organisation/(?P<id>(\d+))/remotecsw/edit/?$', RemoteCswEditor.as_view(), name='edit_remote_csw_link'),
     url('^organisation/(?P<id>(\d+))/remotecsw/delete/?$', DeleteRemoteCswLinked.as_view(), name='delete_remote_csw_link'),
+    url('^organisation/(?P<id>(\d+))/remotedcat/edit/?$', RemoteDcatEditor.as_view(), name='edit_remote_dcat_link'),
+    url('^organisation/(?P<id>(\d+))/remotedcat/delete/?$', DeleteRemoteDcatLinked.as_view(), name='delete_remote_dcat_link'),
 
     url('^password/(?P<process>(forget))/?$', PasswordManager.as_view(), name='password_manager'),
     url('^password/(?P<process>(initiate|reset))/(?P<key>(.+))/?$', PasswordManager.as_view(), name='password_manager'),

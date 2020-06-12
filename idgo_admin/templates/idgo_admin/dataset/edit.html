@@ -17,6 +17,8 @@
 	{% include "idgo_admin/dataset/remote_dataset_frame.html" with remote=dataset.remote_ckan_dataset %}
 	{% elif dataset.remote_csw_dataset %}
 	{% include "idgo_admin/dataset/remote_dataset_frame.html" with remote=dataset.remote_csw_dataset %}
+	{% elif dataset.remote_dcat_dataset %}
+	{% include "idgo_admin/dataset/remote_dataset_frame.html" with remote=dataset.remote_dcat_dataset %}
 	{% endif %}
 	<div class="row">
 		<div class="col-xs-12">

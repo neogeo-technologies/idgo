@@ -18,8 +18,10 @@ from django import forms
 from django.utils.text import slugify
 from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.csw_module import CswBaseHandler
+from idgo_admin.dcat_module import DcatBaseHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CswBaseError
+from idgo_admin.exceptions import DcatBaseError
 from idgo_admin.forms.fields import AddressField
 from idgo_admin.forms.fields import CityField
 from idgo_admin.forms.fields import ContributorField
@@ -45,6 +47,7 @@ from idgo_admin.models import MappingLicence
 from idgo_admin.models import Organisation
 from idgo_admin.models import RemoteCkan
 from idgo_admin.models import RemoteCsw
+from idgo_admin.models import RemoteDcat
 
 
 class OrganisationForm(forms.ModelForm):
@@ -346,3 +349,133 @@ class RemoteCswForm(forms.ModelForm):
         else:
             self.fields['getrecords'].widget = forms.HiddenInput()
             self.fields['sync_frequency'].widget = forms.HiddenInput()
+
+
+# =================================
+# FORMULAIRE DE MOISSONNAGE DE DCAT
+# =================================
+
+
+class RemoteDcatForm(forms.ModelForm):
+
+    class Meta(object):
+        model = RemoteDcat
+        fields = (
+            'url',
+            'sync_frequency',
+            )
+        mapping = tuple()
+
+    url = forms.URLField(
+        label="URL du catalogue DCAT*",
+        required=True,
+        max_length=200,
+        error_messages={
+            'invalid': "L'adresse URL est erronée.",
+            },
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': "",
+                },
+            ),
+        )
+
+    sync_frequency = forms.ChoiceField(
+        label="Fréquence de synchronisation*",
+        required=True,
+        choices=Meta.model.FREQUENCY_CHOICES,
+        initial='never',
+        )
+
+    def __init__(self, *args, **kwargs):
+        self.cleaned_data = {}
+        super().__init__(*args, **kwargs)
+
+        instance = kwargs.get('instance', None)
+        if instance and instance.url:
+            self.fields['url'].widget.attrs['readonly'] = True
+
+            # mapping = []
+            #
+            # Initialize categories mapping
+            # =============================
+            # try:
+            #     with DcatBaseHandler(instance.url) as dcat:
+            #         remote_categories = dcat.get_all_categories(all_fields=True)
+            # except DcatBaseError as e:
+            #     logger.error(e)
+            # else:
+            #     fields_name = []
+            #     for remote_category in remote_categories:
+            #         field_name = ''.join(['cat_', remote_category['name']])
+            #         fields_name.append(field_name)
+            #         try:
+            #             filter = {'remote_ckan': instance, 'slug': field_name[4:]}
+            #             initial = MappingCategory.objects.filter(**filter).first().category
+            #         except Exception as e:
+            #             logger.warning(e)
+            #             try:
+            #                 initial = Category.objects.get(slug=field_name[4:])
+            #             except Exception as e:
+            #                 logger.warning(e)
+            #                 initial = None
+            #
+            #         self.fields[field_name] = forms.ModelChoiceField(
+            #             label=remote_category['title'],
+            #             empty_label="Sélectionnez une valeur",
+            #             required=False,
+            #             queryset=Category.objects.all(),
+            #             initial=initial,
+            #             )
+            #
+            #     mapping.append({
+            #         'name': 'Category',
+            #         'title': 'Categories',
+            #         'fields_name': fields_name,
+            #         })
+            #
+            # Initialize licences mapping
+            # ===========================
+            # try:
+            #     with DcatBaseHandler(instance.url) as dcat:
+            #         remote_licenses = dcat.get_all_licenses(all_fields=True)
+            # except DcatBaseError as e:
+            #     logger.error(e)
+            # else:
+            #     fields_name = []
+            #     for remote_license in remote_licenses:
+            #         field_name = ''.join(['lic_', remote_license['id']])
+            #         fields_name.append(field_name)
+            #         try:
+            #             filter = {'remote_ckan': instance, 'slug': field_name[4:]}
+            #             initial = MappingLicence.objects.filter(**filter).first().licence
+            #         except Exception as e:
+            #             logger.warning(e)
+            #             try:
+            #                 initial = License.objects.get(slug=field_name[4:])
+            #             except Exception as e:
+            #                 logger.warning(e)
+            #                 initial = None
+            #
+            #         self.fields[field_name] = forms.ModelChoiceField(
+            #             label=remote_license['title'],
+            #             empty_label="Sélectionnez une valeur",
+            #             required=False,
+            #             queryset=License.objects.all(),
+            #             initial=initial,
+            #             )
+            #
+            #     mapping.append({
+            #         'name': 'License',
+            #         'title': 'Licences',
+            #         'fields_name': fields_name,
+            #         })
+
+        else:
+            self.fields['sync_frequency'].widget = forms.HiddenInput()
+
+    # def get_category_fields(self):
+    #     return [self[val] for val in self.fields if val.startswith('cat')]
+
+    # def get_licence_fields(self):
+    #     return [self[val] for val in self.fields if val.startswith('lic')]

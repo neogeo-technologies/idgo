@@ -63,6 +63,10 @@ class DatagisBaseError(GenericException):
     pass
 
 
+class DcatBaseError(GenericException):
+    pass
+
+
 class FakeError(GenericException):
     message = "Ceci n'est pas une erreur."
 

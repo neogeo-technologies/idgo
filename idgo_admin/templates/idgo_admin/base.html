@@ -204,6 +204,9 @@ $(document).ajaxSend(function(e, xhr, settings) {
 									<li>
 										<a href="{% url 'idgo_admin:list_all_csw_harvested_datasets'  %}" aria-controls="csw-harvested-datasets" role="tab">Jeux de données moissonnés CSW</a>
 									</li>
+									<li>
+										<a href="{% url 'idgo_admin:list_all_dcat_harvested_datasets' %}" aria-controls="dcat-harvested-datasets" role="tab">Jeux de données moissonnés DCAT</a>
+									</li>
 								</ul>
 							</li>
 							{% else %}

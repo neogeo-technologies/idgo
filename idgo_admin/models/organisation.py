@@ -33,6 +33,8 @@ from functools import reduce
 from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.csw_module import CswBaseHandler
+from idgo_admin.dcat_module import DcatBaseHandler
+from idgo_admin.dcat_module import DcatBaseError
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CriticalError
 from idgo_admin.exceptions import CswBaseError
@@ -964,6 +966,324 @@ class RemoteCswDataset(models.Model):
     created_by = models.ForeignKey(
         User,
         related_name='creates_dataset_from_remote_csw',
+        verbose_name="Utilisateur",
+        null=True,
+        on_delete=models.SET_NULL,
+        )
+
+    created_on = models.DateTimeField(
+        verbose_name="Créé le",
+        auto_now_add=True,
+        )
+
+    updated_on = models.DateTimeField(
+        verbose_name="Mis-à-jour le",
+        auto_now_add=True,
+        )
+
+    def __str__(self):
+        return '{0} - {1}'.format(self.remote_instance, self.dataset)
+
+    @property
+    def url(self):
+        parsed = urlparse(self.remote_instance.url)
+        return '{scheme}://{netloc}/'.format(scheme=parsed.scheme, netloc=parsed.netloc)
+
+
+# ================================================
+# MODÈLE DE SYNCHRONISATION AVEC UN CATALOGUE DCAT
+# ================================================
+
+
+class RemoteDcat(models.Model):
+
+    class Meta(object):
+        verbose_name = "Catalogue DCAT distant"
+        verbose_name_plural = "Catalogues DCAT distants"
+
+    organisation = models.OneToOneField(
+        to='Organisation',
+        on_delete=models.CASCADE,
+        )
+
+    url = models.URLField(
+        verbose_name="URL",
+        blank=True,
+        )
+
+    FREQUENCY_CHOICES = (
+        ('never', "Jamais"),
+        ('daily', "Quotidienne (tous les jours à minuit)"),
+        ('weekly', "Hebdomadaire (tous les lundi)"),
+        ('bimonthly', "Bimensuelle (1er et 15 de chaque mois)"),
+        ('monthly', "Mensuelle (1er de chaque mois)"),
+        ('quarterly', "Trimestrielle (1er des mois de janvier, avril, juillet, octobre)"),
+        ('biannual', "Semestrielle (1er janvier et 1er juillet)"),
+        ('annual', "Annuelle (1er janvier)"),
+        )
+
+    sync_frequency = models.CharField(
+        verbose_name="Fréquence de synchronisation",
+        max_length=20,
+        blank=True,
+        null=True,
+        choices=FREQUENCY_CHOICES,
+        default='never',
+        )
+
+    def __str__(self):
+        return self.url
+
+    def save(self, *args, harvest=True, **kwargs):
+        Category = apps.get_model(app_label='idgo_admin', model_name='Category')
+        Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
+        License = apps.get_model(app_label='idgo_admin', model_name='License')
+        Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
+        ResourceFormats = apps.get_model(app_label='idgo_admin', model_name='ResourceFormats')
+
+        # (1) Supprimer les jeux de données qui ne sont plus synchronisés
+        previous = self.pk and RemoteDcat.objects.get(pk=self.pk)
+        if previous:
+            for dataset in Dataset.harvested_dcat.filter(remote_instance=previous):
+                dataset.delete()
+        else:
+            # Dans le cas d'une création, on vérifie si l'URL CSW est valide
+            try:
+                with DcatBaseHandler(self.url) as dcat:
+                    pass
+            except DcatBaseError as e:
+                raise ValidationError(e.__str__(), code='url')
+
+        # (2) Sauver l'instance
+        super().save(*args, **kwargs)
+
+        # (3) Créer/Mettre à jour les jeux de données synchronisés
+
+        # On récupère dans le `stack` l'utilisateur effectuant l'opération
+        editor = None
+        for entry in inspect.stack():
+            try:
+                editor = entry[0].f_locals['request'].user._wrapped
+            except (KeyError, AttributeError):
+                continue
+            break
+
+        if not previous:
+            return
+
+        if harvest:
+            # Puis on moissonne le catalogue
+            try:
+                ckan_ids = []
+                geonet_ids = []
+                with transaction.atomic():
+                    with DcatBaseHandler(self.url) as dcat:
+                        for package in dcat.get_packages():
+                            geonet_id = str(uuid.uuid4())
+                            update_frequency = dict(Dataset.FREQUENCY_CHOICES).get(
+                                package.get('frequency'), 'unknown')
+                            update_frequency = package.get('frequency')
+                            if not(update_frequency and update_frequency
+                                    in dict(Dataset.FREQUENCY_CHOICES).keys()):
+                                update_frequency = 'unknown'
+
+                            date_creation = package.get('dataset_creation_date', None)
+                            if date_creation:
+                                try:
+                                    date_creation = datetime.strptime(date_creation, ISOFORMAT_DATE)
+                                except ValueError as e:
+                                    logger.warning(e)
+                                    date_creation = None
+
+                            date_modification = package.get('dataset_modification_date', None)
+                            if date_modification:
+                                try:
+                                    date_modification = datetime.strptime(date_modification, ISOFORMAT_DATE)
+                                except ValueError as e:
+                                    logger.warning(e)
+                                    date_modification = None
+
+                            date_publication = package.get('dataset_publication_date', None)
+                            if date_publication:
+                                try:
+                                    date_publication = datetime.strptime(date_publication, ISOFORMAT_DATE)
+                                except ValueError as e:
+                                    logger.warning(e)
+                                    date_publication = None
+
+                            # Licence
+                            license_titles = package.get('license_titles')
+                            filters = [
+                                Q(slug__in=license_titles),
+                                Q(title__in=license_titles),
+                                Q(alternate_titles__overlap=license_titles),
+                                ]
+                            license = License.objects.filter(reduce(ior, filters)).distinct().first()
+                            if not license:
+                                try:
+                                    license = License.objects.get(slug=settings.DEFAULTS_VALUES.get('LICENSE'))
+                                except License.DoesNotExist:
+                                    license = License.objects.first()
+
+                            # On pousse la fiche de MD dans Geonet
+                            # ====================================
+                            if not geonet.get_record(geonet_id):
+                                try:
+                                    geonet.create_record(geonet_id, package['xml'])
+                                except Exception as e:
+                                    logger.warning('La création de la fiche de métadonnées a échoué.')
+                                    logger.error(e)
+                                else:
+                                    geonet_ids.append(geonet_id)
+                                    geonet.publish(geonet_id)  # Toujours publier la fiche
+                            else:
+                                try:
+                                    geonet.update_record(geonet_id, package['xml'])
+                                except Exception as e:
+                                    logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
+                                    logger.error(e)
+
+                            slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), slugify(geonet_id))[:100]
+                            kvp = {
+                                'slug': slug,
+                                'title': package.get('title'),
+                                'description': package.get('notes'),
+                                'date_creation': date_creation and date_creation.date(),
+                                'date_modification': date_modification and date_modification.date(),
+                                'date_publication': date_publication and date_publication.date(),
+                                'editor': editor,
+                                'license': license,
+                                'owner_email': self.organisation.email or DEFAULT_CONTACT_EMAIL,
+                                'owner_name': self.organisation.legal_name or DEFAULT_PLATFORM_NAME,
+                                'organisation': self.organisation,
+                                'published': not package.get('private'),
+                                'remote_instance': self,
+                                'remote_dataset': geonet_id,
+                                'update_frequency': update_frequency,
+                                'bbox': package.get('bbox'),
+                                # broadcaster_email
+                                # broadcaster_name
+                                # data_type
+                                # geocover
+                                'geonet_id': geonet_id,
+                                # granularity
+                                # thumbnail
+                                # support
+                                }
+
+                            dataset, created = Dataset.harvested_dcat.update_or_create(**kvp)
+                            if created:
+                                ckan_ids.append(dataset.ckan_id)
+
+                            categories_name = [m['name'] for m in package.get('groups', [])]
+                            iso_topic_reverse = dict((v, k) for k, v in Category._meta.fields[5].choices)
+
+                            filters = [
+                                Q(slug__in=categories_name),
+                                Q(name__in=categories_name),
+                                Q(iso_topic__in=[m['name'] for m in package.get('groups', [])]),
+                                Q(iso_topic__in=[iso_topic_reverse.get(name) for name in categories_name]),
+                                Q(alternate_titles__overlap=categories_name),
+                                ]
+
+                            categories = Category.objects.filter(reduce(ior, filters)).distinct()
+                            if categories:
+                                dataset.categories.set(categories, clear=True)
+
+                            if not created:
+                                dataset.keywords.clear()
+                            keywords = [tag['display_name'] for tag in package.get('tags')]
+                            dataset.keywords.add(*keywords)
+
+                            dataset.save(current_user=None, synchronize=True, activate=False)
+
+                            for resource in package.get('resources', []):
+                                try:
+                                    ckan_id = uuid.uuid4()
+                                except ValueError as e:
+                                    logger.exception(e)
+                                    logger.error("I can't crash here, so I do not pay any attention to this error.")
+                                    continue
+
+                                filters = []
+                                protocol = resource.get('protocol')
+                                protocol and filters.append(Q(protocol=protocol))
+                                mimetype = resource.get('mimetype')
+                                mimetype and filters.append(Q(mimetype__overlap=[mimetype]))
+                                try:
+                                    format_type = ResourceFormats.objects.get(reduce(iand, filters))
+                                except (ResourceFormats.MultipleObjectsReturned, ResourceFormats.DoesNotExist, TypeError):
+                                    format_type = None
+
+                                kvp = {
+                                    'ckan_id': ckan_id,
+                                    'dataset': dataset,
+                                    'format_type': format_type,
+                                    'title': resource['name'] or resource['url'],
+                                    'referenced_url': resource['url'],
+                                    }
+
+                                try:
+                                    resource = Resource.objects.get(ckan_id=ckan_id)
+                                except Resource.DoesNotExist:
+                                    resource = Resource.default.create(
+                                        save_opts={'current_user': editor, 'synchronize': True}, **kvp)
+                                else:
+                                    for k, v in kvp.items():
+                                        setattr(resource, k, v)
+                                resource.save(current_user=editor, synchronize=True)
+
+            except Exception as e:
+                for id in ckan_ids:
+                    logger.warning('Delete CKAN package : {id}.'.format(id=str(id)))
+                    CkanHandler.purge_dataset(str(id))
+                for id in geonet_ids:
+                    logger.warning('Delete MD : {id}.'.format(id=str(id)))
+                    geonet.delete_record(id)
+                logger.error(e)
+                raise CriticalError()
+            else:
+                for id in ckan_ids:
+                    CkanHandler.publish_dataset(id=str(id), state='active')
+
+    def delete(self, *args, **kwargs):
+        Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
+        for dataset in Dataset.harvested_dcat.filter(remote_instance=self):
+            dataset.delete()
+        return super().delete(*args, **kwargs)
+
+
+class RemoteDcatDataset(models.Model):
+
+    class Meta(object):
+        verbose_name = "Jeu de données moissonné"
+        verbose_name_plural = "Jeux de données moissonnés"
+        unique_together = ('remote_instance', 'dataset')
+
+    remote_instance = models.ForeignKey(
+        to='RemoteDcat',
+        on_delete=models.CASCADE,
+        to_field='id',
+        )
+
+    dataset = models.ForeignKey(
+        to='Dataset',
+        on_delete=models.CASCADE,
+        to_field='id',
+        )
+
+    remote_dataset = models.CharField(
+        verbose_name="Jeu de données distant",
+        max_length=100,
+        editable=False,
+        null=True,
+        blank=True,
+        unique=True,
+        )
+
+    created_by = models.ForeignKey(
+        User,
+        related_name='creates_dataset_from_remote_dcat',
         verbose_name="Utilisateur",
         null=True,
         on_delete=models.SET_NULL,

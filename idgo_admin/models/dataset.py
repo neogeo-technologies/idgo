@@ -34,6 +34,7 @@ from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.managers import DefaultDatasetManager
 from idgo_admin.managers import HarvestedCkanDatasetManager
 from idgo_admin.managers import HarvestedCswDatasetManager
+from idgo_admin.managers import HarvestedDcatDatasetManager
 from idgo_admin.utils import three_suspension_points
 from taggit.admin import Tag
 from taggit.managers import TaggableManager
@@ -79,6 +80,7 @@ class Dataset(models.Model):
     default = DefaultDatasetManager()
     harvested_ckan = HarvestedCkanDatasetManager()
     harvested_csw = HarvestedCswDatasetManager()
+    harvested_dcat = HarvestedDcatDatasetManager()
 
     # Champs atributaires
     # ===================
@@ -325,6 +327,14 @@ class Dataset(models.Model):
     @property
     def remote_csw_dataset(self):
         Model = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
+        try:
+            return Model.objects.get(dataset=self)
+        except Model.DoesNotExist:
+            return None
+
+    @property
+    def remote_dcat_dataset(self):
+        Model = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
         try:
             return Model.objects.get(dataset=self)
         except Model.DoesNotExist:
