@@ -28,7 +28,13 @@ from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 
 
-decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+try:
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+
+decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
 
 
 @method_decorator(decorators, name='dispatch')

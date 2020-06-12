@@ -34,10 +34,22 @@ from idgo_admin.utils import kill_all_special_characters
 #
 
 
-MRA = settings.MRA
-MRA_TIMEOUT = MRA.get('TIMEOUT', 3600)
-MRA_DATAGIS_USER = MRA['DATAGIS_DB_USER']
-DB_SETTINGS = settings.DATABASES[settings.DATAGIS_DB]
+try:
+    MRA = getattr(settings, 'MRA')
+    MRA_URL = MRA['URL']
+    MRA_USERNAME = MRA['USERNAME']
+    MRA_PASSWORD = MRA['PASSWORD']
+    MRA_TIMEOUT = MRA.get('TIMEOUT', 3600)
+    DATABASES = getattr(settings, 'DATABASES')
+    DB_SETTINGS = DATABASES[getattr(settings, 'DATAGIS_DB')]
+    MRA_DATAGIS_USER = MRA['DATAGIS_DB_USER']
+    MRA_DATAGIS_HOST = DB_SETTINGS['HOST']
+    MRA_DATAGIS_DATABASE = DB_SETTINGS['NAME']
+    MRA_DATAGIS_DBTYPE = DB_SETTINGS['ENGINE'].split('.')[-1]
+    MRA_DATAGIS_PASSWORD = DB_SETTINGS['PASSWORD']
+    MRA_DATAGIS_PORT = DB_SETTINGS['PORT']
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 
 def preprocessing_sld(data):
@@ -197,8 +209,7 @@ class MRAClient(object):
 class MRAHandler(metaclass=Singleton):
 
     def __init__(self, *args, **kwargs):
-        self.remote = MRAClient(
-            MRA['URL'], username=MRA['USERNAME'], password=MRA['PASSWORD'])
+        self.remote = MRAClient(MRA_URL, username=MRA_USERNAME, password=MRA_PASSWORD)
 
     # Workspace
     # =========
@@ -262,12 +273,12 @@ class MRAHandler(metaclass=Singleton):
             'dataStore': {
                 'name': ds_name,
                 'connectionParameters': {
-                    'host': DB_SETTINGS['HOST'],
+                    'host': MRA_DATAGIS_HOST,
                     'user': MRA_DATAGIS_USER,
-                    'database': DB_SETTINGS['NAME'],
-                    'dbtype': DB_SETTINGS['ENGINE'].split('.')[-1],
-                    'password': DB_SETTINGS['PASSWORD'],
-                    'port': DB_SETTINGS['PORT']}}}
+                    'database': MRA_DATAGIS_DATABASE,
+                    'dbtype': MRA_DATAGIS_DBTYPE,
+                    'password': MRA_DATAGIS_PASSWORD,
+                    'port': MRA_DATAGIS_PORT}}}
 
         self.remote.post('workspaces', ws_name,
                          'datastores', json=json)
@@ -433,7 +444,7 @@ class MRAHandler(metaclass=Singleton):
         json['layer'].update({
             'defaultStyle': {
                 'name': s_name,
-                'href': '{0}styles/{1}.json'.format(MRA['URL'], s_name),
+                'href': '{0}styles/{1}.json'.format(MRA_URL, s_name),
                 }
             })
         return self.remote.put('layers', l_name, json=json)

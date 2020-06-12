@@ -31,12 +31,15 @@ from taggit.forms import TagField
 from taggit.forms import TagWidget
 
 
-CKAN_URL = settings.CKAN_URL
-DOMAIN_NAME = settings.DOMAIN_NAME
-DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
-DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
-DOMAIN_NAME = settings.DOMAIN_NAME
-GEONETWORK_URL = settings.GEONETWORK_URL
+try:
+    CKAN_URL = getattr(settings, 'CKAN_URL')
+    DOMAIN_NAME = getattr(settings, 'DOMAIN_NAME')
+    DEFAULT_CONTACT_EMAIL = getattr(settings, 'DEFAULT_CONTACT_EMAIL')
+    DEFAULT_PLATFORM_NAME = getattr(settings, 'DEFAULT_PLATFORM_NAME')
+    GEONETWORK_URL = getattr(settings, 'GEONETWORK_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
 TODAY = timezone.now().date().strftime('%d/%m/%Y')
 
 

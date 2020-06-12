@@ -21,13 +21,14 @@ import requests
 from urllib.parse import urljoin
 
 
-GEONET_URL = settings.GEONETWORK_URL
-GEONET_USERNAME = settings.GEONETWORK_LOGIN
-GEONET_PASSWORD = settings.GEONETWORK_PASSWORD
 try:
-    GEONET_TIMEOUT = settings.GEONET_TIMEOUT
-except AttributeError:
-    GEONET_TIMEOUT = 3600
+    GEONET_URL = getattr(settings, 'GEONETWORK_URL')
+    GEONET_USERNAME = getattr(settings, 'GEONETWORK_LOGIN')
+    GEONET_PASSWORD = getattr(settings, 'GEONETWORK_PASSWORD')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+GEONET_TIMEOUT = getattr(settings, 'GEONET_TIMEOUT', 3600)
 
 
 class GeonetUserHandler(metaclass=Singleton):

@@ -59,7 +59,13 @@ from idgo_admin.views.organisation import referent_subscribe_process
 import uuid
 
 
-decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+try:
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+
+decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
 
 
 @method_decorator(decorators[0], name='dispatch')
@@ -182,7 +188,7 @@ class PasswordManager(View):
         return redirect('idgo_admin:update_account')
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def delete_account(request):
 
@@ -405,7 +411,7 @@ class UpdateAccount(View):
             request, self.template, context={'form': form}, status=200)
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def create_sftp_account(request):
 
@@ -436,7 +442,7 @@ def create_sftp_account(request):
     return redirect('idgo_admin:update_account')
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def change_sftp_password(request):
 
@@ -466,7 +472,7 @@ def change_sftp_password(request):
     return redirect('idgo_admin:update_account')
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def delete_sftp_account(request):
 

@@ -42,15 +42,19 @@ from urllib.parse import urljoin
 from uuid import UUID
 
 
-CKAN_URL = settings.CKAN_URL
-GEONETWORK_URL = settings.GEONETWORK_URL
-OWS_URL_PATTERN = settings.OWS_URL_PATTERN
-DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
-DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
-
+try:
+    DOMAIN_NAME = getattr(settings, 'DOMAIN_NAME')
+    CKAN_URL = getattr(settings, 'CKAN_URL')
+    GEONETWORK_URL = getattr(settings, 'GEONETWORK_URL')
+    OWS_URL_PATTERN = getattr(settings, 'OWS_URL_PATTERN')
+    DEFAULT_CONTACT_EMAIL = getattr(settings, 'DEFAULT_CONTACT_EMAIL')
+    DEFAULT_PLATFORM_NAME = getattr(settings, 'DEFAULT_PLATFORM_NAME')
+    DEFAULTS_VALUES = getattr(settings, 'DEFAULTS_VALUES')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 try:
-    BOUNDS = settings.DEFAULTS_VALUES['BOUNDS']
+    BOUNDS = DEFAULTS_VALUES['BOUNDS']
 except AttributeError:
     xmin, ymin = -180, -90
     xmax, ymax = 180, 90
@@ -530,7 +534,7 @@ class Dataset(models.Model):
         support = self.support and self.support.slug or ''
         tags = [{'name': keyword.name} for keyword in self.keywords.all()]
         try:
-            thumbnail = urljoin(settings.DOMAIN_NAME, self.thumbnail.url)
+            thumbnail = urljoin(DOMAIN_NAME, self.thumbnail.url)
         except ValueError:
             thumbnail = ''
 

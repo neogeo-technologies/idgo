@@ -54,7 +54,11 @@ from operator import ior
 from idgo_resource.models import Resource as NewResourceModel
 
 
-CKAN_URL = settings.CKAN_URL
+try:
+    CKAN_URL = getattr(settings, 'CKAN_URL')
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 
 def target(dataset, user):
@@ -191,7 +195,7 @@ def handle_context(QuerySet, qs, user=None, target='mine'):
         }
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def list_dataset(request, *args, **kwargs):
 
@@ -210,7 +214,7 @@ def list_dataset(request, *args, **kwargs):
     return redirect('idgo_admin:dataset_editor', id=instance.id)
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def list_my_datasets(request, *args, **kwargs):
 
@@ -220,7 +224,7 @@ def list_my_datasets(request, *args, **kwargs):
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def list_all_datasets(request, *args, **kwargs):
     user = request.user
@@ -240,7 +244,7 @@ def list_all_datasets(request, *args, **kwargs):
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def list_all_ckan_harvested_datasets(request, *args, **kwargs):
     user = request.user
@@ -255,7 +259,7 @@ def list_all_ckan_harvested_datasets(request, *args, **kwargs):
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def list_all_csw_harvested_datasets(request, *args, **kwargs):
     user = request.user
@@ -270,7 +274,7 @@ def list_all_csw_harvested_datasets(request, *args, **kwargs):
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def list_all_dcat_harvested_datasets(request, *args, **kwargs):
     user = request.user
@@ -285,7 +289,7 @@ def list_all_dcat_harvested_datasets(request, *args, **kwargs):
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
-@method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
+@method_decorator([csrf_exempt, login_required(login_url=LOGIN_URL)], name='dispatch')
 class DatasetManager(View):
 
     def get_context(self, form, user, dataset):

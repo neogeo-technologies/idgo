@@ -33,8 +33,11 @@ from uuid import uuid4
 from zipfile import ZipFile
 
 
-STATIC_ROOT = settings.STATIC_ROOT
-STATICFILES_DIRS = settings.STATICFILES_DIRS
+try:
+    STATIC_ROOT = getattr(settings, 'STATIC_ROOT')
+    STATICFILES_DIRS = getattr(settings, 'STATICFILES_DIRS')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 
 # Metaclasses:

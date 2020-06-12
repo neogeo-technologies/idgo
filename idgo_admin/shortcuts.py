@@ -14,26 +14,12 @@
 # under the License.
 
 
-from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.shortcuts import render
 from django.shortcuts import reverse
-from idgo_admin.exceptions import ExceptionsHandler
-from idgo_admin.exceptions import ProfileHttp404
-# from idgo_admin.models import AccountActions
-from idgo_admin.models import LiaisonsContributeurs
-from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
-
-
-CKAN_URL = settings.CKAN_URL
-READTHEDOC_URL = settings.READTHEDOC_URL
-DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
-DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
-FTP_URL = settings.FTP_URL
 
 
 def on_profile_http404():

@@ -26,7 +26,13 @@ from idgo_admin.models import GdprUser
 from mama_cas.utils import redirect as mama_redirect
 
 
-decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+try:
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+
+decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
 @method_decorator(decorators, name='dispatch')
 class GdprView(View):
 

@@ -25,12 +25,14 @@ from idgo_admin.models import License
 import requests
 
 
-OWS_PREVIEW_URL = settings.OWS_PREVIEW_URL
-
 try:
-    MAPSERV_TIMEOUT = settings.MAPSERV_TIMEOUT
-except AttributeError:
-    MAPSERV_TIMEOUT = 60
+    OWS_PREVIEW_URL = getattr(settings, 'OWS_PREVIEW_URL')
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+
+MAPSERV_TIMEOUT = getattr(settings, 'MAPSERV_TIMEOUT', 60)
 
 
 @method_decorator([csrf_exempt], name='dispatch')
@@ -53,7 +55,7 @@ class DisplayLicenses(View):
 
 
 @csrf_exempt
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 def ows_preview(request):
 
     r = requests.get(

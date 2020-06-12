@@ -29,12 +29,12 @@ import requests
 import uuid
 
 
-FTP_SERVICE_URL = settings.FTP_SERVICE_URL
-
 try:
-    ADMIN_USERNAME = settings.ADMIN_USERNAME
-except AttributeError:
-    ADMIN_USERNAME = None
+    FTP_SERVICE_URL = getattr(settings, 'FTP_SERVICE_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+ADMIN_USERNAME = getattr(settings, 'ADMIN_USERNAME', None)
 
 
 # ==============

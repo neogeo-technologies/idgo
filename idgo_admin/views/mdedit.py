@@ -44,11 +44,14 @@ from urllib.parse import urljoin
 import xml.etree.ElementTree as ET
 
 
-STATIC_URL = settings.STATIC_URL
-GEONETWORK_URL = settings.GEONETWORK_URL
-CKAN_URL = settings.CKAN_URL
-DOMAIN_NAME = settings.DOMAIN_NAME
-READTHEDOC_URL = settings.READTHEDOC_URL
+try:
+    STATIC_URL = getattr(settings, 'STATIC_URL')
+    GEONETWORK_URL = getattr(settings, 'GEONETWORK_URL')
+    CKAN_URL = getattr(settings, 'CKAN_URL')
+    DOMAIN_NAME = getattr(settings, 'DOMAIN_NAME')
+    READTHEDOC_URL = getattr(settings, 'READTHEDOC_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 
 def join_url(filename, path=MDEDIT_CONFIG_PATH):
@@ -189,7 +192,7 @@ def prefill_service_model(organisation):
     return clean_my_obj(data)
 
 
-decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
 
 
 @method_decorator(decorators, name='dispatch')
@@ -473,7 +476,7 @@ class ServiceMDEdit(View):
         return HttpResponse()
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def mdhandler(request, type, *args, **kwargs):
 

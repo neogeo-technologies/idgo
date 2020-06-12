@@ -33,9 +33,14 @@ import re
 from uuid import uuid4
 
 
-DATABASE = settings.DATAGIS_DB
-OWNER = settings.DATABASES[DATABASE]['USER']
-MRA_DATAGIS_USER = settings.MRA['DATAGIS_DB_USER']
+try:
+    DB_NAME = getattr(settings, 'DATAGIS_DB')
+    DATABASES = getattr(settings, 'DATABASES')
+    OWNER = DATABASES[DB_NAME]['USER']
+    MRA = getattr(settings, 'MRA')
+    MRA_DATAGIS_USER = MRA['DATAGIS_DB_USER']
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 
 SCHEMA = 'public'
@@ -77,7 +82,7 @@ class WrongDataError(DatagisBaseError):
 
 def is_valid_epsg(code):
     sql = '''SELECT * FROM public.spatial_ref_sys WHERE auth_srid = '{}';'''.format(code)
-    with connections[DATABASE].cursor() as cursor:
+    with connections[DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
@@ -91,7 +96,7 @@ def is_valid_epsg(code):
 
 def get_proj4s():
     sql = '''SELECT auth_srid, proj4text FROM public.spatial_ref_sys;'''
-    with connections[DATABASE].cursor() as cursor:
+    with connections[DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
@@ -470,7 +475,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
     for table_id in update.values():
         rename_table(table_id, '__{}'.format(table_id))
 
-    with connections[DATABASE].cursor() as cursor:
+    with connections[DB_NAME].cursor() as cursor:
         for q in sql:
             try:
                 cursor.execute(q)
@@ -500,7 +505,7 @@ def get_extent(tables, schema='public'):
             sub.format(table=table, the_geom=THE_GEOM, schema=schema)
             for table in tables]))
 
-    with connections[DATABASE].cursor() as cursor:
+    with connections[DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
@@ -524,7 +529,7 @@ ALTER INDEX IF EXISTS "{table}_fid" RENAME TO "{name}_fid";
 ALTER INDEX IF EXISTS "{table}_gix" RENAME TO "{name}_gix";
 '''.format(schema=schema, table=table, name=name)
 
-    with connections[DATABASE].cursor() as cursor:
+    with connections[DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
@@ -536,7 +541,7 @@ ALTER INDEX IF EXISTS "{table}_gix" RENAME TO "{name}_gix";
 
 def drop_table(table, schema=SCHEMA):
     sql = 'DROP TABLE {schema}."{table}";'.format(schema=schema, table=table)
-    with connections[DATABASE].cursor() as cursor:
+    with connections[DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
@@ -553,7 +558,7 @@ SELECT ST_AsGeoJSON(ST_Intersection(
     ST_GeomFromGeoJSON('{geojson1}'), ST_GeomFromGeoJSON('{geojson2}'))) AS geojson;
 '''.format(geojson1=geojson1, geojson2=geojson2)
 
-    with connections[DATABASE].cursor() as cursor:
+    with connections[DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
@@ -574,7 +579,7 @@ def transform(wkt, epsg_in, epsg_out=4171):
 SELECT ST_AsText(ST_Transform(ST_GeomFromText('{wkt}', {epsg_in}), {epsg_out})) AS wkt;
 '''.format(wkt=wkt, epsg_in=epsg_in, epsg_out=epsg_out)
 
-    with connections[DATABASE].cursor() as cursor:
+    with connections[DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:

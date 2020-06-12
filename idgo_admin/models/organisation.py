@@ -51,12 +51,20 @@ from urllib.parse import urlparse
 import uuid
 
 
-DEFAULT_USER_ID = settings.DEFAULT_USER_ID
-DEFAULT_CONTACT_EMAIL = settings.DEFAULT_CONTACT_EMAIL
-DEFAULT_PLATFORM_NAME = settings.DEFAULT_PLATFORM_NAME
+try:
+    DOMAIN_NAME = getattr(settings, 'DOMAIN_NAME')
+    DEFAULT_USER_ID = getattr(settings, 'DEFAULT_USER_ID')
+    DEFAULT_CONTACT_EMAIL = getattr(settings, 'DEFAULT_CONTACT_EMAIL')
+    DEFAULT_PLATFORM_NAME = getattr(settings, 'DEFAULT_PLATFORM_NAME')
+    OWS_URL_PATTERN = getattr(settings, 'OWS_URL_PATTERN')
+    DEFAULTS_VALUES = getattr(settings, 'DEFAULTS_VALUES')
+    DEFAULT_VALUE_LICENSE = DEFAULTS_VALUES['LICENSE']
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+
 ISOFORMAT_DATE = '%Y-%m-%d'
 ISOFORMAT_DATETIME = '%Y-%m-%dT%H:%M:%S.%f'
-OWS_URL_PATTERN = settings.OWS_URL_PATTERN
 
 
 class OrganisationType(models.Model):
@@ -210,7 +218,7 @@ class Organisation(models.Model):
     @property
     def logo_url(self):
         try:
-            return urljoin(settings.DOMAIN_NAME, self.logo.url)
+            return urljoin(DOMAIN_NAME, self.logo.url)
         except (ValueError, Exception):
             return None
 
@@ -799,7 +807,7 @@ class RemoteCsw(models.Model):
                         license = License.objects.filter(reduce(ior, filters)).distinct().first()
                         if not license:
                             try:
-                                license = License.objects.get(slug=settings.DEFAULTS_VALUES.get('LICENSE'))
+                                license = License.objects.get(slug=DEFAULT_VALUE_LICENSE)
                             except License.DoesNotExist:
                                 license = License.objects.first()
 
@@ -1121,7 +1129,7 @@ class RemoteDcat(models.Model):
                             license = License.objects.filter(reduce(ior, filters)).distinct().first()
                             if not license:
                                 try:
-                                    license = License.objects.get(slug=settings.DEFAULTS_VALUES.get('LICENSE'))
+                                    license = License.objects.get(slug=DEFAULT_VALUE_LICENSE)
                                 except License.DoesNotExist:
                                     license = License.objects.first()
 

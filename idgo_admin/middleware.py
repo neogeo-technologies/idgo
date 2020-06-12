@@ -19,12 +19,20 @@ from django.shortcuts import redirect
 from django.urls import reverse
 
 
+try:
+    TERMS_URL = getattr(settings, 'TERMS_URL')
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+    LOGOUT_URL = getattr(settings, 'LOGOUT_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+
 class BaseMiddleware(object):
 
     IGNORE_PATH = (
-        reverse(settings.TERMS_URL),
-        reverse(settings.LOGIN_URL),
-        reverse(settings.LOGOUT_URL),
+        reverse(TERMS_URL),
+        reverse(LOGIN_URL),
+        reverse(LOGOUT_URL),
     )
 
     def __init__(self, get_response):
@@ -51,5 +59,5 @@ class TermsRequired(BaseMiddleware):
         if request.path not in self.IGNORE_PATH:
             if user.is_authenticated() and hasattr(user, 'profile'):
                 if not user.profile.is_admin and not user.profile.is_agree_with_terms:
-                    return redirect(reverse(settings.TERMS_URL))
+                    return redirect(reverse(TERMS_URL))
         return self.get_response(request)

@@ -9,7 +9,7 @@ from secrets import choice
 from django.conf import settings
 
 
-taskfolder = getattr(settings, "FTP_SERVICE_URL", "/WEBS/ternum/sftp.ternum.fr/neogeo-sftp/docs/ftp_tasks")
+taskfolder = getattr(settings, 'FTP_SERVICE_URL', '/WEBS/ternum/sftp.ternum.fr/neogeo-sftp/docs/ftp_tasks')
 
 
 class SFTPError(Exception):

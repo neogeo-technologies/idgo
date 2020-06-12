@@ -42,4 +42,5 @@ def global_vars(request):
         'CKAN_URL': getattr(settings, 'CKAN_URL', None),
         'CONTRIBUTOR': contributor,
         'REFERENT': referent,
+
     }

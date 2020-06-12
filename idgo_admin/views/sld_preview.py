@@ -28,14 +28,21 @@ import uuid
 
 
 try:
-    strict_redis = redis.StrictRedis(settings.REDIS_HOST)
+    REDIS_HOST = getattr(settings, 'REDIS_HOST')
+    OWS_PREVIEW_URL = getattr(settings, 'OWS_PREVIEW_URL')
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+
+try:
+    strict_redis = redis.StrictRedis(REDIS_HOST)
 except AttributeError:
     strict_redis = redis.StrictRedis()
 REDIS_EXPIRATION = 120
-OWS_PREVIEW_URL = settings.OWS_PREVIEW_URL
 
 
-@method_decorator([csrf_exempt, login_required(login_url=settings.LOGIN_URL)], name='dispatch')
+@method_decorator([csrf_exempt, login_required(login_url=LOGIN_URL)], name='dispatch')
 class SLDPreviewSetter(View):
 
     def post(self, request, *args, **kwargs):
@@ -49,6 +56,7 @@ class SLDPreviewSetter(View):
         location = request.build_absolute_uri(
             reverse('idgo_admin:sld_preview_getter', kwargs={'key': key}))
 
+        # C'est moche
         if hasattr(settings, 'HOST_INTERNAL') \
                 and hasattr(settings, 'PORT_INTERNAL'):
             netloc = '{host}:{port}'.format(

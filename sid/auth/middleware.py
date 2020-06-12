@@ -35,6 +35,13 @@ User = get_user_model()
 logger = logging.getLogger('django')
 
 
+try:
+    CKAN_URL = getattr(settings, 'CKAN_URL')
+    VIEWERSTUDIO_URL = getattr(settings, 'VIEWERSTUDIO_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+
 class SidRemoteUserMiddleware(object):
 
     IGNORE_PATH = (
@@ -69,8 +76,6 @@ class SidRemoteUserMiddleware(object):
     def __call__(self, request):
 
         request_uri = request.META.get('REQUEST_URI')
-        ckan_url = getattr(settings, 'CKAN_URL')
-        viewerstudio_url = getattr(settings, 'VIEWERSTUDIO_URL')
 
         try:
             parsed_uri = urlparse(request_uri).query
@@ -80,8 +85,8 @@ class SidRemoteUserMiddleware(object):
             from_ckan = False
             from_viewerstudio = False
         else:
-            from_ckan = requester == urlparse(ckan_url).netloc
-            from_viewerstudio = requester == urlparse(viewerstudio_url).netloc
+            from_ckan = requester == urlparse(CKAN_URL).netloc
+            from_viewerstudio = requester == urlparse(VIEWERSTUDIO_URL).netloc
 
         if request.path not in self.IGNORE_PATH or \
                 not request.path.startswith(reverse('admin:index')) \
@@ -101,8 +106,6 @@ class ForceRedirectToHome(object):
     def __call__(self, request):
         user = request.user
         request_uri = request.META.get('REQUEST_URI')
-        ckan_url = getattr(settings, 'CKAN_URL')
-        viewerstudio_url = getattr(settings, 'VIEWERSTUDIO_URL')
 
         try:
             parsed_uri = urlparse(request_uri).query
@@ -112,8 +115,8 @@ class ForceRedirectToHome(object):
             from_ckan = False
             from_viewerstudio = False
         else:
-            from_ckan = requester == urlparse(ckan_url).netloc
-            from_viewerstudio = requester == urlparse(viewerstudio_url).netloc
+            from_ckan = requester == urlparse(CKAN_URL).netloc
+            from_viewerstudio = requester == urlparse(VIEWERSTUDIO_URL).netloc
 
         if user and hasattr(user, 'profile') \
                 and request.path == reverse('server_cas:signIn') \

@@ -35,7 +35,13 @@ from idgo_admin.views.dataset import target as datasets_target
 import json
 
 
-decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+try:
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+
+decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
 
 
 @method_decorator(decorators, name='dispatch')
@@ -92,7 +98,7 @@ class LayerView(View):
             }))
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def layer_style(request, dataset_id=None, resource_id=None, layer_id=None, *args, **kwargs):
     style_id = request.GET.get('id', None)

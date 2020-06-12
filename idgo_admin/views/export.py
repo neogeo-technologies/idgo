@@ -47,6 +47,13 @@ from urllib.parse import urljoin
 from uuid import UUID
 
 
+try:
+    CKAN_URL = getattr(settings, 'CKAN_URL')
+    DEFAULT_PLATFORM_NAME = getattr(settings, 'DEFAULT_PLATFORM_NAME')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+
 COLL_NOM = F('organisation__legal_name')
 COLL_SIRET = Value('', output_field=CharField())
 ID = F('ckan_id')
@@ -60,7 +67,7 @@ DIFFUSEUR = Case(
     When(
         (Q(broadcaster_name__isnull=True) | Q(broadcaster_name='')) & Q(support__isnull=False),
         then=F('support__name')),
-    default=Value(settings.DEFAULT_PLATFORM_NAME),
+    default=Value(DEFAULT_PLATFORM_NAME),
     output_field=CharField())
 PRODUCTEUR_NOM = F('organisation__legal_name')
 PRODUCTEUR_SIRET = COLL_SIRET
@@ -84,7 +91,7 @@ FORMAT_RESSOURCES = Func(
 PROJECTION = StringAgg('resource__crs__auth_code', distinct=True, delimiter=';')
 LANG = Value('FR', output_field=CharField())  # StringAgg('resource__lang', distinct=True, delimiter=';')
 URL = Concat(
-    Value(urljoin(settings.CKAN_URL, 'dataset/')), F('slug'),
+    Value(urljoin(CKAN_URL, 'dataset/')), F('slug'),
     output_field=CharField())
 
 

@@ -45,18 +45,29 @@ import requests
 from uuid import UUID
 
 
-EXTRACTOR_URL = settings.EXTRACTOR_URL
+try:
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+    EXTRACTOR_URL = getattr(settings, 'EXTRACTOR_URL')
+    DATABASES = getattr(settings, 'DATABASES')
+    DB_SETTINGS = DATABASES[settings.DATAGIS_DB]
+    DB_HOST = DB_SETTINGS['HOST']
+    DB_PORT = DB_SETTINGS['PORT']
+    DB_NAME = DB_SETTINGS['NAME']
+    DB_USER = DB_SETTINGS['USER']
+    DB_PASSWORD = DB_SETTINGS['PASSWORD']
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
 try:
     BOUNDS = settings.EXTRACTOR_BOUNDS
 except AttributeError:
     BOUNDS = [[40, -14], [55, 28]]
 
-DB_SETTINGS = settings.DATABASES[settings.DATAGIS_DB]
 
-decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def extractor_task(request, *args, **kwargs):
 
@@ -430,11 +441,11 @@ class Extractor(View):
                     **{
                         'layer': layer.name,
                         'source': 'PG:host={host} port={port} dbname={database} user={user} password={password}'.format(
-                            host=DB_SETTINGS['HOST'],
-                            port=DB_SETTINGS['PORT'],
-                            database=DB_SETTINGS['NAME'],
-                            user=DB_SETTINGS['USER'],
-                            password=DB_SETTINGS['PASSWORD'],
+                            host=DB_HOST,
+                            port=DB_PORT,
+                            database=DB_NAME,
+                            user=DB_USER,
+                            password=DB_PASSWORD,
                             ),
                         },
                     **dst_format_vector

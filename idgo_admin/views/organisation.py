@@ -63,9 +63,14 @@ from idgo_admin.mra_client import MRAHandler
 import operator
 
 
-CKAN_URL = settings.CKAN_URL
+try:
+    CKAN_URL = getattr(settings, 'CKAN_URL')
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
-decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+
+decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
 
 
 def creation_process(request, profile, organisation, mail=True):
@@ -146,7 +151,7 @@ def referent_unsubscribe_process(request, profile, organisation):
         organisation=organisation, profile=profile).delete()
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def idgo_partnership(request):
     id = request.GET.get('id')
@@ -157,7 +162,7 @@ def idgo_partnership(request):
     send_mail_asking_for_idgo_partnership(user, organisation)
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def handle_show_organisation(request, *args, **kwargs):
     profile = request.user.profile
@@ -184,7 +189,7 @@ def handle_show_organisation(request, *args, **kwargs):
     return redirect('idgo_admin:show_organisation', id=id)
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def show_organisation(request, id, *args, **kwargs):
     profile = request.user.profile

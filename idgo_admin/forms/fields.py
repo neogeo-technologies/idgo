@@ -24,10 +24,7 @@ from idgo_admin.models import OrganisationType
 import re
 
 
-try:
-    PHONE_REGEX = settings.PHONE_REGEX
-except AttributeError:
-    PHONE_REGEX = '^0\d{9}$'
+PHONE_REGEX = getattr(settings, 'PHONE_REGEX', '^0\d{9}$')
 
 
 class CustomCheckboxSelectMultiple(forms.CheckboxSelectMultiple):

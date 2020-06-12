@@ -25,8 +25,14 @@ from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.shortcuts import on_profile_http404
 
 
+try:
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+
 @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def home(request, *args, **kwargs):
     return redirect(reverse('idgo_admin:list_my_datasets'))

@@ -34,10 +34,15 @@ import os
 import re
 
 
-MRA = settings.MRA
-OWS_URL_PATTERN = settings.OWS_URL_PATTERN
-CKAN_STORAGE_PATH = settings.CKAN_STORAGE_PATH
-MAPSERV_STORAGE_PATH = settings.MAPSERV_STORAGE_PATH
+try:
+    MRA = getattr(settings, 'MRA')
+    OWS_URL_PATTERN = getattr(settings, 'OWS_URL_PATTERN')
+    CKAN_STORAGE_PATH = getattr(settings, 'CKAN_STORAGE_PATH')
+    MAPSERV_STORAGE_PATH = getattr(settings, 'MAPSERV_STORAGE_PATH')
+    DEFAULTS_VALUES = getattr(settings, 'DEFAULTS_VALUES')
+    DEFAULTS_VALUES_SRID = DEFAULTS_VALUES['SRID']
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 
 def get_all_users_for_organisations(list_id):
@@ -412,7 +417,7 @@ class Layer(models.Model):
             'getlegendgraphic': getlegendgraphic}
 
         try:
-            DEFAULT_SRID = settings.DEFAULTS_VALUES['SRID']
+            DEFAULT_SRID = DEFAULTS_VALUES_SRID
         except Exception:
             DEFAULT_SRID = 4326
         else:

@@ -76,6 +76,13 @@ from idgo_admin.views.stuffs import DisplayLicenses
 from idgo_admin.views.stuffs import ows_preview
 
 
+try:
+    MEDIA_URL = getattr(settings, 'MEDIA_URL')
+    MEDIA_ROOT = getattr(settings, 'MEDIA_ROOT')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+
 urlpatterns = [
     url('^$', home, name='home'),
 
@@ -156,5 +163,5 @@ urlpatterns = [
     ]
 
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if getattr(settings, 'DEBUG', False):
+    urlpatterns += static(MEDIA_URL, document_root=MEDIA_ROOT)

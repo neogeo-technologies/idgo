@@ -26,8 +26,11 @@ from smtplib import SMTPDataError
 from urllib.parse import urljoin
 
 
-EXTRACTOR_URL_PUBLIC = settings.EXTRACTOR_URL_PUBLIC
-DEFAULT_FROM_EMAIL = settings.DEFAULT_FROM_EMAIL
+try:
+    EXTRACTOR_URL_PUBLIC = getattr(settings, 'EXTRACTOR_URL_PUBLIC')
+    DEFAULT_FROM_EMAIL = getattr(settings, 'DEFAULT_FROM_EMAIL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 
 class MailError(GenericException):

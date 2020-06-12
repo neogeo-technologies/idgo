@@ -34,12 +34,15 @@ import timeout_decorator
 import unicodedata
 from urllib.parse import urljoin
 
-CKAN_URL = settings.CKAN_URL
-CKAN_API_KEY = settings.CKAN_API_KEY
+
 try:
-    CKAN_TIMEOUT = settings.GEONET_TIMEOUT
-except AttributeError:
-    CKAN_TIMEOUT = 36000
+    CKAN_URL = getattr(settings, 'CKAN_URL')
+    CKAN_API_KEY = getattr(settings, 'CKAN_API_KEY')
+    DOMAIN_NAME = getattr(settings, 'DOMAIN_NAME')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+CKAN_TIMEOUT = getattr(settings, 'GEONET_TIMEOUT', 36000)
 
 
 def timeout(fun):
@@ -392,8 +395,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
                 {'key': 'city', 'value': organisation.city or ''}],
             'state': 'active'}
         try:
-            params['image_url'] = \
-                urljoin(settings.DOMAIN_NAME, organisation.logo.url)
+            params['image_url'] = urljoin(DOMAIN_NAME, organisation.logo.url)
         except ValueError:
             pass
         self.call_action('organization_create', **params)
@@ -418,7 +420,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
         try:
             if organisation.logo:
                 ckan_organisation['image_url'] = \
-                    urljoin(settings.DOMAIN_NAME, organisation.logo.url)
+                    urljoin(DOMAIN_NAME, organisation.logo.url)
         except ValueError:
             pass
 
@@ -519,8 +521,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
             'name': group.slug,
             'description': group.description}
         try:
-            ckan_group['image_url'] = \
-                urljoin(settings.DOMAIN_NAME, group.picto.url)
+            ckan_group['image_url'] = urljoin(DOMAIN_NAME, group.picto.url)
         except ValueError:
             pass
         return self.call_action('group_create', **ckan_group)
@@ -540,8 +541,7 @@ class CkanManagerHandler(CkanBaseHandler, metaclass=Singleton):
             ckan_group[val] = [{'id': e['id'], 'name': e['name']} for e in lst]
 
         try:
-            ckan_group['image_url'] = \
-                urljoin(settings.DOMAIN_NAME, group.picto.url)
+            ckan_group['image_url'] = urljoin(DOMAIN_NAME, group.picto.url)
         except ValueError:
             pass
         try:

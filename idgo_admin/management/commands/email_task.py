@@ -28,7 +28,11 @@ from io import StringIO
 # import time
 
 
-FROM_EMAIL = settings.DEFAULT_FROM_EMAIL
+try:
+    FROM_EMAIL = getattr(settings, 'DEFAULT_FROM_EMAIL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
 TODAY = tzdatetime.today().date()
 # ISO_CALENDAR = datetime.now().isocalendar()
 

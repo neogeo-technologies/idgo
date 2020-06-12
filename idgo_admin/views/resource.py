@@ -44,24 +44,21 @@ import json
 import os
 
 
-CKAN_URL = settings.CKAN_URL
-
-FTP_DIR = settings.FTP_DIR
 try:
-    FTP_UPLOADS_DIR = settings.FTP_UPLOADS_DIR
-except AttributeError:
-    FTP_UPLOADS_DIR = 'uploads'
+    CKAN_URL = getattr(settings, 'CKAN_URL')
+    FTP_DIR = getattr(settings, 'FTP_DIR')
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
-try:
-    FTP_USER_PREFIX = settings.FTP_USER_PREFIX
-except AttributeError:
-    FTP_USER_PREFIX = ''
-
-
-decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+FTP_UPLOADS_DIR = getattr(settings, 'FTP_UPLOADS_DIR', 'uploads')
+FTP_USER_PREFIX = getattr(settings, 'FTP_USER_PREFIX', '')
 
 
-@login_required(login_url=settings.LOGIN_URL)
+decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
+
+
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def resource(request, dataset_id=None, *args, **kwargs):
 

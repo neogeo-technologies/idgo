@@ -47,12 +47,17 @@ from idgo_admin.models import Organisation
 from math import ceil
 
 
-CKAN_URL = settings.CKAN_URL
+try:
+    CKAN_URL = getattr(settings, 'CKAN_URL')
+    LOGIN_URL = getattr(settings, 'LOGIN_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
-decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
+
+decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def jurisdiction(request, *args, **kwargs):
 
@@ -65,7 +70,7 @@ def jurisdiction(request, *args, **kwargs):
     return redirect(reverse('idgo_admin:jurisdiction_editor', kwargs={'code': instance.code}))
 
 
-@login_required(login_url=settings.LOGIN_URL)
+@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def jurisdictions(request, *args, **kwargs):
     user = request.user

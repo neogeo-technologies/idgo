@@ -33,21 +33,13 @@ import os
 
 
 try:
-    DOWNLOAD_SIZE_LIMIT = settings.DOWNLOAD_SIZE_LIMIT
-except AttributeError:
-    DOWNLOAD_SIZE_LIMIT = 104857600  # 100Mio
+    FTP_DIR = getattr(settings, 'FTP_DIR')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
-
-FTP_DIR = settings.FTP_DIR
-try:
-    FTP_UPLOADS_DIR = settings.FTP_UPLOADS_DIR
-except AttributeError:
-    FTP_UPLOADS_DIR = 'uploads'
-
-try:
-    FTP_USER_PREFIX = settings.FTP_USER_PREFIX
-except AttributeError:
-    FTP_USER_PREFIX = ''
+DOWNLOAD_SIZE_LIMIT = getattr(settings, 'DOWNLOAD_SIZE_LIMIT', 104857600)  # 100Mio
+FTP_UPLOADS_DIR = getattr(settings, 'FTP_UPLOADS_DIR', 'uploads')
+FTP_USER_PREFIX = getattr(settings, 'FTP_UPLOADS_DIR', '')
 
 
 def file_size(value):

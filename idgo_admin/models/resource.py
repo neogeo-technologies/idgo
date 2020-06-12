@@ -59,17 +59,21 @@ import uuid
 
 
 try:
-    DOWNLOAD_SIZE_LIMIT = settings.DOWNLOAD_SIZE_LIMIT
-except AttributeError:
-    DOWNLOAD_SIZE_LIMIT = 104857600
+    BASE_DIR = getattr(settings, 'BASE_DIR')
+    CKAN_STORAGE_PATH = getattr(settings, 'CKAN_STORAGE_PATH')
+    OWS_URL_PATTERN = getattr(settings, 'OWS_URL_PATTERN')
+    CKAN_URL = getattr(settings, 'CKAN_URL')
+    MEDIA_ROOT = getattr(settings, 'MEDIA_ROOT')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
-if settings.STATIC_ROOT:
-    locales_path = os.path.join(
-        settings.STATIC_ROOT, 'mdedit/config/locales/fr/locales.json')
+DOWNLOAD_SIZE_LIMIT = getattr(settings, 'DOWNLOAD_SIZE_LIMIT', 104857600)
+
+if hasattr(settings, 'STATIC_ROOT'):
+    STATIC_ROOT = getattr(settings, 'STATIC_ROOT')
+    locales_path = os.path.join(STATIC_ROOT, 'mdedit/config/locales/fr/locales.json')
 else:
-    locales_path = os.path.join(
-        settings.BASE_DIR,
-        'idgo_admin/static/mdedit/config/locales/fr/locales.json')
+    locales_path = os.path.join(BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')
 
 try:
     with open(locales_path, 'r', encoding='utf-8') as f:
@@ -79,10 +83,6 @@ try:
             in MDEDIT_LOCALES['codelists']['MD_LinkageProtocolCode'])
 except Exception:
     AUTHORIZED_PROTOCOL = None
-
-CKAN_STORAGE_PATH = settings.CKAN_STORAGE_PATH
-OWS_URL_PATTERN = settings.OWS_URL_PATTERN
-CKAN_URL = settings.CKAN_URL
 
 
 def get_all_users_for_organisations(list_id):
@@ -421,7 +421,7 @@ class Resource(models.Model):
 
     @property
     def ckan_url(self):
-        return urljoin(settings.CKAN_URL, 'dataset/{}/resource/{}/'.format(
+        return urljoin(CKAN_URL, 'dataset/{}/resource/{}/'.format(
             self.dataset.slug, self.ckan_id))
 
     @property
@@ -528,7 +528,7 @@ class Resource(models.Model):
         elif self.dl_url and not skip_download:
             try:
                 directory, filename, content_type = download(
-                    self.dl_url, settings.MEDIA_ROOT, max_size=DOWNLOAD_SIZE_LIMIT)
+                    self.dl_url, MEDIA_ROOT, max_size=DOWNLOAD_SIZE_LIMIT)
             except SizeLimitExceededError as e:
                 l = len(str(e.max_size))
                 if l > 6:
@@ -568,7 +568,7 @@ class Resource(models.Model):
                 filename=filename, with_user=current_user)
         elif synchronize and not publish_raw_resource:
             url = reduce(urljoin, [
-                settings.CKAN_URL,
+                CKAN_URL,
                 'dataset/', str(self.dataset.ckan_id) + '/',
                 'resource/', str(self.ckan_id) + '/',
                 'download/', Path(self.ftp_file.name).name])

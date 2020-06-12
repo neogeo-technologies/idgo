@@ -22,7 +22,12 @@ from idgo_admin.utils import clean_my_obj
 from itertools import chain
 
 
-COMMUNES_REGEX = settings.DEFAULTS_VALUES.get('COMMUNES_REGEX', '^\d(\d|A|B)\d{3}$')
+try:
+    DEFAULTS_VALUES = getattr(settings, 'DEFAULTS_VALUES')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+COMMUNES_REGEX = DEFAULTS_VALUES.get('COMMUNES_REGEX', '^\d(\d|A|B)\d{3}$')
 
 
 # =========================================================
