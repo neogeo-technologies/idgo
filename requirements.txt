@@ -15,10 +15,12 @@ pillow
 lxml
 redis
 celery
--e git+https://github.com/neogeo-technologies/OWSLib.git@idgo#egg=OWSLib
 markdown
 xmltodict
-# A supprimer quand passage Python 3.6+
-python2-secrets
 rdflib
 geomet
+# -e git+https://github.com/neogeo-technologies/OWSLib.git@idgo#egg=OWSLib
+
+# < Python 3.6
+python2-secrets
+
