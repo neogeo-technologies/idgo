@@ -24,6 +24,7 @@ from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
+from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -31,9 +32,7 @@ from django.views import View
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CriticalError
 from idgo_admin.exceptions import CswBaseError
-from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import GenericException
-from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.organisation import OrganisationForm as Form
 from idgo_admin.forms.organisation import RemoteCkanForm
 from idgo_admin.forms.organisation import RemoteCswForm
@@ -56,9 +55,6 @@ from idgo_admin.models import RemoteCkan
 from idgo_admin.models import RemoteCsw
 from idgo_admin.models import SupportedCrs
 from idgo_admin.mra_client import MRAHandler
-from idgo_admin.shortcuts import on_profile_http404
-from idgo_admin.shortcuts import render_with_info_profile
-from idgo_admin.shortcuts import user_and_profile
 import operator
 
 
@@ -151,7 +147,7 @@ def idgo_partnership(request):
     id = request.GET.get('id')
     if not id:
         raise Http404()
-    user, profile = user_and_profile(request)
+    user = request.user
     organisation = get_object_or_404(Organisation, id=id, is_active=True)
     send_mail_asking_for_idgo_partnership(user, organisation)
 
@@ -159,7 +155,7 @@ def idgo_partnership(request):
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def handle_show_organisation(request, *args, **kwargs):
-    user, profile = user_and_profile(request)
+    profile = request.user.profile
 
     pk = request.GET.get('id')
     if pk:
@@ -180,13 +176,13 @@ def handle_show_organisation(request, *args, **kwargs):
         id = -1
     else:
         id = organisation.id
-    return redirect(reverse('idgo_admin:show_organisation', kwargs={'id': id}))
+    return redirect('idgo_admin:show_organisation', id=id)
 
 
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def show_organisation(request, id, *args, **kwargs):
-    user, profile = user_and_profile(request)
+    profile = request.user.profile
 
     all_organisations = []
     for instance in Organisation.objects.filter(is_active=True):
@@ -212,8 +208,7 @@ def show_organisation(request, id, *args, **kwargs):
         'organisation': organisation,
         }
 
-    return render_with_info_profile(
-        request, 'idgo_admin/organisation/show.html', context=context)
+    return render(request, 'idgo_admin/organisation/show.html', context=context)
 
 
 @method_decorator(decorators, name='dispatch')
@@ -221,25 +216,19 @@ class CreateOrganisation(View):
 
     template = 'idgo_admin/organisation/edit.html'
 
-    @ExceptionsHandler(
-        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request):
-        user, profile = user_and_profile(request)
-        context = {'form': Form(include={'user': user, 'extended': True})}
+        context = {'form': Form(include={'user': request.user, 'extended': True})}
+        return render(request, self.template, context=context)
 
-        return render_with_info_profile(
-            request, self.template, context=context)
-
-    @ExceptionsHandler(
-        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def post(self, request):
-        user, profile = user_and_profile(request)
+        user = request.user
+        profile = user.profile
 
         form = Form(
             request.POST, request.FILES, include={'user': user})
 
         if not form.is_valid():
-            return render_with_info_profile(
+            return render(
                 request, self.template, context={'form': form})
 
         try:
@@ -248,7 +237,7 @@ class CreateOrganisation(View):
                 for item in form.Meta.organisation_fields))
         except ValidationError as e:
             messages.error(request, e.__str__())
-            return render_with_info_profile(
+            return render(
                 request, self.template, context={'form': form})
 
         creation_process(request, profile, organisation)
@@ -267,17 +256,16 @@ class CreateOrganisation(View):
 
         messages.success(request, 'La demande a bien été envoyée.')
 
-        return HttpResponseRedirect(reverse('idgo_admin:handle_show_organisation'))
+        return redirect('idgo_admin:handle_show_organisation')
 
 
 @method_decorator(decorators, name='dispatch')
 class UpdateOrganisation(View):
     template = 'idgo_admin/organisation/edit.html'
 
-    @ExceptionsHandler(
-        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, id=None):
-        user, profile = user_and_profile(request)
+        user = request.user
+        profile = user.profile
 
         is_admin = profile.is_admin
         is_referent = LiaisonsReferents.objects.filter(
@@ -286,7 +274,7 @@ class UpdateOrganisation(View):
 
         if is_referent or is_admin:
             instance = get_object_or_404(Organisation, id=id)
-            return render_with_info_profile(
+            return render(
                 request, self.template, context={
                     'id': id,
                     'update': True,
@@ -295,17 +283,15 @@ class UpdateOrganisation(View):
                                  include={'user': user, 'id': id})})
         raise Http404()
 
-    @ExceptionsHandler(
-        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def post(self, request, id=None):
-        user, profile = user_and_profile(request)
+        user = request.user
 
         instance = get_object_or_404(Organisation, id=id)
         form = Form(request.POST, request.FILES,
                     instance=instance, include={'user': user, 'id': id})
 
         if not form.is_valid():
-            return render_with_info_profile(
+            return render(
                 request, self.template, context={'id': id, 'form': form})
 
         for item in form.Meta.fields:
@@ -328,7 +314,7 @@ class UpdateOrganisation(View):
                 'organisation': instance,
                 'form': Form(
                     instance=instance, include={'user': user, 'id': id})}
-            return render_with_info_profile(
+            return render(
                 request, self.template, context=context)
 
         return HttpResponseRedirect(
@@ -338,10 +324,8 @@ class UpdateOrganisation(View):
 @method_decorator(decorators, name='dispatch')
 class OrganisationOWS(View):
 
-    @ExceptionsHandler(
-        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def post(self, request):
-        user, profile = user_and_profile(request)
+        profile = request.user.profile
 
         instance = get_object_or_404(Organisation, id=request.GET.get('id'))
 
@@ -368,11 +352,9 @@ class OrganisationOWS(View):
 @method_decorator(decorators, name='dispatch')
 class Subscription(View):
 
-    @ExceptionsHandler(
-        ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, status=None, subscription=None):
 
-        user, profile = user_and_profile(request)
+        profile = request.user.profile
 
         organisation = get_object_or_404(Organisation, id=request.GET.get('id'))
 
@@ -416,9 +398,8 @@ class Subscription(View):
 
         # TODO Revoir la gestion de l'AJAX sur la page des organisations
 
-        return JsonResponse(data={})  # Bidon
-        # return HttpResponseRedirect(
-        #     reverse('idgo_admin:show_organisation', kwargs={'id': organisation.id}))
+        return JsonResponse(data={})  # Bidon ... d'huile
+        # return redirect('idgo_admin:show_organisation', id=organisation.id)
 
 
 # ========================
@@ -433,7 +414,7 @@ class RemoteCkanEditor(View):
 
     def get(self, request, id, *args, **kwargs):
 
-        user, profile = user_and_profile(request)
+        profile = request.user.profile
 
         is_admin = profile.is_admin
         is_referent = LiaisonsReferents.objects.filter(
@@ -456,14 +437,14 @@ class RemoteCkanEditor(View):
 
             context['form'] = form
 
-            return render_with_info_profile(
+            return render(
                 request, self.template, context=context)
 
         raise Http404()
 
     def post(self, request, id, *args, **kwargs):
 
-        user, profile = user_and_profile(request)
+        profile = request.user.profile
 
         is_admin = profile.is_admin
         is_referent = LiaisonsReferents.objects.filter(
@@ -513,7 +494,7 @@ class RemoteCkanEditor(View):
             context['form'] = form
 
             if not form.is_valid():
-                return render_with_info_profile(
+                return render(
                     request, self.template, context=context)
 
             for k, v in form.cleaned_data.items():
@@ -544,11 +525,11 @@ class RemoteCkanEditor(View):
                 messages.success(request, msg)
 
         if 'continue' in request.POST or error:
-            return HttpResponseRedirect(
-                reverse('idgo_admin:edit_remote_ckan_link', kwargs={'id': organisation.id}))
+            namespace = 'idgo_admin:edit_remote_ckan_link'
+        else:
+            namespace = 'idgo_admin:update_organisation'
 
-        return HttpResponseRedirect(
-            reverse('idgo_admin:update_organisation', kwargs={'id': organisation.id}))
+        return redirect(namespace, id=organisation.id)
 
     def map_categories(self, instance, mapper, form):
         MappingCategory.objects.filter(remote_ckan=instance).delete()
@@ -578,7 +559,7 @@ class DeleteRemoteCkanLinked(View):
 
     def post(self, request, id, *args, **kwargs):
 
-        user, profile = user_and_profile(request)
+        profile = request.user.profile
 
         is_admin = profile.is_admin
         is_referent = LiaisonsReferents.objects.filter(
@@ -604,8 +585,7 @@ class DeleteRemoteCkanLinked(View):
                 'ressources synchronisés avec le catalogue distant '
                 'ont été supprimés avec succès.'))
 
-        return HttpResponseRedirect(
-            reverse('idgo_admin:update_organisation', kwargs={'id': organisation.id}))
+        return redirect('idgo_admin:update_organisation', id=organisation.id)
 
 
 # =======================
@@ -620,7 +600,7 @@ class RemoteCswEditor(View):
 
     def get(self, request, id, *args, **kwargs):
 
-        user, profile = user_and_profile(request)
+        profile = request.user.profile
 
         is_admin = profile.is_admin
         is_referent = LiaisonsReferents.objects.filter(
@@ -643,14 +623,14 @@ class RemoteCswEditor(View):
 
             context['form'] = form
 
-            return render_with_info_profile(
+            return render(
                 request, self.template, context=context)
 
         raise Http404()
 
     def post(self, request, id, *args, **kwargs):
 
-        user, profile = user_and_profile(request)
+        profile = request.user.profile
 
         is_admin = profile.is_admin
         is_referent = LiaisonsReferents.objects.filter(
@@ -685,8 +665,7 @@ class RemoteCswEditor(View):
 
         if not form.is_valid():
             messages.error(request, form._errors.__str__())
-            return HttpResponseRedirect(
-                reverse('idgo_admin:edit_remote_csw_link', kwargs={'id': organisation.id}))
+            return redirect('idgo_admin:edit_remote_csw_link', id=organisation.id)
 
         for k, v in form.cleaned_data.items():
             setattr(instance, k, v)
@@ -716,11 +695,10 @@ class RemoteCswEditor(View):
             messages.success(request, msg)
 
         if 'continue' in request.POST or error:
-            return render_with_info_profile(
+            return render(
                 request, self.template, context=context)
 
-        return HttpResponseRedirect(
-            reverse('idgo_admin:update_organisation', kwargs={'id': organisation.id}))
+        return redirect('idgo_admin:update_organisation', id=organisation.id)
 
 
 @method_decorator(decorators, name='dispatch')
@@ -728,7 +706,7 @@ class DeleteRemoteCswLinked(View):
 
     def post(self, request, id, *args, **kwargs):
 
-        user, profile = user_and_profile(request)
+        profile = request.user.profile
 
         is_admin = profile.is_admin
         is_referent = LiaisonsReferents.objects.filter(
@@ -754,5 +732,4 @@ class DeleteRemoteCswLinked(View):
                 'ressources synchronisés avec le catalogue distant '
                 'ont été supprimés avec succès.'))
 
-        return HttpResponseRedirect(
-            reverse('idgo_admin:update_organisation', kwargs={'id': organisation.id}))
+        return redirect('idgo_admin:update_organisation', id=organisation.id)

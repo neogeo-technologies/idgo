@@ -21,18 +21,16 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
-from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
+from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from idgo_admin.exceptions import CkanBaseError
-from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import MraBaseError
-from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models.mail import send_resource_creation_mail
@@ -40,9 +38,7 @@ from idgo_admin.models.mail import send_resource_delete_mail
 from idgo_admin.models.mail import send_resource_update_mail
 from idgo_admin.models import Resource
 from idgo_admin.shortcuts import get_object_or_404_extended
-from idgo_admin.shortcuts import on_profile_http404
-from idgo_admin.shortcuts import render_with_info_profile
-from idgo_admin.shortcuts import user_and_profile
+
 from idgo_admin.views.dataset import target as datasets_target
 import json
 import os
@@ -68,7 +64,6 @@ decorators = [csrf_exempt, login_required(login_url=settings.LOGIN_URL)]
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def resource(request, dataset_id=None, *args, **kwargs):
-    user, profile = user_and_profile(request)
 
     id = request.GET.get('id', request.GET.get('ckan_id'))
     if not id:
@@ -130,10 +125,9 @@ class ResourceManager(View):
             'mode': mode,
             }
 
-    @ExceptionsHandler(actions={ProfileHttp404: on_profile_http404})
     def get(self, request, dataset_id=None, *args, **kwargs):
 
-        user, profile = user_and_profile(request)
+        user = request.user
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
@@ -157,9 +151,8 @@ class ResourceManager(View):
         form = Form(instance=resource, user=user)
         context = self.get_context(form, user, dataset, resource=resource)
 
-        return render_with_info_profile(request, self.template, context)
+        return render(request, self.template, context)
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     @transaction.atomic
     def post(self, request, dataset_id=None, *args, **kwargs):
 
@@ -167,7 +160,7 @@ class ResourceManager(View):
         storage = messages.get_messages(request)
         storage.used = True
 
-        user, profile = user_and_profile(request)
+        user = request.user
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})
@@ -196,7 +189,7 @@ class ResourceManager(View):
                     error['__all__'] = [msg]
                 return JsonResponse(json.dumps({'error': error}), safe=False)
 
-            return render_with_info_profile(request, self.template, context)
+            return render(request, self.template, context)
 
         data = form.cleaned_data
 
@@ -312,21 +305,20 @@ class ResourceManager(View):
             else:
                 if save_and_continue:
                     url = '{0}?id={1}'.format(dataset_href, resource.id)
-                    return HttpResponseRedirect(url)
+                    return redirect(url)
                 # else:
                 url = '{0}?id={1}#resources/{2}'.format(
                     reverse('idgo_admin:dataset'), dataset_id, resource.id)
-                return HttpResponseRedirect(url)
+                return redirect(url)
 
         if ajax:
             form._errors = None
             return JsonResponse(json.dumps({'error': error}), safe=False)
-        return render_with_info_profile(request, self.template, context)
+        return render(request, self.template, context)
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, dataset_id=None, *args, **kwargs):
 
-        user, profile = user_and_profile(request)
+        user = request.user
 
         dataset = get_object_or_404_extended(
             Dataset, user, include={'id': dataset_id})

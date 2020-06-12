@@ -85,7 +85,7 @@ $(function() {
 			$row.prop('selected', true).addClass('selected');
 
 			$ckanUserCard.off('click').on('click', function(e) {
-				targetBlank('{{ ckan_url }}/user/' + username);
+				targetBlank('{{ CKAN_URL }}/user/' + username);
 			})
 			$ckanUserCard.removeClass('disabled').prop('disabled', false);
 

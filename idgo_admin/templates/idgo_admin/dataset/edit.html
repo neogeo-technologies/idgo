@@ -6,9 +6,9 @@
 	<div class="buttons-on-the-right-side" style="margin-bottom: 20px;">
 		{% if dataset %}
 		<a class="btn btn-default" href="{% url 'idgo_admin:dataset_mdedit' id=dataset.pk %}">Éditer la fiche de métadonnées INSPIRE</a>
-		<a class="btn btn-default" target="_blank" href="{{ ckan_url }}/dataset/{{ dataset.slug }}">Ouvrir dans CKAN</a>
+		<a class="btn btn-default" target="_blank" href="{{ CKAN_URL }}/dataset/{{ dataset.slug }}">Ouvrir dans CKAN</a>
 		{% endif %}
-		<a role="button" class="btn btn-secondary" target="_blank" href="{{ doc_url }}">
+		<a role="button" class="btn btn-secondary" target="_blank" href="{{ READTHEDOC_URL }}">
 			<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
 		</a>
 	</div>
@@ -178,8 +178,8 @@ $(function() {
 			name = supports[this.value]['name'];
 			email = supports[this.value]['email'];
 		} else {
-			name = '{{ platform_name|default:"IDGO" }}';
-			email = '{{ contact_email|default:"contact@idgo.fr" }}';
+			name = '{{ DEFAULT_PLATFORM_NAME }}';
+			email = '{{ DEFAULT_CONTACT_EMAIL }}';
 		};
 		$('input[name="{{ form.broadcaster_name.name }}"]').prop('placeholder', name)
 		$('input[name="{{ form.broadcaster_email.name }}"]').prop('placeholder', email)

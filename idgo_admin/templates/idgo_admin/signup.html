@@ -17,7 +17,7 @@
 					<div class="panel-heading-logo">
 						<img src="{% static 'img/logo.png' %}"></img>
 					</div>
-					<h3>Créer votre compte {{ platform_name|default:"IDGO" }}</h3>
+					<h3>Créer votre compte {{ DEFAULT_PLATFORM_NAME }}</h3>
 				</div>
 				<div class="panel-body">
 					<form method="post" action="" enctype="multipart/form-data">
@@ -200,7 +200,7 @@ $(function() {
 
 	const $collapseOne = $('#collapse-one').collapse({toggle: false})
 		.on('hidden.bs.collapse', function() {
-			{% if is_membership %}
+			{% if user.profile.is_membership %}
 			$inputReferent.prop('checked', false).trigger('change');
 			{% else %}
 			$inputReferent.prop('checked', true).trigger('change');

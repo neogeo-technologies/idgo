@@ -75,7 +75,7 @@
 			{% endif %}
 		</button>
 		{% endif %}
-		{% if not is_admin and organisation not in user.profile.awaiting_referent_statut %}
+		{% if not user.profile.is_admin and organisation not in user.profile.awaiting_referent_statut %}
 		<button role="button" name="switch-referent" class="btn btn-default btn-block">
 			{% if organisation in user.profile.referent_for %}
 			Je <strong>ne</strong> souhaite <strong>plus</strong> être référent technique
@@ -147,7 +147,7 @@ $(function() {
 	});
 	{% endif %}
 
-	{% if not is_admin and organisation not in user.profile.awaiting_referent_statut %}
+	{% if not user.profile.is_admin and organisation not in user.profile.awaiting_referent_statut %}
 	$('button[name="switch-referent"]').click(function() {
 		{% if organisation in user.profile.referent_for %}
 		openModalChangeStatus('{% url "idgo_admin:subscription" status="referent" subscription="unsubscribe" %}', {{ organisation.id }});

@@ -25,20 +25,18 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
+from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from functools import reduce
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import CkanBaseError
-from idgo_admin.exceptions import ExceptionsHandler
-from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import LiaisonsContributeurs
-from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import License
 from idgo_admin.models.mail import send_dataset_creation_mail
 from idgo_admin.models.mail import send_dataset_delete_mail
@@ -48,9 +46,7 @@ from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
 from idgo_admin.models import Support
 from idgo_admin.shortcuts import get_object_or_404_extended
-from idgo_admin.shortcuts import on_profile_http404
-from idgo_admin.shortcuts import render_with_info_profile
-from idgo_admin.shortcuts import user_and_profile
+
 import json
 from math import ceil
 from operator import ior
@@ -193,15 +189,13 @@ def handle_context(QuerySet, qs, user=None, target='mine'):
         }
 
 
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def list_dataset(request, *args, **kwargs):
-    user, profile = user_and_profile(request)
 
     id = request.GET.get('id', request.GET.get('slug'))
     if not id:
-        return redirect(reverse('idgo_admin:list_my_datasets'))
+        return redirect('idgo_admin:list_my_datasets')
     kvp = {}
     try:
         id = int(id)
@@ -211,72 +205,66 @@ def list_dataset(request, *args, **kwargs):
         kvp['id'] = id
     # finally:
     instance = get_object_or_404(Dataset, **kvp)
-    return redirect(reverse('idgo_admin:dataset_editor', kwargs={'id': instance.id}))
+    return redirect('idgo_admin:dataset_editor', id=instance.id)
 
 
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def list_my_datasets(request, *args, **kwargs):
-    user, profile = user_and_profile(request)
+
     context = handle_context(
-        Dataset.default.filter(editor=user), request.GET, target='mine')
-    return render_with_info_profile(
+        Dataset.default.filter(editor=request.user), request.GET, target='mine')
+    return render(
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def list_all_datasets(request, *args, **kwargs):
-    user, profile = user_and_profile(request)
+    user = request.user
     # Réservé aux référents ou administrateurs métiers
-    roles = profile.get_roles()
+    roles = user.profile.get_roles()
     if roles['is_admin']:
         QuerySet = Dataset.default.all()
     elif roles['is_referent']:
-        kwargs = {'profile': profile, 'validated_on__isnull': False}
-        organisation__in = set(instance.organisation for instance
-                               in LiaisonsReferents.objects.filter(**kwargs))
-        filter = ior(Q(editor=user), Q(organisation__in=organisation__in))
+        organisation__in = Organisation.extras.get_subordinated_organisations(user.profile)
+        filter = ior(Q(editor=request.user), Q(organisation__in=organisation__in))
         QuerySet = Dataset.default.filter(filter)
     else:
         raise Http404()
     context = handle_context(
         QuerySet, request.GET, target='all')
-    return render_with_info_profile(
+    return render(
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def list_all_ckan_harvested_datasets(request, *args, **kwargs):
-    user, profile = user_and_profile(request)
+    user = request.user
 
     # Réservé aux référents ou administrateurs métiers
-    roles = profile.get_roles()
+    roles = user.profile.get_roles()
     if not roles['is_referent'] and not roles['is_admin']:
         raise Http404()
     context = handle_context(
         Dataset.harvested_ckan, request.GET, target='ckan_harvested')
-    return render_with_info_profile(
+    return render(
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
-@ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
 @login_required(login_url=settings.LOGIN_URL)
 @csrf_exempt
 def list_all_csw_harvested_datasets(request, *args, **kwargs):
-    user, profile = user_and_profile(request)
+    user = request.user
 
     # Réservé aux référents ou administrateurs métiers
-    roles = profile.get_roles()
+    roles = user.profile.get_roles()
     if not roles['is_referent'] and not roles['is_admin']:
         raise Http404()
     context = handle_context(
         Dataset.harvested_csw, request.GET, target='csw_harvested')
-    return render_with_info_profile(
+    return render(
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
@@ -372,12 +360,11 @@ class DatasetManager(View):
             'tags': json.dumps(tags),
             }
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def get(self, request, id, *args, **kwargs):
-        user, profile = user_and_profile(request)
+        user = request.user
 
         if not LiaisonsContributeurs.objects.filter(
-                profile=profile, validated_on__isnull=False).exists():
+                profile=user.profile, validated_on__isnull=False).exists():
             raise Http404()
 
         if id != 'new':
@@ -394,17 +381,16 @@ class DatasetManager(View):
         form = Form(instance=instance, include=include)
         context = self.get_context(form, user, instance)
 
-        return render_with_info_profile(
+        return render(
             request, 'idgo_admin/dataset/dataset.html', context=context)
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     @transaction.atomic
     def post(self, request, id, *args, **kwargs):
 
-        user, profile = user_and_profile(request)
+        user = request.user
 
         if not LiaisonsContributeurs.objects.filter(
-                profile=profile, validated_on__isnull=False).exists():
+                profile=user.profile, validated_on__isnull=False).exists():
             raise Http404()
 
         if id != 'new':
@@ -424,7 +410,7 @@ class DatasetManager(View):
         if not form.is_valid():
             errors = form._errors.get('__all__', [])
             errors and messages.error(request, ' '.join(errors))
-            return render_with_info_profile(
+            return render(
                 request, 'idgo_admin/dataset/dataset.html', context)
 
         data = form.cleaned_data
@@ -497,22 +483,21 @@ class DatasetManager(View):
                 return HttpResponseRedirect(
                     reverse('idgo_admin:dataset_editor', kwargs={'id': instance.id}))
 
-            target = instance.editor == profile.user and 'my' or 'all'
+            target = instance.editor == user and 'my' or 'all'
             url = reverse('idgo_admin:list_{target}_datasets'.format(target=target))
             return HttpResponseRedirect('{url}#{hash}'.format(url=url, hash=instance.slug))
 
-        return render_with_info_profile(request, 'idgo_admin/dataset/dataset.html', context)
+        return render(request, 'idgo_admin/dataset/dataset.html', context)
 
-    @ExceptionsHandler(ignore=[Http404], actions={ProfileHttp404: on_profile_http404})
     def delete(self, request, id, *args, **kwargs):
 
         if id == 'new':
             raise Http404()
 
-        user, profile = user_and_profile(request)
+        user = request.user
 
         if not LiaisonsContributeurs.objects.filter(
-                profile=profile, validated_on__isnull=False).exists():
+                profile=user.profile, validated_on__isnull=False).exists():
             raise Http404()
 
         dataset = get_object_or_404_extended(Dataset, user, include={'id': id})

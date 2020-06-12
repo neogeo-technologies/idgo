@@ -19,33 +19,37 @@ from django.shortcuts import redirect
 from django.urls import reverse
 
 
-TERMS_URL = settings.TERMS_URL
-
-
-class TermsRequired(object):
+class BaseMiddleware(object):
 
     IGNORE_PATH = (
-        # IMPORTANT, sinon le service redirige en boucle sur cette page
         reverse(settings.TERMS_URL),
-        # Un utilisateur doit pouvoir se connecter et se déconnecter
         reverse(settings.LOGIN_URL),
         reverse(settings.LOGOUT_URL),
-        )
+    )
 
     def __init__(self, get_response):
         self.get_response = get_response
 
+
+class ProfileRequired(BaseMiddleware):
+
+    ADMIN_INDEX_URL = reverse('admin:index')
+
     def __call__(self, request):
         user = request.user
+        if request.path not in self.IGNORE_PATH:
+            if user.is_authenticated() and not hasattr(user, 'profile'):
+                if not request.path.startswith(self.ADMIN_INDEX_URL):
+                    return redirect(self.ADMIN_INDEX_URL)
+        return self.get_response(request)
 
-        # L'utilisateur doit avoir un profil associé
-        # Les administrateurs ne sont pas concernés
-        # Les utilisateurs ayant déjà validés les conditions ne sont pas concernés
-        if request.path not in self.IGNORE_PATH \
-                and hasattr(user, 'profile') \
-                and not user.profile.is_admin \
-                and not user.profile.is_agree_with_terms:
-            return redirect(reverse(settings.TERMS_URL))
 
-        response = self.get_response(request)
-        return response
+class TermsRequired(BaseMiddleware):
+
+    def __call__(self, request):
+        user = request.user
+        if request.path not in self.IGNORE_PATH:
+            if user.is_authenticated() and hasattr(user, 'profile'):
+                if not user.profile.is_admin and not user.profile.is_agree_with_terms:
+                    return redirect(reverse(settings.TERMS_URL))
+        return self.get_response(request)

@@ -74,7 +74,7 @@ $(function() {
 
 	$('#resources_store [name="view-ckan-resource"]').on('click', function(e) {
 		e.preventDefault();
-		targetBlank('{{ ckan_url }}/dataset/{{ dataset.slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
+		targetBlank('{{ CKAN_URL }}/dataset/{{ dataset.slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
 		e.stopPropagation();
 	});
 

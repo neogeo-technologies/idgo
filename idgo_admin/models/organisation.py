@@ -38,6 +38,7 @@ from idgo_admin.exceptions import CriticalError
 from idgo_admin.exceptions import CswBaseError
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin import logger
+from idgo_admin.managers import OrganisationManager
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.models.category import ISO_TOPIC_CHOICES
 import inspect
@@ -196,6 +197,10 @@ class Organisation(models.Model):
         blank=True,
         null=True,
         )
+
+    objects = models.GeoManager()
+
+    extras = OrganisationManager()
 
     def __str__(self):
         return self.legal_name
