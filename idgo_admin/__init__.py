@@ -46,7 +46,6 @@ MANDATORY = (
     'TERMS_URL',
     'OWS_URL_PATTERN',
     'OWS_PREVIEW_URL',
-    'REDIS_HOST',
 )
 
 OPTIONAL = (
@@ -62,6 +61,9 @@ OPTIONAL = (
     ('DOWNLOAD_SIZE_LIMIT', 104857600),
     ('ENABLE_FTP_ACCOUNT', True),
     ('ENABLE_ORGANISATION_CREATE', True),
+    ('ENABLE_CSW_HARVESTER', True),
+    ('ENABLE_CKAN_HARVESTER', True),
+    ('ENABLE_DCAT_HARVESTER', False),
     ('EXTRACTOR_BOUNDS', [[40, -14], [55, 28]]),
     ('PHONE_REGEX', '^0\d{9}$'),
     ('FTP_URL', None),
@@ -79,6 +81,7 @@ OPTIONAL = (
     ('MDEDIT_SERVICE_MODEL', 'models/model-service-empty.json'),
     ('MDEDIT_LOCALES_PATH', os.path.join(
         settings.BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')),
+    ('REDIS_HOST', 'localhost'),
     ('REDIS_EXPIRATION', 120),
     ('READTHEDOC_URL', None),
 )
