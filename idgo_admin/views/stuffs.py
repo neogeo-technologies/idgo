@@ -14,25 +14,20 @@
 # under the License.
 
 
-from django.conf import settings
+import requests
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+
 from idgo_admin.models import License
-import requests
 
-
-try:
-    OWS_PREVIEW_URL = getattr(settings, 'OWS_PREVIEW_URL')
-    LOGIN_URL = getattr(settings, 'LOGIN_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
-
-
-MAPSERV_TIMEOUT = getattr(settings, 'MAPSERV_TIMEOUT', 60)
+from idgo_admin import LOGIN_URL
+from idgo_admin import OWS_PREVIEW_URL
+from idgo_admin import MAPSERV_TIMEOUT
 
 
 @method_decorator([csrf_exempt], name='dispatch')

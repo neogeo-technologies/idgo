@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
@@ -21,6 +22,9 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django import forms
 from django.forms.models import ModelChoiceIterator
+
+from mama_cas.forms import LoginForm as MamaLoginForm
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.forms.fields import AddressField
 from idgo_admin.forms.fields import CityField
@@ -43,7 +47,6 @@ from idgo_admin.forms.fields import WebsiteField
 from idgo_admin.models import Dataset
 from idgo_admin.models import Gdpr
 from idgo_admin.models import Organisation
-from mama_cas.forms import LoginForm as MamaLoginForm
 
 
 class UserForgetPassword(forms.Form):

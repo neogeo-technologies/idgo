@@ -16,6 +16,7 @@
 
 import inspect
 import json
+import logging
 import os
 import requests
 import rdflib.parser
@@ -25,11 +26,20 @@ import re
 import xml.etree.ElementTree as ET
 
 from geomet import wkt
-from rdflib import URIRef, BNode, Literal
-from rdflib.namespace import Namespace, RDF, SKOS, RDFS
+from rdflib import BNode
+from rdflib import Literal
+from rdflib import URIRef
+from rdflib.namespace import Namespace
+from rdflib.namespace import RDF
+from rdflib.namespace import RDFS
+from rdflib.namespace import SKOS
 
 from idgo_admin.exceptions import DcatBaseError
-from idgo_admin import logger
+
+from idgo_admin import DCAT_TIMEOUT
+
+
+logger = logging.getLogger('idgo_admin.dcat_module')
 
 
 DCT = Namespace("http://purl.org/dc/terms/")
@@ -57,10 +67,7 @@ namespaces = {
 
 GEOJSON_IMT = 'https://www.iana.org/assignments/media-types/application/vnd.geo+json'
 
-profiles=['euro_dcat_ap']
-
-
-DCAT_TIMEOUT = 36000
+profiles = ['euro_dcat_ap']
 
 
 class DcatTimeoutError(Exception):

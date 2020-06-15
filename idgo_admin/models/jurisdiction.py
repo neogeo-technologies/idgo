@@ -14,12 +14,14 @@
 # under the License.
 
 
+import json
+
 from django.apps import apps
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Union
 from django.contrib.gis.geos import MultiPolygon
+
 from idgo_admin.managers import DefaultCommuneManager
-import json
 
 
 class Jurisdiction(models.Model):

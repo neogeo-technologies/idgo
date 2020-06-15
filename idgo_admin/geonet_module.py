@@ -14,31 +14,26 @@
 # under the License.
 
 
-from django.conf import settings
-from idgo_admin.utils import Singleton
 from owslib.csw import CatalogueServiceWeb
 import requests
 from urllib.parse import urljoin
 
+from idgo_admin.utils import Singleton
 
-try:
-    GEONET_URL = getattr(settings, 'GEONETWORK_URL')
-    GEONET_USERNAME = getattr(settings, 'GEONETWORK_LOGIN')
-    GEONET_PASSWORD = getattr(settings, 'GEONETWORK_PASSWORD')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
-
-GEONET_TIMEOUT = getattr(settings, 'GEONET_TIMEOUT', 3600)
+from idgo_admin import GEONETWORK_URL
+from idgo_admin import GEONETWORK_LOGIN
+from idgo_admin import GEONETWORK_PASSWORD
+from idgo_admin import GEONETWORK_TIMEOUT
 
 
 class GeonetUserHandler(metaclass=Singleton):
 
     def __init__(self):
-        self.username = GEONET_USERNAME
-        self.password = GEONET_PASSWORD
+        self.username = GEONETWORK_LOGIN
+        self.password = GEONETWORK_PASSWORD
         self.remote = CatalogueServiceWeb(
-            urljoin(GEONET_URL, 'srv/fre/csw-publication'),
-            timeout=GEONET_TIMEOUT, lang='fr-FR',
+            urljoin(GEONETWORK_URL, 'srv/fre/csw-publication'),
+            timeout=GEONETWORK_TIMEOUT, lang='fr-FR',
             version='2.0.2', skip_caps=True,
             username=self.username, password=self.password)
 
@@ -49,7 +44,7 @@ class GeonetUserHandler(metaclass=Singleton):
         return r
 
     def _q(self, identifier):
-        r = self._get(urljoin(GEONET_URL, 'srv/fre/q'),
+        r = self._get(urljoin(GEONETWORK_URL, 'srv/fre/q'),
                       {'uuid': identifier, '_content_type': 'json'})
         metadata = r.json().get('metadata')
         if metadata \
@@ -60,7 +55,7 @@ class GeonetUserHandler(metaclass=Singleton):
 
     def _md_publish(self, identifier):
         return self._get(
-            urljoin(GEONET_URL, 'srv/fre/md.publish'), {'ids': identifier})
+            urljoin(GEONETWORK_URL, 'srv/fre/md.publish'), {'ids': identifier})
 
     def _transaction(self, ttype, identifier, record):
         params = {

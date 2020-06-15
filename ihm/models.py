@@ -29,14 +29,14 @@ class IHMSettings(models.Model):
         unique=True,
         db_index=True,
         max_length=100,
-        )
+    )
 
     contents = models.TextField(verbose_name='Contenu')
 
     TARGET_CHOICES = (
         ('ckan', "Ckan"),
         ('admin', "Admin"),
-        )
+    )
 
     target = models.CharField(
         verbose_name='Cible',
@@ -45,12 +45,12 @@ class IHMSettings(models.Model):
         null=True,
         choices=TARGET_CHOICES,
         default='ckan',
-        )
+    )
 
     activate = models.BooleanField(
         verbose_name="Activer",
         default=False,
-        )
+    )
 
     def __str__(self):
         return str(self.name)

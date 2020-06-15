@@ -14,7 +14,8 @@
 # under the License.
 
 
-from django.conf import settings
+import os
+
 from django.core.exceptions import ValidationError
 from django.db.models import BooleanField
 from django.db.models import Case
@@ -22,6 +23,7 @@ from django.db.models import Value
 from django.db.models import When
 from django import forms
 from django.forms.models import ModelChoiceIterator
+
 from idgo_admin.forms.fields import CustomCheckboxSelectMultiple
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
@@ -29,17 +31,11 @@ from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
 from idgo_admin.models import SupportedCrs
 from idgo_admin.utils import readable_file_size
-import os
 
-
-try:
-    FTP_DIR = getattr(settings, 'FTP_DIR')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
-
-DOWNLOAD_SIZE_LIMIT = getattr(settings, 'DOWNLOAD_SIZE_LIMIT', 104857600)  # 100Mio
-FTP_UPLOADS_DIR = getattr(settings, 'FTP_UPLOADS_DIR', 'uploads')
-FTP_USER_PREFIX = getattr(settings, 'FTP_UPLOADS_DIR', '')
+from idgo_admin import DOWNLOAD_SIZE_LIMIT
+from idgo_admin import FTP_DIR
+from idgo_admin import FTP_UPLOADS_DIR
+from idgo_admin import FTP_USER_PREFIX
 
 
 def file_size(value):

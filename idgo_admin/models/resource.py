@@ -15,6 +15,16 @@
 
 
 from decimal import Decimal
+from functools import reduce
+import json
+import logging
+import os
+from pathlib import Path
+import re
+import shutil
+from urllib.parse import urljoin
+import uuid
+
 from django.apps import apps
 from django.conf import settings
 from django.contrib.gis.db import models
@@ -27,7 +37,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
-from functools import reduce
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import bounds_to_wkt
@@ -43,46 +53,32 @@ from idgo_admin.datagis import ogr2postgis
 from idgo_admin.datagis import WrongDataError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import SizeLimitExceededError
-from idgo_admin import logger
 from idgo_admin.managers import DefaultResourceManager
 from idgo_admin.utils import download
 from idgo_admin.utils import remove_file
 from idgo_admin.utils import slugify
 from idgo_admin.utils import three_suspension_points
-import json
-import os
-from pathlib import Path
-import re
-import shutil
-from urllib.parse import urljoin
-import uuid
+
+from idgo_admin import CKAN_STORAGE_PATH
+from idgo_admin import CKAN_URL
+from idgo_admin import DOWNLOAD_SIZE_LIMIT
 
 
-try:
-    BASE_DIR = getattr(settings, 'BASE_DIR')
-    CKAN_STORAGE_PATH = getattr(settings, 'CKAN_STORAGE_PATH')
-    OWS_URL_PATTERN = getattr(settings, 'OWS_URL_PATTERN')
-    CKAN_URL = getattr(settings, 'CKAN_URL')
-    MEDIA_ROOT = getattr(settings, 'MEDIA_ROOT')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+logger = logging.getLogger('idgo_admin')
 
-DOWNLOAD_SIZE_LIMIT = getattr(settings, 'DOWNLOAD_SIZE_LIMIT', 104857600)
 
 if hasattr(settings, 'STATIC_ROOT'):
-    STATIC_ROOT = getattr(settings, 'STATIC_ROOT')
-    locales_path = os.path.join(STATIC_ROOT, 'mdedit/config/locales/fr/locales.json')
+    locales_path = os.path.join(settings.STATIC_ROOT, 'mdedit/config/locales/fr/locales.json')
 else:
-    locales_path = os.path.join(BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')
+    locales_path = os.path.join(settings.BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')
 
 try:
     with open(locales_path, 'r', encoding='utf-8') as f:
-        MDEDIT_LOCALES = json.loads(f.read())
-        AUTHORIZED_PROTOCOL = (
-            (protocol['id'], protocol['value']) for protocol
-            in MDEDIT_LOCALES['codelists']['MD_LinkageProtocolCode'])
+        m = json.loads(f.read())
+        PROTOCOL_CHOICES = ((protocol['id'], protocol['value']) for protocol
+                            in m['codelists']['MD_LinkageProtocolCode'])
 except Exception:
-    AUTHORIZED_PROTOCOL = None
+    PROTOCOL_CHOICES = None
 
 
 def get_all_users_for_organisations(list_id):
@@ -126,8 +122,6 @@ class ResourceFormats(models.Model):
         blank=True,
         null=True,
         )
-
-    PROTOCOL_CHOICES = AUTHORIZED_PROTOCOL
 
     protocol = models.CharField(
         verbose_name="Protocole",
@@ -528,7 +522,7 @@ class Resource(models.Model):
         elif self.dl_url and not skip_download:
             try:
                 directory, filename, content_type = download(
-                    self.dl_url, MEDIA_ROOT, max_size=DOWNLOAD_SIZE_LIMIT)
+                    self.dl_url, settings.MEDIA_ROOT, max_size=DOWNLOAD_SIZE_LIMIT)
             except SizeLimitExceededError as e:
                 l = len(str(e.max_size))
                 if l > 6:

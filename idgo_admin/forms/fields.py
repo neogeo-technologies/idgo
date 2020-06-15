@@ -14,17 +14,17 @@
 # under the License.
 
 
-from django.conf import settings
+import re
+
 from django.core.exceptions import ValidationError
 from django.core import validators
 from django import forms
+
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
 from idgo_admin.models import OrganisationType
-import re
 
-
-PHONE_REGEX = getattr(settings, 'PHONE_REGEX', '^0\d{9}$')
+from idgo_admin import PHONE_REGEX
 
 
 class CustomCheckboxSelectMultiple(forms.CheckboxSelectMultiple):

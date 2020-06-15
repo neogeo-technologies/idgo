@@ -14,12 +14,15 @@
 # under the License.
 
 
+from uuid import UUID
+
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.models import AccountActions
@@ -33,7 +36,6 @@ from idgo_admin.models.mail import send_membership_confirmation_mail
 from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
 from idgo_admin.models.mail import send_referent_confirmation_mail
 from idgo_admin.models.mail import send_successful_account_creation_mail
-from uuid import UUID
 
 
 @ExceptionsHandler(ignore=[Http404])

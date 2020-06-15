@@ -14,8 +14,9 @@
 # under the License.
 
 
-from api.utils import parse_request
 from collections import OrderedDict
+from uuid import UUID
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -23,6 +24,10 @@ from django.http import Http404
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+
+from rest_framework import permissions
+from rest_framework.views import APIView
+
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.resource import ResourceForm as Form
@@ -34,9 +39,8 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
 from idgo_admin.shortcuts import get_object_or_404_extended
-from rest_framework import permissions
-from rest_framework.views import APIView
-from uuid import UUID
+
+from api.utils import parse_request
 
 
 def serialize(resource):
@@ -45,7 +49,7 @@ def serialize(resource):
         format = OrderedDict([
             ('name', resource.format_type.slug),
             ('description', resource.format_type.description),
-            ])
+        ])
     else:
         format = None
 
@@ -53,22 +57,22 @@ def serialize(resource):
         source = OrderedDict([
             ('type', 'uploaded'),
             ('filename', resource.up_file.name),
-            ])
+        ])
     elif resource.dl_url:
         source = OrderedDict([
             ('type', 'downloaded'),
             ('url', resource.dl_url),
-            ])
+        ])
     elif resource.referenced_url:
         source = OrderedDict([
             ('type', 'referenced'),
             ('url', resource.dl_url),
-            ])
+        ])
     elif resource.ftp_file:
         source = OrderedDict([
             ('type', 'ftp'),
             ('filename', resource.ftp_file.name),
-            ])
+        ])
 
     return OrderedDict([
         ('id', resource.ckan_id),
@@ -78,7 +82,7 @@ def serialize(resource):
         ('source', source),
         ('type', resource.data_type),
         # TODO
-        ])
+    ])
 
 
 def handler_get_request(request, dataset_name):
@@ -175,7 +179,7 @@ def handle_pust_request(request, dataset_name, resource_id=None):
         'extractable': data['extractable'],
         'ogc_services': data['ogc_services'],
         'geo_restriction': data['geo_restriction'],
-        }
+    }
 
     profiles_allowed = None
     organisations_allowed = None
@@ -234,7 +238,7 @@ class ResourceShow(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-        ]
+    ]
 
     def get(self, request, dataset_name, resource_id):
         """Voir la ressource."""
@@ -286,7 +290,7 @@ class ResourceList(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-        ]
+    ]
 
     def get(self, request, dataset_name):
         """Voir les ressources du jeu de données."""

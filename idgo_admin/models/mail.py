@@ -14,23 +14,23 @@
 # under the License.
 
 
-from django.apps import apps
-from django.conf import settings
-from django.contrib.gis.db import models
-from django.core.mail import get_connection
-from django.core.mail.message import EmailMultiAlternatives
-from idgo_admin.exceptions import GenericException
-from idgo_admin import logger
-from idgo_admin.utils import PartialFormatter
+import logging
 from smtplib import SMTPDataError
 from urllib.parse import urljoin
 
+from django.apps import apps
+from django.contrib.gis.db import models
+from django.core.mail import get_connection
+from django.core.mail.message import EmailMultiAlternatives
 
-try:
-    EXTRACTOR_URL_PUBLIC = getattr(settings, 'EXTRACTOR_URL_PUBLIC')
-    DEFAULT_FROM_EMAIL = getattr(settings, 'DEFAULT_FROM_EMAIL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+from idgo_admin.exceptions import GenericException
+from idgo_admin.utils import PartialFormatter
+
+from idgo_admin import DEFAULT_FROM_EMAIL
+from idgo_admin import EXTRACTOR_URL_PUBLIC
+
+
+logger = logging.getLogger('idgo_admin')
 
 
 class MailError(GenericException):

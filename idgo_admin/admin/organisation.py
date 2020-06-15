@@ -17,6 +17,7 @@
 from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
 from django import forms
+
 from idgo_admin.models.mail import sender as mail_sender
 from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType

@@ -17,6 +17,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import url
+
 from idgo_admin.views.account import change_sftp_password
 from idgo_admin.views.account import create_sftp_account
 from idgo_admin.views.account import delete_account
@@ -74,13 +75,6 @@ from idgo_admin.views.sld_preview import SLDPreviewGetter
 from idgo_admin.views.sld_preview import SLDPreviewSetter
 from idgo_admin.views.stuffs import DisplayLicenses
 from idgo_admin.views.stuffs import ows_preview
-
-
-try:
-    MEDIA_URL = getattr(settings, 'MEDIA_URL')
-    MEDIA_ROOT = getattr(settings, 'MEDIA_ROOT')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 
 urlpatterns = [
@@ -164,4 +158,4 @@ urlpatterns = [
 
 
 if getattr(settings, 'DEBUG', False):
-    urlpatterns += static(MEDIA_URL, document_root=MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

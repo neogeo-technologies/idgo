@@ -14,13 +14,15 @@
 # under the License.
 
 
-from api.utils import parse_request
+from uuid import UUID
+
 from django.http import Http404
 from django.http import HttpResponse
-from idgo_admin.models import Dataset
+
 from rest_framework import permissions
 from rest_framework.views import APIView
-from uuid import UUID
+
+from idgo_admin.models import Dataset
 from idgo_admin.mra_client import MRAHandler
 
 
@@ -49,7 +51,7 @@ class LayerStyleDefaultShow(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-        ]
+    ]
 
     def get(self, request, dataset_name, resource_id, layer_name):
         try:

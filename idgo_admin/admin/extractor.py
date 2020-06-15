@@ -14,6 +14,7 @@
 # under the License.
 
 from django.contrib import admin
+
 from idgo_admin.models import ExtractorSupportedFormat
 
 

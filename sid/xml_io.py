@@ -16,13 +16,15 @@
 
 import logging
 
-from django.template.loader import render_to_string
-from rest_framework.parsers import BaseParser
-from rest_framework.renderers import BaseRenderer
 import xmltodict
 
+from django.template.loader import render_to_string
 
-logger = logging.getLogger('d0jango')
+from rest_framework.parsers import BaseParser
+from rest_framework.renderers import BaseRenderer
+
+
+logger = logging.getLogger('sid')
 
 
 class XMLRenderer(BaseRenderer):

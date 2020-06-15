@@ -14,35 +14,33 @@
 # under the License.
 
 
+import itertools
+import json
+import logging
+import os
+import re
+
 from django.apps import apps
-from django.conf import settings
 from django.contrib.gis.db import models
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import drop_table
-from idgo_admin import logger
 from idgo_admin.managers import RasterLayerManager
 from idgo_admin.managers import VectorLayerManager
 from idgo_admin.mra_client import MraBaseError
 from idgo_admin.mra_client import MRAHandler
-import itertools
-import json
-import os
-import re
+
+from idgo_admin import OWS_URL_PATTERN
+from idgo_admin import CKAN_STORAGE_PATH
+from idgo_admin import MAPSERV_STORAGE_PATH
+from idgo_admin import DEFAULTS_VALUES
 
 
-try:
-    MRA = getattr(settings, 'MRA')
-    OWS_URL_PATTERN = getattr(settings, 'OWS_URL_PATTERN')
-    CKAN_STORAGE_PATH = getattr(settings, 'CKAN_STORAGE_PATH')
-    MAPSERV_STORAGE_PATH = getattr(settings, 'MAPSERV_STORAGE_PATH')
-    DEFAULTS_VALUES = getattr(settings, 'DEFAULTS_VALUES')
-    DEFAULTS_VALUES_SRID = DEFAULTS_VALUES['SRID']
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+logger = logging.getLogger('idgo_admin')
 
 
 def get_all_users_for_organisations(list_id):
@@ -416,16 +414,13 @@ class Layer(models.Model):
             'typename': id,
             'getlegendgraphic': getlegendgraphic}
 
+        SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
+
+        srid = DEFAULTS_VALUES.get('SRID', '4326')
         try:
-            DEFAULT_SRID = DEFAULTS_VALUES_SRID
-        except Exception:
-            DEFAULT_SRID = 4326
-        else:
-            SupportedCrs = apps.get_model(app_label='idgo_admin', model_name='SupportedCrs')
-            try:
-                SupportedCrs.objects.get(auth_name='EPSG', auth_code=DEFAULT_SRID)
-            except SupportedCrs.DoesNotExist:
-                DEFAULT_SRID = 4326
+            SupportedCrs.objects.get(auth_name='EPSG', auth_code=srid)
+        except SupportedCrs.DoesNotExist:
+            srid = '4326'
 
         if self.type == 'vector':
             outputformat = None
@@ -439,7 +434,7 @@ class Layer(models.Model):
                     '&TYPENAME={typename}&OUTPUTFORMAT={outputformat}&CRSNAME=EPSG:{srid}'
                     ).format(
                         base_url=base_url, typename=id,
-                        outputformat=outputformat, srid=str(DEFAULT_SRID))
+                        outputformat=outputformat, srid=srid)
 
         # Cf. redmine issue 8524:
         # url = '{base_url}#{name}'.format(base_url=base_url, name=self.name)

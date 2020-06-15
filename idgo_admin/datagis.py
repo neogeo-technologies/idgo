@@ -15,37 +15,45 @@
 
 
 import datetime
+import json
+import logging
+from pathlib import Path
+import re
+from uuid import uuid4
+
 from django.apps import apps
-from django.conf import settings
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.gdal.error import SRSException
 from django.contrib.gis.gdal import GDALRaster
 from django.db import connections
 from django.utils.encoding import DjangoUnicodeDecodeError
+
 from idgo_admin.exceptions import DatagisBaseError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
-from idgo_admin import logger
 from idgo_admin.utils import slugify
-import json
-from pathlib import Path
-import re
-from uuid import uuid4
 
+from idgo_admin import DATAGIS_DB
+from idgo_admin import DATAGIS_DB_SCHEMA
+from idgo_admin import DATAGIS_DB_GEOM_FIELD_NAME
+from idgo_admin import DATAGIS_DB_EPSG
+from idgo_admin import DATABASES
+from idgo_admin import MRA
+
+
+logger = logging.getLogger('idgo_admin')
+
+
+DB_NAME = DATAGIS_DB
+SCHEMA = DATAGIS_DB_SCHEMA
+THE_GEOM = DATAGIS_DB_GEOM_FIELD_NAME
+TO_EPSG = DATAGIS_DB_EPSG
 
 try:
-    DB_NAME = getattr(settings, 'DATAGIS_DB')
-    DATABASES = getattr(settings, 'DATABASES')
-    OWNER = DATABASES[DB_NAME]['USER']
-    MRA = getattr(settings, 'MRA')
+    OWNER = DATABASES[DATAGIS_DB]['USER']
     MRA_DATAGIS_USER = MRA['DATAGIS_DB_USER']
-except AttributeError as e:
+except KeyError as e:
     raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
-
-
-SCHEMA = 'public'
-THE_GEOM = 'the_geom'
-TO_EPSG = 4171
 
 
 class NotDataGISError(DatagisBaseError):

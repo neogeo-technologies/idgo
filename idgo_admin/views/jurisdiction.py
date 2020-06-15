@@ -14,7 +14,8 @@
 # under the License.
 
 
-from django.conf import settings
+from math import ceil
+
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
@@ -44,14 +45,7 @@ from idgo_admin.models.mail import send_mail_asking_for_jurisdiction_attachment
 from idgo_admin.models.mail import send_mail_asking_for_jurisdiction_creation
 from idgo_admin.models import Organisation
 
-from math import ceil
-
-
-try:
-    CKAN_URL = getattr(settings, 'CKAN_URL')
-    LOGIN_URL = getattr(settings, 'LOGIN_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+from idgo_admin import LOGIN_URL
 
 
 decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]

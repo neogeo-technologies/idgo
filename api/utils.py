@@ -14,10 +14,11 @@
 # under the License.
 
 
+from io import BytesIO
+
 from django.http.multipartparser import MultiPartParserError
 from django.http.request import MultiValueDict
 from django.http.request import QueryDict
-from io import BytesIO
 
 
 def parse_request(request):

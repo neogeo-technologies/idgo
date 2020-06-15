@@ -13,6 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import random
+import string
 
 from django import forms
 from django.conf.urls import url
@@ -33,6 +35,7 @@ from django.template.response import TemplateResponse
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.forms.account import DeleteAdminForm
 from idgo_admin.models import AccountActions
@@ -42,8 +45,6 @@ from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models.mail import send_account_creation_mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
-import random
-import string
 
 
 geo_admin.GeoModelAdmin.default_lon = 160595

@@ -16,6 +16,7 @@
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+
 from idgo_admin.models import Resource
 from idgo_admin.models import Task
 

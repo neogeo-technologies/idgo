@@ -15,40 +15,45 @@
 
 
 import ast
-from django.apps import apps
-from django.conf import settings
 from functools import reduce
 from functools import wraps
-from idgo_admin.exceptions import MraBaseError
-from idgo_admin import logger
-from idgo_admin.utils import Singleton
 import inspect
+import logging
 from lxml import etree
 from lxml import objectify
 import os
+from urllib.parse import urljoin
+
 from requests import request
 import timeout_decorator
-from urllib.parse import urljoin
-#
+
+from django.apps import apps
+
+from idgo_admin.exceptions import MraBaseError
+from idgo_admin.utils import Singleton
 from idgo_admin.utils import kill_all_special_characters
-#
+
+from idgo_admin import MRA
+from idgo_admin import DATABASES
+from idgo_admin import DATAGIS_DB
+
+
+logger = logging.getLogger('idgo_admin')
 
 
 try:
-    MRA = getattr(settings, 'MRA')
     MRA_URL = MRA['URL']
     MRA_USERNAME = MRA['USERNAME']
     MRA_PASSWORD = MRA['PASSWORD']
     MRA_TIMEOUT = MRA.get('TIMEOUT', 3600)
-    DATABASES = getattr(settings, 'DATABASES')
-    DB_SETTINGS = DATABASES[getattr(settings, 'DATAGIS_DB')]
     MRA_DATAGIS_USER = MRA['DATAGIS_DB_USER']
+    DB_SETTINGS = DATABASES[DATAGIS_DB]
     MRA_DATAGIS_HOST = DB_SETTINGS['HOST']
     MRA_DATAGIS_DATABASE = DB_SETTINGS['NAME']
     MRA_DATAGIS_DBTYPE = DB_SETTINGS['ENGINE'].split('.')[-1]
     MRA_DATAGIS_PASSWORD = DB_SETTINGS['PASSWORD']
     MRA_DATAGIS_PORT = DB_SETTINGS['PORT']
-except AttributeError as e:
+except KeyError as e:
     raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 

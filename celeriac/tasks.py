@@ -14,22 +14,26 @@
 # under the License.
 
 
+import csv
+from dateutil.relativedelta import relativedelta
+from io import StringIO
+from uuid import UUID
+
 from celeriac.apps import app as celery_app
 from celeriac.models import TaskTracking
 from celery.signals import before_task_publish
 from celery.signals import task_postrun
-import csv
-from dateutil.relativedelta import relativedelta
-from django.conf import settings
+
 from django.core.mail import EmailMessage
 from django.utils import timezone
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.models import Category
 from idgo_admin.models import Mail
 from idgo_admin.models.mail import get_admins_mails
 from idgo_admin.models import Resource
-from io import StringIO
-from uuid import UUID
+
+from idgo_admin import DEFAULT_FROM_EMAIL
 
 
 @before_task_publish.connect
@@ -136,7 +140,7 @@ def check_resources_last_update(*args, **kwargs):
     mail_instance = Mail.objects.get(template_name='resources_update_with_delay')
     mail = EmailMessage(
         mail_instance.subject, mail_instance.message,
-        settings.DEFAULT_FROM_EMAIL, get_admins_mails())
+        DEFAULT_FROM_EMAIL, get_admins_mails())
     mail.attach('log.csv', f.getvalue(), 'text/csv')
     mail.send()
 

@@ -17,6 +17,6 @@
 from django.apps import AppConfig
 
 
-class IdgoadminConfig(AppConfig):
+class IdgoAdminConfig(AppConfig):
     name = 'idgo_admin'
     verbose_name = 'Configurations'

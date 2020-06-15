@@ -14,6 +14,9 @@
 # under the License.
 
 
+import requests
+import uuid
+
 from django.apps import apps
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
@@ -21,10 +24,9 @@ from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import pre_init
 from django.dispatch import receiver
 from django.utils import timezone
+
 from idgo_admin.models.mail import send_extraction_failure_mail
 from idgo_admin.models.mail import send_extraction_successfully_mail
-import requests
-import uuid
 
 
 class ExtractorSupportedFormat(models.Model):

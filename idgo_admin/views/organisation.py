@@ -14,7 +14,8 @@
 # under the License.
 
 
-from django.conf import settings
+import operator
+
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
@@ -29,13 +30,12 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CriticalError
 from idgo_admin.exceptions import CswBaseError
 from idgo_admin.exceptions import DcatBaseError
-from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import GenericException
-from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.organisation import OrganisationForm as Form
 from idgo_admin.forms.organisation import RemoteCkanForm
 from idgo_admin.forms.organisation import RemoteCswForm
@@ -60,14 +60,8 @@ from idgo_admin.models import RemoteCsw
 from idgo_admin.models import RemoteDcat
 from idgo_admin.models import SupportedCrs
 from idgo_admin.mra_client import MRAHandler
-import operator
 
-
-try:
-    CKAN_URL = getattr(settings, 'CKAN_URL')
-    LOGIN_URL = getattr(settings, 'LOGIN_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+from idgo_admin import LOGIN_URL
 
 
 decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]

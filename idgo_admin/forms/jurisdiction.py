@@ -15,6 +15,7 @@
 
 
 from django import forms
+
 from idgo_admin.forms.fields import CustomCheckboxSelectMultiple
 from idgo_admin.forms.fields import InputTypeahead
 from idgo_admin.models import Commune

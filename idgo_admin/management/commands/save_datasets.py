@@ -14,9 +14,14 @@
 # under the License.
 
 
+import logging
+
 from django.core.management.base import BaseCommand
-from idgo_admin import logger
+
 from idgo_admin.models import Dataset
+
+
+logger = logging.getLogger('idgo_admin')
 
 
 class Command(BaseCommand):

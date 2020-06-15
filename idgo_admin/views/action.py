@@ -14,24 +14,20 @@
 # under the License.
 
 
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import Dataset
 from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.shortcuts import on_profile_http404
 
-
-try:
-    LOGIN_URL = getattr(settings, 'LOGIN_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+from idgo_admin import LOGIN_URL
 
 
 decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]

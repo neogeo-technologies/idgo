@@ -14,38 +14,23 @@
 # under the License.
 
 
-from django.conf import settings
+import json
+import uuid
+
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils.text import slugify
+
 from idgo_admin.ckan_module import CkanHandler
-import json
-import os
-import uuid
 
-
-MDEDIT_HTML_PATH = 'mdedit/html/'
-MDEDIT_CONFIG_PATH = 'mdedit/config/'
-MDEDIT_LOCALES_PATH = os.path.join(MDEDIT_CONFIG_PATH, 'locales/fr/locales.json')
-MDEDIT_DATASET_MODEL = 'models/model-dataset-empty.json'
-MDEDIT_SERVICE_MODEL = 'models/model-service-empty.json'
+from idgo_admin import MDEDIT_LOCALES_PATH
 
 
 try:
-    MDEDIT_LOCALES_PATH = getattr(settings, 'MDEDIT_LOCALES_PATH')
-    BASE_DIR = getattr(settings, 'BASE_DIR')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
-
-locales_path = (
-    MDEDIT_LOCALES_PATH or os.path.join(BASE_DIR, 'idgo_admin/static/', MDEDIT_LOCALES_PATH)
-)
-
-try:
-    with open(locales_path, 'r', encoding='utf-8') as f:
+    with open(MDEDIT_LOCALES_PATH, 'r', encoding='utf-8') as f:
         MDEDIT_LOCALES = json.loads(f.read())
         iso_topics = MDEDIT_LOCALES['codelists']['MD_TopicCategoryCode']
         ISO_TOPIC_CHOICES = ((m['id'], m['value']) for m in iso_topics)

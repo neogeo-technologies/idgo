@@ -14,14 +14,12 @@
 # under the License.
 
 
-from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth import logout
-from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from idgo_admin.forms.account import SignInForm
+
 from mama_cas.compat import is_authenticated as mama_is_authenticated
 from mama_cas.models import ProxyGrantingTicket as MamaProxyGrantingTicket
 from mama_cas.models import ProxyTicket as MamaProxyTicket
@@ -30,6 +28,10 @@ from mama_cas.utils import redirect as mama_redirect
 from mama_cas.utils import to_bool as mama_to_bool
 from mama_cas.views import LoginView as MamaLoginView
 from mama_cas.views import LogoutView as MamaLogoutView
+
+from idgo_admin.forms.account import SignInForm
+
+from server_cas import MAMA_CAS_FOLLOW_LOGOUT_URL
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -95,7 +97,7 @@ class SignOut(MamaLogoutView):
         service = request.GET.get('service')
         if not service:
             service = request.GET.get('url')
-        follow_url = getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', True)
+        follow_url = MAMA_CAS_FOLLOW_LOGOUT_URL
         logout_user(request)
         if service and follow_url:
             return mama_redirect(service)

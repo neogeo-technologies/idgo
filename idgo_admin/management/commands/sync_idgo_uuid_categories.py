@@ -15,6 +15,7 @@
 
 
 from django.core.management.base import BaseCommand
+
 from idgo_admin.ckan_module import CkanManagerHandler
 from idgo_admin.models import Category
 

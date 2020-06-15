@@ -14,6 +14,12 @@
 # under the License.
 
 
+import json
+from math import ceil
+import re
+import requests
+from uuid import UUID
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -38,30 +44,22 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.models import SupportedCrs
 
-import json
-from math import ceil
-import re
-import requests
-from uuid import UUID
+from idgo_admin import LOGIN_URL
+from idgo_admin import EXTRACTOR_BOUNDS
+from idgo_admin import EXTRACTOR_URL
+from idgo_admin import DATABASES
+from idgo_admin import DATAGIS_DB
 
 
 try:
-    LOGIN_URL = getattr(settings, 'LOGIN_URL')
-    EXTRACTOR_URL = getattr(settings, 'EXTRACTOR_URL')
-    DATABASES = getattr(settings, 'DATABASES')
-    DB_SETTINGS = DATABASES[settings.DATAGIS_DB]
+    DB_SETTINGS = DATABASES[DATAGIS_DB]
     DB_HOST = DB_SETTINGS['HOST']
     DB_PORT = DB_SETTINGS['PORT']
     DB_NAME = DB_SETTINGS['NAME']
     DB_USER = DB_SETTINGS['USER']
     DB_PASSWORD = DB_SETTINGS['PASSWORD']
-except AttributeError as e:
+except KeyError as e:
     raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
-
-try:
-    BOUNDS = settings.EXTRACTOR_BOUNDS
-except AttributeError:
-    BOUNDS = [[40, -14], [55, 28]]
 
 
 decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
@@ -163,7 +161,7 @@ class ExtractorDashboard(View):
         number_of_pages = ceil(len(tasks) / items_per_page)
 
         context = {
-            'bounds': BOUNDS,
+            'bounds': EXTRACTOR_BOUNDS,
             'basemaps': BaseMaps.objects.all(),
             'pagination': {
                 'current': page_number,
@@ -338,7 +336,7 @@ class Extractor(View):
             minx, miny, maxx, maxy = bbox.split(',')
             context['bounds'] = [[miny, minx], [maxy, maxx]]
         else:
-            context['bounds'] = BOUNDS
+            context['bounds'] = EXTRACTOR_BOUNDS
 
         try:
             default_crs = \

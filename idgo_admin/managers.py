@@ -14,18 +14,15 @@
 # under the License.
 
 
-from django.conf import settings
-from django.apps import apps
-from django.contrib.gis.db import models
-from django.utils import timezone
 from idgo_admin.utils import clean_my_obj
 from itertools import chain
 
+from django.apps import apps
+from django.contrib.gis.db import models
+from django.utils import timezone
 
-try:
-    DEFAULTS_VALUES = getattr(settings, 'DEFAULTS_VALUES')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+from idgo_admin import DEFAULTS_VALUES
+
 
 COMMUNES_REGEX = DEFAULTS_VALUES.get('COMMUNES_REGEX', '^\d(\d|A|B)\d{3}$')
 

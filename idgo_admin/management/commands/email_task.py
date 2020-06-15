@@ -16,22 +16,20 @@
 
 import csv
 # from datetime import datetime
-from django.conf import settings
+from io import StringIO
+# import time
+
 from django.core.mail import EmailMessage
 from django.core.management.base import BaseCommand
 from django.utils.timezone import datetime as tzdatetime
+
 from idgo_admin.models import Mail
 from idgo_admin.models.mail import get_admins_mails
 from idgo_admin.models import Resource
 from idgo_admin.models import Task
-from io import StringIO
-# import time
 
+from idgo_admin import DEFAULT_FROM_EMAIL
 
-try:
-    FROM_EMAIL = getattr(settings, 'DEFAULT_FROM_EMAIL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 TODAY = tzdatetime.today().date()
 # ISO_CALENDAR = datetime.now().isocalendar()
@@ -71,6 +69,6 @@ class Command(BaseCommand):
 
         mail = EmailMessage(
             mail_instance.subject, mail_instance.message,
-            FROM_EMAIL, get_admins_mails())
+            DEFAULT_FROM_EMAIL, get_admins_mails())
         mail.attach('log.csv', f.getvalue(), 'text/csv')
         mail.send()

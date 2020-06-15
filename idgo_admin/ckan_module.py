@@ -15,34 +15,34 @@
 
 
 import ast
-from ckanapi import errors as CkanError
-from ckanapi import RemoteCKAN
 from datetime import datetime
-from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.core.files.base import File
-from django.db import IntegrityError
 from functools import wraps
-from idgo_admin.exceptions import CkanBaseError
-from idgo_admin import logger
-from idgo_admin.utils import Singleton
-from idgo_admin.utils import slugify
 import inspect
+import logging
 import os
 import time
 import timeout_decorator
 import unicodedata
 from urllib.parse import urljoin
 
+from ckanapi import errors as CkanError
+from ckanapi import RemoteCKAN
 
-try:
-    CKAN_URL = getattr(settings, 'CKAN_URL')
-    CKAN_API_KEY = getattr(settings, 'CKAN_API_KEY')
-    DOMAIN_NAME = getattr(settings, 'DOMAIN_NAME')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+from django.core.exceptions import ValidationError
+from django.core.files.base import File
+from django.db import IntegrityError
 
-CKAN_TIMEOUT = getattr(settings, 'GEONET_TIMEOUT', 36000)
+from idgo_admin.exceptions import CkanBaseError
+from idgo_admin.utils import Singleton
+from idgo_admin.utils import slugify
+
+from idgo_admin import CKAN_URL
+from idgo_admin import CKAN_API_KEY
+from idgo_admin import DOMAIN_NAME
+from idgo_admin import CKAN_TIMEOUT
+
+
+logger = logging.getLogger('idgo_admin.ckan_module')
 
 
 def timeout(fun):

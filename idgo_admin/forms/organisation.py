@@ -14,14 +14,17 @@
 # under the License.
 
 
+import logging
+
 from django import forms
 from django.utils.text import slugify
+
 from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.csw_module import CswBaseHandler
-from idgo_admin.dcat_module import DcatBaseHandler
+# from idgo_admin.dcat_module import DcatBaseHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CswBaseError
-from idgo_admin.exceptions import DcatBaseError
+# from idgo_admin.exceptions import DcatBaseError
 from idgo_admin.forms.fields import AddressField
 from idgo_admin.forms.fields import CityField
 from idgo_admin.forms.fields import ContributorField
@@ -38,7 +41,6 @@ from idgo_admin.forms.fields import PhoneField
 from idgo_admin.forms.fields import PostcodeField
 from idgo_admin.forms.fields import ReferentField
 from idgo_admin.forms.fields import WebsiteField
-from idgo_admin import logger
 from idgo_admin.models import Category
 from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
@@ -48,6 +50,9 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import RemoteCkan
 from idgo_admin.models import RemoteCsw
 from idgo_admin.models import RemoteDcat
+
+
+logger = logging.getLogger('idgo_admin')
 
 
 class OrganisationForm(forms.ModelForm):

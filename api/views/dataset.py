@@ -14,14 +14,19 @@
 # under the License.
 
 
-from api.utils import parse_request
 from collections import OrderedDict
+import xml.etree.ElementTree as ET
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import JsonResponse
+
+from rest_framework import permissions
+from rest_framework.views import APIView
+
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.dataset import DatasetForm as Form
@@ -34,9 +39,8 @@ from idgo_admin.models.mail import send_dataset_creation_mail
 from idgo_admin.models.mail import send_dataset_delete_mail
 from idgo_admin.models.mail import send_dataset_update_mail
 from idgo_admin.models import Organisation
-from rest_framework import permissions
-from rest_framework.views import APIView
-import xml.etree.ElementTree as ET
+
+from api.utils import parse_request
 
 
 def serialize(dataset):
@@ -101,7 +105,7 @@ def serialize(dataset):
         ('broadcaster_email', dataset.broadcaster_email),
         ('granularity', granularity),
         ('extent', extent),
-        ])
+    ])
 
 
 def handler_get_request(request):
@@ -257,7 +261,7 @@ def handle_pust_request(request, dataset_name=None):
         'broadcaster_name': data['broadcaster_name'],
         'broadcaster_email': data['broadcaster_email'],
         'published': data['published'],
-        }
+    }
 
     try:
         with transaction.atomic():
@@ -298,7 +302,7 @@ class DatasetShow(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-        ]
+    ]
 
     def get(self, request, dataset_name):
         """Voir le jeu de données."""
@@ -338,7 +342,7 @@ class DatasetList(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-        ]
+    ]
 
     def get(self, request):
         """Voir les jeux de données."""
@@ -365,7 +369,7 @@ class DatasetMDShow(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-        ]
+    ]
 
     def get(self, request, dataset_name):
         """Voir la fiche de metadonnées du jeu de données."""

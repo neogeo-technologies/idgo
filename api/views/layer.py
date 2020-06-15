@@ -14,13 +14,17 @@
 # under the License.
 
 
+from uuid import UUID
+
 from collections import OrderedDict
+
 from django.http import Http404
 from django.http import JsonResponse
-from idgo_admin.models import Dataset
+
 from rest_framework import permissions
 from rest_framework.views import APIView
-from uuid import UUID
+
+from idgo_admin.models import Dataset
 
 
 def serialize(layer):
@@ -30,7 +34,7 @@ def serialize(layer):
         ('abstract', layer.abstract),
         ('type', layer.type),
         ('bbox', layer.bbox.extent),
-        ])
+    ])
 
 
 def handler_get_request(request, dataset_name, resource_id):
@@ -57,7 +61,7 @@ class LayerShow(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-        ]
+    ]
 
     def get(self, request, dataset_name, resource_id, layer_name):
         try:
@@ -75,7 +79,7 @@ class LayerList(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-        ]
+    ]
 
     def get(self, request, dataset_name, resource_id):
         layers = handler_get_request(request, dataset_name, resource_id)

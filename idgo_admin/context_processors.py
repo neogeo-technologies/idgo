@@ -14,8 +14,16 @@
 # under the License.
 
 
-from django.conf import settings
 from django.apps import apps
+
+from idgo_admin import HREF_WWW
+from idgo_admin import ENABLE_FTP_ACCOUNT
+from idgo_admin import ENABLE_ORGANISATION_CREATE
+from idgo_admin import DEFAULT_PLATFORM_NAME
+from idgo_admin import DEFAULT_CONTACT_EMAIL
+from idgo_admin import FTP_URL
+from idgo_admin import READTHEDOC_URL
+from idgo_admin import CKAN_URL
 
 
 def global_vars(request):
@@ -32,15 +40,14 @@ def global_vars(request):
         contributor, referent = [], []
 
     return {
-        'HREF_WWW': getattr(settings, 'HREF_WWW', None),
-        'ENABLE_FTP_ACCOUNT': getattr(settings, 'ENABLE_FTP_ACCOUNT', True),
-        'ENABLE_ORGANISATION_CREATE': getattr(settings, 'ENABLE_ORGANISATION_CREATE', True),
-        'DEFAULT_PLATFORM_NAME': getattr(settings, 'DEFAULT_PLATFORM_NAME', 'IDGO'),
-        'DEFAULT_CONTACT_EMAIL': getattr(settings, 'DEFAULT_CONTACT_EMAIL', 'contact@idgo.fr'),
-        'FTP_URL': getattr(settings, 'FTP_URL', None),
-        'READTHEDOC_URL': getattr(settings, 'READTHEDOC_URL', None),
-        'CKAN_URL': getattr(settings, 'CKAN_URL', None),
+        'HREF_WWW': HREF_WWW,
+        'ENABLE_FTP_ACCOUNT': ENABLE_FTP_ACCOUNT,
+        'ENABLE_ORGANISATION_CREATE': ENABLE_ORGANISATION_CREATE,
+        'DEFAULT_PLATFORM_NAME': DEFAULT_PLATFORM_NAME,
+        'DEFAULT_CONTACT_EMAIL': DEFAULT_CONTACT_EMAIL,
+        'FTP_URL': FTP_URL,
+        'READTHEDOC_URL': READTHEDOC_URL,
+        'CKAN_URL': CKAN_URL,
         'CONTRIBUTOR': contributor,
         'REFERENT': referent,
-
     }

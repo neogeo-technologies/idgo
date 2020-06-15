@@ -14,17 +14,12 @@
 # under the License.
 
 
-from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
 
-
-try:
-    TERMS_URL = getattr(settings, 'TERMS_URL')
-    LOGIN_URL = getattr(settings, 'LOGIN_URL')
-    LOGOUT_URL = getattr(settings, 'LOGOUT_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+from idgo_admin import TERMS_URL
+from idgo_admin import LOGIN_URL
+from idgo_admin import LOGOUT_URL
 
 
 class BaseMiddleware(object):
@@ -41,14 +36,14 @@ class BaseMiddleware(object):
 
 class ProfileRequired(BaseMiddleware):
 
-    ADMIN_INDEX_URL = reverse('admin:index')
+    admin_index_url = reverse('admin:index')
 
     def __call__(self, request):
         user = request.user
         if request.path not in self.IGNORE_PATH:
             if user.is_authenticated() and not hasattr(user, 'profile'):
-                if not request.path.startswith(self.ADMIN_INDEX_URL):
-                    return redirect(self.ADMIN_INDEX_URL)
+                if not request.path.startswith(self.admin_index_url):
+                    return redirect(self.admin_index_url)
         return self.get_response(request)
 
 

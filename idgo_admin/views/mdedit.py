@@ -14,6 +14,12 @@
 # under the License.
 
 from datetime import datetime
+import json
+import os
+import re
+from urllib.parse import urljoin
+import xml.etree.ElementTree as ET
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -24,13 +30,9 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.models import Category
-from idgo_admin.models.category import MDEDIT_CONFIG_PATH
-from idgo_admin.models.category import MDEDIT_DATASET_MODEL
-from idgo_admin.models.category import MDEDIT_HTML_PATH
-from idgo_admin.models.category import MDEDIT_LOCALES
-from idgo_admin.models.category import MDEDIT_SERVICE_MODEL
 from idgo_admin.models import Dataset
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
@@ -38,24 +40,25 @@ from idgo_admin.shortcuts import get_object_or_404
 from idgo_admin.utils import clean_my_obj
 from idgo_admin.utils import open_json_staticfile
 from idgo_admin.views.dataset import target
-import os
-import re
-from urllib.parse import urljoin
-import xml.etree.ElementTree as ET
+
+from idgo_admin import CKAN_URL
+from idgo_admin import DOMAIN_NAME
+from idgo_admin import GEONETWORK_URL
+from idgo_admin import LOGIN_URL
+from idgo_admin import MDEDIT_CONFIG_PATH
+from idgo_admin import MDEDIT_DATASET_MODEL
+from idgo_admin import MDEDIT_HTML_PATH
+from idgo_admin import MDEDIT_LOCALES_PATH
+from idgo_admin import MDEDIT_SERVICE_MODEL
+from idgo_admin import READTHEDOC_URL
 
 
-try:
-    STATIC_URL = getattr(settings, 'STATIC_URL')
-    GEONETWORK_URL = getattr(settings, 'GEONETWORK_URL')
-    CKAN_URL = getattr(settings, 'CKAN_URL')
-    DOMAIN_NAME = getattr(settings, 'DOMAIN_NAME')
-    READTHEDOC_URL = getattr(settings, 'READTHEDOC_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+with open(MDEDIT_LOCALES_PATH, 'r', encoding='utf-8') as f:
+    mdedit_locales = json.loads(f.read())
 
 
 def join_url(filename, path=MDEDIT_CONFIG_PATH):
-    return urljoin(urljoin(STATIC_URL, path), filename)
+    return urljoin(urljoin(settings.STATIC_URL, path), filename)
 
 
 def prefill_dataset_model(dataset):
@@ -236,11 +239,11 @@ class DatasetMDEdit(View):
                     'path': join_url(MDEDIT_DATASET_MODEL),
                     'value': 'Modèle de fiche vierge'
                     }]},
-            'locales': MDEDIT_LOCALES,
+            'locales': mdedit_locales,
             'locales_path': join_url('locales/'),
             'geographicextents_list': join_url('list_geographicextents.json'),
             'referencesystems_list': join_url('list_referencesystems.json'),
-            'static_root': join_url('libs/mdedit/', path=STATIC_URL),
+            'static_root': join_url('libs/mdedit/', path=settings.STATIC_URL),
             'modal_template': {
                 'help': join_url('modal-help.html', path=MDEDIT_HTML_PATH)}}
 
@@ -404,11 +407,11 @@ class ServiceMDEdit(View):
                     'path': join_url(MDEDIT_SERVICE_MODEL),
                     'value': 'Modèle de fiche vierge'
                     }]},
-            'locales': MDEDIT_LOCALES,
+            'locales': mdedit_locales,
             'locales_path': join_url('locales/'),
             'geographicextents_list': join_url('list_geographicextents.json'),
             'referencesystems_list': join_url('list_referencesystems.json'),
-            'static_root': join_url('libs/mdedit/', path=STATIC_URL),
+            'static_root': join_url('libs/mdedit/', path=settings.STATIC_URL),
             'modal_template': {
                 'help': join_url('modal-help.html', path=MDEDIT_HTML_PATH)}}
 

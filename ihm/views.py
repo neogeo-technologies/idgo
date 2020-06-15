@@ -15,22 +15,24 @@
 
 
 from django.http import JsonResponse
-from ihm.models import IHMSettings
+
 from rest_framework import permissions
 from rest_framework.views import APIView
+
+from ihm.models import IHMSettings
 
 
 class CkanIHMSettings(APIView):
 
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
-        ]
+    ]
 
     def get(self, request):
         data = dict([
             (settings.name, {
                 'content': settings.contents,
                 'active': settings.activate,
-                }) for settings in IHMSettings.objects.filter(target='ckan')
-            ])
+            }) for settings in IHMSettings.objects.filter(target='ckan')
+        ])
         return JsonResponse(data, safe=False)

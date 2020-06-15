@@ -14,12 +14,14 @@
 # under the License.
 
 
+import json
+
 from django.core.management.base import BaseCommand
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
-import json
 
 
 def get_all_users_for_organisations(list_id):

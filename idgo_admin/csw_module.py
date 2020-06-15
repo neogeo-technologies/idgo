@@ -14,20 +14,25 @@
 # under the License.
 
 
-from django.utils.text import slugify
 from functools import wraps
+import inspect
+import logging
+import os
+
+import re
+import timeout_decorator
+from owslib.csw import CatalogueServiceWeb
+
+from django.utils.text import slugify
+
 from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin.datagis import transform
 from idgo_admin.exceptions import CswBaseError
-from idgo_admin import logger
-import inspect
-import os
-from owslib.csw import CatalogueServiceWeb
-import re
-import timeout_decorator
+
+from idgo_admin import CSW_TIMEOUT
 
 
-CSW_TIMEOUT = 36000
+logger = logging.getLogger('idgo_admin.csw_module')
 
 
 def timeout(fun):

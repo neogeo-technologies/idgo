@@ -28,41 +28,41 @@ class TaskTracking(models.Model):
     uuid = models.UUIDField(
         verbose_name="UUID",
         unique=True,
-        )
+    )
 
     task = models.TextField(
         verbose_name="Tâche",
         blank=True,
         null=True,
-        )
+    )
 
     detail = JSONField(
         verbose_name="Détail",
         blank=True,
         null=True,
-        )
+    )
 
     STATE_CHOICES = (
         ('running', "Tâche en cours de traitement"),
         ('succesful', "Tâche terminée avec succés"),
         ('failed', "Échec de la tâche"),
         ('unknown', "Tâche perdue"),
-        )
+    )
 
     state = models.CharField(
         verbose_name="État",
         max_length=10,
         choices=STATE_CHOICES,
         default='running',
-        )
+    )
 
     start = models.DateTimeField(
         verbose_name="Début",
         auto_now_add=True,
-        )
+    )
 
     end = models.DateTimeField(
         verbose_name="Fin",
         blank=True,
         null=True,
-        )
+    )

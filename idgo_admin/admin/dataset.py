@@ -14,6 +14,9 @@
 # under the License.
 
 
+import logging
+import re
+
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -24,7 +27,10 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
-from idgo_admin import logger
+
+from taggit.admin import Tag
+from taggit.models import TaggedItem
+
 from idgo_admin.ckan_module import CkanManagerHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.models import Dataset
@@ -32,9 +38,9 @@ from idgo_admin.models import Keywords
 from idgo_admin.models import Profile
 from idgo_admin.models import Resource
 from idgo_admin.models import ResourceFormats
-import re
-from taggit.admin import Tag
-from taggit.models import TaggedItem
+
+
+logger = logging.getLogger('idgo_admin')
 
 
 def synchronize(modeladmin, request, queryset):

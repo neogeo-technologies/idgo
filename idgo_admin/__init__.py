@@ -14,10 +14,80 @@
 # under the License.
 
 
-default_app_config = 'idgo_admin.apps.IdgoadminConfig'
+default_app_config = 'idgo_admin.apps.IdgoAdminConfig'
+
+import os  # noqa E402
+import sys  # noqa E402
+this = sys.modules[__name__]
+
+from django.conf import settings  # noqa E402
 
 
-import logging
-logger = logging.getLogger('glob')
+MANDATORY = (
+    'CKAN_API_KEY',
+    'CKAN_STORAGE_PATH',
+    'CKAN_URL',
+    'DATABASES',
+    'DATAGIS_DB',
+    'DEFAULT_USER_ID',
+    'DEFAULT_FROM_EMAIL',
+    'DEFAULT_FROM_EMAIL',
+    'DEFAULTS_VALUES',
+    'DOMAIN_NAME',
+    'EXTRACTOR_URL',
+    'EXTRACTOR_URL_PUBLIC',
+    'FTP_DIR',
+    'FTP_SERVICE_URL',
+    'GEONETWORK_URL',
+    'LOGIN_URL',
+    'LOGOUT_URL',
+    'MAPSERV_STORAGE_PATH',
+    'MRA',
+    'TERMS_URL',
+    'OWS_URL_PATTERN',
+    'OWS_PREVIEW_URL',
+    'REDIS_HOST',
+)
 
-__all__ = [logger]
+OPTIONAL = (
+    ('HREF_WWW', None),
+    ('CKAN_TIMEOUT', 36000),
+    ('CSW_TIMEOUT', 36000),
+    ('DCAT_TIMEOUT', 36000),
+    ('DATAGIS_DB_SCHEMA', 'public'),
+    ('DATAGIS_DB_GEOM_FIELD_NAME', 'the_geom'),
+    ('DATAGIS_DB_EPSG', 4171),
+    ('DEFAULT_PLATFORM_NAME', 'IDGO'),
+    ('DEFAULT_CONTACT_EMAIL', 'contact@idgo.fr'),
+    ('DOWNLOAD_SIZE_LIMIT', 104857600),
+    ('ENABLE_FTP_ACCOUNT', True),
+    ('ENABLE_ORGANISATION_CREATE', True),
+    ('EXTRACTOR_BOUNDS', [[40, -14], [55, 28]]),
+    ('PHONE_REGEX', '^0\d{9}$'),
+    ('FTP_URL', None),
+    ('FTP_MECHANISM', 'cgi'),
+    ('FTP_MECHANISM', ''),
+    ('FTP_UPLOADS_DIR', 'uploads'),
+    ('FTP_USER_PREFIX', ''),
+    ('GEONETWORK_LOGIN', 'admin'),
+    ('GEONETWORK_PASSWORD', 'admin'),
+    ('GEONETWORK_TIMEOUT', 36000),
+    ('MAPSERV_TIMEOUT', 60),
+    ('MDEDIT_HTML_PATH', 'mdedit/html/'),
+    ('MDEDIT_CONFIG_PATH', 'mdedit/config/'),
+    ('MDEDIT_DATASET_MODEL', 'models/model-dataset-empty.json'),
+    ('MDEDIT_SERVICE_MODEL', 'models/model-service-empty.json'),
+    ('MDEDIT_LOCALES_PATH', os.path.join(
+        settings.BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')),
+    ('REDIS_EXPIRATION', 120),
+    ('READTHEDOC_URL', None),
+)
+
+for KEY in MANDATORY:
+    try:
+        setattr(this, KEY, getattr(settings, KEY))
+    except AttributeError as e:
+        raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+for KEY, VALUE in OPTIONAL:
+    setattr(this, KEY, getattr(settings, KEY, VALUE))

@@ -14,7 +14,10 @@
 # under the License.
 
 
-from django.conf import settings
+import json
+from math import ceil
+from operator import ior
+
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
@@ -47,18 +50,10 @@ from idgo_admin.models import ResourceFormats
 from idgo_admin.models import Support
 from idgo_admin.shortcuts import get_object_or_404_extended
 
-import json
-from math import ceil
-from operator import ior
+from idgo_admin import CKAN_URL
+from idgo_admin import LOGIN_URL
 
 from idgo_resource.models import Resource as NewResourceModel
-
-
-try:
-    CKAN_URL = getattr(settings, 'CKAN_URL')
-    LOGIN_URL = getattr(settings, 'LOGIN_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 
 def target(dataset, user):

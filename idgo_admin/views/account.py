@@ -13,8 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import uuid
 
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth import logout
@@ -34,9 +34,9 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import CkanBaseError
-from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.forms.account import SignUpForm
 from idgo_admin.forms.account import UpdateAccountForm
 from idgo_admin.forms.account import UserDeleteForm
@@ -56,13 +56,8 @@ from idgo_admin.views.organisation import contributor_subscribe_process
 from idgo_admin.views.organisation import creation_process
 from idgo_admin.views.organisation import member_subscribe_process
 from idgo_admin.views.organisation import referent_subscribe_process
-import uuid
 
-
-try:
-    LOGIN_URL = getattr(settings, 'LOGIN_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+from idgo_admin import LOGIN_URL
 
 
 decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]

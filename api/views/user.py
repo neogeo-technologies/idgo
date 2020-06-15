@@ -14,8 +14,11 @@
 # under the License.
 
 
-from api.utils import parse_request
 from collections import OrderedDict
+from functools import reduce
+from operator import iand
+from operator import ior
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -26,7 +29,10 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from functools import reduce
+
+from rest_framework import permissions
+from rest_framework.views import APIView
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import GenericException
@@ -37,10 +43,8 @@ from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
-from operator import iand
-from operator import ior
-from rest_framework import permissions
-from rest_framework.views import APIView
+
+from api.utils import parse_request
 
 
 def serialize(user):
@@ -269,7 +273,7 @@ class UserList(APIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-        ]
+    ]
 
     def get(self, request):
         if not hasattr(request.user, 'profile'):

@@ -14,8 +14,11 @@
 # under the License.
 
 
+import logging
+from urllib.parse import urljoin
+from uuid import UUID
+
 from django.apps import apps
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
@@ -26,36 +29,34 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.text import slugify
 from django.utils import timezone
+
+from taggit.admin import Tag
+from taggit.managers import TaggableManager
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import bounds_to_wkt
-from idgo_admin import logger
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.managers import DefaultDatasetManager
 from idgo_admin.managers import HarvestedCkanDatasetManager
 from idgo_admin.managers import HarvestedCswDatasetManager
 from idgo_admin.managers import HarvestedDcatDatasetManager
 from idgo_admin.utils import three_suspension_points
-from taggit.admin import Tag
-from taggit.managers import TaggableManager
-from urllib.parse import urljoin
-from uuid import UUID
+
+from idgo_admin import DOMAIN_NAME
+from idgo_admin import CKAN_URL
+from idgo_admin import GEONETWORK_URL
+from idgo_admin import DEFAULT_CONTACT_EMAIL
+from idgo_admin import DEFAULT_PLATFORM_NAME
+from idgo_admin import DEFAULTS_VALUES
 
 
-try:
-    DOMAIN_NAME = getattr(settings, 'DOMAIN_NAME')
-    CKAN_URL = getattr(settings, 'CKAN_URL')
-    GEONETWORK_URL = getattr(settings, 'GEONETWORK_URL')
-    OWS_URL_PATTERN = getattr(settings, 'OWS_URL_PATTERN')
-    DEFAULT_CONTACT_EMAIL = getattr(settings, 'DEFAULT_CONTACT_EMAIL')
-    DEFAULT_PLATFORM_NAME = getattr(settings, 'DEFAULT_PLATFORM_NAME')
-    DEFAULTS_VALUES = getattr(settings, 'DEFAULTS_VALUES')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+logger = logging.getLogger('idgo_admin')
+
 
 try:
     BOUNDS = DEFAULTS_VALUES['BOUNDS']
-except AttributeError:
+except KeyError:
     xmin, ymin = -180, -90
     xmax, ymax = 180, 90
 else:

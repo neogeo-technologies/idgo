@@ -16,7 +16,11 @@
 
 from collections import OrderedDict
 import csv
-from django.conf import settings
+from operator import ior
+import unicodecsv
+from urllib.parse import urljoin
+from uuid import UUID
+
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import Case
 from django.db.models import CharField
@@ -33,7 +37,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from idgo_admin.ckan_module import CkanHandler
+
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import Dataset
@@ -41,17 +45,9 @@ from idgo_admin.models import LiaisonsReferents
 from idgo_admin.models import Profile
 from idgo_admin.shortcuts import on_profile_http404
 from idgo_admin.views.dataset import get_filtered_datasets
-from operator import ior
-import unicodecsv
-from urllib.parse import urljoin
-from uuid import UUID
 
-
-try:
-    CKAN_URL = getattr(settings, 'CKAN_URL')
-    DEFAULT_PLATFORM_NAME = getattr(settings, 'DEFAULT_PLATFORM_NAME')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+from idgo_admin import CKAN_URL
+from idgo_admin import DEFAULT_PLATFORM_NAME
 
 
 COLL_NOM = F('organisation__legal_name')

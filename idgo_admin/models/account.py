@@ -14,8 +14,10 @@
 # under the License.
 
 
+import requests
+import uuid
+
 from django.apps import apps
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.db.models.signals import post_save
@@ -23,18 +25,13 @@ from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
+
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.sftp import sftp_user_operation
-import requests
-import uuid
 
-
-try:
-    FTP_SERVICE_URL = getattr(settings, 'FTP_SERVICE_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
-
-ADMIN_USERNAME = getattr(settings, 'ADMIN_USERNAME', None)
+from idgo_admin import FTP_SERVICE_URL
+from idgo_admin import FTP_MECHANISM
+from idgo_admin import FTP_USER_PREFIX
 
 
 # ==============
@@ -217,12 +214,12 @@ class Profile(models.Model):
         """
         mot de passe n'est changeable que chez WL, mechanisme json_file
         """
-        return getattr(settings, 'FTP_MECHANISM', 'cgi') == "json_file"
+        return FTP_MECHANISM == "json_file"
 
     def create_ftp_account(self, change=False):
 
-        mechanism = getattr(settings, 'FTP_MECHANISM', 'cgi')
-        user_prefix = getattr(settings, 'FTP_USER_PREFIX', '')
+        mechanism = FTP_MECHANISM
+        user_prefix = FTP_USER_PREFIX
         if mechanism == 'cgi':
             params = {'action': 'create', 'login': user_prefix + self.user.username}
             r = requests.get(FTP_SERVICE_URL, params=params)
@@ -238,8 +235,8 @@ class Profile(models.Model):
             return password
 
     def delete_ftp_account(self):
-        mechanism = getattr(settings, 'FTP_MECHANISM', 'cgi')
-        user_prefix = getattr(settings, 'FTP_USER_PREFIX', '')
+        mechanism = FTP_MECHANISM
+        user_prefix = FTP_USER_PREFIX
         if mechanism == 'cgi':
             params = {'action': 'delete', 'login': user_prefix + self.user.username}
             r = requests.get(FTP_SERVICE_URL, params=params)

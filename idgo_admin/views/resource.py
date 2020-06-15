@@ -14,7 +14,9 @@
 # under the License.
 
 
-from django.conf import settings
+import json
+import os
+
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
@@ -38,21 +40,12 @@ from idgo_admin.models.mail import send_resource_delete_mail
 from idgo_admin.models.mail import send_resource_update_mail
 from idgo_admin.models import Resource
 from idgo_admin.shortcuts import get_object_or_404_extended
-
 from idgo_admin.views.dataset import target as datasets_target
-import json
-import os
 
-
-try:
-    CKAN_URL = getattr(settings, 'CKAN_URL')
-    FTP_DIR = getattr(settings, 'FTP_DIR')
-    LOGIN_URL = getattr(settings, 'LOGIN_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
-
-FTP_UPLOADS_DIR = getattr(settings, 'FTP_UPLOADS_DIR', 'uploads')
-FTP_USER_PREFIX = getattr(settings, 'FTP_USER_PREFIX', '')
+from idgo_admin import CKAN_URL
+from idgo_admin import FTP_DIR
+from idgo_admin import FTP_USER_PREFIX
+from idgo_admin import LOGIN_URL
 
 
 decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]

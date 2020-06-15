@@ -13,11 +13,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+
 from django.contrib import admin
-from django.contrib.auth.models import User
-from idgo_admin.models import Profile
+
 from idgo_admin.models import Gdpr
-# from idgo_admin.models import GdprUser
 
 
 class GdprAdmin(admin.ModelAdmin):

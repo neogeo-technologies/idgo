@@ -15,16 +15,10 @@
 
 
 from decimal import Decimal
-from django.conf import settings
-from django.utils.functional import keep_lazy
-from django.utils.safestring import mark_safe
-from django.utils.safestring import SafeText
-from idgo_admin.exceptions import SizeLimitExceededError
-from idgo_admin import logger
 import json
+import logging
 import os
 import re
-import requests
 import shutil
 import string
 import unicodedata
@@ -32,12 +26,17 @@ from urllib.parse import urlparse
 from uuid import uuid4
 from zipfile import ZipFile
 
+import requests
 
-try:
-    STATIC_ROOT = getattr(settings, 'STATIC_ROOT')
-    STATICFILES_DIRS = getattr(settings, 'STATICFILES_DIRS')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+from django.conf import settings
+from django.utils.functional import keep_lazy
+from django.utils.safestring import mark_safe
+from django.utils.safestring import SafeText
+
+from idgo_admin.exceptions import SizeLimitExceededError
+
+
+logger = logging.getLogger('idgo_admin')
 
 
 # Metaclasses:
@@ -179,10 +178,10 @@ def open_json_staticfile(filename):
         with open(os.path.join(root, filename), encoding='utf-8') as f:
             return json.load(f)
 
-    if STATIC_ROOT:
-        return open_json(STATIC_ROOT)
-    elif STATICFILES_DIRS:
-        for staticfiles_dir in STATICFILES_DIRS:
+    if hasattr(settings, 'STATIC_ROOT'):
+        return open_json(settings.STATIC_ROOT)
+    elif hasattr(settings, 'STATICFILES_DIRS'):
+        for staticfiles_dir in settings.STATICFILES_DIRS:
             return open_json(staticfiles_dir)
     else:
         raise AttributeError('Neither STATIC_ROOT nor STATICFILES_DIRS are found in this context.')

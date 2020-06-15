@@ -14,7 +14,8 @@
 # under the License.
 
 
-from django.conf import settings
+import json
+
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
@@ -27,18 +28,14 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+
 from idgo_admin.exceptions import MraBaseError
 from idgo_admin.forms.layer import LayerForm as Form
 from idgo_admin.models import Layer
 from idgo_admin.mra_client import MRAHandler
 from idgo_admin.views.dataset import target as datasets_target
-import json
 
-
-try:
-    LOGIN_URL = getattr(settings, 'LOGIN_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+from idgo_admin import LOGIN_URL
 
 
 decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]

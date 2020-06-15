@@ -15,8 +15,16 @@
 
 
 from datetime import datetime
+from functools import reduce
+import inspect
+import logging
+from operator import iand
+from operator import ior
+from urllib.parse import urljoin
+from urllib.parse import urlparse
+import uuid
+
 from django.apps import apps
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
@@ -29,7 +37,7 @@ from django.db import transaction
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.text import slugify
-from functools import reduce
+
 from idgo_admin.ckan_module import CkanBaseHandler
 from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.csw_module import CswBaseHandler
@@ -39,29 +47,23 @@ from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CriticalError
 from idgo_admin.exceptions import CswBaseError
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
-from idgo_admin import logger
 from idgo_admin.managers import OrganisationManager
 from idgo_admin.mra_client import MRAHandler
-from idgo_admin.models.category import ISO_TOPIC_CHOICES
-import inspect
-from operator import iand
-from operator import ior
-from urllib.parse import urljoin
-from urllib.parse import urlparse
-import uuid
 
+from idgo_admin import DOMAIN_NAME
+from idgo_admin import DEFAULT_USER_ID
+from idgo_admin import DEFAULT_CONTACT_EMAIL
+from idgo_admin import DEFAULT_PLATFORM_NAME
+from idgo_admin import OWS_URL_PATTERN
+from idgo_admin import DEFAULTS_VALUES
+
+
+logger = logging.getLogger('idgo_admin')
 
 try:
-    DOMAIN_NAME = getattr(settings, 'DOMAIN_NAME')
-    DEFAULT_USER_ID = getattr(settings, 'DEFAULT_USER_ID')
-    DEFAULT_CONTACT_EMAIL = getattr(settings, 'DEFAULT_CONTACT_EMAIL')
-    DEFAULT_PLATFORM_NAME = getattr(settings, 'DEFAULT_PLATFORM_NAME')
-    OWS_URL_PATTERN = getattr(settings, 'OWS_URL_PATTERN')
-    DEFAULTS_VALUES = getattr(settings, 'DEFAULTS_VALUES')
     DEFAULT_VALUE_LICENSE = DEFAULTS_VALUES['LICENSE']
-except AttributeError as e:
+except KeyError as e:
     raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
-
 
 ISOFORMAT_DATE = '%Y-%m-%d'
 ISOFORMAT_DATETIME = '%Y-%m-%dT%H:%M:%S.%f'

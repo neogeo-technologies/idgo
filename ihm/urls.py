@@ -15,9 +15,10 @@
 
 
 from django.conf.urls import url
+
 from ihm.views import CkanIHMSettings
 
 
 urlpatterns = [
     url('^ckan/settings/?$', CkanIHMSettings.as_view(), name='ckan_settings'),
-    ]
+]

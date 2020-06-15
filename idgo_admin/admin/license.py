@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.contrib.admin.utils import get_deleted_objects
 from django.db import router
 from django import forms
+
 from idgo_admin.models import License
 
 

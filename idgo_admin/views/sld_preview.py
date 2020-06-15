@@ -14,6 +14,10 @@
 # under the License.
 
 
+import redis
+import urllib.parse
+import uuid
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
@@ -22,24 +26,13 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-import redis
-import urllib.parse
-import uuid
+
+from idgo_admin import REDIS_HOST
+from idgo_admin import REDIS_EXPIRATION
+from idgo_admin import LOGIN_URL
 
 
-try:
-    REDIS_HOST = getattr(settings, 'REDIS_HOST')
-    OWS_PREVIEW_URL = getattr(settings, 'OWS_PREVIEW_URL')
-    LOGIN_URL = getattr(settings, 'LOGIN_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
-
-
-try:
-    strict_redis = redis.StrictRedis(REDIS_HOST)
-except AttributeError:
-    strict_redis = redis.StrictRedis()
-REDIS_EXPIRATION = 120
+strict_redis = redis.StrictRedis(REDIS_HOST)
 
 
 @method_decorator([csrf_exempt, login_required(login_url=LOGIN_URL)], name='dispatch')

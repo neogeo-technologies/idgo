@@ -13,12 +13,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import re
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django import forms
 from django.forms.models import ModelChoiceIterator
 from django.utils import timezone
+
+from taggit.forms import TagField
+from taggit.forms import TagWidget
+
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
 from idgo_admin.models import DataType
@@ -26,19 +30,11 @@ from idgo_admin.models import Granularity
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 from idgo_admin.models import Support
-import re
-from taggit.forms import TagField
-from taggit.forms import TagWidget
 
+from idgo_admin import DOMAIN_NAME
+from idgo_admin import DEFAULT_CONTACT_EMAIL
+from idgo_admin import DEFAULT_PLATFORM_NAME
 
-try:
-    CKAN_URL = getattr(settings, 'CKAN_URL')
-    DOMAIN_NAME = getattr(settings, 'DOMAIN_NAME')
-    DEFAULT_CONTACT_EMAIL = getattr(settings, 'DEFAULT_CONTACT_EMAIL')
-    DEFAULT_PLATFORM_NAME = getattr(settings, 'DEFAULT_PLATFORM_NAME')
-    GEONETWORK_URL = getattr(settings, 'GEONETWORK_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 TODAY = timezone.now().date().strftime('%d/%m/%Y')
 
