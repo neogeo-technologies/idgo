@@ -36,7 +36,7 @@ from sid.xml_io import XMLtParser
 from sid.exceptions import SidGenericError
 
 
-logger = logging.getLogger('django')
+logger = logging.getLogger('sid')
 
 
 class AbstractOrgViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,

@@ -15,3 +15,26 @@
 
 
 default_app_config = 'sid.apps.SidConfig'
+
+
+from django.conf import settings  # noqa E402
+
+
+try:
+    CKAN_URL = getattr(settings, 'CKAN_URL')
+    SSO_LOGOUT_URL = getattr(settings, 'SSO_LOGOUT_URL')
+    VIEWERSTUDIO_URL = getattr(settings, 'VIEWERSTUDIO_URL')
+except AttributeError as e:
+    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+
+HEADER_UID = getattr(settings, 'HEADER_UID', 'OIDC_CLAIM_uid')
+OIDC_SETTED = getattr(settings, 'OIDC_SETTED', False)
+
+
+__all__ = [
+    CKAN_URL,
+    HEADER_UID,
+    OIDC_SETTED,
+    SSO_LOGOUT_URL,
+    VIEWERSTUDIO_URL,
+]

@@ -24,10 +24,12 @@ from sid.views.organisation import OrganismViews
 
 app_name = 'sid'
 
+
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'agent', AgentViews, basename='agent')
 router.register(r'employee', EmployeeViews, basename='employee')
 router.register(r'organism', OrganismViews, basename='organism')
 router.register(r'company', CompanyViews, basename='company')
+
 
 urlpatterns = router.urls

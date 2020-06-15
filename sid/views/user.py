@@ -16,9 +16,12 @@
 
 import logging
 
+import xmltodict
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import HttpResponse
+
 from rest_framework.views import APIView
 from rest_framework import mixins
 from rest_framework import permissions
@@ -26,7 +29,6 @@ from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
-import xmltodict
 
 from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler
@@ -38,7 +40,7 @@ from sid.exceptions import SidGenericError
 
 
 User = get_user_model()
-logger = logging.getLogger('django')
+logger = logging.getLogger('sid')
 
 
 class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
@@ -52,7 +54,7 @@ class AbstractUsrViews(mixins.CreateModelMixin, mixins.UpdateModelMixin,
     ]
     renderer_classes = [XMLRenderer, ]
     permission_classes = [
-        # permissions.IsAuthenticated, # TODO limiter aux connectés
+        # permissions.IsAuthenticated,  # TODO limiter aux connectés
         permissions.AllowAny
     ]
     lookup_field = 'username'

@@ -19,7 +19,9 @@ default_app_config = 'server_cas.apps.ServerCasConfig'
 
 from django.conf import settings  # noqa E402
 
+
 MAMA_CAS_FOLLOW_LOGOUT_URL = getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', True)
+
 
 __all__ = [
     MAMA_CAS_FOLLOW_LOGOUT_URL,

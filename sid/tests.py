@@ -25,7 +25,7 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('sid.tests')
 
 
 class RootTestCase(APITransactionTestCase):

@@ -18,28 +18,28 @@ import logging
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 from django.urls import reverse
+
 from mama_cas.compat import is_authenticated
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
 
+from sid import CKAN_URL
+from sid import HEADER_UID
+from sid import OIDC_SETTED
+from sid import SSO_LOGOUT_URL
+from sid import VIEWERSTUDIO_URL
+
 
 User = get_user_model()
-logger = logging.getLogger('django')
 
-
-try:
-    CKAN_URL = getattr(settings, 'CKAN_URL')
-    VIEWERSTUDIO_URL = getattr(settings, 'VIEWERSTUDIO_URL')
-except AttributeError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+logger = logging.getLogger('sid')
 
 
 class SidRemoteUserMiddleware(object):
@@ -49,8 +49,8 @@ class SidRemoteUserMiddleware(object):
         # ...
     )
 
-    header = getattr(settings, 'HEADER_UID', 'OIDC_CLAIM_uid')
-    oidc_setted = getattr(settings, 'OIDC_SETTED', False)
+    header = HEADER_UID
+    oidc_setted = OIDC_SETTED
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -129,7 +129,7 @@ class ForceRedirectToHome(object):
 
 class LogOut(object):
 
-    sso_logout_url = getattr(settings, 'SSO_LOGOUT_URL', None)
+    sso_logout_url = SSO_LOGOUT_URL
 
     def __init__(self, get_response):
         self.get_response = get_response
