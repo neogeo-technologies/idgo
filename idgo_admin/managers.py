@@ -42,12 +42,27 @@ class DefaultDatasetManager(models.Manager):
         return obj
 
     def get_queryset(self, **kwargs):
-        RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-        RemoteCswDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
-        this = RemoteCkanDataset.objects.all().values_list('dataset__pk', flat=True)
-        that = RemoteCswDataset.objects.all().values_list('dataset__pk', flat=True)
+        exclude_pk = []
 
-        return super().get_queryset(**kwargs).exclude(pk__in=list(chain(this, that)))
+        if ENABLE_CKAN_HARVESTER:
+            RemoteCkanDataset = apps.get_model(
+                app_label='idgo_admin', model_name='RemoteCkanDataset')
+            exclude_pk.append(
+                RemoteCkanDataset.objects.all().values_list('dataset__pk', flat=True))
+
+        if ENABLE_CSW_HARVESTER:
+            RemoteCswDataset = apps.get_model(
+                app_label='idgo_admin', model_name='RemoteCswDataset')
+            exclude_pk.append(
+                RemoteCswDataset.objects.all().values_list('dataset__pk', flat=True))
+
+        if ENABLE_DCAT_HARVESTER:
+            RemoteDcatDataset = apps.get_model(
+                app_label='idgo_admin', model_name='RemoteDcatDataset')
+            exclude_pk.append(
+                RemoteDcatDataset.objects.all().values_list('dataset__pk', flat=True))
+
+        return super().get_queryset(**kwargs).exclude(pk__in=list(chain(*exclude_pk)))
 
     def all(self):
         return self.get_queryset()
