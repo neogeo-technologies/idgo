@@ -35,8 +35,8 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 
+from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler
-from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.forms.account import SignUpForm
 from idgo_admin.forms.account import UpdateAccountForm
 from idgo_admin.forms.account import UserDeleteForm

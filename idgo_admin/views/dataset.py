@@ -34,8 +34,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 
+from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler
-from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.models import Category
 from idgo_admin.models import Dataset
@@ -269,19 +269,22 @@ def list_all_csw_harvested_datasets(request, *args, **kwargs):
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
-@login_required(login_url=LOGIN_URL)
-@csrf_exempt
-def list_all_dcat_harvested_datasets(request, *args, **kwargs):
-    user = request.user
+from idgo_admin import ENABLE_DCAT_HARVESTER  # noqa
+if ENABLE_DCAT_HARVESTER:
 
-    # Réservé aux référents ou administrateurs IDGO
-    roles = user.profile.get_roles()
-    if not roles['is_referent'] and not roles['is_admin']:
-        raise Http404()
-    context = handle_context(
-        Dataset.harvested_dcat, request.GET, target='dcat_harvested')
-    return render(
-        request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
+    @login_required(login_url=LOGIN_URL)
+    @csrf_exempt
+    def list_all_dcat_harvested_datasets(request, *args, **kwargs):
+        user = request.user
+
+        # Réservé aux référents ou administrateurs IDGO
+        roles = user.profile.get_roles()
+        if not roles['is_referent'] and not roles['is_admin']:
+            raise Http404()
+        context = handle_context(
+            Dataset.harvested_dcat, request.GET, target='dcat_harvested')
+        return render(
+            request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
 @method_decorator([csrf_exempt, login_required(login_url=LOGIN_URL)], name='dispatch')

@@ -52,25 +52,22 @@
 		{% endif %}
 	{% endif %}
 	<div class="well">
-		{% if id and user.profile.is_admin %}
+		{% if id and user.profile.referent_for %}
+		{% if ENABLE_CKAN_HARVESTER or ENABLE_CSW_HARVESTER or ENABLE_DCAT_HARVESTER %}
 		<div class="buttons-on-the-right-side">
 			<div class="btn-group">
 				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 					Importer un catalogue <span class="caret"></span>
 				</button>
-				<ul class="dropdown-menu dropdown-menu-right">
-					<li><a href="{% url 'idgo_admin:edit_remote_csw_link' id=id %}">Importer un catalogue CSW</a></li>
-					<li><a href="{% url 'idgo_admin:edit_remote_ckan_link' id=id %}">Importer un catalogue CKAN</a></li>
-					<li><a href="{% url 'idgo_admin:edit_remote_dcat_link' id=id %}">Importer un catalogue DCAT</a></li>
+				<ul class="dropdown-menu dropdown-menu-right">{% if ENABLE_CKAN_HARVESTER %}
+					<li><a href="{% url 'idgo_admin:edit_remote_ckan_link' id=id %}">Importer un catalogue CKAN</a></li>{% endif %}{% if ENABLE_CSW_HARVESTER %}
+					<li><a href="{% url 'idgo_admin:edit_remote_csw_link' id=id %}">Importer un catalogue CSW</a></li>{% endif %}{% if ENABLE_DCAT_HARVESTER %}
+					<li><a href="{% url 'idgo_admin:edit_remote_dcat_link' id=id %}">Importer un catalogue DCAT</a></li>{% endif %}
 				</ul>
 			</div>
 		</div>
 		<br />
-			{% elif organisation in user.profile.referent_for %}
-		<div class="buttons-on-the-right-side">
-			<a href="{% url 'idgo_admin:edit_remote_ckan_link' id=id %}" class="btn btn-default">Importer un catalogue CKAN</a>
-		</div>
-		<br />
+		{% endif %}
 		{% endif %}
 		<div class="row">
 			<div class="col-sm-12">

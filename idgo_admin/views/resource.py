@@ -31,14 +31,14 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
-from idgo_admin.exceptions import CkanBaseError
-from idgo_admin.exceptions import MraBaseError
+from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset
 from idgo_admin.models.mail import send_resource_creation_mail
 from idgo_admin.models.mail import send_resource_delete_mail
 from idgo_admin.models.mail import send_resource_update_mail
 from idgo_admin.models import Resource
+from idgo_admin.mra_client import MraBaseError
 from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin.views.dataset import target as datasets_target
 

@@ -34,22 +34,13 @@ from idgo_admin.models.jurisdiction import JurisdictionCommune
 from idgo_admin.models.layer import Layer
 from idgo_admin.models.license import License
 from idgo_admin.models.mail import Mail
-from idgo_admin.models.organisation import MappingCategory
-from idgo_admin.models.organisation import MappingLicence
 from idgo_admin.models.organisation import Organisation
 from idgo_admin.models.organisation import OrganisationType
-from idgo_admin.models.organisation import RemoteCkan
-from idgo_admin.models.organisation import RemoteCkanDataset
-from idgo_admin.models.organisation import RemoteCsw
-from idgo_admin.models.organisation import RemoteCswDataset
-from idgo_admin.models.organisation import RemoteDcat
-from idgo_admin.models.organisation import RemoteDcatDataset
 from idgo_admin.models.resource import Resource
 from idgo_admin.models.resource import ResourceFormats
 from idgo_admin.models.support import Support
 from idgo_admin.models.supported_crs import SupportedCrs
 from idgo_admin.models.task import Task
-
 
 __all__ = [
     AccountActions,
@@ -71,20 +62,41 @@ __all__ = [
     LiaisonsContributeurs,
     LiaisonsReferents,
     Mail,
-    MappingCategory,
-    MappingLicence,
     Organisation,
     OrganisationType,
     Profile,
-    RemoteCkan,
-    RemoteCkanDataset,
-    RemoteCsw,
-    RemoteCswDataset,
-    RemoteDcat,
-    RemoteDcatDataset,
     Resource,
     ResourceFormats,
     Support,
     SupportedCrs,
     Task,
 ]
+
+
+from idgo_admin import ENABLE_CKAN_HARVESTER  # noqa
+if ENABLE_CKAN_HARVESTER:
+
+    from idgo_admin.models.organisation import RemoteCkan
+    from idgo_admin.models.organisation import RemoteCkanDataset
+    from idgo_admin.models.organisation import MappingCategory
+    from idgo_admin.models.organisation import MappingLicence
+
+    __all__ += [RemoteCkan, RemoteCkanDataset, MappingCategory, MappingLicence]
+
+
+from idgo_admin import ENABLE_CSW_HARVESTER  # noqa
+if ENABLE_CSW_HARVESTER:
+
+    from idgo_admin.models.organisation import RemoteCsw
+    from idgo_admin.models.organisation import RemoteCswDataset
+
+    __all__ += [RemoteCsw, RemoteCswDataset]
+
+
+from idgo_admin import ENABLE_DCAT_HARVESTER  # noqa
+if ENABLE_DCAT_HARVESTER:
+
+    from idgo_admin.models.organisation import RemoteDcat
+    from idgo_admin.models.organisation import RemoteDcatDataset
+
+    __all__ += [RemoteDcat, RemoteDcatDataset]

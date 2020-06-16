@@ -29,7 +29,7 @@ import timeout_decorator
 
 from django.apps import apps
 
-from idgo_admin.exceptions import MraBaseError
+from idgo_admin.exceptions import GenericException
 from idgo_admin.utils import Singleton
 from idgo_admin.utils import kill_all_special_characters
 
@@ -84,6 +84,10 @@ def timeout(fun):
         return return_with_timeout(fun, args=args, kwargs=kwargs)
 
     return wrapper
+
+
+class MraBaseError(GenericException):
+    """MraBaseError"""
 
 
 class MRASyncingError(MraBaseError):

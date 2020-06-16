@@ -56,255 +56,264 @@ class DefaultDatasetManager(models.Manager):
         return super().get(**kwargs)
 
 
-class HarvestedCkanDatasetManager(models.Manager):
+from idgo_admin import ENABLE_CKAN_HARVESTER  # noqa
+if ENABLE_CKAN_HARVESTER:
 
-    def create(self, **kwargs):
-        remote_instance = kwargs.pop('remote_instance', None)
-        remote_dataset = kwargs.pop('remote_dataset', None)
-        remote_organisation = kwargs.pop('remote_organisation', None)
+    class HarvestedCkanDatasetManager(models.Manager):
 
-        # Dans un premier temps on crée le jeu de données sans le synchroniser à CKAN
-        Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
-        save_opts = {'current_user': None, 'synchronize': False}
-        dataset = Dataset.default.create(save_opts=save_opts, **kwargs)
+        def create(self, **kwargs):
+            remote_instance = kwargs.pop('remote_instance', None)
+            remote_dataset = kwargs.pop('remote_dataset', None)
+            remote_organisation = kwargs.pop('remote_organisation', None)
 
-        # Puis on crée la liaison avec le CKAN distant
-        RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-        RemoteDataset.objects.create(
-            created_by=dataset.editor,
-            dataset=dataset,
-            remote_instance=remote_instance,
-            remote_dataset=remote_dataset,
-            remote_organisation=remote_organisation,
-            )
+            # Dans un premier temps on crée le jeu de données sans le synchroniser à CKAN
+            Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
+            save_opts = {'current_user': None, 'synchronize': False}
+            dataset = Dataset.default.create(save_opts=save_opts, **kwargs)
 
-        # Enfin on met à jour le jeu de données et on le synchronize avec CKAN
-        DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
-        dataset.data_type = DataType.objects.filter(slug='donnees-moissonnees')
-        dataset.save(current_user=None, synchronize=True)
+            # Puis on crée la liaison avec le CKAN distant
+            RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+            RemoteDataset.objects.create(
+                created_by=dataset.editor,
+                dataset=dataset,
+                remote_instance=remote_instance,
+                remote_dataset=remote_dataset,
+                remote_organisation=remote_organisation,
+                )
 
-        return dataset
+            # Enfin on met à jour le jeu de données et on le synchronize avec CKAN
+            DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
+            dataset.data_type = DataType.objects.filter(slug='donnees-moissonnees')
+            dataset.save(current_user=None, synchronize=True)
 
-    def filter(self, **kwargs):
-        remote_instance = kwargs.pop('remote_instance', None)
-        remote_dataset = kwargs.pop('remote_dataset', None)
-        remote_organisation = kwargs.pop('remote_organisation', None)
-        remote_organisation__in = kwargs.pop('remote_organisation__in', None)
+            return dataset
 
-        kvp = clean_my_obj({
-            'remote_instance': remote_instance,
-            'remote_dataset': remote_dataset,
-            'remote_organisation': remote_organisation,
-            'remote_organisation__in': remote_organisation__in})
-        if kvp:
+        def filter(self, **kwargs):
+            remote_instance = kwargs.pop('remote_instance', None)
+            remote_dataset = kwargs.pop('remote_dataset', None)
+            remote_organisation = kwargs.pop('remote_organisation', None)
+            remote_organisation__in = kwargs.pop('remote_organisation__in', None)
+
+            kvp = clean_my_obj({
+                'remote_instance': remote_instance,
+                'remote_dataset': remote_dataset,
+                'remote_organisation': remote_organisation,
+                'remote_organisation__in': remote_organisation__in})
+            if kvp:
+                Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
+                RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+
+                return Dataset.objects.filter(id__in=[
+                    entry.dataset.id for entry in RemoteDataset.objects.filter(**kvp)])
+
+            return super().filter(**kwargs)
+
+        def get(self, **kwargs):
+            remote_dataset = kwargs.pop('remote_dataset', None)
+
+            if remote_dataset:
+                RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+                return RemoteDataset.objects.get(remote_dataset=remote_dataset).dataset
+
+            return super().get(**kwargs)
+
+        def get_queryset(self, **kwargs):
             Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+            return Dataset.objects.filter(
+                id__in=[entry.dataset.id for entry in RemoteDataset.objects.all()])
 
-            return Dataset.objects.filter(id__in=[
-                entry.dataset.id for entry in RemoteDataset.objects.filter(**kvp)])
+        def update_or_create(self, **kwargs):
+            remote_dataset = kwargs.get('remote_dataset', None)
 
-        return super().filter(**kwargs)
-
-    def get(self, **kwargs):
-        remote_dataset = kwargs.pop('remote_dataset', None)
-
-        if remote_dataset:
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-            return RemoteDataset.objects.get(remote_dataset=remote_dataset).dataset
+            try:
+                dataset = self.get(remote_dataset=remote_dataset)
+            except RemoteDataset.DoesNotExist:
+                dataset = self.create(**kwargs)
+                created = True
+            else:
+                created = False
+                harvested = RemoteDataset.objects.get(dataset=dataset)
+                harvested.updated_on = timezone.now()
+                harvested.remote_organisation = kwargs.pop('remote_organisation', None)
+                harvested.save()
 
-        return super().get(**kwargs)
+                for k, v in kwargs.items():
+                    setattr(dataset, k, v)
+                dataset.save(current_user=None, synchronize=True)
 
-    def get_queryset(self, **kwargs):
-        Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
-        RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-        return Dataset.objects.filter(
-            id__in=[entry.dataset.id for entry in RemoteDataset.objects.all()])
+            return dataset, created
 
-    def update_or_create(self, **kwargs):
-        remote_dataset = kwargs.get('remote_dataset', None)
 
-        RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-        try:
-            dataset = self.get(remote_dataset=remote_dataset)
-        except RemoteDataset.DoesNotExist:
-            dataset = self.create(**kwargs)
-            created = True
-        else:
-            created = False
-            harvested = RemoteDataset.objects.get(dataset=dataset)
-            harvested.updated_on = timezone.now()
-            harvested.remote_organisation = kwargs.pop('remote_organisation', None)
-            harvested.save()
+from idgo_admin import ENABLE_CSW_HARVESTER  # noqa
+if ENABLE_CSW_HARVESTER:
 
-            for k, v in kwargs.items():
-                setattr(dataset, k, v)
+    class HarvestedCswDatasetManager(models.Manager):
+
+        def create(self, **kwargs):
+            remote_instance = kwargs.pop('remote_instance', None)
+            remote_dataset = kwargs.pop('remote_dataset', None)
+
+            # Dans un premier temps on crée le jeu de données sans le synchroniser à CSW
+            Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
+            save_opts = {'current_user': None, 'synchronize': False}
+            dataset = Dataset.default.create(save_opts=save_opts, **kwargs)
+
+            # Puis on crée la liaison avec le CSW distant
+            RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
+            RemoteDataset.objects.create(
+                created_by=dataset.editor,
+                dataset=dataset,
+                remote_instance=remote_instance,
+                remote_dataset=remote_dataset,
+                )
+
+            # Enfin on met à jour le jeu de données et on le synchronize avec CSW
+            DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
+            dataset.data_type = DataType.objects.filter(slug='donnees-moissonnees')
             dataset.save(current_user=None, synchronize=True)
 
-        return dataset, created
+            return dataset
 
+        def filter(self, **kwargs):
+            remote_instance = kwargs.pop('remote_instance', None)
+            remote_dataset = kwargs.pop('remote_dataset', None)
 
-class HarvestedCswDatasetManager(models.Manager):
+            kvp = clean_my_obj({
+                'remote_instance': remote_instance,
+                'remote_dataset': remote_dataset,
+                })
+            if kvp:
+                Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
+                RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
 
-    def create(self, **kwargs):
-        remote_instance = kwargs.pop('remote_instance', None)
-        remote_dataset = kwargs.pop('remote_dataset', None)
+                return Dataset.objects.filter(id__in=[
+                    entry.dataset.id for entry in RemoteDataset.objects.filter(**kvp)])
 
-        # Dans un premier temps on crée le jeu de données sans le synchroniser à CSW
-        Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
-        save_opts = {'current_user': None, 'synchronize': False}
-        dataset = Dataset.default.create(save_opts=save_opts, **kwargs)
+            return super().filter(**kwargs)
 
-        # Puis on crée la liaison avec le CSW distant
-        RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
-        RemoteDataset.objects.create(
-            created_by=dataset.editor,
-            dataset=dataset,
-            remote_instance=remote_instance,
-            remote_dataset=remote_dataset,
-            )
+        def get(self, **kwargs):
+            remote_dataset = kwargs.pop('remote_dataset', None)
 
-        # Enfin on met à jour le jeu de données et on le synchronize avec CSW
-        DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
-        dataset.data_type = DataType.objects.filter(slug='donnees-moissonnees')
-        dataset.save(current_user=None, synchronize=True)
+            if remote_dataset:
+                RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
+                return RemoteDataset.objects.get(remote_dataset=remote_dataset).dataset
 
-        return dataset
+            return super().get(**kwargs)
 
-    def filter(self, **kwargs):
-        remote_instance = kwargs.pop('remote_instance', None)
-        remote_dataset = kwargs.pop('remote_dataset', None)
-
-        kvp = clean_my_obj({
-            'remote_instance': remote_instance,
-            'remote_dataset': remote_dataset,
-            })
-        if kvp:
+        def get_queryset(self, **kwargs):
             Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
+            return Dataset.objects.filter(
+                id__in=[entry.dataset.id for entry in RemoteDataset.objects.all()])
 
-            return Dataset.objects.filter(id__in=[
-                entry.dataset.id for entry in RemoteDataset.objects.filter(**kvp)])
+        def update_or_create(self, **kwargs):
+            remote_dataset = kwargs.get('remote_dataset', None)
 
-        return super().filter(**kwargs)
-
-    def get(self, **kwargs):
-        remote_dataset = kwargs.pop('remote_dataset', None)
-
-        if remote_dataset:
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
-            return RemoteDataset.objects.get(remote_dataset=remote_dataset).dataset
+            try:
+                dataset = self.get(remote_dataset=remote_dataset)
+            except RemoteDataset.DoesNotExist:
+                dataset = self.create(**kwargs)
+                created = True
+            else:
+                created = False
+                harvested = RemoteDataset.objects.get(dataset=dataset)
+                harvested.updated_on = timezone.now()
+                # harvested.remote_organisation = kwargs.pop('remote_organisation', None)
+                harvested.save()
 
-        return super().get(**kwargs)
+                for k, v in kwargs.items():
+                    setattr(dataset, k, v)
+                dataset.save(current_user=None, synchronize=True)
 
-    def get_queryset(self, **kwargs):
-        Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
-        RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
-        return Dataset.objects.filter(
-            id__in=[entry.dataset.id for entry in RemoteDataset.objects.all()])
+            return dataset, created
 
-    def update_or_create(self, **kwargs):
-        remote_dataset = kwargs.get('remote_dataset', None)
 
-        RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
-        try:
-            dataset = self.get(remote_dataset=remote_dataset)
-        except RemoteDataset.DoesNotExist:
-            dataset = self.create(**kwargs)
-            created = True
-        else:
-            created = False
-            harvested = RemoteDataset.objects.get(dataset=dataset)
-            harvested.updated_on = timezone.now()
-            # harvested.remote_organisation = kwargs.pop('remote_organisation', None)
-            harvested.save()
+from idgo_admin import ENABLE_DCAT_HARVESTER  # noqa
+if ENABLE_DCAT_HARVESTER:
 
-            for k, v in kwargs.items():
-                setattr(dataset, k, v)
+    class HarvestedDcatDatasetManager(models.Manager):
+
+        def create(self, **kwargs):
+            remote_instance = kwargs.pop('remote_instance', None)
+            remote_dataset = kwargs.pop('remote_dataset', None)
+
+            # Dans un premier temps on crée le jeu de données sans le synchroniser à DCAT
+            Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
+            save_opts = {'current_user': None, 'synchronize': False}
+            dataset = Dataset.default.create(save_opts=save_opts, **kwargs)
+
+            # Puis on crée la liaison avec le DCAT distant
+            RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
+            RemoteDataset.objects.create(
+                created_by=dataset.editor,
+                dataset=dataset,
+                remote_instance=remote_instance,
+                remote_dataset=remote_dataset,
+                )
+
+            # Enfin on met à jour le jeu de données et on le synchronize avec DCAT
+            DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
+            dataset.data_type = DataType.objects.filter(slug='donnees-moissonnees')
             dataset.save(current_user=None, synchronize=True)
 
-        return dataset, created
+            return dataset
 
+        def filter(self, **kwargs):
+            remote_instance = kwargs.pop('remote_instance', None)
+            remote_dataset = kwargs.pop('remote_dataset', None)
 
-class HarvestedDcatDatasetManager(models.Manager):
+            kvp = clean_my_obj({
+                'remote_instance': remote_instance,
+                'remote_dataset': remote_dataset,
+                })
+            if kvp:
+                Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
+                RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
 
-    def create(self, **kwargs):
-        remote_instance = kwargs.pop('remote_instance', None)
-        remote_dataset = kwargs.pop('remote_dataset', None)
+                return Dataset.objects.filter(id__in=[
+                    entry.dataset.id for entry in RemoteDataset.objects.filter(**kvp)])
 
-        # Dans un premier temps on crée le jeu de données sans le synchroniser à DCAT
-        Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
-        save_opts = {'current_user': None, 'synchronize': False}
-        dataset = Dataset.default.create(save_opts=save_opts, **kwargs)
+            return super().filter(**kwargs)
 
-        # Puis on crée la liaison avec le DCAT distant
-        RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
-        RemoteDataset.objects.create(
-            created_by=dataset.editor,
-            dataset=dataset,
-            remote_instance=remote_instance,
-            remote_dataset=remote_dataset,
-            )
+        def get(self, **kwargs):
+            remote_dataset = kwargs.pop('remote_dataset', None)
 
-        # Enfin on met à jour le jeu de données et on le synchronize avec DCAT
-        DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
-        dataset.data_type = DataType.objects.filter(slug='donnees-moissonnees')
-        dataset.save(current_user=None, synchronize=True)
+            if remote_dataset:
+                RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
+                return RemoteDataset.objects.get(remote_dataset=remote_dataset).dataset
 
-        return dataset
+            return super().get(**kwargs)
 
-    def filter(self, **kwargs):
-        remote_instance = kwargs.pop('remote_instance', None)
-        remote_dataset = kwargs.pop('remote_dataset', None)
-
-        kvp = clean_my_obj({
-            'remote_instance': remote_instance,
-            'remote_dataset': remote_dataset,
-            })
-        if kvp:
+        def get_queryset(self, **kwargs):
             Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
+            return Dataset.objects.filter(
+                id__in=[entry.dataset.id for entry in RemoteDataset.objects.all()])
 
-            return Dataset.objects.filter(id__in=[
-                entry.dataset.id for entry in RemoteDataset.objects.filter(**kvp)])
+        def update_or_create(self, **kwargs):
+            remote_dataset = kwargs.get('remote_dataset', None)
 
-        return super().filter(**kwargs)
-
-    def get(self, **kwargs):
-        remote_dataset = kwargs.pop('remote_dataset', None)
-
-        if remote_dataset:
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
-            return RemoteDataset.objects.get(remote_dataset=remote_dataset).dataset
+            try:
+                dataset = self.get(remote_dataset=remote_dataset)
+            except RemoteDataset.DoesNotExist:
+                dataset = self.create(**kwargs)
+                created = True
+            else:
+                created = False
+                harvested = RemoteDataset.objects.get(dataset=dataset)
+                harvested.updated_on = timezone.now()
+                # harvested.remote_organisation = kwargs.pop('remote_organisation', None)
+                harvested.save()
 
-        return super().get(**kwargs)
+                for k, v in kwargs.items():
+                    setattr(dataset, k, v)
+                dataset.save(current_user=None, synchronize=True)
 
-    def get_queryset(self, **kwargs):
-        Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
-        RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
-        return Dataset.objects.filter(
-            id__in=[entry.dataset.id for entry in RemoteDataset.objects.all()])
-
-    def update_or_create(self, **kwargs):
-        remote_dataset = kwargs.get('remote_dataset', None)
-
-        RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
-        try:
-            dataset = self.get(remote_dataset=remote_dataset)
-        except RemoteDataset.DoesNotExist:
-            dataset = self.create(**kwargs)
-            created = True
-        else:
-            created = False
-            harvested = RemoteDataset.objects.get(dataset=dataset)
-            harvested.updated_on = timezone.now()
-            # harvested.remote_organisation = kwargs.pop('remote_organisation', None)
-            harvested.save()
-
-            for k, v in kwargs.items():
-                setattr(dataset, k, v)
-            dataset.save(current_user=None, synchronize=True)
-
-        return dataset, created
+            return dataset, created
 
 
 # =====================================================

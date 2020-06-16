@@ -28,9 +28,6 @@ from idgo_admin.views.account import SignUp
 from idgo_admin.views.account import UpdateAccount
 from idgo_admin.views.action import ActionsManager
 from idgo_admin.views.dataset import DatasetManager
-from idgo_admin.views.dataset import list_all_ckan_harvested_datasets
-from idgo_admin.views.dataset import list_all_csw_harvested_datasets
-from idgo_admin.views.dataset import list_all_dcat_harvested_datasets
 from idgo_admin.views.dataset import list_all_datasets
 from idgo_admin.views.dataset import list_dataset
 from idgo_admin.views.dataset import list_my_datasets
@@ -58,14 +55,8 @@ from idgo_admin.views.mdedit import ServiceMDEdit
 from idgo_admin.views.mdedit import ServiceMDEditTplEdit
 from idgo_admin.views.organisation import CreateOrganisation
 from idgo_admin.views.organisation import idgo_partnership
-from idgo_admin.views.organisation import DeleteRemoteCkanLinked
-from idgo_admin.views.organisation import DeleteRemoteCswLinked
-from idgo_admin.views.organisation import DeleteRemoteDcatLinked
 from idgo_admin.views.organisation import handle_show_organisation
 from idgo_admin.views.organisation import OrganisationOWS
-from idgo_admin.views.organisation import RemoteCkanEditor
-from idgo_admin.views.organisation import RemoteCswEditor
-from idgo_admin.views.organisation import RemoteDcatEditor
 from idgo_admin.views.organisation import show_organisation
 from idgo_admin.views.organisation import Subscription
 from idgo_admin.views.organisation import UpdateOrganisation
@@ -91,9 +82,6 @@ urlpatterns = [
     url('^dataset/?$', list_dataset, name='dataset'),  # ?id=[<dataset.pk>|<dataset.slug>]
     url('^dataset/mine/?$', list_my_datasets, name='list_my_datasets'),
     url('^dataset/all/?$', list_all_datasets, name='list_all_datasets'),
-    url('^dataset/harvested/ckan/?$', list_all_ckan_harvested_datasets, name='list_all_ckan_harvested_datasets'),
-    url('^dataset/harvested/csw/?$', list_all_csw_harvested_datasets, name='list_all_csw_harvested_datasets'),
-    url('^dataset/harvested/dcat/?$', list_all_dcat_harvested_datasets, name='list_all_dcat_harvested_datasets'),
     url('^dataset/(?P<id>(new|(\d+)))/edit/?$', DatasetManager.as_view(), name='dataset_editor'),
 
     url('^resource/?$', resource, name='resources'),
@@ -132,13 +120,6 @@ urlpatterns = [
 
     url('^organisation/idgo/?$', idgo_partnership, name='idgo_partnership'),
 
-    url('^organisation/(?P<id>(\d+))/remoteckan/edit/?$', RemoteCkanEditor.as_view(), name='edit_remote_ckan_link'),
-    url('^organisation/(?P<id>(\d+))/remoteckan/delete/?$', DeleteRemoteCkanLinked.as_view(), name='delete_remote_ckan_link'),
-    url('^organisation/(?P<id>(\d+))/remotecsw/edit/?$', RemoteCswEditor.as_view(), name='edit_remote_csw_link'),
-    url('^organisation/(?P<id>(\d+))/remotecsw/delete/?$', DeleteRemoteCswLinked.as_view(), name='delete_remote_csw_link'),
-    url('^organisation/(?P<id>(\d+))/remotedcat/edit/?$', RemoteDcatEditor.as_view(), name='edit_remote_dcat_link'),
-    url('^organisation/(?P<id>(\d+))/remotedcat/delete/?$', DeleteRemoteDcatLinked.as_view(), name='delete_remote_dcat_link'),
-
     url('^password/(?P<process>(forget))/?$', PasswordManager.as_view(), name='password_manager'),
     url('^password/(?P<process>(initiate|reset))/(?P<key>(.+))/?$', PasswordManager.as_view(), name='password_manager'),
 
@@ -154,6 +135,45 @@ urlpatterns = [
     url('^owspreview/?$', ows_preview, name='ows_preview'),
     url('^sldpreview/?$', SLDPreviewSetter.as_view(), name='sld_preview_setter'),
     url('^sldpreview/(?P<key>.+)\.sld$', SLDPreviewGetter.as_view(), name='sld_preview_getter'),
+]
+
+
+from idgo_admin import ENABLE_CKAN_HARVESTER  # noqa
+if ENABLE_CKAN_HARVESTER:
+    from idgo_admin.views.dataset import list_all_ckan_harvested_datasets
+    from idgo_admin.views.organisation import DeleteRemoteCkanLinked
+    from idgo_admin.views.organisation import RemoteCkanEditor
+
+    urlpatterns += [
+        url('^dataset/harvested/ckan/?$', list_all_ckan_harvested_datasets, name='list_all_ckan_harvested_datasets'),
+        url('^organisation/(?P<id>(\d+))/remoteckan/edit/?$', RemoteCkanEditor.as_view(), name='edit_remote_ckan_link'),
+        url('^organisation/(?P<id>(\d+))/remoteckan/delete/?$', DeleteRemoteCkanLinked.as_view(), name='delete_remote_ckan_link'),
+    ]
+
+
+from idgo_admin import ENABLE_CSW_HARVESTER  # noqa
+if ENABLE_CSW_HARVESTER:
+    from idgo_admin.views.dataset import list_all_csw_harvested_datasets
+    from idgo_admin.views.organisation import DeleteRemoteCswLinked
+    from idgo_admin.views.organisation import RemoteCswEditor
+
+    urlpatterns += [
+        url('^dataset/harvested/csw/?$', list_all_csw_harvested_datasets, name='list_all_csw_harvested_datasets'),
+        url('^organisation/(?P<id>(\d+))/remotecsw/edit/?$', RemoteCswEditor.as_view(), name='edit_remote_csw_link'),
+        url('^organisation/(?P<id>(\d+))/remotecsw/delete/?$', DeleteRemoteCswLinked.as_view(), name='delete_remote_csw_link'),
+    ]
+
+
+from idgo_admin import ENABLE_DCAT_HARVESTER  # noqa
+if ENABLE_DCAT_HARVESTER:
+    from idgo_admin.views.dataset import list_all_dcat_harvested_datasets
+    from idgo_admin.views.organisation import DeleteRemoteDcatLinked
+    from idgo_admin.views.organisation import RemoteDcatEditor
+
+    urlpatterns += [
+        url('^dataset/harvested/dcat/?$', list_all_dcat_harvested_datasets, name='list_all_dcat_harvested_datasets'),
+        url('^organisation/(?P<id>(\d+))/remotedcat/edit/?$', RemoteDcatEditor.as_view(), name='edit_remote_dcat_link'),
+        url('^organisation/(?P<id>(\d+))/remotedcat/delete/?$', DeleteRemoteDcatLinked.as_view(), name='delete_remote_dcat_link'),
     ]
 
 

@@ -197,16 +197,16 @@ $(document).ajaxSend(function(e, xhr, settings) {
 									</li>
 									<li>
 										<a href="{% url 'idgo_admin:list_all_datasets' %}" aria-controls="all-datasets" role="tab">Tous les jeux de données</a>
-									</li>
+									</li>{% if ENABLE_CKAN_HARVESTER %}
 									<li>
 										<a href="{% url 'idgo_admin:list_all_ckan_harvested_datasets' %}" aria-controls="ckan-harvested-datasets" role="tab">Jeux de données moissonnés CKAN</a>
-									</li>
+									</li>{% endif %}{% if ENABLE_CSW_HARVESTER %}
 									<li>
 										<a href="{% url 'idgo_admin:list_all_csw_harvested_datasets'  %}" aria-controls="csw-harvested-datasets" role="tab">Jeux de données moissonnés CSW</a>
-									</li>
+									</li>{% endif %}{% if ENABLE_DCAT_HARVESTER %}
 									<li>
 										<a href="{% url 'idgo_admin:list_all_dcat_harvested_datasets' %}" aria-controls="dcat-harvested-datasets" role="tab">Jeux de données moissonnés DCAT</a>
-									</li>
+									</li>{% endif %}
 								</ul>
 							</li>
 							{% else %}

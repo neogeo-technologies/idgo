@@ -7,9 +7,9 @@
 	</li>
 	<li class="active">{% if target == 'mine' %}
 		Mes jeux de données{% elif target == 'all' %}
-		Tous jeux de données{% elif target == 'ckan_harvested' %}
-		Jeux de données moissonnés CKAN{% elif target == 'csw_harvested' %}
-		Jeux de données moissonnés CSW{% elif target == 'dcat_harvested' %}
+		Tous jeux de données{% elif ENABLE_CKAN_HARVESTER and target == 'ckan_harvested' %}
+		Jeux de données moissonnés CKAN{% elif ENABLE_CSW_HARVESTER and target == 'csw_harvested' %}
+		Jeux de données moissonnés CSW{% elif ENABLE_DCAT_HARVESTER and target == 'dcat_harvested' %}
 		Jeux de données moissonnés DCAT{% endif %}
 	</li>
 </ol>

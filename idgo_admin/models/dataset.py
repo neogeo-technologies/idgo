@@ -38,9 +38,6 @@ from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin.geonet_module import GeonetUserHandler as geonet
 from idgo_admin.managers import DefaultDatasetManager
-from idgo_admin.managers import HarvestedCkanDatasetManager
-from idgo_admin.managers import HarvestedCswDatasetManager
-from idgo_admin.managers import HarvestedDcatDatasetManager
 from idgo_admin.utils import three_suspension_points
 
 from idgo_admin import DOMAIN_NAME
@@ -83,9 +80,8 @@ class Dataset(models.Model):
 
     objects = models.Manager()
     default = DefaultDatasetManager()
-    harvested_ckan = HarvestedCkanDatasetManager()
-    harvested_csw = HarvestedCswDatasetManager()
-    harvested_dcat = HarvestedDcatDatasetManager()
+    # harvested_ckan = HarvestedCkanDatasetManager()
+    # harvested_csw = HarvestedCswDatasetManager()
 
     # Champs atributaires
     # ===================
@@ -93,11 +89,11 @@ class Dataset(models.Model):
     editor = models.ForeignKey(
         User,
         verbose_name="Producteur (propriétaire)",
-        )
+    )
 
     title = models.TextField(
         verbose_name="Titre",
-        )
+    )
 
     slug = models.SlugField(
         verbose_name="Slug",
@@ -110,7 +106,7 @@ class Dataset(models.Model):
         blank=True,
         unique=True,
         db_index=True,
-        )
+    )
 
     ckan_id = models.UUIDField(
         verbose_name="Identifiant CKAN",
@@ -119,49 +115,49 @@ class Dataset(models.Model):
         editable=False,
         unique=True,
         db_index=True,
-        )
+    )
 
     description = models.TextField(
         verbose_name="Description",
         blank=True,
         null=True,
-        )
+    )
 
     thumbnail = models.ImageField(
         verbose_name="Illustration",
         null=True,
         blank=True,
         upload_to='thumbnails/',
-        )
+    )
 
     keywords = TaggableManager(
         verbose_name="Liste de mots-clés",
         blank=True,
-        )
+    )
 
     categories = models.ManyToManyField(
         to='Category',
         verbose_name="Catégories",
         blank=True,
-        )
+    )
 
     date_creation = models.DateField(
         verbose_name="Date de création",
         null=True,
         blank=True,
-        )
+    )
 
     date_modification = models.DateField(
         verbose_name="Date de dernière modification",
         null=True,
         blank=True,
-        )
+    )
 
     date_publication = models.DateField(
         verbose_name="Date de publication",
         null=True,
         blank=True,
-        )
+    )
 
     FREQUENCY_CHOICES = (
         ('asneeded', "Lorsque nécessaire"),
@@ -177,20 +173,20 @@ class Dataset(models.Model):
         ('semiannual', "Bi-annuelle"),
         ('annual', "Annuelle"),
         ('unknown', "Inconnue"),
-        )
+    )
 
     update_frequency = models.CharField(
         verbose_name="Fréquence de mise à jour",
         max_length=30,
         choices=FREQUENCY_CHOICES,
         default='never',
-        )
+    )
 
     GEOCOVER_CHOICES = (
         (None, "Indéfinie"),
         ('regionale', "Régionale"),
         ('jurisdiction', "Territoire de compétence"),
-        )
+    )
 
     geocover = models.CharField(
         verbose_name="Couverture géographique",
@@ -199,7 +195,7 @@ class Dataset(models.Model):
         blank=True,
         choices=GEOCOVER_CHOICES,
         default=None,
-        )
+    )
 
     granularity = models.ForeignKey(
         to='Granularity',
@@ -207,7 +203,7 @@ class Dataset(models.Model):
         null=True,
         blank=True,
         on_delete=models.PROTECT,
-        )
+    )
 
     organisation = models.ForeignKey(
         to='Organisation',
@@ -215,58 +211,58 @@ class Dataset(models.Model):
         null=True,
         blank=True,
         on_delete=models.CASCADE,
-        )
+    )
 
     license = models.ForeignKey(
         to='License',
         verbose_name="Licence",
         null=True,
         blank=True,
-        )
+    )
 
     support = models.ForeignKey(
         to='Support',
         verbose_name="Support technique",
         null=True,
         blank=True,
-        )
+    )
 
     data_type = models.ManyToManyField(
         to='DataType',
         verbose_name="Type de données",
         blank=True,
-        )
+    )
 
     owner_name = models.CharField(
         verbose_name="Nom du producteur",
         max_length=100,
         null=True,
         blank=True,
-        )
+    )
 
     owner_email = models.EmailField(
         verbose_name="Adresse e-mail du producteur",
         null=True,
         blank=True,
-        )
+    )
 
     broadcaster_name = models.CharField(
         verbose_name="Nom du diffuseur",
         max_length=100,
         blank=True,
         null=True,
-        )
+    )
 
     broadcaster_email = models.EmailField(
         verbose_name="Adresse e-mail du diffuseur",
         null=True,
         blank=True,
-        )
+    )
 
     published = models.BooleanField(
         verbose_name="Publier le jeu de données",
         default=False,
-        )
+    )
 
     geonet_id = models.TextField(
         verbose_name="Identifiant de la fiche de métadonnées",
@@ -274,14 +270,14 @@ class Dataset(models.Model):
         blank=True,
         unique=True,
         db_index=True,
-        )
+    )
 
     bbox = models.PolygonField(
         verbose_name="Rectangle englobant",
         null=True,
         blank=True,
         srid=4171,
-        )
+    )
 
     def __str__(self):
         return self.title
@@ -320,30 +316,6 @@ class Dataset(models.Model):
         if self.bbox:
             minx, miny, maxx, maxy = self.bbox.extent
             return [[miny, minx], [maxy, maxx]]
-
-    @property
-    def remote_ckan_dataset(self):
-        Model = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-        try:
-            return Model.objects.get(dataset=self)
-        except Model.DoesNotExist:
-            return None
-
-    @property
-    def remote_csw_dataset(self):
-        Model = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
-        try:
-            return Model.objects.get(dataset=self)
-        except Model.DoesNotExist:
-            return None
-
-    @property
-    def remote_dcat_dataset(self):
-        Model = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
-        try:
-            return Model.objects.get(dataset=self)
-        except Model.DoesNotExist:
-            return None
 
     # Méthodes héritées
     # =================
@@ -628,6 +600,48 @@ class Dataset(models.Model):
             'validated_on__isnull': False,
             }
         return Model.objects.filter(**kvp).exists()
+
+
+from idgo_admin import ENABLE_CKAN_HARVESTER  # noqa
+if ENABLE_CKAN_HARVESTER:
+    from idgo_admin.managers import HarvestedCkanDatasetManager
+    HarvestedCkanDatasetManager().contribute_to_class(Dataset, 'harvested_ckan')
+
+    def remote_ckan_dataset(cls):
+        Model = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+        try:
+            return Model.objects.get(dataset=cls)
+        except Model.DoesNotExist:
+            return None
+    setattr(Dataset, 'remote_ckan_dataset', property(remote_ckan_dataset))
+
+
+from idgo_admin import ENABLE_CSW_HARVESTER  # noqa
+if ENABLE_CSW_HARVESTER:
+    from idgo_admin.managers import HarvestedCswDatasetManager
+    HarvestedCswDatasetManager().contribute_to_class(Dataset, 'harvested_csw')
+
+    def remote_csw_dataset(cls):
+        Model = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
+        try:
+            return Model.objects.get(dataset=cls)
+        except Model.DoesNotExist:
+            return None
+    setattr(Dataset, 'remote_csw_dataset', property(remote_csw_dataset))
+
+
+from idgo_admin import ENABLE_DCAT_HARVESTER  # noqa
+if ENABLE_DCAT_HARVESTER:
+    from idgo_admin.managers import HarvestedDcatDatasetManager
+    HarvestedDcatDatasetManager().contribute_to_class(Dataset, 'harvested_dcat')
+
+    def remote_dcat_dataset(cls):
+        Model = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
+        try:
+            return Model.objects.get(dataset=cls)
+        except Model.DoesNotExist:
+            return None
+    setattr(Dataset, 'remote_dcat_dataset', property(remote_dcat_dataset))
 
 
 class Keywords(Tag):

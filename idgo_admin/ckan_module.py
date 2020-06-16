@@ -32,7 +32,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import File
 from django.db import IntegrityError
 
-from idgo_admin.exceptions import CkanBaseError
+from idgo_admin.exceptions import GenericException
 from idgo_admin.utils import Singleton
 from idgo_admin.utils import slugify
 
@@ -59,6 +59,10 @@ def timeout(fun):
     return wrapper
 
 
+class CkanBaseError(GenericException):
+    """CkanBaseError"""
+
+
 class CkanReadError(CkanBaseError):
     message = "L'url ne semble pas indiquer un site CKAN."
 
@@ -68,15 +72,15 @@ class CkanApiError(CkanBaseError):
 
 
 class CkanTimeoutError(CkanBaseError):
-    message = 'Le site CKAN met du temps à répondre, celui-ci est peut-être temporairement inaccessible.'
+    message = "Le site CKAN met du temps à répondre, celui-ci est peut-être temporairement inaccessible."
 
 
 class CkanNotFoundError(CkanBaseError):
-    message = 'La ressource CKAN ne semble pas exister.'
+    message = "La ressource CKAN ne semble pas exister."
 
 
 class CkanConflictError(CkanBaseError):
-    message = 'La ressource CKAN existe déjà.'
+    message = "La ressource CKAN existe déjà."
 
 
 class CkanSyncingError(CkanBaseError):

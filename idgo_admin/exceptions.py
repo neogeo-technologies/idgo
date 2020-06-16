@@ -47,23 +47,11 @@ class ConflictError(GenericException):
     pass
 
 
-class CkanBaseError(GenericException):
-    pass
-
-
 class CriticalError(GenericException):
     pass
 
 
-class CswBaseError(GenericException):
-    pass
-
-
 class DatagisBaseError(GenericException):
-    pass
-
-
-class DcatBaseError(GenericException):
     pass
 
 
@@ -84,10 +72,6 @@ class ExceedsMaximumLayerNumberFixedError(GenericException):
         except Exception:
             return super().__str__()
         return ' '.join(sentences)
-
-
-class MraBaseError(GenericException):
-    pass
 
 
 class ProfileHttp404(Http404):

@@ -27,7 +27,7 @@ from django.utils.text import slugify
 
 from idgo_admin.datagis import bounds_to_wkt
 from idgo_admin.datagis import transform
-from idgo_admin.exceptions import CswBaseError
+from idgo_admin.exceptions import GenericException
 
 from idgo_admin import CSW_TIMEOUT
 
@@ -47,6 +47,10 @@ def timeout(fun):
         return return_with_timeout(fun, args=args, kwargs=kwargs)
 
     return wrapper
+
+
+class CswBaseError(GenericException):
+    """CswBaseError"""
 
 
 class CswReadError(CswBaseError):

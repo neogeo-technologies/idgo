@@ -265,7 +265,7 @@ class JurisdictionView(View):
                     try:
                         JurisdictionCommune.objects.get(**kvp)
                     except JurisdictionCommune.DoesNotExist:
-                        kvp['created_by'] = request.profile
+                        kvp['created_by'] = request.user.profile
                         JurisdictionCommune.objects.create(**kvp)
                 jurisdiction.set_geom()
 

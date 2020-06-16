@@ -33,8 +33,8 @@ from django.utils import timezone
 from rest_framework import permissions
 from rest_framework.views import APIView
 
+from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.ckan_module import CkanHandler
-from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.account import SignUpForm
 from idgo_admin.forms.account import UpdateAccountForm

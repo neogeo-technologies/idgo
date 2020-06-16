@@ -17,6 +17,9 @@
 from django.apps import apps
 
 from idgo_admin import HREF_WWW
+from idgo_admin import ENABLE_CSW_HARVESTER
+from idgo_admin import ENABLE_CKAN_HARVESTER
+from idgo_admin import ENABLE_DCAT_HARVESTER
 from idgo_admin import ENABLE_FTP_ACCOUNT
 from idgo_admin import ENABLE_ORGANISATION_CREATE
 from idgo_admin import DEFAULT_PLATFORM_NAME
@@ -41,6 +44,9 @@ def global_vars(request):
 
     return {
         'HREF_WWW': HREF_WWW,
+        'ENABLE_CSW_HARVESTER': ENABLE_CSW_HARVESTER,
+        'ENABLE_CKAN_HARVESTER': ENABLE_CKAN_HARVESTER,
+        'ENABLE_DCAT_HARVESTER': ENABLE_DCAT_HARVESTER,
         'ENABLE_FTP_ACCOUNT': ENABLE_FTP_ACCOUNT,
         'ENABLE_ORGANISATION_CREATE': ENABLE_ORGANISATION_CREATE,
         'DEFAULT_PLATFORM_NAME': DEFAULT_PLATFORM_NAME,

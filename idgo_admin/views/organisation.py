@@ -31,15 +31,9 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 
-from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.exceptions import CriticalError
-from idgo_admin.exceptions import CswBaseError
-from idgo_admin.exceptions import DcatBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.organisation import OrganisationForm as Form
-from idgo_admin.forms.organisation import RemoteCkanForm
-from idgo_admin.forms.organisation import RemoteCswForm
-from idgo_admin.forms.organisation import RemoteDcatForm
 from idgo_admin.models import AccountActions
 from idgo_admin.models import BaseMaps
 from idgo_admin.models import Category
@@ -52,12 +46,7 @@ from idgo_admin.models.mail import send_mail_asking_for_idgo_partnership
 from idgo_admin.models.mail import send_membership_confirmation_mail
 from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
 from idgo_admin.models.mail import send_referent_confirmation_mail
-from idgo_admin.models import MappingCategory
-from idgo_admin.models import MappingLicence
 from idgo_admin.models import Organisation
-from idgo_admin.models import RemoteCkan
-from idgo_admin.models import RemoteCsw
-from idgo_admin.models import RemoteDcat
 from idgo_admin.models import SupportedCrs
 from idgo_admin.mra_client import MRAHandler
 
@@ -406,106 +395,91 @@ class Subscription(View):
         # return redirect('idgo_admin:show_organisation', id=organisation.id)
 
 
-# ========================
-# MOISSONNAGE DE SITE CKAN
-# ========================
+from idgo_admin import ENABLE_CKAN_HARVESTER  # noqa
+if ENABLE_CKAN_HARVESTER:
 
+    from idgo_admin.ckan_module import CkanBaseError
+    from idgo_admin.forms.organisation import RemoteCkanForm
+    from idgo_admin.models import MappingCategory
+    from idgo_admin.models import MappingLicence
+    from idgo_admin.models import RemoteCkan
 
-@method_decorator(decorators, name='dispatch')
-class RemoteCkanEditor(View):
+    # =======================
+    # MOISSONNAGE DE SITE CKAN
+    # =======================
 
-    template = 'idgo_admin/organisation/remoteckan/edit.html'
+    @method_decorator(decorators, name='dispatch')
+    class RemoteCkanEditor(View):
 
-    def get(self, request, id, *args, **kwargs):
+        template = 'idgo_admin/organisation/remoteckan/edit.html'
 
-        profile = request.user.profile
+        def get(self, request, id, *args, **kwargs):
 
-        is_admin = profile.is_admin
-        is_referent = LiaisonsReferents.objects.filter(
-            profile=profile, organisation__id=id,
-            validated_on__isnull=False) and True or False
+            profile = request.user.profile
 
-        if is_referent or is_admin:
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if is_referent or is_admin:
+                organisation = get_object_or_404(Organisation, id=id)
+
+                context = {'organisation': organisation}
+
+                try:
+                    instance = RemoteCkan.objects.get(organisation=organisation)
+                except RemoteCkan.DoesNotExist:
+                    form = RemoteCkanForm()
+                else:
+                    context['datasets'] = Dataset.harvested_ckan.filter(organisation=organisation)
+                    context['instance'] = instance
+                    form = RemoteCkanForm(instance=instance)
+
+                context['form'] = form
+
+                return render(
+                    request, self.template, context=context)
+
+            raise Http404()
+
+        def post(self, request, id, *args, **kwargs):
+
+            profile = request.user.profile
+
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if not(is_referent or is_admin):
+                raise Http404()
+
             organisation = get_object_or_404(Organisation, id=id)
 
             context = {'organisation': organisation}
 
+            url = request.POST.get('url')
             try:
-                instance = RemoteCkan.objects.get(organisation=organisation)
-            except RemoteCkan.DoesNotExist:
-                form = RemoteCkanForm()
+                with transaction.atomic():
+                    instance, created = \
+                        RemoteCkan.objects.get_or_create(
+                            organisation=organisation, url=url)
+            except CkanBaseError as e:
+                form = RemoteCkanForm(request.POST)
+                form.add_error('url', e.__str__())
+            except ValidationError as e:
+                form = RemoteCkanForm(request.POST)
+                form.add_error(e.code, e.message)
             else:
                 context['datasets'] = Dataset.harvested_ckan.filter(organisation=organisation)
                 context['instance'] = instance
-                form = RemoteCkanForm(instance=instance)
+                form = RemoteCkanForm(request.POST, instance=instance)
 
-            context['form'] = form
-
-            return render(
-                request, self.template, context=context)
-
-        raise Http404()
-
-    def post(self, request, id, *args, **kwargs):
-
-        profile = request.user.profile
-
-        is_admin = profile.is_admin
-        is_referent = LiaisonsReferents.objects.filter(
-            profile=profile, organisation__id=id,
-            validated_on__isnull=False) and True or False
-
-        if not(is_referent or is_admin):
-            raise Http404()
-
-        organisation = get_object_or_404(Organisation, id=id)
-
-        context = {'organisation': organisation}
-
-        url = request.POST.get('url')
-        try:
-            with transaction.atomic():
-                instance, created = \
-                    RemoteCkan.objects.get_or_create(
-                        organisation=organisation, url=url)
-        except CkanBaseError as e:
-            form = RemoteCkanForm(request.POST)
-            form.add_error('url', e.__str__())
-        except ValidationError as e:
-            form = RemoteCkanForm(request.POST)
-            form.add_error(e.code, e.message)
-        else:
-            context['datasets'] = Dataset.harvested_ckan.filter(organisation=organisation)
-            context['instance'] = instance
-            form = RemoteCkanForm(request.POST, instance=instance)
-
-        try:
-            with transaction.atomic():
-                self.map_categories(instance, request.POST, form)
-                self.map_licences(instance, request.POST, form)
-        except ValidationError as e:
-            error = True
-            messages.error(request, e.__str__())
-        except CkanBaseError as e:
-            error = True
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-
-        else:
-
-            # Une fois le mapping effectué, on sauvegarde l'instance
-
-            context['form'] = form
-
-            if not form.is_valid():
-                return render(
-                    request, self.template, context=context)
-
-            for k, v in form.cleaned_data.items():
-                setattr(instance, k, v)
             try:
                 with transaction.atomic():
-                    instance.save()
+                    self.map_categories(instance, request.POST, form)
+                    self.map_licences(instance, request.POST, form)
             except ValidationError as e:
                 error = True
                 messages.error(request, e.__str__())
@@ -513,327 +487,191 @@ class RemoteCkanEditor(View):
                 error = True
                 form.add_error('__all__', e.__str__())
                 messages.error(request, e.__str__())
-            except CriticalError as e:
-                error = True
-                form.add_error('__all__', e.__str__())
+
+            else:
+
+                # Une fois le mapping effectué, on sauvegarde l'instance
+
+                context['form'] = form
+
+                if not form.is_valid():
+                    return render(
+                        request, self.template, context=context)
+
+                for k, v in form.cleaned_data.items():
+                    setattr(instance, k, v)
+                try:
+                    with transaction.atomic():
+                        instance.save()
+                except ValidationError as e:
+                    error = True
+                    messages.error(request, e.__str__())
+                except CkanBaseError as e:
+                    error = True
+                    form.add_error('__all__', e.__str__())
+                    messages.error(request, e.__str__())
+                except CriticalError as e:
+                    error = True
+                    form.add_error('__all__', e.__str__())
+                    messages.error(request, e.__str__())
+                else:
+                    error = False
+                    context['datasets'] = \
+                        Dataset.harvested_ckan.filter(organisation=organisation)
+                    context['form'] = RemoteCkanForm(instance=instance)
+                    if created:
+                        msg = "Veuillez indiquez les organisations distantes à moissonner."
+                    else:
+                        msg = 'Les informations de moissonnage ont été mises à jour.'
+                    messages.success(request, msg)
+
+            if 'continue' in request.POST or error:
+                namespace = 'idgo_admin:edit_remote_ckan_link'
+            else:
+                namespace = 'idgo_admin:update_organisation'
+
+            return redirect(namespace, id=organisation.id)
+
+        def map_categories(self, instance, mapper, form):
+            MappingCategory.objects.filter(remote_ckan=instance).delete()
+
+            data = list(filter(
+                lambda k: k in [el.name for el in form.get_category_fields()],
+                mapper.dict().keys()))
+            not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
+            for k, v in not_empty.items():
+                MappingCategory.objects.create(
+                    remote_ckan=instance, category=Category.objects.get(id=v), slug=k[4:])
+
+        def map_licences(self, instance, mapper, form):
+            MappingLicence.objects.filter(remote_ckan=instance).delete()
+
+            data = list(filter(
+                lambda k: k in [el.name for el in form.get_licence_fields()],
+                mapper.dict().keys()))
+            not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
+            for k, v in not_empty.items():
+                MappingLicence.objects.create(
+                    remote_ckan=instance, licence=License.objects.get(slug=v), slug=k[4:])
+
+    @method_decorator(decorators, name='dispatch')
+    class DeleteRemoteCkanLinked(View):
+
+        def post(self, request, id, *args, **kwargs):
+
+            profile = request.user.profile
+
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if not(is_referent or is_admin):
+                raise Http404()
+
+            organisation = get_object_or_404(Organisation, id=id)
+            instance = get_object_or_404(RemoteCkan, organisation=organisation)
+
+            try:
+                with transaction.atomic():
+                    instance.delete()
+            except ValidationError as e:
+                messages.error(request, e.__str__())
+            except CkanBaseError as e:
                 messages.error(request, e.__str__())
             else:
-                error = False
-                context['datasets'] = \
-                    Dataset.harvested_ckan.filter(organisation=organisation)
-                context['form'] = RemoteCkanForm(instance=instance)
-                if created:
-                    msg = "Veuillez indiquez les organisations distantes à moissonner."
+                messages.success(request, (
+                    'Les informations ainsi que les jeux de données et '
+                    'ressources synchronisés avec le catalogue distant '
+                    'ont été supprimés avec succès.'))
+
+            return redirect('idgo_admin:update_organisation', id=organisation.id)
+
+
+from idgo_admin import ENABLE_CSW_HARVESTER  # noqa
+if ENABLE_CSW_HARVESTER:
+
+    from idgo_admin.csw_module import CswBaseError
+    from idgo_admin.forms.organisation import RemoteCswForm
+    from idgo_admin.models import RemoteCsw
+
+    # =======================
+    # MOISSONNAGE DE SITE CSW
+    # =======================
+
+    @method_decorator(decorators, name='dispatch')
+    class RemoteCswEditor(View):
+
+        template = 'idgo_admin/organisation/remotecsw/edit.html'
+
+        def get(self, request, id, *args, **kwargs):
+
+            profile = request.user.profile
+
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if is_referent or is_admin:
+                organisation = get_object_or_404(Organisation, id=id)
+
+                context = {'organisation': organisation}
+
+                try:
+                    instance = RemoteCsw.objects.get(organisation=organisation)
+                except RemoteCsw.DoesNotExist:
+                    form = RemoteCswForm()
                 else:
-                    msg = 'Les informations de moissonnage ont été mises à jour.'
-                messages.success(request, msg)
+                    context['datasets'] = Dataset.harvested_csw.filter(organisation=organisation)
+                    context['instance'] = instance
+                    form = RemoteCswForm(instance=instance)
 
-        if 'continue' in request.POST or error:
-            namespace = 'idgo_admin:edit_remote_ckan_link'
-        else:
-            namespace = 'idgo_admin:update_organisation'
+                context['form'] = form
 
-        return redirect(namespace, id=organisation.id)
+                return render(
+                    request, self.template, context=context)
 
-    def map_categories(self, instance, mapper, form):
-        MappingCategory.objects.filter(remote_ckan=instance).delete()
-
-        data = list(filter(
-            lambda k: k in [el.name for el in form.get_category_fields()],
-            mapper.dict().keys()))
-        not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
-        for k, v in not_empty.items():
-            MappingCategory.objects.create(
-                remote_ckan=instance, category=Category.objects.get(id=v), slug=k[4:])
-
-    def map_licences(self, instance, mapper, form):
-        MappingLicence.objects.filter(remote_ckan=instance).delete()
-
-        data = list(filter(
-            lambda k: k in [el.name for el in form.get_licence_fields()],
-            mapper.dict().keys()))
-        not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
-        for k, v in not_empty.items():
-            MappingLicence.objects.create(
-                remote_ckan=instance, licence=License.objects.get(slug=v), slug=k[4:])
-
-
-@method_decorator(decorators, name='dispatch')
-class DeleteRemoteCkanLinked(View):
-
-    def post(self, request, id, *args, **kwargs):
-
-        profile = request.user.profile
-
-        is_admin = profile.is_admin
-        is_referent = LiaisonsReferents.objects.filter(
-            profile=profile, organisation__id=id,
-            validated_on__isnull=False) and True or False
-
-        if not(is_referent or is_admin):
             raise Http404()
 
-        organisation = get_object_or_404(Organisation, id=id)
-        instance = get_object_or_404(RemoteCkan, organisation=organisation)
+        def post(self, request, id, *args, **kwargs):
 
-        try:
-            with transaction.atomic():
-                instance.delete()
-        except ValidationError as e:
-            messages.error(request, e.__str__())
-        except CkanBaseError as e:
-            messages.error(request, e.__str__())
-        else:
-            messages.success(request, (
-                'Les informations ainsi que les jeux de données et '
-                'ressources synchronisés avec le catalogue distant '
-                'ont été supprimés avec succès.'))
+            profile = request.user.profile
 
-        return redirect('idgo_admin:update_organisation', id=organisation.id)
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
 
+            if not(is_referent or is_admin):
+                raise Http404()
 
-# =======================
-# MOISSONNAGE DE SITE CSW
-# =======================
-
-
-@method_decorator(decorators, name='dispatch')
-class RemoteCswEditor(View):
-
-    template = 'idgo_admin/organisation/remotecsw/edit.html'
-
-    def get(self, request, id, *args, **kwargs):
-
-        profile = request.user.profile
-
-        is_admin = profile.is_admin
-        is_referent = LiaisonsReferents.objects.filter(
-            profile=profile, organisation__id=id,
-            validated_on__isnull=False) and True or False
-
-        if is_referent or is_admin:
             organisation = get_object_or_404(Organisation, id=id)
 
             context = {'organisation': organisation}
 
+            url = request.POST.get('url')
             try:
-                instance = RemoteCsw.objects.get(organisation=organisation)
-            except RemoteCsw.DoesNotExist:
-                form = RemoteCswForm()
+                with transaction.atomic():
+                    instance, created = \
+                        RemoteCsw.objects.get_or_create(
+                            organisation=organisation, url=url)
+            except CswBaseError as e:
+                form = RemoteCswForm(request.POST)
+                form.add_error('url', e.__str__())
+            except ValidationError as e:
+                form = RemoteCswForm(request.POST)
+                form.add_error(e.code, e.message)
             else:
                 context['datasets'] = Dataset.harvested_csw.filter(organisation=organisation)
                 context['instance'] = instance
-                form = RemoteCswForm(instance=instance)
-
-            context['form'] = form
-
-            return render(
-                request, self.template, context=context)
-
-        raise Http404()
-
-    def post(self, request, id, *args, **kwargs):
-
-        profile = request.user.profile
-
-        is_admin = profile.is_admin
-        is_referent = LiaisonsReferents.objects.filter(
-            profile=profile, organisation__id=id,
-            validated_on__isnull=False) and True or False
-
-        if not(is_referent or is_admin):
-            raise Http404()
-
-        organisation = get_object_or_404(Organisation, id=id)
-
-        context = {'organisation': organisation}
-
-        url = request.POST.get('url')
-        try:
-            with transaction.atomic():
-                instance, created = \
-                    RemoteCsw.objects.get_or_create(
-                        organisation=organisation, url=url)
-        except CswBaseError as e:
-            form = RemoteCswForm(request.POST)
-            form.add_error('url', e.__str__())
-        except ValidationError as e:
-            form = RemoteCswForm(request.POST)
-            form.add_error(e.code, e.message)
-        else:
-            context['datasets'] = Dataset.harvested_csw.filter(organisation=organisation)
-            context['instance'] = instance
-            form = RemoteCswForm(request.POST, instance=instance)
-
-        context['form'] = form
-
-        if not form.is_valid():
-            messages.error(request, form._errors.__str__())
-            return redirect('idgo_admin:edit_remote_csw_link', id=organisation.id)
-
-        for k, v in form.cleaned_data.items():
-            setattr(instance, k, v)
-        try:
-            with transaction.atomic():
-                instance.save(harvest=not created)
-        except ValidationError as e:
-            error = True
-            messages.error(request, e.__str__())
-        except CswBaseError as e:
-            error = True
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-        except CriticalError as e:
-            error = True
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-        else:
-            error = False
-            context['datasets'] = \
-                Dataset.harvested_csw.filter(organisation=organisation)
-            context['form'] = RemoteCswForm(instance=instance)
-            if created:
-                msg = "Veuillez indiquez une requête <strong>GetRecord</strong> avant moissonnage du service."
-            else:
-                msg = 'Les informations de moissonnage ont été mises à jour.'
-            messages.success(request, msg)
-
-        if 'continue' in request.POST or error:
-            return render(
-                request, self.template, context=context)
-
-        return redirect('idgo_admin:update_organisation', id=organisation.id)
-
-
-@method_decorator(decorators, name='dispatch')
-class DeleteRemoteCswLinked(View):
-
-    def post(self, request, id, *args, **kwargs):
-
-        profile = request.user.profile
-
-        is_admin = profile.is_admin
-        is_referent = LiaisonsReferents.objects.filter(
-            profile=profile, organisation__id=id,
-            validated_on__isnull=False) and True or False
-
-        if not(is_referent or is_admin):
-            raise Http404()
-
-        organisation = get_object_or_404(Organisation, id=id)
-        instance = get_object_or_404(RemoteCsw, organisation=organisation)
-
-        try:
-            with transaction.atomic():
-                instance.delete()
-        except ValidationError as e:
-            messages.error(request, e.__str__())
-        except CswBaseError as e:
-            messages.error(request, e.__str__())
-        else:
-            messages.success(request, (
-                'Les informations ainsi que les jeux de données et '
-                'ressources synchronisés avec le catalogue distant '
-                'ont été supprimés avec succès.'))
-
-        return redirect('idgo_admin:update_organisation', id=organisation.id)
-
-
-# ========================
-# MOISSONNAGE DE SITE DCAT
-# ========================
-
-
-@method_decorator(decorators, name='dispatch')
-class RemoteDcatEditor(View):
-
-    template = 'idgo_admin/organisation/remotedcat/edit.html'
-
-    def get(self, request, id, *args, **kwargs):
-
-        profile = request.user.profile
-
-        is_admin = profile.is_admin
-        is_referent = LiaisonsReferents.objects.filter(
-            profile=profile, organisation__id=id,
-            validated_on__isnull=False) and True or False
-
-        if is_referent or is_admin:
-            organisation = get_object_or_404(Organisation, id=id)
-
-            context = {'organisation': organisation}
-
-            try:
-                instance = RemoteDcat.objects.get(organisation=organisation)
-            except RemoteDcat.DoesNotExist:
-                form = RemoteDcatForm()
-            else:
-                context['datasets'] = Dataset.harvested_dcat.filter(organisation=organisation)
-                context['instance'] = instance
-                form = RemoteDcatForm(instance=instance)
-
-            context['form'] = form
-
-            return render(
-                request, self.template, context=context)
-
-        raise Http404()
-
-    def post(self, request, id, *args, **kwargs):
-
-        profile = request.user.profile
-
-        is_admin = profile.is_admin
-        is_referent = LiaisonsReferents.objects.filter(
-            profile=profile, organisation__id=id,
-            validated_on__isnull=False) and True or False
-
-        if not(is_referent or is_admin):
-            raise Http404()
-
-        organisation = get_object_or_404(Organisation, id=id)
-
-        context = {'organisation': organisation}
-
-        url = request.POST.get('url')
-        try:
-            with transaction.atomic():
-                instance, created = \
-                    RemoteDcat.objects.get_or_create(
-                        organisation=organisation, url=url)
-        except DcatBaseError as e:
-            form = RemoteDcatForm(request.POST)
-            form.add_error('url', e.__str__())
-        except ValidationError as e:
-            form = RemoteDcatForm(request.POST)
-            form.add_error(e.code, e.message)
-        else:
-            context['datasets'] = Dataset.harvested_dcat.filter(organisation=organisation)
-            context['instance'] = instance
-            form = RemoteDcatForm(request.POST, instance=instance)
-
-        try:
-            # with transaction.atomic():
-            #     self.map_categories(instance, request.POST, form)
-            #     self.map_licences(instance, request.POST, form)
-            pass
-        except ValidationError as e:
-            error = True
-            messages.error(request, e.__str__())
-        except DcatBaseError as e:
-            error = True
-            form.add_error('__all__', e.__str__())
-            messages.error(request, e.__str__())
-
-        else:
-
-            # Une fois le mapping effectué, on sauvegarde l'instance
+                form = RemoteCswForm(request.POST, instance=instance)
 
             context['form'] = form
 
             if not form.is_valid():
-                return render(
-                    request, self.template, context=context)
+                messages.error(request, form._errors.__str__())
+                return redirect('idgo_admin:edit_remote_csw_link', id=organisation.id)
 
             for k, v in form.cleaned_data.items():
                 setattr(instance, k, v)
@@ -843,7 +681,7 @@ class RemoteDcatEditor(View):
             except ValidationError as e:
                 error = True
                 messages.error(request, e.__str__())
-            except DcatBaseError as e:
+            except CswBaseError as e:
                 error = True
                 form.add_error('__all__', e.__str__())
                 messages.error(request, e.__str__())
@@ -854,73 +692,241 @@ class RemoteDcatEditor(View):
             else:
                 error = False
                 context['datasets'] = \
-                    Dataset.harvested_dcat.filter(organisation=organisation)
-                context['form'] = RemoteDcatForm(instance=instance)
+                    Dataset.harvested_csw.filter(organisation=organisation)
+                context['form'] = RemoteCswForm(instance=instance)
                 if created:
-                    msg = "Veuillez configurer les informations ci-dessous et poursuivre le moissonnage du catalogue."
+                    msg = "Veuillez indiquez une requête <strong>GetRecord</strong> avant moissonnage du service."
                 else:
-                    msg = "Les informations de moissonnage ont été mises à jour."
+                    msg = 'Les informations de moissonnage ont été mises à jour.'
                 messages.success(request, msg)
 
-        if 'continue' in request.POST or error:
-            namespace = 'idgo_admin:edit_remote_dcat_link'
-        else:
-            namespace = 'idgo_admin:update_organisation'
+            if 'continue' in request.POST or error:
+                return render(
+                    request, self.template, context=context)
 
-        return redirect(namespace, id=organisation.id)
+            return redirect('idgo_admin:update_organisation', id=organisation.id)
 
-    # def map_categories(self, instance, mapper, form):
-    #     MappingCategory.objects.filter(remote_dcat=instance).delete()
-    #
-    #     data = list(filter(
-    #         lambda k: k in [el.name for el in form.get_category_fields()],
-    #         mapper.dict().keys()))
-    #     not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
-    #     for k, v in not_empty.items():
-    #         MappingCategory.objects.create(
-    #             remote_ckan=instance, category=Category.objects.get(id=v), slug=k[4:])
+    @method_decorator(decorators, name='dispatch')
+    class DeleteRemoteCswLinked(View):
 
-    # def map_licences(self, instance, mapper, form):
-    #     MappingLicence.objects.filter(remote_ckan=instance).delete()
-    #
-    #     data = list(filter(
-    #         lambda k: k in [el.name for el in form.get_licence_fields()],
-    #         mapper.dict().keys()))
-    #     not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
-    #     for k, v in not_empty.items():
-    #         MappingLicence.objects.create(
-    #             remote_ckan=instance, licence=License.objects.get(slug=v), slug=k[4:])
+        def post(self, request, id, *args, **kwargs):
+
+            profile = request.user.profile
+
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if not(is_referent or is_admin):
+                raise Http404()
+
+            organisation = get_object_or_404(Organisation, id=id)
+            instance = get_object_or_404(RemoteCsw, organisation=organisation)
+
+            try:
+                with transaction.atomic():
+                    instance.delete()
+            except ValidationError as e:
+                messages.error(request, e.__str__())
+            except CswBaseError as e:
+                messages.error(request, e.__str__())
+            else:
+                messages.success(request, (
+                    'Les informations ainsi que les jeux de données et '
+                    'ressources synchronisés avec le catalogue distant '
+                    'ont été supprimés avec succès.'))
+
+            return redirect('idgo_admin:update_organisation', id=organisation.id)
 
 
-@method_decorator(decorators, name='dispatch')
-class DeleteRemoteDcatLinked(View):
+from idgo_admin import ENABLE_DCAT_HARVESTER  # noqa
+if ENABLE_DCAT_HARVESTER:
 
-    def post(self, request, id, *args, **kwargs):
+    from idgo_admin.dcat_module import DcatBaseError
+    from idgo_admin.forms.organisation import RemoteDcatForm
+    from idgo_admin.models import RemoteDcat
 
-        profile = request.user.profile
+    # ========================
+    # MOISSONNAGE DE SITE DCAT
+    # ========================
 
-        is_admin = profile.is_admin
-        is_referent = LiaisonsReferents.objects.filter(
-            profile=profile, organisation__id=id,
-            validated_on__isnull=False) and True or False
+    @method_decorator(decorators, name='dispatch')
+    class RemoteDcatEditor(View):
 
-        if not(is_referent or is_admin):
+        template = 'idgo_admin/organisation/remotedcat/edit.html'
+
+        def get(self, request, id, *args, **kwargs):
+
+            profile = request.user.profile
+
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if is_referent or is_admin:
+                organisation = get_object_or_404(Organisation, id=id)
+
+                context = {'organisation': organisation}
+
+                try:
+                    instance = RemoteDcat.objects.get(organisation=organisation)
+                except RemoteDcat.DoesNotExist:
+                    form = RemoteDcatForm()
+                else:
+                    context['datasets'] = Dataset.harvested_dcat.filter(organisation=organisation)
+                    context['instance'] = instance
+                    form = RemoteDcatForm(instance=instance)
+
+                context['form'] = form
+
+                return render(
+                    request, self.template, context=context)
+
             raise Http404()
 
-        organisation = get_object_or_404(Organisation, id=id)
-        instance = get_object_or_404(RemoteDcat, organisation=organisation)
+        def post(self, request, id, *args, **kwargs):
 
-        try:
-            with transaction.atomic():
-                instance.delete()
-        except ValidationError as e:
-            messages.error(request, e.__str__())
-        except DcatBaseError as e:
-            messages.error(request, e.__str__())
-        else:
-            messages.success(request, (
-                'Les informations ainsi que les jeux de données et '
-                'ressources synchronisés avec le catalogue distant '
-                'ont été supprimés avec succès.'))
+            profile = request.user.profile
 
-        return redirect('idgo_admin:update_organisation', id=organisation.id)
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if not(is_referent or is_admin):
+                raise Http404()
+
+            organisation = get_object_or_404(Organisation, id=id)
+
+            context = {'organisation': organisation}
+
+            url = request.POST.get('url')
+            try:
+                with transaction.atomic():
+                    instance, created = \
+                        RemoteDcat.objects.get_or_create(
+                            organisation=organisation, url=url)
+            except DcatBaseError as e:
+                form = RemoteDcatForm(request.POST)
+                form.add_error('url', e.__str__())
+            except ValidationError as e:
+                form = RemoteDcatForm(request.POST)
+                form.add_error(e.code, e.message)
+            else:
+                context['datasets'] = Dataset.harvested_dcat.filter(organisation=organisation)
+                context['instance'] = instance
+                form = RemoteDcatForm(request.POST, instance=instance)
+
+            try:
+                # with transaction.atomic():
+                #     self.map_categories(instance, request.POST, form)
+                #     self.map_licences(instance, request.POST, form)
+                pass
+            except ValidationError as e:
+                error = True
+                messages.error(request, e.__str__())
+            except DcatBaseError as e:
+                error = True
+                form.add_error('__all__', e.__str__())
+                messages.error(request, e.__str__())
+
+            else:
+
+                # Une fois le mapping effectué, on sauvegarde l'instance
+
+                context['form'] = form
+
+                if not form.is_valid():
+                    return render(
+                        request, self.template, context=context)
+
+                for k, v in form.cleaned_data.items():
+                    setattr(instance, k, v)
+                try:
+                    with transaction.atomic():
+                        instance.save(harvest=not created)
+                except ValidationError as e:
+                    error = True
+                    messages.error(request, e.__str__())
+                except DcatBaseError as e:
+                    error = True
+                    form.add_error('__all__', e.__str__())
+                    messages.error(request, e.__str__())
+                except CriticalError as e:
+                    error = True
+                    form.add_error('__all__', e.__str__())
+                    messages.error(request, e.__str__())
+                else:
+                    error = False
+                    context['datasets'] = \
+                        Dataset.harvested_dcat.filter(organisation=organisation)
+                    context['form'] = RemoteDcatForm(instance=instance)
+                    if created:
+                        msg = "Veuillez configurer les informations ci-dessous et poursuivre le moissonnage du catalogue."
+                    else:
+                        msg = "Les informations de moissonnage ont été mises à jour."
+                    messages.success(request, msg)
+
+            if 'continue' in request.POST or error:
+                namespace = 'idgo_admin:edit_remote_dcat_link'
+            else:
+                namespace = 'idgo_admin:update_organisation'
+
+            return redirect(namespace, id=organisation.id)
+
+        # def map_categories(self, instance, mapper, form):
+        #     MappingCategory.objects.filter(remote_dcat=instance).delete()
+        #
+        #     data = list(filter(
+        #         lambda k: k in [el.name for el in form.get_category_fields()],
+        #         mapper.dict().keys()))
+        #     not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
+        #     for k, v in not_empty.items():
+        #         MappingCategory.objects.create(
+        #             remote_ckan=instance, category=Category.objects.get(id=v), slug=k[4:])
+
+        # def map_licences(self, instance, mapper, form):
+        #     MappingLicence.objects.filter(remote_ckan=instance).delete()
+        #
+        #     data = list(filter(
+        #         lambda k: k in [el.name for el in form.get_licence_fields()],
+        #         mapper.dict().keys()))
+        #     not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
+        #     for k, v in not_empty.items():
+        #         MappingLicence.objects.create(
+        #             remote_ckan=instance, licence=License.objects.get(slug=v), slug=k[4:])
+
+    @method_decorator(decorators, name='dispatch')
+    class DeleteRemoteDcatLinked(View):
+
+        def post(self, request, id, *args, **kwargs):
+
+            profile = request.user.profile
+
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if not(is_referent or is_admin):
+                raise Http404()
+
+            organisation = get_object_or_404(Organisation, id=id)
+            instance = get_object_or_404(RemoteDcat, organisation=organisation)
+
+            try:
+                with transaction.atomic():
+                    instance.delete()
+            except ValidationError as e:
+                messages.error(request, e.__str__())
+            except DcatBaseError as e:
+                messages.error(request, e.__str__())
+            else:
+                messages.success(request, (
+                    'Les informations ainsi que les jeux de données et '
+                    'ressources synchronisés avec le catalogue distant '
+                    'ont été supprimés avec succès.'))
+
+            return redirect('idgo_admin:update_organisation', id=organisation.id)

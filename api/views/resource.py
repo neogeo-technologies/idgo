@@ -28,7 +28,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import permissions
 from rest_framework.views import APIView
 
-from idgo_admin.exceptions import CkanBaseError
+from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.resource import ResourceForm as Form
 from idgo_admin.models import Dataset

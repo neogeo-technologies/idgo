@@ -34,7 +34,7 @@ from rdflib.namespace import RDF
 from rdflib.namespace import RDFS
 from rdflib.namespace import SKOS
 
-from idgo_admin.exceptions import DcatBaseError
+from idgo_admin.exceptions import GenericException
 
 from idgo_admin import DCAT_TIMEOUT
 
@@ -70,12 +70,16 @@ GEOJSON_IMT = 'https://www.iana.org/assignments/media-types/application/vnd.geo+
 profiles = ['euro_dcat_ap']
 
 
+class DcatBaseError(GenericException):
+    """DcatBaseError"""
+
+
 class DcatTimeoutError(Exception):
     message = "Le service DCAT met du temps à répondre, celui-ci est peut-être temporairement inaccessible."
 
 
 class DcatError(DcatBaseError):
-    pass
+    """DcatError"""
 
 
 def timeout(fun):

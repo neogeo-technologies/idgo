@@ -27,7 +27,7 @@ from django.http import JsonResponse
 from rest_framework import permissions
 from rest_framework.views import APIView
 
-from idgo_admin.exceptions import CkanBaseError
+from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.exceptions import GenericException
 from idgo_admin.forms.dataset import DatasetForm as Form
 from idgo_admin.geonet_module import GeonetUserHandler as geonet

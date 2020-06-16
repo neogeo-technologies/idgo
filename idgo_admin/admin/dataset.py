@@ -31,8 +31,8 @@ from django.utils.text import slugify
 from taggit.admin import Tag
 from taggit.models import TaggedItem
 
+from idgo_admin.ckan_module import CkanBaseError
 from idgo_admin.ckan_module import CkanManagerHandler
-from idgo_admin.exceptions import CkanBaseError
 from idgo_admin.models import Dataset
 from idgo_admin.models import Keywords
 from idgo_admin.models import Profile
