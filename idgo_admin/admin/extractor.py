@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+
 from django.contrib import admin
 
 from idgo_admin.models import ExtractorSupportedFormat
@@ -20,11 +21,8 @@ from idgo_admin.models import ExtractorSupportedFormat
 
 class ExtractorSupportedFormatAdmin(admin.ModelAdmin):
     model = ExtractorSupportedFormat
-    list_display = [
-        'name',
-        'description',
-        'type',
-    ]
+    list_display = ['name', 'description', 'type']
+    change_list_template = 'admin/idgo_admin/extractorsupportedformat_change_list.html'
 
 
 admin.site.register(ExtractorSupportedFormat, ExtractorSupportedFormatAdmin)

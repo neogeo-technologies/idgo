@@ -17,6 +17,7 @@
 from idgo_admin.admin.category import *
 from idgo_admin.admin.dataset import *
 from idgo_admin.admin.data_type import *
+from idgo_admin.admin.extractor import *
 from idgo_admin.admin.granularity import *
 from idgo_admin.admin.jurisdiction import *
 from idgo_admin.admin.license import *

@@ -25,7 +25,7 @@ div.inner_form  {
 
 /* Define the default color for all the table rows */
 .hoverTable tr{
-	background: #FFFFFF;
+  background: #FFFFFF;
 }
 
 /* Define the hover highlight color for the table row */
@@ -69,11 +69,9 @@ a.cancel_btn {
 </style>
 {% endblock %}
 
-
 {% block content %}
 <form action="" method="post">
   {% csrf_token %}
-
   <div class="inner_form">
   <p>Mots clés sélectionnés: </p>
   {% for tag in tags %}
@@ -81,7 +79,7 @@ a.cancel_btn {
       {{ tag.pk }} / {{ tag.name }} / {{ tag.slug }}
     </p>
     <input type="hidden" name="_selected_action" value="{{ tag.pk }}" />
-	{% endfor %}
+  {% endfor %}
   </div>
   <div class="inner_form">
     <p>Datasets concernées: </p>
@@ -96,27 +94,22 @@ a.cancel_btn {
         {% for dataset in datasets %}
           <tr>
           <td>{{ dataset.title }}</td>
-
           <td>{% for kw in dataset.keywords.all %} {% if kw in tags %}<a class="borderer">{{ kw.name }}</a> {% else %} <a> {{ kw.name }}</a> {% endif %}{% endfor %}</td>
-
         </tr>
         {% endfor %}
       </tbody>
     </table>
     <table id="header-fixed"></table>
   </div>
-
   <div class="inner_form">
     <p>Veuillez indiquer le mot clé définitif remplacant les mots clés sélectionnés:</p>
     {{ form.new_name.label_tag }} {{ form.new_name }}
     {{ form.new_name.errors }}
   </div>
-
   <div class="submit-row">
     <input type="hidden" name="action" value="merge_name" />
     <input type="submit" name="apply" value="Valider"/>
     <a href="" class="cancel_btn">{% trans "No, take me back" %}</a>
   </div>
-
 </form>
 {% endblock %}

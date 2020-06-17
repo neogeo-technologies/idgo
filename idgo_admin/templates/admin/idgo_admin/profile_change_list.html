@@ -7,3 +7,8 @@
   <a href="{% url 'admin:clean_account_actions' %}" class="viewsitelink">Nettoyer les doublons d'actions de validation</a>
 </li>
 {% endblock %}
+
+{% block content %}
+{% include "admin/idgo_admin/caution.html" %}
+{{ block.super }}
+{% endblock %}

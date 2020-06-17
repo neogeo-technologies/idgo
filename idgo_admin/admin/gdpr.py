@@ -20,6 +20,7 @@ from idgo_admin.models import Gdpr
 
 
 class GdprAdmin(admin.ModelAdmin):
+    model = Gdpr
     list_display = [
         'title',
         'description',
