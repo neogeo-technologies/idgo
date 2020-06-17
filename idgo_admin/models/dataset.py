@@ -480,29 +480,6 @@ class Dataset(models.Model):
         for resource in Resource.objects.filter(dataset=self):
             ows = resource.ogc_services
 
-        # On regarde si le jeu de données est moissonnées
-        # ===============================================
-        remote_url = None
-        # Soit CKAN :
-        RemoteCkanDataset = apps.get_model(
-            app_label='idgo_admin', model_name='RemoteCkanDataset')
-        try:
-            remote_dataset = RemoteCkanDataset.objects.get(dataset=self)
-        except RemoteCkanDataset.DoesNotExist:
-            pass
-        else:
-            remote_url = remote_dataset.url
-        # Soit CSW :
-        RemoteCswDataset = apps.get_model(
-            app_label='idgo_admin', model_name='RemoteCswDataset')
-        try:
-            remote_dataset = RemoteCswDataset.objects.get(dataset=self)
-        except RemoteCswDataset.DoesNotExist:
-            pass
-        else:
-            remote_url = remote_dataset.url
-        # mais pas les deux.
-
         spatial = self.bbox and self.bbox.geojson or ''
         support = self.support and self.support.slug or ''
         tags = [{'name': keyword.name} for keyword in self.keywords.all()]
@@ -510,6 +487,40 @@ class Dataset(models.Model):
             thumbnail = urljoin(DOMAIN_NAME, self.thumbnail.url)
         except ValueError:
             thumbnail = ''
+
+        # On vérifie si le jeu de données est un cas particulier
+        # de jeu de données moissonné CKAN/CSW/DCAT
+        remote_url = None
+        if ENABLE_CKAN_HARVESTER:
+            # (1) DCAT
+            RemoteCkanDataset = apps.get_model(
+                app_label='idgo_admin', model_name='RemoteCkanDataset')
+            try:
+                remote_dataset = RemoteCkanDataset.objects.get(dataset=self)
+            except RemoteCkanDataset.DoesNotExist:
+                pass
+            else:
+                remote_url = remote_dataset.url
+        if ENABLE_CSW_HARVESTER:
+            # (2) CSW
+            RemoteCswDataset = apps.get_model(
+                app_label='idgo_admin', model_name='RemoteCswDataset')
+            try:
+                remote_dataset = RemoteCswDataset.objects.get(dataset=self)
+            except RemoteCswDataset.DoesNotExist:
+                pass
+            else:
+                remote_url = remote_dataset.url
+        if ENABLE_DCAT_HARVESTER:
+            # (3) DCAT
+            RemoteDcatDataset = apps.get_model(
+                app_label='idgo_admin', model_name='RemoteDcatDataset')
+            try:
+                remote_dataset = RemoteDcatDataset.objects.get(dataset=self)
+            except RemoteDcatDataset.DoesNotExist:
+                pass
+            else:
+                remote_url = remote_dataset.url
 
         data = {
             'author': self.owner_name,
