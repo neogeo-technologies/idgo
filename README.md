@@ -18,6 +18,200 @@ Application initialement développée dans un environnement virtuel __Python 3.5
 _**TODO** : Création des fichiers de configuration, création des bases de données, etc._
 
 
+### Paramètres additionnels du `settings.py`
+
+
+#### Paramètres obligatoire
+
+* **CKAN_API_KEY**
+
+* **CKAN_STORAGE_PATH**
+
+* **CKAN_URL**
+
+* **DATABASES**
+
+* **DATAGIS_DB**
+
+* **DEFAULT_USER_ID**
+
+* **DEFAULT_FROM_EMAIL**
+
+* **DEFAULT_FROM_EMAIL**
+
+* **DEFAULTS_VALUES**
+
+* **DOMAIN_NAME**
+
+* **EXTRACTOR_URL**
+
+* **EXTRACTOR_URL_PUBLIC**
+
+* **FTP_DIR**
+
+* **FTP_SERVICE_URL**
+
+* **GEONETWORK_URL**
+
+* **LOGIN_URL**
+
+* **LOGOUT_URL**
+
+* **MAPSERV_STORAGE_PATH**
+
+* **MRA**
+
+* **TERMS_URL**
+
+* **OWS_URL_PATTERN**
+
+* **OWS_PREVIEW_URL**
+
+
+#### Paramètres optionnels
+
+
+* **HREF_WWW**
+
+    Valeur par défaut: `None`
+
+* **CKAN_TIMEOUT**
+
+    Valeur par défaut: `36000`
+
+* **CSW_TIMEOUT**
+
+    Valeur par défaut: `36000`
+
+* **DCAT_TIMEOUT**
+
+    Valeur par défaut: `36000`
+
+* **DATAGIS_DB_SCHEMA**
+
+    Valeur par défaut: `'public'`
+
+* **DATAGIS_DB_GEOM_FIELD_NAME**
+
+    Valeur par défaut: `'the_geom'`
+
+* **DATAGIS_DB_EPSG**
+
+    Valeur par défaut: `4171`
+
+* **DEFAULT_PLATFORM_NAME**
+
+    Valeur par défaut: `'IDGO'`
+
+* **DEFAULT_CONTACT_EMAIL**
+
+    Valeur par défaut: `contact@idgo.fr`
+
+* **DOWNLOAD_SIZE_LIMIT**
+
+    Valeur par défaut: `104857600`
+
+* **ENABLE_FTP_ACCOUNT**
+
+    Valeur par défaut: `True`
+
+* **ENABLE_ORGANISATION_CREATE**
+
+    Valeur par défaut: `True`
+
+* **ENABLE_CSW_HARVESTER**
+
+    Valeur par défaut: `True`
+
+* **ENABLE_CKAN_HARVESTER**
+
+    Valeur par défaut: `True`
+
+* **ENABLE_DCAT_HARVESTER**
+
+    Valeur par défaut: `False`
+
+* **EXTRACTOR_BOUNDS**
+
+    Valeur par défaut: `[[40, -14], [55, 28]]`
+
+* **PHONE_REGEX**
+
+    Valeur par défaut: `'^0\d{9}$'`
+
+* **FTP_URL**
+
+    Valeur par défaut: `None`
+
+* **FTP_MECHANISM**
+
+    Valeur par défaut: `'cgi'`
+
+* **FTP_MECHANISM**
+
+    Valeur par défaut: `''`
+
+* **FTP_UPLOADS_DIR**
+
+    Valeur par défaut: `'uploads'`
+
+* **FTP_USER_PREFIX**
+
+    Valeur par défaut: `''`
+
+* **GEONETWORK_LOGIN**
+
+    Valeur par défaut: `'admin'`
+
+* **GEONETWORK_PASSWORD**
+
+    Valeur par défaut: `'admin'`
+
+* **GEONETWORK_TIMEOUT**
+
+    Valeur par défaut: `36000`
+
+* **MAPSERV_TIMEOUT**
+
+    Valeur par défaut: `60`
+
+* **MDEDIT_HTML_PATH**
+
+    Valeur par défaut: `'mdedit/html/'`
+
+* **MDEDIT_CONFIG_PATH**
+
+    Valeur par défaut: `'mdedit/config/'`
+
+* **MDEDIT_DATASET_MODEL**
+
+    Valeur par défaut: `'models/model-dataset-empty.json'`
+
+* **MDEDIT_SERVICE_MODEL**
+
+    Valeur par défaut: `'models/model-service-empty.json'`
+
+* **MDEDIT_LOCALES_PATH**
+
+    Valeur par défaut: ```python
+    os.path.join(
+        settings.BASE_DIR,
+        'idgo_admin/static/mdedit/config/locales/fr/locales.json')
+    ```
+
+* **REDIS_HOST**
+
+    Valeur par défaut: `'localhost'`
+
+* **REDIS_EXPIRATION**
+
+    Valeur par défaut: `120`
+
+* **READTHEDOC_URL**
+
+    Valeur par défaut: `None`
+
+
 ### Installer OWSLib [IMPORTANT]
 
 Dernière version : **idgo/0.17.1.patch200520**
