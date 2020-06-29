@@ -86,6 +86,7 @@ OPTIONAL = (
     ('MDEDIT_LOCALES_PATH', os.path.join(
         settings.BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')),
     ('REDIS_HOST', 'localhost'),
+    ('REDIS_PORT', 6379),
     ('REDIS_EXPIRATION', 120),
     ('READTHEDOC_URL', None),
 )
