@@ -16,11 +16,15 @@
 
 default_app_config = 'idgo_admin.apps.IdgoAdminConfig'
 
+import logging  # noqa E402
 import os  # noqa E402
 import sys  # noqa E402
 this = sys.modules[__name__]
 
 from django.conf import settings  # noqa E402
+
+
+logger = logging.getLogger('idgo_admin')
 
 
 MANDATORY = (
@@ -86,6 +90,7 @@ OPTIONAL = (
     ('READTHEDOC_URL', None),
 )
 
+
 for KEY in MANDATORY:
     try:
         setattr(this, KEY, getattr(settings, KEY))
@@ -94,3 +99,26 @@ for KEY in MANDATORY:
 
 for KEY, VALUE in OPTIONAL:
     setattr(this, KEY, getattr(settings, KEY, VALUE))
+
+if hasattr(settings, 'STATIC_ROOT'):
+    locales_path = os.path.join(
+        settings.STATIC_ROOT,
+        'mdedit/config/locales/fr/locales.json')
+else:
+    locales_path = os.path.join(
+        settings.BASE_DIR,
+        'idgo_admin/static/mdedit/config/locales/fr/locales.json')
+
+try:
+    PROTOCOL_CHOICES = []
+    with open(locales_path, 'r', encoding='utf-8') as f:
+        print("e", f)
+        m = json.loads(f.read())
+        PROTOCOL_CHOICES = (
+            (protocol['id'], protocol['value'])
+            for protocol in m['codelists']['MD_LinkageProtocolCode'])
+except Exception as e:
+    logger.warning(e)
+    logger.warning("'PROTOCOL_CHOICES' could not be set.")
+finally:
+    setattr(this, 'PROTOCOL_CHOICES', PROTOCOL_CHOICES)

@@ -61,24 +61,11 @@ from idgo_admin.utils import three_suspension_points
 
 from idgo_admin import CKAN_STORAGE_PATH
 from idgo_admin import CKAN_URL
-from idgo_admin import DOWNLOAD_SIZE_LIMIT
+from idgo_admin import OWS_URL_PATTERN
+from idgo_admin import PROTOCOL_CHOICES
 
 
 logger = logging.getLogger('idgo_admin')
-
-
-if hasattr(settings, 'STATIC_ROOT'):
-    locales_path = os.path.join(settings.STATIC_ROOT, 'mdedit/config/locales/fr/locales.json')
-else:
-    locales_path = os.path.join(settings.BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')
-
-try:
-    with open(locales_path, 'r', encoding='utf-8') as f:
-        m = json.loads(f.read())
-        PROTOCOL_CHOICES = ((protocol['id'], protocol['value']) for protocol
-                            in m['codelists']['MD_LinkageProtocolCode'])
-except Exception:
-    PROTOCOL_CHOICES = None
 
 
 def get_all_users_for_organisations(list_id):
@@ -105,23 +92,23 @@ class ResourceFormats(models.Model):
         max_length=100,
         unique=True,
         db_index=True,
-        )
+    )
 
     description = models.TextField(
         verbose_name="Description",
-        )
+    )
 
     extension = models.CharField(
         verbose_name="Extension du fichier",
         max_length=10,
-        )
+    )
 
     mimetype = ArrayField(
         models.TextField(),
         verbose_name="Type MIME",
         blank=True,
         null=True,
-        )
+    )
 
     protocol = models.CharField(
         verbose_name="Protocole",
@@ -129,12 +116,12 @@ class ResourceFormats(models.Model):
         blank=True,
         null=True,
         choices=PROTOCOL_CHOICES,
-        )
+    )
 
     ckan_format = models.CharField(
         verbose_name="Format CKAN",
         max_length=10,
-        )
+    )
 
     CKAN_CHOICES = (
         (None, 'N/A'),
@@ -142,7 +129,7 @@ class ResourceFormats(models.Model):
         ('geo_view', 'geo_view'),
         ('recline_view', 'recline_view'),
         ('pdf_view', 'pdf_view'),
-        )
+    )
 
     ckan_view = models.CharField(
         verbose_name="Vue CKAN",
@@ -150,14 +137,14 @@ class ResourceFormats(models.Model):
         blank=True,
         null=True,
         choices=CKAN_CHOICES,
-        )
+    )
 
     is_gis_format = models.BooleanField(
         verbose_name="Format de fichier SIG",
         blank=False,
         null=False,
         default=False,
-        )
+    )
 
     def __str__(self):
         return self.description
@@ -197,11 +184,11 @@ class Resource(models.Model):
         default=uuid.uuid4,
         editable=False,
         unique=True,
-        )
+    )
 
     title = models.TextField(
         verbose_name='Title',
-        )
+    )
 
     description = models.TextField(
         verbose_name='Description',
@@ -215,21 +202,21 @@ class Resource(models.Model):
         null=True,
         upload_to=_ftp_file_upload_to,
         max_length=255,
-        )
+    )
 
     referenced_url = models.URLField(
         verbose_name='Référencer une URL',
         max_length=2000,
         blank=True,
         null=True,
-        )
+    )
 
     dl_url = models.URLField(
         verbose_name='Télécharger depuis une URL',
         max_length=2000,
         blank=True,
         null=True,
-        )
+    )
 
     up_file = models.FileField(
         verbose_name='Téléverser un ou plusieurs fichiers',
@@ -237,28 +224,29 @@ class Resource(models.Model):
         null=True,
         upload_to=_up_file_upload_to,
         max_length=255,
-        )
+    )
 
     LANG_CHOICES = (
         ('french', 'Français'),
         ('english', 'Anglais'),
         ('italian', 'Italien'),
         ('german', 'Allemand'),
-        ('other', 'Autre'))
+        ('other', 'Autre'),
+    )
 
     lang = models.CharField(
         verbose_name='Langue',
         choices=LANG_CHOICES,
         default='french',
         max_length=10,
-        )
+    )
 
     format_type = models.ForeignKey(
         to='ResourceFormats',
         verbose_name='Format',
         blank=False,
         null=True,
-        )
+    )
 
     LEVEL_CHOICES = (
         ('public', 'Tous les utilisateurs'),
@@ -266,7 +254,7 @@ class Resource(models.Model):
         ('only_allowed_users', 'Utilisateurs authentifiés avec droits spécifiques'),
         ('same_organization', 'Utilisateurs de cette organisation uniquement'),
         ('any_organization', 'Organisations spécifiées'),
-        )
+    )
 
     restricted_level = models.CharField(
         verbose_name="Restriction d'accès",
@@ -275,13 +263,13 @@ class Resource(models.Model):
         max_length=20,
         blank=True,
         null=True,
-        )
+    )
 
     profiles_allowed = models.ManyToManyField(
         to='Profile',
         verbose_name='Utilisateurs autorisés',
         blank=True,
-        )
+    )
 
     organisations_allowed = models.ManyToManyField(
         to='Organisation',
@@ -295,67 +283,67 @@ class Resource(models.Model):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        )
+    )
 
     bbox = models.PolygonField(
         verbose_name='Rectangle englobant',
         blank=True,
         null=True,
         srid=4171,
-        )
+    )
 
     geo_restriction = models.BooleanField(
         verbose_name='Restriction géographique',
         default=False,
-        )
+    )
 
     extractable = models.BooleanField(
         verbose_name='Extractible',
         default=True,
-        )
+    )
 
     ogc_services = models.BooleanField(
         verbose_name='Services OGC',
         default=True,
-        )
+    )
 
     created_on = models.DateTimeField(
         verbose_name='Date de création de la resource',
         blank=True,
         null=True,
         default=timezone.now,
-        )
+    )
 
     last_update = models.DateTimeField(
         verbose_name='Date de dernière modification de la resource',
         blank=True,
         null=True,
-        )
+    )
 
     TYPE_CHOICES = (
         ('raw', 'Données brutes'),
         ('annexe', 'Documentation associée'),
         ('service', 'Service'),
-        )
+    )
 
     data_type = models.CharField(
         verbose_name='Type de la ressource',
         choices=TYPE_CHOICES,
         max_length=10,
         default='raw',
-        )
+    )
 
     synchronisation = models.BooleanField(
         verbose_name='Synchronisation de données distante',
         default=False,
-        )
+    )
 
     EXTRA_FREQUENCY_CHOICES = (
         ('5mn', 'Toutes les 5 minutes'),
         ('15mn', 'Toutes les 15 minutes'),
         ('20mn', 'Toutes les 20 minutes'),
         ('30mn', 'Toutes les 30 minutes'),
-        )
+    )
 
     FREQUENCY_CHOICES = (
         ('1hour', 'Toutes les heures'),
@@ -369,7 +357,7 @@ class Resource(models.Model):
         ('biannual', 'Semestrielle (1er janvier et 1er juillet)'),
         ('annual', 'Annuelle (1er janvier)'),
         ('never', 'Jamais'),
-        )
+    )
 
     sync_frequency = models.CharField(
         verbose_name='Fréquence de synchronisation',
@@ -378,7 +366,7 @@ class Resource(models.Model):
         null=True,
         choices=FREQUENCY_CHOICES + EXTRA_FREQUENCY_CHOICES,
         default='never',
-        )
+    )
 
     crs = models.ForeignKey(
         to='SupportedCrs',
@@ -386,7 +374,7 @@ class Resource(models.Model):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        )
+    )
 
     def __str__(self):
         return self.title
