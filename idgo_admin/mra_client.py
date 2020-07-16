@@ -182,7 +182,7 @@ class MRAClient(object):
         self.base_url = url
         self.auth = (username and password) and (username, password)
 
-    @timeout
+    # @timeout
     def _req(self, method, url, extension='json', **kwargs):
         kwargs.setdefault('allow_redirects', True)
         kwargs.setdefault('headers', {'content-type': 'application/json; charset=utf-8'})
@@ -361,6 +361,7 @@ class MRAHandler(metaclass=Singleton):
 
         return self.get_coveragestore(ws_name, cs_name)
 
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_or_create_coveragestore(self, ws_name, cs_name, **kwargs):
         try:
             return self.get_coveragestore(ws_name, cs_name)
@@ -395,6 +396,7 @@ class MRAHandler(metaclass=Singleton):
 
         return self.get_coverage(ws_name, cs_name, c_name)
 
+    @MRAExceptionsHandler(ignore=[MRANotFoundError])
     def get_or_create_coverage(self, ws_name, cs_name, c_name, **kwargs):
         try:
             return self.get_coverage(ws_name, cs_name, c_name)
