@@ -485,6 +485,7 @@ class Resource(models.Model):
                             s1, s2, s3 = s0[:3], s0[3:6], s0[6:]
                             dir = os.path.join(CKAN_STORAGE_PATH, s1, s2)
                             os.makedirs(dir, mode=0o777, exist_ok=True)
+
                             shutil.copyfile(filename, os.path.join(dir, s3))
 
                             src = os.path.join(dir, s3)

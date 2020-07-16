@@ -293,10 +293,10 @@ class DatasetManager(View):
     def get_context(self, form, user, dataset):
 
         # > > > > > > #
-        resource_store_rows = []
+        resource_list_rows = []
         if dataset:
             for resource in NewResourceModel.objects.filter(dataset=dataset):
-                resource_store_row_data = (
+                data = (
                     resource.pk,
                     resource.title,
                     resource.format_type.description if resource.format_type else None,
@@ -306,7 +306,7 @@ class DatasetManager(View):
                     'Aucune',
                     str(resource.ckan_id),
                     )
-                resource_store_rows.append(resource_store_row_data)
+                resource_list_rows.append(data)
         # < < < < < < #
 
         layer_rows = []
@@ -372,8 +372,8 @@ class DatasetManager(View):
             'layer_rows': json.dumps(layer_rows),
             'resource_rows': json.dumps(resource_rows),
             # > > > > > > #
-            'resource_store_rows': json.dumps(resource_store_rows),
-            'resource_store_rows_count': len(resource_store_rows),
+            'resource_list_rows': json.dumps(resource_list_rows),
+            'resource_list_count': len(resource_list_rows),
             # < < < < < < #
             'supports': json.dumps(dict(supports)),
             'tags': json.dumps(tags),

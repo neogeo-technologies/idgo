@@ -3,13 +3,13 @@
 {% include "idgo_admin/alert_messages.html" %}
 
 <div class="buttons-on-the-right-side">
-	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_resource:new_resource" dataset_id=dataset.id %}">Ajouter un nouveau répertoire de données</a>
+	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_resource:new_resource" dataset_id=dataset.id %}">Ajouter une ressource</a>
 </div>
 <br />
-{% if resource_store_rows_count > 0 %}
-<div id="table-resources-store" class="table-responsive"></div>
+{% if resource_list_count > 0 %}
+<div id="table-resources-list" class="table-responsive"></div>
 <nav aria-label="Page navigation" style="text-align: center;">
-	<ul id="table-resources-store-paginator" class="pagination pagination-sm"></ul>
+	<ul id="table-resources-list-paginator" class="pagination pagination-sm"></ul>
 </nav>
 <div class="buttons-on-the-right-side">
 	<button name="view-ckan-resource" class="btn btn-default">Fiche CKAN</button>
@@ -17,15 +17,15 @@
 </div>
 {% else %}
 <div role="alert" class="alert alert-info">
-  <span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n'avez encore aucun répertoire de données.
+	<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n'avez encore aucune ressource.
 </div>
 {% endif %}
 
 <script>
 $(function() {
 	var RESOURCE_URL = '{% url "idgo_resource:redirect_resource" dataset_id=dataset.id %}';
-	var RESOURCES = {{ resource_store_rows | safe }};
-	var RESOURCES_CONTAINER = 'table-resources-store';
+	var RESOURCES = {{ resource_list_rows | safe }};
+	var RESOURCES_CONTAINER = 'table-resources-list';
 	var RESOURCES_METADATA = [
 		{
 			name: 'title',
@@ -72,15 +72,15 @@ $(function() {
 
 	var tableGrid = new EditableGrid('ResourcesStore', {pageSize: 10});
 
-	$('#resources_store [name="view-ckan-resource"]').on('click', function(e) {
+	$('#resources_list [name="view-ckan-resource"]').on('click', function(e) {
 		e.preventDefault();
 		targetBlank('{{ CKAN_URL }}/dataset/{{ dataset.slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
 		e.stopPropagation();
 	});
 
-	const $multipleCkanView = $('#resources_store [name="view-multiple-ckan"]').hide();
+	const $multipleCkanView = $('#resources_list [name="view-multiple-ckan"]').hide();
 
-	$('#resources_store button[name="edit-resource"]')
+	$('#resources_list button[name="edit-resource"]')
 		.on('click', function(e) {
 			e.preventDefault();
 			redirect(RESOURCE_URL + '?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
@@ -101,14 +101,14 @@ $(function() {
 					deactivateButton($(this));
 				});
 				if (pRowIdx != nRowIdx) {
-					window.location = '#resources_store/' + getRowValues(nRowIdx).id;
+					window.location = '#resources_list/' + getRowValues(nRowIdx).id;
 					$(grid.getRow(nRowIdx)).addClass('selected');
 					// if (getRowValues(nRowIdx).datagis_id.length && getRowValues(nRowIdx).extractable) {
 					//  	activateButton($('button[name="resource-extractor"]'));
 					// };
-					activateButton($('#resources_store button[name="view-ckan-resource"]'));
-					activateButton($('#resources_store button[name="edit-resource"]'));
-					// activateButton($('#resources_store button[name="delete-resource"]'));
+					activateButton($('#resources_list button[name="view-ckan-resource"]'));
+					activateButton($('#resources_list button[name="edit-resource"]'));
+					// activateButton($('#resources_list button[name="delete-resource"]'));
 				};
 			};
 			var DATE_FORMAT = 'DD/MM/YY';
