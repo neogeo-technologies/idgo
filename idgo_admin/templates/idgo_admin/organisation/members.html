@@ -10,7 +10,7 @@
 				<th name="is_member">Membre</th>
 				<th name="is_contributor">Contributeur</th>
 				<th name="is_referent">Référent</th>
-				{% if user.profile.is_crige_admin %}
+				{% if user.profile.is_idgo_admin %}
 				<th name="is_idgo_member">Partenaire IDGO</th>
 				{% endif %}
 				<th name="datasets_count">Jeux de données</th>
@@ -28,8 +28,8 @@
 				<td name="is_referent" style="text-align: center;">{% if member.is_referent %}
 					<span class="glyphicon glyphicon-ok"></span>{% endif %}
 				</td>
-				{% if user.profile.is_crige_admin %}
-				<td name="is_idgo_member" style="text-align: center;">{% if member.is_crige_member %}
+				{% if user.profile.is_idgo_admin %}
+				<td name="is_idgo_member" style="text-align: center;">{% if member.is_idgo_member %}
 					<span class="glyphicon glyphicon-ok"></span>{% endif %}
 				</td>
 				{% endif %}

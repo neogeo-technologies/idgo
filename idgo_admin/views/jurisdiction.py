@@ -110,13 +110,13 @@ class JurisdictionView(View):
         user = request.user
 
         if code not in ('for', 'new'):
-            if not user.profile.is_crige_admin:
+            if not user.profile.is_idgo_admin:
                 raise Http404()
             fake = None
             new = None
             jurisdiction = get_object_or_404(Jurisdiction, code=code)
         else:
-            if code == 'new' and not user.profile.is_crige_admin:
+            if code == 'new' and not user.profile.is_idgo_admin:
                 raise Http404()
             fake = (code == 'for')
             new = (code == 'new')
@@ -153,13 +153,13 @@ class JurisdictionView(View):
         user = request.user
 
         if code not in ('for', 'new'):
-            if not user.profile.is_crige_admin:
+            if not user.profile.is_idgo_admin:
                 raise Http404()
             fake = None
             new = None
             jurisdiction = get_object_or_404(Jurisdiction, code=code)
         else:
-            if code == 'new' and not user.profile.is_crige_admin:
+            if code == 'new' and not user.profile.is_idgo_admin:
                 raise Http404()
             fake = (code == 'for')
             new = (code == 'new')
@@ -312,7 +312,7 @@ class JurisdictionView(View):
 
         if code in ('for', 'new'):
             raise Http404()
-        if not request.user.profile.is_crige_admin:
+        if not request.user.profile.is_idgo_admin:
             raise Http404()
 
         jurisdiction = get_object_or_404(Jurisdiction, code=code)

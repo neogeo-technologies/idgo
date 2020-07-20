@@ -188,7 +188,7 @@ class ProfileAdmin(admin.ModelAdmin):
             Form = IDGOProfileChangeForm
         else:
             profile = request.user.profile
-            Form = profile.is_crige_admin and IDGOProfileChangeForm or StandardProfileChangeForm
+            Form = profile.is_idgo_admin and IDGOProfileChangeForm or StandardProfileChangeForm
         if obj:
             return Form
         else:

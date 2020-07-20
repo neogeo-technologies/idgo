@@ -106,7 +106,7 @@ class OrganisationForm(forms.ModelForm):
         if self.instance and self.instance.logo:
             self.fields['logo'].widget.attrs['value'] = self.instance.logo.url
 
-        if self.instance and not self.user.profile.is_crige_admin:
+        if self.instance and not self.user.profile.is_idgo_admin:
             self.fields['jurisdiction'].queryset = \
                 Jurisdiction.objects.filter(pk__in=self.instance.jurisdiction and [self.instance.jurisdiction.pk] or [])
             self.fields['jurisdiction'].widget.attrs['disabled'] = 'disabled'
@@ -117,7 +117,7 @@ class OrganisationForm(forms.ModelForm):
             legal_name = self.cleaned_data.get('legal_name')
             if Organisation.objects.filter(slug=slugify(legal_name)).count() > 0:
                 self.add_error('legal_name', 'Une organisation portant le même nom existe déjà.')
-        if self.instance and not self.user.profile.is_crige_admin:
+        if self.instance and not self.user.profile.is_idgo_admin:
             self.cleaned_data['jurisdiction'] = self.instance.jurisdiction
         return self.cleaned_data
 

@@ -145,8 +145,12 @@ class Profile(models.Model):
         return LiaisonsContributeurs.get_contribs(profile=self)
 
     @property
-    def is_crige_admin(self):
+    def is_idgo_admin(self):
         return self.is_admin and self.crige_membership
+
+    @property
+    def is_idgo_member(self):
+        return self.crige_membership
 
     @property
     def is_ftp_account_exists(self):
