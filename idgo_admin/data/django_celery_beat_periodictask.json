@@ -5,7 +5,7 @@
 		"name": "tasktracking_cleanup",
 		"task": "celeriac.tasks.clean_tasktracking_table",
 		"interval": null,
-		"crontab": null,
+		"crontab": 9,
 		"solar": null,
 		"args": "[]",
 		"kwargs": "{}",
