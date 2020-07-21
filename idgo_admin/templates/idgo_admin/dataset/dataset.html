@@ -30,7 +30,7 @@
 	</li>
 
 	<li role="presentation">
-		<a href="#resources_list" aria-controls="resources_list" role="tab" data-toggle="tab">Ressources (expérimental)</a>
+		<a href="#resources_beta" aria-controls="resources_beta" role="tab" data-toggle="tab">Ressource(s) associée(s) <span class="label label-default">Bêta</span></a>
 	</li>
 
 	<li role="presentation">
@@ -49,9 +49,9 @@
 		{% include "idgo_admin/dataset/resource/resources.html" %}
 	</div>
 
-	<div id="resources_list" role="tabpanel" class="tab-pane fade in">
+	<div id="resources_beta" role="tabpanel" class="tab-pane fade in">
 		<br />
-		{% include "idgo_admin/dataset/resource/resources_list.html" %}
+		{% include "idgo_admin/dataset/resource/resources_beta.html" %}
 	</div>
 
 	<div id="owslayers" role="tabpanel" class="tab-pane fade in">

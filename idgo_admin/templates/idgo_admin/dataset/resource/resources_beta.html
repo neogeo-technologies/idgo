@@ -72,15 +72,15 @@ $(function() {
 
 	var tableGrid = new EditableGrid('ResourcesStore', {pageSize: 10});
 
-	$('#resources_list [name="view-ckan-resource"]').on('click', function(e) {
+	$('#resources_beta [name="view-ckan-resource"]').on('click', function(e) {
 		e.preventDefault();
 		targetBlank('{{ CKAN_URL }}/dataset/{{ dataset.slug }}/resource/' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['ckan_id']);
 		e.stopPropagation();
 	});
 
-	const $multipleCkanView = $('#resources_list [name="view-multiple-ckan"]').hide();
+	const $multipleCkanView = $('#resources_beta [name="view-multiple-ckan"]').hide();
 
-	$('#resources_list button[name="edit-resource"]')
+	$('#resources_beta button[name="edit-resource"]')
 		.on('click', function(e) {
 			e.preventDefault();
 			redirect(RESOURCE_URL + '?id=' + tableGrid.getRowValues(tableGrid.lastSelectedRowIndex)['id']);
@@ -101,14 +101,14 @@ $(function() {
 					deactivateButton($(this));
 				});
 				if (pRowIdx != nRowIdx) {
-					window.location = '#resources_list/' + getRowValues(nRowIdx).id;
+					window.location = '#resources_beta/' + getRowValues(nRowIdx).id;
 					$(grid.getRow(nRowIdx)).addClass('selected');
 					// if (getRowValues(nRowIdx).datagis_id.length && getRowValues(nRowIdx).extractable) {
 					//  	activateButton($('button[name="resource-extractor"]'));
 					// };
-					activateButton($('#resources_list button[name="view-ckan-resource"]'));
-					activateButton($('#resources_list button[name="edit-resource"]'));
-					// activateButton($('#resources_list button[name="delete-resource"]'));
+					activateButton($('#resources_beta button[name="view-ckan-resource"]'));
+					activateButton($('#resources_beta button[name="edit-resource"]'));
+					// activateButton($('#resources_beta button[name="delete-resource"]'));
 				};
 			};
 			var DATE_FORMAT = 'DD/MM/YY';

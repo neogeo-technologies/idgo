@@ -53,7 +53,7 @@ from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin import CKAN_URL
 from idgo_admin import LOGIN_URL
 
-from idgo_resource.models import Resource as NewResourceModel
+from idgo_resource.models import Resource as ResourceModel_Beta
 
 
 def target(dataset, user):
@@ -292,10 +292,10 @@ class DatasetManager(View):
 
     def get_context(self, form, user, dataset):
 
-        # > > > > > > #
+        # > > > > > > BETA  < < < < < < #
         resource_list_rows = []
         if dataset:
-            for resource in NewResourceModel.objects.filter(dataset=dataset):
+            for resource in ResourceModel_Beta.objects.filter(dataset=dataset):
                 data = (
                     resource.pk,
                     resource.title,
@@ -307,7 +307,7 @@ class DatasetManager(View):
                     str(resource.ckan_id),
                     )
                 resource_list_rows.append(data)
-        # < < < < < < #
+        # > > > > > > BETA  < < < < < < #
 
         layer_rows = []
         resource_rows = []
@@ -371,10 +371,12 @@ class DatasetManager(View):
             'licenses': dict(licenses),
             'layer_rows': json.dumps(layer_rows),
             'resource_rows': json.dumps(resource_rows),
-            # > > > > > > #
+
+            # > > > > > > BETA  < < < < < < #
             'resource_list_rows': json.dumps(resource_list_rows),
             'resource_list_count': len(resource_list_rows),
-            # < < < < < < #
+            # > > > > > > BETA  < < < < < < #
+
             'supports': json.dumps(dict(supports)),
             'tags': json.dumps(tags),
             }
