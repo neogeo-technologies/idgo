@@ -61,7 +61,7 @@ from idgo_admin.utils import three_suspension_points
 
 from idgo_admin import CKAN_STORAGE_PATH
 from idgo_admin import CKAN_URL
-from idgo_admin import OWS_URL_PATTERN
+from idgo_admin import DOWNLOAD_SIZE_LIMIT
 from idgo_admin import PROTOCOL_CHOICES
 
 
