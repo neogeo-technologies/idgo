@@ -21,6 +21,7 @@ import os
 import re
 import shutil
 import string
+import time
 import unicodedata
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -103,6 +104,7 @@ def download(url, media_root, **kwargs):
         except Exception as e:
             logger.exception(e)
             error = e
+            time.sleep(0.1)
             continue
         else:
             break

@@ -43,6 +43,7 @@ from idgo_admin.models import Layer
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.models import SupportedCrs
+from idgo_resource.models import Resource as ResourceBeta
 
 from idgo_admin import LOGIN_URL
 from idgo_admin import EXTRACTOR_BOUNDS
@@ -308,6 +309,16 @@ class Extractor(View):
             dataset=context['dataset'],
             extractable=True
             ).exclude(layer=None)
+
+        from idgo_resource_raster_tile.models import RasterTileFtp
+
+        # Only RasterTileFTP
+        context['resources_beta'] = RasterTileFtp.objects.filter(
+            pk__in=ResourceBeta.objects.filter(
+                dataset=context['dataset'],
+                ).exclude(rastertileftp=None).values_list('rastertileftp__pk', flat=True))
+
+        print(context)
 
         if len(context['resources']) == 1 and not context['resource']:
             context['resource'] = context['resources'][0]
