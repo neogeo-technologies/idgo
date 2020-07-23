@@ -400,22 +400,16 @@ class Dataset(models.Model):
     def delete(self, *args, current_user=None, **kwargs):
         with_user = current_user
 
-        # > > > > > > #
-        NewResource = apps.get_model(app_label='idgo_resource', model_name='Resource')
-        for new_resource in NewResource.objects.filter(dataset=self):
-            if hasattr(new_resource, 'storeupload'):
-                new_resource.storeupload.delete()
-            elif hasattr(new_resource, 'storeftp'):
-                new_resource.storeftp.delete()
-            else:
-                raise NotImplementedError
-            new_resource.delete()
-        # < < < < < < #
-
         # On supprime toutes les ressources attachées au jeu de données
         Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
         for resource in Resource.objects.filter(dataset=self):
             resource.delete(current_user=current_user)
+        # > > > > > > BETA  < < < < < < #
+        ResourceBeta = apps.get_model(app_label='idgo_resource', model_name='Resource')
+        for resource_beta in ResourceBeta.objects.filter(dataset=self):
+            resource_beta._related.delete()
+            resource_beta.delete()
+        # > > > > > > BETA  < < < < < < #
 
         # On supprime le package CKAN
         ckan_id = str(self.ckan_id)
