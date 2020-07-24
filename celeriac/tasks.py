@@ -23,6 +23,7 @@ from celeriac.apps import app as celery_app
 from celeriac.models import TaskTracking
 from celery.signals import before_task_publish
 from celery.signals import task_postrun
+from celery.utils.log import get_task_logger
 
 from django.core.mail import EmailMessage
 from django.utils import timezone
@@ -34,6 +35,9 @@ from idgo_admin.models.mail import get_admins_mails
 from idgo_admin.models import Resource
 
 from idgo_admin import DEFAULT_FROM_EMAIL
+
+
+logger = get_task_logger(__name__)
 
 
 @before_task_publish.connect
@@ -79,7 +83,12 @@ def save_resource(*args, pk=None, **kwargs):
 
 @celery_app.task()
 def sync_resources(*args, **kwargs):
-    resources = Resource.objects.filter(**kwargs)
+    resources = Resource.objects.filter(synchronisation=True, **kwargs)
+    logger.debug(
+        "Synchronize %s >> %s" % (
+            str(kwargs), str([(r.pk, r.dataset.pk) for r in resources])
+            )
+        )
     for resource in resources:
         save_resource.apply_async(kwargs={'pk': resource.pk})
 
