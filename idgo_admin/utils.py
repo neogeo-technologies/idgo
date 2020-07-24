@@ -28,6 +28,7 @@ from uuid import uuid4
 from zipfile import ZipFile
 
 import requests
+from requests.adapters import HTTPAdapter
 
 from django.conf import settings
 from django.utils.functional import keep_lazy
@@ -98,19 +99,13 @@ def download(url, media_root, **kwargs):
 
     max_size = kwargs.get('max_size')
 
-    for i in range(0, 10):  # Try at least ten times before raise
-        try:
-            r = requests.get(url, stream=True)
-        except Exception as e:
-            logger.exception(e)
-            error = e
-            time.sleep(0.1)
-            continue
-        else:
-            break
-    else:
-        raise error
-    r.raise_for_status()
+    session = requests.Session()
+    session.mount('http://', HTTPAdapter(max_restries=5))
+    session.mount('https://', HTTPAdapter(max_restries=5))
+    try:
+        r = session.get(url, timeout=5, stream=True)
+    except Exception as e:
+        raise e
 
     if int(r.headers.get('Content-Length', 0)) > max_size:
         raise SizeLimitExceededError(max_size=max_size)
