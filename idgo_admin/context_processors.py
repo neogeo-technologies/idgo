@@ -24,6 +24,7 @@ from idgo_admin import ENABLE_FTP_ACCOUNT
 from idgo_admin import ENABLE_ORGANISATION_CREATE
 from idgo_admin import DEFAULT_PLATFORM_NAME
 from idgo_admin import DEFAULT_CONTACT_EMAIL
+from idgo_admin import DISPLAY_FTP_ACCOUNT_MANAGER
 from idgo_admin import FTP_URL
 from idgo_admin import READTHEDOC_URL
 from idgo_admin import CKAN_URL
@@ -51,6 +52,7 @@ def global_vars(request):
         'ENABLE_ORGANISATION_CREATE': ENABLE_ORGANISATION_CREATE,
         'DEFAULT_PLATFORM_NAME': DEFAULT_PLATFORM_NAME,
         'DEFAULT_CONTACT_EMAIL': DEFAULT_CONTACT_EMAIL,
+        'DISPLAY_FTP_ACCOUNT_MANAGER': DISPLAY_FTP_ACCOUNT_MANAGER,
         'FTP_URL': FTP_URL,
         'READTHEDOC_URL': READTHEDOC_URL,
         'CKAN_URL': CKAN_URL,
