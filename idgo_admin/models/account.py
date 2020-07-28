@@ -32,6 +32,7 @@ from idgo_admin.sftp import sftp_user_operation
 from idgo_admin import FTP_SERVICE_URL
 from idgo_admin import FTP_MECHANISM
 from idgo_admin import FTP_USER_PREFIX
+from idgo_admin import ENABLE_FTP_INHERENT
 
 
 # ==============
@@ -154,6 +155,8 @@ class Profile(models.Model):
 
     @property
     def is_ftp_account_exists(self):
+        if ENABLE_FTP_INHERENT:
+            return True
         return self.sftp_password and True or False
 
     @property

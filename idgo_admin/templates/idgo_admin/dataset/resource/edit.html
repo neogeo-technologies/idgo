@@ -143,7 +143,7 @@
 					{% bootstrap_field form.referenced_url show_label=False %}
 				</div>
 				<div role="tabpanel" class="tab-pane" id="ftp_file">
-				{% if ENABLE_FTP_ACCOUNT and not DISPLAY_FTP_ACCOUNT %}
+				{% if ENABLE_FTP_ACCOUNT %}
 				{% if user.profile.is_ftp_account_exists %}
 					<p>{{ form.ftp_file.label }}</p>
 					{% bootstrap_field form.ftp_file show_label=False %}
@@ -157,7 +157,7 @@
 							{% bootstrap_field form.sync_frequency_ftp show_label=False %}
 						</div>
 					</div>
-				{% else if not ENABLE_FTP_ACCOUNT and DISPLAY_FTP_ACCOUNT %}
+				{% else %}
 					<p>Votre compte FTP n'est pas activé. Pour l'activer, veuillez <a href="{% url 'idgo_admin:create_sftp_account' %}" class="btn btn-link">cliquez ici</a>.</p>
 				{% endif %}
 				{% endif %}
