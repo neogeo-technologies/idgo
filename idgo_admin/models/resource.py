@@ -61,6 +61,7 @@ from idgo_admin.utils import three_suspension_points
 
 from idgo_admin import CKAN_STORAGE_PATH
 from idgo_admin import CKAN_URL
+from idgo_admin import DATA_TRANSMISSION_SIZE_LIMITATION
 from idgo_admin import DOWNLOAD_SIZE_LIMIT
 from idgo_admin import PROTOCOL_CHOICES
 
@@ -339,10 +340,10 @@ class Resource(models.Model):
     )
 
     EXTRA_FREQUENCY_CHOICES = (
-        ('5mn', 'Toutes les 5 minutes'),
-        ('15mn', 'Toutes les 15 minutes'),
-        ('20mn', 'Toutes les 20 minutes'),
-        ('30mn', 'Toutes les 30 minutes'),
+        # ('5mn', 'Toutes les 5 minutes'),
+        # ('15mn', 'Toutes les 15 minutes'),
+        # ('20mn', 'Toutes les 20 minutes'),
+        # ('30mn', 'Toutes les 30 minutes'),
     )
 
     FREQUENCY_CHOICES = (
@@ -471,7 +472,7 @@ class Resource(models.Model):
             filename = self.ftp_file.file.name
             # Si la taille de fichier dépasse la limite autorisée,
             # on traite les données en fonction du type détecté
-            if self.ftp_file.size > DOWNLOAD_SIZE_LIMIT:
+            if self.ftp_file.size > DATA_TRANSMISSION_SIZE_LIMITATION:
                 extension = self.format_type.extension.lower()
                 if self.format_type.is_gis_format:
                     try:
