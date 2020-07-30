@@ -36,8 +36,7 @@
 			{% bootstrap_field form.phone %}
 		</div>
 	</div>
-	{% settings_value "DISABLE_ACCOUNT_PASSWORD" as disable_account_password %}
-	{% if not disable_account_password %}
+	{% if ENABLE_ACCOUNT_PASSWORD %}
 	<div class="row">
 		<div class="col-xs-8">
 			<div class="well">

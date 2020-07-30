@@ -31,6 +31,9 @@ from idgo_admin import REDIS_HOST
 from idgo_admin import REDIS_EXPIRATION
 from idgo_admin import LOGIN_URL
 
+from idgo_admin import HOST_INTERNAL
+from idgo_admin import PORT_INTERNAL
+
 
 strict_redis = redis.StrictRedis(REDIS_HOST)
 
@@ -50,10 +53,9 @@ class SLDPreviewSetter(View):
             reverse('idgo_admin:sld_preview_getter', kwargs={'key': key}))
 
         # C'est moche
-        if hasattr(settings, 'HOST_INTERNAL') \
-                and hasattr(settings, 'PORT_INTERNAL'):
+        if HOST_INTERNAL and PORT_INTERNAL:
             netloc = '{host}:{port}'.format(
-                host=settings.HOST_INTERNAL, port=settings.PORT_INTERNAL)
+                host=HOST_INTERNAL, port=PORT_INTERNAL)
             parsed = urllib.parse.urlparse(location)
             replaced = parsed._replace(netloc=netloc)
             response['Content-Location'] = replaced.geturl()
