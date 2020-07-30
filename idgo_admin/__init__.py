@@ -16,6 +16,7 @@
 
 default_app_config = 'idgo_admin.apps.IdgoAdminConfig'
 
+import json  # noqa E402
 import logging  # noqa E402
 import os  # noqa E402
 import sys  # noqa E402
@@ -120,7 +121,6 @@ else:
 try:
     PROTOCOL_CHOICES = []
     with open(locales_path, 'r', encoding='utf-8') as f:
-        print("e", f)
         m = json.loads(f.read())
         PROTOCOL_CHOICES = (
             (protocol['id'], protocol['value'])
