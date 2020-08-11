@@ -331,6 +331,19 @@ def send_resource_delete_mail(user, resource):
         username=user.username)
 
 
+# Pour informer de l'échec de création d'une ressource
+def send_resource_failure_mail(user, resource):
+    return sender(
+        'resource_failed',
+        bcc=list(set(get_admins_mails() + get_referents_mails(resource.dataset.organisation))),
+        dataset=resource.dataset.title,
+        full_name=user.get_full_name(),
+        id=resource.ckan_id,
+        resource=resource.title,
+        to=[user.email],
+        username=user.username)
+
+
 # Pour demander le rattachement à un territoire de compétence existant
 def send_mail_asking_for_jurisdiction_attachment(user, jurisdiction, organisation):
     return sender(

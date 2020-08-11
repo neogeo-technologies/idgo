@@ -217,6 +217,13 @@
 	}
 }, {
 	"model": "idgo_admin.mail",
+	"pk": "resource_failed",
+	"fields": {
+		"subject": "\u00c9chec de création d'une ressource",
+		"message": "Bonjour {full_name} ({username}),\n\nLa cr\u00e9ation de la ressource \u00ab {resource} \u00bb ({id}) a \u00e9chou\u00e9.\n\n\n--\nCeci est un message automatique. Merci de ne pas y r\u00e9pondre."
+	}
+}, {
+	"model": "idgo_admin.mail",
 	"pk": "resources_update_with_delay",
 	"fields": {
 		"subject": "Liste des ressources pr\u00e9sentant un retard de mise \u00e0 jour",
