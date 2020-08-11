@@ -281,8 +281,12 @@ class ResourceShow(APIView):
                 break
         if not instance:
             raise Http404()
+        dataset = instance.dataset
+        resource_ckan_id = instance.ckan_id
+        resource_title = instance.title
         instance.delete(current_user=request.user)
-        send_resource_delete_mail(request.user, instance)
+        send_resource_delete_mail(
+            request.user, dataset, resource_ckan_id, resource_title)
         return HttpResponse(status=204)
 
 

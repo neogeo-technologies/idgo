@@ -318,6 +318,9 @@ class ResourceManager(View):
             raise Http404()
         include = {'id': id, 'dataset': dataset}
         resource = get_object_or_404_extended(Resource, user, include=include)
+        dataset = resource.dataset
+        resource_ckan_id = resource.ckan_id
+        resource_title = resource.title
 
         try:
             resource.delete(current_user=user)
@@ -329,6 +332,7 @@ class ResourceManager(View):
             status = 200
             message = 'La ressource a été supprimée avec succès.'
             messages.success(request, message)
-            send_resource_delete_mail(user, resource)
+            send_resource_delete_mail(
+                user, dataset, resource_ckan_id, resource_title)
 
         return HttpResponse(status=status)
