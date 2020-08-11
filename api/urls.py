@@ -28,6 +28,8 @@ from api.views import ResourceList as APIResourceList
 from api.views import ResourceShow as APIResourceShow
 from api.views import UserList as APIUserList
 from api.views import UserShow as APIUserShow
+from api.views import ResourceAccessList as APIResourceAccessList
+from api.views import ResourceAccessShow as APIResourceAccessShow
 
 
 urlpatterns = [
@@ -43,4 +45,6 @@ urlpatterns = [
     url('^dataset/(?P<dataset_name>[a-z0-9\\-]+)/resource/(?P<resource_id>[a-z0-9\\-]+)/layer/?$', APILayerList.as_view(), name='layer_list'),
     url('^dataset/(?P<dataset_name>[a-z0-9\\-]+)/resource/(?P<resource_id>[a-z0-9\\-]+)/layer/(?P<layer_name>[a-z0-9\\_]+)/?$', APILayerShow.as_view(), name='layer_show'),
     url('^dataset/(?P<dataset_name>[a-z0-9\\-]+)/resource/(?P<resource_id>[a-z0-9\\-]+)/layer/(?P<layer_name>[a-z0-9\\_]+)/style/default.sld$', APILayerStyleDefaultShow.as_view(), name='layer_style_default_show'),
+    url('resources/', APIResourceAccessList.as_view()),
+    url('resource_access/(?P<resource_id>)/?$', APIResourceAccessShow.as_view()),
 ]

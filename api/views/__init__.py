@@ -26,6 +26,9 @@ from api.views.resource import ResourceList
 from api.views.resource import ResourceShow
 from api.views.user import UserList
 from api.views.user import UserShow
+from api.views.resource_access import ResourceAccessList
+from api.views.resource_access import ResourceAccessShow
+
 
 
 __all__ = [
