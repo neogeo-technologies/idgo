@@ -319,14 +319,14 @@ def send_resource_update_mail(user, resource):
 
 
 # Pour informer de la suppression d'une ressource
-def send_resource_delete_mail(user, resource):
+def send_resource_delete_mail(user, dataset, resource_id, resource_title):
     return sender(
         'resource_deleted',
-        bcc=list(set(get_admins_mails() + get_referents_mails(resource.dataset.organisation))),
-        dataset=resource.dataset.title,
+        bcc=list(set(get_admins_mails() + get_referents_mails(dataset.organisation))),
+        dataset=dataset.title,
         full_name=user.get_full_name(),
-        id=resource.ckan_id,
-        resource=resource.title,
+        id=resource_id,
+        resource=resource_title,
         to=[user.email],
         username=user.username)
 
