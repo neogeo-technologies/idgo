@@ -5,7 +5,7 @@ psycopg2==2.8.5
 markdown>=3.2,<3.3
 timeout-decorator>=0.4,<0.5
 pillow>=7.1,<7.2
-requests>=2.23,<2.24
+requests>=2.23,<2.25
 redis>=3.5,<3.6
 celery>=4.3,<4.4
 ckanapi==4.3
