@@ -310,16 +310,6 @@ class Extractor(View):
             extractable=True
             ).exclude(layer=None)
 
-        from idgo_resource_raster_tile.models import RasterTileFtp
-
-        # Only RasterTileFTP
-        context['resources_beta'] = RasterTileFtp.objects.filter(
-            pk__in=ResourceBeta.objects.filter(
-                dataset=context['dataset'],
-                ).exclude(rastertileftp=None).values_list('rastertileftp__pk', flat=True))
-
-        print(context)
-
         if len(context['resources']) == 1 and not context['resource']:
             context['resource'] = context['resources'][0]
 
