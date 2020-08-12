@@ -31,7 +31,6 @@ from idgo_admin.models import Task
 from idgo_admin import DEFAULT_FROM_EMAIL
 
 
-TODAY = tzdatetime.today().date()
 # ISO_CALENDAR = datetime.now().isocalendar()
 
 
@@ -50,7 +49,7 @@ class Command(BaseCommand):
         # query = Task.objects.filter(
         #     starting__gte=datetime.fromtimestamp(
         #         time.mktime(time.strptime(monday, '%Y %W %w'))))
-        query = Task.objects.filter(starting__gte=TODAY)
+        query = Task.objects.filter(starting__gte=tzdatetime.today().date())
 
         data = [('state', 'starting', 'end', 'dataset_id', 'dataset_name',
                  'resource_id', 'resource_name', 'error')]

@@ -36,9 +36,6 @@ from idgo_admin import DEFAULT_CONTACT_EMAIL
 from idgo_admin import DEFAULT_PLATFORM_NAME
 
 
-TODAY = timezone.now().date().strftime('%d/%m/%Y')
-
-
 # Définition de DatatypeField
 # ===========================
 
@@ -179,7 +176,8 @@ class DatasetForm(forms.ModelForm):
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
-                'placeholder': "{0} (par défaut)".format(TODAY),
+                'placeholder': "{0} (par défaut)".format(
+                    timezone.now().date().strftime('%d/%m/%Y')),
                 },
             ),
         )
@@ -191,7 +189,8 @@ class DatasetForm(forms.ModelForm):
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
-                'placeholder': "{0} (par défaut)".format(TODAY),
+                'placeholder': "{0} (par défaut)".format(
+                    timezone.now().date().strftime('%d/%m/%Y')),
                 },
             ),
         )
@@ -203,7 +202,8 @@ class DatasetForm(forms.ModelForm):
             attrs={
                 'autocomplete': 'off',
                 'class': 'datepicker',
-                'placeholder': "{0} (par défaut)".format(TODAY),
+                'placeholder': "{0} (par défaut)".format(
+                    timezone.now().date().strftime('%d/%m/%Y')),
                 },
             ),
         )
