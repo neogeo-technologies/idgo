@@ -51,7 +51,7 @@ MANDATORY = (
     'TERMS_URL',
     'OWS_URL_PATTERN',
     'OWS_PREVIEW_URL',
-)
+    )
 
 OPTIONAL = (
     ('HOST_INTERNAL', None),
@@ -97,7 +97,8 @@ OPTIONAL = (
     ('REDIS_PORT', 6379),
     ('REDIS_EXPIRATION', 120),
     ('READTHEDOC_URL', None),
-)
+    ('VIEWERSTUDIO_URL', None),
+    )
 
 
 for KEY in MANDATORY:
