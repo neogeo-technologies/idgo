@@ -31,8 +31,6 @@ _**TODO** : Création des fichiers de configuration, création des bases de donn
 
 * **DATABASES**
 
-* **DATAGIS_DB**
-
 * **DEFAULT_USER_ID**
 
 * **DEFAULT_FROM_EMAIL**
@@ -59,13 +57,31 @@ _**TODO** : Création des fichiers de configuration, création des bases de donn
 
 * **MAPSERV_STORAGE_PATH**
 
-* **MRA**
-
 * **TERMS_URL**
 
 * **OWS_URL_PATTERN**
 
 * **OWS_PREVIEW_URL**
+
+Utiliser les futurs paramètres de l'application **idgo-geographic-layer** :
+
+* **IDGO_GEOGRAPHIC_LAYER_DB_TYPE**
+
+* **IDGO_GEOGRAPHIC_LAYER_DB_PORT**
+
+* **IDGO_GEOGRAPHIC_LAYER_DB_HOST**
+
+* **IDGO_GEOGRAPHIC_LAYER_DB_NAME**
+
+* **IDGO_GEOGRAPHIC_LAYER_DB_USERNAME**
+
+* **IDGO_GEOGRAPHIC_LAYER_DB_PASSWORD**
+
+* **IDGO_GEOGRAPHIC_LAYER_MRA_URL**
+
+* **IDGO_GEOGRAPHIC_LAYER_MRA_USERNAME**
+
+* **IDGO_GEOGRAPHIC_LAYER_MRA_PASSWORD**
 
 
 #### Paramètres optionnels
@@ -210,6 +226,32 @@ _**TODO** : Création des fichiers de configuration, création des bases de donn
 * **READTHEDOC_URL**
 
     Valeur par défaut: `None`
+
+Utiliser les futurs paramètres de l'application **idgo-geographic-layer** :
+
+* **IDGO_GEOGRAPHIC_LAYER_MRA_DB_TYPE**
+
+    Valeur par défaut: **IDGO_GEOGRAPHIC_LAYER_DB_TYPE**
+
+* **IDGO_GEOGRAPHIC_LAYER_MRA_DB_HOST**
+
+    Valeur par défaut: **IDGO_GEOGRAPHIC_LAYER_DB_HOST**
+
+* **IDGO_GEOGRAPHIC_LAYER_MRA_DB_PORT**
+
+    Valeur par défaut: **IDGO_GEOGRAPHIC_LAYER_DB_PORT**
+
+* **IDGO_GEOGRAPHIC_LAYER_MRA_DB_NAME**
+
+    Valeur par défaut: **IDGO_GEOGRAPHIC_LAYER_DB_NAME**
+
+* **IDGO_GEOGRAPHIC_LAYER_MRA_DB_USERNAME**
+
+    Valeur par défaut: **IDGO_GEOGRAPHIC_LAYER_DB_USERNAME**
+
+* **IDGO_GEOGRAPHIC_LAYER_MRA_DB_PASSWORD**
+
+    Valeur par défaut: **IDGO_GEOGRAPHIC_LAYER_DB_PASSWORD**
 
 
 ### Installer OWSLib [IMPORTANT]
