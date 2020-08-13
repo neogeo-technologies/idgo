@@ -25,7 +25,6 @@ import os
 from urllib.parse import urljoin
 
 from requests import request
-import timeout_decorator
 
 from django.apps import apps
 
@@ -33,28 +32,18 @@ from idgo_admin.exceptions import GenericException
 from idgo_admin.utils import Singleton
 from idgo_admin.utils import kill_all_special_characters
 
-from idgo_admin import MRA
-from idgo_admin import DATABASES
-from idgo_admin import DATAGIS_DB
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_URL
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_USERNAME
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_PASSWORD
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_TYPE
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_PORT
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_HOST
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_NAME
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_USERNAME
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_PASSWORD
 
 
 logger = logging.getLogger('idgo_admin')
-
-
-try:
-    MRA_URL = MRA['URL']
-    MRA_USERNAME = MRA['USERNAME']
-    MRA_PASSWORD = MRA['PASSWORD']
-    MRA_TIMEOUT = MRA.get('TIMEOUT', 3600)
-    MRA_DATAGIS_USER = MRA['DATAGIS_DB_USER']
-    DB_SETTINGS = DATABASES[DATAGIS_DB]
-    MRA_DATAGIS_HOST = DB_SETTINGS['HOST']
-    MRA_DATAGIS_DATABASE = DB_SETTINGS['NAME']
-    MRA_DATAGIS_DBTYPE = DB_SETTINGS['ENGINE'].split('.')[-1]
-    MRA_DATAGIS_PASSWORD = DB_SETTINGS['PASSWORD']
-    MRA_DATAGIS_PORT = DB_SETTINGS['PORT']
-except KeyError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 
 def preprocessing_sld(data):
@@ -70,20 +59,6 @@ def preprocessing_sld(data):
             elem.tag = 'CssParameter'
     objectify.deannotate(root, cleanup_namespaces=True)
     return etree.tostring(root, pretty_print=True)
-
-
-def timeout(fun):
-    t = MRA_TIMEOUT  # in seconds
-
-    @timeout_decorator.timeout(t, use_signals=False)
-    def return_with_timeout(fun, args=tuple(), kwargs=dict()):
-        return fun(*args, **kwargs)
-
-    @wraps(fun)
-    def wrapper(*args, **kwargs):
-        return return_with_timeout(fun, args=args, kwargs=kwargs)
-
-    return wrapper
 
 
 class MraBaseError(GenericException):
@@ -165,8 +140,6 @@ class MRAExceptionsHandler(object):
                         raise MRAConflictError()
                     if e.response.status_code == 500:
                         raise MRACriticalError()
-                if isinstance(e, timeout_decorator.TimeoutError):
-                    raise MRATimeoutError()
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
                 raise MRASyncingError(e.__str__())
@@ -182,7 +155,6 @@ class MRAClient(object):
         self.base_url = url
         self.auth = (username and password) and (username, password)
 
-    # @timeout
     def _req(self, method, url, extension='json', **kwargs):
         kwargs.setdefault('allow_redirects', True)
         kwargs.setdefault('headers', {'content-type': 'application/json; charset=utf-8'})
@@ -218,7 +190,11 @@ class MRAClient(object):
 class MRAHandler(metaclass=Singleton):
 
     def __init__(self, *args, **kwargs):
-        self.remote = MRAClient(MRA_URL, username=MRA_USERNAME, password=MRA_PASSWORD)
+        self.remote = MRAClient(
+            IDGO_GEOGRAPHIC_LAYER_MRA_URL,
+            username=IDGO_GEOGRAPHIC_LAYER_MRA_USERNAME,
+            password=IDGO_GEOGRAPHIC_LAYER_MRA_PASSWORD,
+            )
 
     # Workspace
     # =========
@@ -282,12 +258,13 @@ class MRAHandler(metaclass=Singleton):
             'dataStore': {
                 'name': ds_name,
                 'connectionParameters': {
-                    'host': MRA_DATAGIS_HOST,
-                    'user': MRA_DATAGIS_USER,
-                    'database': MRA_DATAGIS_DATABASE,
-                    'dbtype': MRA_DATAGIS_DBTYPE,
-                    'password': MRA_DATAGIS_PASSWORD,
-                    'port': MRA_DATAGIS_PORT}}}
+                    'dbtype': IDGO_GEOGRAPHIC_LAYER_MRA_DB_TYPE,
+                    'host': IDGO_GEOGRAPHIC_LAYER_MRA_DB_HOST,
+                    'port': IDGO_GEOGRAPHIC_LAYER_MRA_DB_PORT,
+                    'database': IDGO_GEOGRAPHIC_LAYER_MRA_DB_NAME,
+                    'user': IDGO_GEOGRAPHIC_LAYER_MRA_DB_USERNAME,
+                    'password': IDGO_GEOGRAPHIC_LAYER_MRA_DB_PASSWORD,
+                    }}}
 
         self.remote.post('workspaces', ws_name,
                          'datastores', json=json)
@@ -455,7 +432,8 @@ class MRAHandler(metaclass=Singleton):
         json['layer'].update({
             'defaultStyle': {
                 'name': s_name,
-                'href': '{0}styles/{1}.json'.format(MRA_URL, s_name),
+                'href': '{0}styles/{1}.json'.format(
+                    IDGO_GEOGRAPHIC_LAYER_MRA_URL, s_name),
                 }
             })
         return self.remote.put('layers', l_name, json=json)
@@ -559,5 +537,6 @@ class MRAHandler(metaclass=Singleton):
     @MRAExceptionsHandler()
     def get_fonts(self, ws_name=None):
         return self.remote.get('fonts')['fonts']
+
 
 MRAHandler = MRAHandler()

@@ -33,7 +33,6 @@ MANDATORY = (
     'CKAN_STORAGE_PATH',
     'CKAN_URL',
     'DATABASES',
-    'DATAGIS_DB',
     'DEFAULT_USER_ID',
     'DEFAULT_FROM_EMAIL',
     'DEFAULT_FROM_EMAIL',
@@ -47,11 +46,26 @@ MANDATORY = (
     'LOGIN_URL',
     'LOGOUT_URL',
     'MAPSERV_STORAGE_PATH',
-    'MRA',
     'TERMS_URL',
     'OWS_URL_PATTERN',
     'OWS_PREVIEW_URL',
+
+    'IDGO_GEOGRAPHIC_LAYER_DB_TYPE',
+    'IDGO_GEOGRAPHIC_LAYER_DB_PORT',
+    'IDGO_GEOGRAPHIC_LAYER_DB_HOST',
+    'IDGO_GEOGRAPHIC_LAYER_DB_NAME',
+    'IDGO_GEOGRAPHIC_LAYER_DB_USERNAME',
+    'IDGO_GEOGRAPHIC_LAYER_DB_PASSWORD',
+    'IDGO_GEOGRAPHIC_LAYER_MRA_URL',
+    'IDGO_GEOGRAPHIC_LAYER_MRA_USERNAME',
+    'IDGO_GEOGRAPHIC_LAYER_MRA_PASSWORD',
     )
+
+for KEY in MANDATORY:
+    try:
+        setattr(this, KEY, getattr(settings, KEY))
+    except AttributeError as e:
+        raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 OPTIONAL = (
     ('HOST_INTERNAL', None),
@@ -61,8 +75,6 @@ OPTIONAL = (
     ('CSW_TIMEOUT', 36000),
     ('DCAT_TIMEOUT', 36000),
     ('DATA_TRANSMISSION_SIZE_LIMITATION', 104857600),
-    ('DATAGIS_DB_SCHEMA', 'public'),
-    ('DATAGIS_DB_GEOM_FIELD_NAME', 'the_geom'),
     ('DATAGIS_DB_EPSG', 4171),
     ('DEFAULT_PLATFORM_NAME', 'IDGO'),
     ('DEFAULT_CONTACT_EMAIL', 'contact@idgo.fr'),
@@ -98,14 +110,13 @@ OPTIONAL = (
     ('REDIS_EXPIRATION', 120),
     ('READTHEDOC_URL', None),
     ('VIEWERSTUDIO_URL', None),
+    ('IDGO_GEOGRAPHIC_LAYER_MRA_DB_TYPE', this.IDGO_GEOGRAPHIC_LAYER_DB_TYPE),
+    ('IDGO_GEOGRAPHIC_LAYER_MRA_DB_HOST', this.IDGO_GEOGRAPHIC_LAYER_DB_HOST),
+    ('IDGO_GEOGRAPHIC_LAYER_MRA_DB_PORT', this.IDGO_GEOGRAPHIC_LAYER_DB_PORT),
+    ('IDGO_GEOGRAPHIC_LAYER_MRA_DB_NAME', this.IDGO_GEOGRAPHIC_LAYER_DB_NAME),
+    ('IDGO_GEOGRAPHIC_LAYER_MRA_DB_USERNAME', this.IDGO_GEOGRAPHIC_LAYER_DB_USERNAME),
+    ('IDGO_GEOGRAPHIC_LAYER_MRA_DB_PASSWORD', this.IDGO_GEOGRAPHIC_LAYER_DB_PASSWORD),
     )
-
-
-for KEY in MANDATORY:
-    try:
-        setattr(this, KEY, getattr(settings, KEY))
-    except AttributeError as e:
-        raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
 
 for KEY, VALUE in OPTIONAL:
     setattr(this, KEY, getattr(settings, KEY, VALUE))

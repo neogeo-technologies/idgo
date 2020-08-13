@@ -43,24 +43,16 @@ from idgo_admin.models import Layer
 from idgo_admin.models import Organisation
 from idgo_admin.models import Resource
 from idgo_admin.models import SupportedCrs
-from idgo_resource.models import Resource as ResourceBeta
 
 from idgo_admin import LOGIN_URL
 from idgo_admin import EXTRACTOR_BOUNDS
 from idgo_admin import EXTRACTOR_URL
-from idgo_admin import DATABASES
-from idgo_admin import DATAGIS_DB
 
-
-try:
-    DB_SETTINGS = DATABASES[DATAGIS_DB]
-    DB_HOST = DB_SETTINGS['HOST']
-    DB_PORT = DB_SETTINGS['PORT']
-    DB_NAME = DB_SETTINGS['NAME']
-    DB_USER = DB_SETTINGS['USER']
-    DB_PASSWORD = DB_SETTINGS['PASSWORD']
-except KeyError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_HOST as IDGO_EXTRACTOR_DB_HOST
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_PORT as IDGO_EXTRACTOR_DB_PORT
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_NAME as IDGO_EXTRACTOR_DB_NAME
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_USERNAME as IDGO_EXTRACTOR_DB_USERNAME
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_PASSWORD as IDGO_EXTRACTOR_DB_PASSWORD
 
 
 decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
@@ -440,11 +432,11 @@ class Extractor(View):
                     **{
                         'layer': layer.name,
                         'source': 'PG:host={host} port={port} dbname={database} user={user} password={password}'.format(
-                            host=DB_HOST,
-                            port=DB_PORT,
-                            database=DB_NAME,
-                            user=DB_USER,
-                            password=DB_PASSWORD,
+                            host=IDGO_EXTRACTOR_DB_HOST,
+                            port=IDGO_EXTRACTOR_DB_PORT,
+                            database=IDGO_EXTRACTOR_DB_NAME,
+                            user=IDGO_EXTRACTOR_DB_USERNAME,
+                            password=IDGO_EXTRACTOR_DB_PASSWORD,
                             ),
                         },
                     **dst_format_vector

@@ -33,27 +33,15 @@ from idgo_admin.exceptions import DatagisBaseError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.utils import slugify
 
-from idgo_admin import DATAGIS_DB
-from idgo_admin import DATAGIS_DB_SCHEMA
-from idgo_admin import DATAGIS_DB_GEOM_FIELD_NAME
-from idgo_admin import DATAGIS_DB_EPSG
-from idgo_admin import DATABASES
-from idgo_admin import MRA
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_DB_NAME
+from idgo_admin import IDGO_GEOGRAPHIC_LAYER_DB_USERNAME
 
 
 logger = logging.getLogger('idgo_admin')
 
 
-DB_NAME = DATAGIS_DB
-SCHEMA = DATAGIS_DB_SCHEMA
-THE_GEOM = DATAGIS_DB_GEOM_FIELD_NAME
-TO_EPSG = DATAGIS_DB_EPSG
-
-try:
-    OWNER = DATABASES[DATAGIS_DB]['USER']
-    MRA_DATAGIS_USER = MRA['DATAGIS_DB_USER']
-except KeyError as e:
-    raise AssertionError("Missing mandatory parameter: %s" % e.__str__())
+THE_GEOM = 'the_geom'
+TO_EPSG = 4171
 
 
 class NotDataGISError(DatagisBaseError):
@@ -90,7 +78,7 @@ class WrongDataError(DatagisBaseError):
 
 def is_valid_epsg(code):
     sql = '''SELECT * FROM public.spatial_ref_sys WHERE auth_srid = '{}';'''.format(code)
-    with connections[DB_NAME].cursor() as cursor:
+    with connections[IDGO_GEOGRAPHIC_LAYER_DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
@@ -104,7 +92,7 @@ def is_valid_epsg(code):
 
 def get_proj4s():
     sql = '''SELECT auth_srid, proj4text FROM public.spatial_ref_sys;'''
-    with connections[DB_NAME].cursor() as cursor:
+    with connections[IDGO_GEOGRAPHIC_LAYER_DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
@@ -160,7 +148,7 @@ class GdalOpener(object):
             raise NotGDALError(
                 'The file received is not recognized as being a GIS raster data. {}'.format(e.__str__()))
         else:
-            logger.info('File "{}" is RASTER data'.format(filename))
+            logger.info("File '%s' is RASTER data" % filename)
 
     def get_coverage(self):
         return self._coverage
@@ -182,7 +170,7 @@ class OgrOpener(object):
             raise NotOGRError(
                 'The file received is not recognized as being a GIS vector data. {}'.format(e.__str__()))
         else:
-            logger.info('File "{}" is VECTOR data'.format(filename))
+            logger.info("File '%s' is VECTOR data" % filename)
 
     def get_layers(self):
         return self._datastore
@@ -199,18 +187,18 @@ def get_gdalogr_object(filename, extension):
 
 
 CREATE_TABLE = '''
-CREATE TABLE {schema}."{table}" (
+CREATE TABLE public."{table}" (
   fid serial NOT NULL, {attrs}{the_geom} geometry({geometry}, {to_epsg}),
   CONSTRAINT "{table}_pkey" PRIMARY KEY (fid)) WITH (OIDS=FALSE);
-ALTER TABLE {schema}."{table}" OWNER TO {owner};
-CREATE UNIQUE INDEX "{table}_fid" ON {schema}."{table}" USING btree (fid);
-CREATE INDEX "{table}_gix" ON {schema}."{table}" USING GIST ({the_geom});
-GRANT SELECT ON TABLE  {schema}."{table}" TO {mra_datagis_user};
+ALTER TABLE public."{table}" OWNER TO {owner};
+CREATE UNIQUE INDEX "{table}_fid" ON public."{table}" USING btree (fid);
+CREATE INDEX "{table}_gix" ON public."{table}" USING GIST ({the_geom});
+GRANT SELECT ON TABLE public."{table}" TO {mra_datagis_user};
 '''
 
 
 INSERT_INTO = '''
-INSERT INTO {schema}."{table}" ({attrs_name}{the_geom})
+INSERT INTO public."{table}" ({attrs_name}{the_geom})
 VALUES ({attrs_value}ST_Transform({geom}, {to_epsg}));'''
 
 
@@ -414,9 +402,8 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
             # description=layer.name,
             epsg=epsg,
             geometry=geometry,
-            owner=OWNER,
-            mra_datagis_user=MRA_DATAGIS_USER,
-            schema=SCHEMA,
+            owner=IDGO_GEOGRAPHIC_LAYER_DB_USERNAME,
+            mra_datagis_user=IDGO_GEOGRAPHIC_LAYER_DB_USERNAME,
             table=str(table_id),
             the_geom=THE_GEOM,
             to_epsg=TO_EPSG))
@@ -474,8 +461,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
                 attrs_name=attrs_name,
                 attrs_value=attrs_value,
                 geom=geom.format(epsg=epsg, wkt=feature.geom),
-                owner=OWNER,
-                schema=SCHEMA,
+                owner=IDGO_GEOGRAPHIC_LAYER_DB_USERNAME,
                 table=str(table_id),
                 the_geom=THE_GEOM,
                 to_epsg=TO_EPSG))
@@ -483,7 +469,7 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
     for table_id in update.values():
         rename_table(table_id, '__{}'.format(table_id))
 
-    with connections[DB_NAME].cursor() as cursor:
+    with connections[IDGO_GEOGRAPHIC_LAYER_DB_NAME].cursor() as cursor:
         for q in sql:
             try:
                 cursor.execute(q)
@@ -503,17 +489,16 @@ def ogr2postgis(ds, epsg=None, limit_to=1, update={}, filename=None, encoding='u
     return tables
 
 
-def get_extent(tables, schema='public'):
+def get_extent(tables):
     if not tables:
         return None
 
-    sub = 'SELECT {the_geom} as the_geom FROM {schema}."{table}"'
+    sub = 'SELECT {the_geom} as the_geom FROM public."{table}"'
     sql = 'WITH all_geoms AS ({}) SELECT geometry(ST_Extent(the_geom)) FROM all_geoms;'.format(
         ' UNION '.join([
-            sub.format(table=table, the_geom=THE_GEOM, schema=schema)
-            for table in tables]))
+            sub.format(table=table, the_geom=THE_GEOM) for table in tables]))
 
-    with connections[DB_NAME].cursor() as cursor:
+    with connections[IDGO_GEOGRAPHIC_LAYER_DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
@@ -528,16 +513,16 @@ def get_extent(tables, schema='public'):
         return None
 
 
-def rename_table(table, name, schema=SCHEMA):
+def rename_table(table, name):
 
     sql = '''
 ALTER TABLE IF EXISTS "{table}" RENAME TO "{name}";
 ALTER INDEX IF EXISTS "{table}_pkey" RENAME TO "{name}_pkey";
 ALTER INDEX IF EXISTS "{table}_fid" RENAME TO "{name}_fid";
 ALTER INDEX IF EXISTS "{table}_gix" RENAME TO "{name}_gix";
-'''.format(schema=schema, table=table, name=name)
+'''.format(table=table, name=name)
 
-    with connections[DB_NAME].cursor() as cursor:
+    with connections[IDGO_GEOGRAPHIC_LAYER_DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
@@ -547,9 +532,9 @@ ALTER INDEX IF EXISTS "{table}_gix" RENAME TO "{name}_gix";
         cursor.close()
 
 
-def drop_table(table, schema=SCHEMA):
-    sql = 'DROP TABLE {schema}."{table}";'.format(schema=schema, table=table)
-    with connections[DB_NAME].cursor() as cursor:
+def drop_table(table):
+    sql = 'DROP TABLE public."{table}";'.format(table=table)
+    with connections[IDGO_GEOGRAPHIC_LAYER_DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
@@ -566,7 +551,7 @@ SELECT ST_AsGeoJSON(ST_Intersection(
     ST_GeomFromGeoJSON('{geojson1}'), ST_GeomFromGeoJSON('{geojson2}'))) AS geojson;
 '''.format(geojson1=geojson1, geojson2=geojson2)
 
-    with connections[DB_NAME].cursor() as cursor:
+    with connections[IDGO_GEOGRAPHIC_LAYER_DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
@@ -587,7 +572,7 @@ def transform(wkt, epsg_in, epsg_out=4171):
 SELECT ST_AsText(ST_Transform(ST_GeomFromText('{wkt}', {epsg_in}), {epsg_out})) AS wkt;
 '''.format(wkt=wkt, epsg_in=epsg_in, epsg_out=epsg_out)
 
-    with connections[DB_NAME].cursor() as cursor:
+    with connections[IDGO_GEOGRAPHIC_LAYER_DB_NAME].cursor() as cursor:
         try:
             cursor.execute(sql)
         except Exception as e:
