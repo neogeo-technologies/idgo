@@ -46,5 +46,5 @@ urlpatterns = [
     url('^dataset/(?P<dataset_name>[a-z0-9\\-]+)/resource/(?P<resource_id>[a-z0-9\\-]+)/layer/(?P<layer_name>[a-z0-9\\_]+)/?$', APILayerShow.as_view(), name='layer_show'),
     url('^dataset/(?P<dataset_name>[a-z0-9\\-]+)/resource/(?P<resource_id>[a-z0-9\\-]+)/layer/(?P<layer_name>[a-z0-9\\_]+)/style/default.sld$', APILayerStyleDefaultShow.as_view(), name='layer_style_default_show'),
     url('resources/', APIResourceAccessList.as_view()),
-    url('resource_access/(?P<resource_id>)/?$', APIResourceAccessShow.as_view()),
+    url('resource_access/(?P<resource_id>[0-9]+)/?$', APIResourceAccessShow.as_view()),
 ]
