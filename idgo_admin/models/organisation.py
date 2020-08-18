@@ -1101,7 +1101,7 @@ if ENABLE_DCAT_HARVESTER:
                     with transaction.atomic():
                         with DcatBaseHandler(self.url) as dcat:
                             for package in dcat.get_packages():
-                                # geonet_id = str(uuid.uuid4())
+                                geonet_id = str(uuid.uuid4())
                                 update_frequency = dict(Dataset.FREQUENCY_CHOICES).get(
                                     package.get('frequency'), 'unknown')
                                 update_frequency = package.get('frequency')
