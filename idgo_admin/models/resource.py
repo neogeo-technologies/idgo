@@ -50,6 +50,7 @@ from idgo_admin.datagis import NotFoundSrsError
 from idgo_admin.datagis import NotOGRError
 from idgo_admin.datagis import NotSupportedSrsError
 from idgo_admin.datagis import ogr2postgis
+from idgo_admin.datagis import transform
 from idgo_admin.datagis import WrongDataError
 from idgo_admin.exceptions import ExceedsMaximumLayerNumberFixedError
 from idgo_admin.exceptions import SizeLimitExceededError
@@ -673,8 +674,9 @@ class Resource(models.Model):
                                                 name=table['id'], resource=self)
                                         except Layer.DoesNotExist:
                                             save_opts = {'synchronize': synchronize}
+                                            bbox = transform(table['bbox'], table['epsg'])
                                             Layer.vector.create(
-                                                bbox=table['bbox'],
+                                                bbox=bbox,
                                                 name=table['id'],
                                                 resource=self,
                                                 save_opts=save_opts)
