@@ -1097,11 +1097,11 @@ if ENABLE_DCAT_HARVESTER:
                 # Puis on moissonne le catalogue
                 try:
                     ckan_ids = []
-                    geonet_ids = []
+                    # geonet_ids = []
                     with transaction.atomic():
                         with DcatBaseHandler(self.url) as dcat:
                             for package in dcat.get_packages():
-                                geonet_id = str(uuid.uuid4())
+                                # geonet_id = str(uuid.uuid4())
                                 update_frequency = dict(Dataset.FREQUENCY_CHOICES).get(
                                     package.get('frequency'), 'unknown')
                                 update_frequency = package.get('frequency')
@@ -1149,21 +1149,21 @@ if ENABLE_DCAT_HARVESTER:
 
                                 # On pousse la fiche de MD dans Geonet
                                 # ====================================
-                                if not geonet.get_record(geonet_id):
-                                    try:
-                                        geonet.create_record(geonet_id, package['xml'])
-                                    except Exception as e:
-                                        logger.warning('La création de la fiche de métadonnées a échoué.')
-                                        logger.error(e)
-                                    else:
-                                        geonet_ids.append(geonet_id)
-                                        geonet.publish(geonet_id)  # Toujours publier la fiche
-                                else:
-                                    try:
-                                        geonet.update_record(geonet_id, package['xml'])
-                                    except Exception as e:
-                                        logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
-                                        logger.error(e)
+                                # if not geonet.get_record(geonet_id):
+                                #     try:
+                                #         geonet.create_record(geonet_id, package['xml'])
+                                #     except Exception as e:
+                                #         logger.warning('La création de la fiche de métadonnées a échoué.')
+                                #         logger.error(e)
+                                #     else:
+                                #         geonet_ids.append(geonet_id)
+                                #         geonet.publish(geonet_id)  # Toujours publier la fiche
+                                # else:
+                                #     try:
+                                #         geonet.update_record(geonet_id, package['xml'])
+                                #     except Exception as e:
+                                #         logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
+                                #         logger.error(e)
 
                                 slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), slugify(geonet_id))[:100]
                                 kvp = {
@@ -1180,14 +1180,14 @@ if ENABLE_DCAT_HARVESTER:
                                     'organisation': self.organisation,
                                     'published': not package.get('private'),
                                     'remote_instance': self,
-                                    'remote_dataset': geonet_id,
+                                    # 'remote_dataset': geonet_id,
                                     'update_frequency': update_frequency,
                                     'bbox': package.get('bbox'),
                                     # broadcaster_email
                                     # broadcaster_name
                                     # data_type
                                     # geocover
-                                    'geonet_id': geonet_id,
+                                    # 'geonet_id': geonet_id,
                                     # granularity
                                     # thumbnail
                                     # support
@@ -1259,9 +1259,9 @@ if ENABLE_DCAT_HARVESTER:
                     for id in ckan_ids:
                         logger.warning('Delete CKAN package : {id}.'.format(id=str(id)))
                         CkanHandler.purge_dataset(str(id))
-                    for id in geonet_ids:
-                        logger.warning('Delete MD : {id}.'.format(id=str(id)))
-                        geonet.delete_record(id)
+                    # for id in geonet_ids:
+                    #     logger.warning('Delete MD : {id}.'.format(id=str(id)))
+                    #     geonet.delete_record(id)
                     logger.error(e)
                     raise CriticalError()
                 else:
