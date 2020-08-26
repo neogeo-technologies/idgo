@@ -152,4 +152,15 @@
 		"month_of_year": "1",
 		"timezone": "Europe/Paris"
 	}
+}, {
+	"model": "django_celery_beat.crontabschedule",
+	"pk": 15,
+	"fields": {
+		"minute": "*",
+		"hour": "*",
+		"day_of_week": "*",
+		"day_of_month": "*",
+		"month_of_year": "*",
+		"timezone": "Europe/Paris"
+	}
 }]
