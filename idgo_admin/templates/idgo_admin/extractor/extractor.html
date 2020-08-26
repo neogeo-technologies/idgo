@@ -116,12 +116,12 @@
 													</div>
 												</div>{% if resources_beta %}
 												<div class="form-group">
-													<label for="resource">Ressource (Bêta)</label>
+													<label for="resource_beta">Ressource (Bêta)</label>
 													<div class="input-group input-group">
-														<select class="form-control" id="resource" required>
+														<select class="form-control" id="resource_beta" required>
 															<option disabled {% if not resources_beta %}selected{% endif %}>Extraire toutes les ressources</option>
 															{% for instance in resources_beta %}
-															<option value="{{ instance.ckan_id }}" {% if instance.id == resources_beta.id %}selected{% endif %}>{{ instance.title }}</option>
+															<option value="{{ instance.ckan_id }}" {% if instance.id == resource_beta.id %}selected{% endif %}>{{ instance.title }}</option>
 															{% endfor %}
 														</select>
 														<span class="input-group-btn">
@@ -238,6 +238,7 @@ $(function() {
 
 		const dataset = '{{ dataset.slug }}' || undefined;
 		const resource = '{{ resource.ckan_id }}' || undefined;
+		const resource_beta = '{{ resource_beta.ckan_id }}' || undefined;
 		const layer = targetLayer ? targetLayer.options.layers : undefined;
 		const geojson = editableLayers.toGeoJSON()
 
@@ -251,9 +252,10 @@ $(function() {
 		const formatRaster = $('#format_raster').val();
 
 		const $form = $('form').attr('method', 'POST');
-		layer && $form.append($('<input type="text" name="layer"/>').hide().val(layer));
+		// layer && $form.append($('<input type="text" name="layer"/>').hide().val(layer));
 		dataset && $form.append($('<input type="text" name="dataset"/>').hide().val(dataset));
 		resource && $form.append($('<input type="text" name="resource"/>').hide().val(resource));
+		resource_beta && $form.append($('<input type="text" name="resource_beta"/>').hide().val(resource_beta));
 		$form.append($('<input type="text" name="footprint"/>').hide().val(JSON.stringify(footprint)));
 		$form.append($('<input type="text" name="crs"/>').hide().val(crs));
 		$form.append($('<input type="text" name="format-vector"/>').hide().val(formatVector));
@@ -292,6 +294,7 @@ $(function() {
 	};
 
 	{% if organisation and dataset and resource and layer %}
+
 	targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 		format: 'image/png',
 		layers: '{{ layer.mra_info.name }}',
@@ -307,16 +310,28 @@ $(function() {
 	qs['organisation'] = '{{ organisation.slug }}';
 	qs['dataset'] = '{{ dataset.slug }}';
 	qs['resource'] = '{{ resource.ckan_id }}';
+
+	{% if resource_beta %}
+	targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+		format: 'image/png',
+		layers: '{{ resource_beta.geographiclayer.mra_layer.name }}',
+		transparent: true
+	});
+	layers.push(targetLayer);
+
+	qs['resource_beta'] = '{{ resource_beta.ckan_id }}';
+	{% endif %}
+
 	updateUrl({withHash: false, refresh: false});
 
 	{% elif organisation and dataset %}
+
 		{% for instance in resources %}
 			{% for layer in instance.get_layers %}
 	layers.push(
 		new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 			format: 'image/png',
 			layers: '{{ layer.mra_info.name }}',
-			// styles: '{{ layer.mra_info.styles.default }}',
 			transparent: true
 		})
 	);
@@ -324,19 +339,16 @@ $(function() {
 		{% endfor %}
 
 		{% for instance in resources_beta %}
-			{% for layer in instance.get_layers %}
 	layers.push(
 		new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
 			format: 'image/png',
-			layers: '{{ layer.mra_info.name }}',
-			// styles: '{{ layer.mra_info.styles.default }}',
+			layers: '{{ instance.geographiclayer.mra_layer.name }}',
 			transparent: true
 		})
 	);
-		{% endfor %}
 	{% endfor %}
 
-	bounds = {{ dataset.bounds|default:None|safe }};
+	// bounds = {{ dataset.bounds|default:None|safe }};
 	{% endif %}
 
 	const communesLayers = new L.FeatureGroup();
@@ -528,11 +540,13 @@ $(function() {
 			delete qs['dataset'];
 			delete qs['resource'];
 			delete qs['layer'];
+			delete qs['resource_beta'];
 		} else {
 			delete qs['organisation'];
 			delete qs['dataset'];
 			delete qs['resource'];
 			delete qs['layer'];
+			delete qs['resource_beta'];
 		};
 		updateUrl({withHash: false, refresh: true});
 	});
@@ -549,10 +563,12 @@ $(function() {
 			qs['dataset'] = dataset;
 			delete qs['resource'];
 			delete qs['layer'];
+			delete qs['resource_beta'];
 		} else {
 			delete qs['dataset'];
 			delete qs['resource'];
 			delete qs['layer'];
+			delete qs['resource_beta'];
 		};
 		updateUrl({withHash: false, refresh: true});
 	});
@@ -573,6 +589,25 @@ $(function() {
 		} else {
 			delete qs['resource'];
 			delete qs['layer'];
+			delete qs['resource_beta'];
+		}
+		updateUrl({withHash: false, refresh: true});
+	});
+
+  $('#resource_beta').change(function(e) {
+		e.preventDefault();
+		const resource_beta = $(this).val();
+		const bounds = map.getBounds();
+		const bbox = bounds._southWest.lng.toFixed(2) + ',' + bounds._southWest.lat.toFixed(2) + ',' + bounds._northEast.lng.toFixed(2) + ',' + bounds._northEast.lat.toFixed(2);
+		qs['bbox'] = bbox;
+		qs['organisation'] = '{{ organisation.slug }}';
+		qs['dataset'] = '{{ dataset.slug }}';
+		if (resource_beta) {
+			qs['resource_beta'] = resource_beta;
+		} else {
+			delete qs['resource'];
+			delete qs['layer'];
+			delete qs['resource_beta'];
 		}
 		updateUrl({withHash: false, refresh: true});
 	});

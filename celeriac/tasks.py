@@ -29,6 +29,7 @@ from django.core.mail import EmailMessage
 from django.utils import timezone
 
 from idgo_admin.ckan_module import CkanHandler
+from idgo_admin.models import AsyncExtractorTask
 from idgo_admin.models import Category
 from idgo_admin.models import Mail
 from idgo_admin.models.mail import get_admins_mails
@@ -159,3 +160,9 @@ def sync_categories():
     for category in Category.objects.all():
         if not CkanHandler.is_group_exists(category.slug):
             CkanHandler.add_group(category)
+
+
+@celery_app.task()
+def sync_extractor_tasks():
+    for instance in AsyncExtractorTask.objects.filter(success=None):
+        logger.info('Check extractor task: %s' % str(instance.uuid))
