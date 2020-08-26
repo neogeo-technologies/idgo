@@ -95,6 +95,13 @@ class AsyncExtractorTask(models.Model):
         blank=True,
         )
 
+    app_label = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        default='idgo_admin'
+        )
+
     model = models.CharField(
         max_length=100,
         null=True,
@@ -154,7 +161,7 @@ class AsyncExtractorTask(models.Model):
 
     @property
     def target_object(self):
-        Model = apps.get_model(app_label='idgo_admin', model_name=self.model)
+        Model = apps.get_model(app_label=self.app_label, model_name=self.model)
         return Model.objects.get(**{self.foreign_field: self.foreign_value})
 
 

@@ -20,7 +20,7 @@ import re
 import requests
 from uuid import UUID
 
-from django.conf import settings
+from django.apps import apps
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import Http404
@@ -55,6 +55,15 @@ from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_USERNAME as IDGO_EXTRACTOR_D
 from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_PASSWORD as IDGO_EXTRACTOR_DB_PASSWORD
 
 
+if apps.is_installed('idgo_resource') \
+        and apps.is_installed('idgo_geographic_layer'):
+    from idgo_resource.models import Resource as ResourceBeta
+    from idgo_geographic_layer.models import GeographicLayer as GeographicLayerBeta
+    BETA = True
+else:
+    BETA = False
+
+
 decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
 
 
@@ -80,18 +89,20 @@ def extractor_task(request, *args, **kwargs):
     auth_name, auth_code = extract_params.get('dst_srs').split(':')
     crs = SupportedCrs.objects.get(auth_name=auth_name, auth_code=auth_code)
 
-    if instance.model == 'Dataset':
+    if instance.app_label == 'idgo_admin' and instance.model == 'Dataset':
         dataset = instance.target_object
         bounds = dataset.bbox.extent
         layers = [layer for layer in dataset.get_layers()]
-    elif instance.model == 'Resource':
+    elif instance.app_label == 'idgo_admin' and instance.model == 'Resource':
         resource = instance.target_object
         bounds = resource.bbox.extent
         layers = [layer for layer in resource.get_layers()]
-    elif instance.model == 'Layer':
+    elif instance.app_label == 'idgo_admin' and instance.model == 'Layer':
         layer = instance.target_object
         bounds = layer.bbox.extent
         layers = [instance.target_object]
+    else:
+        raise Http404
 
     data = {
         'bounds': bounds,
@@ -217,7 +228,7 @@ class Extractor(View):
             raise Http404()
 
     def _context(self, user, organisation=None, dataset=None,
-                 resource=None, layer=None, task=None):
+                 resource=None, layer=None, task=None, **kwargs):
 
         context = {
             'organisations': None,
@@ -268,6 +279,16 @@ class Extractor(View):
                             if format.type == 'vector':
                                 context['format_vector'] = format.name
 
+        # /!\ BETA /!\
+        if BETA:
+            resource_beta = kwargs.get('resource_beta')
+            if resource_beta:
+                resource_beta = self.get_instance(ResourceBeta, resource_beta)
+                context['resource_beta'] = resource_beta
+                context['dataset'] = resource_beta.dataset
+                context['organisation'] = resource_beta.dataset.organisation
+        # /!\ BETA /!\
+
         # Les paramètres Layer Resource Dataset et Organisation écrase Task
         if layer:
             layer = self.get_instance(Layer, layer)
@@ -310,17 +331,35 @@ class Extractor(View):
         if not context['layer'] and layers:
             context['layer'] = layers[0]
 
+        # /!\ BETA /!\
+        if BETA:
+            context['resources_beta'] = ResourceBeta.objects.filter(
+                dataset=context['dataset']).exclude(geographiclayer=None)
+            if len(context['resources_beta']) == 1 and not context.get('resource_beta'):
+                context['resource_beta'] = context['resources_beta'][0]
+            # layers_beta = GeographicLayerBeta.objects.filter(
+            #     resource=context.get('resource_beta'))
+            # if not context.get('layer_beta') and layers_beta:
+            #     context['layer_beta'] = layers_beta[0]
+        # /!\ BETA /!\
+
         return context
 
     def get_context(self, request, user):
 
-        context = self._context(
-            user,
-            organisation=request.GET.get('organisation'),
-            dataset=request.GET.get('dataset'),
-            resource=request.GET.get('resource'),
-            layer=request.GET.get('layer'),
-            task=request.GET.get('task'))
+        qs_params = {
+            'organisation': request.GET.get('organisation'),
+            'dataset': request.GET.get('dataset'),
+            'resource': request.GET.get('resource'),
+            'layer': request.GET.get('layer'),
+            'task': request.GET.get('task'),
+            }
+        if BETA:
+            qs_params.update({
+                'resource_beta': request.GET.get('resource_beta'),
+                })
+
+        context = self._context(user, **qs_params)
 
         context['basemaps'] = BaseMaps.objects.all()
 
@@ -395,6 +434,11 @@ class Extractor(View):
         dataset_name = request.POST.get('dataset')
         dst_crs = request.POST.get('crs')
 
+        # /!\ BETA /!\
+        if BETA:
+            resource_beta_name = request.POST.get('resource_beta')
+        # /!\ BETA /!\
+
         format_vector = request.POST.get('format-vector') or None
         if format_vector:
             dst_format_vector = ExtractorSupportedFormat.objects.get(
@@ -408,9 +452,10 @@ class Extractor(View):
         data_extractions = []
         additional_files = []
 
-        if layer_name or resource_name:
+        if layer_name or resource_name or (BETA and resource_beta_name):  # /!\ BETA /!\
             if layer_name:
                 model = 'Layer'
+                app_label = 'idgo_admin'
                 foreign_field = 'name'
                 foreign_value = layer_name
                 layer = get_object_or_404(Layer, name=layer_name)
@@ -418,33 +463,54 @@ class Extractor(View):
 
             if resource_name:
                 model = 'Resource'
+                app_label = 'idgo_admin'
                 foreign_field = 'ckan_id'
                 foreign_value = resource_name
                 resource = get_object_or_404(Resource, ckan_id=resource_name)
                 layer = resource.get_layers()[0]  # Car relation 1-1
 
-            if layer.type == 'raster':
-                data_extraction = {**{
-                    'source': layer.filename,
-                    }, **dst_format_raster}
-            elif layer.type == 'vector':
-                data_extraction = {
-                    **{
-                        'layer': layer.name,
-                        'source': 'PG:host={host} port={port} dbname={database} user={user} password={password}'.format(
-                            host=IDGO_EXTRACTOR_DB_HOST,
-                            port=IDGO_EXTRACTOR_DB_PORT,
-                            database=IDGO_EXTRACTOR_DB_NAME,
-                            user=IDGO_EXTRACTOR_DB_USERNAME,
-                            password=IDGO_EXTRACTOR_DB_PASSWORD,
-                            ),
-                        },
-                    **dst_format_vector
-                    }
+                if layer.type == 'raster':
+                    data_extraction = {**{
+                        'source': layer.filename,
+                        }, **dst_format_raster}
+                elif layer.type == 'vector':
+                    data_extraction = {
+                        **{
+                            'layer': layer.name,
+                            'source': 'PG:host={host} port={port} dbname={database} user={user} password={password}'.format(
+                                host=IDGO_EXTRACTOR_DB_HOST,
+                                port=IDGO_EXTRACTOR_DB_PORT,
+                                database=IDGO_EXTRACTOR_DB_NAME,
+                                user=IDGO_EXTRACTOR_DB_USERNAME,
+                                password=IDGO_EXTRACTOR_DB_PASSWORD,
+                                ),
+                            },
+                        **dst_format_vector
+                        }
+
+            # /!\ BETA /!\
+            if BETA:
+                if resource_beta_name:
+                    model = 'Resource'
+                    app_label = 'idgo_resource'
+                    foreign_field = 'ckan_id'
+                    foreign_value = resource_beta_name
+                    resource_beta = get_object_or_404(ResourceBeta, ckan_id=resource_beta_name)
+                    layer_beta = resource_beta.geographiclayer
+
+                    if layer_beta.mra_layer.config_json.get('type') == 'RASTER':
+                        data_extraction = {
+                            **{'source': resource_beta._related.virtual_mosaic_file_path},
+                            **dst_format_raster
+                            }
+                    else:
+                        # TODO
+                        pass
+            # /!\ BETA /!\
 
             data_extraction['dst_srs'] = dst_crs or 'EPSG:2154'
 
-            if resource.geo_restriction:
+            if resource_name and resource.geo_restriction:
                 footprint_restriction = \
                     json.loads(user.profile.organisation.jurisdiction.geom.geojson)
                 if footprint:
@@ -466,6 +532,7 @@ class Extractor(View):
 
         elif dataset_name:
             model = 'Dataset'
+            app_label = 'idgo_admin'
             foreign_field = 'slug'
             foreign_value = dataset_name
             dataset = get_object_or_404(Dataset, slug=dataset_name)
@@ -524,6 +591,7 @@ class Extractor(View):
                 foreign_field=foreign_field,
                 foreign_value=foreign_value,
                 model=model,
+                app_label=app_label,
                 query=query,
                 submission_datetime=details.get('submission_datetime'),
                 uuid=UUID(details.get('task_id')),
