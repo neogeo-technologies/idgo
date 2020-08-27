@@ -28,6 +28,7 @@ from idgo_admin import DISPLAY_FTP_ACCOUNT_MANAGER
 from idgo_admin import FTP_URL
 from idgo_admin import READTHEDOC_URL
 from idgo_admin import CKAN_URL
+from idgo_admin import IDGO_CMS_LOGIN_URL
 
 
 def global_vars(request):
@@ -58,4 +59,5 @@ def global_vars(request):
         'CKAN_URL': CKAN_URL,
         'CONTRIBUTOR': contributor,
         'REFERENT': referent,
+        'IDGO_CMS_LOGIN_URL': IDGO_CMS_LOGIN_URL,
     }
