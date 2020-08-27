@@ -299,7 +299,7 @@ class Dataset(models.Model):
 
     @property
     def ckan_url(self):
-        return urljoin(CKAN_URL, 'dataset/', self.slug)
+        return urljoin(CKAN_URL, 'dataset/{slug}'.format(slug=self.slug))
 
     @property
     def api_location(self):
