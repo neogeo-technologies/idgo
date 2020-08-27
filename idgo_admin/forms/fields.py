@@ -262,14 +262,20 @@ class ReferentField(forms.BooleanField):
 
 class UsernameField(forms.CharField):
 
+    validate_ckan = validators.RegexValidator(
+        validators._lazy_re_compile(r'^[-a-z0-9_]+\Z'),
+        'pas ok',
+        'invalid'
+        )
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('error_messages', {
-            'invalid': 'Seuls les caractères alpha-numériques et le caractère « _ » sont autorisés.'})
+            'invalid': 'Seuls les caractères alpha-numériques en minuscule et les caractères - et _ sont autorisés.'})
         kwargs.setdefault('label', "Nom d'utilisateur*")
         kwargs.setdefault('max_length', 100)
         kwargs.setdefault('min_length', 3)
         kwargs.setdefault('required', True)
-        kwargs.setdefault('validators', [validators.validate_slug])
+        kwargs.setdefault('validators', [self.validate_ckan])
         # TODO Le validateur ne voit pas les MAJ (à corriger..)
         kwargs.setdefault('widget', forms.TextInput(
             attrs={

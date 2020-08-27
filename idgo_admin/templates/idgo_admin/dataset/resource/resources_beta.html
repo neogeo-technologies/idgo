@@ -2,11 +2,11 @@
 
 {% include "idgo_admin/alert_messages.html" %}
 
+{% if resource_list_count > 0 %}
 <div class="buttons-on-the-right-side">
-	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_resource:new_resource" dataset_id=dataset.id %}">Ajouter une ressource</a>
+	<a name="add-resource" class="btn btn-primary" href="{% url "idgo_resource:new_resource" dataset_id=dataset.id %}">Ajouter une nouvelle ressource</a>
 </div>
 <br />
-{% if resource_list_count > 0 %}
 <div id="table-resources-list" class="table-responsive"></div>
 <nav aria-label="Page navigation" style="text-align: center;">
 	<ul id="table-resources-list-paginator" class="pagination pagination-sm"></ul>
@@ -16,9 +16,12 @@
 	<button name="edit-resource" class="btn btn-secondary">Ouvrir <span class="glyphicon glyphicon-pencil"></span></button>
 </div>
 {% else %}
-<div role="alert" class="alert alert-info">
-	<span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>Vous n'avez encore aucune ressource.
+<br>
+<div role="alert" class="alert alert-warning">
+  <span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>
+  Vous n'avez encore jamais ajouté de ressource. <a name="add-resource" href="{% url "idgo_resource:new_resource" dataset_id=dataset.id %}">Créer une nouvelle ressource</a> pour commencer.
 </div>
+<br>
 {% endif %}
 
 <script>
