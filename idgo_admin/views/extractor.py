@@ -324,6 +324,7 @@ class Extractor(View):
             ).distinct()
         if BETA:
             datasets_beta = Dataset.objects.filter(
+                organisation=context['organisation'],
                 idgo_resources__in=ResourceBeta.objects.all().exclude(geographiclayer=None)
                 ).distinct()
             context['datasets'] = (context['datasets'] | datasets_beta).distinct()
