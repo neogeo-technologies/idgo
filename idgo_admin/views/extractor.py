@@ -312,12 +312,23 @@ class Extractor(View):
         context['organisations'] = Organisation.objects.filter(
             dataset__resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
             ).distinct()
+        if BETA:
+            organisations_beta = Organisation.objects.filter(
+                dataset__idgo_resources__in=ResourceBeta.objects.all().exclude(geographiclayer=None)
+                ).distinct()
+            context['organisations'] = (context['organisations'] & organisations_beta).distinct()
 
         context['datasets'] = Dataset.objects.filter(
             organisation=context['organisation'],
             resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
             ).distinct()
+        if BETA:
+            datasets_beta = Dataset.objects.filter(
+                idgo_resources__in=ResourceBeta.objects.all().exclude(geographiclayer=None)
+                ).distinct()
+            context['datasets'] = (context['datasets'] & datasets_beta).distinct()
 
+        # Modèle de ressource v1
         context['resources'] = Resource.objects.filter(
             dataset=context['dataset'],
             extractable=True
@@ -331,6 +342,7 @@ class Extractor(View):
         if not context['layer'] and layers:
             context['layer'] = layers[0]
 
+        # Modèle de ressource v2 (bêta)
         # /!\ BETA /!\
         if BETA:
             context['resources_beta'] = ResourceBeta.objects.filter(
