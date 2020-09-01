@@ -316,7 +316,7 @@ class Extractor(View):
             organisations_beta = Organisation.objects.filter(
                 dataset__idgo_resources__in=ResourceBeta.objects.all().exclude(geographiclayer=None)
                 ).distinct()
-            context['organisations'] = (context['organisations'] & organisations_beta).distinct()
+            context['organisations'] = (context['organisations'] | organisations_beta).distinct()
 
         context['datasets'] = Dataset.objects.filter(
             organisation=context['organisation'],
@@ -326,7 +326,7 @@ class Extractor(View):
             datasets_beta = Dataset.objects.filter(
                 idgo_resources__in=ResourceBeta.objects.all().exclude(geographiclayer=None)
                 ).distinct()
-            context['datasets'] = (context['datasets'] & datasets_beta).distinct()
+            context['datasets'] = (context['datasets'] | datasets_beta).distinct()
 
         # Modèle de ressource v1
         context['resources'] = Resource.objects.filter(
