@@ -136,7 +136,7 @@ class CkanExceptionsHandler(object):
                         msg = ', '.join([
                             '"{0}" {1}'.format(k, isinstance(v, list) and ', '.join(v) or v)
                             for k, v in err.items()])
-                    except Exception as e:
+                    except Exception:
                         msg = e.__str__()
                     raise ValidationError(msg)
                 if e.__str__() in ('Indisponible', 'Not Found'):
