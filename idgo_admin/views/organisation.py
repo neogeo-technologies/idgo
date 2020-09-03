@@ -166,7 +166,9 @@ def handle_show_organisation(request, *args, **kwargs):
     try:
         organisation = Organisation.objects.get(pk=pk)
     except Organisation.DoesNotExist:
-        id = -1
+        if Organisation.objects.count() == 0:
+            return redirect('idgo_admin:create_organisation')
+        id = Organisation.objects.first().id
     else:
         id = organisation.id
     return redirect('idgo_admin:show_organisation', id=id)
