@@ -1180,7 +1180,7 @@ if ENABLE_DCAT_HARVESTER:
                                     'organisation': self.organisation,
                                     'published': not package.get('private'),
                                     'remote_instance': self,
-                                    # 'remote_dataset': geonet_id,
+                                    'remote_dataset': geonet_id,
                                     'update_frequency': update_frequency,
                                     'bbox': package.get('bbox'),
                                     # broadcaster_email
@@ -1192,7 +1192,6 @@ if ENABLE_DCAT_HARVESTER:
                                     # thumbnail
                                     # support
                                     }
-
                                 dataset, created = Dataset.harvested_dcat.update_or_create(**kvp)
                                 if created:
                                     ckan_ids.append(dataset.ckan_id)
