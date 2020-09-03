@@ -494,10 +494,38 @@ class DcatBaseHandler(object):
 
     def __init__(self, url):
         self.url = url
+        r = requests.get(self.url, verify=False)
         self.graph = rdflib.Graph()
-        self.graph.parse(self.url)
-        self.profile = EuropeanDCATAPProfile(self.graph)
-        self.xml_dict = self._get_xml_dict()
+
+        # application/rdf+xml, application/xml
+        if 'xml' in r.headers['content-type']:
+            self.graph.parse(self.url)
+            self.profile = EuropeanDCATAPProfile(self.graph)
+            self.xml_dict = self._get_xml_dict()
+
+        # 'application/json', 'application/ld+json'
+        elif 'json' in r.headers['content-type']:
+
+            def json_url_cleaner(obj, key):
+                """Recursively search for values of key in JSON tree."""
+                if isinstance(obj, dict):
+                    for k, v in obj.items():
+                        if isinstance(v, (dict, list)):
+                            json_url_cleaner(v, key)
+                        elif k == key:
+                            obj[k] = v.translate({
+                                ord(i): None for i in '<>}{|`""'})
+                elif isinstance(obj, list):
+                    for item in obj:
+                        json_url_cleaner(item, key)
+                return obj
+
+            cleanedData = json_url_cleaner(r.json(), 'accessURL')
+
+            self.graph.parse(
+                data=json.dumps(cleanedData), format='json-ld', indent=4)
+            self.profile = EuropeanDCATAPProfile(self.graph)
+            self.xml_dict = {}
 
     def __enter__(self):
         return self
@@ -528,7 +556,7 @@ class DcatBaseHandler(object):
             dataset_dict = {'state': 'active',
                             'type': 'dataset',
                             'id': None,
-                            'name':  None,
+                            'name': None,
                             'title': None,
                             'notes': None,
                             'thumbnail': None,
@@ -558,5 +586,5 @@ class DcatBaseHandler(object):
                             'xml': None,
                             }
             dataset_dict = self.profile.parse_dataset(dataset_dict, dataset_ref)
-            dataset_dict['xml'] = self.xml_dict.pop(dataset_dict['id'])
+            # dataset_dict['xml'] = self.xml_dict.pop(dataset_dict['id'])
             yield dataset_dict
