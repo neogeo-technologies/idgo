@@ -7,10 +7,10 @@
 		{% if dataset %}
 		<a class="btn btn-default" href="{% url 'idgo_admin:dataset_mdedit' id=dataset.pk %}">Éditer la fiche de métadonnées INSPIRE</a>
 		<a class="btn btn-default" target="_blank" href="{{ CKAN_URL }}/dataset/{{ dataset.slug }}">Ouvrir dans CKAN</a>
-		{% endif %}
+		{% endif %}{% if READTHEDOC_URL %}
 		<a role="button" class="btn btn-secondary" target="_blank" href="{{ READTHEDOC_URL }}">
 			<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
-		</a>
+		</a>{% endif %}
 	</div>
 	{% csrf_token %}
 	{% if ENABLE_CKAN_HARVESTER and dataset.remote_ckan_dataset %}

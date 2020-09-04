@@ -37,10 +37,10 @@
 					{% endif %}
 					<div class="well">
 						<div class="buttons-on-the-right-side">
-							<span ng-show="vm.data.view == 1" ng-hide="vm.data.view == 3">
+							<span ng-show="vm.data.view == 1" ng-hide="vm.data.view == 3">{% if READTHEDOC_URL %}
 								<a role="button" class="btn btn-default" target="_blank" href="{{ READTHEDOC_URL }}">
 									<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
-								</a>
+								</a>{% endif %}
 								<a href="#" role="button" class="btn btn-default" ng-init="vm.showAllFields=False" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="!vm.showAllFields" uib-tooltip="Permuter vers l'affichage complet" tooltip-trigger="mouseenter" tooltip-placement="left">
 									<span class="glyphicon glyphicon-th"></span>
 								</a>

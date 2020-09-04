@@ -49,10 +49,10 @@
 		{% endif %}
 		{% if resource.ckan_id %}
 		<a class="btn btn-default" target="_blank" href="{{ CKAN_URL }}/dataset/{{ dataset.slug }}/resource/{{ resource.ckan_id }}">Ouvrir dans CKAN</a>
-		{% endif %}
+		{% endif %}{% if READTHEDOC_URL %}
 		<a role="button" class="btn btn-secondary" target="_blank" href="{{ READTHEDOC_URL }}">
 			<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
-		</a>
+		</a>{% endif %}
 	</div>
 	<br />
 	<div class="row">
