@@ -75,7 +75,7 @@
 								{% if dataset.geonet_id %}
 								<button type="button" name="delete" value="delete" class="btn btn-danger left">Supprimer</button>
 								{% endif %}
-								<a class="btn btn-default" href="{% url 'idgo_admin:dataset' %}?id={{ dataset.id }}#dataset">Annuler</a>
+								<button type="button" name="cancel" class="btn btn-default">Annuler</button>
 								<button type="button" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>
 								<button type="button" name="save" class="btn btn-primary">Enregistrer</button>
 							</div>
@@ -198,6 +198,11 @@ $(function() {
 		}).modal('show');
 		e.stopPropagation();
 	});
+
+	$('button[name="cancel"]').click(function(e) {
+		window.location.replace('{% url "idgo_admin:dataset_editor" id=dataset.id %}#dataset');
+	});
+
 });
 </script>
 {% endblock main %}
