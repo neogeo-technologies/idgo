@@ -303,7 +303,7 @@ class DatasetManager(View):
                     resource.get_resource_type_display(),
                     resource.created_on.isoformat() if resource.created_on else None,
                     resource.last_update.isoformat() if resource.last_update else None,
-                    'Aucune',
+                    resource.resourcerestricted.get_restricted_level_display() if hasattr(resource, 'resourcerestricted') else None,
                     str(resource.ckan_id),
                     )
                 resource_list_rows.append(data)
