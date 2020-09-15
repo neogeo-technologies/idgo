@@ -312,22 +312,27 @@ class Extractor(View):
         context['organisations'] = Organisation.objects.filter(
             dataset__resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
             ).distinct()
+        # /!\ BETA /!\
         if BETA:
             organisations_beta = Organisation.objects.filter(
                 dataset__idgo_resources__in=ResourceBeta.objects.all().exclude(geographiclayer=None)
                 ).distinct()
             context['organisations'] = (context['organisations'] | organisations_beta).distinct()
+        # /!\ BETA /!\
 
         context['datasets'] = Dataset.objects.filter(
             organisation=context['organisation'],
             resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
             ).distinct()
+
+        # /!\ BETA /!\
         if BETA:
             datasets_beta = Dataset.objects.filter(
                 organisation=context['organisation'],
                 idgo_resources__in=ResourceBeta.objects.all().exclude(geographiclayer=None)
                 ).distinct()
             context['datasets'] = (context['datasets'] | datasets_beta).distinct()
+        # /!\ BETA /!\
 
         # Modèle de ressource v1
         context['resources'] = Resource.objects.filter(
@@ -367,10 +372,12 @@ class Extractor(View):
             'layer': request.GET.get('layer'),
             'task': request.GET.get('task'),
             }
+        # /!\ BETA /!\
         if BETA:
             qs_params.update({
                 'resource_beta': request.GET.get('resource_beta'),
                 })
+        # /!\ BETA /!\
 
         context = self._context(user, **qs_params)
 
@@ -465,7 +472,28 @@ class Extractor(View):
         data_extractions = []
         additional_files = []
 
-        if layer_name or resource_name or (BETA and resource_beta_name):  # /!\ BETA /!\
+        # /!\ BETA /!\
+        if BETA and resource_beta_name:
+            model = 'Resource'
+            app_label = 'idgo_resource'
+            foreign_field = 'ckan_id'
+            foreign_value = resource_beta_name
+            resource_beta = get_object_or_404(ResourceBeta, ckan_id=resource_beta_name)
+            layer_beta = resource_beta.geographiclayer
+
+            if layer_beta.mra_layer.config_json.get('type') == 'RASTER':
+                data_extraction = {
+                    **{'source': resource_beta._related.virtual_mosaic_file_path},
+                    **dst_format_raster
+                    }
+            else:
+                # TODO
+                pass
+
+            data_extractions.append(data_extraction)
+        # /!\ BETA /!\
+
+        if layer_name or resource_name:  # /!\ BETA /!\
             if layer_name:
                 model = 'Layer'
                 app_label = 'idgo_admin'
@@ -500,26 +528,6 @@ class Extractor(View):
                             },
                         **dst_format_vector
                         }
-
-            # /!\ BETA /!\
-            if BETA:
-                if resource_beta_name:
-                    model = 'Resource'
-                    app_label = 'idgo_resource'
-                    foreign_field = 'ckan_id'
-                    foreign_value = resource_beta_name
-                    resource_beta = get_object_or_404(ResourceBeta, ckan_id=resource_beta_name)
-                    layer_beta = resource_beta.geographiclayer
-
-                    if layer_beta.mra_layer.config_json.get('type') == 'RASTER':
-                        data_extraction = {
-                            **{'source': resource_beta._related.virtual_mosaic_file_path},
-                            **dst_format_raster
-                            }
-                    else:
-                        # TODO
-                        pass
-            # /!\ BETA /!\
 
             data_extraction['dst_srs'] = dst_crs or 'EPSG:2154'
 
