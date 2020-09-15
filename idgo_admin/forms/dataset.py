@@ -173,12 +173,7 @@ class DatasetForm(forms.ModelForm):
         label="Date de création",
         required=False,
         widget=forms.DateInput(
-            attrs={
-                'autocomplete': 'off',
-                'class': 'datepicker',
-                'placeholder': "{0} (par défaut)".format(
-                    timezone.now().date().strftime('%d/%m/%Y')),
-                },
+            attrs={'autocomplete': 'off', 'class': 'datepicker'},
             ),
         )
 
@@ -186,12 +181,7 @@ class DatasetForm(forms.ModelForm):
         label="Date de dernière modification",
         required=False,
         widget=forms.DateInput(
-            attrs={
-                'autocomplete': 'off',
-                'class': 'datepicker',
-                'placeholder': "{0} (par défaut)".format(
-                    timezone.now().date().strftime('%d/%m/%Y')),
-                },
+            attrs={'autocomplete': 'off', 'class': 'datepicker'},
             ),
         )
 
@@ -199,12 +189,7 @@ class DatasetForm(forms.ModelForm):
         label="Date de publication",
         required=False,
         widget=forms.DateInput(
-            attrs={
-                'autocomplete': 'off',
-                'class': 'datepicker',
-                'placeholder': "{0} (par défaut)".format(
-                    timezone.now().date().strftime('%d/%m/%Y')),
-                },
+            attrs={'autocomplete': 'off', 'class': 'datepicker'},
             ),
         )
 
@@ -291,6 +276,11 @@ class DatasetForm(forms.ModelForm):
         instance = kwargs.get('instance', None)
         owner = instance \
             and instance.editor or self.include_args.get('user')
+
+        today = timezone.now().date().strftime('%d/%m/%Y')
+        self.fields['date_creation'].widget.attrs['placeholder'] = "%s (par défaut)" % today
+        self.fields['date_modification'].widget.attrs['placeholder'] = "%s (par défaut)" % today
+        self.fields['date_publication'].widget.attrs['placeholder'] = "%s (par défaut)" % today
 
         self.fields['organisation'].queryset = Organisation.objects.filter(
             liaisonscontributeurs__profile=owner.profile,
