@@ -109,6 +109,7 @@ class ResourceInline(admin.StackedInline):
                 'last_update']}
          )
     ]
+    readonly_fields = ['bbox']
 
 
 class MyDataSetForm(forms.ModelForm):
@@ -132,7 +133,7 @@ class DatasetAdmin(admin.ModelAdmin):
     form = MyDataSetForm
     can_add_related = True
     can_delete_related = True
-    readonly_fields = ['ckan_id', 'slug', 'geonet_id']
+    readonly_fields = ['ckan_id', 'slug', 'geonet_id', 'bbox']
     search_fields = ['title', 'editor__username']
     actions = [synchronize]
 
