@@ -141,8 +141,10 @@
 			</div>
 		</div>
 		{% bootstrap_field form.rattachement_process show_label=False %}
+		{% if not IDGO_REDUCED_TO_PARTNER %}
 		{% bootstrap_field form.contributor_process show_label=False %}
 		{% bootstrap_field form.referent_process show_label=False %}
+		{% endif %}
 		<br />
 		<div class="buttons-on-the-right-side">
 			<a class="btn btn-default" href="{% url 'idgo_admin:handle_show_organisation' %}{% if organisation %}?id={{ organisation.id }}{% endif %}">Annuler</a>
@@ -160,10 +162,12 @@
 <script>
 $(function() {
 	const $inputMember = $('input[name="{{ form.rattachement_process.name }}"]').prop('checked', false);
+	{% if not IDGO_REDUCED_TO_PARTNER %}
 	const $inputContribution = $('input[name="{{ form.contributor_process.name }}"]').prop('checked', false);
 	const $inputReferent = $('input[name="{{ form.referent_process.name }}"]').prop('checked', false).change(function() {
 		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
 	});
+	{% endif %}
 	$('#menu a[href=\'{% url "idgo_admin:handle_show_organisation" %}\']').parent().addClass('active');
 });
 </script>

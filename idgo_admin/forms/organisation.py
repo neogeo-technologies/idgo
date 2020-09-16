@@ -40,6 +40,8 @@ from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 
+from idgo_admin import IDGO_REDUCED_TO_PARTNER
+
 
 logger = logging.getLogger('idgo_admin')
 
@@ -99,6 +101,12 @@ class OrganisationForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
+        if IDGO_REDUCED_TO_PARTNER:
+            self.fields['contributor_process'].initial = False
+            self.fields['contributor_process'].widget = forms.HiddenInput()
+            self.fields['referent_process'].initial = False
+            self.fields['referent_process'].widget = forms.HiddenInput()
+
         if not self.extended:
             for item in self.Meta.extended_fields:
                 self.fields[item].widget = forms.HiddenInput()
@@ -117,8 +125,12 @@ class OrganisationForm(forms.ModelForm):
             legal_name = self.cleaned_data.get('legal_name')
             if Organisation.objects.filter(slug=slugify(legal_name)).count() > 0:
                 self.add_error('legal_name', 'Une organisation portant le même nom existe déjà.')
+            if IDGO_REDUCED_TO_PARTNER:
+                self.cleaned_data['contributor_process'] = False
+                self.cleaned_data['referent_process'] = False
         if self.instance and not self.user.profile.is_idgo_admin:
             self.cleaned_data['jurisdiction'] = self.instance.jurisdiction
+
         return self.cleaned_data
 
 

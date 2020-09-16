@@ -66,6 +66,12 @@
 		{% endif %}
 		</button>
 		{% endif %}
+
+		{# TODO Facto #}
+
+		{% if IDGO_REDUCED_TO_PARTNER %}
+
+		{% if organisation.is_crige_partner %}
 		{% if organisation not in user.profile.awaiting_contributor_status %}
 		<button role="button" name="switch-contributor" class="btn btn-default btn-block">
 			{% if organisation in user.profile.contribute_for %}
@@ -84,6 +90,53 @@
 			{% endif %}
 		</button>
 		{% endif %}
+		{% endif %}
+
+		{% if not organisation.is_crige_partner %}
+		<hr>
+		<button class="btn btn-default btn-block disabled" disabled>
+			{% if organisation in user.profile.contribute_for %}
+			Je <strong>ne</strong> souhaite <strong>plus</strong> être contributeur
+			{% else %}
+			Je souhaite devenir contributeur
+			{% endif %}
+		</button>
+		<button class="btn btn-default btn-block disabled" disabled>
+			{% if organisation in user.profile.referent_for %}
+			Je <strong>ne</strong> souhaite <strong>plus</strong> être référent technique
+			{% else %}
+			Je souhaite devenir référent technique
+			{% endif %}
+		</button>
+		<p>Ces options ne sont disponibles que pour les organisations adhérentes.</p>
+		{% endif %}
+
+		{% endif %}
+
+		{% if not IDGO_REDUCED_TO_PARTNER %}
+
+		{% if organisation not in user.profile.awaiting_contributor_status %}
+		<button role="button" name="switch-contributor" class="btn btn-default btn-block">
+			{% if organisation in user.profile.contribute_for %}
+			Je <strong>ne</strong> souhaite <strong>plus</strong> être contributeur
+			{% else %}
+			Je souhaite devenir contributeur
+			{% endif %}
+		</button>
+		{% endif %}
+
+		{% if not user.profile.is_admin and organisation not in user.profile.awaiting_referent_statut %}
+		<button role="button" name="switch-referent" class="btn btn-default btn-block">
+			{% if organisation in user.profile.referent_for %}
+			Je <strong>ne</strong> souhaite <strong>plus</strong> être référent technique
+			{% else %}
+			Je souhaite devenir référent technique
+			{% endif %}
+		</button>
+		{% endif %}
+
+		{% endif %}
+
 	</div>
 </div>
 <script>

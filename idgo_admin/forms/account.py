@@ -48,6 +48,8 @@ from idgo_admin.models import Dataset
 from idgo_admin.models import Gdpr
 from idgo_admin.models import Organisation
 
+from idgo_admin import IDGO_REDUCED_TO_PARTNER
+
 
 class UserForgetPassword(forms.Form):
 
@@ -387,6 +389,12 @@ class SignUpForm(forms.Form):
         if password1 and password2 and password1 != password2:
             self.add_error('password2', 'Vérifiez les mots de passes.')
         self.cleaned_data['password'] = self.cleaned_data.pop('password1')
+
+        if IDGO_REDUCED_TO_PARTNER:
+            organisation = self.cleaned_data['organisation']
+            if organisation and not organisation.is_crige_partner:
+                self.cleaned_data['contributor'] = False
+                self.cleaned_data['referent'] = False
 
         return self.cleaned_data
 

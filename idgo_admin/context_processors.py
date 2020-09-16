@@ -29,6 +29,7 @@ from idgo_admin import FTP_URL
 from idgo_admin import READTHEDOC_URL
 from idgo_admin import CKAN_URL
 from idgo_admin import IDGO_CMS_LOGIN_URL
+from idgo_admin import IDGO_REDUCED_TO_PARTNER
 
 
 def global_vars(request):
@@ -60,4 +61,5 @@ def global_vars(request):
         'CONTRIBUTOR': contributor,
         'REFERENT': referent,
         'IDGO_CMS_LOGIN_URL': IDGO_CMS_LOGIN_URL,
+        'IDGO_REDUCED_TO_PARTNER': IDGO_REDUCED_TO_PARTNER,
     }
