@@ -17,29 +17,48 @@ from functools import reduce
 import logging
 from operator import ior
 
-from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
+from django.apps import apps
 from django.db.models import Q
 from django.http import Http404
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 
 from rest_framework import permissions
 from rest_framework.views import APIView
-
 
 from idgo_admin.models import Dataset
 from idgo_admin.models import Resource
 from idgo_admin.models import Organisation
 
+
 logger = logging.getLogger('api.views')
 
 
-def serialize_resources(resources):
-    return [dict(id=resource.id,
-                 title=resource.title,
-                 anonymous_access=resource.anonymous_access,)
-            for resource in resources]
+if apps.is_installed('idgo_resource') \
+        and apps.is_installed('idgo_geographic_layer'):
+    from idgo_resource.models import Resource as ResourceBeta
+    from idgo_geographic_layer.models import GeographicLayer as GeographicLayerBeta
+    BETA = True
+else:
+    BETA = False
+
+
+def serialize_resources(resources, resources_beta=None):
+
+    data = []
+    for resource in resources:
+        data.append({
+            'id': resource.id,
+            'title': resource.title,
+            'anonymous_access': resource.anonymous_access,
+            })
+    if BETA:
+        for resource in resources_beta:
+            data.append({
+                'id': resource.id,
+                'title': resource.title,
+                'anonymous_access': resource.resourcerestricted.anonymous_access,
+                })
+    return data
 
 
 class ResourceAccessShow(APIView):
@@ -58,10 +77,15 @@ class ResourceAccessShow(APIView):
 
         return JsonResponse(dict(access='denied'))
 
+
 class ResourceAccessList(APIView):
 
-    def get(self, request, ):
+    def get(self, request):
         """Voir la ressource associée au layer/ressource."""
+
+        resources = None
+        resources_beta = None
+
         try:
             layers = request.GET['layers']
             layers = set(layers.replace(' ', '').split(','))
@@ -78,9 +102,20 @@ class ResourceAccessList(APIView):
                 ]
             resources = Resource.objects.filter(reduce(ior, resources_filters)).distinct()
 
-        except ValueError:
+            if BETA:
+                resources_beta_filters = [
+                    Q(dataset__in=datasets),
+                    Q(geographiclayer__name__in=layers),
+                    ]
+                resources_beta = ResourceBeta.objects.filter(
+                    reduce(ior, resources_beta_filters)).distinct()
+        except ValueError as e:
+            logger.error(e)
             raise Http404()
-        if resources:
-            return JsonResponse(serialize_resources(resources), safe=False)
-        raise Http404()
 
+        if resources or resources_beta:
+            return JsonResponse(
+                serialize_resources(resources, resources_beta=resources_beta),
+                safe=False)
+
+        raise Http404()
