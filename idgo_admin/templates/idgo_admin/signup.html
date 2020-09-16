@@ -140,6 +140,12 @@
 						<div>
 							{% bootstrap_field form.contributor show_label=False %}
 							{% bootstrap_field form.referent show_label=False %}
+							{% if IDGO_REDUCED_TO_PARTNER %}
+							<span class="user-profile-options-message">
+								<p>Les deux options ci-avant ne sont disponibles que pour les organisations adhérentes.</p>
+							</span>
+							<hr>
+							{% endif %}
 						</div>
 						{% bootstrap_field form.terms_and_conditions %}
 						<br />
@@ -163,13 +169,15 @@
 
 <script>
 $(function() {
+	const $idgo = $('.idgo-partner-badge').hide();
+	{% if IDGO_REDUCED_TO_PARTNER %}
+	const $userProfileOptionsMessage = $('.user-profile-options-message').hide();
+	{% endif %}
 
 	const $inputContribution = $('input[name="{{ form.contributor.name }}"]');
 	const $inputReferent = $('input[name="{{ form.referent.name }}"]').change(function() {
 		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
 	});
-
-	const $idgo = $('.idgo-partner-badge').hide();
 
 	const toggleInputVisibility = function() {
 		var selected = parseInt($selectOrganisation.val());
@@ -178,20 +186,39 @@ $(function() {
 		const isIDGO = $selectOrganisation.find(':selected').attr('is-idgo-partner');
 		if (typeof isIDGO !== typeof undefined && isIDGO !== false) {
 			$idgo.show();
+			{% if IDGO_REDUCED_TO_PARTNER %}
+			$inputContribution.parent().parent().removeClass('disabled');
+			$inputReferent.parent().parent().removeClass('disabled');
+			{% endif %}
 		} else {
 			$idgo.hide();
-		};
+			{% if IDGO_REDUCED_TO_PARTNER %}
+			$inputContribution.parent().parent().addClass('disabled');
+			$inputReferent.parent().parent().addClass('disabled');
+			{% endif %}
+		}
 
 		if (!selected && $collapseOne.hasClass('in')) {
 			$inputContribution.parent().hide();
 			$inputContribution.prop('checked', false);
 			$inputReferent.parent().hide();
 			$inputReferent.prop('checked', false);
+
+			{% if IDGO_REDUCED_TO_PARTNER %}
+			$userProfileOptionsMessage.hide();
+			{% endif %}
+
 		} else {
 			$inputReferent.is(':checked') ? $inputContribution.prop('checked', true) : $inputContribution.prop('checked', false);
 			$inputContribution.parent().show();
 			$inputReferent.parent().show();
-		};
+
+			{% if IDGO_REDUCED_TO_PARTNER %}
+			$userProfileOptionsMessage.show();
+			{% endif %}
+
+		}
+
 	};
 
 	const $selectOrganisation = $('select[name="organisation"]')
@@ -199,30 +226,37 @@ $(function() {
 		.change(toggleInputVisibility);
 
 	const $collapseOne = $('#collapse-one').collapse({toggle: false})
+		{% if IDGO_REDUCED_TO_PARTNER %}
+		.on('hide.bs.collapse', function() {
+			$inputContribution.parent().hide();
+			$inputReferent.parent().hide();
+			$userProfileOptionsMessage.hide();
+		})
+		{% endif %}
 		.on('hidden.bs.collapse', function() {
-			{% if user.profile.is_membership %}
-			$inputReferent.prop('checked', false).trigger('change');
-			{% else %}
+			{% if not IDGO_REDUCED_TO_PARTNER %}
+			$inputContribution.parent().show();
+			$inputReferent.parent().show();
 			$inputReferent.prop('checked', true).trigger('change');
 			{% endif %}
-
 			$selectOrganisation.selectedIndex = 0;
 			$('#collapse-one select').each(function(i) {
 				$(this)[0].selectedIndex = 0;
 			});
-			toggleInputVisibility();
 		});
 
 	const $collapseTwo = $('#collapse-two').collapse({toggle: false})
 		.on('hide.bs.collapse', function() {
-			$inputReferent.prop('checked', false).trigger('change');
+			{% if not IDGO_REDUCED_TO_PARTNER %}
+			$inputContribution.parent().hide();
+			$inputContribution.prop('checked', false);
+			$inputReferent.parent().hide();
+			$inputReferent.prop('checked', false);
+			{% endif %}
 			$selectOrganisation.find('option[value="{{ form.organisation.value | yesno:"true,false,NaN" }}"]').prop('selected', true);
 			$('#collapse-two input').each(function(i) {
 				$(this).val('');
 			});
-		})
-		.on('hidden.bs.collapse', function() {
-			toggleInputVisibility();
 		});
 
 	const toggleCollpase = function() {
