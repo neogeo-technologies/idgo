@@ -183,7 +183,7 @@ class Dataset(models.Model):
     )
 
     GEOCOVER_CHOICES = (
-        (None, "Indéfinie"),
+        (None, "Calculé automatiquement"),
         ('regionale', "Régionale"),
         ('jurisdiction', "Territoire de compétence"),
     )
@@ -343,34 +343,29 @@ class Dataset(models.Model):
         if not self.owner_email:        # et son e-mail
             self.owner_email = self.editor.email
 
-        # Le rectangle englobant du jeu de données :
-        #     Il est calculé en fonction des ressources géographiques et/ou de la couverture
-        #     et/ou de la couverture géographique définie
+        bbox = None
         layers = self.get_layers()
-        if layers:
+        if not self.geocover and layers:
             # On calcule la BBOX de l'ensemble des Layers rattachés au Dataset
             extent = layers.aggregate(models.Extent('bbox')).get('bbox__extent')
             if extent:
                 xmin, ymin = extent[0], extent[1]
                 xmax, ymax = extent[2], extent[3]
-                setattr(self, 'bbox', bounds_to_wkt(xmin, ymin, xmax, ymax))
-        else:
-            # Sinon, on regarde la valeur de `geocover` renseignée
-            if self.geocover == 'jurisdiction':
-                # Prend l'étendue du territoire de compétence
-                if self.organisation:
-                    jurisdiction = self.organisation.jurisdiction
-                    if jurisdiction and jurisdiction.communes:
-                        bounds = jurisdiction.get_bounds()
-                        if bounds:
-                            xmin, ymin = bounds[0][1], bounds[0][0]
-                            xmax, ymax = bounds[1][1], bounds[1][0]
-                            setattr(self, 'bbox', bounds_to_wkt(xmin, ymin, xmax, ymax))
-            elif self.geocover == 'regionale':
-                # Prend l'étendue par défaut définie en settings
-                setattr(self, 'bbox', DEFAULT_BBOX)
-            else:
-                setattr(self, 'bbox', self.bbox or None)  # ATTENTION AUX EFFETS DE BORD !
+                bbox = bounds_to_wkt(xmin, ymin, xmax, ymax)
+        elif self.geocover == 'jurisdiction':
+            # Prend l'étendue du territoire de compétence
+            if self.organisation:
+                jurisdiction = self.organisation.jurisdiction
+                if jurisdiction and jurisdiction.communes:
+                    bounds = jurisdiction.get_bounds()
+                    if bounds:
+                        xmin, ymin = bounds[0][1], bounds[0][0]
+                        xmax, ymax = bounds[1][1], bounds[1][0]
+                        bbox = bounds_to_wkt(xmin, ymin, xmax, ymax)
+        elif self.geocover == 'regionale':
+            # Prend l'étendue par défaut définie en settings
+            bbox = DEFAULT_BBOX
+        setattr(self, 'bbox', bbox)
 
         # On sauvegarde le jeu de données
         super().save(*args, **kwargs)
