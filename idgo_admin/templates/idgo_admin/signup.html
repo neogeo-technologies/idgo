@@ -142,7 +142,7 @@
 							{% bootstrap_field form.referent show_label=False %}
 							{% if IDGO_REDUCED_TO_PARTNER %}
 							<span class="user-profile-options-message">
-								<p>Les deux options ci-avant ne sont disponibles que pour les organisations adhérentes.</p>
+								<p>Ces deux options ne sont disponibles que pour les organisations adhérentes.</p>
 							</span>
 							<hr>
 							{% endif %}
@@ -214,7 +214,11 @@ $(function() {
 			$inputReferent.parent().show();
 
 			{% if IDGO_REDUCED_TO_PARTNER %}
-			$userProfileOptionsMessage.show();
+			if (isIDGO == undefined) {
+				$userProfileOptionsMessage.show();
+			} else {
+				$userProfileOptionsMessage.hide();
+			}
 			{% endif %}
 
 		}
