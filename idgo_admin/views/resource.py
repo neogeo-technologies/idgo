@@ -241,9 +241,9 @@ class ResourceManager(View):
                     resource = Resource.objects.get(pk=id)
                     for k, v in kvp.items():
                         setattr(resource, k, v)
-                if organisations_allowed:
+                if organisations_allowed is not None:  # important
                     resource.organisations_allowed = organisations_allowed
-                if profiles_allowed:
+                if profiles_allowed is not None:  # important
                     resource.profiles_allowed = profiles_allowed
                 save_opts['synchronize'] = True
                 resource.save(**save_opts)
