@@ -1,189 +1,284 @@
 <div id="members">
-	{% if organisation.members|length == 0 %}
-	<div role="alert" class="alert alert-info">Aucun utilisateur.</div>
-	{% else %}
-	<div class="table-responsive">
-		<table class="board table table-striped table-bordered table-hover table-condensed">
-			<tr>
-				<th name="username">Utilisateur</th>
-				<th name="full_name">Nom</th>
-				<th name="is_member">Membre</th>
-				<th name="is_contributor">Contributeur</th>
-				<th name="is_referent">Référent</th>
-				{% if user.profile.is_idgo_admin %}
-				<th name="is_idgo_member">Partenaire IDGO</th>
-				{% endif %}
-				<th name="datasets_count">Jeux de données</th>
-			</tr>
-			{% for member in organisation.members %}
-			<tr id="{{ member.username }}">
-				<td name="username">{{ member.username }}</td>
-				<td name="full_name">{{ member.full_name }}</td>
-				<td name="is_member" style="text-align: center;">{% if member.is_member %}
-					<span class="glyphicon glyphicon-ok"></span>{% endif %}
-				</td>
-				<td name="is_contributor" style="text-align: center;">{% if member.is_contributor %}
-					<span class="glyphicon glyphicon-ok"></span>{% endif %}
-				</td>
-				<td name="is_referent" style="text-align: center;">{% if member.is_referent %}
-					<span class="glyphicon glyphicon-ok"></span>{% endif %}
-				</td>
-				{% if user.profile.is_idgo_admin %}
-				<td name="is_idgo_member" style="text-align: center;">{% if member.is_idgo_member %}
-					<span class="glyphicon glyphicon-ok"></span>{% endif %}
-				</td>
-				{% endif %}
-				<td name="datasets_count" style="text-align: right;">{{ member.datasets_count }}</td>
-			</tr>
-			{% endfor %}
-		</table>
-	</div>
+  {% if organisation.members|length == 0 %}
+  <div role="alert" class="alert alert-info">Aucun utilisateur.</div>
+  {% else %}
+  <div class="table-responsive">
+    <table class="board table table-striped table-bordered table-hover table-condensed">
+      <tr>
+        <th name="username">Utilisateur</th>
+        <th name="full_name">Nom</th>
+        <th name="is_member">Membre</th>
+        <th name="is_contributor">Contributeur</th>
+        <th name="is_referent">Référent</th>
+        {% if user.profile.is_idgo_admin %}
+        <th name="is_idgo_member">Partenaire IDGO</th>
+        {% endif %}
+        <th name="datasets_count">Jeux de données</th>
+      </tr>
+      {% for member in organisation.members %}
+      <tr id="{{ member.username }}">
+        <td name="username">{{ member.username }}</td>
+        <td name="full_name">{{ member.full_name }}</td>
+        <td name="is_member" style="text-align: center;">{% if member.is_member %}
+          <span class="glyphicon glyphicon-ok"></span>{% endif %}
+        </td>
+        <td name="is_contributor" style="text-align: center;">{% if member.is_contributor %}
+          <span class="glyphicon glyphicon-ok"></span>{% endif %}
+        </td>
+        <td name="is_referent" style="text-align: center;">{% if member.is_referent %}
+          <span class="glyphicon glyphicon-ok"></span>{% endif %}
+        </td>
+        {% if user.profile.is_idgo_admin %}
+        <td name="is_idgo_member" style="text-align: center;">{% if member.is_idgo_member %}
+          <span class="glyphicon glyphicon-ok"></span>{% endif %}
+        </td>
+        {% endif %}
+        <td name="datasets_count" style="text-align: right;">{{ member.datasets_count }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
 </div>
 <div class="buttons-on-the-right-side">
-	<button role="button" name="ckan-card" class="btn btn-default disabled" disabled>Ouvrir la fiche Ckan</button>
-	<div class="btn-group dropup">
-		<button type="button" class="btn btn-default dropdown-toggle disabled" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" disabled>
-			Supprimer un statut <span class="caret"></span>
-		</button>
-		<ul class="dropdown-menu dropdown-menu-right">
-			<li class="disabled" disabled>
-				<a role="button" name="delete-member" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de membre</a>
-			</li>
-			<li class="disabled" disabled>
-				<a role="button" name="delete-contributor" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de contributeur</a>
-			</li>
-			<li class="disabled" disabled>
-				<a role="button" name="delete-referent" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de référent technique</a>
-			</li>
-		</ul>
-	</div>
-</div>
-<script>
-$(function() {
-	const $div = $('#members');
+  <button role="button" name="ckan-card" class="btn btn-default disabled" disabled>Ouvrir la fiche Ckan</button>
+  <script>
+  $(function() {
+    const $div = $('#members');
+    const $ckanUserCard = $div.find('button[name="ckan-card"]');
+    const $table = $div.find('table');
+    $table.find('tr')
+      .on('row.selected', function(e) {
+        const $row = $(this);
+        const username = $row.attr('id');
+        if (username) {
+          $row.prop('selected', true).addClass('selected');
+          $ckanUserCard.off('click').on('click', function(e) {
+            targetBlank('{{ CKAN_URL }}/user/' + username);
+          })
+          $ckanUserCard.removeClass('disabled').prop('disabled', false);
+        }
+      })
+      .on('row.unselected', function(e) {
+        const $row = $(this);
+        $row.prop('selected', false).removeClass('selected');
+        $ckanUserCard.addClass('disabled').prop('disabled', true);
+      })
+      .on('click', function(e) {
+        const $that = $table.find('tr:selected');
+        const $this = $(this);
+        if ($that) {
+          $that.trigger('row.unselected');
+          if ($this.index() != $that.index()) {
+            history.pushState(null, null, '#members/' + $this.attr('id'));
+            $this.trigger('row.selected');
+          } else {
+            history.pushState(null, null, '#members');
+          }
+        }
+      });
+  });
+  </script>
 
-	const $ckanUserCard = $div.find('button[name="ckan-card"]');
-	const $btnGroup = $div.find('.btn-group');
-	const $dropdownButton = $div.find('.btn-group>button.dropdown-toggle');
-	const $deleteMember = $btnGroup.find('a[name="delete-member"]');
-	const $deleteContributor = $btnGroup.find('a[name="delete-contributor"]');
-	const $deleteReferent = $btnGroup.find('a[name="delete-referent"]');
+  {% if organisation in user.profile.referent_for or user.profile.is_admin %}
+  <div class="btn-group dropup">
+    <button type="button" class="btn btn-default dropdown-toggle disabled" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" disabled>
+      Supprimer un statut <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-right">
+      <li class="disabled" disabled>
+        <a role="button" name="delete-member" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de membre</a>
+      </li>
+      <li class="disabled" disabled>
+        <a role="button" name="delete-contributor" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de contributeur</a>
+      </li>
+      <li class="disabled" disabled>
+        <a role="button" name="delete-referent" style="text-align: right;" data-toggle="modal" data-target="#modal">Supprimer le statut de référent technique</a>
+      </li>
+    </ul>
+  </div>
 
-	const $table = $div.find('table');
-	$table.find('tr')
-		.on('row.selected', function(e) {
-			const $row = $(this);
-			const username = $row.attr('id');
-			if (!username) {
-				return;
-			};
+  <template id="template_id_members_modal_confirmation">
+    <div id="id_members_modal_confirmation" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" name="close" class="close" data-dismiss="modal" aria-label="Close">
+              <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            </button>
+            <h4 class="modal-title">Êtes-vous absolument sûr ?</h4>
+          </div>
+          <div class="modal-body">
+            <p>Pour confirmer, veuillez réécrire le nom du compte de l'utilisateur.</p>
+            <input name="username" style="visibility: hidden; display: none;">
+            <input name="target" style="visibility: hidden; display: none;">
+            <input name="confirm_action" type="text" class="form-control" placeholder="Nom du compte de l'utilisateur">
+          </div>
+          <div class="modal-footer">
+            <button name="submit_action" type="button" class="btn btn-danger disabled" disabled>Oui, je confirme</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+          </div>
+        </div>
+        <script>
+        $(function() {
+          const username = $('input[name="username"]').val();
+          const target = $('input[name="target"]').val();
 
-			const isMember = $row.find('td[name="is_member"]').find('.glyphicon-ok').length ? true : false;
-			const isContributor = $row.find('td[name="is_contributor"]').find('.glyphicon-ok').length ? true : false;
-			const isReferent = $row.find('td[name="is_referent"]').find('.glyphicon-ok').length ? true : false;
+          const $submit = $('button[name="submit_action"]')
+            .on('click', function(e) {
+              e.preventDefault();
+              closeAllModalDialog();
+              $.ajax({
+                type: 'DELETE',
+                url: '{% url "idgo_admin:all_members" %}?organisation=' + {{ organisation.id }} + '&username=' + username + '&target=' + target
+              })
+              .done(function(response, textStatus, jqXHR) {
+                const templateContent = $('#template_id_members_modal_success').prop('content');
+                const elt = $(templateContent).clone();
+                elt.find('#id_modal_body_content').html(jqXHR.responseText);
+                $('body').prepend(elt);
+                const $m0dal = $('#id_members_modal_success')
+                  .modal({'backdrop': 'static', 'show': true})
+                  .one('hidden.bs.modal', function() {
+                    location.reload();
+                  });
+              })
+              .fail(function(jqXHR, textStatus, errorThrown) {
+                const templateContent = $('#template_id_members_modal_failure').prop('content');
+                const elt = $(templateContent).clone();
+                elt.find('#id_modal_body_content').html(jqXHR.responseText);
+                $('body').prepend(elt);
+                const $m0dal = $('#id_members_modal_failure')
+                  .modal({'backdrop': 'static', 'show': true})
+                  .one('hidden.bs.modal', function() {
+                    $m0dal.remove();
+                  });
+              });
+              e.stopPropagation();
+            });
 
-			$row.prop('selected', true).addClass('selected');
+          $('input[name="confirm_action"]')
+            .on('input', function(e) {
+              if ($(this).val() === username) {
+                $submit.removeClass('disabled').prop('disabled', false);
+              } else {
+                $submit.addClass('disabled').prop('disabled', true);
+              }
+            });
+        });
+        </script>
+      </div>
+    </div>
+  </template>
 
-			$ckanUserCard.off('click').on('click', function(e) {
-				targetBlank('{{ CKAN_URL }}/user/' + username);
-			})
-			$ckanUserCard.removeClass('disabled').prop('disabled', false);
+  <template id="template_id_members_modal_failure">
+    <div id="id_members_modal_failure" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" name="close" class="close" data-dismiss="modal" aria-label="Close">
+              <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            </button>
+            <h4 class="modal-title">Échec de l'opération</h4>
+          </div>
+          <div class="modal-body">
+            <p>Impossible d'effectuer l'opération demandée pour la raison suivante :</p>
+            <p id="id_modal_body_content"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
 
-			$deleteMember.off('click')
-			if (isMember) {
-				$deleteMember.on('click', function(e) {
-					openModalDelete(username, 'members');
-				});
-				$deleteMember.parent().removeClass('disabled').prop('disabled', false);
-			};
+  <template id="template_id_members_modal_success">
+    <div id="id_members_modal_success" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" name="close" class="close" data-dismiss="modal" aria-label="Close">
+              <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            </button>
+            <h4 class="modal-title">Opération validée</h4>
+          </div>
+          <div class="modal-body">
+            <p id="id_modal_body_content"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
 
-			$deleteContributor.off('click');
-			if (isContributor) {
-				$deleteContributor.on('click', function(e) {
-					openModalDelete(username, 'contributors');
-				});
-				$deleteContributor.parent().removeClass('disabled').prop('disabled', false);
-			};
+  <script>
+  $(function() {
+    const $div = $('#members');
+    const $btnGroup = $div.find('.btn-group');
+    const $dropdownButton = $div.find('.btn-group>button.dropdown-toggle');
+    const $deleteMember = $btnGroup.find('a[name="delete-member"]');
+    const $deleteContributor = $btnGroup.find('a[name="delete-contributor"]');
+    const $deleteReferent = $btnGroup.find('a[name="delete-referent"]');
+    const $table = $div.find('table');
+    $table.find('tr')
+      .on('row.selected', function(e) {
+        const $row = $(this);
+        const username = $row.attr('id');
+        if (username) {
+          const isMember = $row.find('td[name="is_member"]').find('.glyphicon-ok').length ? true : false;
+          const isContributor = $row.find('td[name="is_contributor"]').find('.glyphicon-ok').length ? true : false;
+          const isReferent = $row.find('td[name="is_referent"]').find('.glyphicon-ok').length ? true : false;
 
-			$deleteReferent.off('click');
-			if (isReferent) {
-				$deleteReferent.on('click', function(e) {
-					openModalDelete(username, 'referents');
-				});
-				$deleteReferent.parent().removeClass('disabled').prop('disabled', false);
-			};
+          $deleteMember.off('click')
+          if (isMember) {
+            $deleteMember.on('click', function(e) {
+              openModalDelete(username, 'members');
+            });
+            $deleteMember.parent().removeClass('disabled').prop('disabled', false);
+          }
 
-			$dropdownButton.removeClass('disabled').prop('disabled', false);
+          $deleteContributor.off('click');
+          if (isContributor) {
+            $deleteContributor.on('click', function(e) {
+              openModalDelete(username, 'contributors');
+            });
+            $deleteContributor.parent().removeClass('disabled').prop('disabled', false);
+          }
 
-		})
-		.on('row.unselected', function(e) {
-			const $row = $(this);
-			$row.prop('selected', false).removeClass('selected');
-			$ckanUserCard.addClass('disabled').prop('disabled', true);
-			$deleteMember.parent().addClass('disabled').prop('disabled', true);
-			$deleteContributor.parent().addClass('disabled').prop('disabled', true);
-			$deleteReferent.parent().addClass('disabled').prop('disabled', true);
-			$dropdownButton.addClass('disabled').prop('disabled', true);
-		})
-		.on('click', function(e) {
-			const $that = $table.find('tr:selected');
-			const $this = $(this);
-			if ($that) {
-				$that.trigger('row.unselected');
-				if ($this.index() != $that.index()) {
-					history.pushState(null, null, '#members/' + $this.attr('id'));
-					$this.trigger('row.selected');
-				} else {
-					history.pushState(null, null, '#members');
-				};
-			};
-		});
+          $deleteReferent.off('click');
+          if (isReferent) {
+            $deleteReferent.on('click', function(e) {
+              openModalDelete(username, 'referents');
+            });
+            $deleteReferent.parent().removeClass('disabled').prop('disabled', false);
+          }
 
-		const openModalDelete = function(username, target) {
-			const $button = $('<button/>')
-				.prop('type', 'button')
-				.prop('class', 'btn btn-danger disabled')
-				.prop('disabled', true)
-				.text('Oui, je confirme')
-				.on('click', function(e) {
-					e.preventDefault();
-					closeAllModalDialog();
-					$.ajax({
-						type: 'DELETE',
-						url: '{% url "idgo_admin:all_members" %}?organisation=' + {{ organisation.id }} + '&username=' + username + '&target=' + target
-					})
-					.done(function(response, textStatus, jqXHR) {
-						location.reload();
-					})
-					.fail(function(jqXHR, textStatus, errorThrown) {
-						location.reload();
-					});
-					e.stopPropagation();
-				});
+          $dropdownButton.removeClass('disabled').prop('disabled', false);
+        }
+      })
+      .on('row.unselected', function(e) {
+        $deleteMember.parent().addClass('disabled').prop('disabled', true);
+        $deleteContributor.parent().addClass('disabled').prop('disabled', true);
+        $deleteReferent.parent().addClass('disabled').prop('disabled', true);
+        $dropdownButton.addClass('disabled').prop('disabled', true);
+      });
 
-			const $input = $('<input/>')
-				.prop('type', 'text')
-				.prop('class', 'form-control')
-				.prop('placeholder', 'Nom du compte de l\'utilisateur')
-				.on('input', function(e) {
-					if ($(this).val() === username) {
-						$button.removeClass('disabled').prop('disabled', false);
-					} else {
-						$button.addClass('disabled').prop('disabled', true);
-					};
-				});
+      const openModalDelete = function(username, target) {
 
-			$modal.find('.modal-title').text('Êtes-vous absolument sûr ?');
-			$modal.find('.modal-body')
-				.append($('<form/>')
-					.append($('<div/>').prop('class', 'form-group')
-						.append('<p>Pour confirmer, veuillez réécrire le nom du compte de l\'utilisateur.</p>').append($input))
-					.append($('<div class="buttons-on-the-right-side">')
-						.append($button).append('<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>')));
+        const templateContent = $('#template_id_members_modal_confirmation').prop('content');
+        const elt = $(templateContent).clone();
+        $(elt.find('input[name="username"]')).val(username);
+        $(elt.find('input[name="target"]')).val(target);
+        $('body').prepend(elt);
+        const $m0dal = $('#id_members_modal_confirmation')
+          .modal({'backdrop': 'static', 'show': true})
+          .one('hidden.bs.modal', function() {
+            $m0dal.remove();
+          });
 
-			$modal.modal('show');
-		};
-
-});
-</script>
-{% endif %}
+      };
+  });
+  </script>{% endif %}
+</div>{% endif %}

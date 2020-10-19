@@ -215,45 +215,70 @@ def delete_account(request):
 class ReferentAccountManager(View):
 
     def delete(self, request, *args, **kwargs):
-
-        # TODO Better
-
         user = request.user
 
         organisation_id = request.GET.get('organisation')
         username = request.GET.get('username')
         target = request.GET.get('target')
-        if not organisation_id or not username or target not in ['members', 'contributors', 'referents']:
+        if not organisation_id \
+                or not username \
+                or target not in ['members', 'contributors', 'referents']:
             raise Http404()
 
-        profile = get_object_or_404(Profile, user__username=username)
-        organisation = get_object_or_404(Organisation, id=organisation_id)
-        if profile.get_roles(organisation=organisation)["is_referent"] and not user.profile.is_admin:
-            return HttpResponseForbidden()
+        target_profile = get_object_or_404(Profile, user__username=username)
+        target_organisation = get_object_or_404(Organisation, id=organisation_id)
 
-        if target == 'members':
-            if profile.organisation != organisation:
-                raise Http404()
+        if target_organisation in user.profile.referent_for \
+                or user.profile.is_admin:
+            # Seuls les référents et administrateur peuvent modifier
+            # les statuts des autres utilisateurs.
 
-            profile.organisation = None
-            profile.membership = False
-            profile.save()
-            message = "L'utilisateur <strong>{0}</strong> n'est plus membre de <strong>{1}</strong>.".format(username, organisation.legal_name)
-            messages.success(request, message)
+            if target_profile == user.profile:
+                # Un référent/administrateur peut modifier son propre statut.
+                pass
 
-        if target == 'contributors':
-            instance = get_object_or_404(LiaisonsContributeurs, profile=profile, organisation=organisation)
-            instance.delete()
-            message = "L'utilisateur <strong>{0}</strong> n'est plus contributeur de <strong>{1}</strong>.".format(username, organisation.legal_name)
-            messages.success(request, message)
+            elif target_profile.get_roles(organisation=target_organisation)['is_referent'] \
+                    or target_profile.is_admin:
+                # Un référent/administrateur ne peut pas modifier
+                # les statuts d'un autre référent/administrateur.
+                content = "Vous n'avez pas les droits nécessaires."
+                return HttpResponseForbidden(content)
 
-        if target == 'referents' and user.profile.is_admin:
-            instance = get_object_or_404(LiaisonsReferents, profile=profile, organisation=organisation)
-            instance.delete()
-            message = "L'utilisateur <strong>{0}</strong> n'est plus référent technique de <strong>{1}</strong>.".format(username, organisation.legal_name)
-            messages.success(request, message)
+            if target == 'members':
+                target_profile.organisation = None
+                target_profile.membership = False
+                target_profile.save()
+                content = (
+                    "L'utilisateur <strong>{username}</strong> "
+                    "n'est plus membre de <strong>{organisation}</strong>."
+                    ).format(
+                        username=username,
+                        organisation=target_organisation.legal_name)
+            elif target == 'contributors':
+                instance = get_object_or_404(
+                    LiaisonsContributeurs,
+                    profile=target_profile,
+                    organisation=target_organisation)
+                instance.delete()
+                content = (
+                    "L'utilisateur <strong>{username}</strong> "
+                    "n'est plus contributeur de <strong>{organisation}</strong>."
+                    ).format(username=username, organisation=target_organisation.legal_name)
+            elif target == 'referents':
+                instance = get_object_or_404(
+                    LiaisonsReferents,
+                    profile=target_profile,
+                    organisation=target_organisation)
+                instance.delete()
+                content = (
+                    "L'utilisateur <strong>{username}</strong> "
+                    "n'est plus référent technique de <strong>{organisation}</strong>."
+                    ).format(username=username, organisation=target_organisation.legal_name)
 
-        return HttpResponse(status=200)
+            return HttpResponse(content, status=200)
+        # else:
+        content = "Vous n'avez pas les droits nécessaires."
+        return HttpResponseForbidden(content)
 
 
 @method_decorator(decorators[0], name='dispatch')
