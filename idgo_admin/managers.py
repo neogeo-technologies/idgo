@@ -113,7 +113,8 @@ if ENABLE_CKAN_HARVESTER:
                 'remote_instance': remote_instance,
                 'remote_dataset': remote_dataset,
                 'remote_organisation': remote_organisation,
-                'remote_organisation__in': remote_organisation__in})
+                'remote_organisation__in': remote_organisation__in,
+                })
             if kvp:
                 Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
                 RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
@@ -254,6 +255,7 @@ if ENABLE_DCAT_HARVESTER:
         def create(self, **kwargs):
             remote_instance = kwargs.pop('remote_instance', None)
             remote_dataset = kwargs.pop('remote_dataset', None)
+            remote_organisation = kwargs.pop('remote_organisation', None)
 
             # Dans un premier temps on crée le jeu de données sans le synchroniser à DCAT
             Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
@@ -267,6 +269,7 @@ if ENABLE_DCAT_HARVESTER:
                 dataset=dataset,
                 remote_instance=remote_instance,
                 remote_dataset=remote_dataset,
+                remote_organisation=remote_organisation,
                 )
 
             # Enfin on met à jour le jeu de données et on le synchronize avec DCAT
@@ -279,10 +282,14 @@ if ENABLE_DCAT_HARVESTER:
         def filter(self, **kwargs):
             remote_instance = kwargs.pop('remote_instance', None)
             remote_dataset = kwargs.pop('remote_dataset', None)
+            remote_organisation = kwargs.pop('remote_organisation', None)
+            remote_organisation__in = kwargs.pop('remote_organisation__in', None)
 
             kvp = clean_my_obj({
                 'remote_instance': remote_instance,
                 'remote_dataset': remote_dataset,
+                'remote_organisation': remote_organisation,
+                'remote_organisation__in': remote_organisation__in,
                 })
             if kvp:
                 Dataset = apps.get_model(app_label='idgo_admin', model_name='Dataset')
@@ -321,7 +328,7 @@ if ENABLE_DCAT_HARVESTER:
                 created = False
                 harvested = RemoteDataset.objects.get(dataset=dataset)
                 harvested.updated_on = timezone.now()
-                # harvested.remote_organisation = kwargs.pop('remote_organisation', None)
+                harvested.remote_organisation = kwargs.pop('remote_organisation', None)
                 harvested.save()
 
                 for k, v in kwargs.items():
