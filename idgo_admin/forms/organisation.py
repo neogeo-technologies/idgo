@@ -374,8 +374,8 @@ if ENABLE_CSW_HARVESTER:
 from idgo_admin import ENABLE_DCAT_HARVESTER  # noqa
 if ENABLE_DCAT_HARVESTER:
 
-    # from idgo_admin.dcat_module import DcatBaseHandler
-    # from idgo_admin.exceptions import DcatBaseError
+    from idgo_admin.dcat_module import DcatBaseHandler
+    from idgo_admin.dcat_module import DcatBaseError
     from idgo_admin.models import RemoteDcat
 
     # =================================
@@ -388,6 +388,7 @@ if ENABLE_DCAT_HARVESTER:
             model = RemoteDcat
             fields = (
                 'url',
+                'sync_with',
                 'sync_frequency',
                 )
             mapping = tuple()
@@ -406,6 +407,17 @@ if ENABLE_DCAT_HARVESTER:
                 ),
             )
 
+        sync_with = forms.MultipleChoiceField(
+            label="Organisations à synchroniser*",
+            required=False,
+            choices=(),
+            widget=CustomCheckboxSelectMultiple(
+                attrs={
+                    'class': 'list-group-checkbox',
+                    },
+                ),
+            )
+
         sync_frequency = forms.ChoiceField(
             label="Fréquence de synchronisation*",
             required=True,
@@ -420,6 +432,17 @@ if ENABLE_DCAT_HARVESTER:
             instance = kwargs.get('instance', None)
             if instance and instance.url:
                 self.fields['url'].widget.attrs['readonly'] = True
+                # Récupérer la liste des organisations
+                try:
+                    with DcatBaseHandler(instance.url) as dcat:
+                        organisations = dcat.get_all_publishers(
+                            include_dataset_count=True)
+                except CkanBaseError as e:
+                    self.add_error('url', e.message)
+                else:
+                    self.fields['sync_with'].choices = tuple(
+                        (m['name'], '%s (%d)' % (m['name'], m['count']))
+                        for m in organisations)
 
                 # mapping = []
                 #
@@ -498,6 +521,7 @@ if ENABLE_DCAT_HARVESTER:
                 #         })
 
             else:
+                self.fields['sync_with'].widget = forms.HiddenInput()
                 self.fields['sync_frequency'].widget = forms.HiddenInput()
 
         # def get_category_fields(self):

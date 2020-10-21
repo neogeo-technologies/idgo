@@ -551,8 +551,25 @@ class DcatBaseHandler(object):
         return xml_dict
 
     @DcatExceptionsHandler()
-    def get_packages(self):
+    def get_all_publishers(self, include_dataset_count=False):
+        lst = []
+        for dataset_ref in self.profile._datasets():
+            publisher = self.profile._object_value(
+                self.profile._object(dataset_ref, DCT.publisher), RDFS.label)
+            lst.append(str(publisher))
+
+        orgs = []
+        for org in [m for n, m in enumerate(lst, 1) if m not in lst[n:]]:
+            orgs.append({'name': org, 'count': lst.count(org)})
+        return orgs
+
+    @DcatExceptionsHandler()
+    def get_packages(self, publishers=None):
         for dataset_ref in self.graph.subjects(RDF.type, DCAT.Dataset):
+            publisher = self.profile._object_value(
+                self.profile._object(dataset_ref, DCT.publisher), RDFS.label)
+            if publishers and publisher not in publishers:
+                continue
             dataset_dict = {'state': 'active',
                             'type': 'dataset',
                             'id': None,
@@ -587,4 +604,5 @@ class DcatBaseHandler(object):
                             }
             dataset_dict = self.profile.parse_dataset(dataset_dict, dataset_ref)
             # dataset_dict['xml'] = self.xml_dict.pop(dataset_dict['id'])
+            dataset_dict['publisher'] = str(publisher)
             yield dataset_dict

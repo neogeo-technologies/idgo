@@ -34,6 +34,30 @@
 			{% bootstrap_field form.sync_frequency %}
 		</div>
 	</div>
+  {% for field in form.visible_fields %}
+		{% if field.name == 'sync_with' %}
+	<div class="row">
+		<div class="col-sm-10 col-md-8">
+			<div class="form-group{% if form.sync_with.errors %} has-error{% endif %}">
+				<label for="id_{{ form.sync_with.name }}" class="control-label">{{ form.sync_with.label }}</label>
+			{% if form.sync_with.errors %}
+				<div class="panel panel-default">
+					<div class="panel-body">
+				{% for text in form.sync_with.errors reversed %}
+						<div class="help-block">
+							<span class="glyphicon glyphicon-warning-sign"></span> {{ text }}
+						</div>
+				{% endfor %}
+					</div>
+				</div>
+			{% else %}
+				{{ form.sync_with }}
+			{% endif %}
+			</div>
+		</div>
+	</div>
+		{% endif %}
+	{% endfor %}
 	{% if form.url.value %}
 	<!--
 	<label>Correspondance des catégories et licences</label>
