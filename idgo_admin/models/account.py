@@ -100,6 +100,7 @@ class Profile(models.Model):
 
     sftp_password = models.CharField(
         verbose_name="Mot de passe sFTP",
+        default="CHANGEME",
         max_length=10,
         blank=True,
         null=True,
