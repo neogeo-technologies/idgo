@@ -407,9 +407,14 @@ class EuropeanDCATAPProfile(RDFProfile):
         for tag in tags_val:
             if not tag:
                 continue
+            if len(tag) < 3:
+                logger.warning("Tag '%s' length is less than minimum 2." % tag)
+                continue
             keyword_match = re.compile('[\w\s\-.]*$', re.UNICODE)
             if keyword_match.match(tag):
                 tags.append({'display_name': tag})
+            else:
+                logger.warning("Tag '%s' must be alphanumeric characters or symbols: -_." % tag)
 
         dataset_dict['tags'] = tags
         dataset_dict['num_tags'] = len(tags)
