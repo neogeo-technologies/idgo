@@ -820,7 +820,7 @@ class Resource(models.Model):
                           synchronize=True,
                           update_fields=['date_modification'])
 
-    def delete(self, *args, current_user=None, **kwargs):
+    def delete(self, *args, current_user=None, synchronize_dataset=True, **kwargs):
         with_user = current_user
 
         for layer in self.get_layers():
@@ -840,9 +840,10 @@ class Resource(models.Model):
         # On supprime l'instance
         super().delete(*args, **kwargs)
 
+        # Ce n'est vraiment pas une bonne idée de synchroniser ici le dataset :
         self.dataset.date_modification = timezone.now().date()
         self.dataset.save(current_user=current_user,
-                          synchronize=True,
+                          synchronize=synchronize_dataset,
                           update_fields=['date_modification'])
 
     # Autres méthodes
