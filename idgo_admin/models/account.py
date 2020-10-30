@@ -151,7 +151,7 @@ class Profile(models.Model):
         return self.is_admin and self.crige_membership
 
     @property
-    def is_idgo_member(self):
+    def is_idgo_partner(self):
         return self.crige_membership
 
     @property

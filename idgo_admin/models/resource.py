@@ -256,6 +256,7 @@ class Resource(models.Model):
         ('only_allowed_users', 'Utilisateurs authentifiés avec droits spécifiques'),
         ('same_organization', 'Utilisateurs de cette organisation uniquement'),
         ('any_organization', 'Organisations spécifiées'),
+        ('only_idgo_partners', 'Tous les adhérents'),
     )
 
     restricted_level = models.CharField(
@@ -875,9 +876,11 @@ class Resource(models.Model):
         # (0) Aucune restriction
         if self.restricted_level == 'public':
             restricted = json.dumps({'level': 'public'})
+
         # (1) Uniquement pour un utilisateur connecté
         elif self.restricted_level == 'registered':
             restricted = json.dumps({'level': 'registered'})
+
         # (2) Seulement les utilisateurs indiquées
         elif self.restricted_level == 'only_allowed_users':
             restricted = json.dumps({
@@ -886,6 +889,7 @@ class Resource(models.Model):
                         p.user.username for p
                         in self.profiles_allowed.all()] or []),
                 'level': 'only_allowed_users'})
+
         # (3) Les utilisateurs de cette organisation
         elif self.restricted_level == 'same_organization':
             restricted = json.dumps({
@@ -893,6 +897,7 @@ class Resource(models.Model):
                     get_all_users_for_organisations(
                         self.organisations_allowed.all())),
                 'level': 'only_allowed_users'})
+
         # (3) Les utilisateurs des organisations indiquées
         elif self.restricted_level == 'any_organization':
             restricted = json.dumps({
@@ -900,6 +905,12 @@ class Resource(models.Model):
                     get_all_users_for_organisations(
                         self.organisations_allowed.all())),
                 'level': 'only_allowed_users'})
+
+        # (4) Les utilisateurs partenaires IDGO
+        elif self.restricted_level == 'only_idgo_partners':
+            restricted = json.dumps({
+                'allowed_groups': ['idgo-partner'],
+                'level': 'only_group_member'})
 
         data['restricted'] = restricted
 
@@ -961,6 +972,7 @@ class Resource(models.Model):
         Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
         if not user.pk:
             raise IntegrityError('User does not exists')
+
         if self.restricted_level == 'only_allowed_users' and self.profiles_allowed.exists():
             return user in [
                 p.user for p in self.profiles_allowed.all()]
@@ -968,6 +980,9 @@ class Resource(models.Model):
             return user in [p.user for p in Profile.objects.filter(
                 organisation__in=self.organisations_allowed.all(),
                 organisation__is_active=True)]
+        elif self.restricted_level == 'only_idgo_partners':
+            return user in [p.user for p in Profile.objects.filter(is_idgo_partner=True)]
+
         return True
 
 
