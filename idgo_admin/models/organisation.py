@@ -263,7 +263,7 @@ class Organisation(models.Model):
             'is_member': Profile.objects.filter(organisation=self.pk, id=member.id).exists(),
             'is_contributor': LiaisonsContributeurs.objects.filter(profile=member, organisation__id=self.pk, validated_on__isnull=False).exists(),
             'is_referent': LiaisonsReferents.objects.filter(profile=member, organisation__id=self.pk, validated_on__isnull=False).exists(),
-            'is_idgo_member': member.is_idgo_member,
+            'is_idgo_partner': member.is_idgo_partner,
             'datasets_count': len(Dataset.objects.filter(organisation=self.pk, editor=member.user)),
             'profile_id': member.id
             } for member in profiles]
