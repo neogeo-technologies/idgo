@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='resource',
             name='ftp_file',
-            field=models.FileField(blank=True, max_length=255, null=True, upload_to=idgo_admin.models.resource._ftp_file_upload_to, verbose_name='Fichier déposé sur FTP'),
+            field=models.FileField(blank=True, max_length=255, null=True, upload_to=idgo_admin.models.resource._ftp_file_upload_to, verbose_name='Fichier déposé sur sFTP'),
         ),
         migrations.AlterField(
             model_name='resource',

@@ -187,7 +187,7 @@ class ResourceForm(forms.ModelForm):
         )
 
     ftp_file = forms.ChoiceField(
-        label="Les fichiers que vous avez déposés sur votre compte FTP apparaîssent dans la liste ci-dessous :",
+        label="Les fichiers que vous avez déposés sur votre compte sFTP apparaîssent dans la liste ci-dessous :",
         required=False,
         choices=[],
         )
@@ -382,7 +382,7 @@ class ResourceForm(forms.ModelForm):
                     instance.ftp_file.file
                 except FileNotFoundError:
                     self.fields['ftp_file'] = forms.CharField(
-                        label="Fichier initialement déposé sur votre compte FTP (ce fichier n'est plus détecté) :",
+                        label="Fichier initialement déposé sur votre compte sFTP (ce fichier n'est plus détecté) :",
                         required=False,
                         widget=forms.TextInput(
                             attrs={

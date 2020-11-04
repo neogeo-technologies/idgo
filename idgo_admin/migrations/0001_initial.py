@@ -431,7 +431,7 @@ class Migration(migrations.Migration):
                 ('ckan_id', models.UUIDField(default=uuid.uuid4, editable=False, unique=True, verbose_name='Ckan UUID')),
                 ('title', models.TextField(verbose_name='Title')),
                 ('description', models.TextField(blank=True, null=True, verbose_name='Description')),
-                ('ftp_file', models.FileField(blank=True, null=True, upload_to=idgo_admin.models.resource._ftp_file_upload_to, verbose_name='Fichier déposé sur FTP')),
+                ('ftp_file', models.FileField(blank=True, null=True, upload_to=idgo_admin.models.resource._ftp_file_upload_to, verbose_name='Fichier déposé sur sFTP')),
                 ('referenced_url', models.URLField(blank=True, max_length=2000, null=True, verbose_name='Référencer une URL')),
                 ('dl_url', models.URLField(blank=True, max_length=2000, null=True, verbose_name='Télécharger depuis une URL')),
                 ('up_file', models.FileField(blank=True, null=True, upload_to=idgo_admin.models.resource._up_file_upload_to, verbose_name='Téléverser un ou plusieurs fichiers')),

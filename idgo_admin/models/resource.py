@@ -199,7 +199,7 @@ class Resource(models.Model):
         )
 
     ftp_file = models.FileField(
-        verbose_name='Fichier déposé sur FTP',
+        verbose_name='Fichier déposé sur sFTP',
         blank=True,
         null=True,
         upload_to=_ftp_file_upload_to,

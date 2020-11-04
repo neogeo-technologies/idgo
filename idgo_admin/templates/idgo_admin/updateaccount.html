@@ -64,17 +64,17 @@
 
 {% if ENABLE_FTP_ACCOUNT and DISPLAY_FTP_ACCOUNT_MANAGER %}
 <div class="well">
-  <h4 class="modal-title">Compte FTP</h4>
+  <h4 class="modal-title">Compte sFTP</h4>
   <br />
 {% if not user.profile.is_ftp_account_exists %}
-  <p>Votre compte FTP n'est pas encore activé.</p>
-  <a class="btn btn-default" href="{% url "idgo_admin:create_sftp_account" %}">Créer mon compte FTP</a>
+  <p>Votre compte sFTP n'est pas encore activé.</p>
+  <a class="btn btn-default" href="{% url "idgo_admin:create_sftp_account" %}">Créer mon compte sFTP</a>
 {% else %}
-  <p>Adresse FTP : <strong>{{ FTP_URL }}</strong></p>
-    <p>Votre compte FTP est activé : <em>compte utilisateur</em> <strong>{% settings_value "FTP_USER_PREFIX" %}{{ user.username }}</strong> {% if not user.profile.change_password_allowed %} / <em>mot de passe</em> <strong>{{ user.profile.sftp_password }}</strong>{% endif %}</p>
-    <p>Attention, l'accès à ce compte FTP est sécurisé. Il ne peut se faire qu'avec le protocole SFTP (sur le port {% settings_value "SFTP_PORT" "22" %}), donc avec une application spécifique comme FileZilla (<a class="link" href="https://filezilla-project.org">https://filezilla-project.org</a>)</p>
-  <a class="btn btn-default" href="{% url "idgo_admin:delete_sftp_account" %}">Supprimer mon compte FTP</a></li>
-{% if user.profile.change_password_allowed %} <a class="btn btn-default" href="{% url "idgo_admin:change_sftp_password" %}">Générer nouveau mot de passe FTP</a></li> {% endif %}
+  <p>Adresse sFTP : <strong>{{ FTP_URL }}</strong></p>
+    <p>Votre compte sFTP est activé : <em>compte utilisateur</em> <strong>{% settings_value "FTP_USER_PREFIX" %}{{ user.username }}</strong> {% if not user.profile.change_password_allowed %} / <em>mot de passe</em> <strong>{{ user.profile.sftp_password }}</strong>{% endif %}</p>
+    <p>Attention, l'accès à ce compte sFTP est sécurisé. Il ne peut se faire qu'avec le protocole sFTP (sur le port {% settings_value "SFTP_PORT" "22" %}), donc avec une application spécifique comme FileZilla (<a class="link" href="https://filezilla-project.org">https://filezilla-project.org</a>)</p>
+  <a class="btn btn-default" href="{% url "idgo_admin:delete_sftp_account" %}">Supprimer mon compte sFTP</a></li>
+{% if user.profile.change_password_allowed %} <a class="btn btn-default" href="{% url "idgo_admin:change_sftp_password" %}">Générer nouveau mot de passe sFTP</a></li> {% endif %}
 {% endif %}
 </div>
 {% endif %}

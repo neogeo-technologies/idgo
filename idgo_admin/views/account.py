@@ -444,19 +444,19 @@ def create_sftp_account(request):
         print(e)
         # TODO: Géré les exceptions
         messages.error(
-            request, 'Une erreur est survenue lors de la création de votre compte FTP.')
+            request, "Une erreur est survenue lors de la création de votre compte sFTP.")
     else:
         if password:
             messages.success(request, (
-                'Le compte FTP a été créé avec succès. '
+                "Le compte sFTP a été créé avec succès. "
                 "Notez-le, il ne vous sera plus jamais communiqué."
-                'Votre mot de passe est {password}'.format(password=password)))
+                "Votre mot de passe est {password}".format(password=password)))
         else:
 
             messages.success(request, (
-                'Le compte FTP a été créé avec succès. '
+                "Le compte sFTP a été créé avec succès. "
                 "Le processus d'activation peut prendre quelques minutes. "
-                'Un mot de passe a été généré automatiquement. '
+                "Un mot de passe a été généré automatiquement. "
                 "Celui-ci n'est pas modifiable."))
 
     return redirect('idgo_admin:update_account')
@@ -475,7 +475,7 @@ def change_sftp_password(request):
         print(e)
         # TODO: Géré les exceptions
         messages.error(
-            request, 'Une erreur est survenue lors de la création de votre compte FTP.')
+            request, "Une erreur est survenue lors de la création de votre compte sFTP.")
     else:
         if password:
             messages.success(request, (
@@ -484,9 +484,9 @@ def change_sftp_password(request):
         else:
 
             messages.success(request, (
-                'Le compte FTP a été créé avec succès. '
+                "Le compte sFTP a été créé avec succès. "
                 "Le processus d'activation peut prendre quelques minutes. "
-                'Un mot de passe a été généré automatiquement. '
+                "Un mot de passe a été généré automatiquement. "
                 "Celui-ci n'est pas modifiable."))
 
     return redirect('idgo_admin:update_account')
@@ -504,8 +504,8 @@ def delete_sftp_account(request):
         print(e)
         # TODO: Géré les exceptions
         messages.error(
-            request, 'Une erreur est survenue lors de la suppression de votre compte FTP.')
+            request, "Une erreur est survenue lors de la suppression de votre compte sFTP.")
     else:
-        messages.success(request, 'Le compte FTP a été supprimé avec succès.')
+        messages.success(request, "Le compte sFTP a été supprimé avec succès.")
 
     return redirect('idgo_admin:update_account')

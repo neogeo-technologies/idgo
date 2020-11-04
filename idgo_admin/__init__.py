@@ -91,6 +91,7 @@ OPTIONAL = (
     ('EXTRACTOR_BOUNDS', [[40, -14], [55, 28]]),
     ('PHONE_REGEX', '^0\d{9}$'),
     ('FTP_URL', None),
+    ('FTP_PORT', None),
     ('FTP_MECHANISM', 'cgi'),
     ('FTP_MECHANISM', ''),
     ('FTP_UPLOADS_DIR', 'uploads'),

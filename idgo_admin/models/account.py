@@ -215,7 +215,7 @@ class Profile(models.Model):
     def awaiting_referent_statut(self):
         return LiaisonsReferents.get_pending(profile=self)
 
-    # Actions sur le compte FTP
+    # Actions sur le compte sFTP
 
     @property
     def change_password_allowed(self):
