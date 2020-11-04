@@ -7,72 +7,72 @@
 
 {% block breadcrumb_content %}
 <ol class="breadcrumb">
-	<li>
-		<span class="glyphicon glyphicon-home"></span>
-	</li>
-	<li>
-		<a href="{% url 'idgo_admin:show_organisation' id=organisation.id %}">Organisations</a>
-	</li>
-	<li class="active">
-		<a href="{% url 'idgo_admin:update_organisation' id=organisation.id %}">{{ organisation.legal_name }}</a>
-	</li>
-	<li class="active">Édition de la fiche de métadonnées de service INSPIRE</li>
+  <li>
+    <span class="glyphicon glyphicon-home"></span>
+  </li>
+  <li>
+    <a href="{% url 'idgo_admin:show_organisation' id=organisation.id %}">Organisations</a>
+  </li>
+  <li class="active">
+    <a href="{% url 'idgo_admin:update_organisation' id=organisation.id %}">{{ organisation.legal_name }}</a>
+  </li>
+  <li class="active">Édition de la fiche de métadonnées de service INSPIRE</li>
 </ol>
 {% endblock breadcrumb_content %}
 
 {% block main %}
 <div ng-app="mdEdit">
-	<div class="main-container" ng-controller="mdEditCtrl as vm">
-		<div class="container ng-scope">
-			<div class="row">
-				<div class="col-md-offset-0 col-md-12">
-					{% if messages %}
-						{% for message in messages %}
-							{% if message.tags == 'success' %}
-							<div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
-							{% elif message.tags == 'error' %}
-							<div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
-							{% endif %}
-						{% endfor %}
-					{% endif %}
-					<div class="well">
-						<div class="buttons-on-the-right-side">
-							<span ng-show="vm.data.view == 1" ng-hide="vm.data.view == 3">{% if READTHEDOC_URL %}
-								<a role="button" class="btn btn-default" target="_blank" href="{{ READTHEDOC_URL }}">
-									<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
-								</a>{% endif %}
-								<a href="#" role="button" class="btn btn-default" ng-init="vm.showAllFields=False" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="!vm.showAllFields" uib-tooltip="Permuter vers l'affichage complet" tooltip-trigger="mouseenter" tooltip-placement="left">
-									<span class="glyphicon glyphicon-th"></span>
-								</a>
-								<a href="#" role="button" class="btn btn-default" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="vm.showAllFields" uib-tooltip="Revenir à l'affichage simple" tooltip-trigger="mouseenter" tooltip-placement="left">
-									<span class="glyphicon glyphicon-th-large"></span>
-								</a>
-							</span>
-							<a href="#" role="button" class="btn btn-default" ng-click="vm.changeView(1)" uib-tooltip="Revenir au mode d'édition" tooltip-trigger="mouseenter" tooltip-placement="left" ng-hide="vm.data.view == 1">
-								<span class="glyphicon glyphicon-pencil"></span>
-							</a>
-							<a href="#" role="button" class="btn btn-default" ng-click="vm.changeView(2)" uib-tooltip="Permuter vers le mode de visualisation" tooltip-trigger="mouseenter" tooltip-placement="left" ng-hide="vm.data.view != 1">
-								<span class="glyphicon glyphicon-eye-open"></span>
-							</a>
-						</div>
-						<br />
-						<div ng-hide="vm.data.pageLoaded" id="alert" class="" role="alert">
-							<uib-progressbar class="progress-striped active" value="100" type="info">Chargement...</uib-progressbar>
-						</div>
-						<form name="mdedit">
-							<div id="content" ng-include="vm.data.template_url">
-								<!-- Content -->
-							</div>
-							<div class="buttons-on-the-right-side">
-								<a class="btn btn-default" target="_self" href="{% url 'idgo_admin:show_organisation' id=organisation.id %}">Annuler</a>
-								<button id="validate" type="button" class="btn btn-primary">Enregistrer</button>
-							</div>
-						</form>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+  <div class="main-container" ng-controller="mdEditCtrl as vm">
+    <div class="container ng-scope">
+      <div class="row">
+        <div class="col-md-offset-0 col-md-12">
+          {% if messages %}
+            {% for message in messages %}
+              {% if message.tags == 'success' %}
+              <div class="alert alert-success" role="alert">{{ message | escape | safe }}</div>
+              {% elif message.tags == 'error' %}
+              <div class="alert alert-danger" role="alert">{{ message | escape | safe }}</div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          <div class="well">
+            <div class="buttons-on-the-right-side">
+              <span ng-show="vm.data.view == 1" ng-hide="vm.data.view == 3">{% if READTHEDOC_URL %}
+                <a role="button" class="btn btn-default" target="_blank" href="{{ READTHEDOC_URL }}">
+                  <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
+                </a>{% endif %}
+                <a href="#" role="button" class="btn btn-default" ng-init="vm.showAllFields=False" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="!vm.showAllFields" uib-tooltip="Permuter vers l'affichage complet" tooltip-trigger="mouseenter" tooltip-placement="left">
+                  <span class="glyphicon glyphicon-th"></span>
+                </a>
+                <a href="#" role="button" class="btn btn-default" ng-click="vm.showAllFields = !vm.showAllFields" ng-show="vm.showAllFields" uib-tooltip="Revenir à l'affichage simple" tooltip-trigger="mouseenter" tooltip-placement="left">
+                  <span class="glyphicon glyphicon-th-large"></span>
+                </a>
+              </span>
+              <a href="#" role="button" class="btn btn-default" ng-click="vm.changeView(1)" uib-tooltip="Revenir au mode d'édition" tooltip-trigger="mouseenter" tooltip-placement="left" ng-hide="vm.data.view == 1">
+                <span class="glyphicon glyphicon-pencil"></span>
+              </a>
+              <a href="#" role="button" class="btn btn-default" ng-click="vm.changeView(2)" uib-tooltip="Permuter vers le mode de visualisation" tooltip-trigger="mouseenter" tooltip-placement="left" ng-hide="vm.data.view != 1">
+                <span class="glyphicon glyphicon-eye-open"></span>
+              </a>
+            </div>
+            <br />
+            <div ng-hide="vm.data.pageLoaded" id="alert" class="" role="alert">
+              <uib-progressbar class="progress-striped active" value="100" type="info">Chargement...</uib-progressbar>
+            </div>
+            <form name="mdedit">
+              <div id="content" ng-include="vm.data.template_url">
+                <!-- Content -->
+              </div>
+              <div class="buttons-on-the-right-side">
+                <a class="btn btn-default" target="_self" href="{% url 'idgo_admin:show_organisation' id=organisation.id %}">Annuler</a>
+                <button id="validate" type="button" class="btn btn-primary">Enregistrer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="{% static "libs/mdedit/lib/showdown/showdown.min.js" %}"></script>
@@ -88,34 +88,34 @@ angular.module('mdEdit.directives', []);
 angular.module('mdEdit', ['ui.bootstrap', 'mdEdit.services', 'mdEdit.directives', 'mdEdit.filters', 'modalDoc']);
 
 angular.module('mdEdit.directives').config(function($locationProvider) {
-	$locationProvider.html5Mode(true);
+  $locationProvider.html5Mode(true);
 });
 
 angular.module('mdEdit').run(['configSrv', 'modelsSrv', 'viewsSrv', 'xmlSrv', 'AppDataSrv', 'BroadcastSrv', runApp]);
 
 function runApp(configSrv, modelsSrv, viewsSrv, xmlSrv, AppDataSrv, BroadcastSrv) {
-	AppDataSrv.config = {{ config | safe }};
+  AppDataSrv.config = {{ config | safe }};
 
-	AppDataSrv.locales = AppDataSrv.config.languages;
-	AppDataSrv.userLanguage = AppDataSrv.config.defaultLanguage;
-	AppDataSrv.ui = AppDataSrv.config.locales.ui;
-	AppDataSrv.md_errors = AppDataSrv.config.locales.md_errors;
-	AppDataSrv.codelists = AppDataSrv.config.locales.codelists;
+  AppDataSrv.locales = AppDataSrv.config.languages;
+  AppDataSrv.userLanguage = AppDataSrv.config.defaultLanguage;
+  AppDataSrv.ui = AppDataSrv.config.locales.ui;
+  AppDataSrv.md_errors = AppDataSrv.config.locales.md_errors;
+  AppDataSrv.codelists = AppDataSrv.config.locales.codelists;
 
-	AppDataSrv.views = AppDataSrv.config.views.list;
-	viewsSrv.getViewLocales(false, AppDataSrv.views, AppDataSrv.userLanguage, function(view, data) {
-		AppDataSrv.view = view;
-		AppDataSrv.fields = data.fields;
-	});
+  AppDataSrv.views = AppDataSrv.config.views.list;
+  viewsSrv.getViewLocales(false, AppDataSrv.views, AppDataSrv.userLanguage, function(view, data) {
+    AppDataSrv.view = view;
+    AppDataSrv.fields = data.fields;
+  });
 
-	AppDataSrv.models = AppDataSrv.config.models.list;
-	if (xmlSrv.getXml()) {
-		BroadcastSrv.send('configLoaded');
-	} else {
-		modelsSrv.getModel(AppDataSrv.models, false, function(model) {
-			BroadcastSrv.send('configLoaded');
-		});
-	};
+  AppDataSrv.models = AppDataSrv.config.models.list;
+  if (xmlSrv.getXml()) {
+    BroadcastSrv.send('configLoaded');
+  } else {
+    modelsSrv.getModel(AppDataSrv.models, false, function(model) {
+      BroadcastSrv.send('configLoaded');
+    });
+  };
 };
 </script>
 <script src="{% static "libs/mdedit/app/mdEdit.controllers.js" %}"></script>
@@ -157,34 +157,34 @@ function runApp(configSrv, modelsSrv, viewsSrv, xmlSrv, AppDataSrv, BroadcastSrv
 <script src="{% static "libs/mdedit/app/modalDoc.module/modalDoc.services.js" %}"></script>
 <script>
 $(function() {
-	$('#menu a[href="{% url 'idgo_admin:show_organisation' id=organisation.id %}"]').parent().addClass('active');
+  $('#menu a[href="{% url 'idgo_admin:show_organisation' id=organisation.id %}"]').parent().addClass('active');
 
-	const $scope = angular.element('div[ng-controller="mdEditCtrl as vm"]').scope();
+  const $scope = angular.element('div[ng-controller="mdEditCtrl as vm"]').scope();
 
-	{% if record_xml %}
-	$scope.vm.record = '{{ record_xml | safe }}';
-	{% elif record_obj %}
-	$scope.vm.record = {{ record_obj | safe }};
-	{% endif %}
+  {% if record_xml %}
+  $scope.vm.record = '{{ record_xml | safe }}';
+  {% elif record_obj %}
+  $scope.vm.record = {{ record_obj | safe }};
+  {% endif %}
 
-	$('#validate').click(function(e) {
-		e.preventDefault();
-		$modalHourglass.one('show.bs.modal', function(e) {
-			$.ajax({
-				type: 'POST',
-				data: $scope.vm.getXml(),
-				contentType: 'text/xml',
-				dataType: 'xml',
-				success: function(response) {
-					location.reload();
-				},
-				error: function(xhr, statut, error) {
-					location.reload();  // C'est moche..
-				},
-				url: '{% url "idgo_admin:service_mdedit" id=organisation.id %}'
-			})
-		}).modal('show');
-	});
+  $('#validate').click(function(e) {
+    e.preventDefault();
+    $modalHourglass.one('show.bs.modal', function(e) {
+      $.ajax({
+        type: 'POST',
+        data: $scope.vm.getXml(),
+        contentType: 'text/xml',
+        dataType: 'xml',
+        success: function(response) {
+          location.reload();
+        },
+        error: function(xhr, statut, error) {
+          location.reload();  // C'est moche..
+        },
+        url: '{% url "idgo_admin:service_mdedit" id=organisation.id %}'
+      })
+    }).modal('show');
+  });
 });
 </script>
 {% endblock main %}
