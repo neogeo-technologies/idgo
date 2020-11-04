@@ -86,31 +86,42 @@ def extractor_task(request, *args, **kwargs):
                     format_vector = format
         extract_params = data_extraction
 
-    auth_name, auth_code = extract_params.get('dst_srs').split(':')
-    crs = SupportedCrs.objects.get(auth_name=auth_name, auth_code=auth_code)
+    if 'dst_srs' in extract_params:
+        auth_name, auth_code = extract_params['dst_srs'].split(':')
+        crs = SupportedCrs.objects.get(auth_name=auth_name, auth_code=auth_code)
+    else:
+        crs = None
 
     if instance.app_label == 'idgo_admin' and instance.model == 'Dataset':
         dataset = instance.target_object
-        bounds = dataset.bbox.extent
+        bounds = dataset.bbox and dataset.bbox.extent
         layers = [layer for layer in dataset.get_layers()]
+        resources = ResourceBeta.objects.filter(dataset=dataset).exclude(geographiclayer=None)
+        layers_beta = GeographicLayerBeta.objects.filter(resource__in=resources)
+        layers += [layer for layer in layers_beta]
     elif instance.app_label == 'idgo_admin' and instance.model == 'Resource':
         resource = instance.target_object
-        bounds = resource.bbox.extent
+        bounds = resource.bbox and resource.bbox.extent
         layers = [layer for layer in resource.get_layers()]
     elif instance.app_label == 'idgo_admin' and instance.model == 'Layer':
         layer = instance.target_object
-        bounds = layer.bbox.extent
+        bounds = layer.bbox and layer.bbox.extent
         layers = [instance.target_object]
+    elif instance.app_label == 'idgo_resource' and instance.model == 'Resource':
+        resource = instance.target_object
+        bounds = None
+        layers_beta = GeographicLayerBeta.objects.filter(resource=resource)
+        layers = [layer for layer in layers_beta]
     else:
         raise Http404
 
     data = {
-        'bounds': bounds,
-        'crs': crs.description,
+        'bounds': bounds or EXTRACTOR_BOUNDS,
+        'crs': crs and crs.description or '-',
         'footprint': extract_params.get('footprint'),
         'format_raster': format_raster and format_raster.description or '-',
         'format_vector': format_vector and format_vector.description or '-',
-        'layer': [l.name for l in layers],
+        'layer': [layer.name for layer in layers],
         'start': instance.start_datetime,
         'stop': instance.stop_datetime,
         'target': '{} : {}'.format(
