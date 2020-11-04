@@ -50,6 +50,7 @@ from idgo_admin.models import Organisation
 from idgo_admin.models import SupportedCrs
 from idgo_admin.mra_client import MRAHandler
 
+from idgo_admin import IDGO_ORGANISATION_PARTNER_LABEL
 from idgo_admin import LOGIN_URL
 
 
@@ -388,7 +389,7 @@ class Subscription(View):
                         status_fr_label[status], organisation.legal_name)
                 # partnership
                 if status == 'member':
-                    messages.info(request, "L'organisation est partenaire IDGO.")
+                    messages.info(request, "L'organisation est %s." % IDGO_ORGANISATION_PARTNER_LABEL)
             messages.success(request, message)
 
         # TODO Revoir la gestion de l'AJAX sur la page des organisations

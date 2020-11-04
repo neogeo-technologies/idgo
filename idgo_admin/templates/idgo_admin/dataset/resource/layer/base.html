@@ -52,7 +52,7 @@
 				Styles
 			</a>
 			{% else %}
-			{% include "idgo_admin/extras/restricted_access/link.html" with text="Styles" target="modal_forbidden" body="<p>Vous ne disposez pas des droits nécessaires pour accéder à cette application.</p><p>Seules les organisations partenaires IDGO sont habilitées.</p><p>Pour faire votre demande d'affiliation et en savoir plus, rendez-vous à la section Organisation de l'espace utilisateur.</p>" %}
+			{% include "idgo_admin/extras/restricted_access/link.html" with text="Styles" target="modal_forbidden" body="<p>Vous ne disposez pas des droits nécessaires pour accéder à cette application.</p><p>Seules les organisations {{ IDGO_ORGANISATION_PARTNER_LABEL_PLURAL }} sont habilitées.</p><p>Pour faire votre demande d'affiliation et en savoir plus, rendez-vous à la section Organisation de l'espace utilisateur.</p>" %}
 			{% endif %}
 		</li>
 	</ul>

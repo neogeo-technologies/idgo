@@ -46,6 +46,8 @@ from idgo_admin.models.mail import send_account_creation_mail
 from idgo_admin.models import Organisation
 from idgo_admin.models import Profile
 
+from idgo_admin import IDGO_USER_PARTNER_LABEL
+
 
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
@@ -159,6 +161,10 @@ class BaseProfileChangeForm(forms.ModelForm):
         if not self.cleaned_data.get('organisation') and self.cleaned_data.get('membership'):
             raise forms.ValidationError("Un utilisateur sans organisation de rattachement ne peut avoir son état de rattachement confirmé.")
         return self.cleaned_data
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['crige_membership'].label = "Utilisateur %s" % IDGO_USER_PARTNER_LABEL
 
 
 class IDGOProfileChangeForm(BaseProfileChangeForm):
