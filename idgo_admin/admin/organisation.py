@@ -22,6 +22,9 @@ from idgo_admin.models.mail import sender as mail_sender
 from idgo_admin.models import Organisation
 from idgo_admin.models import OrganisationType
 
+from idgo_admin import IDGO_ORGANISATION_PARTNER_LABEL
+from idgo_admin import IDGO_USER_PARTNER_LABEL
+
 
 geo_admin.GeoModelAdmin.default_lon = 160595
 geo_admin.GeoModelAdmin.default_lat = 5404331
@@ -49,6 +52,7 @@ class OrganisationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['is_active'].initial = True
+        self.fields['is_crige_partner'].label = "Organisation %s" % IDGO_ORGANISATION_PARTNER_LABEL
 
     def clean(self):
         for k, v in self.cleaned_data.items():
@@ -69,7 +73,7 @@ class OrganisationAdmin(geo_admin.OSMGeoAdmin):
         )
 
     send_email_to_idgo_membership.short_description = \
-        'Envoyer e-mail aux utilisateurs partenaire IDGO'
+        'Envoyer e-mail aux utilisateurs %s' % IDGO_USER_PARTNER_LABEL
 
     def get_form(self, request, obj=None, **kwargs):
         if not request.user.is_superuser and not request.user.profile.is_idgo_admin:

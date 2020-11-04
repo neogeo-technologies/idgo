@@ -1413,22 +1413,6 @@ table td .form-group {
 
 /* ************************************************************************* */
 
-.idgo-partner-badge {
-    background-color: transparent;
-    border: 1px dashed #ccc;
-    color: #888;
-    border-radius: 4px;
-    padding: 6px 6px;
-}
-
-.idgo-partner-badge::before {
-    content: "Membre";
-    font-size: 12px;
-    font-weight: 400;
-}
-
-/* ************************************************************************* */
-
 .separator {
     color: #ccc;
     margin-left: 10px;

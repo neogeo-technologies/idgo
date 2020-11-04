@@ -9,276 +9,280 @@
 {% block main %}
 
 <div class="outer">
-	<div class="v-middle">
-		<div class="h-middle container-signup">
-			{% include "idgo_admin/alert_messages.html" %}
-			<div class="panel">
-				<div class="panel-heading">
-					<div class="panel-heading-logo">
-						<img src="{% static 'img/logo.png' %}"></img>
-					</div>
-					<h3>Créer votre compte {{ DEFAULT_PLATFORM_NAME }}</h3>
-				</div>
-				<div class="panel-body">
-					<form method="post" action="" enctype="multipart/form-data">
-						{% csrf_token %}
-						<div class="row">
-							<div class="col-xs-12 col-sm-6">
-								{% bootstrap_field form.first_name %}
-							</div>
-							<div class="col-xs-12 col-sm-6">
-								{% bootstrap_field form.last_name %}
-							</div>
-						</div>
-						<div class="row">
-							<div class="col-xs-12 col-sm-4">
-								{% bootstrap_field form.username %}
-							</div>
-							<div class="col-xs-12 col-sm-8">
-								{% bootstrap_field form.email %}
-							</div>
-						</div>
-						<div class="row">
-							<div class="col-xs-4">
-								{% bootstrap_field form.phone %}
-							</div>
-						</div>
-						<label>Mot de passe*</label>
-						<p><small>Assurez-vous que votre mot de passe comporte au minimum 6 caractères, et que celui-ci contienne des chiffres, lettres minuscules et caractères spéciaux.</small></p>
-						<div class="row">
-							<div class="col-xs-12 col-sm-6">
-								{% bootstrap_field form.password1 show_label=False %}
-							</div>
-							<div class="col-xs-12 col-sm-6">
-								{% bootstrap_field form.password2 show_label=False %}
-							</div>
-						</div>
-						<div id="collapse-one" class="collapse in">
-							<p>Sélectionnez dans la liste ci-dessous votre organisation</p>
-							<div class="row">
-								<div class="col-xs-11">
-									{% bootstrap_field form.organisation show_label=False %}
-								</div>
-								<div class="col-xs-1">
-									<span class="idgo-partner-badge" style="position: absolute;"></span>
-								</div>
-							</div>
-							<p>Si celle-ci n'est pas dans la liste, vous pouvez <a name="open" type="button">indiquer une nouvelle organisation</a>. </p>
-						</div>
-						<div id="collapse-two" class="collapse">
-							<div class="well">
-								<h4>Formulaire de création d'une organisation</h4>
-								<p>Toute demande de création d'organisation est soumise à l'administrateur du site pour validation. </p>
-								<br />
-								<div class="row">
-									<div class="col-sm-12">
-										{% bootstrap_field form.new_orga %}
-									</div>
-								</div>
-								<br />
-								<div class="row">
-									<div class="col-sm-8">
-										{% bootstrap_field form.logo %}
-									</div>
-								</div>
-								<br />
-								<label>Adresse</label>
-								<div class="row">
-									<div class="col-sm-12">
-										{% bootstrap_field form.address show_label=False %}
-									</div>
-								</div>
-								<div class="row">
-									<div class="col-sm-6">
-										{% bootstrap_field form.postcode show_label=False %}
-									</div>
-									<div class="col-sm-6">
-										{% bootstrap_field form.city show_label=False %}
-									</div>
-								</div>
-								<br />
-								<label>Contact</label>
-								<div class="row">
-									<div class="col-sm-6">
-										{% bootstrap_field form.org_phone show_label=False %}
-									</div>
-								</div>
-								<div class="row">
-									<div class="col-sm-6">
-										{% bootstrap_field form.org_email show_label=False %}
-									</div>
-								</div>
-								<div class="row">
-									<div class="col-sm-6">
-										{% bootstrap_field form.website show_label=False %}
-									</div>
-								</div>
-								<br />
-								<div class="row">
-									<div class="col-sm-12">
-										{% bootstrap_field form.description show_label=False %}
-									</div>
-								</div>
-								<br />
-								<div class="row">
-									<div class="col-sm-8">
-										{% bootstrap_field form.organisation_type %}
-									</div>
-								</div>
-								<div class="row">
-									<div class="col-sm-8">
-										{% bootstrap_field form.license %}
-									</div>
-								</div>
-								<br />
-								<div class="buttons-on-the-right-side">
-									<button name="close" type="button" class="btn btn-default" data-dismiss="alert" aria-label="Close">Annuler la création d'une nouvelle organisation</button>
-								</div>
-							</div>
-						</div>
-						<br />
-						<div>
-							{% bootstrap_field form.contributor show_label=False %}
-							{% bootstrap_field form.referent show_label=False %}
-							{% if IDGO_REDUCED_TO_PARTNER %}
-							<span class="user-profile-options-message">
-								<p>Ces deux options ne sont disponibles que pour les organisations adhérentes.</p>
-							</span>
-							<hr>
-							{% endif %}
-						</div>
-						{% bootstrap_field form.terms_and_conditions %}
-						<br />
-						<div class="buttons-on-the-right-side">
-							<a class="btn btn-default" href="{% url "server_cas:signIn" %}">Revenir</a>
-							<button type="submit" class="btn btn-primary">Valider</button>
-						</div>
-						<hr />
-						<div class="row">
-							<div class="col-xs-12">
-								<small>* Les champs marqués d'un astérisque sont obligatoires.</small>
-							</div>
-						</div>
-					</form>
-				</div>
-			</div>
-			<small>{% include "idgo_admin/copyright.html" %}</small>
-		</div>
-	</div>
+  <div class="v-middle">
+    <div class="h-middle container-signup">
+      {% include "idgo_admin/alert_messages.html" %}
+      <div class="panel">
+        <div class="panel-heading">
+          <div class="panel-heading-logo">
+            <img src="{% static 'img/logo.png' %}"></img>
+          </div>
+          <h3>Créer votre compte {{ DEFAULT_PLATFORM_NAME }}</h3>
+        </div>
+        <div class="panel-body">
+          <form method="post" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row">
+              <div class="col-xs-12 col-sm-6">
+                {% bootstrap_field form.first_name %}
+              </div>
+              <div class="col-xs-12 col-sm-6">
+                {% bootstrap_field form.last_name %}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-xs-12 col-sm-4">
+                {% bootstrap_field form.username %}
+              </div>
+              <div class="col-xs-12 col-sm-8">
+                {% bootstrap_field form.email %}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-xs-4">
+                {% bootstrap_field form.phone %}
+              </div>
+            </div>
+            <label>Mot de passe*</label>
+            <p><small>Assurez-vous que votre mot de passe comporte au minimum 6 caractères, et que celui-ci contienne des chiffres, lettres minuscules et caractères spéciaux.</small></p>
+            <div class="row">
+              <div class="col-xs-12 col-sm-6">
+                {% bootstrap_field form.password1 show_label=False %}
+              </div>
+              <div class="col-xs-12 col-sm-6">
+                {% bootstrap_field form.password2 show_label=False %}
+              </div>
+            </div>
+            <div id="collapse-one" class="collapse in">
+              <p>Sélectionnez dans la liste ci-dessous votre organisation</p>
+              <div class="row">
+                <div class="col-xs-12">
+                  {% bootstrap_field form.organisation show_label=False %}
+                </div>
+              </div>
+              <p>Si celle-ci n'est pas dans la liste, vous pouvez <a name="open" type="button">indiquer une nouvelle organisation</a>. </p>
+            </div>
+            <div id="collapse-two" class="collapse">
+              <div class="well">
+                <h4>Formulaire de création d'une organisation</h4>
+                <p>Toute demande de création d'organisation est soumise à l'administrateur du site pour validation. </p>
+                <br>
+                <div class="row">
+                  <div class="col-sm-12">
+                    {% bootstrap_field form.new_orga %}
+                  </div>
+                </div>
+                <br>
+                <div class="row">
+                  <div class="col-sm-8">
+                    {% bootstrap_field form.logo %}
+                  </div>
+                </div>
+                <br>
+                <label>Adresse</label>
+                <div class="row">
+                  <div class="col-sm-12">
+                    {% bootstrap_field form.address show_label=False %}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6">
+                    {% bootstrap_field form.postcode show_label=False %}
+                  </div>
+                  <div class="col-sm-6">
+                    {% bootstrap_field form.city show_label=False %}
+                  </div>
+                </div>
+                <br>
+                <label>Contact</label>
+                <div class="row">
+                  <div class="col-sm-6">
+                    {% bootstrap_field form.org_phone show_label=False %}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6">
+                    {% bootstrap_field form.org_email show_label=False %}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6">
+                    {% bootstrap_field form.website show_label=False %}
+                  </div>
+                </div>
+                <br>
+                <div class="row">
+                  <div class="col-sm-12">
+                    {% bootstrap_field form.description show_label=False %}
+                  </div>
+                </div>
+                <br>
+                <div class="row">
+                  <div class="col-sm-8">
+                    {% bootstrap_field form.organisation_type %}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-8">
+                    {% bootstrap_field form.license %}
+                  </div>
+                </div>
+                <br>
+                <div class="buttons-on-the-right-side">
+                  <button name="close" type="button" class="btn btn-default" data-dismiss="alert" aria-label="Close">Annuler la création d'une nouvelle organisation</button>
+                </div>
+              </div>
+            </div>
+            <br>
+            <p class="idgo-partner">L'organisation est <strong>{{ IDGO_ORGANISATION_PARTNER_LABEL }}</strong>.</p>
+            <div>
+              {% bootstrap_field form.contributor show_label=False %}
+              {% bootstrap_field form.referent show_label=False %}
+              {% if IDGO_REDUCED_TO_PARTNER %}
+              <span class="user-profile-options-message">
+                <p>Ces deux options ne sont disponibles que pour les organisations {{ IDGO_ORGANISATION_PARTNER_LABEL_PLURAL }}.</p>
+              </span>
+              {% endif %}
+            </div>
+            <br>
+            {% bootstrap_field form.terms_and_conditions %}
+            <br>
+            <div class="buttons-on-the-right-side">
+              <a class="btn btn-default" href="{% url "server_cas:signIn" %}">Revenir</a>
+              <button type="submit" class="btn btn-primary">Valider</button>
+            </div>
+            <hr />
+            <div class="row">
+              <div class="col-xs-12">
+                <small>* Les champs marqués d'un astérisque sont obligatoires.</small>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <small>{% include "idgo_admin/copyright.html" %}</small>
+    </div>
+  </div>
 </div>
-
 <script>
 $(function() {
-	const $idgo = $('.idgo-partner-badge').hide();
-	{% if IDGO_REDUCED_TO_PARTNER %}
-	const $userProfileOptionsMessage = $('.user-profile-options-message').hide();
-	{% endif %}
+  const $idgoPartnerInfoMsg = $('.idgo-partner').hide();
+  {% if IDGO_REDUCED_TO_PARTNER %}
+  const $userProfileOptionsMessage = $('.user-profile-options-message').hide();
+  {% endif %}
 
-	const $inputContribution = $('input[name="{{ form.contributor.name }}"]');
-	const $inputReferent = $('input[name="{{ form.referent.name }}"]').change(function() {
-		this.checked ? $inputContribution.prop('checked', true).prop('disabled', true) : $inputContribution.prop('checked', true).prop('disabled', false);
-	});
+  const $inputContribution = $('input[name="{{ form.contributor.name }}"]');
+  const $inputReferent = $('input[name="{{ form.referent.name }}"]').change(function() {
+    if (this.checked) {
+      $inputContribution.prop('checked', true).prop('disabled', true);
+    } else {
+      $inputContribution.prop('checked', true).prop('disabled', false);
+    }
+  });
 
-	const toggleInputVisibility = function() {
-		var selected = parseInt($selectOrganisation.val());
-		selected = isNaN(selected) ? null : selected;
+  const toggleInputVisibility = function() {
+    var selected = parseInt($selectOrganisation.val());
+    selected = isNaN(selected) ? null : selected;
 
-		const isIDGO = $selectOrganisation.find(':selected').attr('is-idgo-partner');
-		if (typeof isIDGO !== typeof undefined && isIDGO !== false) {
-			$idgo.show();
-			{% if IDGO_REDUCED_TO_PARTNER %}
-			$inputContribution.parent().parent().removeClass('disabled');
-			$inputReferent.parent().parent().removeClass('disabled');
-			{% endif %}
-		} else {
-			$idgo.hide();
-			{% if IDGO_REDUCED_TO_PARTNER %}
-			$inputContribution.parent().parent().addClass('disabled');
-			$inputReferent.parent().parent().addClass('disabled');
-			{% endif %}
-		}
+    const isIdgoPartner = $selectOrganisation.find(':selected').attr('is-idgo-partner');
+    if (typeof isIdgoPartner !== typeof undefined && isIdgoPartner !== false) {
+      $idgoPartnerInfoMsg.show();
+      {% if IDGO_REDUCED_TO_PARTNER %}
+      $inputContribution.parent().parent().removeClass('disabled');
+      $inputReferent.parent().parent().removeClass('disabled');
+      {% endif %}
+    } else {
+      $idgoPartnerInfoMsg.hide();
+      {% if IDGO_REDUCED_TO_PARTNER %}
+      $inputContribution.parent().parent().addClass('disabled');
+      $inputReferent.parent().parent().addClass('disabled');
+      {% endif %}
+    }
 
-		if (!selected && $collapseOne.hasClass('in')) {
-			$inputContribution.parent().hide();
-			$inputContribution.prop('checked', false);
-			$inputReferent.parent().hide();
-			$inputReferent.prop('checked', false);
+    if (!selected && $collapseOne.hasClass('in')) {
+      $inputContribution.parent().hide();
+      $inputContribution.prop('checked', false);
+      $inputReferent.parent().hide();
+      $inputReferent.prop('checked', false);
 
-			{% if IDGO_REDUCED_TO_PARTNER %}
-			$userProfileOptionsMessage.hide();
-			{% endif %}
+      {% if IDGO_REDUCED_TO_PARTNER %}
+      $userProfileOptionsMessage.hide();
+      {% endif %}
+    } else {
+      if ($inputReferent.is(':checked')) {
+        $inputContribution.prop('checked', true);
+      } else {
+        $inputContribution.prop('checked', false);
+      }
+      $inputContribution.parent().show();
+      $inputReferent.parent().show();
 
-		} else {
-			$inputReferent.is(':checked') ? $inputContribution.prop('checked', true) : $inputContribution.prop('checked', false);
-			$inputContribution.parent().show();
-			$inputReferent.parent().show();
+      {% if IDGO_REDUCED_TO_PARTNER %}
+      if (isIdgoPartner == undefined) {
+        $userProfileOptionsMessage.show();
+      } else {
+        $userProfileOptionsMessage.hide();
+      }
+      {% endif %}
+    }
 
-			{% if IDGO_REDUCED_TO_PARTNER %}
-			if (isIDGO == undefined) {
-				$userProfileOptionsMessage.show();
-			} else {
-				$userProfileOptionsMessage.hide();
-			}
-			{% endif %}
+  };
 
-		}
+  const $selectOrganisation = $('select[name="organisation"]')
+    .ready(toggleInputVisibility)
+    .change(toggleInputVisibility);
 
-	};
+  const $collapseOne = $('#collapse-one').collapse({toggle: false})
+    {% if IDGO_REDUCED_TO_PARTNER %}
+    .on('hide.bs.collapse', function() {
+      $inputContribution.parent().hide();
+      $inputReferent.parent().hide();
+      $userProfileOptionsMessage.hide();
+    })
+    {% endif %}
+    .on('hidden.bs.collapse', function() {
+      {% if not IDGO_REDUCED_TO_PARTNER %}
+      $inputContribution.parent().show();
+      $inputReferent.parent().show();
+      $inputReferent.prop('checked', true).trigger('change');
+      {% endif %}
+      $selectOrganisation.selectedIndex = 0;
+      $('#collapse-one select').each(function(i) {
+        $(this)[0].selectedIndex = 0;
+      });
+    });
 
-	const $selectOrganisation = $('select[name="organisation"]')
-		.ready(toggleInputVisibility)
-		.change(toggleInputVisibility);
+  const $collapseTwo = $('#collapse-two').collapse({ 'toggle': false })
+    .on('hide.bs.collapse', function() {
+      {% if not IDGO_REDUCED_TO_PARTNER %}
+      $inputContribution.parent().hide();
+      $inputContribution.prop('checked', false);
+      $inputReferent.parent().hide();
+      $inputReferent.prop('checked', false);
+      {% endif %}
+      $selectOrganisation.find('option[value="{{ form.organisation.value | yesno:"true,false,NaN" }}"]').prop('selected', true);
+      $('#collapse-two input').each(function(i) {
+        $(this).val('');
+      });
+    });
 
-	const $collapseOne = $('#collapse-one').collapse({toggle: false})
-		{% if IDGO_REDUCED_TO_PARTNER %}
-		.on('hide.bs.collapse', function() {
-			$inputContribution.parent().hide();
-			$inputReferent.parent().hide();
-			$userProfileOptionsMessage.hide();
-		})
-		{% endif %}
-		.on('hidden.bs.collapse', function() {
-			{% if not IDGO_REDUCED_TO_PARTNER %}
-			$inputContribution.parent().show();
-			$inputReferent.parent().show();
-			$inputReferent.prop('checked', true).trigger('change');
-			{% endif %}
-			$selectOrganisation.selectedIndex = 0;
-			$('#collapse-one select').each(function(i) {
-				$(this)[0].selectedIndex = 0;
-			});
-		});
+  const toggleCollpase = function() {
+    $collapseOne.collapse('toggle');
+    $collapseTwo.collapse('toggle');
+  };
 
-	const $collapseTwo = $('#collapse-two').collapse({toggle: false})
-		.on('hide.bs.collapse', function() {
-			{% if not IDGO_REDUCED_TO_PARTNER %}
-			$inputContribution.parent().hide();
-			$inputContribution.prop('checked', false);
-			$inputReferent.parent().hide();
-			$inputReferent.prop('checked', false);
-			{% endif %}
-			$selectOrganisation.find('option[value="{{ form.organisation.value | yesno:"true,false,NaN" }}"]').prop('selected', true);
-			$('#collapse-two input').each(function(i) {
-				$(this).val('');
-			});
-		});
+  $collapseOne.find('[name="open"]').click(toggleCollpase);
+  $collapseTwo.find('[name="close"]').click(toggleCollpase);
 
-	const toggleCollpase = function() {
-		$collapseOne.collapse('toggle');
-		$collapseTwo.collapse('toggle');
-	};
-
-	$collapseOne.find('[name="open"]').click(toggleCollpase);
-	$collapseTwo.find('[name="close"]').click(toggleCollpase);
-
-	{% if form.new_orga.value %}
-	toggleCollpase();
-	{% endif %}
+  {% if form.new_orga.value %}
+  toggleCollpase();
+  {% endif %}
 
 });
 </script>
 
 <style>
+
 .container-signup {
     width: 755px;
     padding-left: 6px;
@@ -320,6 +324,14 @@ $(function() {
     -webkit-box-shadow: 0 2px 3px -1px rgba(238,238,238,.5);
             box-shadow: 0 2px 3px -1px rgba(238,238,238,.5);
 }
+
+p.idgo-partner {
+    /* font-weight: bold; */
+    margin-top: 14px;
+    margin-bottom: 14px;
+}
+
 </style>
 {% endblock main %}
-{% block footer %}{% endblock footer %}
+{% block footer %}
+{% endblock footer %}

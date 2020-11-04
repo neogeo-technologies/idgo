@@ -1,43 +1,43 @@
 <div id="members">
-	{% if organisation.members|length == 0 %}
-	<div role="alert" class="alert alert-info">Aucun utilisateur.</div>
-	{% else %}
-	<div class="table-responsive">
-		<table class="board table table-striped table-bordered table-hover table-condensed">
-			<tr>
-				<th name="username">Utilisateur</th>
-				<th name="full_name">Nom</th>
-				<th name="is_member">Membre</th>
-				<th name="is_contributor">Contributeur</th>
-				<th name="is_referent">Référent</th>
-				{% if user.profile.is_idgo_admin %}
-				<th name="is_idgo_partner">Partenaire IDGO</th>
-				{% endif %}
-				<th name="datasets_count">Jeux de données</th>
-			</tr>
-			{% for member in organisation.members %}
-			<tr id="{{ member.username }}">
-				<td name="username">{{ member.username }}</td>
-				<td name="full_name">{{ member.full_name }}</td>
-				<td name="is_member" style="text-align: center;">{% if member.is_member %}
-					<span class="glyphicon glyphicon-ok"></span>{% endif %}
-				</td>
-				<td name="is_contributor" style="text-align: center;">{% if member.is_contributor %}
-					<span class="glyphicon glyphicon-ok"></span>{% endif %}
-				</td>
-				<td name="is_referent" style="text-align: center;">{% if member.is_referent %}
-					<span class="glyphicon glyphicon-ok"></span>{% endif %}
-				</td>
-				{% if user.profile.is_idgo_admin %}
-				<td name="is_idgo_partner" style="text-align: center;">{% if member.is_idgo_partner %}
-					<span class="glyphicon glyphicon-ok"></span>{% endif %}
-				</td>
-				{% endif %}
-				<td name="datasets_count" style="text-align: right;">{{ member.datasets_count }}</td>
-			</tr>
-			{% endfor %}
-		</table>
-	</div>
+  {% if organisation.members|length == 0 %}
+  <div role="alert" class="alert alert-info">Aucun utilisateur.</div>
+  {% else %}
+  <div class="table-responsive">
+    <table class="board table table-striped table-bordered table-hover table-condensed">
+      <tr>
+        <th name="username">Utilisateur</th>
+        <th name="full_name">Nom</th>
+        <th name="is_member">Membre</th>
+        <th name="is_contributor">Contributeur</th>
+        <th name="is_referent">Référent</th>
+        {% if user.profile.is_idgo_admin %}
+        <th name="is_idgo_partner">{{ IDGO_USER_PARTNER_LABEL|title }}</th>
+        {% endif %}
+        <th name="datasets_count">Jeux de données</th>
+      </tr>
+      {% for member in organisation.members %}
+      <tr id="{{ member.username }}">
+        <td name="username">{{ member.username }}</td>
+        <td name="full_name">{{ member.full_name }}</td>
+        <td name="is_member" style="text-align: center;">{% if member.is_member %}
+          <span class="glyphicon glyphicon-ok"></span>{% endif %}
+        </td>
+        <td name="is_contributor" style="text-align: center;">{% if member.is_contributor %}
+          <span class="glyphicon glyphicon-ok"></span>{% endif %}
+        </td>
+        <td name="is_referent" style="text-align: center;">{% if member.is_referent %}
+          <span class="glyphicon glyphicon-ok"></span>{% endif %}
+        </td>
+        {% if user.profile.is_idgo_admin %}
+        <td name="is_idgo_partner" style="text-align: center;">{% if member.is_idgo_partner %}
+          <span class="glyphicon glyphicon-ok"></span>{% endif %}
+        </td>
+        {% endif %}
+        <td name="datasets_count" style="text-align: right;">{{ member.datasets_count }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
 </div>
 <div class="buttons-on-the-right-side">
   <button role="button" name="ckan-card" class="btn btn-default disabled" disabled>Ouvrir la fiche Ckan</button>
