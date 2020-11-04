@@ -68,42 +68,6 @@ finally:
 # ==============
 
 
-DATASET_GEOCOVER_CHOICES = [{
-    'id': None,
-    'title': "Calculé automatiquement",
-    'description': (
-        "Chaque fois qu'une ressource géographique "
-        "est ajoutée au jeu de données, son emprise est utilisée pour "
-        "calculer automatiquement la couverture géographique. Si plusieurs "
-        "ressources géographique sont ajoutées, la couverture du jeu de "
-        "données est la réunion des différentes emprises. Si aucune ressource "
-        "géographique n'est ajoutée au jeu de données, sa couverture "
-        "géographique est nulle."
-        ),
-    }, {
-    'id': 'regionale',
-    'title': "Régionale",
-    'description': (
-        "La couverture géographique ne dépend pas des ressources ajoutées au "
-        "jeu de données. Elle est toujours égale à l'emprise de la région. "
-        "Cette option est intéressante pour les jeux de données non "
-        "géographique comportant des données de niveau régional, ou bien des "
-        "jeux de données avec des ressources géographiques concernant "
-        "l'ensemble de la région mais ne disposant d'objets que sur des "
-        "zones très localisées."
-        ),
-    }, {
-    'id': 'jurisdiction',
-    'title': "Territoire de compétence",
-    'description': (
-        "il s'agit du territoire de compétence de l'organisation publiant "
-        "le jeu de données. Cette option est la plus adaptée pour les jeux "
-        "de données ne concernant que le territoire restreint associé à "
-        "l'organisation (commune, communauté de communes, département, etc.)"
-        ),
-    }]
-
-
 class Dataset(models.Model):
     """Modèle de classe d'un jeu de données."""
 
