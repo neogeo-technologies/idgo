@@ -7,7 +7,9 @@
         <span class="idgo-partner">Organisation {{ IDGO_ORGANISATION_PARTNER_LABEL }}</span>
         {% else %}
           {% if user.profile.is_admin or organisation in user.profile.referent_for %}
-        <button role="button" name="ask-idgo-partnership" class="btn btn-sm btn-default">Demander à être {{ IDGO_ORGANISATION_PARTNER_LABEL }}</button>
+        <button role="button" name="ask-idgo-partnership" class="btn btn-sm btn-default">
+          Obtenir le statut d'organisation <strong>{{ IDGO_ORGANISATION_PARTNER_LABEL }}</strong>
+        </button>
           {% endif %}
         {% endif %}
       </div>
