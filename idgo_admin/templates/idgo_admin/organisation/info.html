@@ -169,11 +169,9 @@ $(function() {
     $modal.modal('show');
   };
 
-  {% if user.profile.is_admin or organisation in user.profile.referent_for %}
   $('button[name="ask-idgo-partnership"]').click(function() {
     openModalChangeStatus('{% url "idgo_admin:idgo_partnership" %}', {{ organisation.id }})
   });
-  {% endif %}
 
   {% if not organisation == user.profile.awaiting_member_status %}
   $('button[name="switch-member"]').click(function() {
