@@ -104,8 +104,6 @@ OPTIONAL = (
     ('MDEDIT_CONFIG_PATH', 'mdedit/config/'),
     ('MDEDIT_DATASET_MODEL', 'models/model-dataset-empty.json'),
     ('MDEDIT_SERVICE_MODEL', 'models/model-service-empty.json'),
-    ('MDEDIT_LOCALES_PATH', os.path.join(
-        settings.BASE_DIR, 'idgo_admin/static/mdedit/config/locales/fr/locales.json')),
     ('REDIS_HOST', 'localhost'),
     ('REDIS_PORT', 6379),
     ('REDIS_EXPIRATION', 120),
@@ -128,18 +126,23 @@ OPTIONAL = (
 for KEY, VALUE in OPTIONAL:
     setattr(this, KEY, getattr(settings, KEY, VALUE))
 
-if hasattr(settings, 'STATIC_ROOT'):
-    locales_path = os.path.join(
+
+# MDEDIT
+
+if getattr(settings, 'STATIC_ROOT', None) is not None:
+    MDEDIT_LOCALES_PATH = os.path.join(
         settings.STATIC_ROOT,
         'mdedit/config/locales/fr/locales.json')
-else:
-    locales_path = os.path.join(
+else:  # dev-mode
+    MDEDIT_LOCALES_PATH = os.path.join(
         settings.BASE_DIR,
         'idgo_admin/static/mdedit/config/locales/fr/locales.json')
+# finally
+setattr(this, 'MDEDIT_LOCALES_PATH', MDEDIT_LOCALES_PATH)
 
+PROTOCOL_CHOICES = []
 try:
-    PROTOCOL_CHOICES = []
-    with open(locales_path, 'r', encoding='utf-8') as f:
+    with open(MDEDIT_LOCALES_PATH, 'r', encoding='utf-8') as f:
         m = json.loads(f.read())
         PROTOCOL_CHOICES = (
             (protocol['id'], protocol['value'])

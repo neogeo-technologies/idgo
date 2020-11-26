@@ -14,12 +14,3 @@ Si aucune condition légale d’utilisation et d’accès n’existe, indiquer �
 Si les conditions ne sont pas connues, indiquer « Conditions inconnues ».
 
 Il est recommandé de préciser les mentions légales et les sources à faire figurer sur les supports de diffusion utilisant les données concernées.
-
-## Exemples
-
-Conditions d’utilisation et mentions légales :
-« Données disponibles pour les autorités publiques après adhésion au partenariat CIGAL »
-« Utilisation commerciale directe ou indirecte interdite »
-« Mention obligatoire sur tout support de diffusion : BdOCS2008-CIGAL – www.cigalsace.org »
-
-<!-- End @dataLegalUseLimitations.md -->

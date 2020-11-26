@@ -11,12 +11,3 @@ Ce lien (URL) doit être accompagné d’un nom et d’une description précisan
 
 Il est recommandé d’utiliser des adresses URL complètes (pas de chemin relatif), publiques et pérennes.
 
-## Exemples
-
-Accès en ligne :
-
-- Nom : « Rapport méthodologique de la BdOCS2008-CIGAL »
-- Description : « Rapport méthodologique de production de la base de données d’occupation du sol CIGAL 2008 (BdOCS2008-CIGAL). »
-- URL : « http://www.cigalsace.org/content/rapport-m%C3%A9thodologique-bdocs-2008-cigal »
-
-<!-- End @dataLinkages.md -->

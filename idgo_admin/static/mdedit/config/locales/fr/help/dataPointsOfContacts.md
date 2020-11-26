@@ -18,13 +18,6 @@ Il se compose :
 - de l’Email,
 - et du Rôle de la personne à contacter
 
-Parmi les valeurs possibles des rôles pour un contact définies par la norme ISO 19115 (liste B.#CI_RoleCode), pour faciliter la saisie dans le cadre du partenariat CIGAL, les valeurs proposées par défaut sont :
-
-- « Fournisseur » : organisme  ou personne qui délivre physiquement la fiche de description, soit de manière directe au destinataire, soit par l’intermédiaire d’un diffuseur.
-- « Gestionnaire » : organisme  ou personne responsable de la gestion et de la mise à jour de la fiche de description.
-- « Point de contact » : organisme  ou personne que l’on peut contacter pour avoir des renseignements détaillés sur la fiche de description.
-- « Auteur » : organisme  ou personne qui a complété la fiche de description. Il en détient les droits moraux.
-
 ## Recommandations
 
 Au moins un contact avec pour rôle « Point de contact » doit être défini pour chaque fiche. Il correspond au gestionnaire de la fiche ou de l’inventaire des données géographique.

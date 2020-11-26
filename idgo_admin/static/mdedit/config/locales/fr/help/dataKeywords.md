@@ -14,7 +14,7 @@ Les mots-clés doivent être écrits en minuscule, accentués et au singulier.
 Leur choix doit répondre à quelques règles de bon sens pour faciliter la recherche par l’utilisateur final :
 Inutile de saisir un trop grand nombre de mots-clés : 3 à 10 mots-clés doivent généralement suffire.
 Privilégier les termes qui qualifient la donnée au détriment de ceux qui seront trop génériques comme « donnée géographique » ou « base de données ».  
-Eviter de renseigner ici une information qui relève d’un autre champ, comme le système de projection, le format de diffusion ou la catégorie internationale.  
+Eviter de renseigner ici une information qui relève d’un autre champ, comme le système de coordonnées, le format de diffusion ou la catégorie internationale.  
 Saisir des mots susceptibles d’être recherchés par l’utilisateur final, c’est à dire utilisés dans le langage habituel. Par exemple, le terme « chemin » sera sans doute préférable à celui de « sente ». Cependant, dans certains cas, données techniques par exemple, des termes spécifiques peuvent être privilégiés.
 
 Lorsque les mots-clés sont issus d’un thésaurus, il est recommandé de préciser les informations sur le thésaurus (nom du thesaurus et la date de création, publication ou mise à jour) dans les champs correspondants.
