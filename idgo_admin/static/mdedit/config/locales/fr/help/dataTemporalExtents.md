@@ -13,7 +13,7 @@ un mélange de dates et d’intervalles.
 
 ## Recommandations
 
-Dans le cadre du partenariat CIGAL il est recommandé de renseigner prioritairement une date de création, de révision ou de publication pour la donnée (cf. paragraphe #. L’étendu temporelle est une information alors considérée comme optionnelle.
+Il est recommandé de renseigner prioritairement une date de création, de révision ou de publication pour la donnée (cf. paragraphe #. L’étendu temporelle est une information alors considérée comme optionnelle.
 
 Pour les étendues temporelles, le système de référence par défaut est le calendrier grégorien.
 Indiquer le système de référence uniquement lors de l’utilisation d’un autre système de calcul des périodes de temps, comme par exemple les ères géologiques.

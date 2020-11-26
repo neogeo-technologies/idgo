@@ -6,8 +6,6 @@
 
 Cette information vise à renseigner l’utilisateur sur le respect de normes, standards ou autre spécification dans la manière dont la donnée est produite, structurée et diffusée.
 
-Dans le cadre du partenariat CIGAL, 2 niveaux distincts de conformité sont distingués afin de faciliter la saisie :
-
 - La conformité aux règlements d’interopérabilité de la directive Inspire pour les données
 - La conformité à d’autres spécifications sur lesquelles s’est appuyé le producteur de la donnée (COVADIS, CNIG, AFNOR, etc.).
 

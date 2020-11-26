@@ -607,19 +607,19 @@
 		"dataReferenceSystems":
 		{
 			"id": "dataReferenceSystems",
-			"label": "Système de projection",
+			"label": "Système de coordonnées",
 			"placeholder": "",
-			"description": "Système de projection de la base de données.",
-			"_keywords": "système de projection, données",
+			"description": "Système de coordonnées de la base de données.",
+			"_keywords": "système de coordonnées, données",
 			"children":
 			{
 				"code":
 				{
 					"id": "code",
-					"label": "Système de projection",
+					"label": "Système de coordonnées",
 					"placeholder": "",
-					"description": "Nom du système de projection de la base de données.",
-					"_keywords": "nom, système de projection, données"
+					"description": "Nom du système de coordonnées de la base de données.",
+					"_keywords": "nom, système de coordonnées, données"
 				},
 				"codeSpace":
 				{
@@ -627,7 +627,7 @@
 					"label": "Espace de nom",
 					"placeholder": "FR-SIREN-Idenfifiant",
 					"description": "Identifiant de la fiche descriptive des données.",
-					"_keywords": "système de projection, données"
+					"_keywords": "système de coordonnées, données"
 				}
 			}
 		},

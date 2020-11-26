@@ -22,27 +22,3 @@ Structure recommandée de l’identifiant :
 
 Il est également possible d’associer au code un espace de nommage pour préciser sa provenance (cf. exemple 2 ci-dessous). L’espace de nommage correspond au domaine dans lequel la donnée est identifiée par ce code et renvoie généralement à l’organisme qui a attribué l’identifiant à la donnée.  
 Il est recommandé d’intégrer les informations concernant l’espace de nom, dans le code de la donnée (cf. exemple 1 ci-dessous).
-
-## Exemples
-
-**Identifiant de la donnée :**
-
-- Code : « FR–2467800019–150523_D004 »
-
-Ce qui signifie :
-
-- FR : code pour la France
-- 2467800019 : numéro SIREN de la Région Alsace
-- 150223_R004 : numéro unique établi en interne à la Région Alsace, composé de la date de création de la donnée (23/0#12) suivi de la lettre « D » indiquant qu’il s’agit d’une donnée et d’un numéro d’ordre.
-
-**Identifiant de la donnée :**
-
-- Code : « 110805-BdOCS2008-CIGAL »
-- Espace de nommage : « FR–#00019 »
-
-Ce qui signifie :
-
-- Pour le code : « 110805-BdOCS2008-CIGAL » est un code unique établi en interne à la Région Alsace pour le partenariat CIGAL, composé de la date de création de la donnée (09/0#11) suivi du nom officiel de la base de données
-- Pour l’espace de nommage : « FR » est le code pour la France et « #00019 », le numéro SIREN de la Région Alsace
-
-<!-- End @dataIdentifiers.md -->
