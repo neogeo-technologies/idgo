@@ -721,8 +721,11 @@ table td .form-group {
 }
 
 .page-header .title {
-    font-size: 2.666em;
+    font-size: 28px;
     font-weight: 600;
+    color: #333;
+    padding: 0;
+    margin: 0;
 }
 
 .page-header .title a,
