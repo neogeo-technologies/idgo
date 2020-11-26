@@ -81,11 +81,64 @@
       {% bootstrap_field form.update_frequency %}
     </div>
   </div>
+
   <div class="row">
     <div class="col-xs-4">
-      {% bootstrap_field form.geocover %}
+      <label for="id_{{ form.geocover.html_name }}">
+        {{ form.geocover.label }}
+        <button
+          id="#id_button_{{ form.geocover.html_name }}"
+          type="button" class="btn btn-link"
+          data-toggle="collapse" href="#id_popover_{{ form.geocover.html_name }}"
+          aria-expanded="false" aria-controls="id_popover_{{ form.geocover.html_name }}">
+          <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+        </button>
+      </label>
+      {% bootstrap_field form.geocover show_label=False %}
     </div>
   </div>
+
+  <div class="collapse" id="id_popover_{{ form.geocover.html_name }}">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="well">
+          <p>
+            La couverture géographique d'un jeu de données correspond à son emprise sur le territoire.
+            Elle sert à améliorer sa recherche au sein d'un catalogue proposant un filtre spatial.
+          </p>
+          <p>
+            Elle peut être renseignée de plusieurs façons :
+            <dl>
+              <dt>Calculé automatiquement</dt>
+              <dd>
+                Chaque fois qu'une ressource géographique est ajoutée au jeu de données,
+                son emprise est utilisée pour calculer automatiquement la couverture géographique.
+                Si plusieurs ressources géographique sont ajoutées, la couverture du jeu
+                de données est la réunion des différentes emprises. Si aucune ressource
+                géographique n'est ajoutée au jeu de données, sa couverture géographique est nulle.
+              </dd>
+              <dt>Régionale</dt>
+              <dd>
+                La couverture géographique ne dépend pas des ressources ajoutées au jeu de données.
+                Elle est toujours égale à l'emprise de la région. Cette option est intéressante
+                pour les jeux de données non géographique comportant des données de niveau régional,
+                ou bien des jeux de données avec des ressources géographiques concernant l'ensemble
+                de la région mais ne disposant d'objets que sur des zones très localisées.
+              </dd>
+              <dt>Territoire de compétence</dt>
+              <dd>
+                Il s'agit du territoire de compétence de l'organisation publiant le jeu de données.
+                Cette option est la plus adaptée pour les jeux de données ne concernant que le
+                territoire restreint associé à l'organisation (commune, communauté de communes,
+                département, etc.)
+              </dd>
+            </dl>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   {% if dataset.geocover == 'jurisdiction' and not dataset.organisation.jurisdiction %}
   <div class="row">
     <div class="col-xs-8">
@@ -238,5 +291,6 @@ $(function() {
       });
     }
   });
+
 });
 </script>
