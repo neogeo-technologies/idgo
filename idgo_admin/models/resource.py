@@ -938,7 +938,9 @@ class Resource(models.Model):
             if not url:
                 data['upload'] = self.ftp_file.file
             data['size'] = self.ftp_file.size
-            if self.format_type and len(self.format_type.mimetype):
+            if self.format_type and (
+                    type(self.format_type.mimetype) is list and len(self.format_type.mimetype)
+                    ):
                 data['mimetype'] = self.format_type.mimetype[0]
             else:
                 data['mimetype'] = 'text/plain'
