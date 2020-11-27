@@ -332,7 +332,7 @@ class ResourceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.include_args = kwargs.pop('include', {})
         self._dataset = kwargs.pop('dataset', None)
-        self.instance = kwargs.get('instance', None)
+        self._instance = kwargs.get('instance', None)
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
@@ -355,9 +355,9 @@ class ResourceForm(forms.ModelForm):
             self.fields['sync_frequency_ftp'].choices = choices
             self.fields['sync_frequency_dl'].choices = choices
 
-        if self.instance:
+        if self._instance:
             related_profiles = Case(
-                When(pk__in=[m.pk for m in self.instance.profiles_allowed.all()], then=Value(True)),
+                When(pk__in=[m.pk for m in self._instance.profiles_allowed.all()], then=Value(True)),
                 default=Value(False),
                 output_field=BooleanField(),
                 )
@@ -365,20 +365,20 @@ class ResourceForm(forms.ModelForm):
                 Profile.objects.annotate(related=related_profiles).order_by('-related', 'user__username')
 
             related_organisations = Case(
-                When(pk__in=[m.pk for m in self.instance.organisations_allowed.all()], then=Value(True)),
+                When(pk__in=[m.pk for m in self._instance.organisations_allowed.all()], then=Value(True)),
                 default=Value(False),
                 output_field=BooleanField(),
                 )
             self.fields['organisations_allowed'].queryset = \
                 Organisation.objects.annotate(related=related_organisations).order_by('-related', 'slug')
 
-            if self.instance.up_file:
-                self.fields['up_file'].widget.attrs['value'] = self.instance.up_file
-            elif self.instance.ftp_file:
-                self.fields['synchronisation_ftp'].initial = self.instance.synchronisation
-                self.fields['sync_frequency_ftp'].initial = self.instance.sync_frequency
+            if self._instance.up_file:
+                self.fields['up_file'].widget.attrs['value'] = self._instance.up_file
+            elif self._instance.ftp_file:
+                self.fields['synchronisation_ftp'].initial = self._instance.synchronisation
+                self.fields['sync_frequency_ftp'].initial = self._instance.sync_frequency
                 try:
-                    self.instance.ftp_file.file
+                    self._instance.ftp_file.file
                 except FileNotFoundError:
                     self.fields['ftp_file'] = forms.CharField(
                         label="Fichier initialement déposé sur votre compte sFTP (ce fichier n'est plus détecté) :",
@@ -390,11 +390,11 @@ class ResourceForm(forms.ModelForm):
                                 },
                             ),
                         )
-            elif self.instance.dl_url:
-                self.fields['synchronisation_dl'].initial = self.instance.synchronisation
-                self.fields['sync_frequency_dl'].initial = self.instance.sync_frequency
+            elif self._instance.dl_url:
+                self.fields['synchronisation_dl'].initial = self._instance.synchronisation
+                self.fields['sync_frequency_dl'].initial = self._instance.sync_frequency
 
-        if self.instance and self.user != self.instance.dataset.editor:
+        if self._instance and self.user != self._instance.dataset.editor:
             self.fields['ftp_file'] = forms.CharField(
                 label="Fichier",
                 required=False,
@@ -404,8 +404,8 @@ class ResourceForm(forms.ModelForm):
 
     def clean(self):
 
-        if self.instance and self.user != self.instance.dataset.editor:
-            self.cleaned_data['ftp_file'] = self.instance.ftp_file.file.name
+        if self._instance and self.user != self._instance.dataset.editor:
+            self.cleaned_data['ftp_file'] = self._instance.ftp_file.file.name
 
         res_l = {
             'up_file': self.cleaned_data.get('up_file') or None,
