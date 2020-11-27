@@ -496,7 +496,7 @@ class Resource(models.Model):
                             try:
                                 os.symlink(src, dst)
                             except FileNotFoundError as e:
-                                logger.error(e)
+                                logger.exception(e)
                             else:
                                 logger.debug('Created a symbolic link {dst} pointing to {src}.'.format(dst=dst, src=src))
 
@@ -516,6 +516,7 @@ class Resource(models.Model):
                 directory, filename, content_type = download(
                     self.dl_url, settings.MEDIA_ROOT, max_size=DOWNLOAD_SIZE_LIMIT)
             except SizeLimitExceededError as e:
+                logger.exception(e)
                 l = len(str(e.max_size))
                 if l > 6:
                     m = '{0} mo'.format(Decimal(int(e.max_size) / 1024 / 1024))
@@ -527,6 +528,7 @@ class Resource(models.Model):
                     'La taille du fichier dépasse '
                     'la limite autorisée : {0}.').format(m), code='dl_url')
             except Exception as e:
+                logger.exception(e)
                 if e.__class__.__name__ == 'HTTPError':
                     if e.response.status_code == 404:
                         msg = ('La ressource distante ne semble pas exister. '
@@ -597,7 +599,9 @@ class Resource(models.Model):
                                 extension=extension, ckan_format=gdalogr_obj.format)
                         # except ResourceFormats.MultipleObjectsReturned:
                         #     pass
-                        except Exception:
+                        except Exception as e:
+                            logger.exception(e)
+                            logger.warning("Error was ignored.")
                             pass
 
                         # ==========================
@@ -615,7 +619,7 @@ class Resource(models.Model):
                                     encoding=self.encoding)
 
                             except NotOGRError as e:
-                                logger.warning(e)
+                                logger.exception(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     "Le fichier reçu n'est pas reconnu "
@@ -623,7 +627,7 @@ class Resource(models.Model):
                                 raise ValidationError(msg, code='__all__')
 
                             except DataDecodingError as e:
-                                logger.warning(e)
+                                logger.exception(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     'Impossible de décoder correctement les '
@@ -632,7 +636,7 @@ class Resource(models.Model):
                                 raise ValidationError(msg, code='encoding')
 
                             except WrongDataError as e:
-                                logger.warning(e)
+                                logger.exception(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     'Votre ressource contient des données SIG que '
@@ -641,7 +645,7 @@ class Resource(models.Model):
                                 raise ValidationError(msg)
 
                             except NotFoundSrsError as e:
-                                logger.warning(e)
+                                logger.exception(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     'Votre ressource semble contenir des données SIG '
@@ -651,7 +655,7 @@ class Resource(models.Model):
                                 raise ValidationError(msg, code='crs')
 
                             except NotSupportedSrsError as e:
-                                logger.warning(e)
+                                logger.exception(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     'Votre ressource semble contenir des données SIG '
@@ -660,7 +664,7 @@ class Resource(models.Model):
                                 raise ValidationError(msg, code='__all__')
 
                             except ExceedsMaximumLayerNumberFixedError as e:
-                                logger.warning(e)
+                                logger.exception(e)
                                 file_must_be_deleted and remove_file(filename)
                                 raise ValidationError(e.__str__(), code='__all__')
 
@@ -682,7 +686,7 @@ class Resource(models.Model):
                                                 resource=self,
                                                 save_opts=save_opts)
                                 except Exception as e:
-                                    logger.error(e)
+                                    logger.exception(e)
                                     file_must_be_deleted and remove_file(filename)
                                     for table in tables:
                                         drop_table(table['id'])
@@ -702,7 +706,7 @@ class Resource(models.Model):
                                     epsg=self.crs and self.crs.auth_code or None)]
 
                             except NotFoundSrsError as e:
-                                logger.warning(e)
+                                logger.exception(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     'Votre ressource semble contenir des données SIG '
@@ -712,7 +716,7 @@ class Resource(models.Model):
                                 raise ValidationError(msg, code='crs')
 
                             except NotSupportedSrsError as e:
-                                logger.warning(e)
+                                logger.exception(e)
                                 file_must_be_deleted and remove_file(filename)
                                 msg = (
                                     'Votre ressource semble contenir des données SIG '
@@ -729,9 +733,9 @@ class Resource(models.Model):
                             try:
                                 os.symlink(src, dst)
                             except FileExistsError as e:
-                                logger.warning(e)
+                                logger.exception(e)
                             except FileNotFoundError as e:
-                                logger.error(e)
+                                logger.exception(e)
                             else:
                                 logger.debug('Created a symbolic link {dst} pointing to {src}.'.format(dst=dst, src=src))
 
@@ -747,11 +751,12 @@ class Resource(models.Model):
                                             name=table['id'],
                                             resource=self)
                             except Exception as e:
-                                logger.error(e)
+                                logger.exception(e)
                                 file_must_be_deleted and remove_file(filename)
                                 raise e
 
                 except Exception as e:
+                    logger.exception(e)
                     if created:
                         if current_user:
                             username = current_user.username
@@ -810,8 +815,9 @@ class Resource(models.Model):
             try:
                 CkanHandler.update_resource(
                     str(self.ckan_id), extracting_service=str(self.extractable))
-            except:
-                pass
+            except Exception as e:
+                logger.exception(e)
+                logger.warning("Error was ignored.")
 
         for layer in self.get_layers():
             layer.save(synchronize=synchronize)
