@@ -2,17 +2,18 @@
 
 {% include "idgo_admin/alert_messages.html" %}
 
-<form name="dataset" method="post" action="" enctype="multipart/form-data">
-  <div class="buttons-on-the-right-side" style="margin-bottom: 20px;">
-    {% if dataset %}
-    <a class="btn btn-default" href="{% url 'idgo_admin:dataset_mdedit' id=dataset.pk %}">Éditer la fiche de métadonnées INSPIRE</a>
-    <a class="btn btn-default" target="_blank" href="{{ CKAN_URL }}/dataset/{{ dataset.slug }}">Ouvrir dans CKAN</a>
-    {% endif %}{% if READTHEDOC_URL %}
+<form name="dataset" method="post" action="" enctype="multipart/form-data">{% csrf_token %}
+  <div class="buttons-on-the-right-side" style="margin-bottom: 20px;">{% if dataset %}
+    <a class="btn btn-default" href="{% url 'idgo_admin:dataset_mdedit' id=dataset.pk %}">
+      Éditer la fiche de métadonnées INSPIRE
+    </a>
+    <a class="btn btn-default" target="_blank" href="{{ CKAN_URL }}/dataset/{{ dataset.slug }}">
+      Ouvrir dans CKAN
+    </a>{% endif %}{% if READTHEDOC_URL %}
     <a role="button" class="btn btn-secondary" target="_blank" href="{{ READTHEDOC_URL }}">
       <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Aide à la saisie
     </a>{% endif %}
   </div>
-  {% csrf_token %}
   {% if ENABLE_CKAN_HARVESTER and dataset.remote_ckan_dataset %}
   {% include "idgo_admin/dataset/remote_dataset_frame.html" with remote=dataset.remote_ckan_dataset %}
   {% elif ENABLE_CSW_HARVESTER and dataset.remote_csw_dataset %}
@@ -30,22 +31,91 @@
       {% bootstrap_field form.slug %}
     </div>
   </div>
-  <br />
+  <br>
   <div class="row">
     <div class="col-xs-8">
-      {% bootstrap_field form.description %}
+      <label for="id_{{ form.description.html_name }}">
+        {{ form.description.label }}
+        <button
+          id="#id_button_{{ form.description.html_name }}"
+          type="button" class="btn btn-link"
+          data-toggle="collapse" href="#id_collapse_{{ form.description.html_name }}"
+          aria-expanded="false" aria-controls="id_collapse_{{ form.description.html_name }}">
+          <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+        </button>
+      </label>
+      {% bootstrap_field form.description show_label=False %}
     </div>
     <div class="col-xs-4">
       {% bootstrap_field form.thumbnail %}
     </div>
   </div>
-  <br />
+  <div class="collapse" id="id_collapse_{{ form.description.html_name }}">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="well">
+          Le language Markdown est permis ici, pour aider à définir au mieux les
+          informations contenues dans le jeu de données, et indiquer à l'utilisateur
+          le contexte de création et d'utilisation du jeu de données. Une documentation
+          complète est disponible sur le <a href="https://daringfireball.net/projects/markdown/syntax" target="_blank">site officiel</a>,
+          qui comprend également une <a href="https://daringfireball.net/projects/markdown/dingus" target="_blank">interface de test</a>.
+          <br>
+          Voici quelques éléments clé pour écrire en Markdown:
+          <br>
+          <h5>
+            Ecriture des titres :
+          </h5>
+          <pre><code>Titre de niveau 1
+=================</code></pre>
+          <pre><code>Titre de niveau 2
+-----------------</code></pre>
+          <h5>
+            Séparation des paragraphes :
+          </h5>
+          Afin de séparer les paragraphes, le retour chariot doit être utilisé deux fois.
+          Le simple retour à la ligne n'a pas d'effet visuel en Markdown.
+          <h5>
+            Effets de caractères :
+          </h5>
+          <pre><code>*texte écrit en italique*</code></pre>
+          <pre><code>**texte écrit en gras**</code></pre>
+          <h5>
+            Les listes :
+          </h5>
+          <pre><code>* élément d'une liste
+* élément d'une liste
+* élément d'une liste
+  * élément d'une liste imbriquée
+  * élément d'une liste imbriquée</code></pre>
+          <h5>
+            Citations :
+          </h5>
+          <pre><code>> Une citation
+> > Réponse à la citation</code></pre>
+          <h5>
+            Lien :
+          </h5>
+          Les mots qui permettent d'établir le lien doivent être entre
+          crochets, suivi du site internet ciblé entre parenthèse. Par exemple :
+          <pre><code>Consulter le [site internet de Neogeo](https://www.neogeo.fr/)</code></pre>
+          <h5>
+            Images illustratives :
+          </h5>
+          Le point d'exclamation permet d'afficher une image référencée sur internet.
+          On l'inscrit devant le texte alternatif de l'image, placé entre crochets.
+          L'adresse de l'image est ensuite inscrite entre parenthèse. Par exemple:
+          <pre><code>![texte altenatif de l'image](https://www.neogeo.fr/wp-content/uploads/2019/06/logo-n.png)</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
   <div class="row">
     <div class="col-xs-12">
       {% bootstrap_field form.keywords %}
     </div>
   </div>
-  <br />
+  <br>
   <div class="form-group">
     <label for="categories">Catégories (sélectionnez dans la liste ci-dessous une ou plusieurs catégories)</label>
     <div id="categories" class="btn-group" data-toggle="buttons">
@@ -59,7 +129,7 @@
       {% endfor %}
     </div>
   </div>
-  <br />
+  <br>
   <div class="row">
     <div class="col-xs-4">
       {% bootstrap_field form.date_creation %}
@@ -75,13 +145,34 @@
       {% bootstrap_field form.date_publication %}
     </div>
   </div>
-  <br />
+  <br>
   <div class="row">
     <div class="col-xs-4">
-      {% bootstrap_field form.update_frequency %}
+      <label for="id_{{ form.update_frequency.html_name }}">
+        {{ form.update_frequency.label }}
+        <button
+          id="#id_button_{{ form.update_frequency.html_name }}"
+          type="button" class="btn btn-link"
+          data-toggle="collapse" href="#id_collapse_{{ form.update_frequency.html_name }}"
+          aria-expanded="false" aria-controls="id_collapse_{{ form.update_frequency.html_name }}">
+          <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+        </button>
+      </label>
+      {% bootstrap_field form.update_frequency show_label=False %}
     </div>
   </div>
-
+  <div class="collapse" id="id_collapse_{{ form.update_frequency.html_name }}">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="well">
+          La fréquence de mise à jour permet de qualifier la fréquence avec laquelle
+          sont mises à jour les données rattachées au jeu de donnée. Elle indique
+          à l'utilisateur s'il s'agit de données produites une seule fois, ou
+          si elles nécessitent d'être mises à jour régulièrement.
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="row">
     <div class="col-xs-4">
       <label for="id_{{ form.geocover.html_name }}">
@@ -89,16 +180,15 @@
         <button
           id="#id_button_{{ form.geocover.html_name }}"
           type="button" class="btn btn-link"
-          data-toggle="collapse" href="#id_popover_{{ form.geocover.html_name }}"
-          aria-expanded="false" aria-controls="id_popover_{{ form.geocover.html_name }}">
+          data-toggle="collapse" href="#id_collapse_{{ form.geocover.html_name }}"
+          aria-expanded="false" aria-controls="id_collapse_{{ form.geocover.html_name }}">
           <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
         </button>
       </label>
       {% bootstrap_field form.geocover show_label=False %}
     </div>
   </div>
-
-  <div class="collapse" id="id_popover_{{ form.geocover.html_name }}">
+  <div class="collapse" id="id_collapse_{{ form.geocover.html_name }}">
     <div class="row">
       <div class="col-xs-12">
         <div class="well">
@@ -106,55 +196,75 @@
             La couverture géographique d'un jeu de données correspond à son emprise sur le territoire.
             Elle sert à améliorer sa recherche au sein d'un catalogue proposant un filtre spatial.
           </p>
-          <p>
-            Elle peut être renseignée de plusieurs façons :
-            <dl>
-              <dt>Calculé automatiquement</dt>
-              <dd>
-                Chaque fois qu'une ressource géographique est ajoutée au jeu de données,
-                son emprise est utilisée pour calculer automatiquement la couverture géographique.
-                Si plusieurs ressources géographique sont ajoutées, la couverture du jeu
-                de données est la réunion des différentes emprises. Si aucune ressource
-                géographique n'est ajoutée au jeu de données, sa couverture géographique est nulle.
-              </dd>
-              <dt>Régionale</dt>
-              <dd>
-                La couverture géographique ne dépend pas des ressources ajoutées au jeu de données.
-                Elle est toujours égale à l'emprise de la région. Cette option est intéressante
-                pour les jeux de données non géographique comportant des données de niveau régional,
-                ou bien des jeux de données avec des ressources géographiques concernant l'ensemble
-                de la région mais ne disposant d'objets que sur des zones très localisées.
-              </dd>
-              <dt>Territoire de compétence</dt>
-              <dd>
-                Il s'agit du territoire de compétence de l'organisation publiant le jeu de données.
-                Cette option est la plus adaptée pour les jeux de données ne concernant que le
-                territoire restreint associé à l'organisation (commune, communauté de communes,
-                département, etc.)
-              </dd>
-            </dl>
-          </p>
+          Elle peut être renseignée de plusieurs façons :
+          <br>
+          <dl>
+            <dt>Calculé automatiquement</dt>
+            <dd>
+              Chaque fois qu'une ressource géographique est ajoutée au jeu de données,
+              son emprise est utilisée pour calculer automatiquement la couverture géographique.
+              Si plusieurs ressources géographique sont ajoutées, la couverture du jeu
+              de données est la réunion des différentes emprises. Si aucune ressource
+              géographique n'est ajoutée au jeu de données, sa couverture géographique est nulle.
+            </dd>
+            <dt>Régionale</dt>
+            <dd>
+              La couverture géographique ne dépend pas des ressources ajoutées au jeu de données.
+              Elle est toujours égale à l'emprise de la région. Cette option est intéressante
+              pour les jeux de données non géographique comportant des données de niveau régional,
+              ou bien des jeux de données avec des ressources géographiques concernant l'ensemble
+              de la région mais ne disposant d'objets que sur des zones très localisées.
+            </dd>
+            <dt>Territoire de compétence</dt>
+            <dd>
+              Il s'agit du territoire de compétence de l'organisation publiant le jeu de données.
+              Cette option est la plus adaptée pour les jeux de données ne concernant que le
+              territoire restreint associé à l'organisation (commune, communauté de communes,
+              département, etc.)
+            </dd>
+          </dl>
         </div>
       </div>
     </div>
   </div>
-
   {% if dataset.geocover == 'jurisdiction' and not dataset.organisation.jurisdiction %}
   <div class="row">
     <div class="col-xs-8">
       <div class="alert alert-info">
         <span class="glyphicon glyphicon-alert"></span>
-        L'organisation à laquelle est rattaché ce jeu de données ne dispose pas de territoire de compétence. Veuillez contacter un administrateur IDGO.
+        L'organisation à laquelle est rattaché ce jeu de données ne dispose pas
+        de territoire de compétence. Veuillez contacter un administrateur IDGO.
       </div>
     </div>
   </div>
   {% endif %}
   <div class="row">
     <div class="col-xs-4">
-      {% bootstrap_field form.granularity %}
+      <label for="id_{{ form.granularity.html_name }}">
+        {{ form.granularity.label }}
+        <button
+          id="#id_button_{{ form.granularity.html_name }}"
+          type="button" class="btn btn-link"
+          data-toggle="collapse" href="#id_collapse_{{ form.granularity.html_name }}"
+          aria-expanded="false" aria-controls="id_collapse_{{ form.granularity.html_name }}">
+          <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+        </button>
+      </label>
+      {% bootstrap_field form.granularity show_label=False %}
     </div>
   </div>
-  <br />
+  <div class="collapse" id="id_collapse_{{ form.granularity.html_name }}">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="well">
+          La granularité territoriale définit le niveau de détail de
+          l'information présentée : il s'agit de l'échelle territoriale la
+          plus petite avec laquelle il est possible de découper l'information.
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
   <div class="row">
     <div class="col-xs-8">
       {% bootstrap_field form.organisation %}
@@ -170,21 +280,74 @@
       {% bootstrap_field form.support %}
     </div>
   </div>
-  <br />
-  <div class="row">
-    <div class="col-xs-4">
-      {% bootstrap_field form.data_type %}
-    </div>
-  </div>
-  <br />
+  <br>
   <div class="row">
     <div class="col-xs-6">
-      {% bootstrap_field form.owner_name %}
+      <label for="id_{{ form.data_type.html_name }}">
+        {{ form.data_type.label }}
+        <button
+          id="#id_button_{{ form.data_type.html_name }}"
+          type="button" class="btn btn-link"
+          data-toggle="collapse" href="#id_collapse_{{ form.data_type.html_name }}"
+          aria-expanded="false" aria-controls="id_collapse_{{ form.data_type.html_name }}">
+          <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+        </button>
+      </label>
+      {% bootstrap_field form.data_type show_label=False %}
+    </div>
+  </div>
+  <div class="collapse" id="id_collapse_{{ form.data_type.html_name }}">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="well">
+          Les types de données permettent de mieux caractériser les
+          jeux de données : ils facilitent la navigation dans le catalogue CKAN en
+          ajoutant une caractéristique au jeu de données. Les utilisateurs
+          peuvent mieux filtrer leur recherche grâce à la facette «Type de données».
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <div class="row">
+    <div class="col-xs-6">
+      <label for="id_{{ form.owner_name.html_name }}">
+        {{ form.owner_name.label }}
+        <button
+          id="#id_button_{{ form.owner_name.html_name }}"
+          type="button" class="btn btn-link"
+          data-toggle="collapse" href="#id_collapse_{{ form.owner_name.html_name }}"
+          aria-expanded="false" aria-controls="id_collapse_{{ form.owner_name.html_name }}">
+          <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+        </button>
+      </label>
+      {% bootstrap_field form.owner_name show_label=False %}
     </div>
   </div>
   <div class="row">
     <div class="col-xs-6">
-      {% bootstrap_field form.owner_email %}
+      <label for="id_{{ form.owner_email.html_name }}">
+        {{ form.owner_email.label }}
+        <button
+          id="#id_button_{{ form.owner_email.html_name }}"
+          type="button" class="btn btn-link"
+          data-toggle="collapse" href="#id_collapse_{{ form.owner_name.html_name }}"
+          aria-expanded="false" aria-controls="id_collapse_{{ form.owner_email.html_name }}">
+          <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+        </button>
+      </label>
+      {% bootstrap_field form.owner_email show_label=False %}
+    </div>
+  </div>
+  <div class="collapse" id="id_collapse_{{ form.owner_name.html_name }}">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="well">
+          Ce champ permet de référencer le nom et le contact de la personne qui
+          produit les ressources contenues dans le jeu de données. Par défaut,
+          le nom et l'adresse mail du contributeur sont utilisés.
+        </div>
+      </div>
     </div>
   </div>
   <div class="row">
@@ -197,15 +360,45 @@
       {% bootstrap_field form.broadcaster_email %}
     </div>
   </div>
-  <br />
-  {% bootstrap_field form.published %}
-  <br />
+  <br>
+  <div class="row">
+    <div class="col-xs-4">
+      <label for="id_{{ form.published.html_name }}">
+        {{ form.published.label }}
+        <button
+          id="#id_button_{{ form.published.html_name }}"
+          type="button" class="btn btn-link"
+          data-toggle="collapse" href="#id_collapse_{{ form.published.html_name }}"
+          aria-expanded="false" aria-controls="id_collapse_{{ form.published.html_name }}">
+          <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+        </button>
+      </label>
+      {% bootstrap_field form.published show_label=False %}
+    </div>
+  </div>
+  <div class="collapse" id="id_collapse_{{ form.published.html_name }}">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="well">
+          En décochant cette case, le contenu du jeu de données ne sera pas
+          accessible aux utilisateurs de la plateforme. Seuls les administrateurs
+          et les membres de votre organisme pourront le consulter.
+          Il s'agit d'une diffusion sur le catalogue en mode «privé»,
+          pratique pour vérifier la présentation du dataset et de son contenu
+          dans le catalogue CKAN avant ouverture au public, ou encore pour
+          partager des jeux de données et ressources associées avec les membres de
+          son organisation.
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
   <div class="buttons-on-the-right-side">
     <a class="btn btn-default" href="{% url 'idgo_admin:list_my_datasets' %}">Annuler</a>
     <button type="submit" name="continue" class="btn btn-default">Enregistrer et continuer les modifications</button>
     <button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
   </div>
-  <hr />
+  <hr>
   <div class="row">
     <div class="col-xs-12">
       <small>* Les champs marqués d'un astérisque sont obligatoires.</small>
@@ -226,7 +419,7 @@ $(function() {
 
   const supports = {{ supports | safe }}
 
-  $('select[name="{{ form.support.name }}"]').change(function(e) {
+  $('select[name="{{ form.support.html_name }}"]').change(function(e) {
     let name;
     let email;
     if (supports[this.value]) {
@@ -236,13 +429,13 @@ $(function() {
       name = '{{ DEFAULT_PLATFORM_NAME }}';
       email = '{{ DEFAULT_CONTACT_EMAIL }}';
     };
-    $('input[name="{{ form.broadcaster_name.name }}"]').prop('placeholder', name)
-    $('input[name="{{ form.broadcaster_email.name }}"]').prop('placeholder', email)
+    $('input[name="{{ form.broadcaster_name.html_name }}"]').prop('placeholder', name)
+    $('input[name="{{ form.broadcaster_email.html_name }}"]').prop('placeholder', email)
   });
 
 
-  const $name = $('[name="{{ form.title.name }}"]')
-  const $ckanSlug = $('[name="{{ form.slug.name }}"]').prop('readonly', true);
+  const $name = $('[name="{{ form.title.html_name }}"]')
+  const $ckanSlug = $('[name="{{ form.slug.html_name }}"]').prop('readonly', true);
 
   const btnText = 'Modifier le chemin';
   $ckanSlug.siblings().find('button').text(btnText).click(function(e) {
