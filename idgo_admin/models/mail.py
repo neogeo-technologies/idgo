@@ -27,6 +27,7 @@ from idgo_admin.exceptions import GenericException
 from idgo_admin.utils import PartialFormatter
 
 from idgo_admin import DEFAULT_FROM_EMAIL
+from idgo_admin import ENABLE_SENDING_MAIL
 from idgo_admin import EXTRACTOR_URL_PUBLIC
 
 
@@ -114,12 +115,15 @@ def sender(template_name, to=None, cc=None, bcc=None, attach_files=[], **kvp):
     for attach_file in attach_files:
         mail.attach_file(attach_file)
 
-    try:
-        mail.send()
-    except SMTPDataError as e:
-        logger.error(e)
-        # Activer l'exception lorsque gérée par l'application.
-        # return MailError()
+    if ENABLE_SENDING_MAIL:
+        try:
+            mail.send()
+        except SMTPDataError as e:
+            logger.error(e)
+            # Activer l'exception lorsque gérée par l'application.
+            # return MailError()
+    else:
+        logger.warning("Sending mail is disable.")
 
 
 # Pour informer l'utilisateur de la création de son compte par un administrateur
