@@ -1,8 +1,7 @@
 {% load bootstrap3 %}
 
 {% include "idgo_admin/alert_messages.html" %}
-
-<br />
+<br>
 <div id="table-layers" class="table-responsive"></div>
 <nav aria-label="Page navigation" style="text-align: center;">
   <ul id="table-layers-paginator" class="pagination pagination-sm"></ul>
@@ -15,6 +14,14 @@
   {% endif %}
   <button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
   <button name="edit-layer" class="btn btn-default">Configurer le service</button>
+  <hr>
+  <div style="text-align: left;">
+    <p>
+      <u>Important</u> : seuls les services OGC des ressources classiques apparaissent ici.
+      Les services OGC des ressources <strong>Bêta</strong>, comme les catalogues
+      de <i>tuiles rasters</i>, sont entièrement configurables dans leur page réservée.
+    </p>
+  </div>
 </div>
 
 <script>
@@ -200,7 +207,7 @@ $(function() {
           id: i,
           values: [
             data[i][2],   // resource_name
-            data[i][10],   // title
+            data[i][10],  // title
             data[i][7],   // ogc_enabled
             data[i][6],   // extractor_enabled
             data[i][4],   // restrictions
