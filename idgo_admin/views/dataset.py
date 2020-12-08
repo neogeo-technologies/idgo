@@ -18,6 +18,7 @@ import json
 from math import ceil
 from operator import ior
 
+from django.apps import apps
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
