@@ -53,7 +53,11 @@ from idgo_admin.shortcuts import get_object_or_404_extended
 from idgo_admin import CKAN_URL
 from idgo_admin import LOGIN_URL
 
-from idgo_resource.models import Resource as ResourceModel_Beta
+if apps.is_installed('idgo_resource'):
+    from idgo_resource.models import Resource as ResourceModel_Beta
+    BETA = True
+else:
+    BETA = False
 
 
 def target(dataset, user):
@@ -292,9 +296,9 @@ class DatasetManager(View):
 
     def get_context(self, form, user, dataset):
 
-        # > > > > > > BETA  < < < < < < #
         resource_list_rows = []
-        if dataset:
+        # > > > > > > BETA  < < < < < < #
+        if BETA and dataset:
             for resource in ResourceModel_Beta.objects.filter(dataset=dataset):
                 data = (
                     resource.pk,
