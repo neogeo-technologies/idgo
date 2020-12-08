@@ -501,6 +501,27 @@ class Extractor(View):
                 # TODO
                 pass
 
+            # if resource_beta_name:  # geo_restriction TODO ???
+            #     footprint_restriction = \
+            #         json.loads(user.profile.organisation.jurisdiction.geom.geojson)
+            #     if footprint:
+            #         try:
+            #             data_extraction['footprint'] = intersect(json.dumps(footprint), json.dumps(footprint_restriction))
+            #         except Exception:
+            #             msg = "La zone d'extraction génère une erreur"
+            #             messages.error(request, msg)
+            #             return render(request, self.template, context=context)
+            #     else:
+            #         data_extraction['footprint'] = footprint_restriction
+            #     data_extraction['footprint_srs'] = 'EPSG:4326'
+            # elif footprint:
+            if footprint:
+                data_extraction['footprint'] = footprint
+                data_extraction['footprint_srs'] = 'EPSG:4326'
+
+            data_extractions.append(data_extraction)
+            # Pas d'`additional_files` dans le cas présent.
+
             data_extractions.append(data_extraction)
         # /!\ BETA /!\
 
