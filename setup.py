@@ -19,7 +19,7 @@ from setuptools import find_packages
 from setuptools import setup
 
 
-version = '1.3.8'
+version = '1.3.9'
 
 
 def parse_requirements(filename):
