@@ -13,7 +13,7 @@
   {% include "idgo_admin/extras/restricted_access/button.html" with class="btn btn-default" text="Service d'extraction" name="extractor" modal_target="modal_forbidden" %}
   {% endif %}
   <button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
-  <button name="edit-layer" class="btn btn-default">Configurer le service</button>
+  <button name="edit-layer" class="btn btn-default">Configurer le service</button>{% if ENABLE_RESOURCE_BETA %}
   <hr>
   <div style="text-align: left;">
     <p>
@@ -21,7 +21,7 @@
       Les services OGC des ressources <strong>Bêta</strong>, comme les catalogues
       de <i>tuiles rasters</i>, sont entièrement configurables dans leur page réservée.
     </p>
-  </div>
+  </div>{% endif %}
 </div>
 
 <script>

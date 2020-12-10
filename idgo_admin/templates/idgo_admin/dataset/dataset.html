@@ -27,12 +27,10 @@
   {% if dataset %}
   <li role="presentation">
     <a href="#resources" aria-controls="resources" role="tab" data-toggle="tab">Ressource(s) associée(s)</a>
-  </li>
-
+  </li>{% if ENABLE_RESOURCE_BETA %}
   <li role="presentation">
     <a href="#resources_beta" aria-controls="resources_beta" role="tab" data-toggle="tab">Ressource(s) associée(s) <span class="label label-default">Bêta</span></a>
-  </li>
-
+  </li>{% endif %}
   <li role="presentation">
     <a href="#owslayers" aria-controls="service" role="tab" data-toggle="tab">Service OGC</a>
   </li>
@@ -47,13 +45,11 @@
   <div id="resources" role="tabpanel" class="tab-pane fade in">
     <br />
     {% include "idgo_admin/dataset/resource/resources.html" %}
-  </div>
-
+  </div>{% if ENABLE_RESOURCE_BETA %}
   <div id="resources_beta" role="tabpanel" class="tab-pane fade in">
     <br />
     {% include "idgo_admin/dataset/resource/resources_beta.html" %}
-  </div>
-
+  </div>{% endif %}
   <div id="owslayers" role="tabpanel" class="tab-pane fade in">
     <br />
     {% include "idgo_admin/dataset/resource/layer/layers.html" %}

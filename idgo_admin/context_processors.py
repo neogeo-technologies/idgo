@@ -37,6 +37,13 @@ from idgo_admin import IDGO_USER_PARTNER_LABEL
 from idgo_admin import IDGO_USER_PARTNER_LABEL_PLURAL
 
 
+if apps.is_installed('idgo_resource'):
+    from idgo_resource.models import Resource as ResourceModel_Beta
+    BETA = True
+else:
+    BETA = False
+
+
 def global_vars(request):
 
     user = request.user
@@ -51,6 +58,7 @@ def global_vars(request):
         contributor, referent = [], []
 
     return {
+        'ENABLE_RESOURCE_BETA': BETA,
         'HREF_WWW': HREF_WWW,
         'ENABLE_CSW_HARVESTER': ENABLE_CSW_HARVESTER,
         'ENABLE_CKAN_HARVESTER': ENABLE_CKAN_HARVESTER,
