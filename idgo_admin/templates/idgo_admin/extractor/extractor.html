@@ -4,8 +4,6 @@
 
 {% block head_extras %}
 <script src="{% static 'libs/leaflet/leaflet.js' %}"></script>
-<script src="{% static 'libs/leaflet/leaflet-nontiledlayer.js' %}"></script>
-<script src="{% static 'libs/leaflet/leaflet-nontiledlayer-wms.js' %}"></script>
 <script src="{% static 'libs/leaflet.draw/leaflet.draw.js' %}"></script>
 <script src="{% static 'libs/bootstrap-slider/bootstrap-slider.js' %}"></script>
 <script src="{% static 'libs/turf/turf.min.js' %}"></script>
@@ -295,60 +293,64 @@ $(function() {
 
   {% if organisation and dataset and resource and layer %}
 
-  targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
-    format: 'image/png',
-    layers: '{{ layer.mra_info.name }}',
+  let targetLayerNames = [];
+  let targetLayerStyles = [];
+
+  targetLayerNames.push('{{ layer.mra_info.name }}');
     {% if layer.mra_info.styles.default %}
-    styles: '{{ layer.mra_info.styles.default }}',
+  targetLayerStyles.push('{{ layer.mra_info.styles.default|default:"" }}');
     {% endif %}
-    transparent: true
-  });
-  layers.push(targetLayer);
-  // bounds = {{ layer.mra_info.bbox|default:None|safe }};
 
   delete qs['layer'];
   qs['organisation'] = '{{ organisation.slug }}';
   qs['dataset'] = '{{ dataset.slug }}';
   qs['resource'] = '{{ resource.ckan_id }}';
 
-  {% if resource_beta %}
-  targetLayer = new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
-    format: 'image/png',
-    layers: '{{ resource_beta.geographiclayer.mra_layer.name }}',
-    transparent: true
-  });
-  layers.push(targetLayer);
-
+    {% if resource_beta %}
+  targetLayerNames.push('{{ resource_beta.geographiclayer.mra_layer.name }}')
+  targetLayerStyles.push('');
   qs['resource_beta'] = '{{ resource_beta.ckan_id }}';
-  {% endif %}
+    {% endif %}
+
+  targetLayer = L.tileLayer.wms('{% url "idgo_admin:ows_preview" %}', {
+    format: 'image/png',
+    layers: targetLayerNames.join(),
+    styles: targetLayerStyles.join(),
+    transparent: true,
+  });
+
+  layers.push(targetLayer);
+  // bounds = {{ layer.mra_info.bbox|default:None|safe }};
 
   updateUrl({withHash: false, refresh: false});
 
   {% elif organisation and dataset %}
 
+  let LayerNames = [];
+  let LayerStyles = [];
+
     {% for instance in resources %}
       {% for layer in instance.get_layers %}
-  layers.push(
-    new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
-      format: 'image/png',
-      layers: '{{ layer.mra_info.name }}',
-      transparent: true
-    })
-  );
+  LayerNames.push('{{ layer.mra_info.name }}')
+  LayerStyles.push('{{ layer.mra_info.styles.default|default:"" }}');
       {% endfor %}
     {% endfor %}
 
-    {% for instance in resources_beta %}
+    {% for resource_beta in resources_beta %}
+  LayerNames.push('{{ resource_beta.geographiclayer.mra_layer.name }}');
+  LayerStyles.push('');
+    {% endfor %}
+
   layers.push(
-    new L.NonTiledLayer.WMS('{% url "idgo_admin:ows_preview" %}', {
+    L.tileLayer.wms('{% url "idgo_admin:ows_preview" %}', {
       format: 'image/png',
-      layers: '{{ instance.geographiclayer.mra_layer.name }}',
-      transparent: true
+      layers: LayerNames.join(),
+      styles: LayerStyles.join(),
+      transparent: true,
     })
   );
-  {% endfor %}
-
   // bounds = {{ dataset.bounds|default:None|safe }};
+
   {% endif %}
 
   const communesLayers = new L.FeatureGroup();
