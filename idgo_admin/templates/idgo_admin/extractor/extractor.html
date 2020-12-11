@@ -337,8 +337,20 @@ $(function() {
     {% endfor %}
 
     {% for resource_beta in resources_beta %}
+      {% if resource_beta.resourcerastertileextras %}
+        {% if resource_beta.resourcerastertileextras.wms_url %}
+    layers.push(
+      L.tileLayer.wms('{{ resource_beta.resourcerastertileextras.wms_url }}', {
+        // format: 'image/jpeg',
+        layers: '{{ resource_beta.geographiclayer.mra_layer.name }}',
+        transparent: true,
+      })
+    );
+        {% endif %}
+      {% else %}
   LayerNames.push('{{ resource_beta.geographiclayer.mra_layer.name }}');
   LayerStyles.push('');
+      {% endif %}
     {% endfor %}
 
   layers.push(
