@@ -37,6 +37,8 @@ from django.utils.safestring import SafeText
 
 from idgo_admin.exceptions import SizeLimitExceededError
 
+from idgo_admin import DATA_DOWNLOAD_TIMEOUT
+
 
 logger = logging.getLogger('idgo_admin')
 
@@ -92,6 +94,7 @@ def download(url, media_root, **kwargs):
             found = re.search('{0}="?([^;"\n\r\t\0\s\X\R\v]+)"?'.format(param), txt)
         except Exception as e:
             logger.exception(e)
+            logger.warning("Error is ignored.")
             return None
         else:
             if found:
@@ -100,10 +103,10 @@ def download(url, media_root, **kwargs):
     max_size = kwargs.get('max_size')
 
     session = requests.Session()
-    session.mount('http://', HTTPAdapter(max_restries=5))
-    session.mount('https://', HTTPAdapter(max_restries=5))
+    session.mount('http://', HTTPAdapter(max_retries=5))
+    session.mount('https://', HTTPAdapter(max_retries=5))
     try:
-        r = session.get(url, timeout=5, stream=True)
+        r = session.get(url, timeout=DATA_DOWNLOAD_TIMEOUT, stream=True)
     except Exception as e:
         logger.exception(e)
         raise e
