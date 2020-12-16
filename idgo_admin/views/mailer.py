@@ -16,11 +16,13 @@
 
 from uuid import UUID
 
+from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from idgo_admin.ckan_module import CkanHandler
@@ -37,9 +39,14 @@ from idgo_admin.models.mail import send_organisation_creation_confirmation_mail
 from idgo_admin.models.mail import send_referent_confirmation_mail
 from idgo_admin.models.mail import send_successful_account_creation_mail
 
+from idgo_admin import LOGIN_URL
+
+
+decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
+
 
 @ExceptionsHandler(ignore=[Http404])
-@csrf_exempt
+@method_decorator(decorators, name='dispatch')
 def confirmation_mail(request, key):
 
     action = get_object_or_404(
@@ -147,7 +154,7 @@ def confirmation_mail(request, key):
 
 
 @ExceptionsHandler(ignore=[Http404])
-@csrf_exempt
+@method_decorator(decorators, name='dispatch')
 def confirm_new_orga(request, key):
 
     action = get_object_or_404(
@@ -173,7 +180,7 @@ def confirm_new_orga(request, key):
 
 
 @ExceptionsHandler(ignore=[Http404])
-@csrf_exempt
+@method_decorator(decorators, name='dispatch')
 def confirm_rattachement(request, key):
 
     action = get_object_or_404(
@@ -228,7 +235,7 @@ def confirm_rattachement(request, key):
 
 
 @ExceptionsHandler(ignore=[Http404])
-@csrf_exempt
+@method_decorator(decorators, name='dispatch')
 def confirm_referent(request, key):
 
     action = get_object_or_404(
@@ -293,7 +300,7 @@ def confirm_referent(request, key):
 
 
 @ExceptionsHandler(ignore=[Http404])
-@csrf_exempt
+@method_decorator(decorators, name='dispatch')
 def confirm_contribution(request, key):
 
     action = get_object_or_404(
