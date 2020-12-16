@@ -3,7 +3,16 @@
     Exporter <span class="glyphicon glyphicon-triangle-bottom" style="top: 0.2em"></span>
   </button>
   <ul class="dropdown-menu dropdown-menu-right">
-    <li><a role="button" name="export-csv" format="odl" style="text-align: right;">Exporter au format ODL</a></li>
+    <li>
+      <a role="button" name="export-csv" format="odl" style="text-align: right;">
+        Exporter au format ODL
+      </a>
+    </li>
+    <li>
+      <a role="button" name="export-csv" format="odl-idgo-extent" style="text-align: right;">
+        Exporter au format {{ IDGO_EXPORT_CSV_ODL_EXTENT_LABEL|default:"ODL (étendu)" }}
+      </a>
+    </li>
   </ul>
 </div>
 <script>

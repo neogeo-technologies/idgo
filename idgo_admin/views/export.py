@@ -48,6 +48,7 @@ from idgo_admin.views.dataset import get_filtered_datasets
 
 from idgo_admin import CKAN_URL
 from idgo_admin import DEFAULT_PLATFORM_NAME
+from idgo_admin import IDGO_EXPORT_CSV_ODL_EXTENT_PREFIX
 
 
 COLL_NOM = F('organisation__legal_name')
@@ -91,6 +92,23 @@ URL = Concat(
     output_field=CharField())
 
 
+# Définition des champs IDGO (demande initiale de DATASUD)
+PREFIX = IDGO_EXPORT_CSV_ODL_EXTENT_PREFIX or 'IDGO'
+IDGO_ID = F('slug')
+IDGO_ORGA_ID = F('organisation__slug')
+IDGO_ORGA_URL = F('organisation__website')
+IDGO_PRODUCTEUR_NOM = F('owner_name')
+IDGO_DIFFUSEUR_NOM = F('broadcaster_name')
+IDGO_DIFFUSEUR_EMAIL = F('broadcaster_email')
+IDGO_COUV_TERR = F('granularity')
+IDGO_DATE_CREATION = F('date_creation')
+IDGO_RESSOURCE_TYPES = FORMAT_RESSOURCES
+IDGO_DATASET_VUES = Value('', output_field=CharField())
+IDGO_RESSOURCES_TELECHARGEMENT = Value('', output_field=CharField())
+IDGO_DATASET_NOTE = Value('', output_field=CharField())
+IDGO_DATASET_NB_NOTES = Value('', output_field=CharField())
+
+
 @method_decorator([csrf_exempt], name='dispatch')
 class Export(View):
 
@@ -108,7 +126,7 @@ class Export(View):
         qs = request.POST or request.GET
 
         outputformat = qs.get('format')
-        if not outputformat or outputformat not in ('odl',):
+        if not outputformat or outputformat not in ('odl', 'odl-idgo-extent'):
             raise Http404()
 
         if outputformat == 'odl':
@@ -136,6 +154,44 @@ class Export(View):
                 # ('PROJECTION', PROJECTION),
                 # ('LANG', LANG),
                 ('URL', URL)
+                ))
+        else:
+            annotate = OrderedDict((
+                ('COLL_NOM', COLL_NOM),
+                ('COLL_SIRET', COLL_SIRET),
+                ('ID', ID),
+                ('TITRE', TITRE),
+                ('DESCRIPTION', DESCRIPTION),
+                ('THEME', THEME),
+                ('PRODUCTEUR_NOM', PRODUCTEUR_NOM),
+                ('PRODUCTEUR_SIRET', PRODUCTEUR_SIRET),
+                ('COUV_SPAT_MAILLE', COUV_SPAT_MAILLE),
+                ('COUV_SPAT_NOM', COUV_SPAT_NOM),
+                ('COUV_TEMP_DEBUT', COUV_TEMP_DEBUT),
+                ('COUV_TEMP_FIN', COUV_TEMP_DEBUT),
+                ('DATE_PUBL', DATE_PUBL),
+                ('FREQ_MAJ', FREQ_MAJ),
+                ('DATE_MAJ', DATE_MAJ),
+                ('MOTS_CLES', MOTS_CLES),
+                ('LICENCE', LICENCE),
+                ('NOMBRE_RESSOURCES', NOMBRE_RESSOURCES),
+                ('FORMAT_RESSOURCES', FORMAT_RESSOURCES),
+                ('URL', URL),
+                ('%s_ID' % PREFIX, IDGO_ID),
+                ('%s_ORGA_ID' % PREFIX, IDGO_ORGA_ID),
+                ('%s_ORGA_URL' % PREFIX, IDGO_ORGA_URL),
+                ('%s_PRODUCTEUR_NOM' % PREFIX, IDGO_PRODUCTEUR_NOM),
+                ('%s_DIFFUSEUR_NOM' % PREFIX, IDGO_DIFFUSEUR_NOM),
+                ('%s_COUV_TERR' % PREFIX, IDGO_COUV_TERR),
+                ('%s_DATE_CREATION' % PREFIX, IDGO_DATE_CREATION),
+                ('%s_RESSOURCE_TYPES' % PREFIX, IDGO_RESSOURCE_TYPES),
+                ('%s_DATASET_VUES' % PREFIX, IDGO_DATASET_VUES),
+                ('%s_RESSOURCES_TELECHARGEMENT' % PREFIX, IDGO_RESSOURCES_TELECHARGEMENT),
+                ('%s_DATASET_NOTE' % PREFIX, IDGO_DATASET_NOTE),
+                ('%s_DATASET_NB_NOTES' % PREFIX, IDGO_DATASET_NB_NOTES),
+                ('DIFFUSEUR', DIFFUSEUR),
+                ('PROJECTION', PROJECTION),
+                ('LANG', LANG),
                 ))
 
         values = list(annotate.keys())
