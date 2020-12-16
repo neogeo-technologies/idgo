@@ -2,6 +2,6 @@
 <script>
 $('#{{ target }}').on('show.bs.modal', function(e) {
   var modal = $(this);
-  modal.find('.modal-body').empty().append("{{ body }}");
+  modal.find('.modal-body').empty().append("{{ body|safe }}");
 });
 </script>
