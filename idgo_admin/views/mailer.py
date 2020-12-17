@@ -42,7 +42,6 @@ from idgo_admin import LOGIN_URL
 
 
 @ExceptionsHandler(ignore=[Http404])
-@login_required(login_url=LOGIN_URL)
 @csrf_exempt
 def confirmation_mail(request, key):
 
