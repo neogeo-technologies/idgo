@@ -405,7 +405,8 @@ class ResourceForm(forms.ModelForm):
     def clean(self):
 
         if self._instance and self.user != self._instance.dataset.editor:
-            self.cleaned_data['ftp_file'] = self._instance.ftp_file.file.name
+            if self._instance.ftp_file:
+                self.cleaned_data['ftp_file'] = self._instance.ftp_file.file.name
 
         res_l = {
             'up_file': self.cleaned_data.get('up_file') or None,
