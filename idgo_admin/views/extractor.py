@@ -599,7 +599,13 @@ class Extractor(View):
                     elif layer.type == 'vector':
                         data_extraction = {**{
                             'layer': layer.name,
-                            'source': 'PG:host=postgis-master user=datagis dbname=datagis',
+                            'source': 'PG:host={host} port={port} dbname={database} user={user} password={password}'.format(
+                                host=IDGO_EXTRACTOR_DB_HOST,
+                                port=IDGO_EXTRACTOR_DB_PORT,
+                                database=IDGO_EXTRACTOR_DB_NAME,
+                                user=IDGO_EXTRACTOR_DB_USERNAME,
+                                password=IDGO_EXTRACTOR_DB_PASSWORD,
+                                ),
                             }, **dst_format_vector}
                     data_extraction['dst_srs'] = dst_crs or 'EPSG:2154'
 
