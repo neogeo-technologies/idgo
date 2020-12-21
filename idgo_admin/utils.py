@@ -109,6 +109,7 @@ def download(url, media_root, **kwargs):
         r = session.get(url, timeout=DATA_DOWNLOAD_TIMEOUT, stream=True)
     except Exception as e:
         logger.exception(e)
+        logger.error("Please verify url: %s." % url)
         raise e
 
     if int(r.headers.get('Content-Length', 0)) > max_size:
