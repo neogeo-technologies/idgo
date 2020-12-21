@@ -38,9 +38,15 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="row">
-        <div class="col-md-12">
-          {% block header_content %}
-          {% include "idgo_admin/header.html" %}
+        <div class="col-md-12">{% block header_content %}
+          <span class="title">
+            <a href="{{ HREF_WWW|default:"/" }}">{% if IDGO_EXTRACTOR_SITE_HEADING_LOGO %}
+              {{ IDGO_EXTRACTOR_SITE_HEADING_LOGO|safe }}{% else %}<img src="{% static "img/logo.png" %}" height="76px" />{% endif %}
+            </a>
+            {{ IDGO_EXTRACTOR_SITE_HEADING_SECOND_LOGO|default:""|safe }}
+            {{ IDGO_EXTRACTOR_SITE_HEADING_TITLE|default:""|safe }}
+          </span>
+          {% include "idgo_admin/login_heading_shortcut.html" %}
           {% endblock header_content %}
         </div>
       </div>
@@ -667,10 +673,6 @@ $(function() {
 <style>
 .page-header {
     height: 120px !important;
-}
-
-.page-header .title img {
-    height: 76px !important;
 }
 
 .page-footer {

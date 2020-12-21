@@ -1,0 +1,13 @@
+<div class="btn-group login">
+  {% if user.is_authenticated  and user.profile.is_admin %}
+  <span class="user-status">admin</span>
+  {% endif %}
+  <button type="button" class="dropdown-toggle" data-toggle="dropdown">
+    {% if user.is_authenticated %}{{ user.get_full_name }}{% endif %}
+    <span class="glyphicon glyphicon-user"></span>
+  </button>
+  <ul class="dropdown-menu">
+    <li><a href="{% url 'idgo_admin:update_account' %}">Mon profil</a></li>
+    <li><a href="{% url 'server_cas:signOut' %}">Me déconnecter</a></li>
+  </ul>
+</div>

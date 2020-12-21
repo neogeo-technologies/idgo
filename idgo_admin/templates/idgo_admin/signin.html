@@ -24,8 +24,8 @@
       </div>{% endif %}
       <div class="panel">
         <div class="panel-heading">
-          <div class="panel-heading-logo">
-            <img src="{% static "img/logo.png" %}" height="86px"></img>
+          <div class="panel-heading-logo">{% if IDGO_SITE_HEADING_LOGO %}
+            {{ IDGO_SITE_HEADING_LOGO|safe }}{% else %}<img src="{% static "img/logo.png" %}" height="86px"/>{% endif %}
           </div>
           <h3 class="panel-title">Saisissez vos identifiants {{ DEFAULT_PLATFORM_NAME }}</h3>
         </div>

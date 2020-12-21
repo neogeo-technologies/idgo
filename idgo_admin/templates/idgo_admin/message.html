@@ -10,16 +10,15 @@
   <div class="v-middle">
     <div class="h-middle container-signup">
       <div class="panel">
-        <div class="panel-heading">
-          <img src="{% static "img/logo.png" %}" height="86px"></img>
+        <div class="panel-heading">{% if IDGO_SITE_HEADING_LOGO %}
+          {{ IDGO_SITE_HEADING_LOGO|safe }}{% else %}<img src="{% static "img/logo.png" %}" height="86px"/>{% endif %}
         </div>
         <div class="panel-body">
           <p class="message">{{ message | safe }}</p>
           {% if button %}
           <div class="buttons-on-the-right-side">
             <a class="btn btn-default" href="{{ button.href }}">{{ button.label }}</a>
-          </div>
-          {% endif %}
+          </div>{% endif %}
         </div>
       </div>
       <small>{% include "idgo_admin/copyright.html" %}</small>

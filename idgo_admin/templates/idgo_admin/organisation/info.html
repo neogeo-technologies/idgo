@@ -1,3 +1,4 @@
+{% load static %}
 <div class="row">
   <div class="col-sm-8">
     <div class="row">
@@ -13,8 +14,8 @@
       </div>
     </div>
   </div>
-  <div class="col-sm-4">
-    <img src="{% if organisation.logo %}{{ organisation.logo.url }}{% else %}/static/img/logo_default_organisation.png{% endif %}" style="width: 100%;"></img>
+  <div class="col-sm-4">{% if organisation.logo %}
+    <img src="{{ organisation.logo.url }}" style="width: 100%;"/>{% else %}<img src="{% static "img/logo_default_organisation.png" %}" style="width: 100%;"/>{% endif %}
   </div>
 </div>
 <div class="row">
