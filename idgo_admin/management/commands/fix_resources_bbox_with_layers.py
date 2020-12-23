@@ -70,10 +70,10 @@ class Command(BaseCommand):
                             continue
 
                         x_min, y_min, x_max, y_max = layer.bbox.extent
-                        if (x_min >= -180 or x_min <= 180) and \
-                                (x_max >= -180 or x_max <= 180) and \
-                                (y_min >= -90 or y_min <= 90) and \
-                                (y_max >= -90 or y_max <= 90):
+                        if (x_min >= -180 and x_min <= 180) and \
+                                (x_max >= -180 and x_max <= 180) and \
+                                (y_min >= -90 and y_min <= 90) and \
+                                (y_max >= -90 and y_max <= 90):
 
                             logger.info("[%d/%d] - BBox for %s is OK: %s" % (
                                 count, total, layer.pk, str(layer.bbox.extent)))
