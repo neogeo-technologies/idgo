@@ -32,7 +32,7 @@ def get_bbox(table_name):
 
     sql = """
 SELECT ST_AsText(ST_Transform(ST_Envelope(ST_Union(ST_Envelope(the_geom))), 4171))
-AS table_extent FROM {table_name};
+AS table_extent FROM "{table_name}";
 """.format(table_name=table_name)
 
     with connections[IDGO_GEOGRAPHIC_LAYER_DB_NAME].cursor() as cursor:
