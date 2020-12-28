@@ -14,6 +14,8 @@
 # under the License.
 
 
+import logging
+
 from owslib.csw import CatalogueServiceWeb
 import requests
 from urllib.parse import urljoin
@@ -24,6 +26,9 @@ from idgo_admin import GEONETWORK_URL
 from idgo_admin import GEONETWORK_LOGIN
 from idgo_admin import GEONETWORK_PASSWORD
 from idgo_admin import GEONETWORK_TIMEOUT
+
+
+logger = logging.getLogger('idgo_admin.geonet_module')
 
 
 class GeonetUserHandler(metaclass=Singleton):
@@ -57,13 +62,10 @@ class GeonetUserHandler(metaclass=Singleton):
         return self._get(
             urljoin(GEONETWORK_URL, 'srv/fre/md.publish'), {'ids': identifier})
 
-    def _transaction(self, ttype, identifier, record):
-        params = {
-            'identifier': identifier,
-            'record': record,
-            'ttype': ttype,
-            'typename': 'gmd:MD_Metadata'}
-        return self.remote.transaction(**params)
+    def _transaction(self, ttype, identifier, record=None):
+        return self.remote.transaction(
+            ttype=ttype, typename='gmd:MD_Metadata',
+            identifier=identifier, record=record)
 
     def is_record_exists(self, id):
         return self.get_record(id) and True or False
@@ -73,26 +75,26 @@ class GeonetUserHandler(metaclass=Singleton):
             self.remote.getrecordbyid(
                 id=[id], outputschema='http://www.isotc211.org/2005/gmd')
         except requests.exceptions.HTTPError as e:
+            logger.exception(e)
             if (e.response.status_code == 404):
+                logger.warning("Error 404 was ignored.")
                 return None
             raise e
         else:
+            logger.debug("Get MD record with dc:identifier = '%s'" % id)
             return self.remote.records.get(id)
 
     def create_record(self, id, record):
-        return self._transaction('insert', id, record)
+        logger.debug("Create MD record with dc:identifier = '%s'" % id)
+        return self._transaction('insert', id, record=record)
 
     def update_record(self, id, record):
-        return self._transaction('update', id, record)
+        logger.debug("Update MD record with dc:identifier = '%s'" % id)
+        return self._transaction('update', id, record=record)
 
     def delete_record(self, id):
-        pass
-
-        # Désactivé cette opération de suppression car cela
-        # purge geonetwork (vu sur la plateforme Datasud)
-        # A VERIFIER SUR IDGO !!!
-
-        # return self.remote.transaction('delete', id)
+        logger.debug("Delete MD record with dc:identifier = '%s'" % id)
+        return self._transaction('delete', id)
 
     def publish(self, id):
         return self._md_publish(self._q(id))
