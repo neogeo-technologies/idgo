@@ -15,6 +15,7 @@
 
 
 import json
+import logging
 from math import ceil
 from operator import ior
 
@@ -59,6 +60,9 @@ if apps.is_installed('idgo_resource'):
     BETA = True
 else:
     BETA = False
+
+
+logger = logging.getLogger('idgo_admin')
 
 
 def target(dataset, user):
@@ -482,8 +486,10 @@ class DatasetManager(View):
                 instance.save(current_user=user, synchronize=True)
 
         except ValidationError as e:
+            logger.exception(e)
             messages.error(request, ' '.join(e))
         except CkanBaseError as e:
+            logger.exception(e)
             form.add_error('__all__', e.__str__())
             messages.error(request, e.__str__())
         else:
@@ -531,13 +537,15 @@ class DatasetManager(View):
         try:
             dataset.delete(current_user=user)
         except Exception as e:
+            logger.exception(e)
             status = 500
-            message = e.__str__()
-            messages.error(request, message)
+            msg = e.__str__()
+            messages.error(request, msg)
         else:
             status = 200
-            message = 'Le jeu de données a été supprimé avec succès.'
-            messages.success(request, message)
+            msg = "Le jeu de données a été supprimé avec succès."
+            messages.success(request, msg)
+            logger.info(msg)
 
             send_dataset_delete_mail(user, dataset)
 

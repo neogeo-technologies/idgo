@@ -47,6 +47,12 @@ from idgo_admin import DEFAULT_CONTACT_EMAIL
 from idgo_admin import DEFAULT_PLATFORM_NAME
 from idgo_admin import DEFAULTS_VALUES
 
+if apps.is_installed('idgo_resource'):
+    from idgo_resource.models import Resource as ResourceModel_Beta
+    BETA = True
+else:
+    BETA = False
+
 
 logger = logging.getLogger('idgo_admin')
 
@@ -399,12 +405,13 @@ class Dataset(models.Model):
         Resource = apps.get_model(app_label='idgo_admin', model_name='Resource')
         for resource in Resource.objects.filter(dataset=self):
             resource.delete(current_user=current_user, synchronize_dataset=False)
-        # > > > > > > BETA  < < < < < < #
-        ResourceBeta = apps.get_model(app_label='idgo_resource', model_name='Resource')
-        for resource_beta in ResourceBeta.objects.filter(dataset=self):
-            resource_beta._related.delete()
-            resource_beta.delete()
-        # > > > > > > BETA  < < < < < < #
+        # > > > > > > BETA < < < < < < #
+        if BETA:
+            ResourceBeta = apps.get_model(app_label='idgo_resource', model_name='Resource')
+            for resource_beta in ResourceBeta.objects.filter(dataset=self):
+                resource_beta._related.delete()
+                resource_beta.delete()
+        # > > > > > > BETA < < < < < < #
 
         # On supprime le package CKAN
         ckan_id = str(self.ckan_id)
