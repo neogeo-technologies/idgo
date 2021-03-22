@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -92,6 +92,7 @@ def download(url, media_root, **kwargs):
     def get_content_header_param(txt, param):
         try:
             found = re.search('{0}="?([^;"\n\r\t\0\s\X\R\v]+)"?'.format(param), txt)
+            # found = re.search('{0}=\"?([^;^\"]+)\"?'.format(param), txt)
         except Exception as e:
             logger.exception(e)
             logger.warning("Error is ignored.")
@@ -217,9 +218,3 @@ def slugify(value, allow_unicode=False, exclude_dot=True):
 @keep_lazy(str, SafeText)
 def kill_all_special_characters(value):
     return unicodedata.normalize('NFKD', str(value)).encode('ascii', 'ignore').decode('ascii')
-
-
-def unzip_zipped(zipped, target_dir=None):
-    with ZipFile(zipped) as zf:
-        print(zf)
-        # return zf.extractall(target_dir)

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,6 +15,7 @@
 
 
 import operator
+import warnings
 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -220,9 +221,7 @@ class CreateOrganisation(View):
         user = request.user
         profile = user.profile
 
-        form = Form(
-            request.POST, request.FILES, include={'user': user})
-
+        form = Form(request.POST, request.FILES, include={'user': user})
         if not form.is_valid():
             return render(
                 request, self.template, context={'form': form})
@@ -233,8 +232,7 @@ class CreateOrganisation(View):
                 for item in form.Meta.organisation_fields))
         except ValidationError as e:
             messages.error(request, e.__str__())
-            return render(
-                request, self.template, context={'form': form})
+            return render(request, self.template, context={'form': form})
 
         creation_process(request, profile, organisation)
 
@@ -250,7 +248,7 @@ class CreateOrganisation(View):
         form.cleaned_data.get('referent_process', False) \
             and referent_subscribe_process(request, profile, organisation)
 
-        messages.success(request, 'La demande a bien été envoyée.')
+        messages.success(request, "La demande a bien été envoyée.")
 
         return redirect('idgo_admin:handle_show_organisation')
 
@@ -260,6 +258,8 @@ class UpdateOrganisation(View):
     template = 'idgo_admin/organisation/edit.html'
 
     def get(self, request, id=None):
+        organisation = get_object_or_404(Organisation, id=id)
+
         user = request.user
         profile = user.profile
 
@@ -268,32 +268,42 @@ class UpdateOrganisation(View):
             profile=profile, organisation__id=id,
             validated_on__isnull=False) and True or False
 
-        if is_referent or is_admin:
-            instance = get_object_or_404(Organisation, id=id)
-            return render(
-                request, self.template, context={
-                    'id': id,
-                    'update': True,
-                    'organisation': instance,
-                    'form': Form(instance=instance,
-                                 include={'user': user, 'id': id})})
-        raise Http404()
+        if not (is_referent or is_admin):
+            raise Http404()
+
+        return render(
+            request, self.template, context={
+                'id': id,
+                'update': True,
+                'organisation': organisation,
+                'form': Form(instance=organisation,
+                             include={'user': user, 'id': id})})
 
     def post(self, request, id=None):
-        user = request.user
+        organisation = get_object_or_404(Organisation, id=id)
 
-        instance = get_object_or_404(Organisation, id=id)
+        user = request.user
+        profile = user.profile
+
+        is_admin = profile.is_admin
+        is_referent = LiaisonsReferents.objects.filter(
+            profile=profile, organisation__id=id,
+            validated_on__isnull=False) and True or False
+
+        if not (is_referent or is_admin):
+            raise Http404()
+
         form = Form(request.POST, request.FILES,
-                    instance=instance, include={'user': user, 'id': id})
+                    instance=organisation, include={'user': user, 'id': id})
 
         if not form.is_valid():
             return render(
                 request, self.template, context={'id': id, 'form': form})
 
         for item in form.Meta.fields:
-            setattr(instance, item, form.cleaned_data[item])
+            setattr(organisation, item, form.cleaned_data[item])
         try:
-            instance.save()
+            organisation.save()
         except ValidationError as e:
             messages.error(request, e.__str__())
         except CkanBaseError as e:
@@ -307,68 +317,83 @@ class UpdateOrganisation(View):
             context = {
                 'id': id,
                 'update': True,
-                'organisation': instance,
+                'organisation': organisation,
                 'form': Form(
-                    instance=instance, include={'user': user, 'id': id})}
+                    instance=organisation, include={'user': user, 'id': id})}
             return render(
                 request, self.template, context=context)
 
         return HttpResponseRedirect(
-            reverse('idgo_admin:show_organisation', kwargs={'id': instance.id}))
+            reverse('idgo_admin:show_organisation', kwargs={'id': organisation.id}))
 
 
 @method_decorator(decorators, name='dispatch')
 class OrganisationOWS(View):
 
     def post(self, request):
-        profile = request.user.profile
+        id = request.GET.get('id')
+        if not id:
+            raise Http404()
+        organisation = get_object_or_404(Organisation, id=id)
 
-        instance = get_object_or_404(Organisation, id=request.GET.get('id'))
+        user = request.user
+        profile = user.profile
 
         is_admin = profile.is_admin
         is_referent = LiaisonsReferents.objects.filter(
-            profile=profile, organisation=instance,
+            profile=profile, organisation__id=id,
             validated_on__isnull=False) and True or False
 
-        if is_referent or is_admin:
-            json = {
-                'abstract': request.POST.get('abstract', None),
-                'srs': [crs.authority for crs in SupportedCrs.objects.all()],
-                'title': request.POST.get('title', None)}
-            try:
-                MRAHandler.update_ows_settings('ows', json, ws_name=instance.slug)
-            except Exception as e:
-                messages.error(request, e.__str__())
-            else:
-                messages.success(request, "Le service OGC est mis à jour.")
-            return JsonResponse(data={})
-        raise Http404()
+        if not (is_referent or is_admin):
+            raise Http404()
 
+        json = {
+            'abstract': request.POST.get('abstract', None),
+            'srs': [crs.authority for crs in SupportedCrs.objects.all()],
+            'title': request.POST.get('title', None),
+            }
+
+        try:
+            MRAHandler.update_ows_settings('ows', json, ws_name=organisation.slug)
+        except Exception as e:
+            messages.error(request, e.__str__())
+        else:
+            messages.success(request, "Le service OGC a été mis à jour avec succès.")
+
+        return redirect('idgo_admin:show_organisation', id=id)
 
 @method_decorator(decorators, name='dispatch')
 class Subscription(View):
 
     def get(self, request, status=None, subscription=None):
+        id = request.GET.get('id')
+        if not id:
+            raise Http404()
+        organisation = get_object_or_404(Organisation, id=id)
 
-        profile = request.user.profile
-
-        organisation = get_object_or_404(Organisation, id=request.GET.get('id'))
+        user = request.user
+        profile = user.profile
 
         actions = {
             'member': {
                 'subscribe': member_subscribe_process,
-                'unsubscribe': member_unsubscribe_process},
+                'unsubscribe': member_unsubscribe_process,
+                },
             'contributor': {
                 'subscribe': contributor_subscribe_process,
-                'unsubscribe': contributor_unsubscribe_process},
+                'unsubscribe': contributor_unsubscribe_process,
+                },
             'referent': {
                 'subscribe': referent_subscribe_process,
-                'unsubscribe': referent_unsubscribe_process}}
+                'unsubscribe': referent_unsubscribe_process,
+                },
+            }
 
         status_fr_label = {
-            'member': 'membre',
-            'contributor': 'contributeur',
-            'referent': 'référent'}
+            'member': "membre",
+            'contributor': "contributeur",
+            'referent': "référent",
+            }
 
         try:
             actions[status][subscription](request, profile, organisation)
@@ -377,25 +402,29 @@ class Subscription(View):
         else:
             if subscription == 'unsubscribe':
                 message = (
-                    "Vous n'êtes plus {} de l'organisation "
-                    '« <strong>{}</strong> ».'
-                    ).format(status_fr_label[status], organisation.legal_name)
+                    "Vous n'êtes plus %s de l'organisation "
+                    "« <strong>%s</strong> »." % (
+                        status_fr_label[status], organisation.legal_name
+                    )
+                )
             elif subscription == 'subscribe':
                 message = (
-                    'Votre demande de statut de <strong>{}</strong> de '
-                    "l'organisation « <strong>{}</strong> » est en cours de "
+                    "Votre demande de statut de <strong>%s</strong> de "
+                    "l'organisation « <strong>%s</strong> » est en cours de "
                     "traitement. Celle-ci ne sera effective qu'après "
-                    'validation par un administrateur.').format(
-                        status_fr_label[status], organisation.legal_name)
-                # partnership
+                    "validation par un administrateur." % (
+                        status_fr_label[status], organisation.legal_name
+                        )
+                    )
+
                 if status == 'member':
-                    messages.info(request, "L'organisation est %s." % IDGO_ORGANISATION_PARTNER_LABEL)
+                    messages.info(request, (
+                        "L'organisation est %s." % IDGO_ORGANISATION_PARTNER_LABEL
+                        ))
             messages.success(request, message)
 
-        # TODO Revoir la gestion de l'AJAX sur la page des organisations
-
-        return JsonResponse(data={})  # Bidon ... d'huile
-        # return redirect('idgo_admin:show_organisation', id=organisation.id)
+        return JsonResponse(data={})
+        # TODO Supprimer AJAX et remplacer par `redirect('idgo_admin:show_organisation', id=id)`
 
 
 from idgo_admin import ENABLE_CKAN_HARVESTER  # noqa
@@ -417,51 +446,52 @@ if ENABLE_CKAN_HARVESTER:
         template = 'idgo_admin/organisation/remoteckan/edit.html'
 
         def get(self, request, id, *args, **kwargs):
-
-            profile = request.user.profile
-
-            is_admin = profile.is_admin
-            is_referent = LiaisonsReferents.objects.filter(
-                profile=profile, organisation__id=id,
-                validated_on__isnull=False) and True or False
-
-            if is_referent or is_admin:
-                organisation = get_object_or_404(Organisation, id=id)
-
-                context = {'organisation': organisation}
-
-                try:
-                    instance = RemoteCkan.objects.get(organisation=organisation)
-                except RemoteCkan.DoesNotExist:
-                    form = RemoteCkanForm()
-                else:
-                    context['datasets'] = Dataset.harvested_ckan.filter(organisation=organisation)
-                    context['instance'] = instance
-                    form = RemoteCkanForm(instance=instance)
-
-                context['form'] = form
-
-                return render(
-                    request, self.template, context=context)
-
-            raise Http404()
-
-        def post(self, request, id, *args, **kwargs):
-
-            profile = request.user.profile
-
-            is_admin = profile.is_admin
-            is_referent = LiaisonsReferents.objects.filter(
-                profile=profile, organisation__id=id,
-                validated_on__isnull=False) and True or False
-
-            if not(is_referent or is_admin):
-                raise Http404()
-
             organisation = get_object_or_404(Organisation, id=id)
+
+            user = request.user
+            profile = user.profile
+
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if not (is_referent or is_admin):
+                raise Http404()
 
             context = {'organisation': organisation}
 
+            try:
+                instance = RemoteCkan.objects.get(organisation=organisation)
+            except RemoteCkan.DoesNotExist:
+                form = RemoteCkanForm()
+            else:
+                context['datasets'] = Dataset.harvested_ckan.filter(organisation=organisation)
+                context['instance'] = instance
+                form = RemoteCkanForm(instance=instance)
+
+            context['form'] = form
+
+            return render(
+                request, self.template, context=context)
+
+        def post(self, request, id, *args, **kwargs):
+            organisation = get_object_or_404(Organisation, id=id)
+
+            user = request.user
+            profile = user.profile
+
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if not (is_referent or is_admin):
+                raise Http404()
+
+            context = {'organisation': organisation}
+
+            instance = None
             url = request.POST.get('url')
             try:
                 with transaction.atomic():
@@ -479,6 +509,10 @@ if ENABLE_CKAN_HARVESTER:
                 context['instance'] = instance
                 form = RemoteCkanForm(request.POST, instance=instance)
 
+            if not form.is_valid():
+                messages.error(request, form._errors.__str__())
+                return redirect('idgo_admin:edit_remote_ckan_link', id=organisation.id)
+
             try:
                 with transaction.atomic():
                     self.map_categories(instance, request.POST, form)
@@ -491,12 +525,8 @@ if ENABLE_CKAN_HARVESTER:
                 form.add_error('__all__', e.__str__())
                 messages.error(request, e.__str__())
 
-            else:
-
-                # Une fois le mapping effectué, on sauvegarde l'instance
-
+            else:  # Une fois le mapping effectué, on sauvegarde l'instance
                 context['form'] = form
-
                 if not form.is_valid():
                     return render(
                         request, self.template, context=context)
@@ -504,8 +534,11 @@ if ENABLE_CKAN_HARVESTER:
                 for k, v in form.cleaned_data.items():
                     setattr(instance, k, v)
                 try:
-                    with transaction.atomic():
+                    # with transaction.atomic():
+                    with warnings.catch_warnings(record=True) as caught_warnings:
                         instance.save()
+                        for warn in caught_warnings:
+                            messages.warning(request, str(warn.message))
                 except ValidationError as e:
                     error = True
                     messages.error(request, e.__str__())
@@ -525,7 +558,7 @@ if ENABLE_CKAN_HARVESTER:
                     if created:
                         msg = "Veuillez indiquez les organisations distantes à moissonner."
                     else:
-                        msg = 'Les informations de moissonnage ont été mises à jour.'
+                        msg = "Les informations de moissonnage ont été mises à jour."
                     messages.success(request, msg)
 
             if 'continue' in request.POST or error:
@@ -561,19 +594,19 @@ if ENABLE_CKAN_HARVESTER:
     class DeleteRemoteCkanLinked(View):
 
         def post(self, request, id, *args, **kwargs):
+            organisation = get_object_or_404(Organisation, id=id)
+            instance = get_object_or_404(RemoteCkan, organisation=organisation)
 
-            profile = request.user.profile
+            user = request.user
+            profile = user.profile
 
             is_admin = profile.is_admin
             is_referent = LiaisonsReferents.objects.filter(
                 profile=profile, organisation__id=id,
                 validated_on__isnull=False) and True or False
 
-            if not(is_referent or is_admin):
+            if not (is_referent or is_admin):
                 raise Http404()
-
-            organisation = get_object_or_404(Organisation, id=id)
-            instance = get_object_or_404(RemoteCkan, organisation=organisation)
 
             try:
                 with transaction.atomic():
@@ -608,48 +641,48 @@ if ENABLE_CSW_HARVESTER:
         template = 'idgo_admin/organisation/remotecsw/edit.html'
 
         def get(self, request, id, *args, **kwargs):
+            organisation = get_object_or_404(Organisation, id=id)
 
-            profile = request.user.profile
-
-            is_admin = profile.is_admin
-            is_referent = LiaisonsReferents.objects.filter(
-                profile=profile, organisation__id=id,
-                validated_on__isnull=False) and True or False
-
-            if is_referent or is_admin:
-                organisation = get_object_or_404(Organisation, id=id)
-
-                context = {'organisation': organisation}
-
-                try:
-                    instance = RemoteCsw.objects.get(organisation=organisation)
-                except RemoteCsw.DoesNotExist:
-                    form = RemoteCswForm()
-                else:
-                    context['datasets'] = Dataset.harvested_csw.filter(organisation=organisation)
-                    context['instance'] = instance
-                    form = RemoteCswForm(instance=instance)
-
-                context['form'] = form
-
-                return render(
-                    request, self.template, context=context)
-
-            raise Http404()
-
-        def post(self, request, id, *args, **kwargs):
-
-            profile = request.user.profile
+            user = request.user
+            profile = user.profile
 
             is_admin = profile.is_admin
             is_referent = LiaisonsReferents.objects.filter(
                 profile=profile, organisation__id=id,
                 validated_on__isnull=False) and True or False
 
-            if not(is_referent or is_admin):
+            if not (is_referent or is_admin):
                 raise Http404()
 
+            context = {'organisation': organisation}
+
+            try:
+                instance = RemoteCsw.objects.get(organisation=organisation)
+            except RemoteCsw.DoesNotExist:
+                form = RemoteCswForm()
+            else:
+                context['datasets'] = Dataset.harvested_csw.filter(organisation=organisation)
+                context['instance'] = instance
+                form = RemoteCswForm(instance=instance)
+
+            context['form'] = form
+
+            return render(
+                request, self.template, context=context)
+
+        def post(self, request, id, *args, **kwargs):
             organisation = get_object_or_404(Organisation, id=id)
+
+            user = request.user
+            profile = user.profile
+
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if not (is_referent or is_admin):
+                raise Http404()
 
             context = {'organisation': organisation}
 
@@ -679,8 +712,11 @@ if ENABLE_CSW_HARVESTER:
             for k, v in form.cleaned_data.items():
                 setattr(instance, k, v)
             try:
-                with transaction.atomic():
+                # with transaction.atomic():
+                with warnings.catch_warnings(record=True) as caught_warnings:
                     instance.save(harvest=not created)
+                    for warn in caught_warnings:
+                        messages.warning(request, str(warn.message))
             except ValidationError as e:
                 error = True
                 messages.error(request, e.__str__())
@@ -700,7 +736,7 @@ if ENABLE_CSW_HARVESTER:
                 if created:
                     msg = "Veuillez indiquez une requête <strong>GetRecord</strong> avant moissonnage du service."
                 else:
-                    msg = 'Les informations de moissonnage ont été mises à jour.'
+                    msg = "Les informations de moissonnage ont été mises à jour."
                 messages.success(request, msg)
 
             if 'continue' in request.POST or error:
@@ -713,19 +749,19 @@ if ENABLE_CSW_HARVESTER:
     class DeleteRemoteCswLinked(View):
 
         def post(self, request, id, *args, **kwargs):
+            organisation = get_object_or_404(Organisation, id=id)
+            instance = get_object_or_404(RemoteCsw, organisation=organisation)
 
-            profile = request.user.profile
+            user = request.user
+            profile = user.profile
 
             is_admin = profile.is_admin
             is_referent = LiaisonsReferents.objects.filter(
                 profile=profile, organisation__id=id,
                 validated_on__isnull=False) and True or False
 
-            if not(is_referent or is_admin):
+            if not (is_referent or is_admin):
                 raise Http404()
-
-            organisation = get_object_or_404(Organisation, id=id)
-            instance = get_object_or_404(RemoteCsw, organisation=organisation)
 
             try:
                 with transaction.atomic():
@@ -746,7 +782,8 @@ if ENABLE_CSW_HARVESTER:
 from idgo_admin import ENABLE_DCAT_HARVESTER  # noqa
 if ENABLE_DCAT_HARVESTER:
 
-    from idgo_admin.dcat_module import DcatBaseError
+    from idgo_admin.dcat_module import DcatError
+    from idgo_admin.dcat_module import DcatTimeoutError
     from idgo_admin.forms.organisation import RemoteDcatForm
     from idgo_admin.models import RemoteDcat
 
@@ -760,58 +797,59 @@ if ENABLE_DCAT_HARVESTER:
         template = 'idgo_admin/organisation/remotedcat/edit.html'
 
         def get(self, request, id, *args, **kwargs):
-
-            profile = request.user.profile
-
-            is_admin = profile.is_admin
-            is_referent = LiaisonsReferents.objects.filter(
-                profile=profile, organisation__id=id,
-                validated_on__isnull=False) and True or False
-
-            if is_referent or is_admin:
-                organisation = get_object_or_404(Organisation, id=id)
-
-                context = {'organisation': organisation}
-
-                try:
-                    instance = RemoteDcat.objects.get(organisation=organisation)
-                except RemoteDcat.DoesNotExist:
-                    form = RemoteDcatForm()
-                else:
-                    context['datasets'] = Dataset.harvested_dcat.filter(organisation=organisation)
-                    context['instance'] = instance
-                    form = RemoteDcatForm(instance=instance)
-
-                context['form'] = form
-
-                return render(
-                    request, self.template, context=context)
-
-            raise Http404()
-
-        def post(self, request, id, *args, **kwargs):
-
-            profile = request.user.profile
-
-            is_admin = profile.is_admin
-            is_referent = LiaisonsReferents.objects.filter(
-                profile=profile, organisation__id=id,
-                validated_on__isnull=False) and True or False
-
-            if not(is_referent or is_admin):
-                raise Http404()
-
             organisation = get_object_or_404(Organisation, id=id)
+
+            user = request.user
+            profile = user.profile
+
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if not (is_referent or is_admin):
+                raise Http404()
 
             context = {'organisation': organisation}
 
+            try:
+                instance = RemoteDcat.objects.get(organisation=organisation)
+            except RemoteDcat.DoesNotExist:
+                form = RemoteDcatForm()
+            else:
+                context['datasets'] = Dataset.harvested_dcat.filter(organisation=organisation)
+                context['instance'] = instance
+                form = RemoteDcatForm(instance=instance)
+
+            context['form'] = form
+
+            return render(
+                request, self.template, context=context)
+
+        def post(self, request, id, *args, **kwargs):
+            organisation = get_object_or_404(Organisation, id=id)
+
+            user = request.user
+            profile = user.profile
+
+            is_admin = profile.is_admin
+            is_referent = LiaisonsReferents.objects.filter(
+                profile=profile, organisation__id=id,
+                validated_on__isnull=False) and True or False
+
+            if not (is_referent or is_admin):
+                raise Http404()
+
+            context = {'organisation': organisation}
+
+            instance = None
             url = request.POST.get('url')
             try:
                 with transaction.atomic():
                     instance, created = \
                         RemoteDcat.objects.get_or_create(
                             organisation=organisation, url=url)
-            except DcatBaseError as e:
+            except (DcatError, DcatTimeoutError) as e:
                 form = RemoteDcatForm(request.POST)
                 form.add_error('url', e.__str__())
             except ValidationError as e:
@@ -822,25 +860,12 @@ if ENABLE_DCAT_HARVESTER:
                 context['instance'] = instance
                 form = RemoteDcatForm(request.POST, instance=instance)
 
-            try:
-                # with transaction.atomic():
-                #     self.map_categories(instance, request.POST, form)
-                #     self.map_licences(instance, request.POST, form)
-                pass
-            except ValidationError as e:
-                error = True
-                messages.error(request, e.__str__())
-            except DcatBaseError as e:
-                error = True
-                form.add_error('__all__', e.__str__())
-                messages.error(request, e.__str__())
+            if not form.is_valid():
+                messages.error(request, form._errors.__str__())
+                return redirect('idgo_admin:edit_remote_dcat_link', id=organisation.id)
 
-            else:
-
-                # Une fois le mapping effectué, on sauvegarde l'instance
-
+            else:  # Une fois le mapping effectué, on sauvegarde l'instance
                 context['form'] = form
-
                 if not form.is_valid():
                     return render(
                         request, self.template, context=context)
@@ -848,12 +873,15 @@ if ENABLE_DCAT_HARVESTER:
                 for k, v in form.cleaned_data.items():
                     setattr(instance, k, v)
                 try:
-                    with transaction.atomic():
+                    # with transaction.atomic():
+                    with warnings.catch_warnings(record=True) as caught_warnings:
                         instance.save(harvest=not created)
+                        for warn in caught_warnings:
+                            messages.warning(request, str(warn.message))
                 except ValidationError as e:
                     error = True
                     messages.error(request, e.__str__())
-                except DcatBaseError as e:
+                except (DcatError, DcatTimeoutError) as e:
                     error = True
                     form.add_error('__all__', e.__str__())
                     messages.error(request, e.__str__())
@@ -879,52 +907,31 @@ if ENABLE_DCAT_HARVESTER:
 
             return redirect(namespace, id=organisation.id)
 
-        # def map_categories(self, instance, mapper, form):
-        #     MappingCategory.objects.filter(remote_dcat=instance).delete()
-        #
-        #     data = list(filter(
-        #         lambda k: k in [el.name for el in form.get_category_fields()],
-        #         mapper.dict().keys()))
-        #     not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
-        #     for k, v in not_empty.items():
-        #         MappingCategory.objects.create(
-        #             remote_ckan=instance, category=Category.objects.get(id=v), slug=k[4:])
-
-        # def map_licences(self, instance, mapper, form):
-        #     MappingLicence.objects.filter(remote_ckan=instance).delete()
-        #
-        #     data = list(filter(
-        #         lambda k: k in [el.name for el in form.get_licence_fields()],
-        #         mapper.dict().keys()))
-        #     not_empty = {k: mapper.dict()[k] for k in data if mapper.dict()[k]}
-        #     for k, v in not_empty.items():
-        #         MappingLicence.objects.create(
-        #             remote_ckan=instance, licence=License.objects.get(slug=v), slug=k[4:])
 
     @method_decorator(decorators, name='dispatch')
     class DeleteRemoteDcatLinked(View):
 
         def post(self, request, id, *args, **kwargs):
+            organisation = get_object_or_404(Organisation, id=id)
+            instance = get_object_or_404(RemoteDcat, organisation=organisation)
 
-            profile = request.user.profile
+            user = request.user
+            profile = user.profile
 
             is_admin = profile.is_admin
             is_referent = LiaisonsReferents.objects.filter(
                 profile=profile, organisation__id=id,
                 validated_on__isnull=False) and True or False
 
-            if not(is_referent or is_admin):
+            if not (is_referent or is_admin):
                 raise Http404()
-
-            organisation = get_object_or_404(Organisation, id=id)
-            instance = get_object_or_404(RemoteDcat, organisation=organisation)
 
             try:
                 with transaction.atomic():
                     instance.delete()
             except ValidationError as e:
                 messages.error(request, e.__str__())
-            except DcatBaseError as e:
+            except (DcatError, DcatTimeoutError) as e:
                 messages.error(request, e.__str__())
             else:
                 messages.success(request, (

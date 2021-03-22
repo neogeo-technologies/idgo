@@ -16,11 +16,12 @@
   <div class="row">
     <div class="col-xs-12">
       <p>
-        Votre ressource fait l'objet d'une couche géographique publiée à travers l'API OGC de votre organisation. Ce service est disponible à l'adresse suivante :
+        Votre ressource fait l'objet d'une couche géographique publiée à travers l'API OGC de votre organisation.
+        Ce service est disponible et exploitable dans un logiciel SIG avec l'adresse suivante :
         <a target="_blank" href="{{ resource.dataset.organisation.ows_url }}">{{ resource.dataset.organisation.ows_url }}</a>
       </p>
-      {% if not user.profile.crige_membership %}
-      <p>Pour configurer votre service, veuillez contacter un administrateur IDGO.</p>
+      {% if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership %}
+      <p>Pour configurer votre service, veuillez contacter un administrateur {{ DEFAULT_PLATFORM_NAME }}.</p>
       {% endif %}
     </div>
   </div>
@@ -230,17 +231,24 @@
   </div>
   {% if resource.get_layers %}
   <br />
-  <div>
+  <div>{% if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership %}
+    <div class="row">
+      <div class="col-xs-12">
+        <p>
+          Vous ne disposez pas des droits nécessaires pour modifier la configuration ci-dessous.
+          Seules les organisations {{ IDGO_ORGANISATION_PARTNER_LABEL_PLURAL }} sont habilitées.
+          Pour configurer votre service, veuillez contacter un administrateur {{ DEFAULT_PLATFORM_NAME }}.
+          Si vous souhaitez faire votre demande d'affiliation ou en savoir plus, rendez-vous à la section Organisation de l'espace utilisateur.
+        </p>
+      </div>
+    </div>{% endif %}
     <div class="row">
       <div class="col-xs-12">
         <div class="form-group">
-          <div class="checkbox">
-            <label for="id_{{ form.geo_restriction.name }}">
-            {% if not user.profile.crige_membership %}
-              {% include "idgo_admin/extras/restricted_access/checkbox.html" with type="checkbox" name=form.geo_restriction.name checked=form.geo_restriction.value %}
-            {% else %}
-              {{ form.geo_restriction }}
-            {% endif %}
+          <div class="checkbox{% if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership %} disabled{% endif %}">
+            <label for="id_{{ form.geo_restriction.name }}">{% if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership %}
+              {% include "idgo_admin/extras/restricted_access/checkbox.html" with type="checkbox" name=form.geo_restriction.name checked=form.geo_restriction.value %}{% else %}
+              {{ form.geo_restriction }}{% endif %}
               {{ form.geo_restriction.label }}
             </label>
           </div>
@@ -250,13 +258,10 @@
     <div class="row">
       <div class="col-xs-12">
         <div class="form-group">
-          <div class="checkbox">
-            <label for="id_{{ form.ogc_services.name }}">
-            {% if not user.profile.crige_membership %}
-              {% include "idgo_admin/extras/restricted_access/checkbox.html" with type="checkbox" name=form.ogc_services.name checked=form.ogc_services.value %}
-            {% else %}
-              {{ form.ogc_services }}
-            {% endif %}
+          <div class="checkbox{% if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership %} disabled{% endif %}">
+            <label for="id_{{ form.ogc_services.name }}">{% if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership %}
+              {% include "idgo_admin/extras/restricted_access/checkbox.html" with type="checkbox" name=form.ogc_services.name checked=form.ogc_services.value %}{% else %}
+              {{ form.ogc_services }}{% endif %}
               {{ form.ogc_services.label }}
             </label>
           </div>
@@ -266,13 +271,10 @@
     <div class="row">
       <div class="col-xs-12">
         <div class="form-group">
-          <div class="checkbox">
-            <label for="id_{{ form.extractable.name }}">
-            {% if not user.profile.crige_membership %}
-              {% include "idgo_admin/extras/restricted_access/checkbox.html" with type="checkbox" name=form.extractable.name checked=form.extractable.value %}
-            {% else %}
-              {{ form.extractable }}
-            {% endif %}
+          <div class="checkbox{% if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership %} disabled{% endif %}">
+            <label for="id_{{ form.extractable.name }}">{% if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership %}
+              {% include "idgo_admin/extras/restricted_access/checkbox.html" with type="checkbox" name=form.extractable.name checked=form.extractable.value %}{% else %}
+              {{ form.extractable }}{% endif %}
               {{ form.extractable.label }}
             </label>
           </div>

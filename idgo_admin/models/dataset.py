@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -86,8 +86,6 @@ class Dataset(models.Model):
 
     objects = models.Manager()
     default = DefaultDatasetManager()
-    # harvested_ckan = HarvestedCkanDatasetManager()
-    # harvested_csw = HarvestedCswDatasetManager()
 
     # Champs atributaires
     # ===================
@@ -673,6 +671,7 @@ def pre_save_dataset(sender, instance, **kwargs):
 def delete_attached_md(sender, instance, **kwargs):
     if instance.geonet_id:
         geonet.delete_record(instance.geonet_id)
+        logger.info("Dataset MD '%s' has been deleted." % instance.geonet_id)
 
 
 @receiver(post_delete, sender=Dataset)
@@ -683,9 +682,9 @@ def post_delete_dataset(sender, instance, **kwargs):
 @receiver(post_save, sender=Dataset)
 def logging_after_save(sender, instance, **kwargs):
     action = kwargs.get('created', False) and 'created' or 'updated'
-    logger.info('Dataset "{pk}" has been {action}'.format(pk=instance.pk, action=action))
+    logger.info("Dataset '%d' has been %s" % (instance.pk, action))
 
 
 @receiver(post_delete, sender=Dataset)
 def logging_after_delete(sender, instance, **kwargs):
-    logger.info('Dataset "{pk}" has been deleted'.format(pk=instance.pk))
+    logger.info("Dataset '%d' has been deleted." % instance.pk)

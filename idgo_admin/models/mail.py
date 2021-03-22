@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -118,8 +118,8 @@ def sender(template_name, to=None, cc=None, bcc=None, attach_files=[], **kvp):
     if ENABLE_SENDING_MAIL:
         try:
             mail.send()
-        except SMTPDataError as e:
-            logger.error(e)
+        except Exception as e:
+            logger.exception(e)
             # Activer l'exception lorsque gérée par l'application.
             # return MailError()
     else:
@@ -169,6 +169,7 @@ def send_reset_password_link_to_user(user, url):
 def send_account_deletion_mail(email, full_name, username):
     return sender(
         'account_deleted',
+        bcc=list(get_admins_mails()),
         full_name=full_name,
         to=[email],
         username=username)

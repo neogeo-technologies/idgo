@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -32,7 +32,7 @@ from taggit.admin import Tag
 from taggit.models import TaggedItem
 
 from idgo_admin.ckan_module import CkanBaseError
-from idgo_admin.ckan_module import CkanManagerHandler
+from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.models import Dataset
 from idgo_admin.models import Keywords
 from idgo_admin.models import Profile
@@ -124,6 +124,7 @@ class MyDataSetForm(forms.ModelForm):
         self.fields['editor'].queryset = User.objects.filter(
             profile__in=Profile.objects.all(),
             is_active=True).order_by('username')
+        self.fields['keywords'].widget.attrs['style'] = 'width: 612px;'
 
 
 class DatasetAdmin(admin.ModelAdmin):
@@ -273,43 +274,57 @@ class KeywordsAdmin(admin.ModelAdmin):
         return actions
 
     # On ajoute le traitement de la fusion de nom
-    def merge_name(self, request, queryset):
+    def merge_name(self, request, queryset_tags):
 
-        datasets = Dataset.objects.filter(keywords__in=queryset)
+        datasets = Dataset.objects.filter(keywords__in=queryset_tags).distinct()
         if 'apply' in request.POST:
             form = NewKeywordForm(request.POST)
             if form.is_valid():
+                error = False
 
-                # On met a jours les datasets et on retourne sur le listing
-                # self.tags_update(new_name, datasets)
-                new_tag, _ = Tag.objects.get_or_create(
-                    name=form.cleaned_data.get('new_name'))
+                name = form.cleaned_data.get('new_name')
+                tag, created = Tag.objects.get_or_create(name=name)
+                # WIP
+
                 for dataset in datasets:
-                    dataset.keywords.add(new_tag)
-                    # On synchronise CKAN
+                    dataset.keywords.add(tag)
+                    ckan_id = str(dataset.ckan_id)
+                    qs_dataset_keywords = dataset.keywords.all().exclude(id__in=queryset_tags)
+
+                    tags = [
+                        *[{'name': k.name} for k in qs_dataset_keywords],
+                        *[{'name': tag.name}]]
+
+                    logger.info('Update dataset %d with tags: %s' % (dataset.pk, tags))
                     try:
-                        ckan = CkanManagerHandler()
-                        ckan.publish_dataset(
-                            id=str(dataset.ckan_id),
-                            tags=[{'name': keyword.name} for keyword in dataset.keywords.all()]
-                        )
-                    except CkanBaseError as err:
-                        messages.error(request, err)
-
-                # Le clean des vieux tags se fait en dernier
-                # pour garder la selection de tous les datasets
-                queryset.exclude(pk=new_tag.pk).delete()
-
-                messages.info(request, "Mise à jour effectuée.")
+                        CkanHandler.publish_dataset(id=ckan_id, tags=tags)
+                    except CkanBaseError as e:
+                        logger.exception(e)
+                        error = True
+                        dataset.keywords.remove(tag)
+                        break
+                    else:
+                        continue
+                if error:
+                    messages.error(request, (
+                        "Une erreur est survenue. "
+                        "Veuillez contacter l'administrateur de la plateforme."
+                        ))
+                else:
+                    queryset_tags.exclude(pk=tag.pk).delete()
+                    messages.info(request, (
+                        "La mise à jour est effectuée avec succès."
+                        ))
                 return HttpResponseRedirect(request.get_full_path())
-        else:
+
+        else:  # request.GET
             form = NewKeywordForm()
+        # then
+        template_html = 'admin/idgo_admin/taggit_merge_name.html'
+        context = {'form': form, 'tags': queryset_tags, 'datasets': datasets}
+        return render(request, template_html, context=context)
 
-        context = {'form': form, 'tags': queryset, 'datasets': datasets}
-        return render(
-            request, 'admin/idgo_admin/taggit_merge_name.html', context=context)
-
-    merge_name.short_description = "Fusion des mots-clés"
+    merge_name.short_description = "Renommer/fusionner le ou les mots-clés sélectionnés"
 
 
 admin.site.register(Keywords, KeywordsAdmin)

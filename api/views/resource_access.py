@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+
 from functools import reduce
 import logging
 from operator import ior
@@ -21,6 +22,7 @@ from django.apps import apps
 from django.db.models import Q
 from django.http import Http404
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 
 from rest_framework import permissions
 from rest_framework.views import APIView
@@ -71,9 +73,15 @@ class ResourceAccessShow(APIView):
         """Voir si l'utilisateur a le droit de voir la ressource"""
         user = request.user
 
-        resource = Resource.objects.get(id=resource_id)
-        if resource.is_profile_authorized(user):
-            return JsonResponse(dict(access='granted'))
+        try:
+            resource = get_object_or_404(Resource, id=resource_id)
+            if resource.is_profile_authorized(user):
+                return JsonResponse(dict(access='granted'))
+        except Http404 as e:
+            if BETA:
+                resource = get_object_or_404(ResourceBeta, id=resource_id)
+                if resource.resourcerestricted.is_profile_authorized(user):
+                    return JsonResponse(dict(access='granted'))
 
         return JsonResponse(dict(access='denied'))
 

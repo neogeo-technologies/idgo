@@ -16,11 +16,11 @@
 
 from django.contrib import admin
 
-from idgo_admin.models.data_type import DataType
+from idgo_admin.models.support import Support
 
 
-class DataTypeAdmin(admin.ModelAdmin):
-    change_list_template = 'admin/idgo_admin/datatype_change_list.html'
+class SupportAdmin(admin.ModelAdmin):
+    change_list_template = 'admin/idgo_admin/support_change_list.html'
     list_display = ['slug', 'name', 'description']
     ordering = ['slug']
     can_add_related = False
@@ -37,4 +37,4 @@ class DataTypeAdmin(admin.ModelAdmin):
     #     return actions
 
 
-admin.site.register(DataType, DataTypeAdmin)
+admin.site.register(Support, SupportAdmin)

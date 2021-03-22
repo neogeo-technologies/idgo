@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -171,6 +171,10 @@ class Layer(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        if not self.resource:
+            logger.warning("Layer '%s' is orphan. You should remove it manually." % self.name)
+            return  # TODO?
+
         organisation = self.resource.dataset.organisation
         ws_name = organisation.slug
 
@@ -188,7 +192,7 @@ class Layer(models.Model):
             l = MRAHandler.get_layer(self.name)
         except MraBaseError as e:
             logger.warning(e)
-            return
+            return  # TODO?
 
         # Récupération des informations de couche vecteur
         # ===============================================
@@ -197,9 +201,9 @@ class Layer(models.Model):
             try:
                 ft = MRAHandler.get_featuretype(ws_name, 'public', self.name)
             except MraBaseError:
-                return
+                return  # TODO?
             if not l or not ft:
-                return
+                return  # TODO?
 
             ll = ft['featureType']['latLonBoundingBox']
             bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]
@@ -238,9 +242,9 @@ class Layer(models.Model):
             try:
                 c = MRAHandler.get_coverage(ws_name, self.name, self.name)
             except MraBaseError:
-                return
+                return  # TODO?
             if not l or not c:
-                return
+                return  # TODO?
 
             ll = c['coverage']['latLonBoundingBox']
             bbox = [[ll['miny'], ll['minx']], [ll['maxy'], ll['maxx']]]

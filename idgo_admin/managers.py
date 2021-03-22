@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,14 +14,21 @@
 # under the License.
 
 
+import logging
+
 from idgo_admin.utils import clean_my_obj
 from itertools import chain
 
 from django.apps import apps
 from django.contrib.gis.db import models
+from django.db.utils import IntegrityError
 from django.utils import timezone
 
+from idgo_admin.exceptions import DatasetConflictError
 from idgo_admin import DEFAULTS_VALUES
+
+
+logger = logging.getLogger('idgo_admin')
 
 
 COMMUNES_REGEX = DEFAULTS_VALUES.get('COMMUNES_REGEX', '^\d(\d|A|B)\d{3}$')
@@ -88,13 +95,18 @@ if ENABLE_CKAN_HARVESTER:
 
             # Puis on crée la liaison avec le CKAN distant
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-            RemoteDataset.objects.create(
-                created_by=dataset.editor,
-                dataset=dataset,
-                remote_instance=remote_instance,
-                remote_dataset=remote_dataset,
-                remote_organisation=remote_organisation,
-                )
+            try:
+                RemoteDataset.objects.create(
+                    created_by=dataset.editor,
+                    dataset=dataset,
+                    remote_instance=remote_instance,
+                    remote_dataset=remote_dataset,
+                    remote_organisation=remote_organisation,
+                    )
+            except IntegrityError as e:
+                logger.exception(e)
+                dataset.delete()
+                raise DatasetConflictError("Cette relation existe déjà. Le jeu de données est peut-être déjà moissonné par ailleurs.")
 
             # Enfin on met à jour le jeu de données et on le synchronize avec CKAN
             DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
@@ -125,11 +137,15 @@ if ENABLE_CKAN_HARVESTER:
             return super().filter(**kwargs)
 
         def get(self, **kwargs):
+            remote_instance = kwargs.pop('remote_instance', None)
             remote_dataset = kwargs.pop('remote_dataset', None)
 
             if remote_dataset:
-                RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
-                return RemoteDataset.objects.get(remote_dataset=remote_dataset).dataset
+                RemoteCkanDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+                return RemoteCkanDataset.objects.get(
+                    remote_instance=remote_instance,
+                    remote_dataset=remote_dataset,
+                    ).dataset
 
             return super().get(**kwargs)
 
@@ -140,12 +156,16 @@ if ENABLE_CKAN_HARVESTER:
                 id__in=[entry.dataset.id for entry in RemoteDataset.objects.all()])
 
         def update_or_create(self, **kwargs):
+            remote_instance = kwargs.get('remote_instance', None)
             remote_dataset = kwargs.get('remote_dataset', None)
 
+            Remote = apps.get_model(app_label='idgo_admin', model_name='RemoteCkan')
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
             try:
-                dataset = self.get(remote_dataset=remote_dataset)
-            except RemoteDataset.DoesNotExist:
+                dataset = self.get(
+                    remote_dataset=remote_dataset,
+                    remote_instance=remote_instance)
+            except (Remote.DoesNotExist, RemoteDataset.DoesNotExist):
                 dataset = self.create(**kwargs)
                 created = True
             else:
@@ -160,6 +180,17 @@ if ENABLE_CKAN_HARVESTER:
                 dataset.save(current_user=None, synchronize=True)
 
             return dataset, created
+
+        def delete(self, **kwargs):
+            RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCkanDataset')
+            try:
+                harvested = RemoteDataset.objects.get(dataset=self)
+            except (RemoteDataset.DoesNotExist,) as e:
+                logger.exception(e)
+                logger.warning("Error was ignored.")
+            else:
+                harvested.delete()
+            return super().delete(**kwargs)
 
 
 from idgo_admin import ENABLE_CSW_HARVESTER  # noqa
@@ -178,12 +209,17 @@ if ENABLE_CSW_HARVESTER:
 
             # Puis on crée la liaison avec le CSW distant
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
-            RemoteDataset.objects.create(
-                created_by=dataset.editor,
-                dataset=dataset,
-                remote_instance=remote_instance,
-                remote_dataset=remote_dataset,
-                )
+            try:
+                RemoteDataset.objects.create(
+                    created_by=dataset.editor,
+                    dataset=dataset,
+                    remote_instance=remote_instance,
+                    remote_dataset=remote_dataset,
+                    )
+            except IntegrityError as e:
+                logger.exception(e)
+                dataset.delete()
+                raise DatasetConflictError("Cette relation existe déjà. Le jeu de données est peut-être déjà moissonné par ailleurs.")
 
             # Enfin on met à jour le jeu de données et on le synchronize avec CSW
             DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
@@ -210,11 +246,15 @@ if ENABLE_CSW_HARVESTER:
             return super().filter(**kwargs)
 
         def get(self, **kwargs):
+            remote_instance = kwargs.pop('remote_instance', None)
             remote_dataset = kwargs.pop('remote_dataset', None)
 
             if remote_dataset:
                 RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
-                return RemoteDataset.objects.get(remote_dataset=remote_dataset).dataset
+                return RemoteDataset.objects.get(
+                    remote_instance=remote_instance,
+                    remote_dataset=remote_dataset,
+                    ).dataset
 
             return super().get(**kwargs)
 
@@ -225,12 +265,16 @@ if ENABLE_CSW_HARVESTER:
                 id__in=[entry.dataset.id for entry in RemoteDataset.objects.all()])
 
         def update_or_create(self, **kwargs):
+            remote_instance = kwargs.get('remote_instance', None)
             remote_dataset = kwargs.get('remote_dataset', None)
 
+            Remote = apps.get_model(app_label='idgo_admin', model_name='RemoteCsw')
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
             try:
-                dataset = self.get(remote_dataset=remote_dataset)
-            except RemoteDataset.DoesNotExist:
+                dataset = self.get(
+                    remote_dataset=remote_dataset,
+                    remote_instance=remote_instance)
+            except (Remote.DoesNotExist, RemoteDataset.DoesNotExist):
                 dataset = self.create(**kwargs)
                 created = True
             else:
@@ -245,6 +289,17 @@ if ENABLE_CSW_HARVESTER:
                 dataset.save(current_user=None, synchronize=True)
 
             return dataset, created
+
+        def delete(self, **kwargs):
+            RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteCswDataset')
+            try:
+                harvested = RemoteDataset.objects.get(dataset=self)
+            except (RemoteDataset.DoesNotExist,) as e:
+                logger.exception(e)
+                logger.warning("Error was ignored.")
+            else:
+                harvested.delete()
+            return super().delete(**kwargs)
 
 
 from idgo_admin import ENABLE_DCAT_HARVESTER  # noqa
@@ -264,13 +319,18 @@ if ENABLE_DCAT_HARVESTER:
 
             # Puis on crée la liaison avec le DCAT distant
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
-            RemoteDataset.objects.create(
-                created_by=dataset.editor,
-                dataset=dataset,
-                remote_instance=remote_instance,
-                remote_dataset=remote_dataset,
-                remote_organisation=remote_organisation,
-                )
+            try:
+                RemoteDataset.objects.create(
+                    created_by=dataset.editor,
+                    dataset=dataset,
+                    remote_instance=remote_instance,
+                    remote_dataset=remote_dataset,
+                    remote_organisation=remote_organisation,
+                    )
+            except IntegrityError as e:
+                logger.exception(e)
+                dataset.delete()
+                raise DatasetConflictError("Cette relation existe déjà. Le jeu de données est peut-être déjà moissonné par ailleurs.")
 
             # Enfin on met à jour le jeu de données et on le synchronize avec DCAT
             DataType = apps.get_model(app_label='idgo_admin', model_name='DataType')
@@ -301,11 +361,15 @@ if ENABLE_DCAT_HARVESTER:
             return super().filter(**kwargs)
 
         def get(self, **kwargs):
+            remote_instance = kwargs.pop('remote_instance', None)
             remote_dataset = kwargs.pop('remote_dataset', None)
 
             if remote_dataset:
                 RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
-                return RemoteDataset.objects.get(remote_dataset=remote_dataset).dataset
+                return RemoteDataset.objects.get(
+                    remote_instance=remote_instance,
+                    remote_dataset=remote_dataset,
+                    ).dataset
 
             return super().get(**kwargs)
 
@@ -316,12 +380,16 @@ if ENABLE_DCAT_HARVESTER:
                 id__in=[entry.dataset.id for entry in RemoteDataset.objects.all()])
 
         def update_or_create(self, **kwargs):
+            remote_instance = kwargs.get('remote_instance', None)
             remote_dataset = kwargs.get('remote_dataset', None)
 
+            Remote = apps.get_model(app_label='idgo_admin', model_name='RemoteDcat')
             RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
             try:
-                dataset = self.get(remote_dataset=remote_dataset)
-            except RemoteDataset.DoesNotExist:
+                dataset = self.get(
+                    remote_dataset=remote_dataset,
+                    remote_instance=remote_instance)
+            except (Remote.DoesNotExist, RemoteDataset.DoesNotExist):
                 dataset = self.create(**kwargs)
                 created = True
             else:
@@ -336,6 +404,17 @@ if ENABLE_DCAT_HARVESTER:
                 dataset.save(current_user=None, synchronize=True)
 
             return dataset, created
+
+        def delete(self, **kwargs):
+            RemoteDataset = apps.get_model(app_label='idgo_admin', model_name='RemoteDcatDataset')
+            try:
+                harvested = RemoteDataset.objects.get(dataset=self)
+            except (RemoteDataset.DoesNotExist,) as e:
+                logger.exception(e)
+                logger.warning("Error was ignored.")
+            else:
+                harvested.delete()
+            return super().delete(**kwargs)
 
 
 # =====================================================

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -65,6 +65,7 @@ from idgo_admin import CKAN_URL
 from idgo_admin import DATA_TRANSMISSION_SIZE_LIMITATION
 from idgo_admin import DOWNLOAD_SIZE_LIMIT
 from idgo_admin import PROTOCOL_CHOICES
+from idgo_admin import IDGO_USER_PARTNER_LABEL_PLURAL
 
 
 logger = logging.getLogger('idgo_admin')
@@ -256,7 +257,7 @@ class Resource(models.Model):
         ('only_allowed_users', 'Utilisateurs authentifiés avec droits spécifiques'),
         ('same_organization', 'Utilisateurs de cette organisation uniquement'),
         ('any_organization', 'Organisations spécifiées'),
-        ('only_idgo_partners', 'Tous les adhérents'),
+        ('only_idgo_partners', 'Tous les %s' % IDGO_USER_PARTNER_LABEL_PLURAL),
     )
 
     restricted_level = models.CharField(
@@ -430,7 +431,10 @@ class Resource(models.Model):
     # =================
 
     def save(self, *args, current_user=None, synchronize=False,
-             file_extras=None, skip_download=False, **kwargs):
+             file_extras=None, skip_download=False, update_m2m=False, **kwargs):
+
+        if update_m2m:
+            return super().save(*args, **kwargs)
 
         if 'update_fields' in kwargs:
             return super().save(*args, **kwargs)
@@ -444,16 +448,10 @@ class Resource(models.Model):
             self.crs = previous.crs
 
         # Quelques valeur par défaut à la création de l'instance
-        if created or not (
-                # Ou si l'éditeur n'est pas partenaire IDGO
-                current_user and current_user.profile.crige_membership):
-
-            # Mais seulement s'il s'agit de données SIG, sauf
-            # qu'on ne le sait pas encore...
+        if created:
             self.geo_restriction = False
             self.ogc_services = True
             self.extractable = True
-
         # La restriction au territoire de compétence désactive toujours les services OGC
         if self.geo_restriction:
             self.ogc_services = False
@@ -475,34 +473,27 @@ class Resource(models.Model):
             # Si la taille de fichier dépasse la limite autorisée,
             # on traite les données en fonction du type détecté
             if self.ftp_file.size > DATA_TRANSMISSION_SIZE_LIMITATION:
-                extension = self.format_type.extension.lower()
-                if self.format_type.is_gis_format:
-                    try:
-                        gdalogr_obj = get_gdalogr_object(filename, extension)
-                    except NotDataGISError:
-                        # On essaye de traiter le jeux de données normalement, même si ça peut être long.
-                        pass
-                    else:
-                        if gdalogr_obj.__class__.__name__ == 'GdalOpener':
-                            s0 = str(self.ckan_id)
-                            s1, s2, s3 = s0[:3], s0[3:6], s0[6:]
-                            dir = os.path.join(CKAN_STORAGE_PATH, s1, s2)
-                            os.makedirs(dir, mode=0o777, exist_ok=True)
+                logger.info("This is a big file: %s." % self.ftp_file.size)
 
-                            shutil.copyfile(filename, os.path.join(dir, s3))
+                publish_raw_resource = False  # IMPORTANT
 
-                            src = os.path.join(dir, s3)
-                            dst = os.path.join(dir, filename.split('/')[-1])
-                            try:
-                                os.symlink(src, dst)
-                            except FileNotFoundError as e:
-                                logger.exception(e)
-                            else:
-                                logger.debug('Created a symbolic link {dst} pointing to {src}.'.format(dst=dst, src=src))
+                s0 = str(self.ckan_id)
+                s1, s2, s3 = s0[:3], s0[3:6], s0[6:]
+                dir = os.path.join(CKAN_STORAGE_PATH, s1, s2)
+                os.makedirs(dir, mode=0o777, exist_ok=True)
 
-                        # if gdalogr_obj.__class__.__name__ == 'OgrOpener':
-                        # On ne publie que le service OGC dans CKAN
-                        publish_raw_resource = False
+                logger.info("cp %s %s" % (filename, os.path.join(dir, s3)))
+                shutil.copyfile(filename, os.path.join(dir, s3))
+
+                src = os.path.join(dir, s3)
+                dst = os.path.join(dir, filename.split('/')[-1])
+                logger.info("ln -s %s %s" % (dst, src))
+                try:
+                    os.symlink(src, dst)
+                except (FileNotFoundError, FileExistsError) as e:
+                    logger.exception(e)
+                    logger.warning("Error was ignored.")
+                    pass
 
         elif (self.up_file and file_extras):
             # GDAL/OGR ne semble pas prendre de fichier en mémoire..
@@ -550,17 +541,18 @@ class Resource(models.Model):
         # La synchronisation doit s'effectuer avant la publication des
         # éventuelles couches de données SIG car dans le cas des données
         # de type « raster », nous utilisons le filestore de CKAN.
-        if synchronize and publish_raw_resource:
-            self.synchronize(
-                content_type=content_type, file_extras=file_extras,
-                filename=filename, with_user=current_user)
-        elif synchronize and not publish_raw_resource:
-            url = reduce(urljoin, [
-                CKAN_URL,
-                'dataset/', str(self.dataset.ckan_id) + '/',
-                'resource/', str(self.ckan_id) + '/',
-                'download/', Path(self.ftp_file.name).name])
-            self.synchronize(url=url, with_user=current_user)
+        if synchronize:
+            if publish_raw_resource:
+                self.synchronize(
+                    content_type=content_type, file_extras=file_extras,
+                    filename=filename, with_user=current_user)
+            else:
+                url = reduce(urljoin, [
+                    CKAN_URL,
+                    'dataset/', str(self.dataset.ckan_id) + '/',
+                    'resource/', str(self.ckan_id) + '/',
+                    'download/', Path(self.ftp_file.name).name])
+                self.synchronize(url=url, with_user=current_user)
 
         # Détection des données SIG
         # =========================
@@ -862,22 +854,27 @@ class Resource(models.Model):
         # Identifiant de la resource CKAN :
         id = str(self.ckan_id)
 
+        ckan_resource = {}
+        try:
+            ckan_resource = CkanHandler.get_resource(id)
+        except Exception as e:
+            logger.warning(e)
+
         # Définition des propriétés du « package » :
         data = {
             'crs': self.crs and self.crs.description or '',
             'name': self.title,
             'description': self.description,
             'data_type': self.data_type,
-            'extracting_service': 'False',  # I <3 CKAN
+            'extracting_service': str(self.extractable or False),  # I <3 CKAN
             'format': self.format_type and self.format_type.ckan_format,
             'view_type': self.format_type and self.format_type.ckan_view,
             'id': id,
             'lang': self.lang,
             'restricted_by_jurisdiction': str(self.geo_restriction),
             'url': url and url or '',
-            'api': '{}'}
-
-        # TODO: Factoriser
+            'api': ckan_resource.get('api', '{}'),
+            }
 
         # (0) Aucune restriction
         if self.restricted_level == 'public':
@@ -935,17 +932,18 @@ class Resource(models.Model):
             data['mimetype'] = file_extras.get('mimetype')
 
         if self.ftp_file:
-            if not url:
+            if not url and filename:
                 data['upload'] = self.ftp_file.file
-            data['size'] = self.ftp_file.size
-            if self.format_type and (
-                    type(self.format_type.mimetype) is list and len(self.format_type.mimetype)
-                    ):
-                data['mimetype'] = self.format_type.mimetype[0]
-            else:
-                data['mimetype'] = 'text/plain'
-            # Passe dans un validateur pour forcer en base : url_type='upload'
-            data['force_url_type'] = 'upload'
+                data['size'] = self.ftp_file.size
+            if url or filename:
+                if self.format_type and (
+                        type(self.format_type.mimetype) is list and len(self.format_type.mimetype)
+                        ):
+                    data['mimetype'] = self.format_type.mimetype[0]
+                else:
+                    data['mimetype'] = 'text/plain'
+
+            # data['force_url_type'] = 'upload'  # NON PREVU PAR CKAN API
 
         if self.data_type == 'raw':
             if self.ftp_file or self.dl_url or self.up_file:
@@ -979,7 +977,7 @@ class Resource(models.Model):
     def is_profile_authorized(self, user):
         Profile = apps.get_model(app_label='idgo_admin', model_name='Profile')
         if not user.pk:
-            raise IntegrityError('User does not exists')
+            raise IntegrityError("User does not exists.")
 
         if self.restricted_level == 'only_allowed_users' and self.profiles_allowed.exists():
             return user in [
@@ -989,7 +987,7 @@ class Resource(models.Model):
                 organisation__in=self.organisations_allowed.all(),
                 organisation__is_active=True)]
         elif self.restricted_level == 'only_idgo_partners':
-            return user in [p.user for p in Profile.objects.filter(is_idgo_partner=True)]
+            return user in [p.user for p in Profile.objects.filter(crige_membership=True)]
 
         return True
 
@@ -1001,9 +999,9 @@ class Resource(models.Model):
 @receiver(post_save, sender=Resource)
 def logging_after_save(sender, instance, **kwargs):
     action = kwargs.get('created', False) and 'created' or 'updated'
-    logger.info('Resource "{pk}" has been {action}'.format(pk=instance.pk, action=action))
+    logger.info("Resource %s has been %s." % (instance.pk, action))
 
 
 @receiver(post_delete, sender=Resource)
 def logging_after_delete(sender, instance, **kwargs):
-    logger.info('Resource "{pk}" has been deleted'.format(pk=instance.pk))
+    logger.info("Resource %s has been deleted." % instance.pk)

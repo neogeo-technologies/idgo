@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -41,6 +41,7 @@ from idgo_admin.models.resource import ResourceFormats
 from idgo_admin.models.support import Support
 from idgo_admin.models.supported_crs import SupportedCrs
 from idgo_admin.models.task import Task
+
 
 __all__ = [
     AccountActions,

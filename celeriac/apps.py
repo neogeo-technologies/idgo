@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,10 +14,26 @@
 # under the License.
 
 
-import os
-import importlib
+# from django.apps import AppConfig
 
-from celery import Celery
+
+# class CeleriacConfig(AppConfig):
+#     name = 'celeriac'
+#     verbose_name = "Celeriac"
+
+
+import os  # noqa
+import importlib  # noqa
+
+from celery import Celery  # noqa
+
+from django.conf import settings  # noqa E402
+
+
+try:
+    CELERY_NAMESPACE = settings.CELERIAC_CELERY_NAMESPACE
+except:
+    CELERY_NAMESPACE = 'CELERY'
 
 
 django_config_spec = importlib.util.find_spec('django_config')
@@ -28,5 +44,5 @@ else:
 
 
 app = Celery('celeriac')
-app.config_from_object('django.conf:settings', namespace='CELERY')
+app.config_from_object('django.conf:settings', namespace=CELERY_NAMESPACE)
 app.autodiscover_tasks()

@@ -138,7 +138,7 @@
             <div>
               {% bootstrap_field form.contributor show_label=False %}
               {% bootstrap_field form.referent show_label=False %}
-              {% if IDGO_REDUCED_TO_PARTNER %}
+              {% if IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS %}
               <span class="user-profile-options-message">
                 <p>Ces deux options ne sont disponibles que pour les organisations {{ IDGO_ORGANISATION_PARTNER_LABEL_PLURAL }}.</p>
               </span>
@@ -167,7 +167,7 @@
 <script>
 $(function() {
   const $idgoPartnerInfoMsg = $('.idgo-partner').hide();
-  {% if IDGO_REDUCED_TO_PARTNER %}
+  {% if IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS %}
   const $userProfileOptionsMessage = $('.user-profile-options-message').hide();
   {% endif %}
 
@@ -187,13 +187,13 @@ $(function() {
     const isIdgoPartner = $selectOrganisation.find(':selected').attr('is-idgo-partner');
     if (typeof isIdgoPartner !== typeof undefined && isIdgoPartner !== false) {
       $idgoPartnerInfoMsg.show();
-      {% if IDGO_REDUCED_TO_PARTNER %}
+      {% if IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS %}
       $inputContribution.parent().parent().removeClass('disabled');
       $inputReferent.parent().parent().removeClass('disabled');
       {% endif %}
     } else {
       $idgoPartnerInfoMsg.hide();
-      {% if IDGO_REDUCED_TO_PARTNER %}
+      {% if IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS %}
       $inputContribution.parent().parent().addClass('disabled');
       $inputReferent.parent().parent().addClass('disabled');
       {% endif %}
@@ -205,7 +205,7 @@ $(function() {
       $inputReferent.parent().hide();
       $inputReferent.prop('checked', false);
 
-      {% if IDGO_REDUCED_TO_PARTNER %}
+      {% if IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS %}
       $userProfileOptionsMessage.hide();
       {% endif %}
     } else {
@@ -217,7 +217,7 @@ $(function() {
       $inputContribution.parent().show();
       $inputReferent.parent().show();
 
-      {% if IDGO_REDUCED_TO_PARTNER %}
+      {% if IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS %}
       if (isIdgoPartner == undefined) {
         $userProfileOptionsMessage.show();
       } else {
@@ -233,7 +233,7 @@ $(function() {
     .change(toggleInputVisibility);
 
   const $collapseOne = $('#collapse-one').collapse({toggle: false})
-    {% if IDGO_REDUCED_TO_PARTNER %}
+    {% if IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS %}
     .on('hide.bs.collapse', function() {
       $inputContribution.parent().hide();
       $inputReferent.parent().hide();
@@ -241,7 +241,7 @@ $(function() {
     })
     {% endif %}
     .on('hidden.bs.collapse', function() {
-      {% if not IDGO_REDUCED_TO_PARTNER %}
+      {% if not IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS %}
       $inputContribution.parent().show();
       $inputReferent.parent().show();
       $inputReferent.prop('checked', true).trigger('change');
@@ -254,7 +254,7 @@ $(function() {
 
   const $collapseTwo = $('#collapse-two').collapse({ 'toggle': false })
     .on('hide.bs.collapse', function() {
-      {% if not IDGO_REDUCED_TO_PARTNER %}
+      {% if not IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS %}
       $inputContribution.parent().hide();
       $inputContribution.prop('checked', false);
       $inputReferent.parent().hide();

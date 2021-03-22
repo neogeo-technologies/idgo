@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -21,20 +21,25 @@ from django.core.management.base import BaseCommand
 from idgo_admin.models import Resource
 
 
-logger = logging.getLogger('idgo_admin')
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
 
-    help = ""
+    help = "Forcer la sauvegarde de toutes les ressource de données."
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def handle(self, *args, **options):
-        for resource in Resource.objects.all():
-            logger.warning('Save resource: {pk}'.format(pk=resource.pk))
+        queryset = Resource.objects.all().order_by('id')
+        total = queryset.count()
+        count = 0
+        for instance in queryset:
+            count += 1
+            logger.info("[%d/%d] - Save Resource %d." % (count, total, instance.pk))
             try:
-                resource.save(current_user=None, synchronize=True)
+                instance.save(current_user=None, synchronize=True)
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
+                logger.info("Continue")

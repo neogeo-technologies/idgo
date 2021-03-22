@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,9 +14,14 @@
 # under the License.
 
 
-from __future__ import absolute_import
+from __future__ import absolute_import  # noqa
 
-from celeriac.apps import app as celery_app
+
+# default_app_config = 'celeriac.apps.CeleriacConfig'
+
+
+from celeriac.apps import app as celery_app  # noqa
 
 
 __all__ = ('celery_app',)
+

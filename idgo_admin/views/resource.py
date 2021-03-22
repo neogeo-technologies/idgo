@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,8 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
 import json
+import logging
 import os
 
 from django.contrib.auth.decorators import login_required
@@ -47,6 +47,8 @@ from idgo_admin import FTP_DIR
 from idgo_admin import FTP_USER_PREFIX
 from idgo_admin import LOGIN_URL
 
+
+logger = logging.getLogger('idgo_admin')
 
 decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
 
@@ -241,12 +243,24 @@ class ResourceManager(View):
                     resource = Resource.objects.get(pk=id)
                     for k, v in kvp.items():
                         setattr(resource, k, v)
-                if organisations_allowed is not None:  # important
+                    resource.save(**save_opts)
+
+                update_m2m = False
+                if organisations_allowed is None:
+                    logger.info("Clear all `resource.organisations_allowed`.")
+                    resource.organisations_allowed.clear()
+                else:
                     resource.organisations_allowed = organisations_allowed
-                if profiles_allowed is not None:  # important
+                    update_m2m = True
+                if profiles_allowed is None:
+                    logger.info("Clear all `resource.profiles_allowed`.")
+                    resource.profiles_allowed.clear()
+                else:
                     resource.profiles_allowed = profiles_allowed
-                save_opts['synchronize'] = True
-                resource.save(**save_opts)
+                    update_m2m = True
+                resource.save(update_m2m=update_m2m)
+                resource.synchronize()
+
         except ValidationError as e:
             if e.code == 'crs':
                 form.add_error(e.code, '')

@@ -10,6 +10,10 @@
 <script src="{% static 'libs/wicket/wicket.js' %}"></script>
 <link rel="stylesheet" href="{% static 'libs/leaflet/leaflet.css' %}"/>
 <link rel="stylesheet" href="{% static 'libs/leaflet.draw/leaflet.draw.css' %}"/>
+{% if IDGO_EXTRACTOR_SITE_CSS %}
+<link rel="stylesheet" href="{{ IDGO_EXTRACTOR_SITE_CSS }}"/>
+{% endif %}
+
 {% endblock head_extras %}
 
 {% block body %}
@@ -174,7 +178,10 @@
                               {% endif %}
                             {% endfor %}
                           </select>
-                        </div>
+                        </div>{% if IDGO_EXTRACTOR_CAUTION_MESSAGE %}
+                        <div>
+                          <p>{{ IDGO_EXTRACTOR_CAUTION_MESSAGE|safe }}</p>
+                        </div>{% endif %}
                         <div style="text-align: center; margin-top: 30px; margin-bottom: 30px;">
                           <button type="button" name="extract" class="btn btn-default{% if not dataset %} disabled{% endif %}">Extraire <span class="glyphicon glyphicon-chevron-right"></span></button>
                         </div>
@@ -192,11 +199,13 @@
   </div>
   {% endblock main %}
   {% block footer %}
-    {% include "idgo_admin/footer.html" %}
+    {% if IDGO_EXTRACTOR_SITE_FOOTER %}{{ IDGO_EXTRACTOR_SITE_FOOTER|safe }}{% else %}
+    {% include "idgo_admin/footer.html" %}{% endif %}
   {% endblock footer %}
 </div>
 <script>
 $(function() {
+
   const $window = $(window);
 
   var ctrlPressed;
@@ -312,11 +321,35 @@ $(function() {
   qs['dataset'] = '{{ dataset.slug }}';
   qs['resource'] = '{{ resource.ckan_id }}';
 
-    {% if resource_beta %}
+  targetLayer = L.tileLayer.wms('{% url "idgo_admin:ows_preview" %}', {
+    format: 'image/png',
+    layers: targetLayerNames.join(),
+    styles: targetLayerStyles.join(),
+    transparent: true,
+  });
+
+  layers.push(targetLayer);
+  // bounds = {{ layer.mra_info.bbox|default:None|safe }};
+
+  updateUrl({withHash: false, refresh: false});
+
+  {% elif organisation and dataset and resource_beta %}
+
+  let targetLayerNames = [];
+  let targetLayerStyles = [];
+
+  targetLayerNames.push('{{ layer.mra_info.name }}');
+    {% if layer.mra_info.styles.default %}
+  targetLayerStyles.push('{{ layer.mra_info.styles.default|default:"" }}');
+    {% endif %}
+
+  delete qs['layer'];
+  qs['organisation'] = '{{ organisation.slug }}';
+  qs['dataset'] = '{{ dataset.slug }}';
+
   targetLayerNames.push('{{ resource_beta.geographiclayer.mra_layer.name }}')
   targetLayerStyles.push('');
   qs['resource_beta'] = '{{ resource_beta.ckan_id }}';
-    {% endif %}
 
   targetLayer = L.tileLayer.wms('{% url "idgo_admin:ows_preview" %}', {
     format: 'image/png',

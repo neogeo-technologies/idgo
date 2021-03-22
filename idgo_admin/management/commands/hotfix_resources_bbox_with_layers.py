@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -12,6 +12,9 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+
+
+""" HOTFIX """
 
 
 import logging
@@ -55,13 +58,14 @@ class Command(BaseCommand):
         super().__init__(*args, **kwargs)
 
     def handle(self, *args, **options):
-        total = Resource.objects.all().count()
+        queryset = Resource.objects.all().order_by('id')
+        total = queryset.count()
         count = 0
-        for resource in Resource.objects.all().order_by('id'):
+        for instance in queryset:
             count += 1
             logger.info("[%d/%d] - Checking: %s | %s" % (
-                count, total, resource.pk, resource.ckan_url))
-            layers = resource.get_layers()
+                count, total, instance.pk, instance.ckan_url))
+            layers = instance.get_layers()
             if layers:
                 toggle = False
                 for layer in layers:
@@ -97,9 +101,9 @@ class Command(BaseCommand):
 
                 if toggle:
                     logger.info("[%d/%d] - Saving Resource %s" % (
-                        count, total, resource.pk))
+                        count, total, instance.pk))
                     try:
-                        resource.save(synchronize=True, skip_download=False)
+                        instance.save(synchronize=True, skip_download=False)
                     except Exception as e:
                         logger.exception(e)
                         logger.error("[%d/%d] - ERROR: %s" % (

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -21,17 +21,24 @@ from django.core.management.base import BaseCommand
 from idgo_admin.models import Dataset
 
 
-logger = logging.getLogger('idgo_admin')
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
 
-    help = ""
+    help = "Forcer la sauvegarde de tous les jeux de données."
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def handle(self, *args, **options):
-        for dataset in Dataset.objects.all():
-            logger.warning('Save dataset: {pk}'.format(pk=dataset.pk))
-            dataset.save(current_user=None, synchronize=True)
+        queryset = Dataset.default.all().order_by('id')
+        total = queryset.count()
+        count = 0
+        for instance in queryset:
+            count += 1
+            logger.info("[%d/%d] - Save Dataset %d." % (count, total, instance.pk))
+            try:
+                instance.save(current_user=None, synchronize=True)
+            except Exception as e:
+                logger.exception(e)

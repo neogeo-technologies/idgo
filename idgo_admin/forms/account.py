@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -48,7 +48,7 @@ from idgo_admin.models import Dataset
 from idgo_admin.models import Gdpr
 from idgo_admin.models import Organisation
 
-from idgo_admin import IDGO_REDUCED_TO_PARTNER
+from idgo_admin import IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS
 
 
 class UserForgetPassword(forms.Form):
@@ -390,7 +390,7 @@ class SignUpForm(forms.Form):
             self.add_error('password2', 'Vérifiez les mots de passes.')
         self.cleaned_data['password'] = self.cleaned_data.pop('password1')
 
-        if IDGO_REDUCED_TO_PARTNER:
+        if IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS:
             organisation = self.cleaned_data['organisation']
             if organisation and not organisation.is_crige_partner:
                 self.cleaned_data['contributor'] = False

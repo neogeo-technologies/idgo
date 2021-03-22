@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,6 +14,14 @@
 # under the License.
 
 
+""" DEPRECATED
+
+Utiliser django-celery-beat avec la tâche : `clean_up_actions_out_of_delay`.
+"""
+
+
+import logging
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -22,9 +30,12 @@ from idgo_admin.models import LiaisonsContributeurs
 from idgo_admin.models import LiaisonsReferents
 
 
+logger = logging.getLogger(__name__)
+
+
 class Command(BaseCommand):
 
-    help = 'Nettoyer les demandes obsolètes.'
+    help = "Nettoyer les demandes obsolètes."
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
@@ -34,59 +45,59 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        del_org = []
-        del_profile = []
+        organisations_to_delete = []
+        profiles_to_delete = []
+
         old_actions = AccountActions.objects.filter(
             closed=None, created_on__lte=self.n_days_ago(2))
 
-        for act in old_actions:
-            pro_name, org_name = 'N/A', 'N/A'
+        for action in old_actions:
+            username = 'N/A'
+            org_name = 'N/A'
 
-            if act.profile.user:
-                pro_name = act.profile.user.username
-            if act.profile.organisation:
-                org_name = act.profile.organisation.legal_name
+            if action.profile.user:
+                username = action.profile.user.username
 
-            if act.action == 'confirm_rattachement':
-                print("clean_up_action Rattachement: {0}".format(pro_name))
+            if action.profile.organisation:
+                org_name = action.profile.organisation.legal_name
 
-            if act.action == 'confirm_mail':
-                print("clean_up_action Profile: {0}".format(pro_name))
-                del_profile.append(act.profile)
+            # if action.action == 'reset_password':
+            #     pass TODO ?
 
-            if act.action == 'confirm_new_organisation':
-                print("clean_up_action - New Orga: {0}".format(org_name))
-                del_org.append(act.profile.organisation)
+            # if action.action == 'confirm_rattachement':
+            #     pass TODO ?
 
-            if act.action == 'confirm_contribution':
+            if action.action == 'confirm_mail':
+                profiles_to_delete.append(action.profile)
+
+            if action.action == 'confirm_new_organisation':
+                organisations_to_delete.append(action.profile.organisation)
+
+            if action.action == 'confirm_contribution':
                 liaison = LiaisonsContributeurs.objects.get(
-                    profile=act.profile, organisation=act.organisation)
-                print("clean_up_action contribution: {0}-{1}".format(
-                    pro_name, act.organisation.legal_name))
+                    profile=action.profile,
+                    organisation=action.organisation)
                 liaison.delete()
 
-            if act.action == 'confirm_referent':
+                logger.info("Delete LiaisonsContributeurs: %s / %s" % (
+                    username, action.organisation.legal_name))
+
+            if action.action == 'confirm_referent':
                 liaison = LiaisonsReferents.objects.get(
-                    profile=act.profile, organisation=act.organisation)
-                print("clean_up_action referent: {0}-{1}".format(
-                    pro_name, act.organisation.legal_name))
+                    profile=action.profile, organisation=action.organisation)
                 liaison.delete()
 
-            if act.action == 'reset_password':
-                print("clean_up_action Reset Password: {0}".format(act))
+                logger.info("Delete LiaisonsReferents: %s / %s" % (
+                    username, action.organisation.legal_name))
 
-            act.delete()
+            action.delete()
 
-        # Fait en second pour ne pas 'casser' la boucle précédente,
-        # à cause des cascade_on_delete
-        for p in del_profile:
+        # Fait en second pour ne pas 'casser' la boucle précédente à cause des cascade_on_delete
+        for profile in profiles_to_delete:
+            profile.delete()
+            user.delete()
+            logger.info("Delete User/Profile: %s" % profile.user.username)
 
-            print("clean_up db - Profile: {0}".format(p.user.username))
-            u = p.user
-            p.delete()
-            print("clean_up db - User: {0}".format(u.username))
-            u.delete()
-
-        for o in del_org:
-            print("clean_up db - New Orga: {0}".format(o.name))
-            o.delete()
+        for organisation in organisations_to_delete:
+            organisation.delete()
+            logger.info("Delete Organisation %s" % organisation.name)

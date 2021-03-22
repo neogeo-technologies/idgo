@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,6 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+
+import logging
 import uuid
 
 from django.contrib.auth.decorators import login_required
@@ -59,6 +61,8 @@ from idgo_admin.views.organisation import referent_subscribe_process
 
 from idgo_admin import LOGIN_URL
 
+
+logger = logging.getLogger('idgo_admin')
 
 decorators = [csrf_exempt, login_required(login_url=LOGIN_URL)]
 
@@ -441,7 +445,7 @@ def create_sftp_account(request):
     try:
         password = user.profile.create_ftp_account()
     except Exception as e:
-        print(e)
+        logger.exception(e)
         # TODO: Géré les exceptions
         messages.error(
             request, "Une erreur est survenue lors de la création de votre compte sFTP.")
@@ -472,7 +476,7 @@ def change_sftp_password(request):
     try:
         password = profile.create_ftp_account(change=True)
     except Exception as e:
-        print(e)
+        logger.exception(e)
         # TODO: Géré les exceptions
         messages.error(
             request, "Une erreur est survenue lors de la création de votre compte sFTP.")
@@ -501,7 +505,7 @@ def delete_sftp_account(request):
     try:
         profile.delete_ftp_account()
     except Exception as e:
-        print(e)
+        logger.exception(e)
         # TODO: Géré les exceptions
         messages.error(
             request, "Une erreur est survenue lors de la suppression de votre compte sFTP.")
