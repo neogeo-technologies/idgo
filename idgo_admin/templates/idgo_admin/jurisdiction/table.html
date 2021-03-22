@@ -137,7 +137,7 @@ $(function() {
         const $input = $('<input/>')
           .prop('type', 'text')
           .prop('class', 'form-control')
-          .prop('placeholder', 'Nom du jeu de données à supprimer')
+          .prop('placeholder', "Nom du territoire de compétence à supprimer")
           .on('input', function(e) {
             if ($(this).val() === $row.find('td[name="name"]')[0].innerText.trim()) {
               $button.removeClass('disabled').prop('disabled', false);

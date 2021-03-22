@@ -47,7 +47,7 @@
         <li>
           <a role="button" name="edit-resources" href="#" style="text-align: right;">Éditer les ressources associées</a>
         </li>
-        {% if user.profile.crige_membership %}
+        {% if not IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and user.profile.crige_membership %}
         <li>
           <a role="button" name="mdedit-dataset" href="#" style="text-align: right;">Éditer la fiche de métadonnées INSPIRE</a>
         </li>
@@ -101,7 +101,7 @@ $(function() {
   const $deleteDataset = $div.find('[name="delete-dataset"]');
   const $editDataset = $div.find('[name="edit-dataset"]');
   const $editResources = $div.find('[name="edit-resources"]');
-  {% if user.profile.crige_membership %}
+  {% if not IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and user.profile.crige_membership %}
   const $MDEditDatasets = $div.find('[name="mdedit-dataset"]');
   {% endif %}
   const $publishDataset = $div.find('[name="publish-dataset"]');
@@ -135,7 +135,7 @@ $(function() {
       $editDataset.prop('href', '{% url "idgo_admin:dataset" %}?id=' + id);
       $editResources.prop('href', '{% url "idgo_admin:dataset" %}?id=' + id + '#resources');
 
-      {% if user.profile.crige_membership %}
+      {% if not IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and user.profile.crige_membership %}
       const isIDGO = $row.find('td[name="organisation"]').attr('idgo');
       if (typeof isIDGO !== typeof undefined && isIDGO !== false) {
         $MDEditDatasets.show();

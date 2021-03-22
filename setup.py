@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -19,7 +19,7 @@ from setuptools import find_packages
 from setuptools import setup
 
 
-version = '1.4.2'
+version = '1.5.0'
 
 
 def parse_requirements(filename):

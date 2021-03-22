@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -53,7 +53,11 @@ from idgo_admin.models import Support
 from idgo_admin.shortcuts import get_object_or_404_extended
 
 from idgo_admin import CKAN_URL
+from idgo_admin import ENABLE_CKAN_HARVESTER
+from idgo_admin import ENABLE_CSW_HARVESTER
+from idgo_admin import ENABLE_DCAT_HARVESTER
 from idgo_admin import LOGIN_URL
+
 
 if apps.is_installed('idgo_resource'):
     from idgo_resource.models import Resource as ResourceModel_Beta
@@ -103,15 +107,30 @@ def get_filtered_datasets(QuerySet, params, profile=None):
 
     license = params.get('license', None)
     if license:
-        filters['license__id'] = license
+        filters['license__slug'] = license
 
-    synchronisation = {'true': True, 'false': False}.get(params.get('sync', '').lower())
-    if synchronisation:
-        filters['resource__synchronisation'] = synchronisation
-
+    synchronisation = {
+        'true': True, 'false': False}.get(params.get('sync', '').lower())
     sync_frequency = params.get('syncfrequency', None)
-    if synchronisation and sync_frequency:
-        filters['resource__sync_frequency'] = sync_frequency
+
+    harvested_remote = []
+    if ENABLE_CKAN_HARVESTER:
+        harvested_remote.append('harvested_ckan')
+    if ENABLE_CSW_HARVESTER:
+        harvested_remote.append('harvested_csw')
+    if ENABLE_DCAT_HARVESTER:
+        harvested_remote.append('harvested_dcat')
+    qs_name = getattr(QuerySet, 'name', False)
+    if qs_name in harvested_remote:
+        if synchronisation and sync_frequency:
+            k = 'remote{remote}dataset__remote_instance__sync_frequency'.format(
+                remote=qs_name.split('_')[-1])
+            filters[k] = sync_frequency
+    else:
+        if synchronisation:
+            filters['resource__synchronisation'] = synchronisation
+        if synchronisation and sync_frequency:
+            filters['resource__sync_frequency'] = sync_frequency
 
     resource_format = params.get('resourceformat', None)
     if resource_format:
@@ -178,9 +197,25 @@ def handle_context(QuerySet, qs, user=None, target='mine'):
         {'id': instance.slug, 'name': instance.description}
         for instance in ResourceFormats.objects.filter(pk__in=pk__in)]
 
-    all_update_frequencies = [
-        {'id': choice[0], 'name': choice[1]}
-        for choice in Resource.FREQUENCY_CHOICES]
+    if ENABLE_CKAN_HARVESTER:
+        from idgo_admin.models import RemoteCkan  # noqa
+        all_update_frequencies = [
+            {'id': choice[0], 'name': choice[1]}
+            for choice in RemoteCkan.FREQUENCY_CHOICES]
+    elif ENABLE_CSW_HARVESTER:
+        from idgo_admin.models import RemoteCsw  # noqa
+        all_update_frequencies = [
+            {'id': choice[0], 'name': choice[1]}
+            for choice in RemoteCsw.FREQUENCY_CHOICES]
+    elif ENABLE_DCAT_HARVESTER:
+        from idgo_admin.models import RemoteDcat  # noqa
+        all_update_frequencies = [
+            {'id': choice[0], 'name': choice[1]}
+            for choice in RemoteDcat.FREQUENCY_CHOICES]
+    else:
+        all_update_frequencies = [
+            {'id': choice[0], 'name': choice[1]}
+            for choice in Resource.FREQUENCY_CHOICES]
 
     return {
         'target': target,
@@ -248,39 +283,41 @@ def list_all_datasets(request, *args, **kwargs):
         request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
-@login_required(login_url=LOGIN_URL)
-@csrf_exempt
-def list_all_ckan_harvested_datasets(request, *args, **kwargs):
-    user = request.user
+if ENABLE_CKAN_HARVESTER:
+    @login_required(login_url=LOGIN_URL)
+    @csrf_exempt
+    def list_all_ckan_harvested_datasets(request, *args, **kwargs):
+        user = request.user
 
-    # Réservé aux référents ou administrateurs métiers
-    roles = user.profile.get_roles()
-    if not roles['is_referent'] and not roles['is_admin']:
-        raise Http404()
-    context = handle_context(
-        Dataset.harvested_ckan, request.GET, target='ckan_harvested')
-    return render(
-        request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
-
-
-@login_required(login_url=LOGIN_URL)
-@csrf_exempt
-def list_all_csw_harvested_datasets(request, *args, **kwargs):
-    user = request.user
-
-    # Réservé aux référents ou administrateurs métiers
-    roles = user.profile.get_roles()
-    if not roles['is_referent'] and not roles['is_admin']:
-        raise Http404()
-    context = handle_context(
-        Dataset.harvested_csw, request.GET, target='csw_harvested')
-    return render(
-        request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
+        # Réservé aux référents ou administrateurs métiers
+        roles = user.profile.get_roles()
+        if not roles['is_referent'] and not roles['is_admin']:
+            raise Http404()
+        context = handle_context(
+            Dataset.harvested_ckan, request.GET, target='ckan_harvested')
+        return render(
+            request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
 
 
-from idgo_admin import ENABLE_DCAT_HARVESTER  # noqa
+if ENABLE_CSW_HARVESTER:
+    @login_required(login_url=LOGIN_URL)
+    @csrf_exempt
+    def list_all_csw_harvested_datasets(request, *args, **kwargs):
+        user = request.user
+
+        # Réservé aux référents ou administrateurs métiers
+        roles = user.profile.get_roles()
+        if not roles['is_referent'] and not roles['is_admin']:
+            raise Http404()
+
+        context = handle_context(
+            Dataset.harvested_csw, request.GET, target='csw_harvested')
+
+        return render(
+            request, 'idgo_admin/dataset/datasets.html', status=200, context=context)
+
+
 if ENABLE_DCAT_HARVESTER:
-
     @login_required(login_url=LOGIN_URL)
     @csrf_exempt
     def list_all_dcat_harvested_datasets(request, *args, **kwargs):
@@ -302,7 +339,6 @@ class DatasetManager(View):
     def get_context(self, form, user, dataset):
 
         resource_list_rows = []
-        # > > > > > > BETA  < < < < < < #
         if BETA and dataset:
             for resource in ResourceModel_Beta.objects.filter(dataset=dataset):
                 data = (
@@ -316,7 +352,6 @@ class DatasetManager(View):
                     str(resource.ckan_id),
                     )
                 resource_list_rows.append(data)
-        # > > > > > > BETA  < < < < < < #
 
         layer_rows = []
         resource_rows = []

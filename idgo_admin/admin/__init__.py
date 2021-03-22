@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -23,6 +23,7 @@ from idgo_admin.admin.jurisdiction import *
 from idgo_admin.admin.license import *
 from idgo_admin.admin.mail import *
 from idgo_admin.admin.organisation import *
+from idgo_admin.admin.support import *
 from idgo_admin.admin.supported_crs import *
 from idgo_admin.admin.task import *
 from idgo_admin.admin.user import *

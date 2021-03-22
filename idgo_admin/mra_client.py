@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -80,7 +80,7 @@ class MRASyncingError(MraBaseError):
 
 class MRANotFoundError(MraBaseError):
 
-    message = "Not Found"
+    message = "Erreur MRA : Not Found"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -88,7 +88,7 @@ class MRANotFoundError(MraBaseError):
 
 class MRAConflictError(MraBaseError):
 
-    message = "Conflict"
+    message = "Erreur MRA : Conflict"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -96,7 +96,7 @@ class MRAConflictError(MraBaseError):
 
 class MRATimeoutError(MraBaseError):
 
-    message = "Time out"
+    message = "Erreur MRA : Time out"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -104,7 +104,7 @@ class MRATimeoutError(MraBaseError):
 
 class MRACriticalError(MraBaseError):
 
-    message = "Le jeu de données provoque une erreur critique. Veuillez contacter l'administrateur du site."
+    message = "Erreur MRA : Le jeu de données provoque une erreur critique. Veuillez contacter l'administrateur du site."
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

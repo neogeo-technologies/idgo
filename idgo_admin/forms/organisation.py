@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -40,7 +40,7 @@ from idgo_admin.models import Jurisdiction
 from idgo_admin.models import License
 from idgo_admin.models import Organisation
 
-from idgo_admin import IDGO_REDUCED_TO_PARTNER
+from idgo_admin import IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS
 
 
 logger = logging.getLogger('idgo_admin')
@@ -101,7 +101,7 @@ class OrganisationForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        if IDGO_REDUCED_TO_PARTNER:
+        if IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS:
             self.fields['contributor_process'].initial = False
             self.fields['contributor_process'].widget = forms.HiddenInput()
             self.fields['referent_process'].initial = False
@@ -125,7 +125,7 @@ class OrganisationForm(forms.ModelForm):
             legal_name = self.cleaned_data.get('legal_name')
             if Organisation.objects.filter(slug=slugify(legal_name)).count() > 0:
                 self.add_error('legal_name', 'Une organisation portant le même nom existe déjà.')
-            if IDGO_REDUCED_TO_PARTNER:
+            if IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS:
                 self.cleaned_data['contributor_process'] = False
                 self.cleaned_data['referent_process'] = False
         if self.instance and not self.user.profile.is_idgo_admin:
@@ -375,7 +375,8 @@ from idgo_admin import ENABLE_DCAT_HARVESTER  # noqa
 if ENABLE_DCAT_HARVESTER:
 
     from idgo_admin.dcat_module import DcatBaseHandler
-    from idgo_admin.dcat_module import DcatBaseError
+    from idgo_admin.dcat_module import DcatError
+    from idgo_admin.dcat_module import DcatTimeoutError
     from idgo_admin.models import RemoteDcat
 
     # =================================
@@ -437,95 +438,13 @@ if ENABLE_DCAT_HARVESTER:
                     with DcatBaseHandler(instance.url) as dcat:
                         organisations = dcat.get_all_publishers(
                             include_dataset_count=True)
-                except CkanBaseError as e:
+                except (DcatError, DcatTimeoutError) as e:
                     self.add_error('url', e.message)
                 else:
                     self.fields['sync_with'].choices = tuple(
                         (m['name'], '%s (%d)' % (m['name'], m['count']))
                         for m in organisations)
 
-                # mapping = []
-                #
-                # Initialize categories mapping
-                # =============================
-                # try:
-                #     with DcatBaseHandler(instance.url) as dcat:
-                #         remote_categories = dcat.get_all_categories(all_fields=True)
-                # except DcatBaseError as e:
-                #     logger.error(e)
-                # else:
-                #     fields_name = []
-                #     for remote_category in remote_categories:
-                #         field_name = ''.join(['cat_', remote_category['name']])
-                #         fields_name.append(field_name)
-                #         try:
-                #             filter = {'remote_ckan': instance, 'slug': field_name[4:]}
-                #             initial = MappingCategory.objects.filter(**filter).first().category
-                #         except Exception as e:
-                #             logger.warning(e)
-                #             try:
-                #                 initial = Category.objects.get(slug=field_name[4:])
-                #             except Exception as e:
-                #                 logger.warning(e)
-                #                 initial = None
-                #
-                #         self.fields[field_name] = forms.ModelChoiceField(
-                #             label=remote_category['title'],
-                #             empty_label="Sélectionnez une valeur",
-                #             required=False,
-                #             queryset=Category.objects.all(),
-                #             initial=initial,
-                #             )
-                #
-                #     mapping.append({
-                #         'name': 'Category',
-                #         'title': 'Categories',
-                #         'fields_name': fields_name,
-                #         })
-                #
-                # Initialize licences mapping
-                # ===========================
-                # try:
-                #     with DcatBaseHandler(instance.url) as dcat:
-                #         remote_licenses = dcat.get_all_licenses(all_fields=True)
-                # except DcatBaseError as e:
-                #     logger.error(e)
-                # else:
-                #     fields_name = []
-                #     for remote_license in remote_licenses:
-                #         field_name = ''.join(['lic_', remote_license['id']])
-                #         fields_name.append(field_name)
-                #         try:
-                #             filter = {'remote_ckan': instance, 'slug': field_name[4:]}
-                #             initial = MappingLicence.objects.filter(**filter).first().licence
-                #         except Exception as e:
-                #             logger.warning(e)
-                #             try:
-                #                 initial = License.objects.get(slug=field_name[4:])
-                #             except Exception as e:
-                #                 logger.warning(e)
-                #                 initial = None
-                #
-                #         self.fields[field_name] = forms.ModelChoiceField(
-                #             label=remote_license['title'],
-                #             empty_label="Sélectionnez une valeur",
-                #             required=False,
-                #             queryset=License.objects.all(),
-                #             initial=initial,
-                #             )
-                #
-                #     mapping.append({
-                #         'name': 'License',
-                #         'title': 'Licences',
-                #         'fields_name': fields_name,
-                #         })
-
             else:
                 self.fields['sync_with'].widget = forms.HiddenInput()
                 self.fields['sync_frequency'].widget = forms.HiddenInput()
-
-        # def get_category_fields(self):
-        #     return [self[val] for val in self.fields if val.startswith('cat')]
-
-        # def get_licence_fields(self):
-        #     return [self[val] for val in self.fields if val.startswith('lic')]

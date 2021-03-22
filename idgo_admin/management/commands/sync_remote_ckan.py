@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2019 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,9 +14,14 @@
 # under the License.
 
 
+""" DEPRECATED
+
+Utiliser django-celery-beat avec la tâche : `sync_remote_catalogs`.
+"""
+
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-
 from idgo_admin.models import RemoteCkan
 
 

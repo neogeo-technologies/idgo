@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,18 +14,33 @@
 # under the License.
 
 
+import logging
+
 from django.core.management.base import BaseCommand
 
 from idgo_admin.models import Jurisdiction
 
 
+logger = logging.getLogger(__name__)
+
+
 class Command(BaseCommand):
 
-    help = ""
+    help = "Forcer la sauvegarde de tous les territoires de compétence."
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def handle(self, *args, **options):
-        for instance in Jurisdiction.objects.all():
-            instance.save()
+        queryset = Jurisdiction.objects.all().order_by('code')
+        total = queryset.count()
+        count = 0
+        for instance in queryset:
+            count += 1
+            logger.info("[%d/%d] - Save Jurisdiction '%s'." % (count, total, instance.code))
+            try:
+                instance.save()
+            except Exception as e:
+                logger.exception(e)
+                logger.info("Continue")
+

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,10 +14,15 @@
 # under the License.
 
 
+""" DEPRECATED
+
+Utiliser django-celery-beat avec la tâche : `send_sync_report_mail`.
+"""
+
+
 import csv
-# from datetime import datetime
 from io import StringIO
-# import time
+import logging
 
 from django.core.mail import EmailMessage
 from django.core.management.base import BaseCommand
@@ -31,7 +36,7 @@ from idgo_admin.models import Task
 from idgo_admin import DEFAULT_FROM_EMAIL
 
 
-# ISO_CALENDAR = datetime.now().isocalendar()
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):

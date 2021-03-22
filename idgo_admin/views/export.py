@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -16,6 +16,7 @@
 
 from collections import OrderedDict
 import csv
+import logging
 from operator import ior
 import unicodecsv
 from urllib.parse import urljoin
@@ -38,6 +39,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 
+from idgo_admin.ckan_module import CkanHandler
 from idgo_admin.exceptions import ExceptionsHandler
 from idgo_admin.exceptions import ProfileHttp404
 from idgo_admin.models import Dataset
@@ -49,6 +51,9 @@ from idgo_admin.views.dataset import get_filtered_datasets
 from idgo_admin import CKAN_URL
 from idgo_admin import DEFAULT_PLATFORM_NAME
 from idgo_admin import IDGO_EXPORT_CSV_ODL_EXTENT_PREFIX
+
+
+logger = logging.getLogger('idgo_admin')
 
 
 COLL_NOM = F('organisation__legal_name')
@@ -127,6 +132,7 @@ class Export(View):
 
         outputformat = qs.get('format')
         if not outputformat or outputformat not in ('odl', 'odl-idgo-extent'):
+            logger.error("Export `outputformat` value '%s' is not supported." % outputformat)
             raise Http404()
 
         if outputformat == 'odl':
@@ -155,7 +161,7 @@ class Export(View):
                 # ('LANG', LANG),
                 ('URL', URL)
                 ))
-        else:
+        if outputformat == 'odl-idgo-extent':
             annotate = OrderedDict((
                 ('COLL_NOM', COLL_NOM),
                 ('COLL_SIRET', COLL_SIRET),
@@ -193,12 +199,21 @@ class Export(View):
                 ('PROJECTION', PROJECTION),
                 ('LANG', LANG),
                 ))
+        else:
+            raise Http404()
 
         values = list(annotate.keys())
 
         if not profile:
-            ids = qs.get('ids', '').split(',')
-            datasets = Dataset.objects.filter(ckan_id__in=[UUID(id) for id in ids])
+            ckan_id__in = []
+            for id in qs.get('ids', '').split(','):
+                try:
+                    ckan_id__in.append(UUID(id))
+                except ValueError as e:
+                    logger.error("%s: id = `%s`" % (e.__str__(), id))
+                    continue
+            datasets = Dataset.objects.filter(ckan_id__in=ckan_id__in)
+
         elif 'mode' in qs:
             mode = qs.get('mode')
             if mode == 'all':
@@ -219,6 +234,7 @@ class Export(View):
             elif mode == 'csw_harvested':
                 QuerySet = Dataset.harvested_csw
             else:
+                logger.error("Export `mode` value '%s' is not supported." % mode)
                 raise Http404()
             datasets = get_filtered_datasets(QuerySet, qs)
 
@@ -229,6 +245,18 @@ class Export(View):
         writer = unicodecsv.writer(response, encoding='utf-8', quoting=csv.QUOTE_ALL, delimiter=',', quotechar='"')
         writer.writerow(values)
         for row in datasets.annotate(**annotate).values(*values):
+            if outputformat == 'odl-idgo-extent':
+                dataset_view = 0
+                resources_dl = 0
+                package = CkanHandler.get_package(str(row['ID']), include_tracking=True)
+                if 'tracking_summary' in package:
+                    dataset_view = package['tracking_summary'].get('total')
+                    resources_dl = package['tracking_summary'].get('download')
+                row['%s_DATASET_VUES' % PREFIX] = dataset_view
+                row['%s_RESSOURCES_TELECHARGEMENT' % PREFIX] = resources_dl
+                row['%s_DATASET_NOTE' % PREFIX] = package.get('rating')
+                row['%s_DATASET_NB_NOTES' % PREFIX] = package.get('ratings_count')
+
             writer.writerow([row[value] for value in values])
 
         return response

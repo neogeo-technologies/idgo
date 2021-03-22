@@ -65,7 +65,7 @@
 
     {# TODO Facto #}
 
-    {% if IDGO_REDUCED_TO_PARTNER %}
+    {% if IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS %}
 
     {% if organisation.is_crige_partner %}
     {% if organisation not in user.profile.awaiting_contributor_status %}
@@ -109,7 +109,7 @@
 
     {% endif %}
 
-    {% if not IDGO_REDUCED_TO_PARTNER %}
+    {% if not IDGO_CONTRIBUTION_REDUCED_TO_PARTNERS %}
 
     {% if organisation not in user.profile.awaiting_contributor_status %}
     <button role="button" name="switch-contributor" class="btn btn-default btn-block">

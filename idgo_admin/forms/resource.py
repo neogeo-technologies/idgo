@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -433,5 +433,17 @@ class ResourceForm(forms.ModelForm):
             for k, v in res_l.items():
                 if v:
                     self.add_error(k, error_msg)
+
+        if self.cleaned_data['restricted_level'] in [
+                'public', 'registered', 'only_idgo_partners']:
+            self.cleaned_data['profiles_allowed'] = None
+            self.cleaned_data['organisations_allowed'] = None
+
+        elif self.cleaned_data['restricted_level'] == 'only_allowed_users':
+            self.cleaned_data['organisations_allowed'] = None
+
+        elif self.cleaned_data['restricted_level'] in [
+                'same_organization', 'any_organization']:
+            self.cleaned_data['profiles_allowed'] = None
 
         return self.cleaned_data

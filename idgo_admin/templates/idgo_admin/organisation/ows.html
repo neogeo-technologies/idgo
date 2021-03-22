@@ -1,59 +1,47 @@
-<div id="#ows">
+{% if user.profile.is_admin or organisation in user.profile.referent_for %}
+<form id="#form-ows" method="post" action="{% url "idgo_admin:organisation_ows" %}?id={{ organisation.id }}" enctype="multipart/form-data">
+  {% csrf_token %}
   <div class="row">
     <div class="col-xs-12">
-      <div class="form-group">
-        <label for="ows-onlineresource">URL du service</label>
-        <div class="form-control-static">
+      <dl>
+        <dt>URL du service</dt>
+        <dd>
           <a target="_blank" href="{{ organisation.ows_url }}">{{ organisation.ows_url }}</a>
-        </div>
+        </dd>
+        <dt>Titre</dt>
+        <dd>
+          <input class="form-control" id="ows_title" name="title" value="{{ organisation.ows_settings.title|safe }}"></input>
+        </dd>
+        <dt>Description</dt>
+        <dd>
+          <textarea class="form-control" id="ows_abstract" name="abstract" rows=6>{{ organisation.ows_settings.abstract|safe }}</textarea>
+        </dd>
+      </dl>
+      <br>
+      <div class="buttons-on-the-right-side">
+        <button type="submit" name="save" class="btn btn-primary">Enregistrer</button>
       </div>
     </div>
   </div>
-  <div class="row">
-    <div class="col-xs-12">
-      <div class="form-group">
-        <label for="ows_title">Titre</label>
-        <input class="form-control" id="ows_title" name="title" value="{{ organisation.ows_settings.title }}"></input>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-xs-12">
-      <div class="form-group">
-        <label for="ows_abstract">Description</label>
-        <textarea class="form-control" id="ows_abstract" name="abstract" rows=6>{{ organisation.ows_settings.abstract }}</textarea>
-      </div>
-    </div>
-  </div>
-  <div class="buttons-on-the-right-side">
-    <button type="button" name="save" class="btn btn-primary">Enregistrer</button>
-  </div>
-</div>
+</form>
 <script>
 $(function() {
-
-  const $div = $('#ows');
-  const $title = $div.find('input[name=title]');
-  const $abstract = $div.find('textarea[name=abstract]');
-  const $save = $div.find('button[name=save]');
-
-  $save.click(function(e) {
-    e.preventDefault();
-    $.ajax({
-      type: 'POST',
-      url: '{% url "idgo_admin:organisation_ows" %}?id={{ organisation.id }}',
-      data: {
-        'title': $title.val(),
-        'abstract': $abstract.val()
-      },
-      success: function(data, status, xhr) {
-        location.reload();
-      },
-      error: function(xhr, statut, error) {
-        location.reload();
-      }
-    });
+  $('#form-ows').submit(function() {
+    $modalHourglass.modal('show');
   });
-
 });
-</script>
+</script>{% else %}
+<div class="row">
+  <div class="col-xs-12">
+    <dl>
+      <dt>URL du service</dt>
+      <dd>
+        <a target="_blank" href="{{ organisation.ows_url }}">{{ organisation.ows_url }}</a>
+      </dd>
+      <dt>Titre</dt>
+      <dd>{{ organisation.ows_settings.title|safe }}</dd>
+      <dt>Description</dt>
+      <dd>{{ organisation.ows_settings.abstract|safe }}</dd>
+    </dl>
+  </div>
+</div>{% endif %}

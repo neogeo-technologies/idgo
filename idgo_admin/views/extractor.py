@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,6 +15,7 @@
 
 
 import json
+import logging
 from math import ceil
 import re
 import requests
@@ -54,11 +55,17 @@ from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_NAME as IDGO_EXTRACTOR_DB_NA
 from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_USERNAME as IDGO_EXTRACTOR_DB_USERNAME
 from idgo_admin import IDGO_GEOGRAPHIC_LAYER_MRA_DB_PASSWORD as IDGO_EXTRACTOR_DB_PASSWORD
 
+from idgo_admin import IDGO_FONCTIONAL_REDUCED_TO_PARTNERS
+
+
+logger = logging.getLogger('idgo_admin')
+
 
 if apps.is_installed('idgo_resource') \
         and apps.is_installed('idgo_geographic_layer'):
     from idgo_resource.models import Resource as ResourceBeta
     from idgo_geographic_layer.models import GeographicLayer as GeographicLayerBeta
+    logger.info("'idgo_resource' is installed: BETA mode is on.")
     BETA = True
 else:
     BETA = False
@@ -145,7 +152,7 @@ class ExtractorDashboard(View):
     def get(self, request, *args, **kwargs):
 
         user = request.user
-        if not user.profile.crige_membership:
+        if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership:
             raise Http404()
 
         order_by = request.GET.get('sortby', '-submission')
@@ -191,7 +198,7 @@ class ExtractorDashboard(View):
     def post(self, request, *args, **kwargs):
 
         user = request.user
-        if not user.profile.crige_membership:
+        if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership:
             raise Http404()
 
         if 'revoke' in request.POST:
@@ -262,21 +269,32 @@ class Extractor(View):
             except AsyncExtractorTask.DoesNotExist:
                 pass
             else:
-                if task.model == 'Layer':
+                if task.app_label == 'idgo_admin' and task.model == 'Layer':
                     context['task'] = task
                     context['layer'] = task.target_object
                     context['resource'] = task.target_object.resource
                     context['dataset'] = task.target_object.resource.dataset
                     context['organisation'] = task.target_object.resource.dataset.organisation
-                elif task.model == 'Resource':
+                    logger.info("[Task] Layer: %s" % task.target_object)
+                elif task.app_label == 'idgo_admin' and task.model == 'Resource':
                     context['task'] = task
                     context['layer'] = task.target_object.get_layers()[0]  # Dans la version actuelle relation 1-1
                     context['resource'] = task.target_object
                     context['dataset'] = task.target_object.dataset
                     context['organisation'] = task.target_object.dataset.organisation
-                elif task.model == 'Dataset':
+                    logger.info("[Task] Resource: %s" % task.target_object)
+                elif BETA and (
+                        task.app_label == 'idgo_resource' and task.model == 'Resource'):
+                    context['task'] = task
+                    context['layer_beta'] = task.target_object.geographiclayer
+                    context['resource_beta'] = task.target_object
+                    context['dataset'] = task.target_object.dataset
+                    context['organisation'] = task.target_object.dataset.organisation
+                    logger.info("[Task] Resource BETA: %s" % task.target_object)
+                elif task.app_label == 'idgo_admin' and task.model == 'Dataset':
                     context['dataset'] = task.target_object
                     context['organisation'] = task.target_object.organisation
+                    logger.info("[Task] Dataset: %s" % task.target_object)
 
                 data_extractions = task.query['data_extractions']
                 for entry in data_extractions:
@@ -290,15 +308,14 @@ class Extractor(View):
                             if format.type == 'vector':
                                 context['format_vector'] = format.name
 
-        # /!\ BETA /!\
         if BETA:
-            resource_beta = kwargs.get('resource_beta')
+            resource_beta = kwargs.get('resource_beta', None)
             if resource_beta:
                 resource_beta = self.get_instance(ResourceBeta, resource_beta)
                 context['resource_beta'] = resource_beta
                 context['dataset'] = resource_beta.dataset
                 context['organisation'] = resource_beta.dataset.organisation
-        # /!\ BETA /!\
+                logger.info("BETA Resource: %s" % resource_beta)
 
         # Les paramètres Layer Resource Dataset et Organisation écrase Task
         if layer:
@@ -307,70 +324,64 @@ class Extractor(View):
             context['resource'] = layer.resource
             context['dataset'] = layer.resource.dataset
             context['organisation'] = layer.resource.dataset.organisation
+            logger.info("Layer: %s" % layer)
         elif resource:
             resource = self.get_instance(Resource, resource)
             context['resource'] = resource
             context['dataset'] = resource.dataset
             context['organisation'] = resource.dataset.organisation
+            logger.info("Resource: %s" % resource)
         elif dataset:
             dataset = self.get_instance(Dataset, dataset)
             context['dataset'] = dataset
             context['organisation'] = dataset.organisation
+            logger.info("Dataset: %s" % dataset)
         elif organisation:
             organisation = self.get_instance(Organisation, organisation)
             context['organisation'] = organisation
+            logger.info("Organisation: %s" % organisation)
+
+        # Construit les listes
 
         context['organisations'] = Organisation.objects.filter(
             dataset__resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
-            ).distinct()
-        # /!\ BETA /!\
+            ).distinct().order_by('legal_name')
         if BETA:
             organisations_beta = Organisation.objects.filter(
                 dataset__idgo_resources__in=ResourceBeta.objects.all().exclude(geographiclayer=None)
-                ).distinct()
+                ).distinct().order_by('legal_name')
             context['organisations'] = (context['organisations'] | organisations_beta).distinct()
-        # /!\ BETA /!\
 
         context['datasets'] = Dataset.objects.filter(
             organisation=context['organisation'],
             resource__in=Resource.objects.filter(extractable=True).exclude(layer=None)
-            ).distinct()
-
-        # /!\ BETA /!\
+            ).distinct().order_by('title')
         if BETA:
             datasets_beta = Dataset.objects.filter(
                 organisation=context['organisation'],
                 idgo_resources__in=ResourceBeta.objects.all().exclude(geographiclayer=None)
-                ).distinct()
+                ).distinct().order_by('title')
             context['datasets'] = (context['datasets'] | datasets_beta).distinct()
-        # /!\ BETA /!\
 
         # Modèle de ressource v1
         context['resources'] = Resource.objects.filter(
             dataset=context['dataset'],
             extractable=True
-            ).exclude(layer=None)
+            ).exclude(layer=None).distinct().order_by('title')
 
         if len(context['resources']) == 1 and not context['resource']:
             context['resource'] = context['resources'][0]
 
         layers = Layer.objects.filter(resource=context['resource'])
-
         if not context['layer'] and layers:
             context['layer'] = layers[0]
 
-        # Modèle de ressource v2 (bêta)
-        # /!\ BETA /!\
         if BETA:
             context['resources_beta'] = ResourceBeta.objects.filter(
-                dataset=context['dataset']).exclude(geographiclayer=None)
-            if len(context['resources_beta']) == 1 and not context.get('resource_beta'):
+                dataset=context['dataset']
+                ).exclude(geographiclayer=None).distinct().order_by('title')
+            if not context.get('resource_beta') and context['resources_beta']:
                 context['resource_beta'] = context['resources_beta'][0]
-            # layers_beta = GeographicLayerBeta.objects.filter(
-            #     resource=context.get('resource_beta'))
-            # if not context.get('layer_beta') and layers_beta:
-            #     context['layer_beta'] = layers_beta[0]
-        # /!\ BETA /!\
 
         return context
 
@@ -383,12 +394,11 @@ class Extractor(View):
             'layer': request.GET.get('layer'),
             'task': request.GET.get('task'),
             }
-        # /!\ BETA /!\
+
         if BETA:
             qs_params.update({
                 'resource_beta': request.GET.get('resource_beta'),
                 })
-        # /!\ BETA /!\
 
         context = self._context(user, **qs_params)
 
@@ -410,17 +420,13 @@ class Extractor(View):
         context['crs'] = request.GET.get('crs', default_crs)
 
         try:
-            default_vector_format = \
-                ExtractorSupportedFormat.objects.get(
-                    name='shapefile', type='vector').name
+            default_vector_format = ExtractorSupportedFormat.objects.get(name='shapefile', type='vector').name
         except ExtractorSupportedFormat.DoesNotExist:
             default_vector_format = None
         context['format_vector'] = request.GET.get('format_vector', context['format_vector'] or default_vector_format)
 
         try:
-            default_raster_format = \
-                ExtractorSupportedFormat.objects.get(
-                    name='geotiff_no_compressed', type='raster').details
+            default_raster_format = ExtractorSupportedFormat.objects.filter(type='raster').first().details
         except ExtractorSupportedFormat.DoesNotExist:
             default_raster_format = None
         context['format_raster'] = request.GET.get('format_raster', context['format_raster'] or default_raster_format)
@@ -445,7 +451,7 @@ class Extractor(View):
 
     def get(self, request, *args, **kwargs):
         user = request.user
-        if not user.profile.crige_membership:
+        if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership:
             raise Http404()
 
         return render(
@@ -454,7 +460,7 @@ class Extractor(View):
 
     def post(self, request, *args, **kwargs):
         user = request.user
-        if not user.profile.crige_membership:
+        if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership:
             raise Http404()
 
         context = self.get_context(request, user)
@@ -462,13 +468,10 @@ class Extractor(View):
         footprint = footprint and json.loads(footprint)
         layer_name = request.POST.get('layer')
         resource_name = request.POST.get('resource')
-        dataset_name = request.POST.get('dataset')
-        dst_crs = request.POST.get('crs')
-
-        # /!\ BETA /!\
         if BETA:
             resource_beta_name = request.POST.get('resource_beta')
-        # /!\ BETA /!\
+        dataset_name = request.POST.get('dataset')
+        dst_crs = request.POST.get('crs')
 
         format_vector = request.POST.get('format-vector') or None
         if format_vector:
@@ -483,7 +486,6 @@ class Extractor(View):
         data_extractions = []
         additional_files = []
 
-        # /!\ BETA /!\
         if BETA and resource_beta_name:
             model = 'Resource'
             app_label = 'idgo_resource'
@@ -495,37 +497,19 @@ class Extractor(View):
             if layer_beta.mra_layer.config_json.get('type') == 'RASTER':
                 data_extraction = {
                     **{'source': resource_beta._related.virtual_mosaic_file_path},
-                    **dst_format_raster
-                    }
+                    **dst_format_raster}
             else:
-                # TODO
-                pass
+                pass  # raise NotImplementedError
 
-            # if resource_beta_name:  # geo_restriction TODO ???
-            #     footprint_restriction = \
-            #         json.loads(user.profile.organisation.jurisdiction.geom.geojson)
-            #     if footprint:
-            #         try:
-            #             data_extraction['footprint'] = intersect(json.dumps(footprint), json.dumps(footprint_restriction))
-            #         except Exception:
-            #             msg = "La zone d'extraction génère une erreur"
-            #             messages.error(request, msg)
-            #             return render(request, self.template, context=context)
-            #     else:
-            #         data_extraction['footprint'] = footprint_restriction
-            #     data_extraction['footprint_srs'] = 'EPSG:4326'
-            # elif footprint:
+            # TODO geo_restriction?
+
             if footprint:
                 data_extraction['footprint'] = footprint
                 data_extraction['footprint_srs'] = 'EPSG:4326'
 
             data_extractions.append(data_extraction)
-            # Pas d'`additional_files` dans le cas présent.
 
-            data_extractions.append(data_extraction)
-        # /!\ BETA /!\
-
-        if layer_name or resource_name:  # /!\ BETA /!\
+        elif layer_name or resource_name:
             if layer_name:
                 model = 'Layer'
                 app_label = 'idgo_admin'
@@ -560,15 +544,16 @@ class Extractor(View):
                             },
                         **dst_format_vector
                         }
-
             data_extraction['dst_srs'] = dst_crs or 'EPSG:2154'
 
             if resource_name and resource.geo_restriction:
-                footprint_restriction = \
-                    json.loads(user.profile.organisation.jurisdiction.geom.geojson)
+                footprint_restriction = json.loads(
+                    user.profile.organisation.jurisdiction.geom.geojson)
                 if footprint:
                     try:
-                        data_extraction['footprint'] = intersect(json.dumps(footprint), json.dumps(footprint_restriction))
+                        data_extraction['footprint'] = intersect(
+                            json.dumps(footprint),
+                            json.dumps(footprint_restriction))
                     except Exception:
                         msg = "La zone d'extraction génère une erreur"
                         messages.error(request, msg)
@@ -579,9 +564,7 @@ class Extractor(View):
             elif footprint:
                 data_extraction['footprint'] = footprint
                 data_extraction['footprint_srs'] = 'EPSG:4326'
-
             data_extractions.append(data_extraction)
-            # Pas d'`additional_files` dans le cas présent.
 
         elif dataset_name:
             model = 'Dataset'
@@ -610,10 +593,12 @@ class Extractor(View):
                     data_extraction['dst_srs'] = dst_crs or 'EPSG:2154'
 
                     if resource.geo_restriction:
-                        footprint_restriction = \
-                            json.loads(user.profile.organisation.jurisdiction.geom.geojson)
+                        footprint_restriction = json.loads(
+                            user.profile.organisation.jurisdiction.geom.geojson)
                         if footprint:
-                            data_extraction['footprint'] = intersect(json.dumps(footprint), json.dumps(footprint_restriction))
+                            data_extraction['footprint'] = intersect(
+                                json.dumps(footprint),
+                                json.dumps(footprint_restriction))
                         else:
                             data_extraction['footprint'] = footprint_restriction
                         data_extraction['footprint_srs'] = 'EPSG:4326'
@@ -638,7 +623,8 @@ class Extractor(View):
             'user_company': user.profile.organisation and user.profile.organisation.legal_name or '',
             'user_address': user.profile.organisation and user.profile.organisation.full_address or '',
             'data_extractions': data_extractions,
-            'additional_files': additional_files}
+            'additional_files': additional_files,
+            }
 
         r = requests.post(EXTRACTOR_URL, json=query)
 
@@ -664,8 +650,11 @@ class Extractor(View):
         else:
             if r.status_code == 400:
                 details = r.json().get('detail')
-                msg = '{}: {}'.format(details.get('title', 'Error'),
-                                      ' '.join(details.get('list', 'Error')))
+                try:
+                    msg = '{}: {}'.format(details.get('title', 'Error'),
+                        ' '.join(details.get('list', 'Error')))
+                except:
+                    msg = str(details)
             else:
                 msg = "L'extracteur n'est pas disponible pour le moment."
             messages.error(request, msg)

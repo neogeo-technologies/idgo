@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,9 +14,20 @@
 # under the License.
 
 
+""" DEPRECATED
+
+Utiliser django-celery-beat avec la tâche : `sync_extractor_tasks`.
+"""
+
+
+import logging
+
 from django.core.management.base import BaseCommand
 
 from idgo_admin.models import AsyncExtractorTask
+
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -27,5 +38,5 @@ class Command(BaseCommand):
         super().__init__(*args, **kwargs)
 
     def handle(self, *args, **options):
-        # la synchronisation s'effectue à la pré-initiation des objects
-        AsyncExtractorTask.objects.all()
+        for instance in AsyncExtractorTask.objects.filter(success=None):
+            logger.info("Check extractor task: %s." % str(instance.uuid))

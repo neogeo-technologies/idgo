@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Neogeo-Technologies.
+# Copyright (c) 2017-2021 Neogeo-Technologies.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -119,7 +119,7 @@ class DcatExceptionsHandler(object):
             except Exception as e:
                 logger.exception(e)
                 if isinstance(e, timeout_decorator.TimeoutError):
-                    raise DcatTimeoutError
+                    raise DcatTimeoutError()
                 if self.is_ignored(e):
                     return f(*args, **kwargs)
                 raise DcatError("Une erreur critique est survenue lors de l'appel au DCAT distant.")
@@ -499,13 +499,19 @@ class DcatBaseHandler(object):
 
     def __init__(self, url):
         self.url = url
-        r = requests.get(self.url, verify=False)
+        r = requests.head(self.url, verify=False)
         self.graph = rdflib.Graph()
 
         # application/rdf+xml, application/xml
         if 'xml' in r.headers['content-type']:
-            self.graph.parse(self.url)
-            self.profile = EuropeanDCATAPProfile(self.graph)
+            try:
+                logger.info("Je suis le parser RDF et je peux être très lent.")
+                self.graph.parse(self.url)
+                self.profile = EuropeanDCATAPProfile(self.graph)
+                logger.info("J'ai fini de parser le RDF.")
+            except Exception as e:
+                logger.exception(e)
+                raise DcatError("L'url ne semble pas indiquer un service DCAT.")
             self.xml_dict = self._get_xml_dict()
 
         # 'application/json', 'application/ld+json'
@@ -527,10 +533,19 @@ class DcatBaseHandler(object):
 
             cleanedData = json_url_cleaner(r.json(), 'accessURL')
 
-            self.graph.parse(
-                data=json.dumps(cleanedData), format='json-ld', indent=4)
-            self.profile = EuropeanDCATAPProfile(self.graph)
+            try:
+                logger.info("Je suis le parser RDF et je peux être très lent.")
+                self.graph.parse(
+                    data=json.dumps(cleanedData), format='json-ld', indent=4)
+                self.profile = EuropeanDCATAPProfile(self.graph)
+                logger.info("J'ai fini de parser le RDF.")
+            except Exception as e:
+                logger.exception(e)
+                raise DcatError("L'url ne semble pas indiquer un service DCAT.")
             self.xml_dict = {}
+
+        else:
+            raise DcatError("L'url ne semble pas indiquer un service DCAT.")
 
     def __enter__(self):
         return self
@@ -557,6 +572,7 @@ class DcatBaseHandler(object):
 
     @DcatExceptionsHandler()
     def get_all_publishers(self, include_dataset_count=False):
+        logger.info("Je suis le module RDF et je récupère les publishers, je peux être très lent.")
         lst = []
         for dataset_ref in self.profile._datasets():
             publisher = self.profile._object_value(
@@ -566,48 +582,55 @@ class DcatBaseHandler(object):
         orgs = []
         for org in [m for n, m in enumerate(lst, 1) if m not in lst[n:]]:
             orgs.append({'name': org, 'count': lst.count(org)})
+        logger.info("J'ai fini.")
         return orgs
 
     @DcatExceptionsHandler()
     def get_packages(self, publishers=None):
+        packages = []
         for dataset_ref in self.graph.subjects(RDF.type, DCAT.Dataset):
             publisher = self.profile._object_value(
                 self.profile._object(dataset_ref, DCT.publisher), RDFS.label)
             if publishers and publisher not in publishers:
                 continue
-            dataset_dict = {'state': 'active',
-                            'type': 'dataset',
-                            'id': None,
-                            'name': None,
-                            'title': None,
-                            'notes': None,
-                            'thumbnail': None,
-                            'num_tags': 0,
-                            'tags': [],
-                            'groups': [],
-                            'metadata_created': None,
-                            'metadata_modified': None,
-                            'dataset_creation_date': None,
-                            'dataset_modification_date': None,
-                            'dataset_publication_date': None,
-                            'frequency': None,
-                            'geocover': None,
-                            'granularity': None,
-                            'organization': {},
-                            'license_titles': [],
-                            'support': None,
-                            'datatype': None,
-                            'author': None,
-                            'author_email': None,
-                            'maintainer': None,
-                            'maintainer_email': None,
-                            'num_resources': 0,
-                            'resources': None,
-                            'spatial': None,
-                            'bbox': None,
-                            'xml': None,
-                            }
-            dataset_dict = self.profile.parse_dataset(dataset_dict, dataset_ref)
+            data = {
+                'state': 'active',
+                'type': 'dataset',
+                'id': None,
+                'name': None,
+                'title': None,
+                'notes': None,
+                'thumbnail': None,
+                'num_tags': 0,
+                'tags': [],
+                'groups': [],
+                'metadata_created': None,
+                'metadata_modified': None,
+                'dataset_creation_date': None,
+                'dataset_modification_date': None,
+                'dataset_publication_date': None,
+                'frequency': None,
+                'geocover': None,
+                'granularity': None,
+                'organization': {},
+                'license_titles': [],
+                'support': None,
+                'datatype': None,
+                'author': None,
+                'author_email': None,
+                'maintainer': None,
+                'maintainer_email': None,
+                'num_resources': 0,
+                'resources': None,
+                'spatial': None,
+                'bbox': None,
+                'xml': None,
+                }
+            data = self.profile.parse_dataset(data, dataset_ref)
             # dataset_dict['xml'] = self.xml_dict.pop(dataset_dict['id'])
-            dataset_dict['publisher'] = str(publisher)
-            yield dataset_dict
+            data['publisher'] = str(publisher)
+            packages.append(data)
+
+        print(packages)
+
+        return packages

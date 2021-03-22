@@ -24,10 +24,8 @@
       </div>
       <div class="input-group input-group-sm">
         <select name="category" type="text" class="form-control">
-          <option disabled>Sélectionner une catégorie</option>
-        {% for category in all_categories %}
-          <option value="{{ category.id }}">{{ category.name }}</option>
-        {% endfor %}
+          <option disabled>Sélectionner une catégorie</option>{% for category in all_categories %}
+          <option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}
         </select>
         <span class="input-group-btn">
           <button class="btn" type="button" name="clear">
@@ -63,10 +61,8 @@
         </div>
         <div class="input-group input-group-sm">
           <select name="syncfrequency" type="text" class="form-control">
-            <option disabled>Fréquence de synchronisation</option>
-          {% for update_frequency in all_update_frequencies %}
-            <option value="{{ update_frequency.id }}">{{ update_frequency.name }}</option>
-          {% endfor %}
+            <option disabled>Fréquence de synchronisation</option>{% for update_frequency in all_update_frequencies %}
+            <option value="{{ update_frequency.id }}">{{ update_frequency.name }}</option>{% endfor %}
           </select>
           <span class="input-group-btn">
             <button class="btn" type="button" name="clear">
@@ -76,10 +72,8 @@
         </div>
         <div class="input-group input-group-sm">
           <select name="license" type="text" class="form-control">
-            <option disabled>Licence</option>
-          {% for license in all_licenses %}
-            <option value="{{ license.pk }}">{{ license.name }}</option>
-          {% endfor %}
+            <option disabled>Licence</option>{% for license in all_licenses %}
+            <option value="{{ license.id }}">{{ license.name }}</option>{% endfor %}
           </select>
           <span class="input-group-btn">
             <button class="btn" type="button" name="clear">
@@ -89,10 +83,8 @@
         </div>
         <div class="input-group input-group-sm">
           <select name="resourceformat" type="text" class="form-control">
-            <option disabled>Format de ressource</option>
-          {% for resourceformat in all_resourceformats %}
-            <option value="{{ resourceformat.id }}">{{ resourceformat.name }}</option>
-          {% endfor %}
+            <option disabled>Format de ressource</option>{% for resourceformat in all_resourceformats %}
+            <option value="{{ resourceformat.id }}">{{ resourceformat.name }}</option>{% endfor %}
           </select>
           <span class="input-group-btn">
             <button class="btn" type="button" name="clear">

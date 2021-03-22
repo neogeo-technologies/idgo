@@ -7,10 +7,10 @@
   <ul id="table-layers-paginator" class="pagination pagination-sm"></ul>
 </nav>
 <div class="buttons-on-the-right-side">
-  {% if user.profile.crige_membership %}
-  <button name="extractor" class="btn btn-default">Service d'extraction</button>
-  {% else %}
+  {% if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership %}
   {% include "idgo_admin/extras/restricted_access/button.html" with class="btn btn-default" text="Service d'extraction" name="extractor" modal_target="modal_forbidden" %}
+  {% else %}
+  <button name="extractor" class="btn btn-default">Service d'extraction</button>
   {% endif %}
   <button name="view-ckan" class="btn btn-default">Ouvrir dans CKAN</button>
   <button name="edit-layer" class="btn btn-default">Configurer le service</button>{% if ENABLE_RESOURCE_BETA %}
@@ -92,7 +92,7 @@ $(function() {
     }
   ];
 
-  {% if user.profile.crige_membership %}
+  {% if not IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and user.profile.crige_membership %}
   $('button[name="extractor"]').on('click', function(e) {
     e.preventDefault();
     const data = tableGrid.getRowValues(tableGrid.lastSelectedRowIndex);

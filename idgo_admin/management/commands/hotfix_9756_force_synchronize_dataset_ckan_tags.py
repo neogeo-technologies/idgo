@@ -18,12 +18,11 @@
 
 
 import logging
-from urllib.parse import urljoin
 
 from django.core.management.base import BaseCommand
 
 from idgo_admin.ckan_module import CkanHandler
-from idgo_admin.models import Resource
+from idgo_admin.models import Dataset
 
 
 logger = logging.getLogger(__name__)
@@ -31,33 +30,34 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
 
-    help = """Cf. https://redmine.neogeo.fr/issues/8524"""
+    help = """Cf. https://redmine.neogeo.fr/issues/9756"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def handle(self, *args, **options):
-        total = Resource.objects.all().count()
+        dataset_qs = Dataset.default.filter(keywords__isnull=False).distinct().order_by('id')
+        total = dataset_qs.count()
         count = 0
-        for resource in Resource.objects.all().order_by('id'):
+        for dataset in dataset_qs:
             count += 1
-            logger.info("[%d/%d] - Check Resource '%d'." % (count, total, resource.pk))
+            qs_dataset_keywords = dataset.keywords.all()
 
-            if not resource.up_file:
-                continue
-            # else:
-            url = urljoin(resource.ckan_url, 'download/%s' % resource.up_file.name)
-
-            CkanHandler.update_resource(str(resource.ckan_id), url=url)
-            try:
-                CkanHandler.update_resource(str(resource.ckan_id), url=url)
-            except Exception as e:
-                logger.error(
-                    "Error with Resource '%d' - '%s'." % (
-                        resource.pk, resource.title))
-                logger.exception(e)
-                logger.warning("Continue...")
+            ckan_id = str(dataset.ckan_id)
 
             logger.info(
-                "Updated Resource '%d' - '%s' (filename: '%s')." % (
-                    resource.pk, resource.title, resource.up_file.name))
+                "[%d/%d] - Synchronize Dataset %d (%s) with tags: '%s'." % (
+                    count,
+                    total,
+                    dataset.pk,
+                    ckan_id,
+                    "', '".join([k.name for k in qs_dataset_keywords]))
+                    )
+
+            try:
+                CkanHandler.publish_dataset(
+                    id=ckan_id,
+                    tags=[{'name': k.name} for k in qs_dataset_keywords])
+            except Exception as e:
+                logger.exception(e)
+                logger.warning("Error was ingored.")
