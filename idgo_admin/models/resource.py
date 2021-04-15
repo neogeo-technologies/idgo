@@ -431,7 +431,8 @@ class Resource(models.Model):
     # =================
 
     def save(self, *args, current_user=None, synchronize=False,
-             file_extras=None, skip_download=False, update_m2m=False, **kwargs):
+             file_extras=None, skip_download=False,
+             update_m2m=False, update_dataset=True, **kwargs):
 
         if update_m2m:
             return super().save(*args, **kwargs)
@@ -814,10 +815,11 @@ class Resource(models.Model):
         for layer in self.get_layers():
             layer.save(synchronize=synchronize)
 
-        self.dataset.date_modification = timezone.now().date()
-        self.dataset.save(current_user=None,
-                          synchronize=True,
-                          update_fields=['date_modification'])
+        if update_dataset:
+            self.dataset.date_modification = timezone.now().date()
+            self.dataset.save(current_user=None,
+                              synchronize=True,
+                              update_fields=['date_modification'])
 
     def delete(self, *args, current_user=None, synchronize_dataset=True, **kwargs):
         with_user = current_user
