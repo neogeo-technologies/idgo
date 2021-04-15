@@ -569,7 +569,9 @@ if ENABLE_CKAN_HARVESTER:
 
                                 save_opts = {
                                     'current_user': editor,
-                                    'synchronize': True}
+                                    'synchronize': True,
+                                    'update_dataset': False,
+                                    }
 
                                 kvp = {
                                     'ckan_id': ckan_id,
@@ -951,7 +953,9 @@ if ENABLE_CSW_HARVESTER:
 
                             save_opts = {
                                 'current_user': editor,
-                                'synchronize': True}
+                                'synchronize': True,
+                                'update_dataset': False,
+                                }
 
                             kvp = {
                                 'ckan_id': ckan_id,
@@ -1174,6 +1178,7 @@ if ENABLE_DCAT_HARVESTER:
                         date_creation = package.get('dataset_creation_date', None)
                         if date_creation:
                             try:
+                                date_creation = date_creation.split('T')[0]
                                 date_creation = datetime.strptime(date_creation, ISOFORMAT_DATE)
                             except ValueError as e:
                                 logger.warning(e)
@@ -1182,6 +1187,7 @@ if ENABLE_DCAT_HARVESTER:
                         date_modification = package.get('dataset_modification_date', None)
                         if date_modification:
                             try:
+                                date_modification = date_modification.split('T')[0]
                                 date_modification = datetime.strptime(date_modification, ISOFORMAT_DATE)
                             except ValueError as e:
                                 logger.warning(e)
@@ -1190,6 +1196,7 @@ if ENABLE_DCAT_HARVESTER:
                         date_publication = package.get('dataset_publication_date', None)
                         if date_publication:
                             try:
+                                date_publication = date_publication.split('T')[0]
                                 date_publication = datetime.strptime(date_publication, ISOFORMAT_DATE)
                             except ValueError as e:
                                 logger.warning(e)
@@ -1283,7 +1290,9 @@ if ENABLE_DCAT_HARVESTER:
 
                             save_opts = {
                                 'current_user': editor,
-                                'synchronize': True}
+                                'synchronize': True,
+                                'update_dataset': False,
+                            }
 
                             kvp = {
                                 'ckan_id': ckan_id,

@@ -423,7 +423,7 @@ class EuropeanDCATAPProfile(RDFProfile):
         for key, predicate in (
                 ('metadata_created', DCT.issued),
                 ('dataset_creation_date', DCT.issued),
-                ('dataset_publication_date', DCT.issued),
+                ('dataset_publication_date', None),  # DCT.issued? DCT.modified?
                 ('metadata_modified', DCT.modified),
                 ('dataset_modification_date', DCT.modified),
                 ('id', DCT.identifier),
