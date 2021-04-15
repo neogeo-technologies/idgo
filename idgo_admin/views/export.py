@@ -233,6 +233,8 @@ class Export(View):
                 QuerySet = Dataset.harvested_ckan
             elif mode == 'csw_harvested':
                 QuerySet = Dataset.harvested_csw
+            elif mode == 'dcat_harvested':
+                QuerySet = Dataset.harvested_dcat
             else:
                 logger.error("Export `mode` value '%s' is not supported." % mode)
                 raise Http404()
