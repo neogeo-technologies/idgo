@@ -161,7 +161,7 @@ class Export(View):
                 # ('LANG', LANG),
                 ('URL', URL)
                 ))
-        if outputformat == 'odl-idgo-extent':
+        elif outputformat == 'odl-idgo-extent':
             annotate = OrderedDict((
                 ('COLL_NOM', COLL_NOM),
                 ('COLL_SIRET', COLL_SIRET),
