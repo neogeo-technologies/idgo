@@ -26,12 +26,10 @@ from celery.signals import before_task_publish
 from celery.signals import task_postrun
 from celery.utils.log import get_task_logger
 
-from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
 from django.utils import timezone
 
 from idgo_admin.ckan_module import CkanHandler
-from idgo_admin.ckan_module import CkanUserHandler
 from idgo_admin.models import AccountActions
 from idgo_admin.models import AsyncExtractorTask
 from idgo_admin.models import Category
@@ -186,14 +184,12 @@ def sync_ckan_allowed_users_by_resource(*args, **kwargs):
 
         logger.info("Update 'restricted' for Resource '%d'" % resource.pk)
 
-        apikey = CkanHandler.get_user(dataset.editor.username)['apikey']
-        with CkanUserHandler(apikey=apikey) as ckan:
-            try:
-                package = ckan.get_package(str(dataset.ckan_id))
-                ckan.push_resource(package, **ckan_params)
-            except Exception as e:
-                logger.exception(e)
-                logger.info("Continue...")
+        try:
+            package = CkanHandler.get_package(str(dataset.ckan_id))
+            CkanHandler.push_resource(package, **ckan_params)
+        except Exception as e:
+            logger.exception(e)
+            logger.info("Continue...")
 
 
 @celery_app.task()
