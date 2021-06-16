@@ -116,7 +116,7 @@ class JurisdictionField(forms.ModelChoiceField):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('empty_label', 'Aucun')
         kwargs.setdefault('label', 'Territoire de compétence')
-        kwargs.setdefault('queryset', Jurisdiction.objects.all())
+        kwargs.setdefault('queryset', Jurisdiction.objects.all().order_by('name'))
         kwargs.setdefault('required', False)
 
         super().__init__(*args, **kwargs)

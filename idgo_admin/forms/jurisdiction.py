@@ -61,7 +61,7 @@ class JurisdictionForm(forms.ModelForm):
 
     jurisdiction = forms.ModelChoiceField(
         label="Rechercher un territoire existant",
-        queryset=Jurisdiction.objects.all(),
+        queryset=Jurisdiction.objects.all().order_by('name'),
         required=False,
         empty_label=None,
         widget=InputTypeahead(

@@ -73,7 +73,7 @@ def jurisdictions(request, *args, **kwargs):
     if not user.profile.is_admin:
         raise Http404()
 
-    jurisdictions = Jurisdiction.objects.all()
+    jurisdictions = Jurisdiction.objects.all().order_by('name')
 
     # Gestion du tri
     order_by = request.GET.get('sortby', None)
