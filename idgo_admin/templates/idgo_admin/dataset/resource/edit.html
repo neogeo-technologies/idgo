@@ -17,8 +17,10 @@
     <div class="col-xs-12">
       <p>
         Votre ressource fait l'objet d'une couche géographique publiée à travers l'API OGC de votre organisation.
-        Ce service est disponible et exploitable dans un logiciel SIG avec l'adresse suivante :
-        <a target="_blank" href="{{ resource.dataset.organisation.ows_url }}">{{ resource.dataset.organisation.ows_url }}</a>
+        Ce service est disponible et exploitable dans un logiciel SIG avec l'url suivante :
+        <a target="_blank" href="{{ resource.dataset.organisation.ows_url }}?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.3.0">
+          {{ resource.dataset.organisation.ows_url }}
+        </a>
       </p>
       {% if IDGO_FONCTIONAL_REDUCED_TO_PARTNERS and not user.profile.crige_membership %}
       <p>Pour configurer votre service, veuillez contacter un administrateur {{ DEFAULT_PLATFORM_NAME }}.</p>
