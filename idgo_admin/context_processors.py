@@ -50,6 +50,11 @@ from idgo_admin import IDGO_USER_PARTNER_LABEL_PLURAL
 from idgo_admin import IDGO_EXTRACTOR_CAUTION_MESSAGE
 
 
+if apps.is_installed('idgo_lme_majic'):
+    IDGO_LME_MAJIC_ACTIVATE = True
+else:
+    IDGO_LME_MAJIC_ACTIVATE = False
+
 if apps.is_installed('idgo_resource'):
     from idgo_resource.models import Resource as ResourceModel_Beta
     BETA = True
@@ -106,4 +111,6 @@ def global_vars(request):
         'IDGO_ORGANISATION_PARTNER_LABEL_PLURAL': IDGO_ORGANISATION_PARTNER_LABEL_PLURAL,
         'IDGO_USER_PARTNER_LABEL': IDGO_USER_PARTNER_LABEL,
         'IDGO_USER_PARTNER_LABEL_PLURAL': IDGO_USER_PARTNER_LABEL_PLURAL,
+
+        'IDGO_LME_MAJIC_ACTIVATE': IDGO_LME_MAJIC_ACTIVATE,
         }

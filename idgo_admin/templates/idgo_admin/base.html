@@ -229,6 +229,14 @@ $(document).ajaxSend(function(e, xhr, settings) {
                 <a href="{% url 'idgo_admin:extractor_dashboard' %}" role="tab">Extractions</a>
                 {% endif %}
               </li>
+              {% if IDGO_LME_MAJIC_ACTIVATE %}{% if user.profile.is_referent or user.profile.is_admin or user.is_superuser %}
+              <li role="presentation">
+                <a href="{% url 'idgo_lme_majic:majic' %}" role="tab">MAJIC</a>
+              </li>
+              <li role="presentation">
+                <a href="{% url 'idgo_lme_majic:lme' %}" role="tab">LME</a>
+              </li>
+              {% endif %}{% endif %}
               {% block nav_content_extra %}
               {% endblock nav_content_extra %}
             </ul>

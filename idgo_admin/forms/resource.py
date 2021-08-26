@@ -401,7 +401,6 @@ class ResourceForm(forms.ModelForm):
                 widget=forms.HiddenInput(),
             )
 
-
     def clean(self):
 
         if self._instance and self.user != self._instance.dataset.editor:
