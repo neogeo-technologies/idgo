@@ -91,8 +91,7 @@ def download(url, media_root, **kwargs):
 
     def get_content_header_param(txt, param):
         try:
-            found = re.search('{0}="?([^;"\n\r\t\0\s\X\R\v]+)"?'.format(param), txt)
-            # found = re.search('{0}=\"?([^;^\"]+)\"?'.format(param), txt)
+            found = re.search('{0}=\"?([^;^\"]+)\"?'.format(param), txt)
         except Exception as e:
             logger.exception(e)
             logger.warning("Error is ignored.")
