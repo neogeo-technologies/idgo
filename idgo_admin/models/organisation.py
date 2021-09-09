@@ -509,8 +509,7 @@ if ENABLE_CKAN_HARVESTER:
                             else:
                                 license = mapping_licence.licence
 
-                            slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), package.get('name'))[:100]
-
+                            slug = ('sync-%s' % ckan_id)[:100]
                             kvp = {
                                 'slug': slug,
                                 'title': package.get('title'),
@@ -879,7 +878,7 @@ if ENABLE_CSW_HARVESTER:
                                     logger.warning('La mise à jour de la fiche de métadonnées a échoué.')
                                     logger.error(e)
 
-                        slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), slugify(geonet_id))[:100]
+                        slug = ('sync-%s' % str(geonet_id))[:100]
                         kvp = {
                             'slug': slug,
                             'title': package.get('title'),
@@ -904,7 +903,7 @@ if ENABLE_CSW_HARVESTER:
                             dataset, created = Dataset.harvested_csw.update_or_create(**kvp)
                         except Exception as e:
                             logger.exception(e)
-                            warnings.warn("Impossible de moissonner le jeu de données '%s' : `%s`" % (ckan_id, e.__str__()))
+                            warnings.warn("Impossible de moissonner le jeu de données '%s' : `%s`" % (geonet_id, e.__str__()))
                             continue
 
                         if created:
@@ -1165,8 +1164,8 @@ if ENABLE_DCAT_HARVESTER:
                     count = 0
                     for package in packages:
                         count += 1
-                        geonet_id = str(uuid.uuid4())
-                        logger.info("[%d/%d] - Get DCAT Record '%s'." % (count, total, str(geonet_id)))
+                        dcat_id = package.get('id')
+                        logger.info("[%d/%d] - Get DCAT Record '%s'." % (count, total, str(dcat_id)))
 
                         update_frequency = dict(Dataset.FREQUENCY_CHOICES).get(
                             package.get('frequency'), 'unknown')
@@ -1216,7 +1215,7 @@ if ENABLE_DCAT_HARVESTER:
                             except License.DoesNotExist:
                                 license = License.objects.first()
 
-                        slug = 'sync{}-{}'.format(str(uuid.uuid4())[:7].lower(), slugify(geonet_id))[:100]
+                        slug = ('sync-%s' % slugify(package.get('id')))[:100]
                         kvp = {
                             'slug': slug,
                             'title': package.get('title'),
@@ -1231,7 +1230,7 @@ if ENABLE_DCAT_HARVESTER:
                             'organisation': self.organisation,
                             'published': not package.get('private'),
                             'remote_instance': self,
-                            'remote_dataset': geonet_id,
+                            'remote_dataset': dcat_id,
                             'remote_organisation': package.get('publisher'),
                             'update_frequency': update_frequency,
                             'bbox': package.get('bbox'),
@@ -1241,7 +1240,7 @@ if ENABLE_DCAT_HARVESTER:
                             dataset, created = Dataset.harvested_dcat.update_or_create(**kvp)
                         except Exception as e:
                             logger.exception(e)
-                            warnings.warn("Impossible de moissonner le jeu de données '%s' : `%s`" % (ckan_id, e.__str__()))
+                            warnings.warn("Impossible de moissonner le jeu de données '%s' : `%s`" % (dcat_id, e.__str__()))
                             continue
 
                         if created:
