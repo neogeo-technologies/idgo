@@ -112,6 +112,7 @@ class Organisation(models.Model):
         verbose_name="Territoire de compétence",
         blank=True,
         null=True,
+        on_delete=models.SET_NULL,
         )
 
     slug = models.SlugField(
