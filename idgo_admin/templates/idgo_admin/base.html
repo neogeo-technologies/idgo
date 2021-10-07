@@ -233,11 +233,9 @@ $(document).ajaxSend(function(e, xhr, settings) {
               <li role="presentation">
                 <a href="{% url 'idgo_lme_majic:majic' %}" role="tab">MAJIC</a>
               </li>
-	      {% comment %}
               <li role="presentation">
                 <a href="{% url 'idgo_lme_majic:lme' %}" role="tab">LME</a>
               </li>
-	      {% endcomment %}
               {% endif %}{% endif %}
               {% block nav_content_extra %}
               {% endblock nav_content_extra %}
