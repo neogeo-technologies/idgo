@@ -15,6 +15,7 @@
 
 
 from django.apps import apps
+from django.conf import settings
 
 from idgo_admin import HREF_WWW
 from idgo_admin import ENABLE_CSW_HARVESTER
@@ -50,10 +51,11 @@ from idgo_admin import IDGO_USER_PARTNER_LABEL_PLURAL
 from idgo_admin import IDGO_EXTRACTOR_CAUTION_MESSAGE
 
 
+IDGO_MAGIC_ACTIVATE = False
+IDGO_LME_ACTIVATE = False
 if apps.is_installed('idgo_lme_majic'):
-    IDGO_LME_MAJIC_ACTIVATE = True
-else:
-    IDGO_LME_MAJIC_ACTIVATE = False
+    IDGO_LME_ACTIVATE = getattr(settings, 'IDGO_LME_ACTIVATE', True)
+    IDGO_MAJIC_ACTIVATE = getattr(settings, 'IDGO_MAJIC_ACTIVATE', True)
 
 if apps.is_installed('idgo_resource'):
     from idgo_resource.models import Resource as ResourceModel_Beta
@@ -112,5 +114,6 @@ def global_vars(request):
         'IDGO_USER_PARTNER_LABEL': IDGO_USER_PARTNER_LABEL,
         'IDGO_USER_PARTNER_LABEL_PLURAL': IDGO_USER_PARTNER_LABEL_PLURAL,
 
-        'IDGO_LME_MAJIC_ACTIVATE': IDGO_LME_MAJIC_ACTIVATE,
+        'IDGO_LME_ACTIVATE': IDGO_LME_ACTIVATE,
+        'IDGO_MAJIC_ACTIVATE': IDGO_MAJIC_ACTIVATE,
         }
