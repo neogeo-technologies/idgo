@@ -531,7 +531,13 @@ class DcatBaseHandler(object):
                         json_url_cleaner(item, key)
                 return obj
 
-            cleanedData = json_url_cleaner(r.json(), 'accessURL')
+            try:
+                raw_data = r.json()
+            except Exception as e:
+                logger.exception(e)
+                raise DcatError("Le document JSON retourné n'est pas lisible")
+
+            cleanedData = json_url_cleaner(raw_data, 'accessURL')
 
             try:
                 logger.info("Je suis le parser RDF et je peux être très lent.")
