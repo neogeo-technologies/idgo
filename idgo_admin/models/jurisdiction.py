@@ -156,6 +156,7 @@ class JurisdictionCommune(models.Model):
     class Meta(object):
         verbose_name = "Territoire de compétence / Commune"
         verbose_name_plural = "Territoires de compétence / Communes"
+        unique_together = ('jurisdiction', 'commune',)
 
     jurisdiction = models.ForeignKey(
         to='Jurisdiction',
