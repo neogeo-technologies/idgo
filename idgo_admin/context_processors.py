@@ -51,7 +51,7 @@ from idgo_admin import IDGO_USER_PARTNER_LABEL_PLURAL
 from idgo_admin import IDGO_EXTRACTOR_CAUTION_MESSAGE
 
 
-IDGO_MAGIC_ACTIVATE = False
+IDGO_MAJIC_ACTIVATE = False
 IDGO_LME_ACTIVATE = False
 if apps.is_installed('idgo_lme_majic'):
     IDGO_LME_ACTIVATE = getattr(settings, 'IDGO_LME_ACTIVATE', True)
